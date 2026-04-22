@@ -23,7 +23,6 @@ export async function seedSubcategories(
         name: subcategory.name,
         icon: subcategory.icon,
         description: subcategory.description,
-        examples: subcategory.examples,
         allowedMeasurementUnitsAbbreviations:
           subcategory.allowedMeasurementUnitsAbbreviations ?? [],
       }))
@@ -74,7 +73,6 @@ export async function seedSubcategories(
       icon: subcategory.icon,
       status: SubcategoryStatus.ACTIVE,
       description: subcategory.description,
-      examples: subcategory.examples || null,
     };
   });
 

@@ -20,7 +20,7 @@ export const UpdateSubcategoryRequestSchema = SubcategoryBaseSchema.pick({
   name: true,
   icon: true,
   description: true,
-  examples: true,
+  explanation: true,
 })
   .extend({
     measurementUnitIds: z
@@ -40,7 +40,7 @@ export const UpdateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   name: true,
   icon: true,
   description: true,
-  examples: true,
+  explanation: true,
 }).extend({
   category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
   measurementUnits: z.array(

@@ -64,10 +64,9 @@ export const getCarbonInventoryMethodologyService = async (
           name: true,
           synonyms: true,
           description: true,
-          explanationSlug: true,
+          explanation: true,
           icon: true,
           color: true,
-          examples: true,
           position: true,
           subcategories: {
             where: {
@@ -78,8 +77,7 @@ export const getCarbonInventoryMethodologyService = async (
               name: true,
               icon: true,
               description: true,
-              examples: true,
-              explanationSlug: true,
+              explanation: true,
               dimensions: {
                 where: {
                   status: EmissionFactorDimensionStatus.ACTIVE,
@@ -208,14 +206,13 @@ export const getCarbonInventoryMethodologyService = async (
       ...category,
       id: category.id.toString(),
       icon: IconNameSchema.parse(category.icon),
-      explanationSlug: category.explanationSlug ?? null,
+      explanation: category.explanation ?? null,
       subcategories: category.subcategories.map((subcategory) => ({
         id: subcategory.id.toString(),
         name: subcategory.name,
         icon: IconNameSchema.parse(subcategory.icon),
         description: subcategory.description,
-        examples: subcategory.examples,
-        explanationSlug: subcategory.explanationSlug ?? null,
+        explanation: subcategory.explanation ?? null,
         dimensions: subcategory.dimensions.map((dimension) => ({
           ...dimension,
           id: dimension.id.toString(),

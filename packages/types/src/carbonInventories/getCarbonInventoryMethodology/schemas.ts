@@ -75,8 +75,7 @@ const SubcategorySchema = SubcategoryBaseSchema.pick({
   name: true,
   icon: true,
   description: true,
-  examples: true,
-  explanationSlug: true,
+  explanation: true,
 }).extend({
   dimensions: z
     .array(DimensionItemSchema)
@@ -96,8 +95,7 @@ const InventoryCategorySchema = CategoryBaseSchema.pick({
   color: true,
   synonyms: true,
   description: true,
-  explanationSlug: true,
-  examples: true,
+  explanation: true,
   position: true,
 }).extend({
   subcategories: z

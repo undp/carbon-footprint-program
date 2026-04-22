@@ -46,7 +46,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   hasInventorySelected,
   gwpExplanationId,
 }) => {
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationBySlug } = useExplanationDialog();
   const organizationOptions = useSelectorOptions(organizations, "name", "id");
   const selectedInventoryYear = useWatch({ control, name: "year" });
 
@@ -196,7 +196,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Box className="mt-4">
             <InfoButton
               label="Más información"
-              onClick={() => openExplanation(gwpExplanationId ?? null)}
+              onClick={() => openExplanationBySlug(gwpExplanationId ?? null)}
             />
           </Box>
         </Box>

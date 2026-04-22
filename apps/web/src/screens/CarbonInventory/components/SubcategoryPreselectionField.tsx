@@ -19,7 +19,7 @@ export const SubcategoryPreselectionField = ({
   subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
   disabled?: boolean;
 }) => {
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationContent } = useExplanationDialog();
   const { control } = useFormContext();
   const theme = useTheme();
   const isEdited = subcategory.edited;
@@ -84,7 +84,7 @@ export const SubcategoryPreselectionField = ({
                         label="Más información de la subcategoría"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openExplanation(subcategory.explanationSlug);
+                          openExplanationContent(subcategory.explanation);
                         }}
                       />
                     </Box>

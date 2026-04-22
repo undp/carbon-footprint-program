@@ -21,10 +21,7 @@ type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
 interface EmissionEditorHeaderProps
-  extends Pick<
-    Subcategory,
-    "name" | "description" | "explanationSlug" | "icon"
-  > {
+  extends Pick<Subcategory, "name" | "description" | "explanation" | "icon"> {
   categoryColor: string;
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
@@ -42,7 +39,7 @@ interface EmissionEditorHeaderProps
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
-  explanationSlug,
+  explanation,
   icon,
   categoryColor,
   isTotalManualEmissionsModeAvailable,
@@ -57,7 +54,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   onManualModeLineComment,
   hasEmissionFactors,
 }) => {
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationContent } = useExplanationDialog();
   const IconComponent = CATEGORY_ICON_MAP[icon];
   const categoryColorPalette = useMemo(
     () => getColorPalette(categoryColor),
@@ -93,7 +90,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               label="Más información de la subcategoría"
               onClick={(e) => {
                 e.stopPropagation();
-                openExplanation(explanationSlug);
+                openExplanationContent(explanation);
               }}
             />
           </Box>

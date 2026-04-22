@@ -15,7 +15,7 @@ interface CategoryCarouselProps {
     | "color"
     | "synonyms"
     | "description"
-    | "explanationSlug"
+    | "explanation"
   >[];
   selectedCategoryId: string;
   onCategorySelect: (categoryId: string) => void;
@@ -51,7 +51,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
           title={category.name}
           subtitle={category.synonyms}
           description={category.description}
-          explanationSlug={category.explanationSlug}
+          explanation={category.explanation}
           onClick={() => onCategorySelect(category.id)}
         />
       )}

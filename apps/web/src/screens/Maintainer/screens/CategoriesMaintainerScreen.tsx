@@ -156,7 +156,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           color: row.color,
           synonyms: row.synonyms,
           description: row.description,
-          examples: row.examples || null,
+          explanation: row.explanation || null,
           position: row.position,
         });
         fieldArray.update(rowIndex, toFormCategory(result));
@@ -189,7 +189,7 @@ export const CategoriesMaintainerScreen: FC = () => {
             color: row.color,
             synonyms: row.synonyms,
             description: row.description,
-            examples: row.examples || null,
+            explanation: row.explanation || null,
             position: row.position,
           },
         });
@@ -261,7 +261,7 @@ export const CategoriesMaintainerScreen: FC = () => {
       color: "",
       synonyms: "",
       description: "",
-      examples: null,
+      explanation: null,
       position: maxPosition + 1,
     };
     fieldArray.append(newRow);
@@ -389,14 +389,14 @@ export const CategoriesMaintainerScreen: FC = () => {
       const { rowIndex } = explanationModal;
       if (rowIndex < 0) return;
 
-      handleCellChange(rowIndex, "examples", value);
+      handleCellChange(rowIndex, "explanation", value);
 
       const row = form.getValues(`categories.${rowIndex}`);
       if (row && !isNewRow(row.id)) {
         try {
           await updateMutation.mutateAsync({
             id: row.id,
-            data: { examples: value || null },
+            data: { explanation: value || null },
           });
           form.reset({ categories: form.getValues("categories") });
           void enqueueSnackbar({
@@ -453,8 +453,9 @@ export const CategoriesMaintainerScreen: FC = () => {
 
   const explanationValue =
     explanationModal.rowIndex >= 0
-      ? (form.getValues(`categories.${explanationModal.rowIndex}.examples`) ??
-        "")
+      ? (form.getValues(
+          `categories.${explanationModal.rowIndex}.explanation`
+        ) ?? "")
       : "";
 
   if (

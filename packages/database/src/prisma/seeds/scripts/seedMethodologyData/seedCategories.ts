@@ -23,7 +23,6 @@ export async function seedCategories(
       icon: category.icon,
       color: category.color,
       description: category.description,
-      examples: category.examples,
       position: category.position,
     }))
   );
@@ -65,7 +64,6 @@ export async function seedCategories(
       description: category.description,
       icon: category.icon,
       color: category.color,
-      examples: category.examples || null,
       position: category.position,
     };
   });

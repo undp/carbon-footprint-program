@@ -14,9 +14,10 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
     icon: true,
     description: true,
   }).shape,
-  examples: z
+  explanation: z
     .union([z.string().min(1), z.null(), z.literal("").transform(() => null)])
-    .describe("Examples of the subcategory"),
+    .optional()
+    .describe("Inline markdown explanation content, if any"),
   measurementUnitIds: z
     .array(MeasurementUnitBaseSchema.shape.id)
     .refine((ids) => new Set(ids).size === ids.length, {
@@ -36,7 +37,7 @@ export const SubcategoryFormSchema = z.strictObject({
     .max(255, "Nombre no puede exceder 255 caracteres"),
   icon: IconNameFormSchema,
   description: z.string().trim().min(1, "Descripción es requerida"),
-  examples: z
+  explanation: z
     .string()
     .trim()
     .nullable()
@@ -50,7 +51,7 @@ export const CreateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   name: true,
   icon: true,
   description: true,
-  examples: true,
+  explanation: true,
 }).extend({
   category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
   measurementUnits: z.array(

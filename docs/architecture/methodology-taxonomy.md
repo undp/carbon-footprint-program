@@ -69,7 +69,6 @@ model Category {
   name                 String
   synonyms             String         // e.g., "CATEGORIA 1 / ALCANCE 1" (GHG Protocol scope label)
   description          String
-  examples             String?
   position             Int            // display order; must be > 0; unique per methodologyVersion
   icon                 String         // icon key used by the frontend (e.g., "DIRECT_EMISSION")
   color                String         // hex color for UI (e.g., "#FFB74D")
@@ -95,7 +94,6 @@ model Subcategory {
   categoryId  BigInt            @map("category_id")
   name        String
   description String
-  examples    String?
   icon        String            // icon key (e.g., "FACTORY")
   status      SubcategoryStatus @default(ACTIVE)
 

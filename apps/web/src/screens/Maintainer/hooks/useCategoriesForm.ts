@@ -32,7 +32,7 @@ export function toFormCategory(c: Category): CategoryForm {
     color: c.color,
     synonyms: c.synonyms,
     description: c.description,
-    examples: c.examples,
+    explanation: c.explanation,
     position: c.position,
   };
 }

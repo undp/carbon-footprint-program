@@ -27,7 +27,7 @@ export const updateCategoryService = async (
   if (data.color !== undefined) updateData.color = data.color;
   if (data.synonyms !== undefined) updateData.synonyms = data.synonyms;
   if (data.description !== undefined) updateData.description = data.description;
-  if (data.examples !== undefined) updateData.examples = data.examples;
+  if (data.explanation !== undefined) updateData.explanation = data.explanation;
   if (data.position !== undefined) updateData.position = data.position;
 
   if (Object.keys(updateData).length > 0) {

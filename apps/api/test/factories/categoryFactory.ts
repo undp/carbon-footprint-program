@@ -16,7 +16,7 @@ export async function createTestCategory(
       | "color"
       | "synonyms"
       | "description"
-      | "examples"
+      | "explanation"
       | "position"
       | "status"
     >
@@ -32,7 +32,7 @@ export async function createTestCategory(
       color: overrides?.color ?? "#000000",
       synonyms: overrides?.synonyms ?? "test",
       description: overrides?.description ?? "Test category description",
-      examples: overrides?.examples ?? null,
+      explanation: overrides?.explanation ?? null,
       position: overrides?.position ?? 1,
       status: overrides?.status ?? CategoryStatus.ACTIVE,
       createdById: null,

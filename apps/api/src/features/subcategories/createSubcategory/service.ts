@@ -44,7 +44,7 @@ export const createSubcategoryService = async (
           name: data.name,
           icon: data.icon,
           description: data.description,
-          examples: data.examples,
+          explanation: data.explanation ?? null,
           status: SubcategoryStatus.ACTIVE,
           createdById: BigInt(user.id),
           updatedAt: null,
@@ -54,7 +54,7 @@ export const createSubcategoryService = async (
           name: true,
           icon: true,
           description: true,
-          examples: true,
+          explanation: true,
           category: {
             select: { id: true, name: true, color: true },
           },

@@ -78,7 +78,8 @@ export const updateSubcategoryService = async (
       if (data.icon !== undefined) updateData.icon = data.icon;
       if (data.description !== undefined)
         updateData.description = data.description;
-      if (data.examples !== undefined) updateData.examples = data.examples;
+      if (data.explanation !== undefined)
+        updateData.explanation = data.explanation;
 
       await tx.subcategory.update({
         where: { id: BigInt(id) },
@@ -106,7 +107,7 @@ export const updateSubcategoryService = async (
           name: true,
           icon: true,
           description: true,
-          examples: true,
+          explanation: true,
           category: {
             select: { id: true, name: true, color: true },
           },
@@ -129,7 +130,7 @@ export const updateSubcategoryService = async (
         name: subcategory.name,
         icon: IconNameSchema.parse(subcategory.icon),
         description: subcategory.description,
-        examples: subcategory.examples,
+        explanation: subcategory.explanation,
         category: {
           id: subcategory.category.id.toString(),
           name: subcategory.category.name,

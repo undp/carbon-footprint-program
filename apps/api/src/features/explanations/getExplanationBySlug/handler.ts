@@ -7,10 +7,7 @@ export const getExplanationBySlugHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "explanations" });
-  log.info(
-    { explanationSlug: request.params.slug },
-    "Getting explanation by slug..."
-  );
+  log.info({ slug: request.params.slug }, "Getting explanation by slug...");
 
   const prisma = request.server.prisma;
   const explanation = await getExplanationBySlugService(
@@ -18,9 +15,6 @@ export const getExplanationBySlugHandler = async (
     request.params.slug
   );
 
-  log.info(
-    { explanationSlug: request.params.slug },
-    "Explanation retrieved successfully"
-  );
+  log.info({ slug: request.params.slug }, "Explanation retrieved successfully");
   return reply.status(200).send(explanation);
 };

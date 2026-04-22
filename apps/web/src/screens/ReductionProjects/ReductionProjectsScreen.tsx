@@ -46,7 +46,7 @@ export const ReductionProjectsScreen: FC = () => {
     useState<string>("all");
 
   const navigate = useNavigate();
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
@@ -337,7 +337,7 @@ export const ReductionProjectsScreen: FC = () => {
             </Typography>
             <InfoButton
               label="Más información"
-              onClick={() => openExplanation(null)}
+              onClick={() => openExplanationBySlug(null)}
             />
           </Box>
           {/* Create Project Button */}

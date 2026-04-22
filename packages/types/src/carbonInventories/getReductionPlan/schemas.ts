@@ -33,7 +33,7 @@ const CategoryWithSubcategoriesSchema = CategoryBaseSchema.pick({
   icon: true,
   color: true,
   description: true,
-  explanationSlug: true,
+  explanation: true,
 }).extend({
   subcategories: z.array(SubcategoryWithInitiativesSchema),
 });

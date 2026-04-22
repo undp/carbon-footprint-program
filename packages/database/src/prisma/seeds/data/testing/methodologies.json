@@ -13,12 +13,10 @@
         "position": 1,
         "icon": "DIRECT_EMISSION",
         "color": "#FFB74D",
-        "examples": null,
         "subcategories": [
           {
             "name": "Combustiones estacionarias",
             "description": "Equipos no móviles bajo control de la empresa, como calderas, generadores, hornos o cocinas industriales, que operan con diésel, gas, carbón, pellets u otros combustibles.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Combustiones estacionarias_Tipo",
@@ -435,7 +433,6 @@
           {
             "name": "Combustiones móviles (flota propia)",
             "description": "Vehículos y maquinarias móviles que consumen combustibles y son operados por la empresa, como autos, camiones, buses, motocicletas, maquinaria, barcos u otros equipos móviles con combustible financiado por la empresa.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Combustiones móviles (flota propia)_Tipo",
@@ -657,7 +654,6 @@
           {
             "name": "Emisiones fugitivas",
             "description": "Emisiones no intencionales que se liberan por fugas o escapes de gases, como pérdidas de gases refrigerantes de aires acondicionados, cámaras de frío, sistemas de refrigeración, gases industriales o otras fugas de procesos.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Emisiones fugitivas_Gas",
@@ -1138,7 +1134,6 @@
           {
             "name": "Emisiones por uso de suelo - Ganadería",
             "description": "Emisiones generadas por actividades ganaderas. Incluye emisiones provenientes de la digestión del ganado y el manejo de estiércol.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
@@ -1311,7 +1306,6 @@
           {
             "name": "Emisiones por uso de suelo - Agricultura",
             "description": "Emisiones asociadas a actividades agrícolas y manejo del suelo. Incluye emisiones por laboreo, cultivos y cambios en el uso del suelo.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
@@ -1358,7 +1352,6 @@
           {
             "name": "Emisiones por uso de suelo - Aplicación de fertilizantes",
             "description": "Emisiones derivadas del uso de fertilizantes en suelos productivos. Incluye gases liberados tras la aplicación de fertilizantes químicos u orgánicos.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
@@ -1419,7 +1412,6 @@
           {
             "name": "Procesos industriales - Cinc",
             "description": "Registra aquí las emisiones generadas en procesos industriales de producción o refinación de cinc, como fundiciones, refinerías o plantas metalúrgicas, donde ocurren reacciones químicas propias del proceso.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Procesos industriales - Cinc_Proceso de producción",
@@ -1480,7 +1472,6 @@
           {
             "name": "Procesos industriales - Cemento",
             "description": "Emisiones generadas en la fabricación de cemento. Incluye emisiones producidas por la utilización de clinker.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Procesos industriales - Cemento_Material",
@@ -1513,7 +1504,6 @@
           {
             "name": "Procesos industriales - Vidrio",
             "description": "Incluye aquí las emisiones generadas por la producción de vidrio nuevo, considerando la cantidad de vidrio creado desde materias primas.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Procesos industriales - Vidrio_Tipo de vidrio",
@@ -1630,7 +1620,6 @@
           {
             "name": "Procesos industriales - Acero",
             "description": "Emisiones provenientes de la producción y procesamiento del acero. Incluye emisiones generadas por reacciones químicas en altos hornos, acerías y otros procesos industriales que involucran la producción de acero.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Procesos industriales - Acero_Método de fabricación",
@@ -1705,7 +1694,6 @@
           {
             "name": "Emisiones provenientes de otras fuentes",
             "description": "Incluye cualquier otra fuente de emisión que ocurra dentro de los límites físicos de la empresa y esté bajo su control operativo.",
-            "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
             "allowedMeasurementUnitsAbbreviations": [],
@@ -1720,12 +1708,10 @@
         "icon": "INDIRECT_EMISSION",
         "color": "#64B5F6",
         "position": 2,
-        "examples": null,
         "subcategories": [
           {
             "name": "Electricidad",
             "description": "Emisiones asociadas al consumo de electricidad compradas a generadoras externas a tu empresa. Lo anterior puede ser consumo de la red nacional u otras generadoras externas.\nIncluye las emisiones generadas en la producción de la electricidad que utiliza tu empresa, aunque estas ocurran fuera de tus instalaciones.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Electricidad_Sistema eléctrico",
@@ -1764,12 +1750,10 @@
         "position": 3,
         "icon": "OTHERS",
         "color": "#82C784",
-        "examples": null,
         "subcategories": [
           {
             "name": "Productos comprados",
             "description": "Emisiones asociadas a la compra de productos. Estas emisiones corresponden a las emisiones que se generaron para lograr la producción de los productos adquiridos.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Productos comprados_Material",
@@ -2103,7 +2087,6 @@
           {
             "name": "Disposición de residuos sólidos",
             "description": "Emisiones generadas por el tratamiento y disposición final de residuos. Incluye emisiones enviadas a los rellenos sanitarios, reciclaje, compostaje, incineración u otros métodos de gestión de residuos generados por la empresa.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Disposición de residuos sólidos_Material",
@@ -2546,7 +2529,6 @@
           {
             "name": "Consumo de agua y tratamiento de aguas residuales",
             "description": "Emisiones asociadas al uso de agua y su tratamiento. Incluye las emisiones generadas por el consumo y desecho de las aguas utilizadas en tu empresa.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
@@ -2593,7 +2575,6 @@
           {
             "name": "Desplazamiento diario de empleados y trabajo remoto",
             "description": "Emisiones asociadas al traslado cotidiano y al trabajo desde el hogar de los empleados de tu empresa. Incluye los viajes diarios de los empleados entre su hogar y el lugar de trabajo, así como el consumo energético asociado al teletrabajo.",
-            "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
             "allowedMeasurementUnitsAbbreviations": [],
@@ -2602,7 +2583,6 @@
           {
             "name": "Viajes de negocios - Estadía",
             "description": "Emisiones generadas durante la estadía en viajes laborales. Incluye emisiones asociadas a hoteles, alojamientos y servicios utilizados durante viajes de trabajo de acuerdo al país de residencia.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Viajes de negocios - Estadía_País",
@@ -2915,7 +2895,6 @@
           {
             "name": "Viajes de negocios - Traslado",
             "description": "Emisiones producidas por el traslado en y hacia los viajes laborales. Incluye traslados en avión, bus, tren, taxi, vehículos arrendados u otros medios utilizados para viajes de negocios.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Viajes de negocios - Traslado_Transporte",
@@ -3074,7 +3053,6 @@
           {
             "name": "Transporte y distribución de bienes aguas arriba",
             "description": "Emisiones asociadas al transporte de insumos hacia tu empresa. Incluye el traslado y distribución de materias primas, productos comprados e insumos desde proveedores hasta las instalaciones de la organización.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Transporte y distribución de bienes aguas arriba_Transporte",
@@ -3233,7 +3211,6 @@
           {
             "name": "Transporte y distribución de bienes aguas abajo",
             "description": "Emisiones asociadas al transporte de productos hacia clientes desde tu empresa. Incluye el traslado y distribución de productos terminados desde tu empresa hasta el cliente final.",
-            "examples": null,
             "emissionFactorDimensions": [
               {
                 "code": "Transporte y distribución de bienes aguas abajo_Transporte",
@@ -3392,7 +3369,6 @@
           {
             "name": "Uso de productos de la organización",
             "description": "Emisiones generadas durante el uso de los productos vendidos. Incluye las emisiones que se producen cuando los clientes utilizan los productos que la empresa confecciona a lo largo de su vida útil.",
-            "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
             "allowedMeasurementUnitsAbbreviations": [],
@@ -3401,7 +3377,6 @@
           {
             "name": "Emisiones provenientes de otras fuentes",
             "description": "Incluye cualquier otras fuentes de emisión que ocurra fuera de los límites físicos de la empresa y la operación no esté bajo el control de tu empresa.",
-            "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
             "allowedMeasurementUnitsAbbreviations": [],
