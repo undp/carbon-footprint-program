@@ -12,6 +12,8 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Submission Workflow](./overview/submission-workflow.md) | End-to-end flow: inventory creation → submission → admin review → external validation → badge issuance |
 | [Reduction Projects Workflow](./overview/reduction-projects.md) | Creation, verification, and re-submission of GHG reduction projects |
 | [Transparency Portal](./overview/transparency.md) | Public endpoint: what is exposed, what is redacted, inclusion criteria |
+| [User and Organization Membership](./overview/user-organization-membership.md) | User creation, joining organizations, organization roles and permissions, membership audit trail |
+| [Neutralization Plan](./overview/neutralization-plan.md) | Planned feature: what is already scaffolded (enums, badges, type system) and what remains to be built |
 
 ## Architecture
 
@@ -20,6 +22,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [System Architecture](./architecture/system-architecture.md) | Components, services, data flow, and integrations |
 | [Tech Stack](./architecture/tech-stack.md) | Validated technology decisions with rationale |
 | [Emission Calculation Logic](./architecture/emission-calculation.md) | Core formulas, data model, input types, aggregation, and end-to-end example |
+| [Methodology and Emission Factor Taxonomy](./architecture/methodology-taxonomy.md) | MethodologyVersion → Category → Subcategory → Dimension → EmissionFactor hierarchy, seed format, and API endpoints |
 
 ## Data Model
 
