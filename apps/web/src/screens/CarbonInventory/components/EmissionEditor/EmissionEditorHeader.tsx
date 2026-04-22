@@ -86,15 +86,13 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             <Typography variant="subtitle1" fontWeight="medium">
               {name}
             </Typography>
-            {explanation !== null && (
-              <InfoButton
-                label="Más información de la subcategoría"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openExplanationContent(explanation);
-                }}
-              />
-            )}
+            <InfoButton
+              label="Más información de la subcategoría"
+              onClick={(e) => {
+                e.stopPropagation();
+                openExplanationContent(explanation);
+              }}
+            />
           </Box>
           <Typography variant="caption" fontWeight="regular">
             {description}

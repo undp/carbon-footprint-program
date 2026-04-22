@@ -15,12 +15,12 @@ import { useExplanation } from "@/api/query/explanations";
 
 type ExplanationState =
   | { mode: "slug"; slug: string | null }
-  | { mode: "content"; content: string }
+  | { mode: "content"; content: string | null }
   | null;
 
 interface ExplanationContextType {
   openExplanationBySlug: (slug: string | null) => void;
-  openExplanationContent: (content: string) => void;
+  openExplanationContent: (content: string | null) => void;
 }
 
 const ExplanationContext = createContext<ExplanationContextType | undefined>(
@@ -41,7 +41,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
     setState({ mode: "slug", slug });
   }, []);
 
-  const openExplanationContent = useCallback((content: string) => {
+  const openExplanationContent = useCallback((content: string | null) => {
     setState({ mode: "content", content });
   }, []);
 
@@ -80,7 +80,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
       >
         <DialogContent sx={{ p: 3 }}>
           {state?.mode === "content" ? (
-            <ExplanationContent content={state.content} />
+            <ExplanationContent content={state.content ?? ""} />
           ) : isLoading ? (
             <ExplanationSkeleton />
           ) : (

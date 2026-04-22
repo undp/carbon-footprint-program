@@ -94,10 +94,10 @@ The `seedExplanations` script SHALL read markdown files from `seeds/data/<datase
 - **WHEN** a user clicks the info icon on a subcategory surface (preselection card, emission editor header) whose `explanation` is non-null
 - **THEN** the modal opens rendering the string directly, with no network call
 
-#### Scenario: Info icon hidden when explanation is null
+#### Scenario: Info icon always rendered; null explanation shows placeholder
 
-- **WHEN** a category or subcategory's `explanation` is `null`
-- **THEN** the info icon is not rendered for that item
+- **WHEN** a user clicks the info icon on a category or subcategory whose `explanation` is `null`
+- **THEN** the modal opens and renders the "No existe una explicación disponible aún" placeholder, with no network call
 
 #### Scenario: Slug-fetch path still works
 

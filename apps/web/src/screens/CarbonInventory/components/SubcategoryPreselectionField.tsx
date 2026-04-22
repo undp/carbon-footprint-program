@@ -80,15 +80,13 @@ export const SubcategoryPreselectionField = ({
                           }}
                         />
                       )}
-                      {subcategory.explanation !== null && (
-                        <InfoButton
-                          label="Más información de la subcategoría"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openExplanationContent(subcategory.explanation!);
-                          }}
-                        />
-                      )}
+                      <InfoButton
+                        label="Más información de la subcategoría"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openExplanationContent(subcategory.explanation);
+                        }}
+                      />
                     </Box>
                   </Box>
                   {subcategory.description && (

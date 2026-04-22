@@ -90,18 +90,16 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           {description}
         </Typography>
       </Box>
-      {explanation !== null && (
-        <Box className="flex flex-col items-end justify-center">
-          <InfoButton
-            label="Más información de la categoría"
-            disabled={isUnfocused}
-            onClick={(e) => {
-              e.stopPropagation();
-              openExplanationContent(explanation);
-            }}
-          />
-        </Box>
-      )}
+      <Box className="flex flex-col items-end justify-center">
+        <InfoButton
+          label="Más información de la categoría"
+          disabled={isUnfocused}
+          onClick={(e) => {
+            e.stopPropagation();
+            openExplanationContent(explanation);
+          }}
+        />
+      </Box>
     </Card>
   );
 };
