@@ -14,7 +14,7 @@ export async function deactivateBadgeService(
 ): Promise<DeactivateBadgeResponse> {
   const badgeId = BigInt(id);
 
-  const { type } = await prisma.$transaction(async (tx) => {
+  const { type, updatedBadges } = await prisma.$transaction(async (tx) => {
     const badge = await tx.badge.findUnique({
       where: { id: badgeId },
       select: { id: true, type: true, status: true },
@@ -24,26 +24,24 @@ export async function deactivateBadgeService(
       throw new ResourceNotFoundError("Badge", id);
     }
 
-    if (badge.status === BadgeStatus.INACTIVE) {
-      return badge;
+    if (badge.status !== BadgeStatus.INACTIVE) {
+      await tx.badge.update({
+        where: { id: badgeId },
+        data: { status: BadgeStatus.INACTIVE },
+      });
     }
 
-    await tx.badge.update({
-      where: { id: badgeId },
-      data: { status: BadgeStatus.INACTIVE },
+    const badges = await tx.badge.findMany({
+      where: { type: badge.type },
+      include: {
+        file: {
+          select: { originalName: true, mimeType: true, blobPath: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
     });
 
-    return badge;
-  });
-
-  const updatedBadges = await prisma.badge.findMany({
-    where: { type },
-    include: {
-      file: {
-        select: { originalName: true, mimeType: true, blobPath: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
+    return { type: badge.type, updatedBadges: badges };
   });
 
   const signUrl = await createReadSasUrlSigner(
