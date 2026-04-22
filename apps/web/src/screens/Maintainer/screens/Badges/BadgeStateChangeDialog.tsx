@@ -1,0 +1,143 @@
+import { FC } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Box,
+  Typography,
+  Stack,
+  Alert,
+} from "@mui/material";
+import { WarningAmberOutlined } from "@mui/icons-material";
+import type { BadgeDTO } from "@repo/types";
+
+interface ActivateDialogProps {
+  mode: "activate";
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  incoming: BadgeDTO;
+  outgoing: BadgeDTO;
+  loading?: boolean;
+}
+
+interface DeactivateDialogProps {
+  mode: "deactivate";
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  outgoing: BadgeDTO;
+  loading?: boolean;
+}
+
+type BadgeStateChangeDialogProps = ActivateDialogProps | DeactivateDialogProps;
+
+const BadgePreviewMini: FC<{ badge: BadgeDTO; label: string }> = ({
+  badge,
+  label,
+}) => (
+  <Box sx={{ textAlign: "center", flex: 1 }}>
+    <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+      {label}
+    </Typography>
+    <Box
+      component="img"
+      src={badge.previewUrl}
+      alt={badge.fileName}
+      sx={{
+        width: 80,
+        height: 80,
+        objectFit: "contain",
+        borderRadius: 1,
+        border: "1px solid",
+        borderColor: "divider",
+        p: 0.5,
+        display: "block",
+        mx: "auto",
+      }}
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.opacity = "0.3";
+      }}
+    />
+    <Typography variant="caption" noWrap display="block" mt={0.5}>
+      {badge.fileName}
+    </Typography>
+  </Box>
+);
+
+export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
+  props
+) => {
+  const { mode, open, onClose, onConfirm, outgoing, loading } = props;
+  const incoming = mode === "activate" ? props.incoming : null;
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <WarningAmberOutlined color="warning" />
+        {mode === "activate" ? "Reemplazar badge activo" : "Desactivar badge"}
+      </DialogTitle>
+      <DialogContent>
+        {mode === "activate" && incoming ? (
+          <Box>
+            <Typography variant="body2" mb={2}>
+              Esta acción reemplazará el badge activo actual.
+            </Typography>
+            <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
+              <BadgePreviewMini
+                badge={outgoing}
+                label="Actual (quedará inactivo)"
+              />
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  color: "text.secondary",
+                  fontSize: 24,
+                }}
+              >
+                →
+              </Box>
+              <BadgePreviewMini
+                badge={incoming}
+                label="Nuevo (pasará a activo)"
+              />
+            </Stack>
+          </Box>
+        ) : (
+          <Box>
+            <Box sx={{ textAlign: "center", mb: 2 }}>
+              <BadgePreviewMini
+                badge={outgoing}
+                label="Badge que se desactivará"
+              />
+            </Box>
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              Este tipo no tendrá badge activo hasta que actives otro. Las
+              aprobaciones durante ese periodo se registrarán sin badge.
+            </Alert>
+          </Box>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button
+          variant="contained"
+          color={mode === "deactivate" ? "warning" : "primary"}
+          onClick={onConfirm}
+          disabled={loading}
+        >
+          {loading
+            ? "Procesando..."
+            : mode === "activate"
+              ? "Activar"
+              : "Desactivar"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
