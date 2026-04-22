@@ -77,18 +77,22 @@ export const ReductionPlanScreen: FC = () => {
   );
 
   useEffect(() => {
-    if (!organizations?.length || !inventories) return;
+    if (!inventories) return;
 
-    const nextOrganizationId = selectedOrganizationId ?? organizations[0].id;
+    const nextOrganizationId =
+      selectedOrganizationId ?? inventories[0]?.organizationId ?? "none";
+
+    if (!nextOrganizationId) return;
 
     const inventoriesForOrg = inventories.filter((inv) =>
       matchesOrg(inv, nextOrganizationId)
     );
 
-    const nextInventoryId =
-      selectedCarbonInventoryId ?? inventoriesForOrg?.[0]?.id;
-
-    if (!nextInventoryId) return;
+    const nextInventoryId = inventoriesForOrg.some(
+      (inv) => inv.id === selectedCarbonInventoryId
+    )
+      ? selectedCarbonInventoryId
+      : inventoriesForOrg[0]?.id;
 
     const shouldUpdate =
       nextOrganizationId !== selectedOrganizationId ||
@@ -105,12 +109,11 @@ export const ReductionPlanScreen: FC = () => {
       });
     }
   }, [
-    organizations,
     inventories,
     selectedOrganizationId,
     selectedCarbonInventoryId,
-    navigate,
     matchesOrg,
+    navigate,
   ]);
 
   const inventoriesForSelectedOrg = useMemo(() => {
