@@ -14,6 +14,10 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - `pnpm test --filter=api -- /{domain} --coverage=false`: Runs all tests for a domain.
   - Example: `pnpm test --filter=api -- organizations --coverage=false`: Runs all tests for the organizations feature
 
+# CI Pipeline
+
+CI runs automatically on PRs to `main` (lint, type-check, format:check, test, build — all in parallel). All checks must pass before merge. `pnpm lint` enforces zero warnings — any warning is a CI failure.
+
 # Session Setup
 
 - Run `pnpm install` at the start of every session. This is required before running format, lint, or type-check commands.
