@@ -2,6 +2,7 @@ import type { Badge, File } from "@repo/database";
 import { BadgeStatus, BadgeType } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import { createReadSasUrlSigner } from "@/services/blobService.js";
+import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 
 type BadgeWithFile = Badge & {
@@ -41,7 +42,7 @@ export async function buildBadgeCatalogEntry(
   const inactive = badges
     .filter((b) => b.status === BadgeStatus.INACTIVE)
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .slice(0, 20);
+    .slice(0, BADGE_HISTORY_LIMIT);
 
   const [activeDTO, historyDTOs] = await Promise.all([
     active ? toBadgeDTO(active, signUrl) : Promise.resolve(null),
