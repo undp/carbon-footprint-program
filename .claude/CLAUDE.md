@@ -73,8 +73,11 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - **`fastify.requireAuth`**: onRequest hook — checks the user is authenticated. Use on all protected routes.
 - **`fastify.requireRoles([SystemRole.ADMIN, ...])`**: onRequest hook — restricts access by system-level roles (`USER`, `ADMIN`, `SUPERADMIN`).
 - **`fastify.requireOrganizationRole(extractor, { allowedRoles, canAdminsBypass })`**: **preHandler** hook — restricts access by organization-scoped roles (`VIEWER`, `CONTRIBUTOR`, `ADMIN`). Requires an `extractor` function that pulls the organization ID from the request (params, body, or query).
+- **`fastify.requireCarbonInventoryAccess(extractor, { requiredOrganizationRoles, canAdminsBypass })`**: **preHandler** hook — checks that the user has access to a specific carbon inventory. Supports anonymous access via `x-carbon-inventory-uuid` header, creator-only access for standalone inventories, and organization membership checks. Requires an `extractor` function (e.g., `idRequestExtractor`) that pulls the carbon inventory ID from the request.
+- **`fastify.requireReductionProjectAccess({ requiredOrganizationRoles, canAdminsBypass })`**: **preHandler** hook — checks that the user has access to a specific reduction project via organization membership. Extracts the project ID directly from `request.params.id`. Supports admin bypass when `canAdminsBypass` is set.
+- These domain-specific access hooks (`requireCarbonInventoryAccess`, `requireReductionProjectAccess`) are only needed at endpoints within their own domain (e.g., carbon inventory endpoints, reduction project endpoints). Endpoints in other domains that reference these entities indirectly should rely on `requireOrganizationRole` instead.
 - Access the current user via `request.currentUser` (set by the `user-resolve-plugin` in preHandler).
-- Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`.
+- Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`, `carbonInventoryAuthorizationPlugin.ts`, `reductionProjectAuthorizationPlugin.ts`.
 
 # Error Handling
 
