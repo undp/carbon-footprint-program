@@ -16,75 +16,15 @@ import {
   CloudUploadOutlined,
   CheckCircleOutlined,
   BrokenImageOutlined,
-  RefreshOutlined,
 } from "@mui/icons-material";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 import { formatDate } from "@/utils/formatting";
+import { BadgePreview } from "./BadgePreview";
 import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
 import { useDeactivateBadge } from "@/api/query/badges/useDeactivateBadge";
 import { useBadgeUpload } from "@/api/query/badges/useBadgeUpload";
 import { BADGE_TYPE_LABELS } from "./constants";
-
-interface BadgePreviewProps {
-  src: string;
-  alt: string;
-}
-
-const BadgePreview: FC<BadgePreviewProps> = ({ src, alt }) => {
-  const [broken, setBroken] = useState(false);
-  const [key, setKey] = useState(0);
-
-  if (broken) {
-    return (
-      <Box
-        sx={{
-          width: 120,
-          height: 120,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 0.5,
-          bgcolor: "action.hover",
-          borderRadius: 1,
-          mx: "auto",
-        }}
-      >
-        <BrokenImageOutlined color="disabled" />
-        <Tooltip title="Reintentar carga">
-          <IconButton
-            size="small"
-            onClick={() => {
-              setBroken(false);
-              setKey((k) => k + 1);
-            }}
-          >
-            <RefreshOutlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    );
-  }
-
-  return (
-    <Box
-      key={key}
-      component="img"
-      src={src}
-      alt={alt}
-      onError={() => setBroken(true)}
-      sx={{
-        width: 120,
-        height: 120,
-        objectFit: "contain",
-        display: "block",
-        mx: "auto",
-        borderRadius: 1,
-      }}
-    />
-  );
-};
 
 interface BadgeCardProps {
   entry: BadgeCatalogEntry;
