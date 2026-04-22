@@ -47,6 +47,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md) | Deploying the frontend via Azure Static Web Apps |
 | [File Storage](./infrastructure/FileStorage.md) | Azure Blob Storage setup and SAS upload flow |
 | [Database Migrations](./infrastructure/Migrations.md) | Running Prisma migrations against Azure PostgreSQL |
+| [MSAL / Easy Auth Setup](./infrastructure/MSAL-EasyAuth-Setup.md) | Azure App Service Easy Auth and MSAL frontend configuration |
 
 ## Development
 
@@ -66,7 +67,6 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [CI/CD Pipeline](./development/ci-cd.md) | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps |
 | [Troubleshooting and FAQ](./development/troubleshooting.md) | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour |
 | [Docker Compose](./DockerCompose.md) | Local Docker Compose configuration |
-| [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md) | Azure authentication configuration |
 
 ## Security
 
