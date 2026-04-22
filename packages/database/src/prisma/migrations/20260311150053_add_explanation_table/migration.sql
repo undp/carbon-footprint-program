@@ -1,10 +1,8 @@
 -- AlterTable
-ALTER TABLE "category" DROP COLUMN "examples",
-ADD COLUMN "explanation" TEXT;
+ALTER TABLE "category" ADD COLUMN "explanation" TEXT;
 
 -- AlterTable
-ALTER TABLE "subcategory" DROP COLUMN "examples",
-ADD COLUMN "explanation" TEXT;
+ALTER TABLE "subcategory" ADD COLUMN "explanation" TEXT;
 
 -- CreateTable
 CREATE TABLE "explanation" (
