@@ -1,23 +1,23 @@
 import type { PrismaClient } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
+import type { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import {
   ConfirmBadgeUploadBody,
   ConfirmBadgeUploadParams,
-  FileType,
   type ConfirmBadgeUploadResponse,
 } from "@repo/types";
 import { persistBadgeFileRecord } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
+import { FileType } from "@repo/types";
 
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
   ConfirmBadgeUploadParams;
 
-// TODO: Once a badge maintainer role is implemented, accept userId and pass it
-// to persistBadgeFileRecord so createdById is populated for auditing.
 export const badgeConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
-  input: BadgeConfirmUploadInput
+  input: BadgeConfirmUploadInput,
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<ConfirmBadgeUploadResponse> => {
   const { badgeType, uuid, originalName } = input;
 
@@ -36,6 +36,8 @@ export const badgeConfirmUploadService = async (
       blobPath,
       originalName,
     },
-    badgeType
+    badgeType,
+    blobServiceClient,
+    containerName
   );
 };

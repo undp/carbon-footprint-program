@@ -150,6 +150,36 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     });
   });
 
+  describe("Badge behaviour when no ACTIVE badge exists (regression)", () => {
+    it("should auto-approve with badgeId=null when no ACTIVE CARBON_INVENTORY_CALCULATION badge exists", async () => {
+      await setRecognitionBehavior(MeasurementRecognitionBehaviorEnum.AUTOMATIC);
+
+      // Ensure no active badge for CALCULATION type
+      await prisma.badge.deleteMany({
+        where: { type: SubmissionType.CARBON_INVENTORY_CALCULATION, status: "ACTIVE" },
+      });
+
+      const { inventory } = await createSelfDeclarableInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${inventory.id}/self-declare`,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const submissionSubjectCI =
+        await prisma.submissionSubjectCarbonInventory.findUnique({
+          where: { carbonInventoryId: inventory.id },
+          include: { subject: { include: { submissions: true } } },
+        });
+
+      const submission = submissionSubjectCI!.subject.submissions[0];
+      expect(submission.status).toBe(SubmissionStatus.APPROVED_AUTOMATICALLY);
+      expect(submission.badgeId).toBeNull();
+    });
+  });
+
   describe("System parameter behavior", () => {
     it("should auto-create and approve a CALCULATION submission when recognition behavior is AUTOMATIC", async () => {
       await setRecognitionBehavior(

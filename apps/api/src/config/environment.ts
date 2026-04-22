@@ -255,3 +255,11 @@ export const AZURE_STORAGE_ACCOUNT_NAME =
  */
 export const AZURE_STORAGE_CONTAINER_NAME =
   process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
+
+/**
+ * Maximum file size for badge uploads in bytes.
+ * Defaults to 5 MB.
+ */
+export const BADGE_UPLOAD_MAX_BYTES = process.env.BADGE_UPLOAD_MAX_BYTES
+  ? parseInt(process.env.BADGE_UPLOAD_MAX_BYTES, 10)
+  : 5 * 1024 * 1024;

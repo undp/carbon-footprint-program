@@ -37,6 +37,7 @@ import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emissio
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
 import { Route as AppReductionProjectsIndexRouteImport } from './routes/app/reduction-projects/index'
 import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
@@ -189,6 +190,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBadgesRoute = AdminBadgesRouteImport.update({
+  id: '/badges',
+  path: '/badges',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppReductionProjectsIndexRoute =
   AppReductionProjectsIndexRouteImport.update({
     id: '/',
@@ -273,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
+    | '/admin/badges'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -433,6 +443,7 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
+    | '/admin/badges'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -473,6 +484,7 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
+    | '/admin/badges'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -703,6 +715,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/badges': {
+      id: '/admin/badges'
+      path: '/badges'
+      fullPath: '/admin/badges'
+      preLoaderRoute: typeof AdminBadgesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/reduction-projects/': {
       id: '/app/reduction-projects/'
       path: '/'
@@ -785,6 +804,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminBadgesRoute: typeof AdminBadgesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDimensionsRoute: typeof AdminDimensionsRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
@@ -801,6 +821,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminBadgesRoute: AdminBadgesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDimensionsRoute: AdminDimensionsRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,

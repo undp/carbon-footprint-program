@@ -5,7 +5,7 @@ import type { ContainerClient } from "@azure/storage-blob";
  *
  * @param blobStorage  The container client (typically `app.blobStorage!`).
  * @param blobPath     The full blob path (e.g. `BADGE/CARBON_INVENTORY/uuid-name.png`).
- * @param options.content      Text content to upload (defaults to `"test content"`).
+ * @param options.content      Content to upload (string or Buffer). Defaults to `"test content"`.
  * @param options.contentType  MIME type for the blob (defaults to `"application/octet-stream"`).
  */
 export async function uploadBlobToAzurite(
@@ -14,11 +14,13 @@ export async function uploadBlobToAzurite(
   {
     content = "test content",
     contentType = "application/octet-stream",
-  }: { content?: string; contentType?: string } = {}
+  }: { content?: string | Buffer; contentType?: string } = {}
 ): Promise<void> {
+  const buffer =
+    typeof content === "string" ? Buffer.from(content) : content;
   await blobStorage
     .getBlockBlobClient(blobPath)
-    .upload(content, Buffer.byteLength(content), {
+    .upload(buffer, buffer.byteLength, {
       blobHTTPHeaders: { blobContentType: contentType },
     });
 }

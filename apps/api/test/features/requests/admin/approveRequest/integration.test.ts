@@ -6,12 +6,13 @@ import {
   afterAll,
   afterEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { ApproveRequestResponse, ApproveRequestBody } from "@repo/types";
-import { SubmissionFileType, SubmissionStatus } from "@repo/database";
+import { BadgeType, SubmissionFileType, SubmissionStatus } from "@repo/database";
 import { randomUUID } from "crypto";
 import {
   createTestOrganization,
@@ -23,8 +24,17 @@ import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import {
   cleanupTestFiles,
   createTestFile,
+  createTestFileForBadge,
 } from "@test/factories/fileFactory.js";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+
+vi.mock("@/services/blobService.js", () => ({
+  generateWriteSasUrl: vi.fn(),
+  generateReadSasUrl: vi.fn().mockResolvedValue({
+    url: "https://mock.blob.core.windows.net/test/badge?sig=mock",
+    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+  }),
+}));
 
 describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
   let app: FastifyInstance;
@@ -437,6 +447,77 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
         where: { id: submission.id },
       });
       expect(finalSubmission!.status).toBe(SubmissionStatus.APPROVED);
+    });
+  });
+
+  describe("Badge behaviour when no ACTIVE badge exists (regression)", () => {
+    it("should approve with badgeId=null when no ACTIVE ORGANIZATION_ACCREDITATION badge exists", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      // Ensure zero active badges for ORGANIZATION_ACCREDITATION
+      await prisma.badge.deleteMany({
+        where: { type: BadgeType.ORGANIZATION_ACCREDITATION, status: "ACTIVE" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/admin/requests/${submission.id}/approve`,
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await prisma.submission.findUnique({
+        where: { id: submission.id },
+      });
+      expect(updated!.status).toBe(SubmissionStatus.APPROVED);
+      expect(updated!.badgeId).toBeNull();
+    });
+
+    it("should not backfill badgeId after a badge is later activated", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      // No active badge — approve with badgeId = null
+      await prisma.badge.deleteMany({
+        where: { type: BadgeType.ORGANIZATION_ACCREDITATION, status: "ACTIVE" },
+      });
+
+      await app.inject({
+        method: "POST",
+        url: `/api/admin/requests/${submission.id}/approve`,
+        payload: {},
+      });
+
+      // Now create and activate a badge for that type
+      const { badge } = await createTestFileForBadge(
+        prisma,
+        testUser.id,
+        BadgeType.ORGANIZATION_ACCREDITATION
+      );
+
+      // Confirm the approved submission's badgeId remains null
+      const afterActivation = await prisma.submission.findUnique({
+        where: { id: submission.id },
+      });
+      expect(afterActivation!.badgeId).toBeNull();
+      expect(afterActivation!.status).toBe(SubmissionStatus.APPROVED);
+
+      // Cleanup the seeded badge so afterEach doesn't fail
+      await prisma.badge.delete({ where: { id: badge.id } });
     });
   });
 
