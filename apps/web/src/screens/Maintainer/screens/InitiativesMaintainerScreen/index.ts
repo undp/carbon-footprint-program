@@ -1,1 +1,0 @@
-export { InitiativesMaintainerScreen } from "./InitiativesMaintainerScreen";
