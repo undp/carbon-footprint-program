@@ -2,6 +2,8 @@
 
 Huella Latam is a digital public good for Latin America: a country-agnostic platform for measuring, managing, and reducing carbon footprints, whose codebase is centrally distributed and deployed by each country on its own infrastructure. The system must allow for adaptation to local regulatory frameworks, methodologies, and business logic through configuration and extension, without modifying the core, integrating measurement and recognition into a single workflow, and supporting implementations that evolve independently on a common foundation.
 
+**Country-agnosticism principle**: country-specific variations must be handled through seed data and system parameters — never through code forks or country-specific branches. All contributions must be country-agnostic and backward-compatible.
+
 # Commands
 
 - `pnpm type-check`: Use to check for TypeScript compilation errors.
