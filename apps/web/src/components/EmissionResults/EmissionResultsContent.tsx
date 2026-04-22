@@ -1,6 +1,7 @@
-import { FC, useEffect } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
+import { useNavigate } from "@tanstack/react-router";
 import {
   useEmissionsSummaryCategories,
   useSubcategoriesRanking,
@@ -8,6 +9,7 @@ import {
   useMainActivityEquivalence,
   useSuggestedReductionPlan,
 } from "@/api/query";
+import { Routes } from "@/interfaces/routes/routes.const";
 import { EmissionCategorySummary } from "./EmissionCategorySummary";
 import { EmissionEquivalenceCard } from "./EmissionEquivalenceCard";
 import { EmissionsPieChart } from "./EmissionsPieChart";
@@ -25,6 +27,7 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
   showBadges = false,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   const {
     data: summaryData,
@@ -73,6 +76,18 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
         preventDuplicate: true,
       });
   }, [isError, enqueueSnackbar]);
+
+  const onViewFullPlan = useCallback(() => {
+    const organizationId =
+      summaryData?.carbonInventory.organizationId ?? "none";
+    void navigate({
+      to: Routes.REDUCTION_PLAN,
+      search: {
+        organizationId,
+        carbonInventoryId: inventoryId,
+      },
+    });
+  }, [navigate, inventoryId, summaryData?.carbonInventory.organizationId]);
 
   return (
     <Box className="flex min-h-0 flex-1 flex-row gap-4">
@@ -133,8 +148,8 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
       <Box className="flex min-h-0 flex-1">
         <ReductionPlanCard
           initiatives={reductionPlan ?? null}
-          // TODO: implement navigation to full reduction plan
-          onViewFullPlan={() => {}}
+          onViewFullPlan={onViewFullPlan}
+          isViewFullPlanDisabled={isSummaryLoading || !summaryData}
           isLoading={isReductionPlanLoading}
           hasError={isReductionPlanError}
         />
