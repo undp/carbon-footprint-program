@@ -87,6 +87,12 @@ Welcome to the project documentation. Use this index to navigate all available d
 |---|---|
 | [Versioning & Releases](./release/versioning.md) | Versioning strategy, branching model, and release process |
 
+## Reference
+
+| Document | Description |
+|---|---|
+| [Glossary](./glossary.md) | Domain terminology reference (carbon accounting, platform workflow, technical terms) |
+
 ## Other
 
 | Document | Description |
