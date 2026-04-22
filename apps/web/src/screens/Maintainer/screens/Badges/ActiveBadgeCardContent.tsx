@@ -1,21 +1,24 @@
 import { FC } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import type { BadgeDTO } from "@repo/types";
 import { formatDate } from "@/utils/formatting";
 import { BadgePreview } from "./BadgePreview";
 
 interface ActiveBadgeCardContentProps {
   active: BadgeDTO;
-  disabled: boolean;
-  onDeactivate: () => void;
 }
 
 export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
   active,
-  disabled,
-  onDeactivate,
 }) => (
-  <Box>
+  <Box
+    sx={{
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      flex: 1,
+    }}
+  >
     <BadgePreview src={active.previewUrl} alt={active.fileName} />
     <Typography
       variant="body2"
@@ -34,16 +37,5 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
     >
       {formatDate(active.createdAt)}
     </Typography>
-    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-      <Button
-        variant="outlined"
-        color="warning"
-        size="small"
-        onClick={onDeactivate}
-        disabled={disabled}
-      >
-        Desactivar
-      </Button>
-    </Box>
   </Box>
 );
