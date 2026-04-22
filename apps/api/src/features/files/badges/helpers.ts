@@ -1,15 +1,28 @@
 import { type BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
-import type { ConfirmBadgeUploadResponse } from "@repo/types";
+import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
+import type { ConfirmBadgeUploadResponse, BadgeDTO } from "@repo/types";
 import {
   checkFileRecordExists,
   type PersistFileRecordParams,
 } from "../helpers/persistFileRecord.js";
-import { mapFileToResponse } from "../mappers.js";
+import {
+  BADGE_ALLOWED_MIME_TYPES,
+  BADGE_UPLOAD_MAX_BYTES,
+} from "@/config/constants.js";
+import { createReadSasUrlSigner } from "@/services/blobService.js";
+import createError from "@fastify/error";
+
+const BadgeUploadValidationError = createError(
+  "BADGE_UPLOAD_VALIDATION_ERROR",
+  "%s",
+  400
+);
 
 export async function persistBadgeFileRecord(
   prisma: PrismaClient,
   blobStorage: ContainerClient,
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
   params: PersistFileRecordParams,
   type: BadgeType
 ): Promise<ConfirmBadgeUploadResponse> {
@@ -19,12 +32,19 @@ export async function persistBadgeFileRecord(
     params.uuid
   );
 
-  const file = await prisma.$transaction(async (tx) => {
-    await tx.badge.updateMany({
-      where: { type, status: BadgeStatus.ACTIVE },
-      data: { status: BadgeStatus.INACTIVE },
-    });
+  if (!(BADGE_ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType)) {
+    throw new BadgeUploadValidationError(
+      `Unsupported file type "${mimeType}". Allowed types: ${BADGE_ALLOWED_MIME_TYPES.join(", ")}`
+    );
+  }
 
+  if (sizeBytes > BADGE_UPLOAD_MAX_BYTES) {
+    throw new BadgeUploadValidationError(
+      `File size ${sizeBytes} bytes exceeds the maximum allowed size of ${BADGE_UPLOAD_MAX_BYTES} bytes`
+    );
+  }
+
+  const file = await prisma.$transaction(async (tx) => {
     return tx.file.create({
       data: {
         uuid: params.uuid,
@@ -36,12 +56,34 @@ export async function persistBadgeFileRecord(
         badge: {
           create: {
             type,
-            status: BadgeStatus.ACTIVE,
+            status: BadgeStatus.INACTIVE,
           },
         },
+      },
+      include: {
+        badge: true,
       },
     });
   });
 
-  return mapFileToResponse(file);
+  const badge = file.badge!;
+  const signUrl = await createReadSasUrlSigner(
+    blobServiceClient,
+    containerName
+  );
+  const { url: previewUrl } = await signUrl(file.blobPath, {
+    contentType: file.mimeType ?? undefined,
+  });
+
+  const badgeDTO: BadgeDTO = {
+    id: badge.id.toString(),
+    type: badge.type,
+    status: badge.status,
+    createdAt: badge.createdAt.toISOString(),
+    fileName: file.originalName,
+    mimeType: file.mimeType ?? "",
+    previewUrl,
+  };
+
+  return { badge: badgeDTO };
 }

@@ -1,59 +1,59 @@
 ## 1. Backend: `listBadges` endpoint
 
-- [ ] 1.1 Create feature folder `apps/api/src/features/badges/listBadges/` with `route.ts`, `handler.ts`, `service.ts` following the existing feature-folder convention.
-- [ ] 1.2 Define the Zod response schema: an array of `{ type: BadgeType, active: BadgeDTO | null, history: BadgeDTO[] }`, where `BadgeDTO = { id, type, status, createdAt, fileName, mimeType, previewUrl }`.
-- [ ] 1.3 Implement `service.ts`: query all `Badge` rows with their related `File`, group by `type`, pick the `ACTIVE` one into `active`, sort the rest by `createdAt` desc into `history`. Fill in `null`/`[]` for types with no rows.
-- [ ] 1.4 Cap each type's `history` at the 20 most recent `INACTIVE` badges (`take: 20` at the Prisma layer or `.slice(0, 20)` after sort). No pagination cursor in v1.
-- [ ] 1.5 In the service, call `generateReadSasUrl` for every returned badge (active and inactive) to populate `previewUrl`.
-- [ ] 1.6 Register the route as `GET /badges` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
-- [ ] 1.7 Add an integration test `listBadges/integration.test.ts` covering: catalog with mixed active/inactive per type, types with no badges (present in response as empty groups), history cap (seed 25 inactive, assert 20 returned), 403 for non-SUPERADMIN, preview URLs present and signed.
+- [x] 1.1 Create feature folder `apps/api/src/features/badges/listBadges/` with `route.ts`, `handler.ts`, `service.ts` following the existing feature-folder convention.
+- [x] 1.2 Define the Zod response schema: an array of `{ type: BadgeType, active: BadgeDTO | null, history: BadgeDTO[] }`, where `BadgeDTO = { id, type, status, createdAt, fileName, mimeType, previewUrl }`.
+- [x] 1.3 Implement `service.ts`: query all `Badge` rows with their related `File`, group by `type`, pick the `ACTIVE` one into `active`, sort the rest by `createdAt` desc into `history`. Fill in `null`/`[]` for types with no rows.
+- [x] 1.4 Cap each type's `history` at the 20 most recent `INACTIVE` badges (`take: 20` at the Prisma layer or `.slice(0, 20)` after sort). No pagination cursor in v1.
+- [x] 1.5 In the service, call `generateReadSasUrl` for every returned badge (active and inactive) to populate `previewUrl`.
+- [x] 1.6 Register the route as `GET /badges` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
+- [x] 1.7 Add an integration test `listBadges/integration.test.ts` covering: catalog with mixed active/inactive per type, types with no badges (present in response as empty groups), history cap (seed 25 inactive, assert 20 returned), 403 for non-SUPERADMIN, preview URLs present and signed.
 - [ ] 1.8 Run `pnpm test --filter=api -- /listBadges/integration.test.ts --coverage=false` and ensure it passes.
 
 ## 2. Backend: badge state endpoints (activate + deactivate)
 
 ### 2a. `activateBadge`
 
-- [ ] 2a.1 Create feature folder `apps/api/src/features/badges/activateBadge/` with `route.ts`, `handler.ts`, `service.ts`.
-- [ ] 2a.2 Define the Zod params schema (`{ id }`) and response schema (the updated group for that badge's type, matching the shape from `listBadges`).
-- [ ] 2a.3 Implement `service.ts` inside a single `prisma.$transaction`: load the target badge (404 if missing); short-circuit if already ACTIVE; otherwise set `status = INACTIVE` on the current ACTIVE row of the same type (if any), then set `status = ACTIVE` on the target.
-- [ ] 2a.4 After the transaction, re-read the group for the affected type (active + history with preview URLs) and return it.
-- [ ] 2a.5 Register the route as `POST /badges/:id/activate` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
-- [ ] 2a.6 Add an integration test `activateBadge/integration.test.ts` covering: activate when another is active (incumbent demoted atomically), activate when none is active, idempotent activate of an already-active badge, 404 for unknown id, 403 for non-SUPERADMIN, and verify the DB partial unique index remains satisfied after each case.
+- [x] 2a.1 Create feature folder `apps/api/src/features/badges/activateBadge/` with `route.ts`, `handler.ts`, `service.ts`.
+- [x] 2a.2 Define the Zod params schema (`{ id }`) and response schema (the updated group for that badge's type, matching the shape from `listBadges`).
+- [x] 2a.3 Implement `service.ts` inside a single `prisma.$transaction`: load the target badge (404 if missing); short-circuit if already ACTIVE; otherwise set `status = INACTIVE` on the current ACTIVE row of the same type (if any), then set `status = ACTIVE` on the target.
+- [x] 2a.4 After the transaction, re-read the group for the affected type (active + history with preview URLs) and return it.
+- [x] 2a.5 Register the route as `POST /badges/:id/activate` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
+- [x] 2a.6 Add an integration test `activateBadge/integration.test.ts` covering: activate when another is active (incumbent demoted atomically), activate when none is active, idempotent activate of an already-active badge, 404 for unknown id, 403 for non-SUPERADMIN, and verify the DB partial unique index remains satisfied after each case.
 - [ ] 2a.7 Run `pnpm test --filter=api -- /activateBadge/integration.test.ts --coverage=false` and ensure it passes.
 
 ### 2b. `deactivateBadge`
 
-- [ ] 2b.1 Create feature folder `apps/api/src/features/badges/deactivateBadge/` with `route.ts`, `handler.ts`, `service.ts`.
-- [ ] 2b.2 Define the Zod params schema (`{ id }`) and response schema (the updated group for that badge's type).
-- [ ] 2b.3 Implement `service.ts` inside a single `prisma.$transaction`: load the target badge (404 if missing); short-circuit if already INACTIVE; otherwise set `status = INACTIVE` on the target. Do not activate any replacement — the type may end with zero actives.
-- [ ] 2b.4 After the transaction, re-read the group for the affected type and return it (with `active: null` when the just-deactivated badge was the only active one).
-- [ ] 2b.5 Register the route as `POST /badges/:id/deactivate` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
-- [ ] 2b.6 Add an integration test `deactivateBadge/integration.test.ts` covering: deactivate the active badge (type ends with zero actives), deactivate when already inactive (no-op), 404 for unknown id, 403 for non-SUPERADMIN.
+- [x] 2b.1 Create feature folder `apps/api/src/features/badges/deactivateBadge/` with `route.ts`, `handler.ts`, `service.ts`.
+- [x] 2b.2 Define the Zod params schema (`{ id }`) and response schema (the updated group for that badge's type).
+- [x] 2b.3 Implement `service.ts` inside a single `prisma.$transaction`: load the target badge (404 if missing); short-circuit if already INACTIVE; otherwise set `status = INACTIVE` on the target. Do not activate any replacement — the type may end with zero actives.
+- [x] 2b.4 After the transaction, re-read the group for the affected type and return it (with `active: null` when the just-deactivated badge was the only active one).
+- [x] 2b.5 Register the route as `POST /badges/:id/deactivate` and gate it with `requireRoles([SystemRole.SUPERADMIN])`.
+- [x] 2b.6 Add an integration test `deactivateBadge/integration.test.ts` covering: deactivate the active badge (type ends with zero actives), deactivate when already inactive (no-op), 404 for unknown id, 403 for non-SUPERADMIN.
 - [ ] 2b.7 Run `pnpm test --filter=api -- /deactivateBadge/integration.test.ts --coverage=false` and ensure it passes.
 
 ## 3. Backend: tighten auth, add file validation, wiring
 
-- [ ] 3.1 Tighten auth for `request-upload` and `confirm-upload` to `requireRoles([SystemRole.SUPERADMIN])` in `apps/api/src/features/files/badges/index.ts`.
+- [x] 3.1 Tighten auth for `request-upload` and `confirm-upload` to `requireRoles([SystemRole.SUPERADMIN])` in `apps/api/src/features/files/badges/index.ts`.
   - The current shared `preHandler` there applies to `badgeRequestUploadRoute`, `badgeConfirmUploadRoute`, **and** `badgeGetFilesRoute`. Simply tightening the shared hook will also lock down `getBadgeFiles`.
   - Split the registration so `request-upload` and `confirm-upload` get a per-route `preHandler` enforcing `requireRoles([SystemRole.SUPERADMIN])`, while `badgeGetFilesRoute` keeps a separate `preHandler` that still allows `[SUPERADMIN, ADMIN]` (its existing policy).
   - Update the existing integration tests per endpoint: `request-upload` and `confirm-upload` — `ADMIN` expects 403, `SUPERADMIN` expects 2xx; `getBadgeFiles` — behaviour unchanged for both roles.
-- [ ] 3.2 In `confirmBadgeUpload/service.ts`, add server-side validation: reject with 400 when **either** the uploaded file's `mimeType` is not in a static allow-list (start with `image/png`, `image/svg+xml`, `image/jpeg`, `image/webp` — confirm exact list against current code and fixtures) **or** its size exceeds `BADGE_UPLOAD_MAX_BYTES` (default 5 MB, sourced from env). No `File` or `Badge` row is created on rejection.
-- [ ] 3.3 Add integration tests for the validation, one case per failure condition:
+- [x] 3.2 In `confirmBadgeUpload/service.ts`, add server-side validation: reject with 400 when **either** the uploaded file's `mimeType` is not in a static allow-list (start with `image/png`, `image/svg+xml`, `image/jpeg`, `image/webp` — confirm exact list against current code and fixtures) **or** its size exceeds `BADGE_UPLOAD_MAX_BYTES` (default 5 MB, sourced from env). No `File` or `Badge` row is created on rejection.
+- [x] 3.3 Add integration tests for the validation, one case per failure condition:
   - valid file accepted,
   - disallowed mime rejected with 400 and no `File`/`Badge` rows created,
   - oversize file rejected with 400 and no `File`/`Badge` rows created,
   - an existing `ACTIVE` badge of the same type remains unchanged after each rejection.
-- [ ] 3.4 **Decouple upload from activation** in `apps/api/src/features/files/badges/confirmBadgeUpload/service.ts`:
+- [x] 3.4 **Decouple upload from activation** in `apps/api/src/features/files/badges/confirmBadgeUpload/service.ts`:
   - Remove the logic that demotes the prior `ACTIVE` badge and the logic that inserts the new badge as `ACTIVE`. The new behaviour: insert the new `Badge` row with `status = INACTIVE` and leave any existing `ACTIVE` badge of the same type untouched.
   - Change the response body of `confirm-upload` to `{ badge: BadgeDTO }` where `BadgeDTO` matches the shape returned by `listBadges` (id, type, status, createdAt, fileName, mimeType, previewUrl with a short-lived read SAS).
   - Update the Zod response schema and OpenAPI types accordingly.
   - Update the existing integration tests for `confirmBadgeUpload` to match the new contract: after confirm, assert (a) a new `Badge` with `status = INACTIVE` exists, (b) any previously `ACTIVE` badge is unchanged, (c) the response body contains the created `BadgeDTO`. Remove any test that asserted the swap.
-- [ ] 3.5 Register the three new routes (`listBadges`, `activateBadge`, `deactivateBadge`) in the main Fastify route tree.
-- [ ] 3.6 Lock in "approval proceeds without a badge" behaviour:
+- [x] 3.5 Register the three new routes (`listBadges`, `activateBadge`, `deactivateBadge`) in the main Fastify route tree.
+- [x] 3.6 Lock in "approval proceeds without a badge" behaviour:
   - Audit `apps/api/src/features/requests/admin/approveRequest/service.ts:39-55` and `apps/api/src/features/carbonInventories/selfDeclareCarbonInventory/service.ts:141-158` to confirm they already pass `activeBadge?.id` into the nullable `Submission.badgeId`. No code change expected.
   - Add (or extend) integration tests for **both** approval paths that seed zero `ACTIVE` badges for the submission's type and assert: the approval succeeds, the submission's `status` is `APPROVED` / `APPROVED_AUTOMATICALLY`, and `badgeId` is `null`. These serve as regression tests against a future refactor that forgets the `?.id`.
   - Add an integration test asserting a later `POST /badges/:id/activate` does **not** backfill the prior null-badge submission (its `badgeId` stays `null`).
-- [ ] 3.7 Run `pnpm type-check` and `pnpm lint` for the api package and fix any issues.
+- [x] 3.7 Run `pnpm type-check` and `pnpm lint` for the api package and fix any issues.
 
 ## 4. Frontend: route, data hooks, and shared types
 
