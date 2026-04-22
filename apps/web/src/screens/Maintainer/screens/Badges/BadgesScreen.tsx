@@ -13,11 +13,11 @@ import { useBadgeCatalog } from "@/api/query/badges/useBadgeCatalog";
 import { BadgeCard } from "./BadgeCard";
 
 const BADGE_TYPE_ORDER: BadgeType[] = [
-  BadgeType.ORGANIZATION_ACCREDITATION,
   BadgeType.CARBON_INVENTORY_CALCULATION,
   BadgeType.CARBON_INVENTORY_VERIFICATION,
   BadgeType.REDUCTION_PROJECT_VERIFICATION,
   BadgeType.NEUTRALIZATION_PLAN_VERIFICATION,
+  BadgeType.ORGANIZATION_ACCREDITATION,
 ];
 
 export const BadgesScreen: FC = () => {
@@ -35,7 +35,7 @@ export const BadgesScreen: FC = () => {
     return (
       <Box sx={{ py: 4, textAlign: "center" }}>
         <Typography color="error">
-          Error al cargar los badges. Intenta recargar la página.
+          Error al cargar los sellos. Intenta recargar la página.
         </Typography>
       </Box>
     );
@@ -56,10 +56,10 @@ export const BadgesScreen: FC = () => {
           <WorkspacePremiumOutlined color="primary" />
           <Box>
             <Typography variant="h5" fontWeight={700}>
-              Badges
+              Sellos
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de badges por tipo de reconocimiento
+              Gestión de sellos por tipo de reconocimiento
             </Typography>
           </Box>
         </Stack>

@@ -77,13 +77,13 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <WarningAmberOutlined color="warning" />
-        {mode === "activate" ? "Reemplazar badge activo" : "Desactivar badge"}
+        {mode === "activate" ? "Reemplazar sello activo" : "Desactivar sello"}
       </DialogTitle>
       <DialogContent>
         {mode === "activate" && incoming ? (
           <Box>
             <Typography variant="body2" mb={2}>
-              Esta acción reemplazará el badge activo actual.
+              Esta acción reemplazará el sello activo actual.
             </Typography>
             <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
               <BadgePreviewMini
@@ -111,12 +111,12 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
             <Box sx={{ textAlign: "center", mb: 2 }}>
               <BadgePreviewMini
                 badge={outgoing}
-                label="Badge que se desactivará"
+                label="Sello que se desactivará"
               />
             </Box>
             <Alert severity="warning" sx={{ mt: 1 }}>
-              Este tipo no tendrá badge activo hasta que actives otro. Las
-              aprobaciones durante ese periodo se registrarán sin badge.
+              Este tipo no tendrá sello activo hasta que actives otro. Las
+              aprobaciones durante ese periodo se registrarán sin sello.
             </Alert>
           </Box>
         )}
