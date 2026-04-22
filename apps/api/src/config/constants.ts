@@ -18,8 +18,5 @@ export const BADGE_ALLOWED_MIME_TYPES = [
   "image/webp",
 ] as const;
 
-/** Maximum badge file size in bytes (default 5 MB, overridden via BADGE_UPLOAD_MAX_BYTES env) */
-export const BADGE_UPLOAD_MAX_BYTES = parseInt(
-  process.env.BADGE_UPLOAD_MAX_BYTES ?? String(5 * 1024 * 1024),
-  10
-);
+/** Maximum badge file size in bytes (5 MB) */
+export const BADGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
