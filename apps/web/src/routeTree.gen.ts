@@ -36,8 +36,8 @@ import { Route as AdminItemsRouteImport } from './routes/admin/items'
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
-import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
 import { Route as AppReductionProjectsIndexRouteImport } from './routes/app/reduction-projects/index'
 import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
@@ -185,14 +185,14 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminBadgesRoute = AdminBadgesRouteImport.update({
-  id: '/badges',
-  path: '/badges',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBadgesRoute = AdminBadgesRouteImport.update({
+  id: '/badges',
+  path: '/badges',
   getParentRoute: () => AdminRoute,
 } as any)
 const AppReductionProjectsIndexRoute =
@@ -708,18 +708,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/badges': {
-      id: '/admin/badges'
-      path: '/badges'
-      fullPath: '/admin/badges'
-      preLoaderRoute: typeof AdminBadgesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/badges': {
+      id: '/admin/badges'
+      path: '/badges'
+      fullPath: '/admin/badges'
+      preLoaderRoute: typeof AdminBadgesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/app/reduction-projects/': {
