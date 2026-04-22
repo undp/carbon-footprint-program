@@ -19,6 +19,7 @@ export const getAllInitiativesRoute: StandardRouteSignature = (
           200: GetAllInitiativesResponseSchema,
           400: ApiErrorResponseSchema,
           401: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
         },
       },
     },

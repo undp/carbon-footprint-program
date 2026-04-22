@@ -28,6 +28,7 @@ export const updateInitiativeRoute: StandardRouteSignature = (
           200: UpdateInitiativeResponseSchema,
           400: ApiErrorResponseSchema,
           401: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
