@@ -15,7 +15,8 @@ import type {
 export const useInitiatives = () =>
   useQuery<GetAllInitiativesResponse>({
     queryKey: maintainerKeys.initiatives.all,
-    queryFn: () => apiClient.get("admin/reduction-plan").json(),
+    queryFn: () =>
+      apiClient.get("admin/reduction-plan").json<GetAllInitiativesResponse>(),
     staleTime: STALE_TIME_MS,
   });
 
@@ -24,7 +25,9 @@ export const useCreateInitiative = () => {
   const { enqueueSnackbar } = useSnackbar();
   return useMutation<CreateInitiativeResponse, Error, CreateInitiativeRequest>({
     mutationFn: (data) =>
-      apiClient.post("admin/reduction-plan", { json: data }).json(),
+      apiClient
+        .post("admin/reduction-plan", { json: data })
+        .json<CreateInitiativeResponse>(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.initiatives.all,
@@ -51,7 +54,9 @@ export const useUpdateInitiative = () => {
     UpdateInitiativeVariables
   >({
     mutationFn: ({ id, data }) =>
-      apiClient.patch(`admin/reduction-plan/${id}`, { json: data }).json(),
+      apiClient
+        .patch(`admin/reduction-plan/${id}`, { json: data })
+        .json<UpdateInitiativeResponse>(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.initiatives.all,
@@ -68,7 +73,10 @@ export const useDeleteInitiative = () => {
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
   return useMutation<DeleteInitiativeResponse, Error, string>({
-    mutationFn: (id) => apiClient.delete(`admin/reduction-plan/${id}`).json(),
+    mutationFn: (id) =>
+      apiClient
+        .delete(`admin/reduction-plan/${id}`)
+        .json<DeleteInitiativeResponse>(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.initiatives.all,
