@@ -55,6 +55,9 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - **Avoid excessive ternaries in JSX**: prefer early returns or intermediate variables over inline ternary expressions in the render tree. If a ternary is simple and short (one line), it is acceptable. For anything more complex, extract the logic.
 - **UI stack**: MUI v7 + Tailwind CSS. Follow existing patterns for styling.
 - **Use theme colors, never hardcoded values**: always reference colors from the theme (`theme.palette.*`) instead of ad-hoc hex/rgb literals. Use MUI helpers like `alpha()` and `darken()` from `@mui/material/styles` when you need transparency or shade variations. For category-specific colors, use the existing patterns: `theme.palette.requestTypeColors`, `theme.palette.recognitionTypeColors`, and the `CATEGORY_COLORS` utility in `utils/categoryColors.ts`. If a required color doesn't exist in the theme, add it to `apps/web/src/theme/palette.ts` (and augment the type in `undp-huella-latam.theme.d.ts`) rather than hardcoding it inline.
+- **Avoid prop drilling**: when data is needed across many component levels, use the Context API or an external state library like Zustand instead of passing props through intermediate components.
+- **Memoization**: prevent unnecessary re-renders using `React.memo` for components and `useMemo`/`useCallback` for expensive calculations and callback functions passed as props.
+- **Screen filter state in query params**: user selections in screen-level filters (e.g., header dropdowns, search inputs) should be stored in URL query params, not in local component state. This makes filters shareable, bookmarkable, and persistent across navigation.
 
 # Constants & Configurable Values
 
