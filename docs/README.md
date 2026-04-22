@@ -92,6 +92,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | Document | Description |
 |---|---|
 | [Glossary](./glossary.md) | Domain terminology reference (carbon accounting, platform workflow, technical terms) |
+| [Governance and Licensing](./governance.md) | Digital public good status, license, contribution model, and recommended root-level files |
 
 ## Other
 
