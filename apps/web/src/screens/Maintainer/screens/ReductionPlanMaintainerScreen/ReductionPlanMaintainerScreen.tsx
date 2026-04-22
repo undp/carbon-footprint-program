@@ -239,10 +239,17 @@ export const ReductionPlanMaintainerScreen: FC = () => {
 
   const handleCategoryChange = useCallback(
     (rowIndex: number, categoryId: string) => {
+      const previousCategoryId = form.getValues(
+        `initiatives.${rowIndex}.categoryId`
+      );
       handleCellChange(rowIndex, "categoryId", categoryId);
-      const current = form.getValues(`initiatives.${rowIndex}.subcategoryId`);
-      if (current) {
-        handleCellChange(rowIndex, "subcategoryId", "");
+      if (previousCategoryId !== categoryId) {
+        const currentSubcategoryId = form.getValues(
+          `initiatives.${rowIndex}.subcategoryId`
+        );
+        if (currentSubcategoryId) {
+          handleCellChange(rowIndex, "subcategoryId", "");
+        }
       }
     },
     [form, handleCellChange]
