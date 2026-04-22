@@ -56,6 +56,18 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - **UI stack**: MUI v7 + Tailwind CSS. Follow existing patterns for styling.
 - **Use theme colors, never hardcoded values**: always reference colors from the theme (`theme.palette.*`) instead of ad-hoc hex/rgb literals. Use MUI helpers like `alpha()` and `darken()` from `@mui/material/styles` when you need transparency or shade variations. For category-specific colors, use the existing patterns: `theme.palette.requestTypeColors`, `theme.palette.recognitionTypeColors`, and the `CATEGORY_COLORS` utility in `utils/categoryColors.ts`. If a required color doesn't exist in the theme, add it to `apps/web/src/theme/palette.ts` (and augment the type in `undp-huella-latam.theme.d.ts`) rather than hardcoding it inline.
 
+# Constants & Configurable Values
+
+This platform is deployed independently by each country, so values that may vary per deployment must be explicit constants — never inline literals.
+
+- **`packages/constants/`** (shared, `@repo/constants`): domain constants used by both API and web (e.g., allowed greenhouse gases, GWP source options, max lengths, required documents). These are often tied to database enums or Zod schemas — modifying them may require data migration.
+- **`apps/api/src/config/constants.ts`**: API-specific constants like numeric precision (`PERCENTAGE_PRECISION`, `EMISSIONS_PRECISION`), tolerances, and SAS URL expiry times.
+- **`apps/web/src/config/constants.ts`**: frontend-specific constants like stale times, debounce intervals, sidebar width, file upload limits, and year ranges.
+- **`apps/web/src/config/vocab.ts`**: localized terminology (e.g., organization/inscription names in Spanish). Country deployments may need to adjust these labels.
+- **Screen-level `constants.ts`** files (e.g., in `screens/Maintainer/`, `screens/ReductionProject/`): feature-specific labels, options, and UI content.
+
+**When to use constants**: any value that could change per country deployment — labels, options lists, thresholds, limits, precision rules, normative standards, emission factor sources — must be defined as a named constant in the appropriate file above. Never inline these values. Place the constant at the correct level: shared if used by both API and web, otherwise in the corresponding app's config.
+
 # PR Interaction with Reviewers
 
 - When interacting with CodeRabbit or other automated reviewers, use `@coderabbitai` commands as needed to control the review flow.
