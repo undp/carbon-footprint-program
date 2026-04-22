@@ -107,7 +107,7 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
           onClick={onConfirm}
           loading={loading}
         >
-          {mode === "activate" ? "Activar" : "Desactivar"}
+          {mode === "activate" ? "Reemplazar" : "Desactivar"}
         </Button>
       </DialogActions>
     </Dialog>
