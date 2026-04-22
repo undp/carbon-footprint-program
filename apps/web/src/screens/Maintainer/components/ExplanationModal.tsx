@@ -1,12 +1,19 @@
-import { FC, useState } from "react";
+import { FC, lazy, Suspense, useState } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  TextField,
+  Box,
+  CircularProgress,
+  Typography,
 } from "@mui/material";
+import { ExplanationContent } from "@/components/ExplanationContent";
+
+const MarkdownEditor = lazy(
+  () => import("@/components/markdown/MarkdownEditor")
+);
 
 interface ExplanationModalProps {
   open: boolean;
@@ -35,17 +42,33 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
     <>
       <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
       <DialogContent>
-        <TextField
-          fullWidth
-          multiline
-          minRows={8}
-          maxRows={20}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          placeholder="Escribe la explicación aquí..."
-          slotProps={{ input: { readOnly } }}
-          sx={{ mt: 1 }}
-        />
+        {readOnly ? (
+          <ExplanationContent content={value} />
+        ) : (
+          <>
+            <Typography
+              variant="body2"
+              component="label"
+              sx={{ display: "block", mb: 1, color: "text.secondary" }}
+            >
+              Explicación
+            </Typography>
+            <Suspense
+              fallback={
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  minHeight={480}
+                >
+                  <CircularProgress />
+                </Box>
+              }
+            >
+              <MarkdownEditor value={localValue} onChange={setLocalValue} />
+            </Suspense>
+          </>
+        )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         {readOnly ? (
@@ -72,7 +95,7 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
   <Dialog
     open={open}
     onClose={contentProps.onClose}
-    maxWidth="md"
+    maxWidth="lg"
     fullWidth
     PaperProps={{ sx: { maxHeight: "90vh" } }}
   >
