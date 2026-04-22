@@ -293,7 +293,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       const { rowIndex } = explanationModal;
       if (rowIndex < 0) return;
 
-      const previousExamples = form.getValues(
+      const previousExplanation = form.getValues(
         `subcategories.${rowIndex}.explanation`
       );
       handleCellChange(rowIndex, "explanation", value);
@@ -311,7 +311,11 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             variant: "success",
           });
         } catch (error) {
-          handleCellChange(rowIndex, "explanation", previousExamples ?? null);
+          handleCellChange(
+            rowIndex,
+            "explanation",
+            previousExplanation ?? null
+          );
           void enqueueSnackbar({
             message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
