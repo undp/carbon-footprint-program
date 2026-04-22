@@ -68,6 +68,17 @@ This platform is deployed independently by each country, so values that may vary
 
 **When to use constants**: any value that could change per country deployment — labels, options lists, thresholds, limits, precision rules, normative standards, emission factor sources — must be defined as a named constant in the appropriate file above. Never inline these values. Place the constant at the correct level: shared if used by both API and web, otherwise in the corresponding app's config.
 
+# Utils & Shared Logic
+
+Utils follow the same layering pattern as constants — shared logic lives in the shared package, app-specific logic stays in the corresponding app. Web and API never cross-import each other's utils.
+
+- **`packages/utils/`** (shared, `@repo/utils`): pure business logic and formatting functions used by both API and web. Includes status/workflow checks (`isCarbonInventoryEditable`, `canSubmitToVerification`, `isReductionProjectEditable`), unit conversions (`kgToTon`, `tonToKg`), date formatting, and user display name building. These must have no framework dependencies (no MUI, no Prisma, no Fastify).
+- **`apps/api/src/utils/`**: backend-specific utilities for Prisma type conversions (`mapBigIntField`, `mapDecimalField`, `toNumberOrNull`) and null-safe comparisons. May re-export shared utils from `@repo/utils` for convenience.
+- **`apps/web/src/utils/`**: frontend-specific utilities for UI formatting (`formatEmissions`, `formatDate`), error message translation (`getApiErrorMessage`), category colors/icons, route guards (`requireRole`), status labels, and Excel export logic.
+- **Screen-scoped utils** (e.g., `screens/CarbonInventory/utils/`): form validation and data transformers tightly coupled to a specific feature. Only use when the logic is not reusable outside that screen.
+
+**Where to place new utils**: if the function is pure logic needed by both API and web, add it to `packages/utils/`. If it depends on Prisma or backend concerns, place it in `apps/api/src/utils/`. If it depends on MUI, React, or frontend concerns, place it in `apps/web/src/utils/`. If it's tightly coupled to a single screen's forms or data flow, scope it under that screen's `utils/` folder.
+
 # PR Interaction with Reviewers
 
 - When interacting with CodeRabbit or other automated reviewers, use `@coderabbitai` commands as needed to control the review flow.
