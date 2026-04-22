@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
 import { requireRole } from "@/utils/requireRole";
-import { InitiativesMaintainerScreen } from "@/screens/Maintainer/screens/InitiativesMaintainerScreen";
+import { InitiativesMaintainerScreen } from "@/screens/Maintainer/screens/ReductionPlanMaintainerScreen";
 
 export const Route = createFileRoute(Routes.ADMIN_REDUCTION_PLAN)({
   beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], {
