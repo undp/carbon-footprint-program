@@ -12,26 +12,20 @@ export const deleteInitiativeService = async (
 ): Promise<DeleteInitiativeResponse> => {
   const initiativeId = BigInt(id);
 
-  const existing = await prismaClient.reductionPlanInitiative.findUnique({
-    where: { id: initiativeId },
-    select: { id: true, status: true },
-  });
-
-  if (!existing) {
-    throw new ReductionPlanInitiativeNotFoundError(id);
-  }
-
-  if (existing.status === ReductionPlanInitiativeStatus.DELETED) {
-    return {};
-  }
-
-  await prismaClient.reductionPlanInitiative.update({
-    where: { id: initiativeId },
+  const result = await prismaClient.reductionPlanInitiative.updateMany({
+    where: {
+      id: initiativeId,
+      status: ReductionPlanInitiativeStatus.ACTIVE,
+    },
     data: {
       status: ReductionPlanInitiativeStatus.DELETED,
       updatedById: user ? BigInt(user.id) : null,
     },
   });
+
+  if (result.count === 0) {
+    throw new ReductionPlanInitiativeNotFoundError(id);
+  }
 
   return {};
 };
