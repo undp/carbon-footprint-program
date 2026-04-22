@@ -24,7 +24,11 @@ import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
 import { useDeactivateBadge } from "@/api/query/badges/useDeactivateBadge";
 import { useBadgeUpload } from "@/api/query/badges/useBadgeUpload";
-import { BADGE_TYPE_LABELS } from "./constants";
+import {
+  BADGE_TYPE_LABELS,
+  BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL,
+  BADGE_UPLOAD_ACCEPT_ATTRIBUTE,
+} from "./constants";
 
 interface BadgeCardProps {
   entry: BadgeCatalogEntry;
@@ -65,14 +69,12 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
           err instanceof Error ? err.message : "Error al subir el archivo";
         if (message.includes("Unsupported file type")) {
           setUploadError(
-            "Tipo de archivo no permitido. Usa PNG, SVG, JPG o WebP."
+            `Tipo de archivo no permitido. Usa ${BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL}.`
           );
         } else if (message.includes("exceeds")) {
-          setUploadError(
-            "El archivo supera el tamaño máximo permitido (5 MB)."
-          );
+          setUploadError("El archivo supera el tamaño máximo permitido.");
         } else {
-          setUploadError("Error al subir el badge. Intenta nuevamente.");
+          setUploadError("Error al subir el sello. Intenta nuevamente.");
         }
       }
     },
@@ -289,7 +291,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/png,image/svg+xml,image/jpeg,image/webp"
+        accept={BADGE_UPLOAD_ACCEPT_ATTRIBUTE}
         style={{ display: "none" }}
         onChange={handleFileChange}
       />
