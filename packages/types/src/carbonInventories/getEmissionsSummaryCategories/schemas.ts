@@ -36,6 +36,7 @@ export const GetEmissionsSummaryCategoriesResponseSchema = z
     carbonInventory: CarbonInventoryBaseSchema.pick({
       id: true,
       name: true,
+      organizationId: true,
     })
       .strict()
       .extend({

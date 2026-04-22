@@ -21,6 +21,7 @@ export const getEmissionsSummaryCategoriesService = async (
     select: {
       ...carbonInventoryBaseSelect,
       ...carbonInventoryWithSubmissionsMinimalSelect,
+      organizationId: true,
     },
   });
 
@@ -61,6 +62,7 @@ export const getEmissionsSummaryCategoriesService = async (
     carbonInventory: {
       id: inventory.id.toString(),
       name: inventory.name,
+      organizationId: inventory.organizationId?.toString() ?? null,
       status: displayStatus,
     },
     totalEmissions: roundEmissions(totalEmissions),

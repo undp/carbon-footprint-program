@@ -5,6 +5,7 @@ import { AutoAwesome } from "@mui/icons-material";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { VOCAB } from "@/config/vocab";
+import { useAuth } from "@/contexts/AuthContext";
 import { type GetSuggestedReductionPlanResponse } from "@repo/types";
 
 interface ReductionPlanCardProps {
@@ -12,6 +13,7 @@ interface ReductionPlanCardProps {
   onViewFullPlan: () => void;
   isLoading?: boolean;
   hasError?: boolean;
+  isViewFullPlanDisabled?: boolean;
 }
 
 export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
@@ -19,8 +21,10 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
   onViewFullPlan,
   isLoading = false,
   hasError = false,
+  isViewFullPlanDisabled = false,
 }) => {
   const theme = useTheme();
+  const { user } = useAuth();
 
   const hasInitiatives = Array.isArray(initiatives) && initiatives.length > 0;
 
@@ -80,28 +84,31 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                 ))}
               </Box>
             </Box>
-            <Button
-              variant="text"
-              onClick={onViewFullPlan}
-              endIcon={
-                <AutoAwesome sx={{ color: theme.palette.other.fluor }} />
-              }
-              className="shrink-0 gap-4 self-center"
-              sx={{ textTransform: "none" }}
-            >
-              <Typography
-                variant="body1"
-                fontWeight="fontWeightSemiBold"
-                className="underline"
-                sx={{
-                  background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
+            {user && (
+              <Button
+                variant="text"
+                onClick={onViewFullPlan}
+                disabled={isViewFullPlanDisabled}
+                endIcon={
+                  <AutoAwesome sx={{ color: theme.palette.other.fluor }} />
+                }
+                className="shrink-0 gap-4 self-center"
+                sx={{ textTransform: "none" }}
               >
-                Ver plan completo
-              </Typography>
-            </Button>
+                <Typography
+                  variant="body1"
+                  fontWeight="fontWeightSemiBold"
+                  className="underline"
+                  sx={{
+                    background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  Ver plan completo
+                </Typography>
+              </Button>
+            )}
           </>
         )}
       </Box>
