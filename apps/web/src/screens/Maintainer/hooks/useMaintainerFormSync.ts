@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 interface UseMaintainerFormSyncOptions<TFormValues extends FieldValues> {
@@ -18,22 +18,19 @@ export const useMaintainerFormSync = <TFormValues extends FieldValues>({
   serverData,
   toFormData,
 }: UseMaintainerFormSyncOptions<TFormValues>) => {
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
   // Reset form when methodology changes
   useEffect(() => {
     form.reset({ [fieldName]: [] } as unknown as TFormValues);
   }, [methodologyVersionId, form, fieldName]);
 
-  // Sync server data to form when not editing
+  // Sync server data to form when not editing. `editingRowId` is a dependency
+  // so that a server refetch that lands during edit mode is replayed once the
+  // user exits that mode, preventing a stale grid.
   useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
+    if (editingRowId !== null) return;
     if (!serverData) return;
     form.reset({
       [fieldName]: toFormData(serverData),
     } as unknown as TFormValues);
-  }, [serverData, form, fieldName, toFormData]);
+  }, [serverData, editingRowId, form, fieldName, toFormData]);
 };
