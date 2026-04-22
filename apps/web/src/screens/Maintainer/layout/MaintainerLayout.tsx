@@ -94,7 +94,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     path: Routes.ADMIN_REQUESTS,
   },
   {
-    text: "Badges",
+    text: "Sellos",
     icon: <WorkspacePremiumOutlined />,
     path: Routes.ADMIN_BADGES,
     requiredRoles: [SystemRole.SUPERADMIN],
