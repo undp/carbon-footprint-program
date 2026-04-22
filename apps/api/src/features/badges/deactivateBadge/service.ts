@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import { BadgeStatus } from "@repo/database";
 import type { DeactivateBadgeResponse } from "@repo/types";
-import { EmptyResourceError } from "@/errors/index.js";
+import { ResourceNotFoundError } from "@/errors/index.js";
 import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { buildBadgeCatalogEntry } from "../helpers.js";
 
@@ -21,7 +21,7 @@ export async function deactivateBadgeService(
     });
 
     if (!badge) {
-      throw new EmptyResourceError("Badge");
+      throw new ResourceNotFoundError("Badge", id);
     }
 
     if (badge.status === BadgeStatus.INACTIVE) {
