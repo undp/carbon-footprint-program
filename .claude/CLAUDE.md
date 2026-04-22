@@ -95,6 +95,15 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - **Screen filter state in query params**: user selections in screen-level filters (e.g., header dropdowns, search inputs) should be stored in URL query params, not in local component state. This makes filters shareable, bookmarkable, and persistent across navigation.
 - **Language**: all user-facing text is in Spanish — there is no i18n library. Dates use `date-fns` with the Spanish locale (`es`). New features must follow this convention: labels, placeholders, error messages, tooltips, and button text are all in Spanish.
 
+# Frontend Routing & Data Fetching
+
+- **Router**: TanStack Router with file-based routing in `apps/web/src/routes/`. The file `routeTree.gen.ts` is auto-generated — never edit it manually.
+- **Route guards**: use `beforeLoad` in route definitions for auth checks and redirects.
+- **Layout routes**: `app.tsx` and `admin.tsx` serve as layout wrappers for nested routes.
+- **Server state**: TanStack Query v5. Query hooks live in `apps/web/src/api/query/`, mutation hooks in `apps/web/src/api/mutation/`.
+- **Query key factories**: each domain defines a keys file (e.g., `apps/web/src/api/query/organizations/keys.ts`) with a structured key object (`organizationKeys.all`, `.detail(id)`, `.users(orgId)`). Use these for cache invalidation.
+- **HTTP client**: `ky` via `apiClient` in `apps/web/src/api/http/client.ts`. Auth tokens are injected automatically in a `beforeRequest` hook via MSAL.
+
 
 # Constants & Configurable Values
 
