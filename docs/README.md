@@ -122,11 +122,11 @@ Original source documents used as input for the written documentation above.
 
 | Document | Description |
 |---|---|
-| [Infrastructure Provisioning & Deployment Model](./annexes/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf) | Original infrastructure provisioning and deployment model document |
-| [Production — App Usage Assumptions & Estimations](./annexes/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf) | Original production app usage assumptions and estimations |
-| [Production — Consolidated Azure Services Requirements](./annexes/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements |
-| [Staging — App Usage Assumptions & Estimations](./annexes/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf) | Original staging app usage assumptions and estimations |
-| [Staging — Consolidated Azure Services Requirements](./annexes/Staging-Consolidated%20Azure%20Services%20Requirements.pdf) | Original staging Azure services requirements |
+| [Infrastructure Provisioning & Deployment Model](./infrastructure/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf) | Original infrastructure provisioning and deployment model document |
+| [Production — App Usage Assumptions & Estimations](./infrastructure/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf) | Original production app usage assumptions and estimations |
+| [Production — Consolidated Azure Services Requirements](./infrastructure/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements |
+| [Staging — App Usage Assumptions & Estimations](./infrastructure/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf) | Original staging app usage assumptions and estimations |
+| [Staging — Consolidated Azure Services Requirements](./infrastructure/Staging-Consolidated%20Azure%20Services%20Requirements.pdf) | Original staging Azure services requirements |
 
 ---
 
