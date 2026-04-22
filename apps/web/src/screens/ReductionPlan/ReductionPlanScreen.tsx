@@ -52,7 +52,11 @@ export const ReductionPlanScreen: FC = () => {
       void navigate({
         to: Routes.REDUCTION_PLAN,
         replace: true,
-        search: { organizationId: orgId, carbonInventoryId: undefined },
+        search: (prev) => ({
+          ...prev,
+          organizationId: orgId,
+          carbonInventoryId: undefined,
+        }),
       });
     },
     [navigate]
@@ -62,7 +66,10 @@ export const ReductionPlanScreen: FC = () => {
     (inventoryId: string) => {
       void navigate({
         to: Routes.REDUCTION_PLAN,
-        search: { carbonInventoryId: inventoryId },
+        search: (prev) => ({
+          ...prev,
+          carbonInventoryId: inventoryId,
+        }),
       });
     },
     [navigate]
