@@ -98,7 +98,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                 <Typography
                   variant="body1"
                   fontWeight="fontWeightSemiBold"
-                  className="underline"
+                  className="py-4 underline"
                   sx={{
                     background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
                     WebkitBackgroundClip: "text",
