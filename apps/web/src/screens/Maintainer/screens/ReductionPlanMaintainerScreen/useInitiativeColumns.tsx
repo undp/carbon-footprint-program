@@ -51,9 +51,23 @@ const AutocompleteCell: FC<AutocompleteCellProps> = ({
   const selected = options.find((o) => o.id === value) ?? null;
 
   if (!isEditing) {
+    const label = selected?.name ?? "—";
+    const interactive = Boolean(onClick);
     return (
       <Typography
         onClick={onClick}
+        role={interactive ? "button" : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        onKeyDown={
+          interactive
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onClick?.();
+                }
+              }
+            : undefined
+        }
         sx={{
           px: 1,
           py: 0.5,
@@ -61,16 +75,19 @@ const AutocompleteCell: FC<AutocompleteCellProps> = ({
           display: "flex",
           alignItems: "center",
           borderRadius: 1,
-          cursor: onClick ? "pointer" : "default",
+          cursor: interactive ? "pointer" : "default",
           width: "100%",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           color: selected ? undefined : "text.secondary",
-          "&:hover": onClick ? { backgroundColor: "grey.100" } : {},
+          "&:hover": interactive ? { backgroundColor: "grey.100" } : {},
+          "&:focus-visible": interactive
+            ? { outline: "2px solid", outlineColor: "primary.main" }
+            : {},
         }}
       >
-        {selected?.name ?? "—"}
+        {label}
       </Typography>
     );
   }

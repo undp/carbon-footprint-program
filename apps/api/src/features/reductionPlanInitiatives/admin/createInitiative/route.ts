@@ -21,6 +21,7 @@ export const createInitiativeRoute: StandardRouteSignature = (
         response: {
           201: CreateInitiativeResponseSchema,
           400: ApiErrorResponseSchema,
+          401: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
