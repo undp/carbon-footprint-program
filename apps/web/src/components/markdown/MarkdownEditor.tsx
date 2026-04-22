@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Box } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material/styles";
 import MDEditor from "@uiw/react-md-editor";
 import { ExplanationContent } from "@/components/ExplanationContent";
 import {
@@ -18,6 +19,38 @@ interface MarkdownEditorProps {
   renderPreview?: (value: string) => ReactNode;
 }
 
+const editorContainerSx: SxProps<Theme> = {
+  display: "flex",
+  flexDirection: "row",
+  gap: 2,
+  width: "100%",
+  "& .w-md-editor": {
+    flex: 1,
+    minWidth: 0,
+    backgroundColor: "background.paper",
+    color: "text.primary",
+    border: "1px solid",
+    borderColor: "divider",
+    borderRadius: 1,
+    boxShadow: "none",
+  },
+  "& .w-md-editor-toolbar": {
+    backgroundColor: "background.paper",
+    borderBottom: "1px solid",
+    borderColor: "divider",
+  },
+  "& .w-md-editor-toolbar li > button": {
+    color: "text.primary",
+  },
+  "& .w-md-editor-text, & .w-md-editor-text-pre, & .w-md-editor-text-input": {
+    color: "text.primary",
+    backgroundColor: "background.paper",
+  },
+  "& .w-md-editor-input textarea::placeholder": {
+    color: "text.secondary",
+  },
+};
+
 const MarkdownEditor = ({
   value,
   onChange,
@@ -34,41 +67,7 @@ const MarkdownEditor = ({
   );
 
   return (
-    <Box
-      data-color-mode="light"
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        gap: 2,
-        width: "100%",
-        "& .w-md-editor": {
-          flex: 1,
-          minWidth: 0,
-          backgroundColor: "background.paper",
-          color: "text.primary",
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
-          boxShadow: "none",
-        },
-        "& .w-md-editor-toolbar": {
-          backgroundColor: "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-        },
-        "& .w-md-editor-toolbar li > button": {
-          color: "text.primary",
-        },
-        "& .w-md-editor-text, & .w-md-editor-text-pre, & .w-md-editor-text-input":
-          {
-            color: "text.primary",
-            backgroundColor: "background.paper",
-          },
-        "& .w-md-editor-input textarea::placeholder": {
-          color: "text.secondary",
-        },
-      }}
-    >
+    <Box data-color-mode="light" sx={editorContainerSx}>
       <MDEditor
         value={value}
         onChange={(next) => onChange(next ?? "")}
