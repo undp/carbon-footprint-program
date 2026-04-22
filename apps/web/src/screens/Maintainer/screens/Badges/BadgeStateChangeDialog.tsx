@@ -86,8 +86,8 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
               />
             </Box>
             <Alert severity="warning" sx={{ mt: 1 }}>
-              Este tipo no tendrá sello activo hasta que actives otro. Las
-              aprobaciones durante ese periodo se registrarán sin sello.
+              Este tipo de reconocimiento no tendrá sello activo hasta que
+              actives otro. El sello es decorativo y no afecta las aprobaciones.
             </Alert>
           </Box>
         )}
