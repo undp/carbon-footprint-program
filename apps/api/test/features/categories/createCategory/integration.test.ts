@@ -54,7 +54,6 @@ describe("POST /api/categories/ - Integration Tests", () => {
       color: "#FF0000",
       synonyms: "synonym1, synonym2",
       description: "Test category description",
-      examples: null,
       position: 1,
       ...overrides,
     };

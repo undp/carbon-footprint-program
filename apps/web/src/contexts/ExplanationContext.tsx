@@ -1,11 +1,3 @@
-/**
- * ExplanationContext manages the explanation dialog state.
- *
- * State semantics for `explanationSlug`:
- *  - `undefined` → dialog is closed
- *  - `null`      → dialog is open, but there is no explanation to fetch (shows empty content)
- *  - `string`    → dialog is open and fetches the explanation by slug
- */
 import {
   createContext,
   useCallback,
@@ -21,8 +13,14 @@ import { ExplanationSkeleton } from "@/components/ExplanationSkeleton";
 import { useSnackbar } from "notistack";
 import { useExplanation } from "@/api/query/explanations";
 
+type ExplanationState =
+  | { mode: "slug"; slug: string | null }
+  | { mode: "content"; content: string }
+  | null;
+
 interface ExplanationContextType {
-  openExplanation: (slug: string | null) => void;
+  openExplanationBySlug: (slug: string | null) => void;
+  openExplanationContent: (content: string) => void;
 }
 
 const ExplanationContext = createContext<ExplanationContextType | undefined>(
@@ -30,21 +28,25 @@ const ExplanationContext = createContext<ExplanationContextType | undefined>(
 );
 
 export function ExplanationProvider({ children }: { children: ReactNode }) {
-  const [explanationSlug, setExplanationSlug] = useState<
-    string | null | undefined
-  >(undefined);
+  const [state, setState] = useState<ExplanationState>(null);
+
+  const slugForFetch = state?.mode === "slug" ? state.slug : null;
   const {
     data: explanation,
     isLoading,
     isError,
-  } = useExplanation(explanationSlug ?? null);
+  } = useExplanation(slugForFetch);
 
-  const openExplanation = useCallback((slug: string | null) => {
-    setExplanationSlug(slug);
+  const openExplanationBySlug = useCallback((slug: string | null) => {
+    setState({ mode: "slug", slug });
+  }, []);
+
+  const openExplanationContent = useCallback((content: string) => {
+    setState({ mode: "content", content });
   }, []);
 
   const handleClose = useCallback(() => {
-    setExplanationSlug(undefined);
+    setState(null);
   }, []);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -58,7 +60,12 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
     }
   }, [isError, enqueueSnackbar]);
 
-  const value = useMemo(() => ({ openExplanation }), [openExplanation]);
+  const value = useMemo(
+    () => ({ openExplanationBySlug, openExplanationContent }),
+    [openExplanationBySlug, openExplanationContent]
+  );
+
+  const isOpen = state !== null && !isError;
 
   return (
     <ExplanationContext.Provider value={value}>
@@ -67,12 +74,14 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
         maxWidth="md"
         fullWidth
         scroll="body"
-        open={explanationSlug !== undefined && !isError}
+        open={isOpen}
         onClose={handleClose}
         slotProps={{ transition: { onExited: handleClose } }}
       >
         <DialogContent sx={{ p: 3 }}>
-          {isLoading ? (
+          {state?.mode === "content" ? (
+            <ExplanationContent content={state.content} />
+          ) : isLoading ? (
             <ExplanationSkeleton />
           ) : (
             <ExplanationContent content={explanation?.content ?? ""} />

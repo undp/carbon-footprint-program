@@ -16,7 +16,7 @@ export const UpdateCategoryRequestSchema = CategoryBaseSchema.pick({
   color: true,
   synonyms: true,
   description: true,
-  examples: true,
+  explanation: true,
   position: true,
 })
   .partial()

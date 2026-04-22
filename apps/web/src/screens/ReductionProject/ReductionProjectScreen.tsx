@@ -52,7 +52,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
 
   const id = isCreateMode ? undefined : (params as { id: string }).id;
 
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   // Queries
   const {
@@ -221,7 +221,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
             </Typography>
             <InfoButton
               label="Más información"
-              onClick={() => openExplanation(null)}
+              onClick={() => openExplanationBySlug(null)}
             />
           </Box>
           {(isEditMode || isViewMode) && status && (

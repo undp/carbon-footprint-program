@@ -29,7 +29,7 @@ export const GeiConsideredSection: FC<Props> = ({
   geiExplanationId,
 }) => {
   const consideredGei = useWatch({ control, name: "consideredGei" });
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   return (
     <Box className="flex-1">
@@ -39,7 +39,7 @@ export const GeiConsideredSection: FC<Props> = ({
         </Typography>
         <InfoButton
           label="Más información"
-          onClick={() => openExplanation(geiExplanationId ?? null)}
+          onClick={() => openExplanationBySlug(geiExplanationId ?? null)}
         />
       </Box>
       <TableContainer

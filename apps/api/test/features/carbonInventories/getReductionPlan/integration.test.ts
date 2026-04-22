@@ -72,8 +72,8 @@ describe("GET /api/carbon-inventories/:id/reduction-plan - Integration Tests", (
       expect(typeof category.color).toBe("string");
       expect(typeof category.description).toBe("string");
       expect(
-        category.explanationSlug === null ||
-          typeof category.explanationSlug === "string"
+        category.explanation === null ||
+          typeof category.explanation === "string"
       ).toBe(true);
 
       expect(Array.isArray(category.subcategories)).toBe(true);

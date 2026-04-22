@@ -94,7 +94,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       expect(category).toHaveProperty("name");
       expect(category).toHaveProperty("synonyms");
       expect(category).toHaveProperty("description");
-      expect(category).toHaveProperty("examples");
+      expect(category).toHaveProperty("explanation");
       expect(category).toHaveProperty("position");
       expect(category).toHaveProperty("subcategories");
       expect(Array.isArray(category.subcategories)).toBe(true);

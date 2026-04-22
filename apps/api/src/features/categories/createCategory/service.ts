@@ -42,7 +42,7 @@ export const createCategoryService = async (
           color: data.color,
           synonyms: data.synonyms,
           description: data.description,
-          examples: data.examples ?? null,
+          explanation: data.explanation ?? null,
           position: data.position,
           status: CategoryStatus.ACTIVE,
           createdById: user ? BigInt(user.id) : null,

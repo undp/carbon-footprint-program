@@ -19,7 +19,7 @@ export const ReportedElsewhereSection: FC<Props> = ({
   reportedElsewhereExplanationId,
 }) => {
   const reportedElsewhere = useWatch({ control, name: "reportedElsewhere" });
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   return (
     <Box className="flex-1">
@@ -30,7 +30,7 @@ export const ReportedElsewhereSection: FC<Props> = ({
         <InfoButton
           label="Más información"
           onClick={() =>
-            openExplanation(reportedElsewhereExplanationId ?? null)
+            openExplanationBySlug(reportedElsewhereExplanationId ?? null)
           }
         />
       </Box>

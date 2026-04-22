@@ -19,6 +19,5 @@ export const getExplanationBySlugService = async (
   return {
     slug: explanation.slug,
     content: explanation.content,
-    visible: explanation.visible,
   };
 };

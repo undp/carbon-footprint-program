@@ -19,7 +19,7 @@ export const GetAllSubcategoriesResponseSchema = z.array(
     name: true,
     icon: true,
     description: true,
-    examples: true,
+    explanation: true,
   }).extend({
     category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
     measurementUnits: z.array(

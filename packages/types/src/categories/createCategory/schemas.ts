@@ -11,9 +11,11 @@ export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
   color: true,
   synonyms: true,
   description: true,
-  examples: true,
+  explanation: true,
   position: true,
-}).strict();
+})
+  .partial({ explanation: true })
+  .strict();
 
 // Response Schema
 export const CreateCategoryResponseSchema = CategoryBaseSchema;
@@ -26,7 +28,7 @@ export const CategoryFormSchema = CategoryBaseSchema.pick({
   color: true,
   synonyms: true,
   description: true,
-  examples: true,
+  explanation: true,
   position: true,
 }).extend({
   id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows

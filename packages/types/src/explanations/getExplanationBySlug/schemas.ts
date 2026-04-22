@@ -7,5 +7,4 @@ export const GetExplanationBySlugParamsSchema = ExplanationBaseSchema.pick({
 export const GetExplanationBySlugResponseSchema = ExplanationBaseSchema.pick({
   slug: true,
   content: true,
-  visible: true,
 });

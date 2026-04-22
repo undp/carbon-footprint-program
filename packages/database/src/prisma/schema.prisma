@@ -374,17 +374,14 @@ model MethodologyVersion {
 }
 
 model Explanation {
-  slug          String        @id
-  content       String
-  visible       Boolean       @default(true)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime?     @updatedAt @map("updated_at")
-  createdById   BigInt?       @map("created_by_id")
-  updatedById   BigInt?       @map("updated_by_id")
-  creator       User?         @relation("explanation_created_by", fields: [createdById], references: [id])
-  updater       User?         @relation("explanation_updated_by", fields: [updatedById], references: [id])
-  categories    Category[]
-  subcategories Subcategory[]
+  slug        String    @id
+  content     String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  createdById BigInt?   @map("created_by_id")
+  updatedById BigInt?   @map("updated_by_id")
+  creator     User?     @relation("explanation_created_by", fields: [createdById], references: [id])
+  updater     User?     @relation("explanation_updated_by", fields: [updatedById], references: [id])
 
   @@map("explanation")
 }
@@ -397,7 +394,7 @@ model Category {
   color                String
   synonyms             String
   description          String
-  examples             String?
+  explanation          String?            @db.Text
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
   status               CategoryStatus     @default(ACTIVE)
@@ -405,11 +402,9 @@ model Category {
   updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
   updatedById          BigInt?            @map("updated_by_id")
-  explanationSlug      String?            @map("explanation_slug")
   methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?              @relation("category_created_by", fields: [createdById], references: [id])
   updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
-  explanation          Explanation?       @relation(fields: [explanationSlug], references: [slug])
   subcategories        Subcategory[]
 
   // Partial unique indexes exist in SQL migrations:
@@ -425,17 +420,15 @@ model Subcategory {
   name                        String
   icon                        String
   description                 String
-  examples                    String?
+  explanation                 String?                      @db.Text
   status                      SubcategoryStatus            @default(ACTIVE)
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")
   updatedById                 BigInt?                      @map("updated_by_id")
-  explanationSlug             String?                      @map("explanation_slug")
   category                    Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id])
   updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id])
-  explanation                 Explanation?                 @relation(fields: [explanationSlug], references: [slug])
   dimensions                  EmissionFactorDimension[]
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]

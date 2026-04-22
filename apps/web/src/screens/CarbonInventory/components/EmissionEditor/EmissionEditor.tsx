@@ -91,7 +91,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
-        explanationSlug={subcategory.explanationSlug}
+        explanation={subcategory.explanation}
         icon={subcategory.icon}
         categoryColor={categoryColor}
         isTotalManualEmissionsModeAvailable={

@@ -19,7 +19,7 @@ export const SubcategoryPreselectionField = ({
   subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
   disabled?: boolean;
 }) => {
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationContent } = useExplanationDialog();
   const { control } = useFormContext();
   const theme = useTheme();
   const isEdited = subcategory.edited;
@@ -80,13 +80,15 @@ export const SubcategoryPreselectionField = ({
                           }}
                         />
                       )}
-                      <InfoButton
-                        label="Más información de la subcategoría"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openExplanation(subcategory.explanationSlug);
-                        }}
-                      />
+                      {subcategory.explanation !== null && (
+                        <InfoButton
+                          label="Más información de la subcategoría"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openExplanationContent(subcategory.explanation!);
+                          }}
+                        />
+                      )}
                     </Box>
                   </Box>
                   {subcategory.description && (

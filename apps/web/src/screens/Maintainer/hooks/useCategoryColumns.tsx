@@ -170,14 +170,14 @@ export const useCategoryColumns = ({
         },
       },
       {
-        field: "examples",
+        field: "explanation",
         headerName: "Explicación",
         width: 120,
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
-          const hasContent = !!params.row.examples;
+          const hasContent = !!params.row.explanation;
           return (
             <Button
               size="small"

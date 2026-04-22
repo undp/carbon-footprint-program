@@ -107,7 +107,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           name: row.name,
           icon: row.icon,
           description: row.description,
-          examples: row.examples || null,
+          explanation: row.explanation || null,
           measurementUnitIds: row.measurementUnitIds,
         });
         fieldArray.update(rowIndex, toFormSubcategory(result));
@@ -136,7 +136,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         row.name !== original.name ||
         row.icon !== original.icon ||
         row.description !== original.description ||
-        row.examples !== original.examples ||
+        row.explanation !== original.explanation ||
         [...row.measurementUnitIds].sort().join() !==
           [...original.measurementUnitIds].sort().join());
 
@@ -149,7 +149,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             name: row.name,
             icon: row.icon,
             description: row.description,
-            examples: row.examples || null,
+            explanation: row.explanation || null,
             measurementUnitIds: row.measurementUnitIds,
           },
         });
@@ -225,7 +225,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       name: "",
       icon: "",
       description: "",
-      examples: null,
+      explanation: null,
       measurementUnitIds: [],
     };
     fieldArray.append(newRow);
@@ -294,16 +294,16 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       if (rowIndex < 0) return;
 
       const previousExamples = form.getValues(
-        `subcategories.${rowIndex}.examples`
+        `subcategories.${rowIndex}.explanation`
       );
-      handleCellChange(rowIndex, "examples", value);
+      handleCellChange(rowIndex, "explanation", value);
 
       const row = form.getValues(`subcategories.${rowIndex}`);
       if (row && !isNewRow(row.id)) {
         try {
           await updateMutation.mutateAsync({
             subcategoryId: row.id,
-            data: { examples: value || null },
+            data: { explanation: value || null },
           });
           form.reset({ subcategories: form.getValues("subcategories") });
           void enqueueSnackbar({
@@ -311,7 +311,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             variant: "success",
           });
         } catch (error) {
-          handleCellChange(rowIndex, "examples", previousExamples ?? null);
+          handleCellChange(rowIndex, "explanation", previousExamples ?? null);
           void enqueueSnackbar({
             message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
@@ -362,7 +362,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const explanationValue =
     explanationModal.rowIndex >= 0
       ? (form.getValues(
-          `subcategories.${explanationModal.rowIndex}.examples`
+          `subcategories.${explanationModal.rowIndex}.explanation`
         ) ?? "")
       : "";
 

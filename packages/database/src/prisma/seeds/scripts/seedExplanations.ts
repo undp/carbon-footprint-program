@@ -7,17 +7,15 @@ import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Normalizes a name to match the filename convention:
- * lowercase, spaces → underscores, strips accents, removes special chars except underscores.
- */
+// The `explanation` table is retained for future standalone-explanation use cases,
+// but is not populated here: category/subcategory explanations are inlined on their rows.
 function normalizeName(name: string): string {
   return name
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // strip accents
-    .replace(/[^a-z0-9]+/g, "_") // collapse non-alphanumeric runs into single underscore
-    .replace(/^_|_$/g, ""); // trim leading/trailing underscores
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
 }
 
 interface ExplanationFile {
@@ -54,7 +52,6 @@ function readExplanationFilesFromDir(
   }
 
   return files.map((fileName) => {
-    // Parse filename: c{position}_{normalized_name}.md
     const match = fileName.match(/^c(\d+)_(.+)\.md$/);
     if (!match) {
       throw new Error(
@@ -92,7 +89,7 @@ async function seedCategoryExplanations(
     categories.map((cat) => [`${cat.position}:${normalizeName(cat.name)}`, cat])
   );
 
-  let linkedCount = 0;
+  let updatedCount = 0;
 
   for (const file of categoryFiles) {
     const lookupKey = `${file.categoryPosition}:${file.normalizedName}`;
@@ -105,25 +102,16 @@ async function seedCategoryExplanations(
       continue;
     }
 
-    const slug = `cat_${file.categoryPosition}_${file.normalizedName}`;
-
-    await prisma.explanation.create({
-      data: {
-        slug,
-        content: file.content,
-      },
-    });
-
     await prisma.category.update({
       where: { id: category.id },
-      data: { explanationSlug: slug },
+      data: { explanation: file.content },
     });
 
-    linkedCount++;
+    updatedCount++;
   }
 
   console.log(
-    `   ✓ Created ${linkedCount} explanations and linked to categories for dataset ${dataset}`
+    `   ✓ Inlined ${updatedCount} explanations onto categories for dataset ${dataset}`
   );
 }
 
@@ -154,7 +142,7 @@ async function seedSubcategoryExplanations(
     ])
   );
 
-  let linkedCount = 0;
+  let updatedCount = 0;
 
   for (const file of subcategoryFiles) {
     const lookupKey = `${file.categoryPosition}:${file.normalizedName}`;
@@ -167,25 +155,16 @@ async function seedSubcategoryExplanations(
       continue;
     }
 
-    const slug = `sub_${file.categoryPosition}_${file.normalizedName}`;
-
-    await prisma.explanation.create({
-      data: {
-        slug,
-        content: file.content,
-      },
-    });
-
     await prisma.subcategory.update({
       where: { id: subcategory.id },
-      data: { explanationSlug: slug },
+      data: { explanation: file.content },
     });
 
-    linkedCount++;
+    updatedCount++;
   }
 
   console.log(
-    `   ✓ Created ${linkedCount} explanations and linked to subcategories for dataset ${dataset}`
+    `   ✓ Inlined ${updatedCount} explanations onto subcategories for dataset ${dataset}`
   );
 }
 

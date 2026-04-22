@@ -48,7 +48,7 @@ export const useSubcategoryPreselectionData = (
       description: category.description,
       synonyms: category.synonyms,
       position: category.position,
-      explanationSlug: category.explanationSlug,
+      explanation: category.explanation,
       subcategories: orderBy(
         category.subcategories.map((subcategory) => {
           const summary = subcategoriesSummaryMap.get(subcategory.id);
@@ -56,7 +56,7 @@ export const useSubcategoryPreselectionData = (
             id: subcategory.id,
             name: subcategory.name,
             description: subcategory.description,
-            explanationSlug: subcategory.explanationSlug,
+            explanation: subcategory.explanation,
             included: !!summary?.included,
             edited: !!summary?.edited,
             isRecommended: recommendedIds.includes(subcategory.id),

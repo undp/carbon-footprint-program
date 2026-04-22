@@ -57,7 +57,7 @@ export const getReductionPlanService = async (
       icon: true,
       color: true,
       description: true,
-      explanationSlug: true,
+      explanation: true,
       subcategories: {
         where: {
           id: { in: subcategoryIds },
@@ -90,7 +90,7 @@ export const getReductionPlanService = async (
       icon: IconNameSchema.parse(cat.icon),
       color: cat.color,
       description: cat.description,
-      explanationSlug: cat.explanationSlug ?? null,
+      explanation: cat.explanation ?? null,
       subcategories: cat.subcategories.map((sub) => ({
         id: sub.id.toString(),
         name: sub.name,

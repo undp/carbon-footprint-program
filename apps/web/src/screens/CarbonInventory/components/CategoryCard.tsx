@@ -14,7 +14,7 @@ interface CategoryCardProps {
   title: string;
   subtitle: string | null;
   description: string | null;
-  explanationSlug: string | null;
+  explanation: string | null;
   onClick?: () => void;
 }
 
@@ -25,10 +25,10 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   title,
   subtitle,
   description,
-  explanationSlug,
+  explanation,
   onClick,
 }) => {
-  const { openExplanation } = useExplanationDialog();
+  const { openExplanationContent } = useExplanationDialog();
   const isUnfocused = variant === "unfocused";
   const isFocused = variant === "focused";
 
@@ -90,16 +90,18 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           {description}
         </Typography>
       </Box>
-      <Box className="flex flex-col items-end justify-center">
-        <InfoButton
-          label="Más información de la categoría"
-          disabled={isUnfocused}
-          onClick={(e) => {
-            e.stopPropagation();
-            openExplanation(explanationSlug);
-          }}
-        />
-      </Box>
+      {explanation !== null && (
+        <Box className="flex flex-col items-end justify-center">
+          <InfoButton
+            label="Más información de la categoría"
+            disabled={isUnfocused}
+            onClick={(e) => {
+              e.stopPropagation();
+              openExplanationContent(explanation);
+            }}
+          />
+        </Box>
+      )}
     </Card>
   );
 };

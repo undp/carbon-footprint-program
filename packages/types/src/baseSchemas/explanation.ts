@@ -11,7 +11,6 @@ export const ExplanationBaseSchema = z.object({
     )
     .describe("The slug identifier of the explanation"),
   content: z.string().describe("The markdown content of the explanation"),
-  visible: z.boolean().describe("Whether the explanation is visible"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The last update date"),
   createdById: IdSchema.nullable().describe(

@@ -57,7 +57,6 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       name: `Test - Subcategory ${randomSuffix}`,
       icon: "FACTORY",
       description: "Test subcategory description",
-      examples: null,
       measurementUnitIds: [],
       ...overrides,
     };
@@ -88,7 +87,7 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       expect(body.name).toBe(payload.name);
       expect(body.icon).toBe(payload.icon);
       expect(body.description).toBe(payload.description);
-      expect(body.examples).toBe(payload.examples);
+      expect(body.explanation).toBeNull();
       expect(body.category).toEqual({
         id: category.id.toString(),
         name: category.name,
