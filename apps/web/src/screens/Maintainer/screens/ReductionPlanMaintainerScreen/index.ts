@@ -1,1 +1,1 @@
-export { ReductionPlanMaintainerScreen as InitiativesMaintainerScreen } from "./ReductionPlanMaintainerScreen";
+export { ReductionPlanMaintainerScreen } from "./ReductionPlanMaintainerScreen";

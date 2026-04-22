@@ -77,9 +77,8 @@ const AutocompleteCell: FC<AutocompleteCellProps> = ({
           borderRadius: 1,
           cursor: interactive ? "pointer" : "default",
           width: "100%",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
           color: selected ? undefined : "text.secondary",
           "&:hover": interactive ? { backgroundColor: "grey.100" } : {},
           "&:focus-visible": interactive
