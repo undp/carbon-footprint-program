@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import { BadgeTypeSchema, BadgeStatusSchema } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 
@@ -19,7 +20,10 @@ export const BadgeCatalogEntrySchema = z.object({
   ),
   history: z
     .array(BadgeDTOSchema)
-    .describe("Most recent inactive badges (capped at 20), newest first"),
+    .max(BADGE_HISTORY_LIMIT)
+    .describe(
+      `Most recent inactive badges (capped at ${BADGE_HISTORY_LIMIT}), newest first`
+    ),
 });
 
 export const ListBadgesResponseSchema = z.array(BadgeCatalogEntrySchema);

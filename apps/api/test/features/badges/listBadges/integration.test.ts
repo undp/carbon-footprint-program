@@ -16,7 +16,7 @@ import {
 } from "@test/factories/fileFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import { BadgeType, BadgeStatus } from "@repo/database";
+import { BadgeType, BadgeStatus, SystemRole } from "@repo/database";
 import type { ListBadgesResponse } from "@repo/types";
 
 vi.mock("@/services/blobService.js", () => ({
@@ -124,13 +124,19 @@ describe("GET /api/badges - listBadges Integration Tests", () => {
   });
 
   it("should return 403 for non-SUPERADMIN users", async () => {
-    // The test app runs with AUTH_PROVIDER=forced-user which injects a USER role user
-    // by default. We override to test role guard by using a user without SUPERADMIN.
-    // The forced-user setup makes the logged user a SUPERADMIN; skip if that is the case.
-    // Instead, make a request without auth cookie to trigger 401, then verify 403 logic
-    // by checking that the route has requireRoles guard (already tested via type-check).
-    // Integration: verify the route is reachable by the forced SUPERADMIN user.
-    const response = await app.inject({ method: "GET", url: "/api/badges" });
-    expect(response.statusCode).toBe(200);
+    const originalRole = testUser.role;
+    await prisma.user.update({
+      where: { id: testUser.id },
+      data: { role: SystemRole.USER },
+    });
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/badges" });
+      expect(response.statusCode).toBe(403);
+    } finally {
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { role: originalRole },
+      });
+    }
   });
 });

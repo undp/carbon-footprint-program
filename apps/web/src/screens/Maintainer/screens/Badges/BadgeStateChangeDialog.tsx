@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { WarningAmberOutlined } from "@mui/icons-material";
 import type { BadgeDTO } from "@repo/types";
+import { BadgePreviewMini } from "./BadgePreviewMini";
 
 interface ActivateDialogProps {
   mode: "activate";
@@ -21,6 +22,7 @@ interface ActivateDialogProps {
   incoming: BadgeDTO;
   outgoing: BadgeDTO;
   loading?: boolean;
+  errorMessage?: string | null;
 }
 
 interface DeactivateDialogProps {
@@ -30,60 +32,29 @@ interface DeactivateDialogProps {
   onConfirm: () => void;
   outgoing: BadgeDTO;
   loading?: boolean;
+  errorMessage?: string | null;
 }
 
 type BadgeStateChangeDialogProps = ActivateDialogProps | DeactivateDialogProps;
 
-const BadgePreviewMini: FC<{ badge: BadgeDTO; label: string }> = ({
-  badge,
-  label,
-}) => (
-  <Box sx={{ textAlign: "center", flex: 1 }}>
-    <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-      {label}
-    </Typography>
-    <Box
-      component="img"
-      src={badge.previewUrl}
-      alt={badge.fileName}
-      sx={{
-        width: 80,
-        height: 80,
-        objectFit: "contain",
-        borderRadius: 1,
-        border: "1px solid",
-        borderColor: "divider",
-        p: 0.5,
-        display: "block",
-        mx: "auto",
-      }}
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.opacity = "0.3";
-      }}
-    />
-    <Typography variant="caption" noWrap display="block" mt={0.5}>
-      {badge.fileName}
-    </Typography>
-  </Box>
-);
-
 export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
   props
 ) => {
-  const { mode, open, onClose, onConfirm, outgoing, loading } = props;
+  const { mode, open, onClose, onConfirm, outgoing, loading, errorMessage } =
+    props;
   const incoming = mode === "activate" ? props.incoming : null;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <WarningAmberOutlined color="warning" />
-        {mode === "activate" ? "Reemplazar badge activo" : "Desactivar badge"}
+        {mode === "activate" ? "Reemplazar sello activo" : "Desactivar sello"}
       </DialogTitle>
       <DialogContent>
         {mode === "activate" && incoming ? (
           <Box>
             <Typography variant="body2" mb={2}>
-              Esta acción reemplazará el badge activo actual.
+              Esta acción reemplazará el sello activo actual.
             </Typography>
             <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
               <BadgePreviewMini
@@ -111,14 +82,19 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
             <Box sx={{ textAlign: "center", mb: 2 }}>
               <BadgePreviewMini
                 badge={outgoing}
-                label="Badge que se desactivará"
+                label="Sello que se desactivará"
               />
             </Box>
             <Alert severity="warning" sx={{ mt: 1 }}>
-              Este tipo no tendrá badge activo hasta que actives otro. Las
-              aprobaciones durante ese periodo se registrarán sin badge.
+              Este tipo no tendrá sello activo hasta que actives otro. Las
+              aprobaciones durante ese periodo se registrarán sin sello.
             </Alert>
           </Box>
+        )}
+        {errorMessage && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Alert>
         )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -129,13 +105,9 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
           variant="contained"
           color={mode === "deactivate" ? "warning" : "primary"}
           onClick={onConfirm}
-          disabled={loading}
+          loading={loading}
         >
-          {loading
-            ? "Procesando..."
-            : mode === "activate"
-              ? "Activar"
-              : "Desactivar"}
+          {mode === "activate" ? "Activar" : "Desactivar"}
         </Button>
       </DialogActions>
     </Dialog>
