@@ -10,9 +10,9 @@ For how user identity is established before authorization runs, see [Authenticat
 
 The system uses two independent role dimensions:
 
-| Dimension | Scope | Values |
-|---|---|---|
-| **System role** | Platform-wide | `USER`, `ADMIN`, `SUPERADMIN` |
+| Dimension             | Scope            | Values                           |
+| --------------------- | ---------------- | -------------------------------- |
+| **System role**       | Platform-wide    | `USER`, `ADMIN`, `SUPERADMIN`    |
 | **Organization role** | Per-organization | `VIEWER`, `CONTRIBUTOR`, `ADMIN` |
 
 A user always has exactly one system role. A user may have zero or more organization memberships, each with its own organization role.
@@ -21,13 +21,14 @@ A user always has exactly one system role. A user may have zero or more organiza
 
 Defined in `packages/database/src/prisma/schema.prisma` as the `SystemRole` enum.
 
-| Role | Description |
-|---|---|
-| `USER` | Default role assigned to all new users. Can access resources they own or belong to. |
-| `ADMIN` | Platform administrator. Can bypass organization membership checks on routes that opt in to admin bypass. |
-| `SUPERADMIN` | Full access. Same bypass as ADMIN. |
+| Role         | Description                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| `USER`       | Default role assigned to all new users. Can access resources they own or belong to.                      |
+| `ADMIN`      | Platform administrator. Can bypass organization membership checks on routes that opt in to admin bypass. |
+| `SUPERADMIN` | Full access. Same bypass as ADMIN.                                                                       |
 
 **Role assignment:**
+
 - New users are always created with `USER` role.
 - Role changes must be performed directly in the database (no API endpoint exists for role management).
 
@@ -35,19 +36,19 @@ Defined in `packages/database/src/prisma/schema.prisma` as the `SystemRole` enum
 
 Defined as the `OrganizationRole` enum.
 
-| Role | Description |
-|---|---|
-| `VIEWER` | Read-only access to organization resources. |
+| Role          | Description                                                             |
+| ------------- | ----------------------------------------------------------------------- |
+| `VIEWER`      | Read-only access to organization resources.                             |
 | `CONTRIBUTOR` | Can create and edit resources (carbon inventories, reduction projects). |
-| `ADMIN` | Full control over the organization: manage members, update settings. |
+| `ADMIN`       | Full control over the organization: manage members, update settings.    |
 
 **Membership lifecycle** (`MembershipStatus` enum):
 
-| Status | Meaning |
-|---|---|
-| `ACTIVE` | User is a current member of the organization. |
+| Status     | Meaning                                                              |
+| ---------- | -------------------------------------------------------------------- |
+| `ACTIVE`   | User is a current member of the organization.                        |
 | `OUTDATED` | Membership record is no longer current (superseded by a new record). |
-| `DELETED` | User was removed from the organization. |
+| `DELETED`  | User was removed from the organization.                              |
 
 Only `ACTIVE` memberships are checked during authorization.
 
@@ -77,9 +78,13 @@ reductionProjectAuthorizationPlugin → fastify.requireReductionProjectAccess() 
 Provided by `authenticationPlugin`. Returns 401 if `request.authUser` is null.
 
 ```typescript
-fastify.get("/protected", {
-  onRequest: [fastify.requireAuth],
-}, handler);
+fastify.get(
+  "/protected",
+  {
+    onRequest: [fastify.requireAuth],
+  },
+  handler
+);
 ```
 
 ---
@@ -89,9 +94,16 @@ fastify.get("/protected", {
 Provided by `authorizationPlugin`. Returns 403 if the user's system role is not in `roles`.
 
 ```typescript
-fastify.get("/admin-only", {
-  onRequest: [fastify.requireAuth, fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])],
-}, handler);
+fastify.get(
+  "/admin-only",
+  {
+    onRequest: [
+      fastify.requireAuth,
+      fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+    ],
+  },
+  handler
+);
 ```
 
 ---
@@ -101,23 +113,27 @@ fastify.get("/admin-only", {
 Provided by `organizationAuthorizationPlugin`. Checks the user's role within a specific organization.
 
 ```typescript
-fastify.post("/organizations/:organizationId/members", {
-  onRequest: [fastify.requireAuth],
-  preHandler: [
-    fastify.requireOrganizationRole(
-      (req) => req.params.organizationId,
-      { allowedRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
-    )
-  ],
-}, handler);
+fastify.post(
+  "/organizations/:organizationId/members",
+  {
+    onRequest: [fastify.requireAuth],
+    preHandler: [
+      fastify.requireOrganizationRole((req) => req.params.organizationId, {
+        allowedRoles: [OrganizationRole.ADMIN],
+        canAdminsBypass: true,
+      }),
+    ],
+  },
+  handler
+);
 ```
 
 **Options:**
 
-| Option | Type | Description |
-|---|---|---|
-| `allowedRoles` | `OrganizationRole[]` | User must have at least one of these roles. |
-| `canAdminsBypass` | `boolean` | When `true`, users with `ADMIN` or `SUPERADMIN` system roles skip the org check. |
+| Option            | Type                 | Description                                                                      |
+| ----------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `allowedRoles`    | `OrganizationRole[]` | User must have at least one of these roles.                                      |
+| `canAdminsBypass` | `boolean`            | When `true`, users with `ADMIN` or `SUPERADMIN` system roles skip the org check. |
 
 ---
 
@@ -133,28 +149,36 @@ Provided by `carbonInventoryAuthorizationPlugin`. Three-tiered access check:
 
 ```typescript
 // Read: any org member can access
-fastify.get("/:id", {
-  onRequest: [fastify.requireAuth],
-  preHandler: [fastify.requireCarbonInventoryAccess(idExtractor)],
-}, handler);
+fastify.get(
+  "/:id",
+  {
+    onRequest: [fastify.requireAuth],
+    preHandler: [fastify.requireCarbonInventoryAccess(idExtractor)],
+  },
+  handler
+);
 
 // Write: only org admins
-fastify.put("/:id", {
-  onRequest: [fastify.requireAuth],
-  preHandler: [
-    fastify.requireCarbonInventoryAccess(idExtractor, {
-      requiredOrganizationRoles: [OrganizationRole.ADMIN],
-    })
-  ],
-}, handler);
+fastify.put(
+  "/:id",
+  {
+    onRequest: [fastify.requireAuth],
+    preHandler: [
+      fastify.requireCarbonInventoryAccess(idExtractor, {
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
+      }),
+    ],
+  },
+  handler
+);
 ```
 
 **Options:**
 
-| Option | Type | Description |
-|---|---|---|
-| `requiredOrganizationRoles` | `OrganizationRole[]` | Restricts org-based access to specified roles. |
-| `canAdminsBypass` | `boolean` | When `true`, `ADMIN`/`SUPERADMIN` system roles bypass all checks. |
+| Option                      | Type                 | Description                                                       |
+| --------------------------- | -------------------- | ----------------------------------------------------------------- |
+| `requiredOrganizationRoles` | `OrganizationRole[]` | Restricts org-based access to specified roles.                    |
+| `canAdminsBypass`           | `boolean`            | When `true`, `ADMIN`/`SUPERADMIN` system roles bypass all checks. |
 
 ---
 
@@ -210,30 +234,30 @@ Route handler executes
 
 ### System-Level Operations
 
-| Operation | USER | ADMIN | SUPERADMIN |
-|---|---|---|---|
-| Read own profile | ✓ | ✓ | ✓ |
-| List organizations (own) | ✓ | ✓ | ✓ |
-| Access platform admin endpoints | ✗ | ✓ | ✓ |
-| Bypass org membership checks | ✗ | ✓ (if `canAdminsBypass`) | ✓ (if `canAdminsBypass`) |
+| Operation                       | USER | ADMIN                    | SUPERADMIN               |
+| ------------------------------- | ---- | ------------------------ | ------------------------ |
+| Read own profile                | ✓    | ✓                        | ✓                        |
+| List organizations (own)        | ✓    | ✓                        | ✓                        |
+| Access platform admin endpoints | ✗    | ✓                        | ✓                        |
+| Bypass org membership checks    | ✗    | ✓ (if `canAdminsBypass`) | ✓ (if `canAdminsBypass`) |
 
 ### Organization-Level Operations
 
-| Operation | VIEWER | CONTRIBUTOR | ADMIN |
-|---|---|---|---|
-| View organization details | ✓ | ✓ | ✓ |
-| Create carbon inventory | ✗ | ✓ | ✓ |
-| Edit carbon inventory | ✗ | ✓ | ✓ |
-| Delete carbon inventory | ✗ | ✗ | ✓ |
-| Manage organization members | ✗ | ✗ | ✓ |
-| Update organization settings | ✗ | ✗ | ✓ |
+| Operation                    | VIEWER | CONTRIBUTOR | ADMIN |
+| ---------------------------- | ------ | ----------- | ----- |
+| View organization details    | ✓      | ✓           | ✓     |
+| Create carbon inventory      | ✗      | ✓           | ✓     |
+| Edit carbon inventory        | ✗      | ✓           | ✓     |
+| Delete carbon inventory      | ✗      | ✗           | ✓     |
+| Manage organization members  | ✗      | ✗           | ✓     |
+| Update organization settings | ✗      | ✗           | ✓     |
 
 ### Carbon Inventory Access (Anonymous / Unauthenticated)
 
-| Condition | Access |
-|---|---|
+| Condition                                               | Access                         |
+| ------------------------------------------------------- | ------------------------------ |
 | `x-carbon-inventory-uuid` header matches inventory UUID | Read-only (specific endpoints) |
-| No header, no auth | 403 Forbidden |
+| No header, no auth                                      | 403 Forbidden                  |
 
 ---
 
@@ -242,6 +266,7 @@ Route handler executes
 Certain carbon inventory endpoints support access without authentication via the `x-carbon-inventory-uuid` header. This enables public sharing of a carbon inventory by URL — the UUID acts as a capability token.
 
 **How it works:**
+
 1. The inventory has a `uuid` field (a random UUID generated at creation, separate from the numeric `id`).
 2. The sharing URL encodes this UUID.
 3. The frontend sends `x-carbon-inventory-uuid: <uuid>` in requests to these endpoints.
@@ -256,6 +281,7 @@ This design allows unauthenticated read access to a specific inventory without e
 Users are provisioned on first authenticated request — no pre-registration is required.
 
 **Flow:**
+
 1. User authenticates via the identity provider (Azure Entra ID).
 2. On the first API request, `userResolvePlugin` detects no DB record for the `idpUserId`.
 3. A new `User` row is created with `role = USER`.

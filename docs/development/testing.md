@@ -8,15 +8,15 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and Azure Blob Storage (Azurite) containers — there are no mocks for the database layer. All tests live under `apps/api/test/`.
 
-| Aspect | Detail |
-|---|---|
-| Framework | Vitest 4.x |
-| Test type | Integration (HTTP layer + real DB) |
-| Database | Testcontainers — `postgres:18-alpine` |
-| Storage | Testcontainers — Azurite (Azure Storage emulator) |
+| Aspect         | Detail                                                |
+| -------------- | ----------------------------------------------------- |
+| Framework      | Vitest 4.x                                            |
+| Test type      | Integration (HTTP layer + real DB)                    |
+| Database       | Testcontainers — `postgres:18-alpine`                 |
+| Storage        | Testcontainers — Azurite (Azure Storage emulator)     |
 | Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests) |
-| Execution | Sequential — single worker, no file parallelism |
-| Coverage | v8 provider; 80% thresholds enforced locally |
+| Execution      | Sequential — single worker, no file parallelism       |
+| Coverage       | v8 provider; 80% thresholds enforced locally          |
 
 ---
 
@@ -66,6 +66,7 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 The teardown function stops both containers after all tests complete.
 
 **Requirements:**
+
 - Docker must be running before executing tests.
 - On Linux: `sudo systemctl start docker`
 
@@ -145,15 +146,15 @@ describe("POST /api/<feature> - Integration Tests", () => {
 
 ### 3 — Key conventions
 
-| Convention | Detail |
-|---|---|
-| Get the DB URL | `const databaseUrl = inject("databaseUrl")` |
-| Create the app | `createTestApp(databaseUrl)` |
-| Make HTTP calls | `app.inject({ method, url, payload })` |
-| Seed lookup data | Already present from global seed; query with `prisma.<model>.findFirst()` |
-| Create test entities | Use the factories in `test/factories/` |
-| Clean up | `afterEach` with targeted `deleteMany`; never truncate shared lookup tables |
-| Auth | All requests are automatically authenticated as the seeded test user; no auth headers needed |
+| Convention           | Detail                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Get the DB URL       | `const databaseUrl = inject("databaseUrl")`                                                  |
+| Create the app       | `createTestApp(databaseUrl)`                                                                 |
+| Make HTTP calls      | `app.inject({ method, url, payload })`                                                       |
+| Seed lookup data     | Already present from global seed; query with `prisma.<model>.findFirst()`                    |
+| Create test entities | Use the factories in `test/factories/`                                                       |
+| Clean up             | `afterEach` with targeted `deleteMany`; never truncate shared lookup tables                  |
+| Auth                 | All requests are automatically authenticated as the seeded test user; no auth headers needed |
 
 ---
 
@@ -161,17 +162,17 @@ describe("POST /api/<feature> - Integration Tests", () => {
 
 Factories create test-specific entities and return them for use in assertions. They are not fixtures — they write to the database.
 
-| Factory | Purpose |
-|---|---|
-| `appFactory.ts` | `createTestApp(databaseUrl)` — Fastify instance with Prisma and optional Blob storage |
-| `userFactory.ts` | `getTestLoggedUser()`, `createTestUser()`, `cleanupTestUsers()` |
-| `organizationFactory.ts` | `createTestOrganization()`, `cleanupTestOrganization()` |
-| `organizationDataFactory.ts` | Creates `OrganizationData` linked to an organization |
-| `submissionFactory.ts` | `buildOrganizationDataSubmission()` — creates org → org data → submission chain |
-| `carbonInventorySeeder.ts` | `cleanupCarbonInventoryTestData()` |
-| `methodologyFactory.ts` | `getTestMethodologyVersionId()`, `getTestCountryId()` |
-| `fileFactory.ts` | `createTestFile()`, `createTestFileForSubmission()`, `createTestFileForBadge()` |
-| `blobHelper.ts` | `uploadBlobToAzurite()` — uploads a blob directly to the Azurite container |
+| Factory                      | Purpose                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| `appFactory.ts`              | `createTestApp(databaseUrl)` — Fastify instance with Prisma and optional Blob storage |
+| `userFactory.ts`             | `getTestLoggedUser()`, `createTestUser()`, `cleanupTestUsers()`                       |
+| `organizationFactory.ts`     | `createTestOrganization()`, `cleanupTestOrganization()`                               |
+| `organizationDataFactory.ts` | Creates `OrganizationData` linked to an organization                                  |
+| `submissionFactory.ts`       | `buildOrganizationDataSubmission()` — creates org → org data → submission chain       |
+| `carbonInventorySeeder.ts`   | `cleanupCarbonInventoryTestData()`                                                    |
+| `methodologyFactory.ts`      | `getTestMethodologyVersionId()`, `getTestCountryId()`                                 |
+| `fileFactory.ts`             | `createTestFile()`, `createTestFileForSubmission()`, `createTestFileForBadge()`       |
+| `blobHelper.ts`              | `uploadBlobToAzurite()` — uploads a blob directly to the Azurite container            |
 
 ---
 
@@ -235,12 +236,12 @@ Use this pattern sparingly. Prefer integration tests with real Testcontainers wh
 
 Every new endpoint should have tests covering:
 
-| Case | Assertion |
-|---|---|
-| Happy path | HTTP 2xx, response shape, database state |
-| Validation error | HTTP 400, error message |
-| Not found | HTTP 404 for unknown IDs |
-| Authorization | HTTP 403 when user lacks required role |
+| Case                 | Assertion                                    |
+| -------------------- | -------------------------------------------- |
+| Happy path           | HTTP 2xx, response shape, database state     |
+| Validation error     | HTTP 400, error message                      |
+| Not found            | HTTP 404 for unknown IDs                     |
+| Authorization        | HTTP 403 when user lacks required role       |
 | Constraint violation | HTTP 4xx for FK violations, unique conflicts |
 
 ---
@@ -249,13 +250,13 @@ Every new endpoint should have tests covering:
 
 Key settings in `apps/api/vitest.config.ts`:
 
-| Setting | Value | Reason |
-|---|---|---|
-| `maxWorkers: 1` | 1 | Sequential execution prevents container port conflicts |
-| `fileParallelism: false` | false | Ensures deterministic test order |
-| `testTimeout` | 30 000 ms | Allows for slower container I/O |
-| `hookTimeout` | 30 000 ms | Allows beforeAll/afterAll to complete |
-| `teardownTimeout` | 10 000 ms | Container shutdown grace period |
-| `globalSetup` | `./test/setup/globalSetup.ts` | Container lifecycle |
-| `setupFiles` | Per-file environment initialization | |
-| `coverage.thresholds` | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI |
+| Setting                  | Value                                        | Reason                                                 |
+| ------------------------ | -------------------------------------------- | ------------------------------------------------------ |
+| `maxWorkers: 1`          | 1                                            | Sequential execution prevents container port conflicts |
+| `fileParallelism: false` | false                                        | Ensures deterministic test order                       |
+| `testTimeout`            | 30 000 ms                                    | Allows for slower container I/O                        |
+| `hookTimeout`            | 30 000 ms                                    | Allows beforeAll/afterAll to complete                  |
+| `teardownTimeout`        | 10 000 ms                                    | Container shutdown grace period                        |
+| `globalSetup`            | `./test/setup/globalSetup.ts`                | Container lifecycle                                    |
+| `setupFiles`             | Per-file environment initialization          |                                                        |
+| `coverage.thresholds`    | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI                       |

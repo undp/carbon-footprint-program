@@ -8,13 +8,13 @@ This document consolidates scaling guidance for the Huella Latam platform: when 
 
 Before changing any configuration, measure first. The triggers below are guidance, not hard thresholds — your actual numbers depend on workload shape, usage patterns, and the PostgreSQL SKU in use.
 
-| Signal | Metric to watch | Tooling |
-|---|---|---|
-| API response latency rising | p95 response time > 2 s | App Service metrics / Application Insights |
-| Database CPU sustained high | CPU utilization > 70% for > 15 min | Azure Monitor → PostgreSQL metrics |
-| Database connections approaching limit | Active connections > 60% of `max_connections` | `pg_stat_activity` / PostgreSQL metrics |
-| Memory pressure | Working set > 70% of instance RAM | App Service metrics |
-| Rate limiting ineffective | 429 responses not uniformly distributed across users | API logs (Pino structured output) |
+| Signal                                 | Metric to watch                                      | Tooling                                    |
+| -------------------------------------- | ---------------------------------------------------- | ------------------------------------------ |
+| API response latency rising            | p95 response time > 2 s                              | App Service metrics / Application Insights |
+| Database CPU sustained high            | CPU utilization > 70% for > 15 min                   | Azure Monitor → PostgreSQL metrics         |
+| Database connections approaching limit | Active connections > 60% of `max_connections`        | `pg_stat_activity` / PostgreSQL metrics    |
+| Memory pressure                        | Working set > 70% of instance RAM                    | App Service metrics                        |
+| Rate limiting ineffective              | 429 responses not uniformly distributed across users | API logs (Pino structured output)          |
 
 ---
 
@@ -33,12 +33,12 @@ az appservice plan update \
 
 **SKU progression:**
 
-| SKU | vCPU | RAM | Use case |
-|---|---|---|---|
-| B2 | 2 | 3.5 GB | Initial staging |
-| P1v3 | 1 | 8 GB | Low-traffic production |
-| P2v3 | 2 | 16 GB | Standard production |
-| P3v3 | 4 | 32 GB | High-traffic or memory-intensive |
+| SKU  | vCPU | RAM    | Use case                         |
+| ---- | ---- | ------ | -------------------------------- |
+| B2   | 2    | 3.5 GB | Initial staging                  |
+| P1v3 | 1    | 8 GB   | Low-traffic production           |
+| P2v3 | 2    | 16 GB  | Standard production              |
+| P3v3 | 4    | 32 GB  | High-traffic or memory-intensive |
 
 Scale-up is instant (restart required) and does not require code changes. It is the safest first step.
 
@@ -120,11 +120,11 @@ await fastify.register(fastifyRateLimit, {
 
 **PostgreSQL Flexible Server connection limits by SKU:**
 
-| SKU | `max_connections` (approx.) |
-|---|---|
-| D2ds v5 (2 vCPU, 8 GB) | ~432 |
-| D4ds v5 (4 vCPU, 16 GB) | ~860 |
-| D8ds v5 (8 vCPU, 32 GB) | ~1720 |
+| SKU                     | `max_connections` (approx.) |
+| ----------------------- | --------------------------- |
+| D2ds v5 (2 vCPU, 8 GB)  | ~432                        |
+| D4ds v5 (4 vCPU, 16 GB) | ~860                        |
+| D8ds v5 (8 vCPU, 32 GB) | ~1720                       |
 
 With 3 App Service instances and Prisma's default pool of 5 connections: `3 × 5 = 15` connections minimum. This seems comfortable, but connection bursts during high load can multiply this significantly.
 
@@ -142,6 +142,7 @@ az postgres flexible-server update \
 ```
 
 Update `DATABASE_URL` in the App Service to use the PgBouncer port (typically `5432` → `6432`):
+
 ```
 postgresql://<user>@<server>:6432/<db>?sslmode=require&pgbouncer=true
 ```
@@ -172,10 +173,10 @@ This operation requires a brief maintenance window (typically < 1 minute on Flex
 
 **SKU guidance:**
 
-| Use case | Recommended SKU |
-|---|---|
-| Staging | B2ms (Burstable, 2 vCPU, 8 GB) |
-| Production initial | D4ds v5 (4 vCPU, 16 GB) |
+| Use case            | Recommended SKU                   |
+| ------------------- | --------------------------------- |
+| Staging             | B2ms (Burstable, 2 vCPU, 8 GB)    |
+| Production initial  | D4ds v5 (4 vCPU, 16 GB)           |
 | Production at scale | D8ds v5 (8 vCPU, 32 GB) or higher |
 
 ---
@@ -207,11 +208,11 @@ Beyond rate limiting, Redis can be used to cache expensive, infrequently-changin
 
 **Candidates for caching:**
 
-| Endpoint | Cache TTL (suggested) | Justification |
-|---|---|---|
-| `GET /api/transparency` | 60–300 seconds | Public endpoint; read-heavy; data changes only on approval events |
-| `GET /emission-factors` | 600 seconds | Reference data; changes only during methodology updates |
-| `GET /countries` / `GET /sectors` | 3600 seconds | Seed data; changes only during deployments |
+| Endpoint                          | Cache TTL (suggested) | Justification                                                     |
+| --------------------------------- | --------------------- | ----------------------------------------------------------------- |
+| `GET /api/transparency`           | 60–300 seconds        | Public endpoint; read-heavy; data changes only on approval events |
+| `GET /emission-factors`           | 600 seconds           | Reference data; changes only during methodology updates           |
+| `GET /countries` / `GET /sectors` | 3600 seconds          | Seed data; changes only during deployments                        |
 
 **Implementation pattern:**
 
@@ -243,6 +244,7 @@ Current observability relies on Pino structured logs written to stdout — there
 4. Set `APPLICATIONINSIGHTS_CONNECTION_STRING` in the App Service environment (from Key Vault).
 
 This gives:
+
 - Request/response tracing with latency percentiles
 - Dependency tracking (PostgreSQL query duration, Blob Storage calls)
 - Exception telemetry with stack traces
@@ -254,13 +256,14 @@ This gives:
 
 As database size grows to hundreds of GB and schema changes become riskier:
 
-| Table size | Recommended approach |
-|---|---|
-| < 10M rows | Standard `ALTER TABLE` via Prisma migrations |
+| Table size      | Recommended approach                                                          |
+| --------------- | ----------------------------------------------------------------------------- |
+| < 10M rows      | Standard `ALTER TABLE` via Prisma migrations                                  |
 | 10M – 100M rows | Schedule maintenance window; run during off-hours; pre-create a manual backup |
-| > 100M rows | Use `pg_repack` or an online schema change tool; coordinate with stakeholders |
+| > 100M rows     | Use `pg_repack` or an online schema change tool; coordinate with stakeholders |
 
 **Two-phase column removal pattern:**
+
 1. **Phase 1:** Remove all writes to the column in application code; deploy.
 2. **Phase 2 (next release):** Drop the column from the schema; run migration.
 

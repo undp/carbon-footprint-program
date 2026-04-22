@@ -13,30 +13,39 @@ The platform integrates GHG measurement and recognition into a single continuous
 ## Main Use Cases
 
 ### 1. Carbon Inventory Management
+
 Organizations register their GHG emissions for a given reporting year using a methodology selected by the country. The system guides them through selecting emission categories, subcategories, and inputting activity data. Calculations are performed automatically based on emission factors defined in the methodology.
 
 ### 2. Methodology Administration
+
 Country administrators configure and version emission factor methodologies, defining the category hierarchy, emission factor dimensions, and factor values. A single methodology version is active at any time per country.
 
 ### 3. Organization Accreditation
+
 Organizations go through a formal registration and accreditation workflow where their data is reviewed and approved by platform administrators. Accreditation establishes the organization as a legitimate participant on the platform.
 
 ### 4. Submission and Review Workflow
+
 Carbon inventories and organization data are submitted for review through a structured submission process. Reviewers (administrators) can approve or reject submissions, with full auditability of all decisions.
 
 ### 5. Recognition and Badges
+
 Approved carbon inventories can receive official recognition. The platform manages badge issuance, linking awards directly to approved submissions to ensure traceability.
 
 ### 6. Reduction Planning
+
 Organizations can access reduction recommendations tailored to their inventory profile and create reduction projects and neutralization plans that represent commitments to future emissions reductions.
 
 ### 7. Transparency and Rankings
+
 The platform provides sector-level and cross-organization transparency views, enabling benchmarking and public reporting of emissions data.
 
 ### 8. User and Role Management
+
 The system supports multiple user roles at both the system level (superadmin, admin, user) and organization level (owner, member), with fine-grained access control.
 
 ### 9. Document and File Management
+
 Organizations and administrators can attach supporting documents (certifications, evidence) to submissions, with files stored securely in Azure Blob Storage and accessed via time-limited SAS URLs.
 
 ---
@@ -44,6 +53,7 @@ Organizations and administrators can attach supporting documents (certifications
 ## Scope
 
 **In scope:**
+
 - GHG emissions measurement aligned to country-specific methodologies
 - Organization lifecycle management (registration, accreditation, updates)
 - Carbon inventory creation, calculation, and submission for external verification by certified third parties
@@ -57,6 +67,7 @@ Organizations and administrators can attach supporting documents (certifications
 - Multi-environment deployments (each country/team deploys independently)
 
 **Out of scope (current version):**
+
 - Real-time carbon tracking or IoT integrations
 - Financial calculations or carbon credit trading
 - Cross-country data federation or shared registries
@@ -90,18 +101,18 @@ Organizations and administrators can attach supporting documents (certifications
 
 ## Domain Glossary
 
-| Term | Definition |
-|---|---|
-| **Carbon Inventory** | A structured record of an organization's GHG emissions for a specific reporting year, calculated using a defined methodology. |
-| **Methodology** | A versioned set of emission categories, subcategories, factor dimensions, and factor values approved by the country. |
-| **Emission Factor** | A coefficient that converts activity data (e.g., liters of fuel) into equivalent CO₂ emissions (tCO₂e). |
-| **Category / Subcategory** | The hierarchical classification of emission sources within a methodology (e.g., Scope 1 → Fuel Combustion → Diesel). |
-| **Submission** | A formal request for review submitted by an organization, linked to either organization data or a carbon inventory. |
-| **Accreditation** | The status granted to an organization after its registration data is reviewed and approved by a platform administrator. |
-| **Badge** | A digital recognition artifact issued to an organization upon successful review of a carbon inventory or other achievement. |
-| **Reduction Project** | A documented commitment by an organization to reduce emissions through a specific initiative. |
-| **Neutralization Plan** | A plan to offset unavoidable residual emissions through neutralization mechanisms. |
-| **SAS URL** | A Shared Access Signature URL—a time-limited, cryptographically signed URL granting temporary access to a specific Azure Blob Storage resource. |
-| **Managed Identity** | An Azure feature that allows services to authenticate to other Azure services without storing credentials. |
-| **tCO₂e** | Tonnes of CO₂ equivalent—the standard unit for expressing greenhouse gas emissions. |
-| **GHG** | Greenhouse Gas. |
+| Term                       | Definition                                                                                                                                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Carbon Inventory**       | A structured record of an organization's GHG emissions for a specific reporting year, calculated using a defined methodology.                   |
+| **Methodology**            | A versioned set of emission categories, subcategories, factor dimensions, and factor values approved by the country.                            |
+| **Emission Factor**        | A coefficient that converts activity data (e.g., liters of fuel) into equivalent CO₂ emissions (tCO₂e).                                         |
+| **Category / Subcategory** | The hierarchical classification of emission sources within a methodology (e.g., Scope 1 → Fuel Combustion → Diesel).                            |
+| **Submission**             | A formal request for review submitted by an organization, linked to either organization data or a carbon inventory.                             |
+| **Accreditation**          | The status granted to an organization after its registration data is reviewed and approved by a platform administrator.                         |
+| **Badge**                  | A digital recognition artifact issued to an organization upon successful review of a carbon inventory or other achievement.                     |
+| **Reduction Project**      | A documented commitment by an organization to reduce emissions through a specific initiative.                                                   |
+| **Neutralization Plan**    | A plan to offset unavoidable residual emissions through neutralization mechanisms.                                                              |
+| **SAS URL**                | A Shared Access Signature URL—a time-limited, cryptographically signed URL granting temporary access to a specific Azure Blob Storage resource. |
+| **Managed Identity**       | An Azure feature that allows services to authenticate to other Azure services without storing credentials.                                      |
+| **tCO₂e**                  | Tonnes of CO₂ equivalent—the standard unit for expressing greenhouse gas emissions.                                                             |
+| **GHG**                    | Greenhouse Gas.                                                                                                                                 |

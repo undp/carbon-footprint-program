@@ -30,20 +30,20 @@ apps/web/src/
 
 ## Tech Stack
 
-| Concern | Library |
-|---|---|
-| UI framework | React 19 |
-| Bundler / dev server | Vite 7 |
-| Routing | TanStack Router (file-based, type-safe) |
-| Server state | TanStack Query |
-| Client state | Zustand |
-| UI components | Material-UI 7 + MUI X (DataGrid, DatePickers, Charts) |
-| Styling | Tailwind CSS 4 + Emotion (MUI's styling engine) |
-| Forms | react-hook-form + @hookform/resolvers + Zod |
-| HTTP client | ky |
-| Authentication | @azure/msal-browser + @azure/msal-react |
-| File exports | exceljs |
-| Notifications | notistack |
+| Concern              | Library                                               |
+| -------------------- | ----------------------------------------------------- |
+| UI framework         | React 19                                              |
+| Bundler / dev server | Vite 7                                                |
+| Routing              | TanStack Router (file-based, type-safe)               |
+| Server state         | TanStack Query                                        |
+| Client state         | Zustand                                               |
+| UI components        | Material-UI 7 + MUI X (DataGrid, DatePickers, Charts) |
+| Styling              | Tailwind CSS 4 + Emotion (MUI's styling engine)       |
+| Forms                | react-hook-form + @hookform/resolvers + Zod           |
+| HTTP client          | ky                                                    |
+| Authentication       | @azure/msal-browser + @azure/msal-react               |
+| File exports         | exceljs                                               |
+| Notifications        | notistack                                             |
 
 ---
 
@@ -63,6 +63,7 @@ src/routes/
 ```
 
 **Root layout (`__root.tsx`)** wraps everything with:
+
 - `ThemeProvider` (MUI theme)
 - `MsalProvider` (auth context)
 - `QueryClientProvider` (TanStack Query)
@@ -74,7 +75,11 @@ src/routes/
 ```typescript
 export const Route = createFileRoute("/app")({
   beforeLoad: async () => {
-    await requireRole([SystemRole.USER, SystemRole.ADMIN, SystemRole.SUPERADMIN]);
+    await requireRole([
+      SystemRole.USER,
+      SystemRole.ADMIN,
+      SystemRole.SUPERADMIN,
+    ]);
   },
   component: AppLayout,
 });
@@ -198,6 +203,7 @@ For cross-field validation, use Zod's `.superRefine()`.
 **Tailwind CSS** (`tailwind.config.js`) provides utility classes for spacing, layout, and one-off styling. Both can be combined — Tailwind utilities are applied via `className`, MUI styling via the `sx` prop or `styled()`.
 
 **Rule of thumb:**
+
 - MUI components for interactive widgets (buttons, inputs, menus, tables).
 - Tailwind for layout primitives (flex, grid, spacing, responsive breakpoints).
 - Emotion / `styled()` only when MUI and Tailwind don't cover the case.
@@ -216,6 +222,7 @@ For cross-field validation, use Zod's `.superRefine()`.
 Typical workflow for a new feature with a new page:
 
 1. **Add the route file** at `src/routes/app/my-feature.tsx`:
+
    ```typescript
    export const Route = createFileRoute("/app/my-feature")({
      beforeLoad: async () => {

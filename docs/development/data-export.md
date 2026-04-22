@@ -6,10 +6,10 @@ This document describes how organizations export their data from the platform. A
 
 ## Supported Formats
 
-| Format | Used for | Library |
-|---|---|---|
+| Format          | Used for                                                             | Library                 |
+| --------------- | -------------------------------------------------------------------- | ----------------------- |
 | Excel (`.xlsx`) | Inventory exports, reduction project exports, reduction plan exports | `exceljs` (client-side) |
-| Raw files (any) | Documents and badges uploaded by organizations | SAS URLs from the API |
+| Raw files (any) | Documents and badges uploaded by organizations                       | SAS URLs from the API   |
 
 PDF generation is **not currently implemented**. No `pdfkit`, `jsPDF`, or server-side PDF library is included in the dependency tree.
 
@@ -23,11 +23,11 @@ Three export utilities live under `apps/web/src/utils/`:
 
 Produces a three-sheet workbook for a single carbon inventory:
 
-| Sheet | Contents |
-|---|---|
-| **Summary** | Organization metadata, year, organization size, branch count, main activity, total emissions |
+| Sheet                | Contents                                                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Summary**          | Organization metadata, year, organization size, branch count, main activity, total emissions                            |
 | **Detail emissions** | Per-line breakdown: category, subcategory, dimension selections, quantity, unit, applied factor, source, computed tCO₂e |
-| **Factors** | Every emission factor used in the inventory, with rate unit and source citation |
+| **Factors**          | Every emission factor used in the inventory, with rate unit and source citation                                         |
 
 Triggered from the inventory screen via the `useDownloadCarbonInventory` hook (`apps/web/src/screens/CarbonInventories/hooks/`). The hook:
 
@@ -71,11 +71,11 @@ All three exporters delegate file writing to `apps/web/src/services/excel.ts`, w
 
 **Filename and sheet-name sanitization** is built into this service:
 
-| Sanitization | Rule |
-|---|---|
-| Illegal characters | Strips `\ / ? * [ ]` from sheet names |
-| Maximum sheet name length | 31 characters (Excel limit) |
-| Filename sanitization | Removes path separators and control characters |
+| Sanitization              | Rule                                           |
+| ------------------------- | ---------------------------------------------- |
+| Illegal characters        | Strips `\ / ? * [ ]` from sheet names          |
+| Maximum sheet name length | 31 characters (Excel limit)                    |
+| Filename sanitization     | Removes path separators and control characters |
 
 ---
 
@@ -97,14 +97,14 @@ See [File Storage](../infrastructure/FileStorage.md) for the full upload/downloa
 
 ## What Cannot Be Exported Today
 
-| Capability | Status |
-|---|---|
-| Server-side PDF report | **Not implemented** |
-| Batch export of multiple inventories | **Not implemented** |
-| CSV export | **Not implemented** |
-| Cross-organization aggregate exports | **Not implemented** (admin UI only shows them onscreen) |
-| Scheduled / automated exports | **Not implemented** |
-| JSON export of raw inventory data | The API responses are JSON but not explicitly an export format — the data can be fetched via the normal `GET /carbon-inventories/:id` endpoint |
+| Capability                           | Status                                                                                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server-side PDF report               | **Not implemented**                                                                                                                            |
+| Batch export of multiple inventories | **Not implemented**                                                                                                                            |
+| CSV export                           | **Not implemented**                                                                                                                            |
+| Cross-organization aggregate exports | **Not implemented** (admin UI only shows them onscreen)                                                                                        |
+| Scheduled / automated exports        | **Not implemented**                                                                                                                            |
+| JSON export of raw inventory data    | The API responses are JSON but not explicitly an export format — the data can be fetched via the normal `GET /carbon-inventories/:id` endpoint |
 
 These gaps are tracked in [Refactoring Opportunities](../REFACTORING_OPPORTUNITIES.md).
 
@@ -115,6 +115,7 @@ These gaps are tracked in [Refactoring Opportunities](../REFACTORING_OPPORTUNITI
 To add a new Excel export:
 
 1. **Create the generator** under `apps/web/src/utils/exportXxxToExcel.ts`:
+
    ```typescript
    import { Workbook } from "exceljs";
 
@@ -127,6 +128,7 @@ To add a new Excel export:
    ```
 
 2. **Add a data-fetch hook** under `apps/web/src/screens/<feature>/hooks/useDownloadXxx.ts`:
+
    ```typescript
    export function useDownloadXxx(xxxId: string) {
      return useMutation({
@@ -148,12 +150,12 @@ To add a new Excel export:
 
 If client-side generation becomes unsatisfactory (e.g., for very large inventories or scheduled reports), the move to server-side export should consider:
 
-| Concern | Guidance |
-|---|---|
-| Where to generate | A dedicated feature under `apps/api/src/features/<resource>/export<Format>/` |
-| Delivery | Write the file to Blob Storage, return a SAS URL |
-| Authorization | Apply the same per-resource authorization rules as the `GET` endpoint |
-| Memory | Stream rows rather than buffering in memory — inventories with thousands of lines are plausible |
-| File lifecycle | Expire generated exports after a short TTL (24 h) to avoid blob bloat |
+| Concern           | Guidance                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| Where to generate | A dedicated feature under `apps/api/src/features/<resource>/export<Format>/`                    |
+| Delivery          | Write the file to Blob Storage, return a SAS URL                                                |
+| Authorization     | Apply the same per-resource authorization rules as the `GET` endpoint                           |
+| Memory            | Stream rows rather than buffering in memory — inventories with thousands of lines are plausible |
+| File lifecycle    | Expire generated exports after a short TTL (24 h) to avoid blob bloat                           |
 
 A background task (Azure Functions, not currently implemented) would be a natural home for scheduled exports.

@@ -14,17 +14,19 @@ Azure PostgreSQL Flexible Server performs **automated backups** by default.
 
 **Backup configuration (set via Bicep parameters):**
 
-| Parameter | Development | Staging | Production (recommended) |
-|---|---|---|---|
-| `dbBackupRetentionDays` | 7 days (minimum) | 14 days | 30 days |
-| `dbGeoRedundantBackup` | Disabled | Disabled | **Enabled** |
+| Parameter               | Development      | Staging  | Production (recommended) |
+| ----------------------- | ---------------- | -------- | ------------------------ |
+| `dbBackupRetentionDays` | 7 days (minimum) | 14 days  | 30 days                  |
+| `dbGeoRedundantBackup`  | Disabled         | Disabled | **Enabled**              |
 
 **What is backed up:**
+
 - Full database backup: weekly
 - Differential backup: daily
 - Transaction log backup: every 5–10 minutes (enables point-in-time restore)
 
 **Verify backup status:**
+
 ```bash
 az postgres flexible-server show \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -33,6 +35,7 @@ az postgres flexible-server show \
 ```
 
 **Manual on-demand backup** (in addition to automated):
+
 ```bash
 az postgres flexible-server backup create \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -77,6 +80,7 @@ az postgres flexible-server restore \
 ```
 
 **Important:** Restore creates a **new server**. You must:
+
 1. Update the `DATABASE_URL` in the App Service configuration to point to the new server
 2. Verify the restored data is correct
 3. Optionally delete the old server (or keep it for comparison)
@@ -94,6 +98,7 @@ az postgres flexible-server restore \
 ### Blob Storage Restore (Soft Delete)
 
 If a file was accidentally deleted and soft delete is enabled:
+
 ```bash
 # List deleted blobs
 az storage blob list \
@@ -118,6 +123,7 @@ az storage blob undelete \
 The API is deployed as a Docker image. To roll back to a previous version:
 
 1. **Identify the previous image tag** (check ACR or deployment history):
+
    ```bash
    az acr repository show-tags \
      --name "<acr-name>" \
@@ -127,6 +133,7 @@ The API is deployed as a Docker image. To roll back to a previous version:
    ```
 
 2. **Update the App Service to use the previous image:**
+
    ```bash
    az webapp config container set \
      --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -148,6 +155,7 @@ The API is deployed as a Docker image. To roll back to a previous version:
 Azure Static Web Apps do not natively support rollback to previous deployments. Options:
 
 1. **Re-run `deploy-web.sh`** with the previous source code checked out:
+
    ```bash
    git checkout <previous-tag>
    cd infra && ./deploy-web.sh
@@ -186,6 +194,7 @@ See [Database Migrations](../infrastructure/Migrations.md) for the full guide.
    - Runs `prisma migrate deploy`
 
 **Before running in production:**
+
 - [ ] Run migrations in staging first
 - [ ] Create a manual DB backup
 - [ ] Notify users of potential downtime if the migration is destructive
@@ -199,21 +208,23 @@ See [Database Migrations](../infrastructure/Migrations.md) for the full guide.
 
 ### Incident Severity Levels
 
-| Level | Description | Response time |
-|---|---|---|
-| P1 — Critical | System completely unavailable, data loss | Immediate (< 15 min) |
-| P2 — High | Core features unavailable for all users | < 1 hour |
-| P3 — Medium | Core features degraded, workaround available | < 4 hours |
-| P4 — Low | Minor issues, cosmetic, non-blocking | < 24 hours |
+| Level         | Description                                  | Response time        |
+| ------------- | -------------------------------------------- | -------------------- |
+| P1 — Critical | System completely unavailable, data loss     | Immediate (< 15 min) |
+| P2 — High     | Core features unavailable for all users      | < 1 hour             |
+| P3 — Medium   | Core features degraded, workaround available | < 4 hours            |
+| P4 — Low      | Minor issues, cosmetic, non-blocking         | < 24 hours           |
 
 ### Incident Response Steps
 
 #### 1. Detection
+
 - Alerts from Azure Monitor / App Insights / uptime monitor
 - User reports
 - CI/CD pipeline failures
 
 #### 2. Triage
+
 - Determine scope: is it one user, one organization, or all users?
 - Check Azure Portal for service health issues: [https://status.azure.com](https://status.azure.com)
 - Check App Service logs:
@@ -230,17 +241,21 @@ See [Database Migrations](../infrastructure/Migrations.md) for the full guide.
   ```
 
 #### 3. Contain
+
 - If caused by a bad deployment → **rollback** (see above)
 - If DB overloaded → scale up temporarily or terminate long-running queries
 - If storage unavailable → check Azure Storage service health
 
 #### 4. Resolve
+
 - Apply fix or rollback
 - Verify system recovery with a health check
 - Monitor for recurrence
 
 #### 5. Post-Incident Review (for P1/P2)
+
 Document:
+
 - Timeline of events
 - Root cause
 - Impact (users affected, data affected, duration)
@@ -252,11 +267,13 @@ Document:
 ## Useful Commands
 
 ### Check API Health
+
 ```bash
 curl https://<api-url>/api/health
 ```
 
 ### View App Service Logs (live stream)
+
 ```bash
 az webapp log tail \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -264,6 +281,7 @@ az webapp log tail \
 ```
 
 ### Restart App Service
+
 ```bash
 az webapp restart \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -271,6 +289,7 @@ az webapp restart \
 ```
 
 ### Check PostgreSQL Status
+
 ```bash
 az postgres flexible-server show \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -279,6 +298,7 @@ az postgres flexible-server show \
 ```
 
 ### List Recent Deployments
+
 ```bash
 az webapp deployment list \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -287,6 +307,7 @@ az webapp deployment list \
 ```
 
 ### Scale App Service (emergency)
+
 ```bash
 az appservice plan update \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -295,6 +316,7 @@ az appservice plan update \
 ```
 
 ### Rotate Database Password
+
 See the "Rotar Contraseña" section in the [Infrastructure Deployment Guide](../infrastructure/Deployment.md).
 
 ---

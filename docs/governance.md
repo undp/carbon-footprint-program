@@ -103,14 +103,14 @@ Security vulnerabilities should be reported **privately** to the maintainer team
 
 For a mature open-source digital public good, the repository root should contain:
 
-| File | Purpose | Currently present? |
-|---|---|---|
-| `LICENSE` | License text | ❌ Missing (README declares MIT) |
-| `CODE_OF_CONDUCT.md` | Community standards | ❌ Missing |
-| `CONTRIBUTING.md` | How to contribute (can link to `docs/development/contributing.md`) | ❌ Missing at root |
-| `SECURITY.md` | Security reporting process | ❌ Missing |
-| `CODEOWNERS` | PR review assignments | ❌ Missing |
-| `CHANGELOG.md` or release notes | Version history | ❌ Missing (releases in Git tags only) |
+| File                            | Purpose                                                            | Currently present?                     |
+| ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
+| `LICENSE`                       | License text                                                       | ❌ Missing (README declares MIT)       |
+| `CODE_OF_CONDUCT.md`            | Community standards                                                | ❌ Missing                             |
+| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ❌ Missing at root                     |
+| `SECURITY.md`                   | Security reporting process                                         | ❌ Missing                             |
+| `CODEOWNERS`                    | PR review assignments                                              | ❌ Missing                             |
+| `CHANGELOG.md` or release notes | Version history                                                    | ❌ Missing (releases in Git tags only) |
 
 Adding these files is a prerequisite for acceptance into the [Digital Public Goods Alliance](https://digitalpublicgoods.net/) registry, if that is a goal for the project.
 

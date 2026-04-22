@@ -12,25 +12,29 @@ The API uses **Pino** — Fastify's native structured JSON logger. All log entri
 
 **Log levels:**
 
-| Level | When |
-|---|---|
+| Level   | When                                                               |
+| ------- | ------------------------------------------------------------------ |
 | `debug` | Verbose output for development (default in `NODE_ENV=development`) |
-| `info` | Default for production |
-| `warn` | Non-critical issues |
-| `error` | Unhandled errors or request failures |
+| `info`  | Default for production                                             |
+| `warn`  | Non-critical issues                                                |
+| `error` | Unhandled errors or request failures                               |
 
 **Configure log level:**
+
 ```bash
 export LOG_LEVEL="info"   # Options: debug, info, warn, error
 ```
 
 **Local development — pretty-print logs:**
+
 ```bash
 pnpm dev:api | npx pino-pretty
 ```
+
 `pino-pretty` is included as a dev dependency in `apps/api`.
 
 **What is logged:**
+
 - All incoming HTTP requests (method, URL, status, response time) — Fastify built-in
 - Unhandled errors and stack traces
 - Application startup events (server listening, plugins loaded)
@@ -49,6 +53,7 @@ The following tools are **not yet implemented** but strongly recommended for pro
 **Purpose:** Centralize and query all application logs.
 
 **Setup:**
+
 1. In Azure Portal, create a **Log Analytics Workspace**
 2. In the App Service, enable **Diagnostic Settings** → send logs to the workspace
 3. Query logs with KQL (Kusto Query Language)
@@ -74,11 +79,13 @@ The API could be instrumented with [OpenTelemetry for Node.js](https://opentelem
 Azure Monitor is already available for all App Service and PostgreSQL resources. No additional setup needed to get basic infrastructure metrics.
 
 **Built-in metrics available out of the box:**
+
 - App Service: CPU %, Memory %, HTTP request rate, response times, 5xx error rate
 - PostgreSQL: CPU %, Storage %, Active connections, I/O throughput
 - Blob Storage: Blob count, storage capacity, transactions
 
 **Enable:**
+
 - Azure Portal → App Service → Metrics → select metric → pin to Dashboard
 
 #### Option B: Prometheus + Grafana (recommended for self-hosted or more detailed metrics)
@@ -92,10 +99,12 @@ pnpm --filter api add @fastify/metrics prom-client
 Then expose `/metrics` and scrape with Prometheus. Visualize in Grafana with pre-built Node.js and PostgreSQL dashboards.
 
 **Useful dashboards:**
+
 - [Node.js Application Dashboard](https://grafana.com/grafana/dashboards/11159)
 - [PostgreSQL Dashboard](https://grafana.com/grafana/dashboards/9628)
 
 **Deployment options for Prometheus + Grafana on Azure:**
+
 - Azure Container Apps (serverless, pay-per-use)
 - Azure VM with Docker Compose
 - Azure Kubernetes Service (for larger deployments)
@@ -107,6 +116,7 @@ Then expose `/metrics` and scrape with Prometheus. Visualize in Grafana with pre
 Azure Application Insights provides end-to-end request tracing, dependency tracking, and frontend behavior analytics.
 
 **Backend integration:**
+
 ```bash
 pnpm --filter api add applicationinsights
 ```
@@ -118,11 +128,13 @@ appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING).start();
 ```
 
 **Frontend integration:**
+
 ```bash
 pnpm --filter web add @microsoft/applicationinsights-web
 ```
 
 **What it provides:**
+
 - Request traces with dependency calls (DB queries, storage)
 - Error tracking with stack traces
 - Performance baselines and anomaly detection
@@ -137,25 +149,26 @@ Once metrics are available (via Azure Monitor, Prometheus, or App Insights), con
 
 **Critical alerts (page immediately):**
 
-| Alert | Condition | Recommended threshold |
-|---|---|---|
-| API 5xx error rate | HTTP 5xx > N requests/min | > 5 errors/min for 5 min |
-| API response time P95 | P95 latency > N ms | > 3000 ms for 5 min |
-| API unavailability | Health check fails | 2 consecutive failures |
-| PostgreSQL CPU | CPU > N% | > 85% for 10 min |
-| PostgreSQL connections | Active connections > N | > 80% of max |
-| Disk usage | Storage > N% | > 80% |
+| Alert                  | Condition                 | Recommended threshold    |
+| ---------------------- | ------------------------- | ------------------------ |
+| API 5xx error rate     | HTTP 5xx > N requests/min | > 5 errors/min for 5 min |
+| API response time P95  | P95 latency > N ms        | > 3000 ms for 5 min      |
+| API unavailability     | Health check fails        | 2 consecutive failures   |
+| PostgreSQL CPU         | CPU > N%                  | > 85% for 10 min         |
+| PostgreSQL connections | Active connections > N    | > 80% of max             |
+| Disk usage             | Storage > N%              | > 80%                    |
 
 **Warning alerts (non-urgent):**
 
-| Alert | Condition |
-|---|---|
-| App Service CPU | > 70% for 15 min |
-| App Service memory | > 80% for 15 min |
-| PostgreSQL storage | > 70% used |
-| Failed login attempts | > 50/min |
+| Alert                 | Condition        |
+| --------------------- | ---------------- |
+| App Service CPU       | > 70% for 15 min |
+| App Service memory    | > 80% for 15 min |
+| PostgreSQL storage    | > 70% used       |
+| Failed login attempts | > 50/min         |
 
 **Setup in Azure Monitor:**
+
 1. Azure Portal → Monitor → Alerts → Create alert rule
 2. Select the resource (App Service, PostgreSQL)
 3. Select the signal (metric condition)
@@ -168,10 +181,12 @@ Once metrics are available (via Azure Monitor, Prometheus, or App Insights), con
 Configure an external HTTP probe to verify the API is responding:
 
 **Option A: Azure Application Insights Availability Tests**
+
 - Pings `https://<api-url>/api/health` every 5 minutes from multiple regions
 - Alerts on failures
 
 **Option B: UptimeRobot, Betterstack, or similar**
+
 - Free tier available
 - Simple HTTP monitoring with email/Slack alerts
 
@@ -179,11 +194,11 @@ Configure an external HTTP probe to verify the API is responding:
 
 ### 6. Log Retention
 
-| Environment | Recommended log retention |
-|---|---|
-| Development | 3–7 days |
-| Staging | 14–30 days |
-| Production | 90–180 days (compliance may require longer) |
+| Environment | Recommended log retention                   |
+| ----------- | ------------------------------------------- |
+| Development | 3–7 days                                    |
+| Staging     | 14–30 days                                  |
+| Production  | 90–180 days (compliance may require longer) |
 
 Configure in Azure Log Analytics workspace settings.
 

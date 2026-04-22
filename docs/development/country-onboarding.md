@@ -91,11 +91,7 @@ Sectors classify organizations by economic activity. Subsectors provide finer-gr
   {
     "countryIsoCode": "CO",
     "sector": "Servicios",
-    "subsectors": [
-      "Servicios Financieros",
-      "Tecnología y Software",
-      "Otro"
-    ]
+    "subsectors": ["Servicios Financieros", "Tecnología y Software", "Otro"]
   }
 ]
 ```
@@ -177,11 +173,11 @@ The **first methodology in the array** for a country is seeded with status `PUBL
 
 Standard GHG Protocol categories:
 
-| Position | Name | Scope |
-|---|---|---|
-| 1 | Emisiones directas | Scope 1 |
-| 2 | Emisiones indirectas por energía | Scope 2 |
-| 3 | Otras emisiones indirectas | Scope 3 |
+| Position | Name                             | Scope   |
+| -------- | -------------------------------- | ------- |
+| 1        | Emisiones directas               | Scope 1 |
+| 2        | Emisiones indirectas por energía | Scope 2 |
+| 3        | Otras emisiones indirectas       | Scope 3 |
 
 ### Subcategory structure
 
@@ -203,7 +199,10 @@ Standard GHG Protocol categories:
   ],
   "emissionFactors": [
     {
-      "dimensionValue1": { "dimensionCode": "Combustiones estacionarias_Tipo", "valueName": "Caldera" },
+      "dimensionValue1": {
+        "dimensionCode": "Combustiones estacionarias_Tipo",
+        "valueName": "Caldera"
+      },
       "rateMeasurementUnitAbbreviation": "kg CO2e/m3",
       "source": "MMA Chile 2020",
       "value": 2.31
@@ -278,12 +277,12 @@ Authentication requires an Azure Entra External ID (CIAM) tenant or an organizat
 3. Configure redirect URIs for the frontend app registration.
 4. Provide the following values to be set as environment variables:
 
-| Variable | Source |
-|---|---|
-| `AZURE_TENANT_ID` | Tenant GUID |
-| `AZURE_TENANT_SUBDOMAIN` | Subdomain (CIAM only) |
-| `AZURE_API_CLIENT_ID` | API app registration client ID |
-| `AZURE_FRONT_CLIENT_ID` | Frontend app registration client ID |
+| Variable                 | Source                              |
+| ------------------------ | ----------------------------------- |
+| `AZURE_TENANT_ID`        | Tenant GUID                         |
+| `AZURE_TENANT_SUBDOMAIN` | Subdomain (CIAM only)               |
+| `AZURE_API_CLIENT_ID`    | API app registration client ID      |
+| `AZURE_FRONT_CLIENT_ID`  | Frontend app registration client ID |
 
 See [Environment Variables](./environment-variables.md) and [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for full details.
 
@@ -327,6 +326,7 @@ pnpm db:reset        # Resets local DB, runs all migrations, applies base seeds
 ```
 
 Check:
+
 - All sectors and subsectors are loading correctly
 - Methodology categories and subcategories are complete
 - Emission factors have valid unit abbreviations (must match `MeasurementUnit.abbreviation` in the seed)

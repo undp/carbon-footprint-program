@@ -33,15 +33,15 @@ main
 
 **Branch naming:**
 
-| Prefix | Use for |
-|---|---|
-| `feat/` | New features |
-| `fix/` | Bug fixes |
+| Prefix      | Use for                                    |
+| ----------- | ------------------------------------------ |
+| `feat/`     | New features                               |
+| `fix/`      | Bug fixes                                  |
 | `refactor/` | Code restructuring without behavior change |
-| `docs/` | Documentation-only changes |
-| `chore/` | Dependency updates, tooling, CI |
-| `infra/` | Bicep / deployment script changes |
-| `claude/` | AI-assisted changes (used by Claude Code) |
+| `docs/`     | Documentation-only changes                 |
+| `chore/`    | Dependency updates, tooling, CI            |
+| `infra/`    | Bicep / deployment script changes          |
+| `claude/`   | AI-assisted changes (used by Claude Code)  |
 
 **Branch rules:**
 
@@ -69,11 +69,13 @@ git push -u origin feat/bulk-accreditation
 The project uses **Conventional Commits**. See [Versioning — Commit Convention](../release/versioning.md#commit-convention) for the full reference.
 
 **Format:**
+
 ```
 <type>(<scope>): <short description>
 ```
 
 **Examples:**
+
 ```
 feat(organizations): add bulk accreditation endpoint
 fix(carbonInventory): correct emission factor lookup for nested dimensions
@@ -82,6 +84,7 @@ docs(security): add authentication provider reference
 ```
 
 **Guidelines:**
+
 - Use the imperative mood ("add" not "added").
 - Keep the subject line under 72 characters.
 - For complex changes, include a body explaining the _why_, not the _what_.
@@ -110,6 +113,7 @@ CI runs the same checks and must pass before merge.
 **PR title:** Follow the commit convention format (it becomes the squash commit message when merged).
 
 **PR description should include:**
+
 - **Summary** — what changed and why (1-3 bullet points)
 - **Test plan** — a checklist of verifications the reviewer can reproduce (curl commands, UI steps, test file paths)
 - **Screenshots** (for UI changes) — before/after or short screen recording
@@ -118,12 +122,14 @@ CI runs the same checks and must pass before merge.
 ### During Review
 
 **Author responsibilities:**
+
 - Respond to every comment — either address it with a follow-up commit or explain why it's intentional.
 - Push follow-up commits rather than amending — this lets reviewers see what changed since their last pass.
 - Mark comments as resolved only after the reviewer confirms (unless trivial).
 - Keep the PR in sync with `main` — rebase or merge if it falls behind.
 
 **Reviewer responsibilities:**
+
 - Review within 1 business day of request.
 - Distinguish blocking comments ("must change") from suggestions ("consider"). Use prefixes like `nit:` for non-blocking style preferences.
 - Run the code locally if the change is non-trivial or touches critical paths.
@@ -168,11 +174,16 @@ export const CreateOrganizationBodySchema = OrganizationBaseSchema.pick({
 
 export const CreateOrganizationResponseSchema = OrganizationBaseSchema;
 
-export type CreateOrganizationBody = z.infer<typeof CreateOrganizationBodySchema>;
-export type CreateOrganizationResponse = z.infer<typeof CreateOrganizationResponseSchema>;
+export type CreateOrganizationBody = z.infer<
+  typeof CreateOrganizationBodySchema
+>;
+export type CreateOrganizationResponse = z.infer<
+  typeof CreateOrganizationResponseSchema
+>;
 ```
 
 **Tips:**
+
 - Reuse base schemas from `packages/types/src/baseSchemas/` — pick/omit/extend rather than redefining.
 - Use `.strict()` on input schemas to reject unknown properties.
 - Export both the schema (runtime validator) and the inferred type (static typing).
@@ -216,7 +227,10 @@ Keep business logic pure and testable — accept dependencies (Prisma, services)
 ```typescript
 // apps/api/src/features/organizations/app/createOrganization/service.ts
 import type { PrismaClient } from "@repo/database";
-import type { CreateOrganizationBody, CreateOrganizationResponse } from "@repo/types";
+import type {
+  CreateOrganizationBody,
+  CreateOrganizationResponse,
+} from "@repo/types";
 import { TaxIdAlreadyUsedError } from "../errors.js";
 
 export async function createOrganizationService(
@@ -277,7 +291,10 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { createOrganizationHandler } from "./handler.js";
 
 export function createOrganizationRoute(fastify: FastifyZodInstance) {
-  fastify.post<{ Body: CreateOrganizationBody; Reply: CreateOrganizationResponse }>(
+  fastify.post<{
+    Body: CreateOrganizationBody;
+    Reply: CreateOrganizationResponse;
+  }>(
     "/",
     {
       schema: {
@@ -373,6 +390,7 @@ describe("POST /api/app/organizations — Integration Tests", () => {
 ```
 
 **Run a single test file:**
+
 ```bash
 pnpm test --filter=api -- /createOrganization/integration.test.ts --coverage=false
 ```
@@ -406,15 +424,16 @@ pnpm dev   # Start full stack, hit the endpoint via Swagger UI at http://localho
 
 Frontend features live in `apps/web/src/`. The rough layout:
 
-| Path | Purpose |
-|---|---|
-| `apps/web/src/screens/` | Route-level components (a page) |
-| `apps/web/src/components/` | Reusable UI components |
-| `apps/web/src/hooks/` | Custom React hooks (API queries, form logic) |
-| `apps/web/src/services/` | API client wrappers (using `ky`) |
-| `apps/web/src/routes/` | TanStack Router route definitions |
+| Path                       | Purpose                                      |
+| -------------------------- | -------------------------------------------- |
+| `apps/web/src/screens/`    | Route-level components (a page)              |
+| `apps/web/src/components/` | Reusable UI components                       |
+| `apps/web/src/hooks/`      | Custom React hooks (API queries, form logic) |
+| `apps/web/src/services/`   | API client wrappers (using `ky`)             |
+| `apps/web/src/routes/`     | TanStack Router route definitions            |
 
 **Typical flow:**
+
 1. Add the API call to a service file using the shared `@repo/types` schemas.
 2. Create a TanStack Query hook in `hooks/` that wraps the service call.
 3. Build the screen/component consuming the hook.

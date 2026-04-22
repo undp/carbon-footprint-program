@@ -6,11 +6,11 @@ This document describes the core traceability workflow: how an organization prep
 
 ## Actors
 
-| Actor | Role |
-|---|---|
-| **Organization member** (CONTRIBUTOR or ADMIN) | Creates and submits inventories |
-| **Platform admin** (ADMIN system role) | Reviews, approves, or rejects submissions |
-| **External validator** | Certified third party who validates the carbon inventory outside this platform; their conclusion is recorded by the admin |
+| Actor                                          | Role                                                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Organization member** (CONTRIBUTOR or ADMIN) | Creates and submits inventories                                                                                           |
+| **Platform admin** (ADMIN system role)         | Reviews, approves, or rejects submissions                                                                                 |
+| **External validator**                         | Certified third party who validates the carbon inventory outside this platform; their conclusion is recorded by the admin |
 
 The platform is a **traceability and transparency system** — it records the outcome of validation by external certified third parties. The platform itself does not perform emissions calculations or certify organizations.
 
@@ -20,13 +20,13 @@ The platform is a **traceability and transparency system** — it records the ou
 
 Every submission record (`Submission` table) has one of these statuses:
 
-| Status | Meaning |
-|---|---|
-| `PENDING` | Submitted; awaiting admin review |
-| `APPROVED` | Manually approved by admin |
+| Status                   | Meaning                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `PENDING`                | Submitted; awaiting admin review                                         |
+| `APPROVED`               | Manually approved by admin                                               |
 | `APPROVED_AUTOMATICALLY` | Auto-approved by the system (self-declaration with `AUTOMATIC` behavior) |
-| `REVIEWED` | Admin left observations; awaiting user response |
-| `REJECTED` | Admin rejected the submission |
+| `REVIEWED`               | Admin left observations; awaiting user response                          |
+| `REJECTED`               | Admin rejected the submission                                            |
 
 ---
 
@@ -205,15 +205,15 @@ GET /api/submissions/reduction-project/:id/history
 
 Event types in a timeline:
 
-| Event | Triggered by |
-|---|---|
-| `SELF_DECLARATION` | Member self-declares |
-| `POSTULATION` | Member submits (creates PENDING submission) |
-| `ON_REVIEW` | Synthetic marker; added after POSTULATION |
-| `APPROVED` | Admin approves |
-| `APPROVED_AUTOMATICALLY` | System auto-approves |
-| `REVIEWED` | Admin leaves observations |
-| `REJECTED` | Admin rejects |
+| Event                    | Triggered by                                |
+| ------------------------ | ------------------------------------------- |
+| `SELF_DECLARATION`       | Member self-declares                        |
+| `POSTULATION`            | Member submits (creates PENDING submission) |
+| `ON_REVIEW`              | Synthetic marker; added after POSTULATION   |
+| `APPROVED`               | Admin approves                              |
+| `APPROVED_AUTOMATICALLY` | System auto-approves                        |
+| `REVIEWED`               | Admin leaves observations                   |
+| `REJECTED`               | Admin rejects                               |
 
 ---
 

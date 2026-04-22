@@ -130,11 +130,11 @@ A `RateMeasurementUnit` expresses the shape of a factor (mass-per-volume, mass-p
 
 Set per line in `CarbonInventoryLineInput.inputType`:
 
-| Type | Meaning | Formula |
-|---|---|---|
-| `SIMPLIFIED` | User provides quantity + dimension selections; system resolves factor from the library | `quantity × resolvedFactor` |
-| `EXPERT` | User provides quantity + custom factor value and source | `quantity × manualFactor` |
-| `DIRECT` | User bypasses calculation and enters the final emissions value directly | `directTotalEmissions` (stored) |
+| Type         | Meaning                                                                                | Formula                         |
+| ------------ | -------------------------------------------------------------------------------------- | ------------------------------- |
+| `SIMPLIFIED` | User provides quantity + dimension selections; system resolves factor from the library | `quantity × resolvedFactor`     |
+| `EXPERT`     | User provides quantity + custom factor value and source                                | `quantity × manualFactor`       |
+| `DIRECT`     | User bypasses calculation and enters the final emissions value directly                | `directTotalEmissions` (stored) |
 
 `UsageMode` (inventory-level: `SIMPLIFIED` or `EXPERT`) is a default; each line's `InputType` may override it, including the line-only `DIRECT` option.
 
@@ -155,7 +155,7 @@ if (inputType === InputType.DIRECT && item.manualTotalEmissions !== null) {
 ) {
   // quantity × factor = kg CO₂e
   totalEmissions = mapDecimalField(item.quantity).mul(
-    mapDecimalField(item.appliedFactorValue),
+    mapDecimalField(item.appliedFactorValue)
   );
 }
 ```
@@ -188,6 +188,7 @@ export const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
 ```
 
 When `manualFactorSource` is one of these values:
+
 - `CarbonInventoryLineInput.manualFactor` stores the value
 - `CarbonInventoryLineInput.manualFactorSource` stores the source label
 - `CarbonInventoryLineInput.manualFactorRateUnitId` stores the rate unit
@@ -244,15 +245,16 @@ Higher-level sums are computed in application code by iterating the view's rows.
 2. **Factor lookup (client)** — The UI calls `GET /emission-factors?subcategoryId=...&dimensionValue1Id=...`. The library returns an `EmissionFactor` with `value = 2.38` and `rateMeasurementUnit = kgCO₂e / liter` (source: IPCC).
 
 3. **Line input submission** — The UI posts to the inventory API with:
+
    ```json
    {
      "subcategoryId": "42",
      "inputType": "SIMPLIFIED",
      "quantity": "500",
-     "measurementUnitId": "7",         // liters
-     "selection1Id": "13",             // diesel
+     "measurementUnitId": "7", // liters
+     "selection1Id": "13", // diesel
      "appliedFactorValue": "2.38",
-     "appliedFactorRateUnitId": "21",  // kgCO₂e / liter
+     "appliedFactorRateUnitId": "21", // kgCO₂e / liter
      "appliedFactorSource": "IPCC",
      "emissionFactorId": "99"
    }
@@ -278,7 +280,7 @@ For organizations that already have calculated emissions (e.g., from a prior con
 ```json
 {
   "inputType": "DIRECT",
-  "manualTotalEmissions": "3.50"   // tonnes CO₂e
+  "manualTotalEmissions": "3.50" // tonnes CO₂e
 }
 ```
 
@@ -288,11 +290,11 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 
 ## Related Files
 
-| Concern | Path |
-|---|---|
-| Data model | `packages/database/src/prisma/schema.prisma` |
-| Calculation helper | `apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts` |
-| Unit conversion | `packages/utils/src/number.ts` (`kgToTon`, `tonToKg`) |
-| Custom factor sources | `packages/utils/src/constants.ts` |
-| Subtotals view | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
-| Display precision | `apps/api/src/config/constants.ts` (`EMISSIONS_PRECISION`) |
+| Concern               | Path                                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Data model            | `packages/database/src/prisma/schema.prisma`                                                               |
+| Calculation helper    | `apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts`                               |
+| Unit conversion       | `packages/utils/src/number.ts` (`kgToTon`, `tonToKg`)                                                      |
+| Custom factor sources | `packages/utils/src/constants.ts`                                                                          |
+| Subtotals view        | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
+| Display precision     | `apps/api/src/config/constants.ts` (`EMISSIONS_PRECISION`)                                                 |

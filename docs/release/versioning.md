@@ -6,13 +6,14 @@
 
 The project uses **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
 
-| Component | Increment when |
-|---|---|
+| Component | Increment when                                                                                      |
+| --------- | --------------------------------------------------------------------------------------------------- |
 | **MAJOR** | Breaking changes to the API contract, major data model changes, or fundamental architecture changes |
-| **MINOR** | New features added in a backward-compatible manner |
-| **PATCH** | Bug fixes, security patches, or minor improvements |
+| **MINOR** | New features added in a backward-compatible manner                                                  |
+| **PATCH** | Bug fixes, security patches, or minor improvements                                                  |
 
 **Version is set in:**
+
 - `package.json` (root) — the canonical version source
 - Docker image tag — set via `IMAGE_TAG` during deployment (defaults to Git short SHA)
 - `APP_VERSION` environment variable — displayed in API health endpoint
@@ -33,6 +34,7 @@ main (production-ready)
 ```
 
 **Rules:**
+
 - `main` is always deployable
 - All changes go through pull requests with at least one review
 - Direct commits to `main` are not allowed
@@ -55,20 +57,21 @@ The project uses **Conventional Commits**:
 
 **Types:**
 
-| Type | Description |
-|---|---|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Formatting, no logic change |
-| `refactor` | Code refactor without behavior change |
-| `test` | Adding or updating tests |
-| `chore` | Build, tooling, dependency updates |
-| `perf` | Performance improvements |
-| `ci` | CI/CD changes |
-| `infra` | Infrastructure (Bicep/scripts) changes |
+| Type       | Description                            |
+| ---------- | -------------------------------------- |
+| `feat`     | New feature                            |
+| `fix`      | Bug fix                                |
+| `docs`     | Documentation changes                  |
+| `style`    | Formatting, no logic change            |
+| `refactor` | Code refactor without behavior change  |
+| `test`     | Adding or updating tests               |
+| `chore`    | Build, tooling, dependency updates     |
+| `perf`     | Performance improvements               |
+| `ci`       | CI/CD changes                          |
+| `infra`    | Infrastructure (Bicep/scripts) changes |
 
 **Examples:**
+
 ```
 feat(organizations): add bulk accreditation endpoint
 fix(carbonInventory): correct emission factor lookup for nested dimensions
@@ -84,14 +87,14 @@ The CI pipeline runs automatically on every pull request targeting `main`.
 
 **GitHub Actions workflow (`.github/workflows/ci.yml`):**
 
-| Job | What it checks |
-|---|---|
-| `check-draft` | Skips CI for draft PRs |
-| `lint` | ESLint with zero warnings |
-| `type-check` | TypeScript compilation without errors |
-| `format` | Prettier format check |
-| `test` | Vitest integration tests (uploads coverage artifact) |
-| `build` | Production build of all apps |
+| Job           | What it checks                                       |
+| ------------- | ---------------------------------------------------- |
+| `check-draft` | Skips CI for draft PRs                               |
+| `lint`        | ESLint with zero warnings                            |
+| `type-check`  | TypeScript compilation without errors                |
+| `format`      | Prettier format check                                |
+| `test`        | Vitest integration tests (uploads coverage artifact) |
+| `build`       | Production build of all apps                         |
 
 All jobs must pass before a PR can be merged.
 
@@ -102,6 +105,7 @@ All jobs must pass before a PR can be merged.
 ### Standard Release
 
 1. **Prepare the release branch** (optional for MAJOR/MINOR):
+
    ```bash
    git checkout -b release/v1.2.0
    # Bump version in root package.json
@@ -115,6 +119,7 @@ All jobs must pass before a PR can be merged.
    - At least one code review approval
 
 3. **Tag the release:**
+
    ```bash
    git checkout main && git pull
    git tag -a v1.2.0 -m "Release v1.2.0"
@@ -122,6 +127,7 @@ All jobs must pass before a PR can be merged.
    ```
 
 4. **Deploy to staging** (test the tagged version):
+
    ```bash
    cd infra
    export ENVIRONMENT="staging"
@@ -137,6 +143,7 @@ All jobs must pass before a PR can be merged.
    - [ ] Verify DB migrations applied correctly
 
 6. **Deploy to production:**
+
    ```bash
    export ENVIRONMENT="production"
    export IMAGE_TAG="v1.2.0"
@@ -184,6 +191,7 @@ cd infra
 ```
 
 **Triggers:**
+
 - Adding new Azure services
 - Changing SKUs (e.g., scaling up PostgreSQL)
 - Modifying Bicep modules
@@ -218,6 +226,7 @@ cd infra
 ```
 
 **Migration deployment order:**
+
 1. Run `run-migrations.sh` (applies schema changes to DB)
 2. Deploy new API version (`deploy-api.sh`)
 3. Deploy new frontend version if needed (`deploy-web.sh`)
@@ -263,11 +272,14 @@ If a public changelog is maintained, follow the [Keep a Changelog](https://keepa
 ## [1.2.0] - 2026-04-21
 
 ### Added
+
 - Bulk accreditation endpoint for organizations
 
 ### Fixed
+
 - Emission factor lookup for nested dimension values
 
 ### Changed
+
 - Upgraded MUI to v7.3.5
 ```

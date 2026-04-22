@@ -8,11 +8,11 @@ The portal is the public outcome of the traceability platform: a verifiable reco
 
 ## Access Model
 
-| Aspect | Value |
-|---|---|
-| Authentication | **None** — the endpoint is public |
-| Scope | Organizations flagged `isAccredited = true` and `status = ACTIVE` |
-| Filters | Optional year filter via `?year=<YYYY>` |
+| Aspect         | Value                                                             |
+| -------------- | ----------------------------------------------------------------- |
+| Authentication | **None** — the endpoint is public                                 |
+| Scope          | Organizations flagged `isAccredited = true` and `status = ACTIVE` |
+| Filters        | Optional year filter via `?year=<YYYY>`                           |
 
 The route is marked `config: { public: true }` in `apps/api/src/routes/api/transparency/index.ts`, bypassing the JWT requirement that applies to all other `/api` routes.
 
@@ -63,18 +63,18 @@ Public fields:
 
 The transparency endpoint does **not** expose:
 
-| Field | Why |
-|---|---|
-| Organization size / employee count | Business-sensitive |
-| Branch count | Business-sensitive |
-| Detailed emission line data | Commercial sensitivity (competitors could infer operational scale) |
-| Total tCO₂e figures | Same as above |
-| Revenue or financial metrics | Not platform data, but listed for clarity — not stored |
-| Representative name, email, phone | PII |
-| Tax ID / legal identifiers | PII / regulatory |
-| Reviewer identity | Internal to admin workflow |
-| Review comments | Internal |
-| Uploaded documents | Access-controlled via SAS URLs; never referenced from public endpoint |
+| Field                              | Why                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| Organization size / employee count | Business-sensitive                                                    |
+| Branch count                       | Business-sensitive                                                    |
+| Detailed emission line data        | Commercial sensitivity (competitors could infer operational scale)    |
+| Total tCO₂e figures                | Same as above                                                         |
+| Revenue or financial metrics       | Not platform data, but listed for clarity — not stored                |
+| Representative name, email, phone  | PII                                                                   |
+| Tax ID / legal identifiers         | PII / regulatory                                                      |
+| Reviewer identity                  | Internal to admin workflow                                            |
+| Review comments                    | Internal                                                              |
+| Uploaded documents                 | Access-controlled via SAS URLs; never referenced from public endpoint |
 
 This scope is enforced inside `getTransparencyDataService` (`apps/api/src/features/transparency/getTransparencyData/service.ts`), which selects only the allowlisted columns from the database.
 

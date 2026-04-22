@@ -252,10 +252,10 @@ model SubcategoryRecommendation {
 
 The `SUBCATEGORY_RECOMMENDATION_MODE` system parameter controls how these recommendations are resolved:
 
-| Mode | Behaviour |
-|---|---|
-| `SPECIFIC` | Return subcategories where `sectorId` AND `subsectorId` match exactly |
-| `GENERIC` | Return subcategories matching the sector, where `subsectorId` is null or matches |
+| Mode       | Behaviour                                                                        |
+| ---------- | -------------------------------------------------------------------------------- |
+| `SPECIFIC` | Return subcategories where `sectorId` AND `subsectorId` match exactly            |
+| `GENERIC`  | Return subcategories matching the sector, where `subsectorId` is null or matches |
 
 See [System Parameters Reference](../development/system-parameters.md) for full details.
 
@@ -319,42 +319,42 @@ The methodology data is seeded from `packages/database/src/prisma/seeds/data/bas
                 "isRequired": true,
                 "values": [
                   { "name": "Biodiésel", "parentValue": null },
-                  { "name": "Diesel",    "parentValue": null }
-                ]
-              }
+                  { "name": "Diesel", "parentValue": null },
+                ],
+              },
             ],
             "emissionFactors": [
               {
                 "dimensionValue1": {
                   "dimensionCode": "Combustiones_estacionarias_Combustible",
-                  "valueName": "Diesel"
+                  "valueName": "Diesel",
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/liter",
                 "source": "DEFRA 2025",
-                "value": 2.68
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+                "value": 2.68,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ]
 ```
 
 **Key conventions in the seed format:**
 
-| Field | Convention |
-|---|---|
-| `countryIsoCode` | ISO 3166-1 alpha-2 (e.g., `"CL"`) — must match a row in the `country` table |
-| `position` | Integer ≥ 1; determines display order of categories |
-| `icon` | String key resolved by the frontend to an SVG or icon component |
-| `color` | Hex color string for category card backgrounds |
-| `synonyms` | Free text, often the GHG Protocol scope label (used for display only) |
-| `allowedMeasurementUnitsAbbreviations` | Must match `MeasurementUnit.abbreviation` values already seeded |
-| `emissionFactors[].dimensionValue1 / dimensionValue2` | References a value by dimension code + value name; null means no dimension constraint |
-| `rateMeasurementUnitAbbreviation` | Must resolve to a `RateMeasurementUnit` by matching numerator and denominator abbreviations |
+| Field                                                 | Convention                                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `countryIsoCode`                                      | ISO 3166-1 alpha-2 (e.g., `"CL"`) — must match a row in the `country` table                 |
+| `position`                                            | Integer ≥ 1; determines display order of categories                                         |
+| `icon`                                                | String key resolved by the frontend to an SVG or icon component                             |
+| `color`                                               | Hex color string for category card backgrounds                                              |
+| `synonyms`                                            | Free text, often the GHG Protocol scope label (used for display only)                       |
+| `allowedMeasurementUnitsAbbreviations`                | Must match `MeasurementUnit.abbreviation` values already seeded                             |
+| `emissionFactors[].dimensionValue1 / dimensionValue2` | References a value by dimension code + value name; null means no dimension constraint       |
+| `rateMeasurementUnitAbbreviation`                     | Must resolve to a `RateMeasurementUnit` by matching numerator and denominator abbreviations |
 
 ---
 
@@ -362,12 +362,12 @@ The methodology data is seeded from `packages/database/src/prisma/seeds/data/bas
 
 These endpoints expose the taxonomy to the frontend. All require authentication.
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/categories?methodologyVersionId=` | All active categories for a version, ordered by position |
-| `GET` | `/subcategories?methodologyVersionId=` | All active subcategories with their allowed measurement units |
-| `GET` | `/emission-factor-dimensions?methodologyVersionId=` | Dimension configurations with values and in-use status |
-| `GET` | `/emission-factors?methodologyVersionId=` | All active factors with resolved dimension names and gas details |
+| Method | Path                                                | Description                                                      |
+| ------ | --------------------------------------------------- | ---------------------------------------------------------------- |
+| `GET`  | `/categories?methodologyVersionId=`                 | All active categories for a version, ordered by position         |
+| `GET`  | `/subcategories?methodologyVersionId=`              | All active subcategories with their allowed measurement units    |
+| `GET`  | `/emission-factor-dimensions?methodologyVersionId=` | Dimension configurations with values and in-use status           |
+| `GET`  | `/emission-factors?methodologyVersionId=`           | All active factors with resolved dimension names and gas details |
 
 The `methodologyVersionId` query parameter is required for all four endpoints. The frontend resolves the active version from the current carbon inventory.
 

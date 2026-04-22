@@ -21,19 +21,19 @@ Returns an array of `{ key, value }` objects. If `keys` is omitted, all paramete
 
 Controls whether carbon inventory self-declarations are automatically recognized or require manual admin review.
 
-| Attribute | Value |
-|---|---|
-| Type | `selector` |
-| Default | `AUTOMATIC` |
-| Options | `HIDDEN`, `MANUAL`, `AUTOMATIC` |
+| Attribute | Value                           |
+| --------- | ------------------------------- |
+| Type      | `selector`                      |
+| Default   | `AUTOMATIC`                     |
+| Options   | `HIDDEN`, `MANUAL`, `AUTOMATIC` |
 
 **Option behavior:**
 
-| Value | Effect |
-|---|---|
+| Value       | Effect                                                                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `AUTOMATIC` | When a member self-declares an inventory (`POST /carbon-inventories/:id/self-declare`), the platform immediately creates a `CARBON_INVENTORY_CALCULATION` submission with status `APPROVED_AUTOMATICALLY` and assigns the active calculation badge. No admin action is needed. |
-| `MANUAL` | Self-declaration is recorded but does not create a submission. The member must separately submit for calculation review. An admin must then approve it before a badge is issued. |
-| `HIDDEN` | Self-declaration is recorded but no submission or badge path is triggered. The measurement recognition feature is effectively disabled. |
+| `MANUAL`    | Self-declaration is recorded but does not create a submission. The member must separately submit for calculation review. An admin must then approve it before a badge is issued.                                                                                               |
+| `HIDDEN`    | Self-declaration is recorded but no submission or badge path is triggered. The measurement recognition feature is effectively disabled.                                                                                                                                        |
 
 **Where it is read:** `apps/api/src/features/carbonInventories/selfDeclareCarbonInventory/service.ts`
 
@@ -43,17 +43,17 @@ Controls whether carbon inventory self-declarations are automatically recognized
 
 Controls how subcategory recommendations are surfaced when an organization is filling out a carbon inventory. Recommendations are pre-configured per sector/subsector and guide members toward the most relevant emission subcategories.
 
-| Attribute | Value |
-|---|---|
-| Type | `selector` |
-| Default | `UNION` |
-| Options | `UNION`, `SPECIFIC` |
+| Attribute | Value               |
+| --------- | ------------------- |
+| Type      | `selector`          |
+| Default   | `UNION`             |
+| Options   | `UNION`, `SPECIFIC` |
 
 **Option behavior:**
 
-| Value | Effect |
-|---|---|
-| `UNION` | Returns sector-level recommendations combined with subsector-specific recommendations. Produces a broader set of suggestions. |
+| Value      | Effect                                                                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UNION`    | Returns sector-level recommendations combined with subsector-specific recommendations. Produces a broader set of suggestions.                      |
 | `SPECIFIC` | Returns only the recommendations that are explicitly configured for the organization's specific subsector. Produces a narrower, more targeted set. |
 
 ---
@@ -76,6 +76,7 @@ model SystemParameter {
 ```
 
 Parameters are seeded at database initialization from:
+
 - `packages/database/src/prisma/seeds/data/base/systemParameters.json` — production defaults
 - `packages/database/src/prisma/seeds/data/testing/systemParameters.json` — test environment values
 
@@ -100,6 +101,7 @@ Changes take effect on the next API request — no restart required since parame
 To add a system parameter:
 
 1. **Add the seed record** in `packages/database/src/prisma/seeds/data/base/systemParameters.json`:
+
    ```json
    {
      "key": "NEW_PARAMETER_KEY",
@@ -109,6 +111,7 @@ To add a system parameter:
      "options": ["OPTION_A", "OPTION_B"]
    }
    ```
+
    Also add a corresponding entry in `…/testing/systemParameters.json`.
 
 2. **Add the schema** in `packages/types/src/systemParameters/getSystemParameters/schemas.ts`:
@@ -117,6 +120,7 @@ To add a system parameter:
    - Add a discriminated union entry
 
 3. **Read it in service code** using the `getSystemParameterValue` helper:
+
    ```typescript
    const value = await getSystemParameterValue(
      prismaClient,
@@ -125,6 +129,7 @@ To add a system parameter:
    ```
 
 4. **Run migrations + reseed** if adding to an existing environment:
+
    ```bash
    # Local development
    cd packages/database && pnpm dev:seed

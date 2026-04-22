@@ -12,11 +12,11 @@ Central reference for common problems encountered during local development, test
 
 **Causes and fixes:**
 
-| Cause | Fix |
-|---|---|
-| Node.js version < 24 | Upgrade: `nvm install 24 && nvm use 24` |
-| pnpm version < 10.23 | Upgrade: `npm install -g pnpm@latest` |
-| Corrupted pnpm store | `pnpm store prune`, then retry |
+| Cause                             | Fix                                                                                                                      |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Node.js version < 24              | Upgrade: `nvm install 24 && nvm use 24`                                                                                  |
+| pnpm version < 10.23              | Upgrade: `npm install -g pnpm@latest`                                                                                    |
+| Corrupted pnpm store              | `pnpm store prune`, then retry                                                                                           |
 | Lockfile out of sync after rebase | `pnpm install --frozen-lockfile` will fail; run `pnpm install` without the flag, inspect the diff, commit if intentional |
 
 ---
@@ -26,6 +26,7 @@ Central reference for common problems encountered during local development, test
 **Symptom:** API startup fails with `ECONNREFUSED 127.0.0.1:5432` or Prisma throws a connection error.
 
 **Checklist:**
+
 1. Is Docker running? `docker ps`
 2. Is the database container up? `docker ps | grep postgres`
 3. Does `DATABASE_URL` match the credentials in `packages/database/docker-compose.yml`?
@@ -40,12 +41,14 @@ If the container exited unexpectedly: `docker compose logs postgres` to view the
 **Symptom:** TypeScript errors referencing undefined fields on Prisma models, or `@prisma/client` types don't reflect recent schema changes.
 
 **Fix:**
+
 ```bash
 cd packages/database
 pnpm dev:generate
 ```
 
 Then rebuild any package that imports the database client:
+
 ```bash
 pnpm build --filter=@repo/database...
 ```
@@ -60,12 +63,13 @@ See [Packages and Monorepo Internals](./packages.md) for the full schema-change 
 
 **Symptom:** API or web dev server fails to start with `EADDRINUSE`.
 
-| Service | Default port | Override |
-|---|---|---|
-| API | `8080` | Set `API_PORT=8081` in `.envrc` |
-| Web (Vite) | `5173` | Vite auto-increments to `5174`, `5175`, etc. |
+| Service    | Default port | Override                                     |
+| ---------- | ------------ | -------------------------------------------- |
+| API        | `8080`       | Set `API_PORT=8081` in `.envrc`              |
+| Web (Vite) | `5173`       | Vite auto-increments to `5174`, `5175`, etc. |
 
 Find and kill the process using a port:
+
 ```bash
 lsof -i :8080 | grep LISTEN
 kill -9 <PID>
@@ -80,6 +84,7 @@ kill -9 <PID>
 **Cause:** `AZURE_STORAGE_ACCOUNT_NAME` is not set, or the local Azure CLI session has expired.
 
 **Fix:**
+
 ```bash
 az login
 export AZURE_STORAGE_ACCOUNT_NAME="your-storage-account-name"
@@ -97,6 +102,7 @@ File upload requires a real Azure Storage account — there is no local Azurite 
 **Cause:** The redirect URI configured in the Azure Entra ID app registration does not match the URL the frontend is running on.
 
 **Fix:**
+
 1. In the Azure Portal, navigate to the Entra ID app registration → "Authentication".
 2. Add the exact redirect URI the app is running at (e.g., `http://localhost:5173`).
 3. Ensure `VITE_REDIRECT_URI` in `.envrc` matches the registered URI exactly (including trailing slash or lack thereof).
@@ -112,6 +118,7 @@ See [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for the full configurati
 **Cause:** Environment variable not loaded, or the API was started before the variable was exported.
 
 **Fix:**
+
 ```bash
 direnv allow        # if using direnv
 source .envrc       # if loading manually
@@ -129,6 +136,7 @@ Verify the variable is set: `echo $AUTH_PROVIDER` — should print `forced-user`
 **Symptom:** Testcontainers throws `Error: Cannot connect to the Docker daemon`.
 
 **Fix:**
+
 - macOS/Windows: start Docker Desktop
 - Linux: `sudo systemctl start docker`
 - Verify: `docker info`
@@ -144,6 +152,7 @@ Tests spin up PostgreSQL (`postgres:18-alpine`) and Azurite containers via Testc
 **Cause:** A previous test run left containers running (e.g., after a hard kill), or another local service occupies the same mapped port.
 
 **Fix:**
+
 ```bash
 # Stop all Testcontainers-spawned containers
 docker ps -q --filter "label=org.testcontainers" | xargs -r docker stop
@@ -170,12 +179,12 @@ Testcontainers maps containers to random ports by default, so persistent port co
 
 **Common causes:**
 
-| Cause | Fix |
-|---|---|
-| Different Node.js version | CI uses Node 24 exactly — match locally with `nvm use 24` |
-| Test depends on execution order | Tests must be hermetic; each test should set up its own state |
-| Environment variable missing | Check whether the test reads an env variable that is set in `.envrc` but not in the test globalSetup |
-| Docker image pull throttled in CI | Rare; re-run the job — GitHub Actions runners share a Docker Hub pull limit |
+| Cause                             | Fix                                                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Different Node.js version         | CI uses Node 24 exactly — match locally with `nvm use 24`                                            |
+| Test depends on execution order   | Tests must be hermetic; each test should set up its own state                                        |
+| Environment variable missing      | Check whether the test reads an env variable that is set in `.envrc` but not in the test globalSetup |
+| Docker image pull throttled in CI | Rare; re-run the job — GitHub Actions runners share a Docker Hub pull limit                          |
 
 ---
 
@@ -184,6 +193,7 @@ Testcontainers maps containers to random ports by default, so persistent port co
 **Symptom:** Tests reference fields that don't exist on Prisma-generated types, or queries return unexpected shapes.
 
 **Fix:** Same as the dev environment — regenerate the client:
+
 ```bash
 cd packages/database && pnpm dev:generate
 ```
@@ -218,6 +228,7 @@ After fixing, restart the App Service — environment variables are resolved at 
 **Symptom:** After deploying, all API requests return 401. Logs show `JsonWebTokenError` or `JWKS endpoint error`.
 
 **Checklist:**
+
 1. Is `JWKS_URI` set correctly? It should point to the Entra ID tenant's JWKS endpoint.
 2. Is `JWT_AUDIENCE` set to the app registration's client ID?
 3. Is `JWT_ISSUER` set to `https://login.microsoftonline.com/<tenant-id>/v2.0`?
@@ -249,12 +260,12 @@ The API uses `DefaultAzureCredential` for Azure Blob Storage access. In CI and p
 
 **Common causes:**
 
-| Cause | Fix |
-|---|---|
-| Migration already applied | Prisma skips already-applied migrations safely — check the error output; this is usually not the root cause |
-| Database connection string wrong | Verify `DATABASE_URL` points to the correct server and uses SSL (`?sslmode=require`) |
-| IP not whitelisted in PostgreSQL firewall | Add your IP in Azure Portal → PostgreSQL Flexible Server → Networking |
-| Migration contains invalid SQL for the DB version | Verify the PostgreSQL version is ≥ 15 |
+| Cause                                             | Fix                                                                                                         |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Migration already applied                         | Prisma skips already-applied migrations safely — check the error output; this is usually not the root cause |
+| Database connection string wrong                  | Verify `DATABASE_URL` points to the correct server and uses SSL (`?sslmode=require`)                        |
+| IP not whitelisted in PostgreSQL firewall         | Add your IP in Azure Portal → PostgreSQL Flexible Server → Networking                                       |
+| Migration contains invalid SQL for the DB version | Verify the PostgreSQL version is ≥ 15                                                                       |
 
 See [Database Migrations](../infrastructure/Migrations.md) for the full procedure.
 
@@ -267,6 +278,7 @@ See [Database Migrations](../infrastructure/Migrations.md) for the full procedur
 **Cause:** Browser cache or Azure CDN edge cache.
 
 **Fix:**
+
 - Hard refresh in the browser (Ctrl+Shift+R / Cmd+Shift+R).
 - Azure Static Web Apps uses CDN caching; changes typically propagate within 5–10 minutes globally.
 - If still stale after 30 minutes, check the deployment status in the Azure Portal → Static Web Apps → Environments.
@@ -280,6 +292,7 @@ See [Database Migrations](../infrastructure/Migrations.md) for the full procedur
 **Symptom:** The displayed tCO₂e value does not match expectations.
 
 **Checklist:**
+
 1. The formula is `quantity × appliedFactorValue = kg CO₂e`, then divided by 1,000 for display.
 2. For `DIRECT` input, the user-entered value (in tCO₂e) is stored as-is after converting to kg — no factor is applied.
 3. The `appliedFactorValue` is stored at the time of input creation. Changing the emission factor library does not retroactively change existing results.
@@ -294,6 +307,7 @@ See [Emission Calculation Logic](../architecture/emission-calculation.md) for th
 **Symptom:** An organization submitted a request, but it does not appear under `/admin/requests`.
 
 **Checklist:**
+
 1. Is the submission's status `PENDING`? Only `PENDING` submissions appear in the active queue — `REVIEWED`, `APPROVED`, and `REJECTED` submissions are filtered or shown in history.
 2. Is the `CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR` system parameter set to `HIDDEN`? If so, measurement (calculation) submissions are not shown. See [System Parameters Reference](./system-parameters.md).
 3. Does the admin user have the `ADMIN` or `SUPERADMIN` system role? `USER`-level accounts cannot access admin routes.
@@ -305,6 +319,7 @@ See [Emission Calculation Logic](../architecture/emission-calculation.md) for th
 **Symptom:** Submission is approved, but the organization's transparency record does not show the badge.
 
 **Checklist:**
+
 1. For an organization to appear in the transparency portal, it must also have `isAccredited = true` (an approved `ORGANIZATION_ACCREDITATION` submission). A single approved inventory submission is not sufficient.
 2. Check the `SubmissionSummaryView` in the database — confirm the submission status is `APPROVED` or `APPROVED_AUTOMATICALLY`.
 3. The transparency endpoint is a live query — no cache to invalidate. If the status is correct, the badge should appear immediately.

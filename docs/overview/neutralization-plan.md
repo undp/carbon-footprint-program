@@ -40,16 +40,17 @@ enum BadgeType {
 
 The badge is fully rendered in the UI if the organization holds an approved `NEUTRALIZATION_PLAN_VERIFICATION` submission:
 
-| Component | File | What it renders |
-|---|---|---|
-| Recognition badge | `apps/web/src/screens/Transparency/components/RecognitionBadge.tsx` | Badge with letter `N`, color `#89D5CB` |
-| Badge row | `apps/web/src/components/CarbonInventoryBadgesCard/BadgeRow.tsx` | Label "Huella Latam - Plan de Neutralización" |
-| Submissions utility | `apps/web/src/utils/submissions.ts` | UI label "Reconocimiento de neutralización" |
-| Recognitions config | `apps/web/src/screens/Recognitions/constants.tsx` | Badge type mapping and color definitions |
+| Component           | File                                                                | What it renders                               |
+| ------------------- | ------------------------------------------------------------------- | --------------------------------------------- |
+| Recognition badge   | `apps/web/src/screens/Transparency/components/RecognitionBadge.tsx` | Badge with letter `N`, color `#89D5CB`        |
+| Badge row           | `apps/web/src/components/CarbonInventoryBadgesCard/BadgeRow.tsx`    | Label "Huella Latam - Plan de Neutralización" |
+| Submissions utility | `apps/web/src/utils/submissions.ts`                                 | UI label "Reconocimiento de neutralización"   |
+| Recognitions config | `apps/web/src/screens/Recognitions/constants.tsx`                   | Badge type mapping and color definitions      |
 
 ### Type system
 
 `NEUTRALIZATION_PLAN_VERIFICATION` is included in `RECOGNITION_SUBMISSION_TYPES` (in `packages/types/src/carbonInventories/types.ts`), which means:
+
 - It counts toward transparency portal inclusion criteria.
 - The admin KPI schema (`getRequestsKpis`) already accounts for it in its type×status cross-tabulation.
 - Badge sort order in `getCarbonInventoryBadges` places it at rank 4.
@@ -58,13 +59,13 @@ The badge is fully rendered in the UI if the organization holds an approved `NEU
 
 ## What Is Not Implemented
 
-| Missing piece | Details |
-|---|---|
-| `NeutralizationPlan` database model | No Prisma model; no table in the schema |
+| Missing piece                         | Details                                                                                                              |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `NeutralizationPlan` database model   | No Prisma model; no table in the schema                                                                              |
 | `SubmissionSubjectNeutralizationPlan` | No junction table linking a submission subject to a neutralization plan (unlike `SubmissionSubjectReductionProject`) |
-| API feature folder | No `apps/api/src/features/neutralizationPlans/` directory |
-| API routes | No endpoints to create, read, update, or delete neutralization plans |
-| Web screens | No creation or management UI (unlike `apps/web/src/screens/ReductionPlan/`) |
+| API feature folder                    | No `apps/api/src/features/neutralizationPlans/` directory                                                            |
+| API routes                            | No endpoints to create, read, update, or delete neutralization plans                                                 |
+| Web screens                           | No creation or management UI (unlike `apps/web/src/screens/ReductionPlan/`)                                          |
 
 ---
 
@@ -94,6 +95,7 @@ Add a `SubmissionSubjectNeutralizationPlan` junction table to link submissions t
 ### 2. API
 
 Create a feature folder at `apps/api/src/features/neutralizationPlans/` with the standard route/handler/service structure. At minimum:
+
 - `POST /neutralization-plans/` — create a plan and its initial submission
 - `GET /neutralization-plans/` — list plans for an organization
 - `GET /neutralization-plans/:id` — fetch a plan

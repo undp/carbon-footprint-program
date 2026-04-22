@@ -39,22 +39,22 @@ The single source of truth for all request/response shapes across the API and fr
 
 **What it contains:**
 
-| Module | Contents |
-|---|---|
-| `carbonInventories` | Create/update/list schemas |
-| `organizations` | Organization create/update/list schemas |
-| `users` | User schemas |
-| `submissions` | Submission request/response schemas |
-| `files` | Upload request and confirmation schemas |
-| `methodologies` | Methodology version schemas |
-| `categories` / `subcategories` | Taxonomy schemas |
-| `emissionFactors` | Factor schema with dimensions |
-| `reductionProjects` | Reduction project schemas |
-| `systemParameters` | System parameter schemas |
-| `badges` | Badge schemas |
-| `transparency` | Public/transparency endpoint schemas |
-| `baseSchemas` | Reusable Zod primitives |
-| `enums` | Shared string enum types |
+| Module                         | Contents                                |
+| ------------------------------ | --------------------------------------- |
+| `carbonInventories`            | Create/update/list schemas              |
+| `organizations`                | Organization create/update/list schemas |
+| `users`                        | User schemas                            |
+| `submissions`                  | Submission request/response schemas     |
+| `files`                        | Upload request and confirmation schemas |
+| `methodologies`                | Methodology version schemas             |
+| `categories` / `subcategories` | Taxonomy schemas                        |
+| `emissionFactors`              | Factor schema with dimensions           |
+| `reductionProjects`            | Reduction project schemas               |
+| `systemParameters`             | System parameter schemas                |
+| `badges`                       | Badge schemas                           |
+| `transparency`                 | Public/transparency endpoint schemas    |
+| `baseSchemas`                  | Reusable Zod primitives                 |
+| `enums`                        | Shared string enum types                |
 
 Every schema is defined in Zod. TypeScript types are inferred from Zod with `z.infer<>`. The same schema validates API input at runtime and generates TypeScript types for compile-time safety in both the API and the frontend.
 
@@ -70,23 +70,23 @@ Owns the Prisma schema, all migration files, and seed scripts. Exports the `Pris
 
 **Exports:**
 
-| Export path | Contents |
-|---|---|
-| `.` (default) | `PrismaClient`, model types |
-| `./enums` | Database enums (`SystemRole`, `SubmissionStatus`, etc.) |
+| Export path   | Contents                                                |
+| ------------- | ------------------------------------------------------- |
+| `.` (default) | `PrismaClient`, model types                             |
+| `./enums`     | Database enums (`SystemRole`, `SubmissionStatus`, etc.) |
 
 **Schema location:** `packages/database/src/prisma/schema.prisma`
 
 **Key scripts:**
 
-| Script | Purpose |
-|---|---|
-| `dev:migrate` | Create and apply a new migration interactively |
-| `dev:generate` | Regenerate the Prisma client after schema changes |
-| `dev:seed` | Run seed scripts (uses `SEEDS_DATASET` env var) |
-| `dev:studio` | Open Prisma Studio at http://localhost:5555 |
-| `dev:reset` | Drop the database, reapply all migrations, reseed |
-| `prod:deploy` | Apply pending migrations non-interactively (used in CI) |
+| Script         | Purpose                                                 |
+| -------------- | ------------------------------------------------------- |
+| `dev:migrate`  | Create and apply a new migration interactively          |
+| `dev:generate` | Regenerate the Prisma client after schema changes       |
+| `dev:seed`     | Run seed scripts (uses `SEEDS_DATASET` env var)         |
+| `dev:studio`   | Open Prisma Studio at http://localhost:5555             |
+| `dev:reset`    | Drop the database, reapply all migrations, reseed       |
+| `prod:deploy`  | Apply pending migrations non-interactively (used in CI) |
 
 **Build note:** `prebuild` runs `prisma generate` automatically, so the generated client is always in sync with the schema before the TypeScript compiler runs.
 
@@ -102,16 +102,16 @@ Pure utility functions shared between the API and the frontend. No side effects;
 
 **What it exports:**
 
-| Export | Description |
-|---|---|
-| `kgToTon`, `tonToKg` | Mass unit conversion |
-| `formatEmissionFactor` | Emission factor display formatting |
-| `isCarbonInventoryEditable`, `isCarbonInventoryDeletable` | State guards for inventories |
-| `canSubmitToVerification`, `canSelfDeclare`, `canSubmitToMeasurement` | Submission eligibility checks |
-| `isReductionProjectEditable`, `canRequestReductionProjectVerification` | Reduction project state guards |
-| `buildUserName` | Formats first + last name |
-| `formatDateToDDMMYYYY` | Date formatting |
-| `CUSTOM_FACTOR_SOURCES` | Constant for custom emission factor sources |
+| Export                                                                 | Description                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------- |
+| `kgToTon`, `tonToKg`                                                   | Mass unit conversion                        |
+| `formatEmissionFactor`                                                 | Emission factor display formatting          |
+| `isCarbonInventoryEditable`, `isCarbonInventoryDeletable`              | State guards for inventories                |
+| `canSubmitToVerification`, `canSelfDeclare`, `canSubmitToMeasurement`  | Submission eligibility checks               |
+| `isReductionProjectEditable`, `canRequestReductionProjectVerification` | Reduction project state guards              |
+| `buildUserName`                                                        | Formats first + last name                   |
+| `formatDateToDDMMYYYY`                                                 | Date formatting                             |
+| `CUSTOM_FACTOR_SOURCES`                                                | Constant for custom emission factor sources |
 
 **Key dependency:** `@repo/types` (for type signatures)
 
@@ -131,11 +131,11 @@ A minimal package for constant values that need to be shared across packages wit
 
 Three configuration presets:
 
-| Export | Used by |
-|---|---|
+| Export   | Used by      |
+| -------- | ------------ |
 | `./base` | All packages |
-| `./api` | `apps/api` |
-| `./web` | `apps/web` |
+| `./api`  | `apps/api`   |
+| `./web`  | `apps/web`   |
 
 ---
 
@@ -145,11 +145,11 @@ Three configuration presets:
 
 Three tsconfig presets extended by `tsconfig.json` in each app/package:
 
-| Preset | Used by |
-|---|---|
+| Preset      | Used by      |
+| ----------- | ------------ |
 | `base.json` | All packages |
-| `api.json` | `apps/api` |
-| `web.json` | `apps/web` |
+| `api.json`  | `apps/api`   |
+| `web.json`  | `apps/web`   |
 
 ---
 
@@ -179,14 +179,14 @@ Both apps share the exact same Zod schemas from `@repo/types`. A schema change i
 
 `turbo.json` orchestrates tasks across the monorepo:
 
-| Task | Depends on | Output cached? |
-|---|---|---|
-| `build` | `^build` (dependencies built first) | Yes (`dist/**`) |
-| `dev` | `^build` | No |
-| `test` | `^build` | No |
-| `lint` | `^build` | No |
-| `type-check` | `^build` | No |
-| `clean` | — | No |
+| Task         | Depends on                          | Output cached?  |
+| ------------ | ----------------------------------- | --------------- |
+| `build`      | `^build` (dependencies built first) | Yes (`dist/**`) |
+| `dev`        | `^build`                            | No              |
+| `test`       | `^build`                            | No              |
+| `lint`       | `^build`                            | No              |
+| `type-check` | `^build`                            | No              |
+| `clean`      | —                                   | No              |
 
 `^build` means "build all packages this app depends on first." Running `pnpm build` at the root builds packages in dependency order: `constants` → `database` → `types` → `utils` → `api` / `web`.
 

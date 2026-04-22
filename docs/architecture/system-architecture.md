@@ -67,6 +67,7 @@ huella-latam/
 A Single-Page Application (SPA) built with React 19 and Vite. It communicates with the API via HTTP using TanStack Query for data fetching and caching.
 
 **Key responsibilities:**
+
 - Render the user interface across all application domains
 - Authenticate users via Azure MSAL (redirects to Azure Entra ID)
 - Manage client-side routing (TanStack Router)
@@ -75,6 +76,7 @@ A Single-Page Application (SPA) built with React 19 and Vite. It communicates wi
 - Upload files directly to Azure Blob Storage via SAS URLs
 
 **Key libraries:**
+
 - React 19, Vite 7
 - TanStack Router v1 (type-safe routing)
 - TanStack Query v5 (data fetching, caching, mutations)
@@ -98,6 +100,7 @@ A Single-Page Application (SPA) built with React 19 and Vite. It communicates wi
 A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular monolith** architecture where each feature is a self-contained folder with its own handler, route, service, and schema files.
 
 **Key responsibilities:**
+
 - Authenticate and authorize requests (JWT validation via JWKS or Azure Easy Auth)
 - Expose REST endpoints for all application domains
 - Perform business logic and data validation
@@ -106,6 +109,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - Auto-generate OpenAPI (Swagger) documentation
 
 **Key libraries:**
+
 - Fastify v5
 - @fastify/jwt, jwks-rsa (token validation)
 - @fastify/cors, @fastify/helmet (security headers)
@@ -151,6 +155,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 | `none` | Unauthenticated mode (not recommended except for initial testing) |
 
 **Plugin loading order:**
+
 1. External plugins (CORS, Helmet, JWT, Swagger, Rate Limit, Under Pressure)
 2. App plugins (Prisma client, Auth provider, Blob Storage)
 3. Route autoload (`src/routes/`)
@@ -162,12 +167,14 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 A shared package exposing the Prisma ORM client and schema. Both the API and migration scripts consume this package.
 
 **Key responsibilities:**
+
 - Define the PostgreSQL schema (Prisma schema)
 - Generate a fully typed TypeScript client
 - Manage migrations
 - Provide the database connection adapter (supports Azure AD token authentication via `@prisma/adapter-pg`)
 
 **Schema domains:**
+
 - Country & configuration (country, country_parameter, system_parameter, status_catalog)
 - Methodology & emission factors (methodology, category, subcategory, dimension, factor)
 - Organizations & users (organization, organization_data, user, role)
@@ -184,17 +191,18 @@ Azure resources defined as Infrastructure as Code using **Azure Bicep**, deploye
 
 **Azure resources provisioned:**
 
-| Resource | Purpose |
-|---|---|
-| **Azure App Service** | Hosts the Node.js API container |
-| **Azure Container Registry (ACR)** | Stores Docker images for the API |
-| **Azure Static Web App** | Hosts the compiled React SPA |
-| **Azure PostgreSQL Flexible Server** | Primary relational database |
-| **Azure Blob Storage** | Stores uploaded files (docs, certificates, badge images) |
-| **Azure Key Vault** | Stores secrets (DB password, etc.) |
-| **Azure Front Door** | CDN, WAF, TLS termination, custom domain (optional) |
+| Resource                             | Purpose                                                  |
+| ------------------------------------ | -------------------------------------------------------- |
+| **Azure App Service**                | Hosts the Node.js API container                          |
+| **Azure Container Registry (ACR)**   | Stores Docker images for the API                         |
+| **Azure Static Web App**             | Hosts the compiled React SPA                             |
+| **Azure PostgreSQL Flexible Server** | Primary relational database                              |
+| **Azure Blob Storage**               | Stores uploaded files (docs, certificates, badge images) |
+| **Azure Key Vault**                  | Stores secrets (DB password, etc.)                       |
+| **Azure Front Door**                 | CDN, WAF, TLS termination, custom domain (optional)      |
 
 **Access control:**
+
 - App Service authenticates to Storage and PostgreSQL using **Managed Identity** (no stored credentials)
 - Secrets managed via Azure Key Vault with RBAC (Key Vault Secrets Officer role)
 - Developer group assigned roles automatically via Bicep for local development access
@@ -268,12 +276,12 @@ Frontend                         API                          Azure Blob Storage
 
 ## External Integrations
 
-| Integration | Purpose | Authentication |
-|---|---|---|
-| **Azure Entra ID (CIAM or Organizational)** | User identity, JWT issuance | OAuth 2.0 / OIDC |
-| **Azure Blob Storage** | File storage for documents and badges | Managed Identity (API), SAS URLs (browser) |
-| **Azure Key Vault** | Secrets management (DB password, etc.) | Managed Identity + RBAC |
-| **Azure App Insights** *(planned)* | Application performance monitoring | Connection string |
+| Integration                                 | Purpose                                | Authentication                             |
+| ------------------------------------------- | -------------------------------------- | ------------------------------------------ |
+| **Azure Entra ID (CIAM or Organizational)** | User identity, JWT issuance            | OAuth 2.0 / OIDC                           |
+| **Azure Blob Storage**                      | File storage for documents and badges  | Managed Identity (API), SAS URLs (browser) |
+| **Azure Key Vault**                         | Secrets management (DB password, etc.) | Managed Identity + RBAC                    |
+| **Azure App Insights** _(planned)_          | Application performance monitoring     | Connection string                          |
 
 ---
 

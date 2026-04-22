@@ -24,10 +24,10 @@ apps/api/src/features/organizations/app/
     └── route.ts
 ```
 
-| File | Responsibility |
-|---|---|
-| `route.ts` | Registers a Fastify route: method, URL, schema, preHandlers, handler wiring |
-| `handler.ts` | Thin HTTP layer — pulls inputs from `request`, calls the service, returns the response |
+| File         | Responsibility                                                                                      |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| `route.ts`   | Registers a Fastify route: method, URL, schema, preHandlers, handler wiring                         |
+| `handler.ts` | Thin HTTP layer — pulls inputs from `request`, calls the service, returns the response              |
 | `service.ts` | Pure business logic — receives Prisma client, parsed inputs, and the current user; no HTTP concerns |
 
 **Zod schemas do not live in the feature folder.** They live in `@repo/types` (see below).
@@ -75,8 +75,8 @@ The app uses Fastify's `@fastify/autoload` to register plugins and routes from d
 
 ```typescript
 // apps/api/src/app.ts
-await app.register(autoload, { dir: ".../plugins/external" });  // Third-party plugins
-await app.register(autoload, { dir: ".../plugins/app" });       // Custom app plugins
+await app.register(autoload, { dir: ".../plugins/external" }); // Third-party plugins
+await app.register(autoload, { dir: ".../plugins/app" }); // Custom app plugins
 await app.register(autoload, {
   dir: ".../routes",
   autoHooks: true,
@@ -109,26 +109,26 @@ Plugins are split into two folders:
 
 ### `plugins/external/` — third-party plugins
 
-| Plugin | Purpose |
-|---|---|
-| `cors.ts` | CORS configuration |
-| `helmet.ts` | HTTP security headers (currently not registered — see [Hardening](../security/hardening.md)) |
-| `jwt.ts` | JWKS-based JWT validation |
-| `swagger.ts` / `swagger-ui.ts` | OpenAPI spec + docs UI at `/api/docs` |
-| `multipart.ts` | File upload support |
-| `rate-limit.ts` | In-memory rate limiting (100 req/min) |
-| `under-pressure.ts` | Health check + load shedding |
+| Plugin                         | Purpose                                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------------------------- |
+| `cors.ts`                      | CORS configuration                                                                           |
+| `helmet.ts`                    | HTTP security headers (currently not registered — see [Hardening](../security/hardening.md)) |
+| `jwt.ts`                       | JWKS-based JWT validation                                                                    |
+| `swagger.ts` / `swagger-ui.ts` | OpenAPI spec + docs UI at `/api/docs`                                                        |
+| `multipart.ts`                 | File upload support                                                                          |
+| `rate-limit.ts`                | In-memory rate limiting (100 req/min)                                                        |
+| `under-pressure.ts`            | Health check + load shedding                                                                 |
 
 ### `plugins/app/` — custom plugins
 
-| Plugin | Decorates |
-|---|---|
-| `authenticationPlugin.ts` | `fastify.requireAuth` — verifies the JWT |
-| `authorizationPlugin.ts` | `fastify.requireRoles([...])` — system role check |
+| Plugin                               | Decorates                                                               |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| `authenticationPlugin.ts`            | `fastify.requireAuth` — verifies the JWT                                |
+| `authorizationPlugin.ts`             | `fastify.requireRoles([...])` — system role check                       |
 | `organizationAuthorizationPlugin.ts` | `fastify.requireOrganizationRole(extractor, opts)` — per-org role check |
-| `userResolvePlugin.ts` | Populates `request.currentUser` from the token claims |
-| `errorHandler.ts` | Unified error response formatting |
-| `prisma.ts` | `fastify.prisma` — the shared Prisma client |
+| `userResolvePlugin.ts`               | Populates `request.currentUser` from the token claims                   |
+| `errorHandler.ts`                    | Unified error response formatting                                       |
+| `prisma.ts`                          | `fastify.prisma` — the shared Prisma client                             |
 
 ---
 
@@ -147,14 +147,18 @@ fastify.addHook("preHandler", fastify.requireRoles([SystemRole.ADMIN]));
 Roles from `OrganizationRole`: `VIEWER`, `CONTRIBUTOR`, `ADMIN`. Applied per-route, with an `extractor` that pulls the organization ID from the request:
 
 ```typescript
-fastify.patch("/:id", {
-  preHandler: [
-    fastify.requireOrganizationRole(idRequestExtractor, {
-      allowedRoles: [OrganizationRole.ADMIN],
-      canAdminsBypass: true,  // System ADMINs bypass org checks
-    }),
-  ],
-}, handler);
+fastify.patch(
+  "/:id",
+  {
+    preHandler: [
+      fastify.requireOrganizationRole(idRequestExtractor, {
+        allowedRoles: [OrganizationRole.ADMIN],
+        canAdminsBypass: true, // System ADMINs bypass org checks
+      }),
+    ],
+  },
+  handler
+);
 ```
 
 `idRequestExtractor` reads the `:id` URL parameter. Custom extractors exist for body-based or nested paths.
@@ -191,11 +195,11 @@ The central `errorHandler` plugin catches every error and normalizes the respons
 
 Prisma errors are translated automatically:
 
-| Prisma code | HTTP status | Meaning |
-|---|---|---|
-| `P2002` | 409 | Unique constraint violation |
-| `P2025` | 404 | Record not found |
-| Others | 500 | Fall through to generic error |
+| Prisma code | HTTP status | Meaning                       |
+| ----------- | ----------- | ----------------------------- |
+| `P2002`     | 409         | Unique constraint violation   |
+| `P2025`     | 404         | Record not found              |
+| Others      | 500         | Fall through to generic error |
 
 ---
 
@@ -213,57 +217,70 @@ Never wrap successful responses in `{ data: ... }`. The response schema in `@rep
 ## Adding a New Feature
 
 1. **Define the schema** in `packages/types/src/<resource>/<scope>/<action>/schemas.ts`:
+
    ```typescript
    export const DoSomethingBodySchema = z.object({ ... });
    export const DoSomethingResponseSchema = z.object({ ... });
    ```
+
    Export from the package's `index.ts`.
 
 2. **Create the service** at `apps/api/src/features/<resource>/<scope>/<action>/service.ts`:
+
    ```typescript
    export const doSomethingService = async (
      prisma: PrismaClient,
      body: DoSomethingBody,
-     user: AuthenticatedUser,
+     user: AuthenticatedUser
    ): Promise<DoSomethingResponse> => {
      // business logic
    };
    ```
 
 3. **Create the handler** at `handler.ts`. For simple CRUD, use factories (`createPostHandler`, etc.); otherwise implement manually:
+
    ```typescript
    export const doSomethingHandler = async (
      request: FastifyRequest<{ Body: DoSomethingBody }>,
-     reply: FastifyReply,
+     reply: FastifyReply
    ) => {
      const result = await doSomethingService(
        request.server.prisma,
        request.body,
-       request.currentUser,
+       request.currentUser
      );
      return reply.code(200).send(result);
    };
    ```
 
 4. **Create the route** at `route.ts`:
+
    ```typescript
    export default function doSomethingRoute(fastify: FastifyZodInstance) {
-     fastify.post("/:id/action", {
-       schema: {
-         params: IdParamsSchema,
-         body: DoSomethingBodySchema,
-         response: { 200: DoSomethingResponseSchema },
+     fastify.post(
+       "/:id/action",
+       {
+         schema: {
+           params: IdParamsSchema,
+           body: DoSomethingBodySchema,
+           response: { 200: DoSomethingResponseSchema },
+         },
+         preHandler: [
+           fastify.requireOrganizationRole(idRequestExtractor, {
+             allowedRoles: [
+               OrganizationRole.CONTRIBUTOR,
+               OrganizationRole.ADMIN,
+             ],
+           }),
+         ],
        },
-       preHandler: [
-         fastify.requireOrganizationRole(idRequestExtractor, {
-           allowedRoles: [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
-         }),
-       ],
-     }, doSomethingHandler);
+       doSomethingHandler
+     );
    }
    ```
 
 5. **Register the route** in the appropriate `apps/api/src/routes/api/<scope>/<resource>/index.ts`:
+
    ```typescript
    doSomethingRoute(fastify);
    ```

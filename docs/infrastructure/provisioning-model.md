@@ -79,6 +79,7 @@ All resources within an environment live in a **single Azure Resource Group**, m
 ### Why manual provisioning is prohibited
 
 Manual creation would:
+
 - Break environment consistency
 - Introduce configuration drift
 - Make environments non-reproducible
@@ -87,14 +88,15 @@ Manual creation would:
 
 ### IaC standard
 
-| Aspect | Standard |
-|---|---|
-| **Tooling** | Azure Bicep |
-| **Execution** | Automated CI/CD pipelines (GitHub Actions) |
-| **Source of truth** | Git repository (`infra/` folder) |
-| **Environments** | Reproducible, auditable, version-controlled |
+| Aspect              | Standard                                    |
+| ------------------- | ------------------------------------------- |
+| **Tooling**         | Azure Bicep                                 |
+| **Execution**       | Automated CI/CD pipelines (GitHub Actions)  |
+| **Source of truth** | Git repository (`infra/` folder)            |
+| **Environments**    | Reproducible, auditable, version-controlled |
 
 All infrastructure changes flow through:
+
 1. **Code** — edited in Bicep files under `infra/`
 2. **Pull requests** — reviewed and approved before merge
 3. **Controlled deployments** — applied via CI/CD pipelines
@@ -115,14 +117,15 @@ All infrastructure changes flow through:
 
 ## CI/CD Pipelines
 
-| Component | Tool |
-|---|---|
-| **Source control** | GitHub |
-| **CI/CD orchestration** | GitHub Actions |
-| **Infrastructure deployment** | Bicep via `az deployment` |
-| **Application deployment** | Docker image push → Azure Container Registry → App Service (API); static asset build → Static Web App (frontend) |
+| Component                     | Tool                                                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Source control**            | GitHub                                                                                                           |
+| **CI/CD orchestration**       | GitHub Actions                                                                                                   |
+| **Infrastructure deployment** | Bicep via `az deployment`                                                                                        |
+| **Application deployment**    | Docker image push → Azure Container Registry → App Service (API); static asset build → Static Web App (frontend) |
 
 Pipelines are responsible for:
+
 - Creating and updating Staging environments
 - Applying infrastructure changes to Production (with manual approval gates)
 - Running application deployments (API, web, migrations) in the correct order
@@ -151,10 +154,12 @@ The following prerequisites must be fulfilled by the IT team **before** infrastr
 ### 3. Resource Group Management
 
 One of the following is required:
-- Permission to **create resource groups via IaC**, *or*
+
+- Permission to **create resource groups via IaC**, _or_
 - Ownership of **empty, pre-created resource groups**
 
 In either case:
+
 - Resource group **contents are managed exclusively by Bicep**
 - No manual resource creation within managed resource groups
 
@@ -174,17 +179,17 @@ For details on the Entra ID setup, see [MSAL / Easy Auth Setup](../MSAL-EasyAuth
 
 The subscription must allow registration and usage of the following resource providers:
 
-| Provider | Used for |
-|---|---|
-| `Microsoft.Web` | App Service, Static Web App, Functions |
-| `Microsoft.Storage` | Blob Storage |
-| `Microsoft.DBforPostgreSQL` | PostgreSQL Flexible Server |
-| `Microsoft.Search` | Azure AI Search |
-| `Microsoft.CognitiveServices` | Azure OpenAI |
-| `Microsoft.Insights` | Application Insights, Azure Monitor |
-| `Microsoft.KeyVault` | Key Vault |
-| `Microsoft.Communication` | Communication Services (Email) |
-| `Microsoft.OperationalInsights` | Log Analytics Workspace |
+| Provider                        | Used for                               |
+| ------------------------------- | -------------------------------------- |
+| `Microsoft.Web`                 | App Service, Static Web App, Functions |
+| `Microsoft.Storage`             | Blob Storage                           |
+| `Microsoft.DBforPostgreSQL`     | PostgreSQL Flexible Server             |
+| `Microsoft.Search`              | Azure AI Search                        |
+| `Microsoft.CognitiveServices`   | Azure OpenAI                           |
+| `Microsoft.Insights`            | Application Insights, Azure Monitor    |
+| `Microsoft.KeyVault`            | Key Vault                              |
+| `Microsoft.Communication`       | Communication Services (Email)         |
+| `Microsoft.OperationalInsights` | Log Analytics Workspace                |
 
 These are required for Bicep deployments to succeed.
 
@@ -192,12 +197,12 @@ These are required for Bicep deployments to succeed.
 
 GitHub Actions authenticates to Azure using **OIDC (federated identity)**.
 
-| Property | Value |
-|---|---|
-| No secrets stored in GitHub | ✓ |
-| No client secrets or passwords | ✓ |
-| Short-lived tokens issued at runtime | ✓ |
-| Full auditability and compliance | ✓ |
+| Property                             | Value |
+| ------------------------------------ | ----- |
+| No secrets stored in GitHub          | ✓     |
+| No client secrets or passwords       | ✓     |
+| Short-lived tokens issued at runtime | ✓     |
+| Full auditability and compliance     | ✓     |
 
 **This setup is mandatory.** A federated credential must be configured on the Azure-side App Registration (or Managed Identity) that trusts the GitHub repository and branch.
 
@@ -258,12 +263,12 @@ Post-deployment smoke tests + monitoring
 
 The Cloud Infrastructure Assessment handed off to the IT team consists of:
 
-| Artifact | Purpose |
-|---|---|
-| [App Usage Assumptions & Estimations](./app-usage-assumptions.md) | Expected load, reliability targets, AI/background workloads |
-| [Azure Services Requirements](./requirements.md) | Consolidated SKUs, capacity, and configuration per service |
-| [Azure Pricing Calculator Output](../infra%20cost%20estimation.pdf) | Cost estimation per environment |
-| Infrastructure Provisioning & Deployment Model (this document) | IaC standard, prerequisites, CI/CD approach |
+| Artifact                                                            | Purpose                                                     |
+| ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [App Usage Assumptions & Estimations](./app-usage-assumptions.md)   | Expected load, reliability targets, AI/background workloads |
+| [Azure Services Requirements](./requirements.md)                    | Consolidated SKUs, capacity, and configuration per service  |
+| [Azure Pricing Calculator Output](../infra%20cost%20estimation.pdf) | Cost estimation per environment                             |
+| Infrastructure Provisioning & Deployment Model (this document)      | IaC standard, prerequisites, CI/CD approach                 |
 
 ---
 
@@ -272,6 +277,7 @@ The Cloud Infrastructure Assessment handed off to the IT team consists of:
 The documents and diagrams describe the **required target state**.
 
 **The only supported path to reach that target state is:**
+
 > Infrastructure as Code (Azure Bicep) + GitHub Actions + OIDC Federation
 
 Any deviation from this approach introduces risk and is not aligned with the project's delivery model.

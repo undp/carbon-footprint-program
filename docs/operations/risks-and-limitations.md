@@ -11,6 +11,7 @@ This document consolidates the known technical risks, single points of failure, 
 Prisma does not provide automatic migration rollback. Once a migration is applied — especially destructive ones (column drops, table renames, constraint changes) — reverting requires a manually written `down` migration or a database restore.
 
 **Mitigations:**
+
 - Always write a manual rollback script before applying destructive migrations.
 - Apply migrations in Staging first and validate for at least one full working day.
 - Never drop columns in the same migration that removes them from application code; use a two-phase approach (stop writing → verify → drop).
@@ -21,6 +22,7 @@ Prisma does not provide automatic migration rollback. Once a migration is applie
 The JWKS authentication provider caches signing keys for 10 minutes. During an Entra ID key rotation event, tokens signed with the new key will fail validation for up to 10 minutes until the cache refreshes.
 
 **Mitigations:**
+
 - Microsoft Entra ID key rotations are announced in advance and are infrequent.
 - Evaluate shortening the cache TTL if the platform moves to high-frequency rotations.
 - Monitor 401 error spikes after any known key rotation event.
@@ -30,6 +32,7 @@ The JWKS authentication provider caches signing keys for 10 minutes. During an E
 Production database size is expected to double roughly every year, reaching hundreds of GB to TB scale. As the schema matures and data volume grows, the cost and risk of schema migrations increases significantly — long-running `ALTER TABLE` operations can cause table locks and elevated error rates.
 
 **Mitigations:**
+
 - Plan schema changes earlier in the development cycle to avoid rushed migrations.
 - For tables exceeding ~10 million rows, evaluate online schema change tools (e.g., `pg_repack`, Azure Database for PostgreSQL online DDL support).
 - Coordinate migration windows with stakeholders in Production.
@@ -39,6 +42,7 @@ Production database size is expected to double roughly every year, reaching hund
 Staging runs with a single App Service instance (no scaling). A deployment or restart causes full downtime for Staging users, including during active demos or pilot tests.
 
 **Mitigations:**
+
 - Schedule deployments outside demo windows.
 - Notify all Staging users before deploying.
 - Accept this as a known cost/reliability trade-off for Staging.
@@ -48,6 +52,7 @@ Staging runs with a single App Service instance (no scaling). A deployment or re
 If Docker images are tagged with `latest` instead of an immutable identifier (e.g., the git commit SHA), it becomes impossible to precisely identify which version is running or to reliably roll back to a specific prior version.
 
 **Mitigations:**
+
 - Always tag production images with the git commit SHA as part of the CI/CD pipeline.
 - Retain the `latest` tag only as a convenience reference, never as the deployment source of truth.
 - Azure Container Registry retains previous images; rollback requires updating the App Service image tag to the previous SHA.
@@ -56,14 +61,14 @@ If Docker images are tagged with `latest` instead of an immutable identifier (e.
 
 Several components referenced in architecture and requirements documents are not yet present in the codebase:
 
-| Feature | Status | Risk |
-|---|---|---|
-| Azure Functions (background tasks) | Not implemented | No automated cleanup, reminders, or lifecycle management yet |
-| Azure OpenAI + AI Search (RAG) | Not implemented | AI-assisted document analysis is unavailable |
-| Application Insights / Azure Monitor | Not implemented | Observability relies on stdout (Pino) only |
-| Azure Communication Services (email) | Not implemented | No transactional email delivery |
-| Internationalization (i18n) | Not implemented | Platform is Spanish-only |
-| Redis / connection pooling (PgBouncer) | Not planned | Under load, database connection count may become a bottleneck |
+| Feature                                | Status          | Risk                                                          |
+| -------------------------------------- | --------------- | ------------------------------------------------------------- |
+| Azure Functions (background tasks)     | Not implemented | No automated cleanup, reminders, or lifecycle management yet  |
+| Azure OpenAI + AI Search (RAG)         | Not implemented | AI-assisted document analysis is unavailable                  |
+| Application Insights / Azure Monitor   | Not implemented | Observability relies on stdout (Pino) only                    |
+| Azure Communication Services (email)   | Not implemented | No transactional email delivery                               |
+| Internationalization (i18n)            | Not implemented | Platform is Spanish-only                                      |
+| Redis / connection pooling (PgBouncer) | Not planned     | Under load, database connection count may become a bottleneck |
 
 Shipping any of these services introduces integration risk proportional to their absence in the current test suite.
 
@@ -86,6 +91,7 @@ Every user-facing request requires a valid token issued by Azure Entra ID. If th
 **Impact:** Complete user lockout. No fallback authentication mechanism exists.
 
 **Mitigations:**
+
 - Entra ID is a highly available Microsoft-managed service with strong SLA coverage.
 - Monitor authentication failure rates as a leading indicator.
 - Maintain contact with the client IT team who administers the Entra tenant.
@@ -97,6 +103,7 @@ All uploaded documents, images, and generated PDF reports are stored in Azure Bl
 **Impact:** Users cannot upload or retrieve documents. Report generation fails.
 
 **Mitigations:**
+
 - Production uses ZRS (Zone-Redundant Storage), which survives availability zone failures.
 - No application-level fallback to an alternative storage backend exists.
 
@@ -107,6 +114,7 @@ Every API deployment pulls the container image from Azure Container Registry. If
 **Impact:** Deployment pipelines fail; rollbacks and hotfixes cannot be deployed.
 
 **Mitigations:**
+
 - ACR is not on the critical path for runtime operation, only for deployments.
 - Keep the last known-good image tag documented for emergency manual redeployment.
 
@@ -117,6 +125,7 @@ All infrastructure changes and application deployments are gated through GitHub 
 **Impact:** Hotfixes and rollbacks require manual intervention outside the pipeline.
 
 **Mitigations:**
+
 - Document an emergency manual deployment procedure (manual `az deployment` and `az webapp` commands) in the runbook.
 - The OIDC federated credential must be kept valid and rotated according to the app registration lifecycle.
 
@@ -127,6 +136,7 @@ When AI features are active, all LLM inference runs on Azure OpenAI — a manage
 **Impact:** All AI-assisted document analysis and RAG features become unavailable. The rest of the application continues to operate normally.
 
 **Mitigations:**
+
 - AI features are user-triggered, not on the critical path for core registry operations.
 - Implement graceful degradation in AI-consuming endpoints (return a clear error; do not block non-AI workflows).
 
@@ -134,20 +144,20 @@ When AI features are active, all LLM inference runs on Azure OpenAI — a manage
 
 ## Critical Dependencies
 
-| Dependency | Used For | Failure Impact | Owned By |
-|---|---|---|---|
-| **Microsoft Azure** | All infrastructure (compute, storage, DB, networking) | Complete platform outage | Client IT / Microsoft |
-| **Azure Entra ID** | User authentication and token issuance | Full user lockout | Client IT |
-| **PostgreSQL Flexible Server** | All application data persistence | Complete application failure | Azure (managed) |
-| **Azure Blob Storage** | File uploads, document storage, SAS URL generation | File operations unavailable | Azure (managed) |
-| **Azure Container Registry** | API container image hosting | Deployments blocked | Azure (managed) |
-| **GitHub** | Source control, CI/CD orchestration, OIDC federation | Deployments and infra changes blocked | GitHub / Anthropic-owned org |
-| **Azure Bicep + Azure CLI** | Infrastructure provisioning | IaC deployments fail | Microsoft (open source) |
-| **Azure OpenAI** | LLM inference and embedding generation (AI features) | AI features unavailable | Microsoft (managed service) |
-| **Azure AI Search** | RAG document index and retrieval (AI features) | RAG features unavailable | Microsoft (managed service) |
-| **Azure Communication Services** | Transactional email delivery | No email notifications | Microsoft (managed service) |
-| **Node.js / pnpm** | Runtime and package management | Build and runtime failures | Open source ecosystem |
-| **Prisma ORM** | Database access and migrations | All data access fails | Open source (Prisma Inc.) |
+| Dependency                       | Used For                                              | Failure Impact                        | Owned By                     |
+| -------------------------------- | ----------------------------------------------------- | ------------------------------------- | ---------------------------- |
+| **Microsoft Azure**              | All infrastructure (compute, storage, DB, networking) | Complete platform outage              | Client IT / Microsoft        |
+| **Azure Entra ID**               | User authentication and token issuance                | Full user lockout                     | Client IT                    |
+| **PostgreSQL Flexible Server**   | All application data persistence                      | Complete application failure          | Azure (managed)              |
+| **Azure Blob Storage**           | File uploads, document storage, SAS URL generation    | File operations unavailable           | Azure (managed)              |
+| **Azure Container Registry**     | API container image hosting                           | Deployments blocked                   | Azure (managed)              |
+| **GitHub**                       | Source control, CI/CD orchestration, OIDC federation  | Deployments and infra changes blocked | GitHub / Anthropic-owned org |
+| **Azure Bicep + Azure CLI**      | Infrastructure provisioning                           | IaC deployments fail                  | Microsoft (open source)      |
+| **Azure OpenAI**                 | LLM inference and embedding generation (AI features)  | AI features unavailable               | Microsoft (managed service)  |
+| **Azure AI Search**              | RAG document index and retrieval (AI features)        | RAG features unavailable              | Microsoft (managed service)  |
+| **Azure Communication Services** | Transactional email delivery                          | No email notifications                | Microsoft (managed service)  |
+| **Node.js / pnpm**               | Runtime and package management                        | Build and runtime failures            | Open source ecosystem        |
+| **Prisma ORM**                   | Database access and migrations                        | All data access fails                 | Open source (Prisma Inc.)    |
 
 ### Dependency Risk Notes
 
@@ -198,6 +208,7 @@ Application Insights and Azure Monitor are provisioned in the infrastructure pla
 Azure Static Web Apps does not support instant slot-based rollback. Rolling back the frontend to a previous version requires re-triggering the CI/CD pipeline with a previous git tag. In a critical incident, this adds deployment pipeline latency (~5–10 minutes) to the recovery time.
 
 **Mitigations:**
+
 - Document the exact rollback procedure in the [Operations Runbook](./runbook.md).
 - Keep git tags for every Production frontend release so the rollback target is always unambiguous.
 

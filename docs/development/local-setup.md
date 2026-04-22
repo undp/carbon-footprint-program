@@ -8,16 +8,17 @@ For deployment to Azure, see [Infrastructure Deployment](../infrastructure/Deplo
 
 ## Prerequisites
 
-| Tool | Version | Purpose |
-|---|---|---|
-| **Node.js** | ≥ 24.0.0 | Runtime for API and build tools |
-| **pnpm** | ≥ 10.23.0 | Package manager |
-| **Docker** | Any recent | Local PostgreSQL database |
-| **direnv** | Any | Automatic `.envrc` loading (recommended) |
-| **Azure CLI** | ≥ 2.59.0 | Required for file upload features and deployments |
-| **Git** | Any | Version control |
+| Tool          | Version    | Purpose                                           |
+| ------------- | ---------- | ------------------------------------------------- |
+| **Node.js**   | ≥ 24.0.0   | Runtime for API and build tools                   |
+| **pnpm**      | ≥ 10.23.0  | Package manager                                   |
+| **Docker**    | Any recent | Local PostgreSQL database                         |
+| **direnv**    | Any        | Automatic `.envrc` loading (recommended)          |
+| **Azure CLI** | ≥ 2.59.0   | Required for file upload features and deployments |
+| **Git**       | Any        | Version control                                   |
 
 **Verify your installation:**
+
 ```bash
 node --version    # Must be >= 24.0.0
 pnpm --version    # Must be >= 10.23.0
@@ -26,6 +27,7 @@ az --version      # For Azure features
 ```
 
 **Install pnpm** (if not installed):
+
 ```bash
 npm install -g pnpm
 # or
@@ -64,6 +66,7 @@ cp .envrc.template .envrc
 Edit `.envrc` with your configuration. See [Environment Variables](./environment-variables.md) for a full reference.
 
 **Minimum required values for local development:**
+
 ```bash
 # Database (set after starting the local DB in Step 4)
 export DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb"
@@ -79,12 +82,15 @@ export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user"
 **Load environment variables:**
 
 Option A — Using direnv (recommended):
+
 ```bash
 direnv allow
 ```
+
 Variables are automatically reloaded whenever `.envrc` changes.
 
 Option B — Manual:
+
 ```bash
 source .envrc
 ```
@@ -103,6 +109,7 @@ docker compose up -d
 This starts a PostgreSQL container using the configuration in `packages/database/docker-compose.yml`.
 
 **Verify the container is running:**
+
 ```bash
 docker ps
 ```
@@ -125,9 +132,11 @@ pnpm dev:seed
 ```
 
 Or from the **root** directory:
+
 ```bash
 pnpm db:reset
 ```
+
 This resets the database, applies all migrations, and runs seeds in one command.
 
 ---
@@ -142,15 +151,16 @@ pnpm dev
 
 This starts all services concurrently:
 
-| Service | URL |
-|---|---|
-| **API** | http://localhost:8080 |
-| **Web (frontend)** | http://localhost:5173 |
-| **Swagger UI** | http://localhost:8080/api/docs |
+| Service            | URL                            |
+| ------------------ | ------------------------------ |
+| **API**            | http://localhost:8080          |
+| **Web (frontend)** | http://localhost:5173          |
+| **Swagger UI**     | http://localhost:8080/api/docs |
 
 Both servers support **hot reload** — code changes are automatically reflected without manual restarts.
 
 **Start only a specific app:**
+
 ```bash
 pnpm dev:api   # API only
 pnpm dev:web   # Frontend only
@@ -226,14 +236,14 @@ pnpm clean
 
 > **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exception: `pnpm db:reset` is a root-level script.
 
-| Command | Description |
-|---|---|
-| `pnpm dev:migrate` | Apply pending migrations |
-| `pnpm dev:generate` | Regenerate Prisma client after schema changes |
-| `pnpm dev:seed` | Run database seed scripts |
-| `pnpm dev:studio` | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
-| `pnpm dev:reset` | Reset DB and re-apply all migrations (⚠️ destructive) |
-| `pnpm db:reset` | Reset + re-seed (from root, ⚠️ destructive) |
+| Command             | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `pnpm dev:migrate`  | Apply pending migrations                                        |
+| `pnpm dev:generate` | Regenerate Prisma client after schema changes                   |
+| `pnpm dev:seed`     | Run database seed scripts                                       |
+| `pnpm dev:studio`   | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
+| `pnpm dev:reset`    | Reset DB and re-apply all migrations (⚠️ destructive)           |
+| `pnpm db:reset`     | Reset + re-seed (from root, ⚠️ destructive)                     |
 
 ### Creating a New Migration
 
@@ -284,24 +294,29 @@ To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDE
 ## Troubleshooting
 
 **`pnpm install` fails:**
+
 - Ensure Node.js ≥ 24.0.0: `node --version`
 - Try clearing the pnpm store: `pnpm store prune`
 
 **Database connection refused:**
+
 - Check Docker is running: `docker ps`
 - Check the database container is up: `docker ps | grep postgres`
 - Verify `DATABASE_URL` matches the `docker-compose.yml` credentials
 
 **Prisma client not found / type errors after schema change:**
+
 ```bash
 cd packages/database && pnpm dev:generate
 ```
 
 **Port already in use:**
+
 - API default port is `8080`. Override with `API_PORT=8081` in `.envrc`
 - Web default port is `5173`. Vite will auto-increment if taken
 
 **Tests fail with "Docker not available":**
+
 - Ensure Docker daemon is running
 - On Linux: `sudo systemctl start docker`
 - On macOS/Windows: start Docker Desktop

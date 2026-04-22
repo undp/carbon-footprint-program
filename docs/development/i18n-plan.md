@@ -12,12 +12,12 @@ Before planning the migration, it's important to understand where translatable t
 
 All user-facing strings in `apps/web/src/` are hardcoded in Spanish. Examples:
 
-| File | String |
-|---|---|
-| `apps/web/src/components/CreateInventoryCard.tsx` | `"No se pudo crear la huella"` |
-| `apps/web/src/components/form/FormTextField.tsx` | `"Este campo es obligatorio"` |
+| File                                                | String                                              |
+| --------------------------------------------------- | --------------------------------------------------- |
+| `apps/web/src/components/CreateInventoryCard.tsx`   | `"No se pudo crear la huella"`                      |
+| `apps/web/src/components/form/FormTextField.tsx`    | `"Este campo es obligatorio"`                       |
 | `apps/web/src/components/form/FormNumericField.tsx` | `"El valor es demasiado bajo"` / `"demasiado alto"` |
-| `apps/web/src/screens/CarbonInventories/...` | `"No se pudo duplicar la huella"` |
+| `apps/web/src/screens/CarbonInventories/...`        | `"No se pudo duplicar la huella"`                   |
 
 ### Frontend: No i18n Library Installed
 
@@ -29,9 +29,9 @@ All user-facing strings in `apps/web/src/` are hardcoded in Spanish. Examples:
 
 ```typescript
 // Current
-formatDate(date) // Intl.DateTimeFormat("es", { ... })
-formatEmissions(value) // value.toLocaleString("es", { ... })
-formatQuantity(value) // value.toLocaleString("es", { ... })
+formatDate(date); // Intl.DateTimeFormat("es", { ... })
+formatEmissions(value); // value.toLocaleString("es", { ... })
+formatQuantity(value); // value.toLocaleString("es", { ... })
 ```
 
 Numbers and dates will not auto-switch when the language changes — formatting helpers need to accept the current locale.
@@ -75,6 +75,7 @@ Validation messages live in the generic form components (`FormTextField`, `FormN
 ## Recommended Library: `react-i18next`
 
 **Why:**
+
 - Most mature i18n library for React (actively maintained, 8M+ weekly downloads).
 - Plain JSON translation files — no custom build step required.
 - Built-in interpolation, pluralization, namespaces, lazy loading.
@@ -83,10 +84,10 @@ Validation messages live in the generic form components (`FormTextField`, `FormN
 
 **Alternatives considered:**
 
-| Library | Why not |
-|---|---|
-| `next-intl` | Tied to Next.js; this project uses Vite + SPA |
-| `@lingui/react` | Requires compile-time extraction; more complex setup |
+| Library                 | Why not                                                 |
+| ----------------------- | ------------------------------------------------------- |
+| `next-intl`             | Tied to Next.js; this project uses Vite + SPA           |
+| `@lingui/react`         | Requires compile-time extraction; more complex setup    |
 | `react-intl` (FormatJS) | Verbose API; ICU messages harder to author than i18next |
 
 ---
@@ -176,12 +177,14 @@ apps/web/src/i18n/
 ### Phase 3 — Migrate Components
 
 **Before:**
+
 ```tsx
 <Button>Cancelar</Button>
 <Alert>No se pudo crear la huella</Alert>
 ```
 
 **After:**
+
 ```tsx
 import { useTranslation } from "react-i18next";
 
@@ -209,7 +212,8 @@ import { useTranslation } from "react-i18next";
 export function useApiErrorMessage() {
   const { t } = useTranslation();
   return (error: { code?: string; message?: string }) => {
-    if (error.code) return t(`errors.${error.code}`, { defaultValue: error.message });
+    if (error.code)
+      return t(`errors.${error.code}`, { defaultValue: error.message });
     return error.message ?? t("common.unknownError");
   };
 }
@@ -246,6 +250,7 @@ export function formatEmissions(value: number): string {
 ```
 
 **Number formatting by locale:**
+
 - `es`: `1.234,56` (dot thousand separator, comma decimal)
 - `pt`: `1.234,56` (same as `es`)
 - `en`: `1,234.56` (comma thousand, dot decimal)
@@ -262,7 +267,10 @@ import { useTranslation } from "react-i18next";
 function LanguageSwitcher() {
   const { i18n } = useTranslation();
   return (
-    <Select value={i18n.language} onChange={(e) => i18n.changeLanguage(e.target.value)}>
+    <Select
+      value={i18n.language}
+      onChange={(e) => i18n.changeLanguage(e.target.value)}
+    >
       <MenuItem value="es">Español</MenuItem>
       <MenuItem value="pt">Português</MenuItem>
       <MenuItem value="en">English</MenuItem>
@@ -300,6 +308,7 @@ For country deployments that want to translate:
 4. Optionally: use a translation service (Lokalise, Crowdin, Weblate) to manage files collaboratively.
 
 **Tooling suggestions:**
+
 - `i18next-parser` — scans source files for `t("key")` calls and generates a baseline translation file.
 - `i18next-resources-for-ts` — generates TypeScript types from translation JSON.
 
@@ -336,15 +345,15 @@ The frontend uses `code` + `details` to build a user message in the current loca
 
 ## Effort Estimate
 
-| Phase | Effort | Notes |
-|---|---|---|
-| Phase 1 — Install & bootstrap | 2 hours | One-time setup |
-| Phase 2 — JSON file structure | 1 hour | Decide key convention |
-| Phase 3 — Migrate strings | 2–3 weeks | Depends on app size; work screen by screen |
-| Phase 4 — Locale-aware formatting | 4 hours | Single utility file |
-| Phase 5 — Language switcher | 2 hours | Small UI component |
-| Phase 6 — TypeScript augmentation | 1 hour | One-time setup |
-| Phase 7 — Additional language | 1–2 weeks per language | Translation work (can be parallelized with native speakers) |
+| Phase                             | Effort                 | Notes                                                       |
+| --------------------------------- | ---------------------- | ----------------------------------------------------------- |
+| Phase 1 — Install & bootstrap     | 2 hours                | One-time setup                                              |
+| Phase 2 — JSON file structure     | 1 hour                 | Decide key convention                                       |
+| Phase 3 — Migrate strings         | 2–3 weeks              | Depends on app size; work screen by screen                  |
+| Phase 4 — Locale-aware formatting | 4 hours                | Single utility file                                         |
+| Phase 5 — Language switcher       | 2 hours                | Small UI component                                          |
+| Phase 6 — TypeScript augmentation | 1 hour                 | One-time setup                                              |
+| Phase 7 — Additional language     | 1–2 weeks per language | Translation work (can be parallelized with native speakers) |
 
 **Total (first language, plus plumbing):** ~3–4 weeks of focused work.
 **Each additional language:** ~1–2 weeks (mostly translation, assuming the plumbing is already in place).

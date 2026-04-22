@@ -8,9 +8,9 @@ This document describes how users are created on the platform, how they join org
 
 The platform has two independent role systems:
 
-| Layer | Roles | Scope |
-|---|---|---|
-| **System role** | `USER`, `ADMIN`, `SUPERADMIN` | Platform-wide; controls access to `/admin/` routes |
+| Layer                 | Roles                            | Scope                                                                  |
+| --------------------- | -------------------------------- | ---------------------------------------------------------------------- |
+| **System role**       | `USER`, `ADMIN`, `SUPERADMIN`    | Platform-wide; controls access to `/admin/` routes                     |
 | **Organization role** | `VIEWER`, `CONTRIBUTOR`, `ADMIN` | Per-organization; controls what a user can do within that organization |
 
 A user can have different organization roles in different organizations. System role and organization role are independent — a `USER` system role can be an organization `ADMIN`.
@@ -107,17 +107,17 @@ There is **no invitation link, no email notification, and no approval required**
 
 ## Organization Role Permissions
 
-| Action | VIEWER | CONTRIBUTOR | ADMIN |
-|---|---|---|---|
-| View organization data | ✓ | ✓ | ✓ |
-| View carbon inventories and reduction projects | ✓ | ✓ | ✓ |
-| View organization user list | ✓ | ✓ | ✓ |
-| Create and edit carbon inventories | — | ✓ | ✓ |
-| Create and edit reduction projects | — | ✓ | ✓ |
-| Submit requests for review | — | ✓ | ✓ |
-| Add and remove organization members | — | — | ✓ |
-| Change member roles | — | — | ✓ |
-| Edit organization profile | — | — | ✓ |
+| Action                                         | VIEWER | CONTRIBUTOR | ADMIN |
+| ---------------------------------------------- | ------ | ----------- | ----- |
+| View organization data                         | ✓      | ✓           | ✓     |
+| View carbon inventories and reduction projects | ✓      | ✓           | ✓     |
+| View organization user list                    | ✓      | ✓           | ✓     |
+| Create and edit carbon inventories             | —      | ✓           | ✓     |
+| Create and edit reduction projects             | —      | ✓           | ✓     |
+| Submit requests for review                     | —      | ✓           | ✓     |
+| Add and remove organization members            | —      | —           | ✓     |
+| Change member roles                            | —      | —           | ✓     |
+| Edit organization profile                      | —      | —           | ✓     |
 
 ---
 
@@ -125,12 +125,12 @@ There is **no invitation link, no email notification, and no approval required**
 
 All endpoints require authentication. The `:organizationId` path parameter is the organization ID.
 
-| Method | Path | Required org role | Description |
-|---|---|---|---|
-| `GET` | `/organizations/:organizationId/users` | `VIEWER`, `CONTRIBUTOR`, or `ADMIN` | List active members |
-| `POST` | `/organizations/:organizationId/users` | `ADMIN` | Add a user by email |
-| `DELETE` | `/organizations/:organizationId/users/:userId` | `ADMIN` | Remove a member |
-| `PATCH` | `/organizations/:organizationId/users/:userId` | `ADMIN` | Change a member's role |
+| Method   | Path                                           | Required org role                   | Description            |
+| -------- | ---------------------------------------------- | ----------------------------------- | ---------------------- |
+| `GET`    | `/organizations/:organizationId/users`         | `VIEWER`, `CONTRIBUTOR`, or `ADMIN` | List active members    |
+| `POST`   | `/organizations/:organizationId/users`         | `ADMIN`                             | Add a user by email    |
+| `DELETE` | `/organizations/:organizationId/users/:userId` | `ADMIN`                             | Remove a member        |
+| `PATCH`  | `/organizations/:organizationId/users/:userId` | `ADMIN`                             | Change a member's role |
 
 ### Add a user — `POST /organizations/:organizationId/users`
 
@@ -142,6 +142,7 @@ All endpoints require authentication. The `:organizationId` path parameter is th
 ```
 
 **Response:**
+
 ```json
 {
   "membershipId": "17",
@@ -151,6 +152,7 @@ All endpoints require authentication. The `:organizationId` path parameter is th
 ```
 
 **Behaviour:**
+
 - Looks up the `User` by email. Returns `404` if not found (the user has not logged in yet).
 - Returns `409` if an `ACTIVE` membership already exists for this user+org pair.
 - Creates a new `UserOrganizationMembership` row with `status = ACTIVE`.
@@ -175,6 +177,7 @@ Only `ACTIVE` membership rows are returned. Results are sorted by role priority 
 ### Remove a member — `DELETE /organizations/:organizationId/users/:userId`
 
 Soft-deletes the `ACTIVE` membership row by setting `status = DELETED`. The `User` record is never deleted. Guards enforced:
+
 - **Cannot remove yourself** — returns `403`.
 - **Cannot remove the last ADMIN** — returns `409`. The operation uses a database transaction to prevent race conditions (two admins simultaneously removing each other).
 
@@ -187,6 +190,7 @@ Soft-deletes the `ACTIVE` membership row by setting `status = DELETED`. The `Use
 ```
 
 **Response:**
+
 ```json
 {
   "membershipId": "23",
@@ -195,12 +199,14 @@ Soft-deletes the `ACTIVE` membership row by setting `status = DELETED`. The `Use
 ```
 
 Rather than updating the existing row, this operation runs inside a transaction that:
+
 1. Sets the current `ACTIVE` row to `OUTDATED`.
 2. Creates a new `ACTIVE` row with the new role.
 
 This preserves the full role-change history in the `UserOrganizationMembership` table.
 
 Guards enforced:
+
 - **Cannot change your own role** — returns `403`.
 - **Cannot demote the last ADMIN** — returns `409` if the target user is the only ADMIN and the new role is not `ADMIN`.
 
@@ -208,13 +214,13 @@ Guards enforced:
 
 ## Error Reference
 
-| Code | HTTP | Trigger |
-|---|---|---|
-| `USER_NOT_FOUND_BY_EMAIL` | 404 | No `User` with the given email |
-| `MEMBERSHIP_ALREADY_EXISTS` | 409 | Target user already has an `ACTIVE` membership |
-| `MEMBERSHIP_NOT_FOUND` | 404 | Target user has no `ACTIVE` membership |
-| `CANNOT_MODIFY_SELF` | 403 | Admin attempting to change or remove their own membership |
-| `CANNOT_REMOVE_LAST_ADMIN` | 409 | Operation would leave the organization with zero ADMINs |
+| Code                        | HTTP | Trigger                                                   |
+| --------------------------- | ---- | --------------------------------------------------------- |
+| `USER_NOT_FOUND_BY_EMAIL`   | 404  | No `User` with the given email                            |
+| `MEMBERSHIP_ALREADY_EXISTS` | 409  | Target user already has an `ACTIVE` membership            |
+| `MEMBERSHIP_NOT_FOUND`      | 404  | Target user has no `ACTIVE` membership                    |
+| `CANNOT_MODIFY_SELF`        | 403  | Admin attempting to change or remove their own membership |
+| `CANNOT_REMOVE_LAST_ADMIN`  | 409  | Operation would leave the organization with zero ADMINs   |
 
 ---
 
@@ -223,6 +229,7 @@ Guards enforced:
 User management lives in the **My Organization** screen (`apps/web/src/screens/MyOrganization/MyOrganizationScreen.tsx`), under the **Users** tab.
 
 The tab displays:
+
 - A table of current active members sorted by role then name.
 - A role selector per row (organization ADMINs only) to change a member's role.
 - A remove button per row (organization ADMINs only), disabled for the current user and the last admin.

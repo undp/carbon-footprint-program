@@ -24,37 +24,37 @@ The queue shows only the **most recent submission per subject**: if an organizat
 
 The top of the page displays aggregated counts:
 
-| KPI | Description |
-|---|---|
-| Total | All submissions in the system |
-| Pending | Awaiting admin action |
-| Approved | Approved by an admin |
+| KPI               | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| Total             | All submissions in the system                       |
+| Pending           | Awaiting admin action                               |
+| Approved          | Approved by an admin                                |
 | With Observations | Sent back with review comments (status: `REVIEWED`) |
-| Rejected | Definitively rejected |
+| Rejected          | Definitively rejected                               |
 
 The KPI data comes from `GET /admin/requests/kpis`, broken down by submission type and status.
 
 ### Queue columns
 
-| Column | Description |
-|---|---|
-| Organization Name | The organization that submitted |
-| Type | `ORGANIZATION_ACCREDITATION`, `CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, or `REDUCTION_PROJECT_VERIFICATION` |
-| Period | The year the submission relates to (inventory year for carbon submissions; organization creation year for accreditation) |
-| Status | `PENDING`, `APPROVED`, `REVIEWED`, or `REJECTED` |
-| Date Submitted | When the submission was created |
-| Actions | View or Edit button depending on status |
+| Column            | Description                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Organization Name | The organization that submitted                                                                                                    |
+| Type              | `ORGANIZATION_ACCREDITATION`, `CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, or `REDUCTION_PROJECT_VERIFICATION` |
+| Period            | The year the submission relates to (inventory year for carbon submissions; organization creation year for accreditation)           |
+| Status            | `PENDING`, `APPROVED`, `REVIEWED`, or `REJECTED`                                                                                   |
+| Date Submitted    | When the submission was created                                                                                                    |
+| Actions           | View or Edit button depending on status                                                                                            |
 
 The table supports sorting by column and pagination (10 / 25 / 50 / 100 rows per page).
 
 ### Submission types
 
-| Type | What is submitted | Next step when approved |
-|---|---|---|
-| `ORGANIZATION_ACCREDITATION` | Organization profile data | Organization receives accreditation badge; `isAccredited` set to `true` |
-| `CARBON_INVENTORY_CALCULATION` | Carbon inventory (self-declared emissions) | Calculation badge issued; organization may proceed to verification |
-| `CARBON_INVENTORY_VERIFICATION` | Carbon inventory (verified by external certifier) | Verification badge issued |
-| `REDUCTION_PROJECT_VERIFICATION` | Reduction project claim | Verification badge issued |
+| Type                             | What is submitted                                 | Next step when approved                                                 |
+| -------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
+| `ORGANIZATION_ACCREDITATION`     | Organization profile data                         | Organization receives accreditation badge; `isAccredited` set to `true` |
+| `CARBON_INVENTORY_CALCULATION`   | Carbon inventory (self-declared emissions)        | Calculation badge issued; organization may proceed to verification      |
+| `CARBON_INVENTORY_VERIFICATION`  | Carbon inventory (verified by external certifier) | Verification badge issued                                               |
+| `REDUCTION_PROJECT_VERIFICATION` | Reduction project claim                           | Verification badge issued                                               |
 
 > **Note:** The `CARBON_INVENTORY_CALCULATION` type may be hidden from the queue depending on the `CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR` system parameter. When set to `HIDDEN`, only verification submissions appear. See [System Parameters Reference](../development/system-parameters.md).
 
@@ -73,6 +73,7 @@ Open a submission from the queue to see its full detail view, including:
 **API:** `POST /admin/requests/:id/approve`
 
 **Body:**
+
 ```json
 {
   "reviewComments": "Optional comments visible to the organization.",
@@ -82,6 +83,7 @@ Open a submission from the queue to see its full detail view, including:
 ```
 
 **What happens:**
+
 1. Submission status changes from `PENDING` to `APPROVED`.
 2. The active badge matching the submission type is assigned to the submission.
 3. Any attached recognition files (e.g., certificates) are linked.
@@ -98,6 +100,7 @@ After approval, the organization's display status updates immediately — no cac
 **API:** `POST /admin/requests/:id/review`
 
 **Body:**
+
 ```json
 {
   "reviewComments": "Please correct the fuel quantity for subcategory X. The figure appears to be in kg but the unit selected is liters.",
@@ -108,6 +111,7 @@ After approval, the organization's display status updates immediately — no cac
 `reviewComments` is **required** when sending back with observations — an admin must explain what needs to be corrected.
 
 **What happens:**
+
 1. Submission status changes from `PENDING` to `REVIEWED`.
 2. The review comments and any attached files are recorded.
 3. The organization's inventory or project becomes **editable again**.
@@ -122,6 +126,7 @@ The organization's display status on the `REVIEWED` submission reflects the admi
 **API:** `POST /admin/requests/:id/reject`
 
 **Body:**
+
 ```json
 {
   "reviewComments": "Optional rejection reason.",
@@ -130,6 +135,7 @@ The organization's display status on the `REVIEWED` submission reflects the admi
 ```
 
 **What happens:**
+
 1. Submission status changes from `PENDING` to `REJECTED`.
 2. `reviewComments` are optional but recommended.
 3. For carbon inventories: the organization may create a new inventory and re-submit from scratch.
@@ -148,22 +154,23 @@ The organizations list shows all organizations registered on the platform with t
 ### KPI cards
 
 The KPI summary breaks down organizations by:
+
 - **Status** (`ACTIVE` / `BLOCKED`)
 - **Accreditation** (whether `isAccredited = true`)
 - **Carbon inventory presence** (whether at least one carbon inventory exists)
 
 ### Organizations table
 
-| Column | Description |
-|---|---|
-| Organization Name | Legal or registered name |
-| Sector | Economic sector |
-| Sub-Sector | Subsector classification |
-| Size | Organization size category |
-| Status | Derived from accreditation and inventory state |
-| Last Measurement | Date of the most recent carbon inventory |
-| Total Emissions | Aggregate tCO₂e across all inventories |
-| Actions | View, Edit, Block, or Unblock |
+| Column            | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| Organization Name | Legal or registered name                       |
+| Sector            | Economic sector                                |
+| Sub-Sector        | Subsector classification                       |
+| Size              | Organization size category                     |
+| Status            | Derived from accreditation and inventory state |
+| Last Measurement  | Date of the most recent carbon inventory       |
+| Total Emissions   | Aggregate tCO₂e across all inventories         |
+| Actions           | View, Edit, Block, or Unblock                  |
 
 Sortable by: name, sector, subsector, size, status, whether inventories exist, last measurement date, and total emissions.
 
@@ -174,6 +181,7 @@ Sortable by: name, sector, subsector, size, status, whether inventories exist, l
 **API:** `POST /admin/organizations/:id/block`
 
 Sets the organization's status to `BLOCKED`. A blocked organization:
+
 - Cannot create new submissions
 - Does not appear in the transparency portal (even if previously accredited)
 - Retains all existing data
@@ -196,22 +204,22 @@ All admin routes require `ADMIN` or `SUPERADMIN` system role. All responses foll
 
 ### Requests
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/admin/requests` | List all submissions (most recent per subject) |
-| `GET` | `/admin/requests/kpis` | Count breakdown by type and status |
-| `POST` | `/admin/requests/:id/approve` | Approve a pending submission |
-| `POST` | `/admin/requests/:id/review` | Return with observations |
-| `POST` | `/admin/requests/:id/reject` | Reject a submission |
+| Method | Path                          | Description                                    |
+| ------ | ----------------------------- | ---------------------------------------------- |
+| `GET`  | `/admin/requests`             | List all submissions (most recent per subject) |
+| `GET`  | `/admin/requests/kpis`        | Count breakdown by type and status             |
+| `POST` | `/admin/requests/:id/approve` | Approve a pending submission                   |
+| `POST` | `/admin/requests/:id/review`  | Return with observations                       |
+| `POST` | `/admin/requests/:id/reject`  | Reject a submission                            |
 
 ### Organizations
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/admin/organizations` | List all organizations with pagination and filters |
-| `GET` | `/admin/organizations/kpis` | Organization count breakdown |
-| `POST` | `/admin/organizations/:id/block` | Block an organization |
-| `POST` | `/admin/organizations/:id/unblock` | Unblock an organization |
+| Method | Path                               | Description                                        |
+| ------ | ---------------------------------- | -------------------------------------------------- |
+| `GET`  | `/admin/organizations`             | List all organizations with pagination and filters |
+| `GET`  | `/admin/organizations/kpis`        | Organization count breakdown                       |
+| `POST` | `/admin/organizations/:id/block`   | Block an organization                              |
+| `POST` | `/admin/organizations/:id/unblock` | Unblock an organization                            |
 
 ---
 

@@ -45,17 +45,17 @@ view SubmissionSummaryView {
 
 ## Fields
 
-| Field | Type | Nullable | Description |
-|---|---|---|---|
-| `submissionId` | `BigInt` | No | Primary key — unique per submission. Foreign key to `Submission.id`. |
-| `type` | `SubmissionType` | No | The submission type: `ORGANIZATION_ACCREDITATION`, `CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, or `REDUCTION_PROJECT_VERIFICATION`. |
-| `status` | `SubmissionStatus` | No | Current status: `PENDING`, `APPROVED`, `APPROVED_AUTOMATICALLY`, `REVIEWED`, or `REJECTED`. |
-| `organizationId` | `BigInt` | No | The organization that owns the submission subject. |
-| `organizationName` | `String` | No | Organization name, denormalized from `OrganizationSummaryView`. |
-| `period` | `Int` | Yes | The year relevant to the submission: the inventory year for carbon inventories and reduction projects, or the year the organization data was created for accreditation submissions. Null if the subject has no year. |
-| `requestedAt` | `DateTime` | No | The timestamp when the submission was created (i.e., when the organization submitted). |
-| `carbonInventoryId` | `BigInt` | Yes | ID of the linked `CarbonInventory` — populated only when `type` is `CARBON_INVENTORY_CALCULATION` or `CARBON_INVENTORY_VERIFICATION`. Null otherwise. |
-| `reductionProjectId` | `BigInt` | Yes | ID of the linked `ReductionProject` — populated only when `type` is `REDUCTION_PROJECT_VERIFICATION`. Null otherwise. |
+| Field                | Type               | Nullable | Description                                                                                                                                                                                                          |
+| -------------------- | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `submissionId`       | `BigInt`           | No       | Primary key — unique per submission. Foreign key to `Submission.id`.                                                                                                                                                 |
+| `type`               | `SubmissionType`   | No       | The submission type: `ORGANIZATION_ACCREDITATION`, `CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, or `REDUCTION_PROJECT_VERIFICATION`.                                                             |
+| `status`             | `SubmissionStatus` | No       | Current status: `PENDING`, `APPROVED`, `APPROVED_AUTOMATICALLY`, `REVIEWED`, or `REJECTED`.                                                                                                                          |
+| `organizationId`     | `BigInt`           | No       | The organization that owns the submission subject.                                                                                                                                                                   |
+| `organizationName`   | `String`           | No       | Organization name, denormalized from `OrganizationSummaryView`.                                                                                                                                                      |
+| `period`             | `Int`              | Yes      | The year relevant to the submission: the inventory year for carbon inventories and reduction projects, or the year the organization data was created for accreditation submissions. Null if the subject has no year. |
+| `requestedAt`        | `DateTime`         | No       | The timestamp when the submission was created (i.e., when the organization submitted).                                                                                                                               |
+| `carbonInventoryId`  | `BigInt`           | Yes      | ID of the linked `CarbonInventory` — populated only when `type` is `CARBON_INVENTORY_CALCULATION` or `CARBON_INVENTORY_VERIFICATION`. Null otherwise.                                                                |
+| `reductionProjectId` | `BigInt`           | Yes      | ID of the linked `ReductionProject` — populated only when `type` is `REDUCTION_PROJECT_VERIFICATION`. Null otherwise.                                                                                                |
 
 ---
 
@@ -142,7 +142,7 @@ SELECT * FROM reduction_project_submissions;
 
 ```typescript
 const submissions = await prismaClient.submissionSummaryView.findMany({
-  where,          // optional filters: status, type, organizationId, year
+  where, // optional filters: status, type, organizationId, year
   orderBy: [{ requestedAt: "desc" }, { submissionId: "desc" }],
 });
 ```
@@ -191,10 +191,10 @@ This produces a cross-tabulation of all `(type, status)` combinations with their
 
 ## Relationship to Other Views
 
-| View | Relationship |
-|---|---|
-| `OrganizationSummaryView` | Joined inside `SubmissionSummaryView` to supply `organizationName` without touching the raw `Organization` table |
-| `CarbonInventorySubtotalsView` | Independent view for emission aggregation; not used inside `SubmissionSummaryView` |
+| View                           | Relationship                                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `OrganizationSummaryView`      | Joined inside `SubmissionSummaryView` to supply `organizationName` without touching the raw `Organization` table |
+| `CarbonInventorySubtotalsView` | Independent view for emission aggregation; not used inside `SubmissionSummaryView`                               |
 
 See [Organization Summary View](./organization-summary-view.md) for the companion view reference.
 

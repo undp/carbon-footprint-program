@@ -19,12 +19,12 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 ```
 
-| Condition | Behaviour |
-|---|---|
-| PR opened, pushed to, or reopened | CI runs |
-| PR converted from draft to ready | CI runs |
-| PR is still a draft | CI is **skipped** (see `check-draft` job below) |
-| Push directly to `main` | CI does **not** run |
+| Condition                         | Behaviour                                       |
+| --------------------------------- | ----------------------------------------------- |
+| PR opened, pushed to, or reopened | CI runs                                         |
+| PR converted from draft to ready  | CI runs                                         |
+| PR is still a draft               | CI is **skipped** (see `check-draft` job below) |
+| Push directly to `main`           | CI does **not** run                             |
 
 ### Concurrency
 
@@ -152,24 +152,24 @@ The `coverage-report` artifact is uploaded after every test run. Download it fro
 
 Every CI job runs the same command you can run locally:
 
-| CI job | Local command |
-|---|---|
-| lint | `pnpm lint` |
-| type-check | `pnpm type-check` |
-| format | `pnpm format:check` (or `pnpm format` to fix) |
-| test | `pnpm test` |
-| build | `VITE_API_BASE_URL=https://example.invalid pnpm build` |
+| CI job     | Local command                                          |
+| ---------- | ------------------------------------------------------ |
+| lint       | `pnpm lint`                                            |
+| type-check | `pnpm type-check`                                      |
+| format     | `pnpm format:check` (or `pnpm format` to fix)          |
+| test       | `pnpm test`                                            |
+| build      | `VITE_API_BASE_URL=https://example.invalid pnpm build` |
 
 ### Common failures
 
-| Failure | Cause | Fix |
-|---|---|---|
-| `lint` fails with "unused variable" | ESLint rule violation | Fix the linting issue; do not use `// eslint-disable` except in justified cases |
-| `type-check` fails | TypeScript error introduced without running local type-check | Run `pnpm type-check` before pushing |
-| `format` fails | Files not formatted with Prettier | Run `pnpm format` and commit the changes |
-| `test` fails with container startup timeout | Testcontainers failed to pull an image or Docker had a transient error | Re-run the job — transient Docker failures are rare but happen |
-| `test` fails with port conflict | Unlikely on GitHub runners; more common locally | See [Troubleshooting](./troubleshooting.md) |
-| `build` fails | TypeScript or missing env variable | Check the build output; ensure any new required env variable has a build-time default |
+| Failure                                     | Cause                                                                  | Fix                                                                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `lint` fails with "unused variable"         | ESLint rule violation                                                  | Fix the linting issue; do not use `// eslint-disable` except in justified cases       |
+| `type-check` fails                          | TypeScript error introduced without running local type-check           | Run `pnpm type-check` before pushing                                                  |
+| `format` fails                              | Files not formatted with Prettier                                      | Run `pnpm format` and commit the changes                                              |
+| `test` fails with container startup timeout | Testcontainers failed to pull an image or Docker had a transient error | Re-run the job — transient Docker failures are rare but happen                        |
+| `test` fails with port conflict             | Unlikely on GitHub runners; more common locally                        | See [Troubleshooting](./troubleshooting.md)                                           |
+| `build` fails                               | TypeScript or missing env variable                                     | Check the build output; ensure any new required env variable has a build-time default |
 
 ### Cancellation behaviour
 
@@ -189,19 +189,19 @@ To add a check (e.g., a security scanner, a new test command):
 Example new job skeleton:
 
 ```yaml
-  my-check:
-    needs: check-draft
-    name: My Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm my-check-command
+my-check:
+  needs: check-draft
+  name: My Check
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm my-check-command
 ```
 
 ---
@@ -214,12 +214,12 @@ GitHub Actions honours `[skip ci]` in the commit message. Alternatively, keep th
 
 ## What CI Does Not Cover
 
-| Capability | Status |
-|---|---|
-| Deployment to Azure | **Manual** — see [API Deployment](../infrastructure/ApiDeployment.md) and [Frontend Deployment](../infrastructure/StaticWebAppDeployment.md) |
-| Infrastructure provisioning | **Manual** — see [Deployment Guide](../infrastructure/Deployment.md) |
-| Database migrations | **Manual** — see [Database Migrations](../infrastructure/Migrations.md) |
-| End-to-end (browser) tests | **Not implemented** |
-| Security scanning / SAST | **Not implemented** |
-| Dependency vulnerability scanning | **Not implemented** |
-| Release tagging or changelog generation | **Not implemented** |
+| Capability                              | Status                                                                                                                                       |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deployment to Azure                     | **Manual** — see [API Deployment](../infrastructure/ApiDeployment.md) and [Frontend Deployment](../infrastructure/StaticWebAppDeployment.md) |
+| Infrastructure provisioning             | **Manual** — see [Deployment Guide](../infrastructure/Deployment.md)                                                                         |
+| Database migrations                     | **Manual** — see [Database Migrations](../infrastructure/Migrations.md)                                                                      |
+| End-to-end (browser) tests              | **Not implemented**                                                                                                                          |
+| Security scanning / SAST                | **Not implemented**                                                                                                                          |
+| Dependency vulnerability scanning       | **Not implemented**                                                                                                                          |
+| Release tagging or changelog generation | **Not implemented**                                                                                                                          |
