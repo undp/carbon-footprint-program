@@ -66,6 +66,17 @@ CI runs automatically on PRs to `main` (lint, type-check, format:check, test, bu
 - **Execution**: tests run sequentially (`maxWorkers: 1`, `fileParallelism: false`).
 - **Coverage**: 80% threshold enforced locally.
 
+# Authentication & Authorization
+
+The API uses a two-dimension role model. Apply the correct decorator in `route.ts`:
+
+- **`fastify.requireAuth`**: onRequest hook — checks the user is authenticated. Use on all protected routes.
+- **`fastify.requireRoles([SystemRole.ADMIN, ...])`**: onRequest hook — restricts access by system-level roles (`USER`, `ADMIN`, `SUPERADMIN`).
+- **`fastify.requireOrganizationRole(extractor, { allowedRoles, canAdminsBypass })`**: **preHandler** hook — restricts access by organization-scoped roles (`VIEWER`, `CONTRIBUTOR`, `ADMIN`). Requires an `extractor` function that pulls the organization ID from the request (params, body, or query).
+- Access the current user via `request.currentUser` (set by the `user-resolve-plugin` in preHandler).
+- Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`.
+
+
 # Frontend & React Rules
 
 - **One component per file**: each React component must live in its own file. Do not define multiple components or subcomponents in the same file.
