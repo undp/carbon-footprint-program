@@ -84,12 +84,16 @@ export const ReductionPlanScreen: FC = () => {
   );
 
   useEffect(() => {
-    if (!inventories) return;
+    if (!inventories || !organizations) return;
 
-    const nextOrganizationId =
-      selectedOrganizationId ?? inventories[0]?.organizationId ?? "none";
+    const isKnownOrganization =
+      selectedOrganizationId === "none" ||
+      (selectedOrganizationId !== undefined &&
+        organizations.some((o) => o.id === selectedOrganizationId));
 
-    if (!nextOrganizationId) return;
+    const nextOrganizationId = isKnownOrganization
+      ? selectedOrganizationId
+      : (inventories[0]?.organizationId ?? "none");
 
     const inventoriesForOrg = inventories.filter((inv) =>
       matchesOrg(inv, nextOrganizationId)
@@ -117,6 +121,7 @@ export const ReductionPlanScreen: FC = () => {
     }
   }, [
     inventories,
+    organizations,
     selectedOrganizationId,
     selectedCarbonInventoryId,
     matchesOrg,
