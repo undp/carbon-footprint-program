@@ -53,6 +53,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Contributing Guide](./development/contributing.md) | Branch workflow, code review, adding a new API feature |
 | [Frontend Architecture](./development/frontend-architecture.md) | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen |
 | [API Design Conventions](./development/api-conventions.md) | Feature folder pattern, route/handler/service layering, plugin architecture, error handling, adding a new endpoint |
+| [Data Export and Reporting](./development/data-export.md) | Excel exports (inventory, reduction project, reduction plan), file downloads, and what is not yet supported |
 | [Testing Guide](./development/testing.md) | Vitest + Testcontainers setup, test structure, writing integration tests |
 | [Packages and Monorepo Internals](./development/packages.md) | Shared packages, dependency graph, Turborepo pipeline, schema change propagation |
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior |
