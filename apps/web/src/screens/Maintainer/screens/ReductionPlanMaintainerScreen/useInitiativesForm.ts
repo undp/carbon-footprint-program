@@ -6,13 +6,15 @@ import {
   REDUCTION_PLAN_INITIATIVE_TITLE_MAX_LENGTH,
   REDUCTION_PLAN_INITIATIVE_DESCRIPTION_MAX_LENGTH,
 } from "@repo/constants";
-import type { AdminInitiativeListItem } from "@repo/types";
+import {
+  IdSchema,
+  InitiativeMutationDataSchema,
+  type AdminInitiativeListItem,
+  type InitiativeMutationData,
+} from "@repo/types";
 
-export interface InitiativeFormRow {
+export interface InitiativeFormRow extends InitiativeMutationData {
   id: string;
-  title: string;
-  description: string;
-  subcategoryId: string;
   /** UI-only — filters subcategory selector, never sent to API. */
   categoryId: string;
 }
@@ -21,12 +23,18 @@ export interface InitiativesFormValues {
   initiatives: InitiativeFormRow[];
 }
 
-const InitiativeRowSchema = z.object({
+const REQUIRED_MESSAGE = "Requerido";
+
+const idField = IdSchema.refine((value) => value.length > 0, {
+  message: REQUIRED_MESSAGE,
+});
+
+const InitiativeRowSchema = InitiativeMutationDataSchema.extend({
   id: z.string(),
   title: z
     .string()
     .trim()
-    .min(1, "Requerido")
+    .min(1, REQUIRED_MESSAGE)
     .max(
       REDUCTION_PLAN_INITIATIVE_TITLE_MAX_LENGTH,
       `Máximo ${REDUCTION_PLAN_INITIATIVE_TITLE_MAX_LENGTH} caracteres`
@@ -34,13 +42,13 @@ const InitiativeRowSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(1, "Requerido")
+    .min(1, REQUIRED_MESSAGE)
     .max(
       REDUCTION_PLAN_INITIATIVE_DESCRIPTION_MAX_LENGTH,
       `Máximo ${REDUCTION_PLAN_INITIATIVE_DESCRIPTION_MAX_LENGTH} caracteres`
     ),
-  subcategoryId: z.string().min(1, "Requerido"),
-  categoryId: z.string().min(1, "Requerido"),
+  subcategoryId: idField,
+  categoryId: idField,
 });
 
 const initiativesFormSchema = z.object({
