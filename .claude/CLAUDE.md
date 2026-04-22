@@ -22,8 +22,7 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - **Conventional Commits**: use the [Conventional Commits](https://www.conventionalcommits.org/) format for all commit messages (e.g., `feat: add inventory export endpoint`, `fix: correct emission factor calculation`, `refactor: extract helper functions`, `docs: update API documentation`). Include a scope when relevant (e.g., `feat(api): ...`, `fix(web): ...`).
 - **Before every commit**: run `pnpm format && pnpm lint && pnpm type-check`.
 - **Modular commits**: break work into small, focused commits that are easy to review. Each commit should represent a single logical change (e.g., one commit per endpoint, one per component, one for types, etc.). Do NOT push all implementation in a single commit.
-- **PR review comments**: resolve each reviewer comment in its own dedicated commit. In the commit message, reference which comment it addresses. Then reply to the comment on the PR explaining the solution and referencing the commit SHA.
-- **Related review comments**: when multiple reviewer comments are closely related, they may be addressed together in a single commit, but still reply to each comment individually.
+- **PR review comments**: by default, resolve each reviewer comment in its own dedicated commit. When multiple comments are closely related (e.g., the same refactor touches both), they may be grouped into a single commit. In all cases, reply to each comment individually explaining the solution and referencing the commit SHA that addresses it.
 
 # TypeScript & Typing Rules
 
