@@ -22,18 +22,6 @@ export const updateInitiativeService = async (
 ): Promise<UpdateInitiativeResponse> => {
   const initiativeId = BigInt(id);
 
-  const existing = await prismaClient.reductionPlanInitiative.findFirst({
-    where: {
-      id: initiativeId,
-      status: ReductionPlanInitiativeStatus.ACTIVE,
-    },
-    select: { id: true },
-  });
-
-  if (!existing) {
-    throw new ReductionPlanInitiativeNotFoundError(id);
-  }
-
   if (data.subcategoryId !== undefined) {
     const subcategory = await prismaClient.subcategory.findFirst({
       where: {
@@ -47,7 +35,7 @@ export const updateInitiativeService = async (
     }
   }
 
-  const updateData: Prisma.ReductionPlanInitiativeUncheckedUpdateInput = {
+  const updateData: Prisma.ReductionPlanInitiativeUncheckedUpdateManyInput = {
     updatedById: user ? BigInt(user.id) : null,
   };
 
@@ -57,10 +45,17 @@ export const updateInitiativeService = async (
     updateData.subcategoryId = BigInt(data.subcategoryId);
   }
 
-  await prismaClient.reductionPlanInitiative.update({
-    where: { id: initiativeId },
+  const result = await prismaClient.reductionPlanInitiative.updateMany({
+    where: {
+      id: initiativeId,
+      status: ReductionPlanInitiativeStatus.ACTIVE,
+    },
     data: updateData,
   });
+
+  if (result.count === 0) {
+    throw new ReductionPlanInitiativeNotFoundError(id);
+  }
 
   return {};
 };
