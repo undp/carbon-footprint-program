@@ -47,109 +47,116 @@ export const getOrganizationRecognitionsService = async (
     ? { in: submissionTypes }
     : undefined;
 
-  const inventories = await prismaClient.carbonInventory.findMany({
-    where: {
-      organizationId: BigInt(organizationId),
-      ...(yearFilter !== undefined ? { year: yearFilter } : {}),
-      status: InventoryStatus.ACTIVE,
-      submission: {
-        subject: {
-          submissions: {
-            some: {
-              status: {
-                in: [
-                  SubmissionStatus.APPROVED,
-                  SubmissionStatus.APPROVED_AUTOMATICALLY,
-                ],
-              },
-              ...(submissionTypeFilter && { type: submissionTypeFilter }),
-            },
-          },
-        },
-      },
-    },
-    include: {
-      subtotals: true,
-      submission: {
-        select: {
-          subject: {
-            select: {
-              submissions: {
-                where: {
-                  status: {
-                    in: [
-                      SubmissionStatus.APPROVED,
-                      SubmissionStatus.APPROVED_AUTOMATICALLY,
-                    ],
-                  },
-                  ...(submissionTypeFilter && { type: submissionTypeFilter }),
-                },
-                select: {
-                  id: true,
-                  type: true,
-                  updatedAt: true,
-                  files: {
-                    where: { type: SubmissionFileType.RECOGNITION },
-                    select: {
-                      file: { select: { blobPath: true, mimeType: true } },
-                    },
-                    take: 1,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const includeCarbonInventories =
+    !submissionTypes?.length ||
+    submissionTypes.includes(SubmissionType.CARBON_INVENTORY_CALCULATION) ||
+    submissionTypes.includes(SubmissionType.CARBON_INVENTORY_VERIFICATION);
 
   const result: GetOrganizationRecognitionsResponse = [];
 
-  for (const inventory of inventories) {
-    const submissions = inventory.submission?.subject.submissions ?? [];
-    if (submissions.length === 0) continue;
+  if (includeCarbonInventories) {
+    const inventories = await prismaClient.carbonInventory.findMany({
+      where: {
+        organizationId: BigInt(organizationId),
+        ...(yearFilter !== undefined ? { year: yearFilter } : {}),
+        status: InventoryStatus.ACTIVE,
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                status: {
+                  in: [
+                    SubmissionStatus.APPROVED,
+                    SubmissionStatus.APPROVED_AUTOMATICALLY,
+                  ],
+                },
+                ...(submissionTypeFilter && { type: submissionTypeFilter }),
+              },
+            },
+          },
+        },
+      },
+      include: {
+        subtotals: true,
+        submission: {
+          select: {
+            subject: {
+              select: {
+                submissions: {
+                  where: {
+                    status: {
+                      in: [
+                        SubmissionStatus.APPROVED,
+                        SubmissionStatus.APPROVED_AUTOMATICALLY,
+                      ],
+                    },
+                    ...(submissionTypeFilter && { type: submissionTypeFilter }),
+                  },
+                  select: {
+                    id: true,
+                    type: true,
+                    updatedAt: true,
+                    files: {
+                      where: { type: SubmissionFileType.RECOGNITION },
+                      select: {
+                        file: { select: { blobPath: true, mimeType: true } },
+                      },
+                      take: 1,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-    if (inventory.year === null) {
-      throw new DataIntegrityError(
-        `Carbon inventory ${inventory.id} has no year, but has approved submissions. This should not happen. Please investigate the data integrity of this inventory.`
+    for (const inventory of inventories) {
+      const submissions = inventory.submission?.subject.submissions ?? [];
+      if (submissions.length === 0) continue;
+
+      if (inventory.year === null) {
+        throw new DataIntegrityError(
+          `Carbon inventory ${inventory.id} has no year, but has approved submissions. This should not happen. Please investigate the data integrity of this inventory.`
+        );
+      }
+
+      const subtotals = inventory.subtotals;
+
+      const totalEmissions = subtotals.reduce(
+        (sum, row) => sum + kgToTon(Number(row.value)),
+        0
       );
+
+      const items = await Promise.all(
+        submissions.map(async (submission) => {
+          const recognitionFile = submission.files[0]?.file;
+          let recognitionFileUrl: string | null = null;
+
+          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
+            const { url } = await generateReadSasUrl(
+              blobServiceClient,
+              containerName,
+              recognitionFile.blobPath,
+              { contentType: recognitionFile.mimeType ?? undefined }
+            );
+            recognitionFileUrl = url;
+          }
+
+          return {
+            submissionId: submission.id.toString(),
+            earningDate: submission.updatedAt?.toISOString() ?? null,
+            measurementYear: inventory.year!,
+            submissionType: submission.type,
+            totalEmissions,
+            recognitionFileUrl,
+          };
+        })
+      );
+
+      result.push(...items);
     }
-
-    const subtotals = inventory.subtotals;
-
-    const totalEmissions = subtotals.reduce(
-      (sum, row) => sum + kgToTon(Number(row.value)),
-      0
-    );
-
-    const items = await Promise.all(
-      submissions.map(async (submission) => {
-        const recognitionFile = submission.files[0]?.file;
-        let recognitionFileUrl: string | null = null;
-
-        if (recognitionFile?.blobPath && blobServiceClient && containerName) {
-          const { url } = await generateReadSasUrl(
-            blobServiceClient,
-            containerName,
-            recognitionFile.blobPath,
-            { contentType: recognitionFile.mimeType ?? undefined }
-          );
-          recognitionFileUrl = url;
-        }
-
-        return {
-          submissionId: submission.id.toString(),
-          earningDate: submission.updatedAt?.toISOString() ?? null,
-          measurementYear: inventory.year!,
-          submissionType: submission.type,
-          totalEmissions,
-          recognitionFileUrl,
-        };
-      })
-    );
-
-    result.push(...items);
   }
 
   const includeReductionProjects =
