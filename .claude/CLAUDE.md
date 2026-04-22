@@ -42,6 +42,11 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - **Use Prisma transactions**: when an endpoint performs multiple queries that involve validations followed by updates (read-then-write), wrap them in a `prisma.$transaction` to avoid TOCTOU (time-of-check to time-of-use) race conditions. Use the interactive transaction form (`prisma.$transaction(async (tx) => { ... })`) so that all reads and writes share the same transaction context and data remains consistent.
 - **Helper functions**: auxiliary/utility functions must be placed in a separate `helpers.ts` file within the feature directory, not inside `service.ts`. Keep `service.ts` focused on business logic and database operations.
 - **Feature structure**: follow the existing pattern — `route.ts` → `handler.ts` → `service.ts` (→ `helpers.ts` if needed) per feature, under `apps/api/src/features/`.
+- **Types package structure** (`packages/types/src/`): organized by domain (e.g., `organizations/`, `carbonInventories/`). Each domain contains:
+  - `schemas.ts` + `types.ts` at the domain root for shared schemas/types.
+  - `app/` and/or `admin/` subfolders to separate public and admin endpoints.
+  - Inside each subfolder, one directory per endpoint (e.g., `app/getOrganizationById/`) containing its own `schemas.ts` and `types.ts` for route params, query params, request body, and response body.
+  - An `index.ts` at each level to re-export everything.
 
 # Frontend & React Rules
 
