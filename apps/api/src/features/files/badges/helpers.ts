@@ -10,13 +10,7 @@ import {
   BADGE_UPLOAD_MAX_BYTES,
 } from "@/config/constants.js";
 import { createReadSasUrlSigner } from "@/services/blobService.js";
-import createError from "@fastify/error";
-
-const BadgeUploadValidationError = createError(
-  "BADGE_UPLOAD_VALIDATION_ERROR",
-  "%s",
-  400
-);
+import { BadgeUploadValidationError } from "./errors.js";
 
 export async function persistBadgeFileRecord(
   prisma: PrismaClient,
