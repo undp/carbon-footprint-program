@@ -6,9 +6,7 @@ import {
   Card,
   CardContent,
   Chip,
-  IconButton,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -134,48 +132,50 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
 
   return (
     <>
-      <Card sx={{ borderRadius: 2, boxShadow: "0px 2px 8px rgba(0,0,0,0.08)" }}>
-        <CardContent sx={{ p: 2.5 }}>
+      <Card
+        sx={{
+          borderRadius: 2,
+          boxShadow: "0px 2px 8px rgba(0,0,0,0.08)",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 360,
+        }}
+      >
+        <CardContent
+          sx={{ p: 2.5, display: "flex", flexDirection: "column", flex: 1 }}
+        >
           <Stack
             direction="row"
             justifyContent="space-between"
-            alignItems="flex-start"
-            mb={1.5}
+            alignItems="center"
+            mb={4}
           >
-            <Typography variant="subtitle1" fontWeight={600}>
+            <Typography
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 2,
+                alignItems: "center",
+              }}
+              variant="subtitle1"
+              fontWeight={600}
+            >
               {BADGE_TYPE_LABELS[type]}
-            </Typography>
-            <Tooltip title="Subir nuevo sello">
-              <IconButton
+              <Chip
+                icon={<CheckCircleOutlined />}
+                label={active ? "activo" : "inactivo"}
                 size="small"
-                onClick={handleUploadClick}
-                disabled={isMutating}
-              >
-                <CloudUploadOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
+                color={active ? "success" : "warning"}
+                variant="outlined"
+              />
+            </Typography>
           </Stack>
 
-          <Chip
-            icon={<CheckCircleOutlined />}
-            label={active ? "Sello activo" : "Sello inactivo"}
-            size="small"
-            color={active ? "success" : "warning"}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-
           {active ? (
-            <ActiveBadgeCardContent
-              active={active}
-              disabled={isMutating}
-              onDeactivate={handleDeactivateClick}
-            />
+            <ActiveBadgeCardContent active={active} />
           ) : (
-            <InactiveBadgeCardContent
-              disabled={isMutating}
-              onUpload={handleUploadClick}
-            />
+            <InactiveBadgeCardContent />
           )}
 
           {uploadError && (
@@ -188,8 +188,11 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
             </Alert>
           )}
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+          <Box
+            sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}
+          >
             <Button
+              sx={{ mr: "auto" }}
               size="small"
               startIcon={<HistoryOutlined />}
               onClick={() => setHistoryOpen(true)}
@@ -197,6 +200,25 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
             >
               Ver historial ({history.length})
             </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadOutlined />}
+              size="small"
+              onClick={handleUploadClick}
+            >
+              Subir sello
+            </Button>
+            {active && (
+              <Button
+                variant="outlined"
+                color="warning"
+                size="small"
+                onClick={handleDeactivateClick}
+                disabled={isMutating}
+              >
+                Desactivar
+              </Button>
+            )}
           </Box>
         </CardContent>
       </Card>
