@@ -104,6 +104,11 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - **Query key factories**: each domain defines a keys file (e.g., `apps/web/src/api/query/organizations/keys.ts`) with a structured key object (`organizationKeys.all`, `.detail(id)`, `.users(orgId)`). Use these for cache invalidation.
 - **HTTP client**: `ky` via `apiClient` in `apps/web/src/api/http/client.ts`. Auth tokens are injected automatically in a `beforeRequest` hook via MSAL.
 
+# Forms
+
+- **Library**: React Hook Form with `Controller` — no Formik.
+- **Reusable form components**: use existing components in `apps/web/src/components/form/` (`FormTextField`, `FormSelectField`, `FormDateField`, `FormAutocompleteField`, `FormFileUpload`, etc.). They accept `control` and `name` props from React Hook Form.
+- **Validation**: use Zod schemas to validate form fields via `@hookform/resolvers/zod`. Define the schema with Spanish error messages using Zod's `message` option (e.g., `z.string().min(1, { message: "Este campo es obligatorio" })`), then pass it to `useForm` as `resolver: zodResolver(mySchema)`. This ensures consistent validation logic and user-facing error messages in Spanish.
 
 # Constants & Configurable Values
 
