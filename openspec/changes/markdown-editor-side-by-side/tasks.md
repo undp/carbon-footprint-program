@@ -1,7 +1,7 @@
 ## 1. Dependency
 
-- [ ] 1.1 Verify `@uiw/react-md-editor` latest version's peer-dependency range accepts React 19.2 (`npm view @uiw/react-md-editor peerDependencies`). Escalate if it pins to React 18.
-- [ ] 1.2 Add `@uiw/react-md-editor` to `apps/web/package.json` with an exact pinned version (no `^` or `~`).
+- [ ] 1.1 Verify `@uiw/react-md-editor` latest version's peer-dependency range accepts React 19.2 (`pnpm view @uiw/react-md-editor peerDependencies`). Escalate if it pins to React 18.
+- [ ] 1.2 Add `@uiw/react-md-editor@4.1.0` to `apps/web/package.json` with an exact pinned version (no `^` or `~`). Version 4.1.0 declares `react: >=16.8.0`, compatible with React 19.2.
 - [ ] 1.3 Run `pnpm install` at the repo root; confirm resolution succeeds with zero peer-dependency warnings.
 
 ## 2. Reusable MarkdownEditor component
