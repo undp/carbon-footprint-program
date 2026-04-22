@@ -39,6 +39,7 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
   2. **Parallelize independent queries**: use `Promise.all` or `prisma.$transaction` to run independent queries concurrently instead of sequentially.
   3. **Avoid overfetching**: use `select` to retrieve only the fields you need. Do not fetch entire records when only a few columns are required — the dataset will grow and overfetching will degrade performance.
   4. **Use `include` wisely**: prefer a single query with `include` over multiple sequential queries, but only include relations that are actually needed.
+- **Use Prisma transactions**: when an endpoint performs multiple queries that involve validations followed by updates (read-then-write), wrap them in a `prisma.$transaction` to avoid TOCTOU (time-of-check to time-of-use) race conditions. Use the interactive transaction form (`prisma.$transaction(async (tx) => { ... })`) so that all reads and writes share the same transaction context and data remains consistent.
 - **Helper functions**: auxiliary/utility functions must be placed in a separate `helpers.ts` file within the feature directory, not inside `service.ts`. Keep `service.ts` focused on business logic and database operations.
 - **Feature structure**: follow the existing pattern — `route.ts` → `handler.ts` → `service.ts` (→ `helpers.ts` if needed) per feature, under `apps/api/src/features/`.
 
