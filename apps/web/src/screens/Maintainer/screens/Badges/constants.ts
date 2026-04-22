@@ -10,7 +10,10 @@ export const BADGE_TYPE_LABELS: Record<BadgeType, string> = {
     "Reconocimiento de neutralización",
 };
 
-export const BADGE_UPLOAD_ERROR_MESSAGES: Record<string, string> = {
-  BADGE_UPLOAD_VALIDATION_ERROR:
-    "Archivo inválido (tipo o tamaño no permitido)",
-};
+type BadgeUploadErrorCode = "BADGE_UPLOAD_VALIDATION_ERROR";
+
+export const BADGE_UPLOAD_ERROR_MESSAGES: Record<BadgeUploadErrorCode, string> =
+  {
+    BADGE_UPLOAD_VALIDATION_ERROR:
+      "Archivo inválido (tipo o tamaño no permitido)",
+  };
