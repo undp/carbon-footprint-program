@@ -14,7 +14,8 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 
 # Session Setup
 
-Run `.claude/setup.sh` at the start of every session before using /opsx:\* commands.
+- Run `pnpm install` at the start of every session. This is required before running format, lint, or type-check commands.
+- Run `.claude/setup.sh` at the start of every session before using /opsx:\* commands.
 
 # Commit Workflow
 
