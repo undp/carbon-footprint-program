@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { ListBadgesResponse } from "@repo/types";
-import { BadgeType, BadgeStatus } from "@repo/database";
+import { BadgeType } from "@repo/database";
 import { buildAllBadgeCatalogEntries } from "../helpers.js";
 
 export async function listBadgesService(
@@ -15,14 +15,11 @@ export async function listBadgesService(
         select: { originalName: true, mimeType: true, blobPath: true },
       },
     },
-    where: {
-      OR: [{ status: BadgeStatus.ACTIVE }, { status: BadgeStatus.INACTIVE }],
-    },
     orderBy: { createdAt: "desc" },
   });
 
   const byType = new Map<BadgeType, typeof badges>(
-    Object.values(BadgeType).map((t) => [t as BadgeType, []])
+    Object.values(BadgeType).map((t) => [t, []])
   );
   for (const badge of badges) {
     byType.get(badge.type)!.push(badge);
