@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { WarningAmberOutlined } from "@mui/icons-material";
 import type { BadgeDTO } from "@repo/types";
+import { BadgePreviewMini } from "./BadgePreviewMini";
 
 interface ActivateDialogProps {
   mode: "activate";
@@ -33,39 +34,6 @@ interface DeactivateDialogProps {
 }
 
 type BadgeStateChangeDialogProps = ActivateDialogProps | DeactivateDialogProps;
-
-const BadgePreviewMini: FC<{ badge: BadgeDTO; label: string }> = ({
-  badge,
-  label,
-}) => (
-  <Box sx={{ textAlign: "center", flex: 1 }}>
-    <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-      {label}
-    </Typography>
-    <Box
-      component="img"
-      src={badge.previewUrl}
-      alt={badge.fileName}
-      sx={{
-        width: 80,
-        height: 80,
-        objectFit: "contain",
-        borderRadius: 1,
-        border: "1px solid",
-        borderColor: "divider",
-        p: 0.5,
-        display: "block",
-        mx: "auto",
-      }}
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.opacity = "0.3";
-      }}
-    />
-    <Typography variant="caption" noWrap display="block" mt={0.5}>
-      {badge.fileName}
-    </Typography>
-  </Box>
-);
 
 export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
   props
