@@ -89,6 +89,7 @@ export const ReductionPlanScreen: FC = () => {
     selectedOrganizationId,
     selectedCarbonInventoryId,
     navigate,
+    matchesOrg,
   ]);
 
   const inventoriesForSelectedOrg = useMemo(() => {
@@ -96,7 +97,7 @@ export const ReductionPlanScreen: FC = () => {
     return inventories?.filter((inv) =>
       matchesOrg(inv, selectedOrganizationId)
     );
-  }, [inventories, selectedOrganizationId]);
+  }, [inventories, selectedOrganizationId, matchesOrg]);
 
   const {
     data: reductionPlan,
