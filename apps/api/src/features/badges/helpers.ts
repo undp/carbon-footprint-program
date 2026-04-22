@@ -63,8 +63,8 @@ export async function buildAllBadgeCatalogEntries(
 
   return Promise.all(
     Object.values(BadgeType).map((type) => {
-      const badges = badgesByType.get(type as BadgeType) ?? [];
-      return buildBadgeCatalogEntry(type as BadgeType, badges, signUrl);
+      const badges = badgesByType.get(type) ?? [];
+      return buildBadgeCatalogEntry(type, badges, signUrl);
     })
   );
 }
