@@ -23,7 +23,8 @@ const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
 };
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
-import { generateReadSasUrl } from "@/services/index.js";
+
+import { mapApprovedSubmissionsToRecognitions } from "./helpers.js";
 
 export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
@@ -129,30 +130,12 @@ export const getOrganizationRecognitionsService = async (
         0
       );
 
-      const items = await Promise.all(
-        submissions.map(async (submission) => {
-          const recognitionFile = submission.files[0]?.file;
-          let recognitionFileUrl: string | null = null;
-
-          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
-            const { url } = await generateReadSasUrl(
-              blobServiceClient,
-              containerName,
-              recognitionFile.blobPath,
-              { contentType: recognitionFile.mimeType ?? undefined }
-            );
-            recognitionFileUrl = url;
-          }
-
-          return {
-            submissionId: submission.id.toString(),
-            earningDate: submission.updatedAt?.toISOString() ?? null,
-            measurementYear: inventory.year!,
-            submissionType: submission.type,
-            totalEmissions,
-            recognitionFileUrl,
-          };
-        })
+      const items = await mapApprovedSubmissionsToRecognitions(
+        submissions,
+        inventory.year,
+        totalEmissions,
+        blobServiceClient,
+        containerName
       );
 
       result.push(...items);
@@ -231,30 +214,12 @@ export const getOrganizationRecognitionsService = async (
       const submissions = project.submission?.subject.submissions ?? [];
       if (submissions.length === 0) continue;
 
-      const items = await Promise.all(
-        submissions.map(async (submission) => {
-          const recognitionFile = submission.files[0]?.file;
-          let recognitionFileUrl: string | null = null;
-
-          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
-            const { url } = await generateReadSasUrl(
-              blobServiceClient,
-              containerName,
-              recognitionFile.blobPath,
-              { contentType: recognitionFile.mimeType ?? undefined }
-            );
-            recognitionFileUrl = url;
-          }
-
-          return {
-            submissionId: submission.id.toString(),
-            earningDate: submission.updatedAt?.toISOString() ?? null,
-            measurementYear: project.year,
-            submissionType: submission.type,
-            totalEmissions: null,
-            recognitionFileUrl,
-          };
-        })
+      const items = await mapApprovedSubmissionsToRecognitions(
+        submissions,
+        project.year,
+        null,
+        blobServiceClient,
+        containerName
       );
 
       result.push(...items);
