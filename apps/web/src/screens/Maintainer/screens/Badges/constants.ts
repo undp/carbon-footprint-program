@@ -1,14 +1,13 @@
 import { BadgeType } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
 
 export const BADGE_TYPE_LABELS: Record<BadgeType, string> = {
-  [BadgeType.ORGANIZATION_ACCREDITATION]: "Acreditación de organización",
-  [BadgeType.CARBON_INVENTORY_CALCULATION]: "Cálculo de inventario de carbono",
-  [BadgeType.CARBON_INVENTORY_VERIFICATION]:
-    "Verificación de inventario de carbono",
-  [BadgeType.REDUCTION_PROJECT_VERIFICATION]:
-    "Verificación de proyecto de reducción",
+  [BadgeType.ORGANIZATION_ACCREDITATION]: `Reconocimiento de ${VOCAB.inscription.noun.singular}`,
+  [BadgeType.CARBON_INVENTORY_CALCULATION]: "Reconocimiento de medición",
+  [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Reconocimiento de verificación",
+  [BadgeType.REDUCTION_PROJECT_VERIFICATION]: "Reconocimiento de reducción",
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]:
-    "Verificación de plan de neutralización",
+    "Reconocimiento de neutralización",
 };
 
 export const BADGE_UPLOAD_ERROR_MESSAGES: Record<string, string> = {
