@@ -64,16 +64,18 @@ The Categorías / Sub-categorías pair is the reference pattern for hierarchical
 
 ### Decision: Delete blocks on any reference; no cascade, no soft-delete
 
-**Choice:** `deleteCountrySector` throws `DataIntegrityError` if any of the following exist:
+**Choice:** `deleteCountrySector` throws `DataIntegrityError` if any of the following exist (Prisma field names):
 
-- `CountrySubsector` with `countrySectorId = id`
-- `OrganizationMainActivity` with `countrySectorId = id`
-- `OrganizationData` with `countrySectorId = id`
-- `SubcategoryRecommendation` referencing the sector
+- `CountrySubsector.countrySectorId = id`
+- `OrganizationMainActivity.countrySectorId = id`
+- `OrganizationData.sectorId = id`
+- `SubcategoryRecommendation.sectorId = id`
 
-Mirror for `deleteCountrySubsector`: block on `OrganizationMainActivity`, `OrganizationData`, `SubcategoryRecommendation` referencing the subsector.
+Mirror for `deleteCountrySubsector`: block on `OrganizationMainActivity.countrySubsectorId`, `OrganizationData.subsectorId`, `SubcategoryRecommendation.subsectorId`.
 
-Reference existence checks happen inside an interactive Prisma transaction (read-then-write → TOCTOU) ahead of the delete call.
+**Status code:** `DataIntegrityError` is defined in `apps/api/src/errors/DataIntegrityError.ts` with HTTP status **500**. We accept that status for this change rather than introducing a new 409-class error or mutating the shared error (which would affect every other caller). The Spanish `userMessage` — not the HTTP code — is what the admin sees. Frontend code treats `DATA_INTEGRITY_ERROR` as a domain-validation failure, not a generic server error.
+
+Reference existence checks happen inside an interactive Prisma transaction ahead of the delete call. **This is best-effort**: under Postgres default isolation (READ COMMITTED) a concurrent INSERT of a dependent row (e.g. an `OrganizationData` pointing at the sector) can slip between the count check and the `DELETE`. The foreign-key constraint itself is the final guardrail — a racing FK violation surfaces as a separate Prisma error (P2003), not as `DataIntegrityError`. Upgrading to SERIALIZABLE or `SELECT … FOR UPDATE` was considered overkill for a low-frequency admin operation.
 
 **Alternatives considered:**
 
@@ -96,7 +98,7 @@ Reference existence checks happen inside an interactive Prisma transaction (read
 
 ### Decision: `description` nullable, optional on input, max 2000 chars
 
-**Choice:** DB column `String?` (nullable). Zod: `description: z.string().trim().max(2000, { message: "La descripción no puede superar 2000 caracteres" }).nullable().optional()` on create + update inputs. UI renders a multi-line textarea that can be left blank. Empty string → persist as `null` (normalize in service). Existing rows without descriptions keep `null`.
+**Choice:** DB column `String?` (nullable). Zod: `description: z.string().trim().max(2000, { message: "La descripción no puede superar 2000 caracteres" }).nullable().optional()` on create + update inputs. `name`: `z.string().trim().min(1).max(255)` (trim first so whitespace-only input fails validation). PATCH `description` follows tri-state: `undefined` = omit from update (no-op), `null` = clear, `""` = normalized to `null` at the service layer. PATCH body is refined with `.refine(v => Object.keys(v).length > 0)` so a bare `{}` returns 400. UI renders a multi-line textarea that can be left blank. Existing rows without descriptions keep `null`.
 
 **Alternatives considered:**
 
@@ -149,6 +151,7 @@ Reference existence checks happen inside an interactive Prisma transaction (read
 - **Decoupling `MaintainerScreenLayout` from scope** touches a component used by 5 existing screens. Each existing caller must be re-tested to confirm the optional-scope refactor is truly non-breaking (the change is purely additive at the type level: existing callers still pass `scope`, new callers omit it).
 - **Delete-blocking across 4 reference types on sector** and 3 on subsector means the integration test matrix is larger than for simpler features; any missed reference type silently enables accidental cascade deletes at the Prisma default-FK level. Mitigation: one integration test per reference type.
 - **Shared `DatabaseUniqueConstraintViolationError` mapping** must be verified not to regress existing P2002 users; add a smoke test around categories/subcategories unique-violation messages during implementation to catch accidental message shadowing.
+- **Delete-block status is 500, not 409.** Some clients or log-based alerting may treat 500s as "server error" and page on them. `DATA_INTEGRITY_ERROR` is intentional admin-input validation, not server failure; if monitoring escalates on 5xx, either (a) add a code-level allow-list (`DATA_INTEGRITY_ERROR` is not paged) or (b) swap to a bespoke 409 error in a follow-up. Not in scope here because no monitoring on these routes exists today.
 - **`country.findFirst()` silently picks the lowest-id country** in a multi-country DB. Huella Latam is single-country by deployment, so this is safe in practice, but the invariant should be documented inline.
 - **No reordering / `sortOrder`** means admins cannot pin a particular rubro to the top of the organization-form dropdown. If product asks for this later, it is an additive migration + column; acceptable scope deferral.
 
