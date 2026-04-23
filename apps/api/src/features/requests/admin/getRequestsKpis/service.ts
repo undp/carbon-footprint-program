@@ -4,23 +4,91 @@ import type { GetAdminRequestsKpisResponse } from "@repo/types";
 import { flatMap, sumBy } from "lodash-es";
 
 export const getRequestsKpisService = async (
-  prismaClient: PrismaClient
+  prismaClient: PrismaClient,
+  year?: number
 ): Promise<GetAdminRequestsKpisResponse> => {
-  const submissionCounts = await prismaClient.submissionSummaryView.groupBy({
-    by: ["type", "status"],
-    _count: true,
-  });
+  const types = Object.values(SubmissionType);
+  // All statuses including APPROVED_AUTOMATICALLY
+  const statuses = Object.values(SubmissionStatus);
 
   const bucket = new Map<string, number>();
-  for (const sub of submissionCounts) {
-    const key = `${sub.type}:${sub.status}`;
-    bucket.set(key, sub._count);
-  }
 
-  const types = Object.values(SubmissionType);
-  const statuses = Object.values(SubmissionStatus).filter(
-    (s) => s !== SubmissionStatus.APPROVED_AUTOMATICALLY
-  );
+  if (!year) {
+    // Original behaviour: no year filter, use the summary view
+    const submissionCounts = await prismaClient.submissionSummaryView.groupBy({
+      by: ["type", "status"],
+      _count: true,
+    });
+
+    for (const sub of submissionCounts) {
+      const key = `${sub.type}:${sub.status}`;
+      bucket.set(key, sub._count);
+    }
+  } else {
+    // Year filter: split by whether the submission is linked to a carbon inventory
+    const inventoryLinkedTypes = [
+      SubmissionType.CARBON_INVENTORY_CALCULATION,
+      SubmissionType.CARBON_INVENTORY_VERIFICATION,
+      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+      SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+    ];
+
+    const orgAccreditationType = SubmissionType.ORGANIZATION_ACCREDITATION;
+
+    // Run both queries in parallel since they are independent
+    const [inventorySubmissions, orgAccreditationSubmissions] =
+      await Promise.all([
+        prismaClient.submission.groupBy({
+          by: ["type", "status"],
+          where: {
+            type: { in: inventoryLinkedTypes },
+            subject: {
+              carbonInventory: {
+                carbonInventory: {
+                  year,
+                  status: "ACTIVE",
+                },
+              },
+            },
+          },
+          _count: true,
+        }),
+        // PENDING uses createdAt (reviewedAt is null); reviewed/approved use reviewedAt
+        prismaClient.submission.groupBy({
+          by: ["type", "status"],
+          where: {
+            type: orgAccreditationType,
+            OR: [
+              {
+                status: SubmissionStatus.PENDING,
+                createdAt: {
+                  gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                  lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
+                },
+              },
+              {
+                status: { not: SubmissionStatus.PENDING },
+                reviewedAt: {
+                  gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                  lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
+                },
+              },
+            ],
+          },
+          _count: true,
+        }),
+      ]);
+
+    for (const sub of inventorySubmissions) {
+      const key = `${sub.type}:${sub.status}`;
+      bucket.set(key, sub._count);
+    }
+
+    for (const sub of orgAccreditationSubmissions) {
+      const key = `${sub.type}:${sub.status}`;
+      bucket.set(key, sub._count);
+    }
+  }
 
   const counts = flatMap(types, (type) =>
     statuses.map((status) => {

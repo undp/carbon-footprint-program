@@ -7,6 +7,7 @@ export enum SubmissionQueryKey {
   // Shared dependency key used to invalidate both carbonInventoryHistory and organizationHistory
   // since request mutations (approve, reject, review) don't know the submission type.
   HistoryUpdateDependency = "history-update-dependency",
+  SubmissionUpdateDependency = "submission-update-dependency",
 }
 
 export const submissionsKeys = {

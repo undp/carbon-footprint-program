@@ -34,6 +34,9 @@ export const formatQuantity = (value: number): string =>
 export const formatPercentage = (value: number): string =>
   `${(value * 100).toLocaleString("es", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}%`;
 
+export const formatAsPercentage = (value: number, total: number): string =>
+  `${((value / total) * 100).toFixed(0)}%`;
+
 export { formatEmissionFactor } from "@repo/utils";
 
 export const formatRate = (value: number): string =>

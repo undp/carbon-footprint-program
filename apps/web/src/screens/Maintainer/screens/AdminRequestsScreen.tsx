@@ -25,8 +25,7 @@ export const AdminRequestsScreen: FC = () => {
               Solicitudes
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de solicitudes de reconocimientos, acreditaciones y
-              accesos
+              Gestión de solicitudes de reconocimientos, inscripciones y accesos
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
