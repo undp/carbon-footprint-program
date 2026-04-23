@@ -1,5 +1,10 @@
 import { SubmissionType, SubmissionStatus } from "@repo/database/enums";
 import { z } from "zod";
+import { YearQueryParamSchema } from "../../../common/queryParams/schemas.js";
+
+export const GetAdminRequestsKpisQuerySchema = z.object({
+  year: YearQueryParamSchema,
+});
 
 // Individual KPI count schema
 const BaseCountSchema = z.object({
@@ -22,6 +27,10 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
+    status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
     status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
@@ -36,6 +45,10 @@ const RequestKpiCountSchema = z.union([
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
     status: z.literal(SubmissionStatus.APPROVED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
+    status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
@@ -56,13 +69,16 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
+    status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
-  // REDUCTION_PROJECT_VERIFICATION
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
     status: z.literal(SubmissionStatus.PENDING),
@@ -70,6 +86,10 @@ const RequestKpiCountSchema = z.union([
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
+    status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
@@ -90,6 +110,10 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
+    status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
@@ -98,14 +122,13 @@ const RequestKpiCountSchema = z.union([
   }),
 ]);
 
-// KPI-relevant statuses exclude APPROVED_AUTOMATICALLY (auto-approved submissions are not counted in KPIs).
+// All statuses are now included (5 types × 5 statuses = 25 entries)
+// APPROVED_AUTOMATICALLY is included to support dashboard display of paired approval counts.
 // If a new SubmissionType or SubmissionStatus is added, the RequestKpiCountSchema union entries
 // above must be updated to include all new combinations, otherwise runtime validation will fail.
-const KPI_STATUSES = Object.keys(SubmissionStatus).filter(
-  (s) => s !== "APPROVED_AUTOMATICALLY"
-);
+const ALL_STATUSES = Object.keys(SubmissionStatus);
 const expectedKpiCount =
-  Object.keys(SubmissionType).length * KPI_STATUSES.length;
+  Object.keys(SubmissionType).length * ALL_STATUSES.length;
 
 export const GetAdminRequestsKpisResponseSchema = z.object({
   total: z.number().nonnegative().describe("The total count of requests"),

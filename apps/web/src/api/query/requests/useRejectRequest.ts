@@ -50,6 +50,12 @@ export const useRejectRequest = () => {
               CarbonInventoryQueryKey.StatusUpdateDependency
             ),
         }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              SubmissionQueryKey.SubmissionUpdateDependency
+            ),
+        }),
       ]);
     },
   });

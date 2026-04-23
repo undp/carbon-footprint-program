@@ -45,13 +45,3 @@ export const SUBMISSION_CARD_LABELS: Record<
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
     "Reconocimientos de Neutralización",
 };
-
-export const SUBMISSION_CARD_COLORS: Record<
-  CarbonInventoryRecognitionsType,
-  string
-> = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "#e8f5e9",
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "#f5f5f5",
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "#fff8e1",
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "#e0f7fa",
-};

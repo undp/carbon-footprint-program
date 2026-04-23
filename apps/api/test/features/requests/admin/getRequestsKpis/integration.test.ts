@@ -68,11 +68,9 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       expect(body.total).toBe(0);
 
-      // Should still have entries for all types and statuses (excluding APPROVED_AUTOMATICALLY), but with zero values
+      // Should have entries for all types × all statuses (5 × 5 = 25), including APPROVED_AUTOMATICALLY
       const allTypes = Object.values(SubmissionType);
-      const allStatuses = Object.values(SubmissionStatus).filter(
-        (s) => s !== SubmissionStatus.APPROVED_AUTOMATICALLY
-      );
+      const allStatuses = Object.values(SubmissionStatus);
 
       expect(body.counts.length).toBe(allTypes.length * allStatuses.length);
 
@@ -271,11 +269,9 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
-      // Should have entries for all types and statuses (excluding APPROVED_AUTOMATICALLY)
+      // Should have entries for all types × all statuses (including APPROVED_AUTOMATICALLY)
       const allTypes = Object.values(SubmissionType);
-      const allStatuses = Object.values(SubmissionStatus).filter(
-        (s) => s !== SubmissionStatus.APPROVED_AUTOMATICALLY
-      );
+      const allStatuses = Object.values(SubmissionStatus);
 
       expect(body.counts.length).toBe(allTypes.length * allStatuses.length);
 

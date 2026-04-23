@@ -50,6 +50,12 @@ export const useReviewSubmission = () => {
               CarbonInventoryQueryKey.StatusUpdateDependency
             ),
         }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              SubmissionQueryKey.SubmissionUpdateDependency
+            ),
+        }),
       ]);
     },
   });

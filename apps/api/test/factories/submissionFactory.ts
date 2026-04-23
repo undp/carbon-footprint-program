@@ -120,6 +120,15 @@ export async function createTestSubmissionSubjectForCarbonInventory(
   prisma: PrismaClient,
   carbonInventoryId: bigint
 ): Promise<SubmissionSubject> {
+  const existing = await prisma.submissionSubjectCarbonInventory.findUnique({
+    where: { carbonInventoryId },
+    include: { subject: true },
+  });
+
+  if (existing) {
+    return existing.subject;
+  }
+
   const subject = await prisma.submissionSubject.create({
     data: {},
   });
