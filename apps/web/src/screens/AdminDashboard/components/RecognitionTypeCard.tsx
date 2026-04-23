@@ -6,7 +6,7 @@ interface RecognitionTypeCardProps {
   label: string;
   approved: number;
   approvedAuto: number;
-  color: string;
+  backgroundColor: string;
   showPaired?: boolean;
   previewUrl?: string;
   fallbackLetter?: string;
@@ -16,7 +16,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
   label,
   approved,
   approvedAuto,
-  color,
+  backgroundColor,
   showPaired = false,
   previewUrl,
   fallbackLetter,
@@ -30,7 +30,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
       p: 2,
       borderRadius: "12px",
       boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-      backgroundColor: color,
+      backgroundColor,
       position: "relative",
     }}
   >
@@ -54,7 +54,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
         )}
       </Box>
     )}
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+    <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
       {label}
     </Typography>
     {showPaired ? (

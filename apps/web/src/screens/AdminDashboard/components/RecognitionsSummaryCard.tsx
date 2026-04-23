@@ -6,6 +6,7 @@ import {
   Skeleton,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { SubmissionType, SubmissionStatus } from "@repo/types";
@@ -19,7 +20,6 @@ import {
 } from "../constants";
 import { RecognitionTypeCard } from "./RecognitionTypeCard";
 import {
-  SUBMISSION_CARD_COLORS,
   SUBMISSION_LETTER,
   SUBMISSION_TYPE_TO_BADGE_TYPE,
 } from "../../Recognitions/constants";
@@ -31,6 +31,7 @@ interface RecognitionsSummaryCardProps {
 export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
   year,
 }) => {
+  const theme = useTheme();
   const { data, isLoading, isError } = useAdminRequestsKpis(year);
   const { data: badgePreviews = [] } = useBadgePreviews(
     RECOGNITION_BADGE_TYPES
@@ -117,7 +118,7 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
               label="Total"
               approved={recognitionData.total}
               approvedAuto={0}
-              color={alpha("#9B59B6", 0.1)}
+              backgroundColor={alpha(theme.palette.primary.main, 0.2)}
             />
             {RECOGNITION_TYPES.map((type) => {
               const typeData = recognitionData.byType[type] ?? {
@@ -130,7 +131,10 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
                   label={RECOGNITION_TYPE_LABELS[type]}
                   approved={typeData.approved}
                   approvedAuto={typeData.approvedAuto}
-                  color={SUBMISSION_CARD_COLORS[type]}
+                  backgroundColor={alpha(
+                    theme.palette.recognitionTypeColors[type],
+                    0.6
+                  )}
                   showPaired={
                     type === SubmissionType.CARBON_INVENTORY_CALCULATION &&
                     typeData.approved > 0 &&

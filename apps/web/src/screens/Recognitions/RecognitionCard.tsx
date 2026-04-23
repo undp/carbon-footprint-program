@@ -1,11 +1,10 @@
 import { FC } from "react";
-import { Avatar, Box, Typography } from "@mui/material";
+import { alpha, Avatar, Box, Typography, useTheme } from "@mui/material";
 import {
   GetBadgePreviewsResponse,
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import {
-  SUBMISSION_CARD_COLORS,
   SUBMISSION_CARD_LABELS,
   SUBMISSION_LETTER,
   SUBMISSION_TYPE_TO_BADGE_TYPE,
@@ -22,6 +21,7 @@ export const RecognitionCard: FC<RecognitionCardProps> = ({
   badgePreviews,
   count,
 }) => {
+  const theme = useTheme();
   const previewUrl = badgePreviews.find(
     (p) => p.badgeType === SUBMISSION_TYPE_TO_BADGE_TYPE[submissionType]
   )?.previewUrl;
@@ -35,7 +35,10 @@ export const RecognitionCard: FC<RecognitionCardProps> = ({
         px: 2.5,
         py: 2,
         borderRadius: 2,
-        backgroundColor: SUBMISSION_CARD_COLORS[submissionType],
+        backgroundColor: alpha(
+          theme.palette.recognitionTypeColors[submissionType],
+          0.6
+        ),
       }}
     >
       {previewUrl ? (

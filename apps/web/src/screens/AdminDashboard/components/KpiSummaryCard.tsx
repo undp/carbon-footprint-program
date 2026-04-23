@@ -30,7 +30,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
     p: 2,
     borderRadius: "12px",
     boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-    backgroundColor: alpha(color, 0.1),
+    backgroundColor: alpha(color, 0.2),
   };
 
   if (isLoading) {
@@ -50,7 +50,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
   if (hasError) {
     return (
       <Card sx={cardBaseSx}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.primary">
           {title}
         </Typography>
         <Typography variant="body2" color="error.main" sx={{ mt: 1 }}>
@@ -63,7 +63,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
   return (
     <Card sx={cardBaseSx}>
       <Box className="flex w-full items-start justify-between">
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.primary">
           {title}
         </Typography>
         <Box
@@ -77,7 +77,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
         <Typography variant="h4" fontWeight={700}>
           {formatQuantity(primaryValue)} | {formatQuantity(secondaryValue)}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.primary">
           {primaryLabel} | {secondaryLabel}
         </Typography>
       </Stack>

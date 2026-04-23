@@ -34,7 +34,7 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
     }}
   >
     <Box className="flex w-full justify-between">
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.primary">
         {label}
       </Typography>
       <Box
@@ -49,7 +49,7 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
         <Typography variant="h4" fontWeight={700}>
           {formatQuantity(primary)} | {formatQuantity(secondary)}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.primary">
           {primaryLabel} | {secondaryLabel}
         </Typography>
       </Stack>
