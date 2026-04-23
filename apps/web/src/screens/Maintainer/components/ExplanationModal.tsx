@@ -1,7 +1,6 @@
 import { FC, lazy, Suspense, useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -18,7 +17,6 @@ const MarkdownEditor = lazy(
 interface ExplanationModalProps {
   open: boolean;
   value: string;
-  title?: string;
   readOnly?: boolean;
   onSave: (value: string) => void;
   onClose: () => void;
@@ -26,7 +24,6 @@ interface ExplanationModalProps {
 
 const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
-  title = "Editar Explicación",
   readOnly = false,
   onSave,
   onClose,
@@ -96,7 +93,13 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
     onClose={contentProps.onClose}
     maxWidth="xl"
     fullWidth
-    PaperProps={{ sx: { maxHeight: "90vh" } }}
+    slotProps={{
+      paper: {
+        sx: {
+          overflow: "hidden",
+        },
+      },
+    }}
   >
     {open && <ExplanationModalContent {...contentProps} />}
   </Dialog>
