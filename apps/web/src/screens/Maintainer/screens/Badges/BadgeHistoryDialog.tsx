@@ -53,7 +53,9 @@ export const BadgeHistoryDialog: FC<BadgeHistoryDialogProps> = ({
       )}
     </DialogContent>
     <DialogActions sx={{ px: 3, pb: 2 }}>
-      <Button onClick={onClose}>Cerrar</Button>
+      <Button variant="contained" onClick={onClose}>
+        Cerrar
+      </Button>
     </DialogActions>
   </Dialog>
 );
