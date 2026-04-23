@@ -28,7 +28,11 @@ import {
   BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL,
   BADGE_UPLOAD_ACCEPT_ATTRIBUTE,
 } from "./constants";
-import type { BadgeDialogState } from "./types";
+
+type BadgeDialogState =
+  | { mode: "activate"; incoming: BadgeDTO; outgoing: BadgeDTO }
+  | { mode: "deactivate"; outgoing: BadgeDTO }
+  | null;
 
 interface BadgeCardProps {
   entry: BadgeCatalogEntry;
@@ -149,7 +153,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            mb={4}
+            mb={2}
           >
             <Typography
               sx={{
@@ -164,7 +168,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
               {BADGE_TYPE_LABELS[type]}
               <Chip
                 icon={<CheckCircleOutlined />}
-                label={active ? "activo" : "inactivo"}
+                label={active ? "Activo" : "Inactivo"}
                 size="small"
                 color={active ? "success" : "warning"}
                 variant="outlined"
@@ -189,7 +193,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
           )}
 
           <Box
-            sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}
+            sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}
           >
             <Button
               sx={{ mr: "auto" }}
