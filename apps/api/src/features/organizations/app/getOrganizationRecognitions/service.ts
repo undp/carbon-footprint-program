@@ -26,6 +26,11 @@ import { kgToTon } from "@repo/utils";
 
 import { mapApprovedSubmissionsToRecognitions } from "./helpers.js";
 import { Prisma } from "@repo/database";
+import {
+  CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES,
+  REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
+} from "@repo/types";
+import { intersection } from "lodash-es";
 
 export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
@@ -48,20 +53,18 @@ export const getOrganizationRecognitionsService = async (
 
   const includeCarbonInventories =
     !submissionTypes?.length ||
-    submissionTypes.includes(SubmissionType.CARBON_INVENTORY_CALCULATION) ||
-    submissionTypes.includes(SubmissionType.CARBON_INVENTORY_VERIFICATION);
+    intersection(submissionTypes, CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES)
+      .length > 0;
 
   const result: GetOrganizationRecognitionsResponse = [];
 
   if (includeCarbonInventories) {
-    const carbonInventoryTypes = [
-      SubmissionType.CARBON_INVENTORY_CALCULATION,
-      SubmissionType.CARBON_INVENTORY_VERIFICATION,
-    ] as const;
-
     const carbonInventorySubmissionTypes = submissionTypes
-      ? carbonInventoryTypes.filter((t) => submissionTypes.includes(t))
-      : [...carbonInventoryTypes];
+      ? intersection(
+          submissionTypes,
+          CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES
+        )
+      : CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES;
 
     const carbonInventorySubmissionTypeFilter: Prisma.SubmissionWhereInput = {
       type: { in: carbonInventorySubmissionTypes },
@@ -155,11 +158,14 @@ export const getOrganizationRecognitionsService = async (
 
   const includeReductionProjects =
     !submissionTypes?.length ||
-    submissionTypes.includes(SubmissionType.REDUCTION_PROJECT_VERIFICATION);
+    intersection(
+      submissionTypes,
+      REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES
+    ).length > 0;
 
   if (includeReductionProjects) {
     const reductionSubmissionTypeFilter = {
-      in: [SubmissionType.REDUCTION_PROJECT_VERIFICATION],
+      in: REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
     };
 
     const reductionProjects = await prismaClient.reductionProject.findMany({
