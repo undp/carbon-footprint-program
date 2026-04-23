@@ -5,11 +5,11 @@ import { formatDate } from "@/utils/formatting";
 import { BadgePreview } from "./BadgePreview";
 
 interface ActiveBadgeCardContentProps {
-  active: BadgeDTO;
+  badge: BadgeDTO;
 }
 
 export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
-  active,
+  badge,
 }) => (
   <Box
     sx={{
@@ -21,7 +21,7 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
       alignItems: "center",
     }}
   >
-    <BadgePreview src={active.previewUrl} alt={active.fileName} />
+    <BadgePreview src={badge.previewUrl} alt={badge.fileName} />
     <Typography
       variant="body2"
       color="text.secondary"
@@ -29,7 +29,7 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
       mt={1}
       noWrap
     >
-      {active.fileName}
+      {badge.fileName}
     </Typography>
     <Typography
       variant="caption"
@@ -37,7 +37,7 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
       align="center"
       display="block"
     >
-      {formatDate(active.createdAt)}
+      {formatDate(badge.createdAt)}
     </Typography>
   </Box>
 );
