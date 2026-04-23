@@ -56,12 +56,8 @@ describe("GET /api/carbon-inventories/:id/suggested-reduction-plan - Integration
         response.body
       ) as GetSuggestedReductionPlanResponse;
 
-      expect(body).toBeNull();
-      // TODO: Once we have a real implementation, we can add more assertions here to validate the structure and content of the response.
-      // expect(typeof body!.summary).toBe("string");
-      // expect(body!.summary.length).toBeGreaterThan(0);
-      // expect(Array.isArray(body!.items)).toBe(true);
-      // expect(body!.items.length).toBeGreaterThan(0);
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBe(0);
     });
   });
 
