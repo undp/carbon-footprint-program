@@ -1,22 +1,25 @@
-import { ReactNode } from "react";
-import { Box } from "@mui/material";
+import { SyntheticEvent, useState } from "react";
+import { Box, Tab, Tabs } from "@mui/material";
 import { alpha, type SxProps, type Theme } from "@mui/material/styles";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import MDEditor from "@uiw/react-md-editor";
 import { ExplanationContent } from "@/components/ExplanationContent";
 import {
   DEFAULT_MARKDOWN_EDITOR_HEIGHT,
   DEFAULT_MARKDOWN_EDITOR_PLACEHOLDER,
+  MARKDOWN_EDITOR_TAB,
+  MARKDOWN_EDITOR_TAB_LABEL,
   MARKDOWN_EDITOR_TOOLBAR_COMMANDS,
+  type MarkdownEditorTab,
 } from "./constants";
 
 interface MarkdownEditorProps {
   value: string;
   onChange: (next: string) => void;
   placeholder?: string;
-  disabled?: boolean;
   height?: number;
   minHeight?: number;
-  renderPreview?: (value: string) => ReactNode;
 }
 
 // `@uiw/react-md-editor` drives its text/background/toolbar colors through CSS
@@ -25,8 +28,7 @@ interface MarkdownEditorProps {
 // variables ourselves from the MUI theme to keep colors consistent.
 const editorContainerSx: SxProps<Theme> = (theme) => ({
   display: "flex",
-  flexDirection: "row",
-  gap: 2,
+  flexDirection: "column",
   width: "100%",
   "--color-fg-default": theme.palette.text.primary,
   "--color-canvas-default": theme.palette.background.paper,
@@ -35,7 +37,7 @@ const editorContainerSx: SxProps<Theme> = (theme) => ({
   "--color-accent-fg": theme.palette.primary.main,
   "--color-danger-fg": theme.palette.error.main,
   "& .w-md-editor": {
-    flex: 1,
+    width: "100%",
     minWidth: 0,
     border: "1px solid",
     borderColor: "divider",
@@ -51,41 +53,92 @@ const editorContainerSx: SxProps<Theme> = (theme) => ({
   },
 });
 
+const tabsSx: SxProps<Theme> = (theme) => ({
+  minHeight: 46,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  mb: 1.5,
+  "& .MuiTabs-indicator": {
+    backgroundColor: theme.palette.primary.main,
+    height: 2,
+  },
+  "& .MuiTab-root": {
+    textTransform: "none",
+    minHeight: 46,
+    fontWeight: 500,
+    fontSize: "0.875rem",
+    color: theme.palette.text.secondary,
+    gap: 1,
+    "&.Mui-selected": {
+      color: theme.palette.primary.dark,
+    },
+  },
+});
+
 const MarkdownEditor = ({
   value,
   onChange,
   placeholder = DEFAULT_MARKDOWN_EDITOR_PLACEHOLDER,
-  disabled = false,
   height = DEFAULT_MARKDOWN_EDITOR_HEIGHT,
   minHeight,
-  renderPreview,
 }: MarkdownEditorProps) => {
-  const previewNode = renderPreview ? (
-    renderPreview(value)
-  ) : (
-    <ExplanationContent content={value} />
+  const [activeTab, setActiveTab] = useState<MarkdownEditorTab>(
+    MARKDOWN_EDITOR_TAB.EDIT
   );
+
+  const handleTabChange = (
+    _event: SyntheticEvent,
+    nextTab: MarkdownEditorTab
+  ) => {
+    setActiveTab(nextTab);
+  };
 
   return (
     <Box data-color-mode="light" sx={editorContainerSx}>
-      <MDEditor
-        value={value}
-        onChange={(next) => onChange(next ?? "")}
-        preview="edit"
-        hideToolbar={false}
-        visibleDragbar={false}
-        height={height}
-        minHeight={minHeight}
-        commands={MARKDOWN_EDITOR_TOOLBAR_COMMANDS}
-        extraCommands={[]}
-        textareaProps={{
-          placeholder,
-          disabled,
-        }}
-      />
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        aria-label="Editor de markdown"
+        sx={tabsSx}
+      >
+        <Tab
+          value={MARKDOWN_EDITOR_TAB.EDIT}
+          label={MARKDOWN_EDITOR_TAB_LABEL[MARKDOWN_EDITOR_TAB.EDIT]}
+          icon={<EditOutlinedIcon fontSize="small" />}
+          iconPosition="start"
+        />
+        <Tab
+          value={MARKDOWN_EDITOR_TAB.PREVIEW}
+          label={MARKDOWN_EDITOR_TAB_LABEL[MARKDOWN_EDITOR_TAB.PREVIEW]}
+          icon={<VisibilityOutlinedIcon fontSize="small" />}
+          iconPosition="start"
+        />
+      </Tabs>
+
       <Box
         sx={{
-          flex: 1,
+          display: activeTab === MARKDOWN_EDITOR_TAB.EDIT ? "block" : "none",
+        }}
+      >
+        <MDEditor
+          value={value}
+          onChange={(next) => onChange(next ?? "")}
+          preview="edit"
+          hideToolbar={false}
+          visibleDragbar={false}
+          height={height}
+          minHeight={minHeight}
+          commands={MARKDOWN_EDITOR_TOOLBAR_COMMANDS}
+          extraCommands={[]}
+          textareaProps={{
+            placeholder,
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: activeTab === MARKDOWN_EDITOR_TAB.PREVIEW ? "block" : "none",
+          width: "100%",
           minWidth: 0,
           height,
           minHeight,
@@ -98,7 +151,7 @@ const MarkdownEditor = ({
           py: 1.5,
         }}
       >
-        {previewNode}
+        <ExplanationContent content={value} />
       </Box>
     </Box>
   );

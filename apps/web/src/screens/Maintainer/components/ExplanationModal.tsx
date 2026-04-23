@@ -95,7 +95,7 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
   <Dialog
     open={open}
     onClose={contentProps.onClose}
-    maxWidth="lg"
+    maxWidth="xl"
     fullWidth
     PaperProps={{ sx: { maxHeight: "90vh" } }}
   >
