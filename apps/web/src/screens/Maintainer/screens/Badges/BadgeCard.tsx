@@ -19,10 +19,9 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
 import { useDeactivateBadge } from "@/api/query/badges/useDeactivateBadge";
 import { useBadgeUpload } from "@/api/query/badges/useBadgeUpload";
-import { ActiveBadgeCardContent } from "./ActiveBadgeCardContent";
+import { BadgeCardContent } from "./BadgeCardContent";
 import { BadgeHistoryDialog } from "./BadgeHistoryDialog";
 import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
-import { InactiveBadgeCardContent } from "./InactiveBadgeCardContent";
 import {
   BADGE_TYPE_LABELS,
   BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL,
@@ -38,8 +37,9 @@ interface BadgeCardProps {
   entry: BadgeCatalogEntry;
 }
 
-export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
-  const { type, active, history } = entry;
+export const BadgeCard: FC<BadgeCardProps> = ({
+  entry: { type, active: activeBadge, history },
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newlyUploadedId, setNewlyUploadedId] = useState<string | undefined>();
 
@@ -88,24 +88,28 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
 
   const handleActivateClick = useCallback(
     (badge: BadgeDTO) => {
-      if (active) {
+      if (activeBadge) {
         (document.activeElement as HTMLElement | null)?.blur();
-        setDialogState({ mode: "activate", incoming: badge, outgoing: active });
+        setDialogState({
+          mode: "activate",
+          incoming: badge,
+          outgoing: activeBadge,
+        });
       } else {
         activate.mutate(badge.id, { onSuccess: () => setHistoryOpen(false) });
       }
     },
-    [active, activate]
+    [activeBadge, activate]
   );
 
   const handleDeactivateClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (active) {
+      if (activeBadge) {
         event.currentTarget.blur();
-        setDialogState({ mode: "deactivate", outgoing: active });
+        setDialogState({ mode: "deactivate", outgoing: activeBadge });
       }
     },
-    [active]
+    [activeBadge]
   );
 
   const handleDialogClose = useCallback(() => {
@@ -174,19 +178,18 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
               {BADGE_TYPE_LABELS[type]}
               <Chip
                 icon={<CheckCircleOutlined />}
-                label={active ? "Activo" : "Inactivo"}
+                label={activeBadge ? "Activo" : "Inactivo"}
                 size="small"
-                color={active ? "success" : "warning"}
+                color={activeBadge ? "success" : "warning"}
                 variant="outlined"
               />
             </Typography>
           </Stack>
 
-          {active ? (
-            <ActiveBadgeCardContent active={active} />
-          ) : (
-            <InactiveBadgeCardContent />
-          )}
+          <BadgeCardContent
+            activeBadge={activeBadge}
+            isUploading={isUploading}
+          />
 
           {uploadError && (
             <Alert
@@ -209,7 +212,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
                 event.currentTarget.blur();
                 setHistoryOpen(true);
               }}
-              disabled={history.length === 0}
+              disabled={history.length === 0 || isMutating}
             >
               Ver historial ({history.length})
             </Button>
@@ -218,10 +221,12 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
               startIcon={<CloudUploadOutlined />}
               size="small"
               onClick={handleUploadClick}
+              loading={isUploading}
+              disabled={isMutating}
             >
               Subir sello
             </Button>
-            {active && (
+            {activeBadge && (
               <Button
                 variant="outlined"
                 color="warning"
