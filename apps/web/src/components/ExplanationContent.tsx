@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Box, Typography } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import ReactMarkdown from "react-markdown";
@@ -10,7 +11,7 @@ interface ExplanationContentProps {
   content?: string | null;
 }
 
-export function ExplanationContent({ content }: ExplanationContentProps) {
+function ExplanationContentImpl({ content }: ExplanationContentProps) {
   if (!content || !content.trim()) {
     return (
       <Box
@@ -34,10 +35,12 @@ export function ExplanationContent({ content }: ExplanationContentProps) {
     <div className="prose prose-sm max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeKatex, { strict: "ignore" }]]}
       >
         {content}
       </ReactMarkdown>
     </div>
   );
 }
+
+export const ExplanationContent = memo(ExplanationContentImpl);

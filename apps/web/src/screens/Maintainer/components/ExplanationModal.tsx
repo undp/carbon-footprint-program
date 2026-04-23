@@ -40,7 +40,6 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
 
   return (
     <>
-      <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
       <DialogContent>
         {readOnly ? (
           <ExplanationContent content={value} />

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Dispatch } from "react";
 import { Box } from "@mui/material";
 import { alpha, type SxProps, type Theme } from "@mui/material/styles";
@@ -64,8 +71,13 @@ const editorContainerSx: SxProps<Theme> = (theme) => ({
   },
 });
 
+const DeferredExplanationPreview = ({ source }: { source: string }) => {
+  const deferredSource = useDeferredValue(source);
+  return <ExplanationContent content={deferredSource} />;
+};
+
 const renderExplanationPreview = (source: string | undefined) => (
-  <ExplanationContent content={source ?? ""} />
+  <DeferredExplanationPreview source={source ?? ""} />
 );
 
 const MarkdownEditor = ({
