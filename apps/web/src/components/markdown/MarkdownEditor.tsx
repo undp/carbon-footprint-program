@@ -1,17 +1,20 @@
-import { SyntheticEvent, useState } from "react";
-import { Box, Tab, Tabs } from "@mui/material";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Dispatch } from "react";
+import { Box } from "@mui/material";
 import { alpha, type SxProps, type Theme } from "@mui/material/styles";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor, { commands } from "@uiw/react-md-editor";
+import type {
+  ContextStore,
+  ExecuteCommandState,
+  ExecuteState,
+  ICommand,
+  TextAreaTextApi,
+} from "@uiw/react-md-editor";
 import { ExplanationContent } from "@/components/ExplanationContent";
 import {
   DEFAULT_MARKDOWN_EDITOR_HEIGHT,
   DEFAULT_MARKDOWN_EDITOR_PLACEHOLDER,
-  MARKDOWN_EDITOR_TAB,
-  MARKDOWN_EDITOR_TAB_LABEL,
   MARKDOWN_EDITOR_TOOLBAR_COMMANDS,
-  type MarkdownEditorTab,
 } from "./constants";
 
 interface MarkdownEditorProps {
@@ -20,6 +23,14 @@ interface MarkdownEditorProps {
   placeholder?: string;
   height?: number;
   minHeight?: number;
+}
+
+interface FullscreenExecuteContext {
+  state: ExecuteState;
+  api: TextAreaTextApi;
+  dispatch: Dispatch<ContextStore> | undefined;
+  executeCommandState: ExecuteCommandState | undefined;
+  shortcuts: string[] | undefined;
 }
 
 // `@uiw/react-md-editor` drives its text/background/toolbar colors through CSS
@@ -53,26 +64,9 @@ const editorContainerSx: SxProps<Theme> = (theme) => ({
   },
 });
 
-const tabsSx: SxProps<Theme> = (theme) => ({
-  minHeight: 46,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  mb: 1.5,
-  "& .MuiTabs-indicator": {
-    backgroundColor: theme.palette.primary.main,
-    height: 2,
-  },
-  "& .MuiTab-root": {
-    textTransform: "none",
-    minHeight: 46,
-    fontWeight: 500,
-    fontSize: "0.875rem",
-    color: theme.palette.text.secondary,
-    gap: 1,
-    "&.Mui-selected": {
-      color: theme.palette.primary.dark,
-    },
-  },
-});
+const renderExplanationPreview = (source: string | undefined) => (
+  <ExplanationContent content={source ?? ""} />
+);
 
 const MarkdownEditor = ({
   value,
@@ -81,78 +75,91 @@ const MarkdownEditor = ({
   height = DEFAULT_MARKDOWN_EDITOR_HEIGHT,
   minHeight,
 }: MarkdownEditorProps) => {
-  const [activeTab, setActiveTab] = useState<MarkdownEditorTab>(
-    MARKDOWN_EDITOR_TAB.EDIT
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const executeContextRef = useRef<FullscreenExecuteContext | null>(null);
+
+  const fullscreenCommand = useMemo<ICommand>(
+    () => ({
+      ...commands.fullscreen,
+      execute: (state, api, dispatch, executeCommandState, shortcuts) => {
+        executeContextRef.current = {
+          state,
+          api,
+          dispatch,
+          executeCommandState,
+          shortcuts,
+        };
+        commands.fullscreen.execute?.(
+          state,
+          api,
+          dispatch,
+          executeCommandState,
+          shortcuts
+        );
+        setIsFullscreen((prev) => !prev);
+      },
+    }),
+    []
   );
 
-  const handleTabChange = (
-    _event: SyntheticEvent,
-    nextTab: MarkdownEditorTab
-  ) => {
-    setActiveTab(nextTab);
-  };
+  const toolbarCommands = useMemo<ICommand[]>(
+    () =>
+      MARKDOWN_EDITOR_TOOLBAR_COMMANDS.map((command) =>
+        command.name === "fullscreen" ? fullscreenCommand : command
+      ),
+    [fullscreenCommand]
+  );
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      return;
+    }
+    const handler = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const context = executeContextRef.current;
+      if (context) {
+        commands.fullscreen.execute?.(
+          context.state,
+          context.api,
+          context.dispatch,
+          context.executeCommandState,
+          context.shortcuts
+        );
+      }
+      setIsFullscreen(false);
+    };
+    document.addEventListener("keydown", handler, true);
+    return () => {
+      document.removeEventListener("keydown", handler, true);
+    };
+  }, [isFullscreen]);
+
+  const handleChange = useCallback(
+    (next: string | undefined) => {
+      onChange(next ?? "");
+    },
+    [onChange]
+  );
 
   return (
     <Box data-color-mode="light" sx={editorContainerSx}>
-      <Tabs
-        value={activeTab}
-        onChange={handleTabChange}
-        aria-label="Editor de markdown"
-        sx={tabsSx}
-      >
-        <Tab
-          value={MARKDOWN_EDITOR_TAB.EDIT}
-          label={MARKDOWN_EDITOR_TAB_LABEL[MARKDOWN_EDITOR_TAB.EDIT]}
-          icon={<EditOutlinedIcon fontSize="small" />}
-          iconPosition="start"
-        />
-        <Tab
-          value={MARKDOWN_EDITOR_TAB.PREVIEW}
-          label={MARKDOWN_EDITOR_TAB_LABEL[MARKDOWN_EDITOR_TAB.PREVIEW]}
-          icon={<VisibilityOutlinedIcon fontSize="small" />}
-          iconPosition="start"
-        />
-      </Tabs>
-
-      <Box
-        sx={{
-          display: activeTab === MARKDOWN_EDITOR_TAB.EDIT ? "block" : "none",
-        }}
-      >
-        <MDEditor
-          value={value}
-          onChange={(next) => onChange(next ?? "")}
-          preview="edit"
-          hideToolbar={false}
-          visibleDragbar={false}
-          height={height}
-          minHeight={minHeight}
-          commands={MARKDOWN_EDITOR_TOOLBAR_COMMANDS}
-          extraCommands={[]}
-          textareaProps={{
-            placeholder,
-          }}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          display: activeTab === MARKDOWN_EDITOR_TAB.PREVIEW ? "block" : "none",
-          width: "100%",
-          minWidth: 0,
-          height,
-          minHeight,
-          overflow: "auto",
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
-          backgroundColor: "background.paper",
-          px: 2,
-          py: 1.5,
-        }}
-      >
-        <ExplanationContent content={value} />
-      </Box>
+      <MDEditor
+        value={value}
+        onChange={handleChange}
+        preview="live"
+        hideToolbar={false}
+        visibleDragbar={false}
+        height={height}
+        minHeight={minHeight}
+        commands={toolbarCommands}
+        extraCommands={[]}
+        textareaProps={{ placeholder }}
+        components={{ preview: renderExplanationPreview }}
+      />
     </Box>
   );
 };
