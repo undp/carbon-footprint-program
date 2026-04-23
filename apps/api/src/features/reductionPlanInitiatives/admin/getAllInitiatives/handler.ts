@@ -1,16 +1,9 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { createGetAllHandler } from "@/handlerFactory/createGetAllHandler.js";
 import { getAllInitiativesService } from "./service.js";
 
-export const getAllInitiativesHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "admin-reduction-plan-initiatives" });
-  log.info("Getting all reduction plan initiatives...");
-
-  const prisma = request.server.prisma;
-  const result = await getAllInitiativesService(prisma);
-
-  log.info("Reduction plan initiatives retrieved successfully");
-  return reply.status(200).send(result);
-};
+export const getAllInitiativesHandler = createGetAllHandler(
+  "admin-reduction-plan-initiatives",
+  (prisma, _query, _user) => getAllInitiativesService(prisma),
+  "reduction plan initiatives",
+  false
+);
