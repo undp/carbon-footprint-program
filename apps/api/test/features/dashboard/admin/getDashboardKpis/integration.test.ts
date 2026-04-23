@@ -33,12 +33,14 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
   let testUser: User;
+  let methodologyVersionId: bigint;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
+    methodologyVersionId = await getTestMethodologyVersionId(prisma);
   });
 
   afterAll(async () => {
@@ -165,6 +167,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
       // Create a carbon inventory and link it to recognition submissions
       const inventory = await prisma.carbonInventory.create({
         data: {
+          methodologyVersionId,
           year: 2024,
           status: "ACTIVE",
           isSelfDeclared: true,
@@ -197,6 +200,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
     it("should count APPROVED_AUTOMATICALLY carbon inventory submissions as earned", async () => {
       const inventory = await prisma.carbonInventory.create({
         data: {
+          methodologyVersionId,
           year: 2024,
           status: "ACTIVE",
           isSelfDeclared: true,
@@ -234,6 +238,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
     it("should not count PENDING carbon inventory submissions as earned", async () => {
       const inventory = await prisma.carbonInventory.create({
         data: {
+          methodologyVersionId,
           year: 2024,
           status: "ACTIVE",
           isSelfDeclared: true,
@@ -266,6 +271,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
     it("should count PENDING carbon inventory submissions as under review", async () => {
       const inventory = await prisma.carbonInventory.create({
         data: {
+          methodologyVersionId,
           year: 2024,
           status: "ACTIVE",
           isSelfDeclared: true,
@@ -634,6 +640,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
     it("should filter recognitionsEarned by carbon inventory year", async () => {
       const inventory = await prisma.carbonInventory.create({
         data: {
+          methodologyVersionId,
           year: 2023,
           status: "ACTIVE",
           isSelfDeclared: true,
