@@ -69,7 +69,7 @@ export const ReductionPlanMaintainerScreen: FC = () => {
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25,
+    pageSize: 10,
   });
 
   const createMutation = useCreateInitiative();
@@ -281,6 +281,7 @@ export const ReductionPlanMaintainerScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
+        hideDownload
       />
       <Box className="rounded-sm bg-white p-3">
         <form id="initiatives-form" noValidate>
