@@ -25,7 +25,6 @@ import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
 
 import { mapApprovedSubmissionsToRecognitions } from "./helpers.js";
-import { Prisma } from "@repo/database";
 import {
   CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES,
   REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
@@ -51,25 +50,16 @@ export const getOrganizationRecognitionsService = async (
 
   const yearFilter = year ? parseInt(year, 10) : undefined;
 
-  const includeCarbonInventories =
-    !submissionTypes?.length ||
-    intersection(submissionTypes, CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES)
-      .length > 0;
-
   const result: GetOrganizationRecognitionsResponse = [];
 
-  if (includeCarbonInventories) {
-    const carbonInventorySubmissionTypes = submissionTypes
-      ? intersection(
-          submissionTypes,
-          CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES
-        )
-      : CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES;
+  const requestedCarbonInventorySubmissionTypes = submissionTypes
+    ? intersection(
+        submissionTypes,
+        CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES
+      )
+    : CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES;
 
-    const carbonInventorySubmissionTypeFilter: Prisma.SubmissionWhereInput = {
-      type: { in: carbonInventorySubmissionTypes },
-    };
-
+  if (requestedCarbonInventorySubmissionTypes.length > 0) {
     const inventories = await prismaClient.carbonInventory.findMany({
       where: {
         organizationId: BigInt(organizationId),
@@ -85,7 +75,7 @@ export const getOrganizationRecognitionsService = async (
                     SubmissionStatus.APPROVED_AUTOMATICALLY,
                   ],
                 },
-                ...carbonInventorySubmissionTypeFilter,
+                type: { in: requestedCarbonInventorySubmissionTypes },
               },
             },
           },
@@ -105,7 +95,7 @@ export const getOrganizationRecognitionsService = async (
                         SubmissionStatus.APPROVED_AUTOMATICALLY,
                       ],
                     },
-                    ...carbonInventorySubmissionTypeFilter,
+                    type: { in: requestedCarbonInventorySubmissionTypes },
                   },
                   select: {
                     id: true,
@@ -156,18 +146,14 @@ export const getOrganizationRecognitionsService = async (
     }
   }
 
-  const includeReductionProjects =
-    !submissionTypes?.length ||
-    intersection(
-      submissionTypes,
-      REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES
-    ).length > 0;
+  const requestedReductionProjectSubmissionTypes = submissionTypes
+    ? intersection(
+        submissionTypes,
+        REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES
+      )
+    : REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES;
 
-  if (includeReductionProjects) {
-    const reductionSubmissionTypeFilter = {
-      in: REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
-    };
-
+  if (requestedReductionProjectSubmissionTypes.length > 0) {
     const reductionProjects = await prismaClient.reductionProject.findMany({
       where: {
         organizationId: BigInt(organizationId),
@@ -183,7 +169,7 @@ export const getOrganizationRecognitionsService = async (
                     SubmissionStatus.APPROVED_AUTOMATICALLY,
                   ],
                 },
-                type: reductionSubmissionTypeFilter,
+                type: { in: requestedReductionProjectSubmissionTypes },
               },
             },
           },
@@ -203,7 +189,7 @@ export const getOrganizationRecognitionsService = async (
                         SubmissionStatus.APPROVED_AUTOMATICALLY,
                       ],
                     },
-                    type: reductionSubmissionTypeFilter,
+                    type: { in: requestedReductionProjectSubmissionTypes },
                   },
                   select: {
                     id: true,
