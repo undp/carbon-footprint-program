@@ -1,6 +1,7 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { Box } from "@mui/material";
+import { useGridApiRef } from "@mui/x-data-grid";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import { uniqBy } from "lodash-es";
@@ -67,10 +68,12 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   );
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [newRowId, setNewRowId] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
   });
+  const apiRef = useGridApiRef();
 
   const createMutation = useCreateInitiative();
   const updateMutation = useUpdateInitiative();
@@ -101,6 +104,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     const row = rows[rowIndex];
     if (!row) {
       setEditingRowId(null);
+      setNewRowId(null);
       return true;
     }
 
@@ -130,6 +134,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         return false;
       }
       setEditingRowId(null);
+      setNewRowId(null);
       return true;
     }
 
@@ -156,6 +161,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       return false;
     }
     setEditingRowId(null);
+    setNewRowId(null);
     return true;
   }, [
     editingRowId,
@@ -183,6 +189,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
 
     form.reset({ initiatives: form.getValues("initiatives") });
     setEditingRowId(null);
+    setNewRowId(null);
   }, [editingRowId, form, fieldArray, initiatives]);
 
   const handleStartEditRow = useCallback(
@@ -206,6 +213,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       categoryId: "",
     };
     const currentCount = form.getValues("initiatives").length;
+    const newRowIndex = currentCount;
     const lastPage = Math.max(
       0,
       Math.ceil((currentCount + 1) / paginationModel.pageSize) - 1
@@ -213,7 +221,13 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     fieldArray.append(newRow);
     setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
-  }, [fieldArray, form, paginationModel.pageSize]);
+    setNewRowId(tempId);
+    // Scroll the grid to the freshly appended row on the next frame so it's
+    // visible before the autoFocused input triggers a scrollIntoView.
+    requestAnimationFrame(() => {
+      apiRef.current?.scrollToIndexes({ rowIndex: newRowIndex });
+    });
+  }, [fieldArray, form, paginationModel.pageSize, apiRef]);
 
   const handleDelete = useCallback(
     async (row: InitiativeFormRow) => {
@@ -263,6 +277,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
 
   const columns = useInitiativeColumns({
     editingRowId,
+    newRowId,
     onCellChange: handleCellChange,
     onStartEditRow: handleStartEditRow,
     onStopEditRow: handleStopEditRow,
@@ -287,6 +302,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         <form id="initiatives-form" noValidate>
           <Box className="flex w-full">
             <MaintainerDataGrid
+              apiRef={apiRef}
               editingRowId={editingRowId}
               columns={columns}
               rows={currentRows}

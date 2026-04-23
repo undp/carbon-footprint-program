@@ -10,6 +10,7 @@ import type { InitiativeFormRow } from "./useInitiativesForm";
 
 interface UseInitiativeColumnsParams {
   editingRowId: string | null;
+  newRowId: string | null;
   onCellChange: (
     rowIndex: number,
     field: keyof InitiativeFormRow,
@@ -27,6 +28,7 @@ interface UseInitiativeColumnsParams {
 
 export const useInitiativeColumns = ({
   editingRowId,
+  newRowId,
   onCellChange,
   onStartEditRow,
   onStopEditRow,
@@ -67,6 +69,7 @@ export const useInitiativeColumns = ({
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
               truncateLines={2}
+              autoFocus={editing && params.row.id === newRowId}
             />
           );
         },
@@ -194,6 +197,7 @@ export const useInitiativeColumns = ({
       subcategories,
       rows,
       editingRowId,
+      newRowId,
     ]
   );
 };

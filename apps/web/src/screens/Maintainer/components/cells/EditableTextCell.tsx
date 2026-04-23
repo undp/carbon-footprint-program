@@ -31,6 +31,8 @@ interface EditableTextCellProps {
   displayPaddingX?: number;
   /** Vertical padding (theme units) for the read-only display. Defaults to 0.5. */
   displayPaddingY?: number;
+  /** Auto-focus the input when entering edit mode (useful for new rows). */
+  autoFocus?: boolean;
 }
 
 interface EditingTextFieldProps {
@@ -39,6 +41,7 @@ interface EditingTextFieldProps {
   fieldError?: FieldError;
   multiline: boolean;
   maxRows: number;
+  autoFocus: boolean;
 }
 
 /** Mounts fresh each time the cell enters edit mode, so useState always picks up the latest formValue. */
@@ -48,16 +51,21 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
   fieldError,
   multiline,
   maxRows,
+  autoFocus,
 }) => {
   const [localValue, setLocalValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
-  // On mount, place the caret at the end and scroll the textarea so the end
-  // of the content is visible. Prevents the "middle of text / arbitrary
-  // cursor position" issue when entering edit mode with long multiline text.
+  // On mount, optionally focus and always place the caret at the end so the
+  // textarea scrolls to reveal the end of the content. Prevents the
+  // "middle of text / arbitrary cursor position" issue when entering edit
+  // mode with long multiline text.
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
+    if (autoFocus) {
+      el.focus();
+    }
     const length = el.value.length;
     try {
       el.setSelectionRange(length, length);
@@ -67,7 +75,7 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
     if (el instanceof HTMLTextAreaElement) {
       el.scrollTop = el.scrollHeight;
     }
-  }, []);
+  }, [autoFocus]);
 
   return (
     <TextField
@@ -104,6 +112,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   truncateLines = 1,
   displayPaddingX = 1,
   displayPaddingY = 0.5,
+  autoFocus = false,
 }) => {
   const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
   const { control } = useFormContext();
@@ -181,6 +190,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
       fieldError={fieldError}
       multiline={multiline}
       maxRows={maxRows}
+      autoFocus={autoFocus}
     />
   );
 };
