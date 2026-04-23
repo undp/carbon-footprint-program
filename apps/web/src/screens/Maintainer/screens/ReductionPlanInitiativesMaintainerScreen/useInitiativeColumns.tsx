@@ -92,6 +92,8 @@ export const useInitiativeColumns = ({
               multiline
               maxRows={6}
               truncateLines={4}
+              displayPaddingX={2}
+              displayPaddingY={1.5}
             />
           );
         },
