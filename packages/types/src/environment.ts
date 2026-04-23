@@ -7,5 +7,4 @@ export const IS_DEVELOPMENT = NODE_ENV === "development";
  * can submit forms without filling every field during local testing.
  * Set LOCAL_BYPASS_REQUIRED_FIELDS=true in your .envrc to enable.
  */
-export const LOCAL_BYPASS_REQUIRED_FIELDS =
-  process.env.LOCAL_BYPASS_REQUIRED_FIELDS === "true";
+export const LOCAL_BYPASS_REQUIRED_FIELDS = false;

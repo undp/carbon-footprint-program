@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Box } from "@mui/material";
-import type { SxProps, Theme } from "@mui/material/styles";
+import { alpha, type SxProps, type Theme } from "@mui/material/styles";
 import MDEditor from "@uiw/react-md-editor";
 import { ExplanationContent } from "@/components/ExplanationContent";
 import {
@@ -19,37 +19,37 @@ interface MarkdownEditorProps {
   renderPreview?: (value: string) => ReactNode;
 }
 
-const editorContainerSx: SxProps<Theme> = {
+// `@uiw/react-md-editor` drives its text/background/toolbar colors through CSS
+// custom properties defined in the sibling `@uiw/react-markdown-preview`
+// package. That package's stylesheet is not imported here, so we surface the
+// variables ourselves from the MUI theme to keep colors consistent.
+const editorContainerSx: SxProps<Theme> = (theme) => ({
   display: "flex",
   flexDirection: "row",
   gap: 2,
   width: "100%",
+  "--color-fg-default": theme.palette.text.primary,
+  "--color-canvas-default": theme.palette.background.paper,
+  "--color-border-default": theme.palette.divider,
+  "--color-neutral-muted": alpha(theme.palette.text.primary, 0.08),
+  "--color-accent-fg": theme.palette.primary.main,
+  "--color-danger-fg": theme.palette.error.main,
   "& .w-md-editor": {
     flex: 1,
     minWidth: 0,
-    backgroundColor: "background.paper",
-    color: "text.primary",
     border: "1px solid",
     borderColor: "divider",
     borderRadius: 1,
     boxShadow: "none",
   },
   "& .w-md-editor-toolbar": {
-    backgroundColor: "background.paper",
     borderBottom: "1px solid",
     borderColor: "divider",
-  },
-  "& .w-md-editor-toolbar li > button": {
-    color: "text.primary",
-  },
-  "& .w-md-editor-text, & .w-md-editor-text-pre, & .w-md-editor-text-input": {
-    color: "text.primary",
-    backgroundColor: "background.paper",
   },
   "& .w-md-editor-input textarea::placeholder": {
     color: "text.secondary",
   },
-};
+});
 
 const MarkdownEditor = ({
   value,
