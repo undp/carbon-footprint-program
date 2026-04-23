@@ -29,7 +29,7 @@ import { useInitiativeColumns } from "./useInitiativeColumns";
 
 const isNewRow = (id: string) => id.startsWith("temp_");
 
-export const ReductionPlanMaintainerScreen: FC = () => {
+export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const { data: initiatives, isLoading } = useInitiatives();

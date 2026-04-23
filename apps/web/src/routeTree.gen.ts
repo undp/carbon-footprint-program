@@ -28,7 +28,7 @@ import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-in
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
-import { Route as AdminReductionPlanRouteImport } from './routes/admin/reduction-plan'
+import { Route as AdminReductionPlanInitiativesRouteImport } from './routes/admin/reduction-plan-initiatives'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
@@ -145,11 +145,12 @@ const AdminRequestsRoute = AdminRequestsRouteImport.update({
   path: '/requests',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminReductionPlanRoute = AdminReductionPlanRouteImport.update({
-  id: '/reduction-plan',
-  path: '/reduction-plan',
-  getParentRoute: () => AdminRoute,
-} as any)
+const AdminReductionPlanInitiativesRoute =
+  AdminReductionPlanInitiativesRouteImport.update({
+    id: '/reduction-plan-initiatives',
+    path: '/reduction-plan-initiatives',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminParametersRoute = AdminParametersRouteImport.update({
   id: '/parameters',
   path: '/parameters',
@@ -276,7 +277,7 @@ export interface FileRoutesByFullPath {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
-  '/admin/reduction-plan': typeof AdminReductionPlanRoute
+  '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
@@ -315,7 +316,7 @@ export interface FileRoutesByTo {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
-  '/admin/reduction-plan': typeof AdminReductionPlanRoute
+  '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
@@ -357,7 +358,7 @@ export interface FileRoutesById {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
-  '/admin/reduction-plan': typeof AdminReductionPlanRoute
+  '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
@@ -401,7 +402,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
-    | '/admin/reduction-plan'
+    | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
@@ -440,7 +441,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
-    | '/admin/reduction-plan'
+    | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
@@ -481,7 +482,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
-    | '/admin/reduction-plan'
+    | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
@@ -652,11 +653,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRequestsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/reduction-plan': {
-      id: '/admin/reduction-plan'
-      path: '/reduction-plan'
-      fullPath: '/admin/reduction-plan'
-      preLoaderRoute: typeof AdminReductionPlanRouteImport
+    '/admin/reduction-plan-initiatives': {
+      id: '/admin/reduction-plan-initiatives'
+      path: '/reduction-plan-initiatives'
+      fullPath: '/admin/reduction-plan-initiatives'
+      preLoaderRoute: typeof AdminReductionPlanInitiativesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/parameters': {
@@ -812,7 +813,7 @@ interface AdminRouteChildren {
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminParametersRoute: typeof AdminParametersRoute
-  AdminReductionPlanRoute: typeof AdminReductionPlanRoute
+  AdminReductionPlanInitiativesRoute: typeof AdminReductionPlanInitiativesRoute
   AdminRequestsRoute: typeof AdminRequestsRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
@@ -829,7 +830,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMethodologiesRoute: AdminMethodologiesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminParametersRoute: AdminParametersRoute,
-  AdminReductionPlanRoute: AdminReductionPlanRoute,
+  AdminReductionPlanInitiativesRoute: AdminReductionPlanInitiativesRoute,
   AdminRequestsRoute: AdminRequestsRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminUnitsRoute: AdminUnitsRoute,

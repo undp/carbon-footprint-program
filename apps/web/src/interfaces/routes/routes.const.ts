@@ -39,7 +39,7 @@ export const Routes = {
   ADMIN_MAIN_ACTIVITIES: "/admin/main-activities",
   ADMIN_REQUESTS: "/admin/requests",
   ADMIN_ORGANIZATIONS: "/admin/organizations",
-  ADMIN_REDUCTION_PLAN: "/admin/reduction-plan",
+  ADMIN_REDUCTION_PLAN_INITIATIVES: "/admin/reduction-plan-initiatives",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
