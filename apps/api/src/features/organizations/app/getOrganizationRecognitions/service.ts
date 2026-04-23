@@ -1,18 +1,18 @@
-import {
-  InventoryStatus,
-  OrganizationStatus,
-  PrismaClient,
-  SubmissionFileType,
-} from "@repo/database";
+import { OrganizationStatus, PrismaClient } from "@repo/database";
 import {
   SubmissionType,
-  SubmissionStatus,
   GetOrganizationRecognitionsResponse,
-  ReductionProjectStatus,
+  CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES,
+  REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
 } from "@repo/types";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { intersection } from "lodash-es";
 
 import { OrganizationNotFoundError } from "../../errors.js";
+import {
+  fetchCarbonInventoryRecognitions,
+  fetchReductionProjectRecognitions,
+} from "./helpers.js";
 
 const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: 0,
@@ -21,15 +21,6 @@ const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: 3,
   [SubmissionType.ORGANIZATION_ACCREDITATION]: 4,
 };
-import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
-import { kgToTon } from "@repo/utils";
-
-import { mapApprovedSubmissionsToRecognitions } from "./helpers.js";
-import {
-  CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES,
-  REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES,
-} from "@repo/types";
-import { intersection } from "lodash-es";
 
 export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
@@ -49,8 +40,8 @@ export const getOrganizationRecognitionsService = async (
   }
 
   const yearFilter = year ? parseInt(year, 10) : undefined;
-
-  const result: GetOrganizationRecognitionsResponse = [];
+  const orgId = BigInt(organizationId);
+  const blobConfig = { blobServiceClient, containerName };
 
   const requestedCarbonInventorySubmissionTypes = submissionTypes
     ? intersection(
@@ -59,93 +50,6 @@ export const getOrganizationRecognitionsService = async (
       )
     : CARBON_INVENTORY_RECOGNITION_SUBMISSION_TYPES;
 
-  if (requestedCarbonInventorySubmissionTypes.length > 0) {
-    const inventories = await prismaClient.carbonInventory.findMany({
-      where: {
-        organizationId: BigInt(organizationId),
-        ...(yearFilter !== undefined ? { year: yearFilter } : {}),
-        status: InventoryStatus.ACTIVE,
-        submission: {
-          subject: {
-            submissions: {
-              some: {
-                status: {
-                  in: [
-                    SubmissionStatus.APPROVED,
-                    SubmissionStatus.APPROVED_AUTOMATICALLY,
-                  ],
-                },
-                type: { in: requestedCarbonInventorySubmissionTypes },
-              },
-            },
-          },
-        },
-      },
-      include: {
-        subtotals: true,
-        submission: {
-          select: {
-            subject: {
-              select: {
-                submissions: {
-                  where: {
-                    status: {
-                      in: [
-                        SubmissionStatus.APPROVED,
-                        SubmissionStatus.APPROVED_AUTOMATICALLY,
-                      ],
-                    },
-                    type: { in: requestedCarbonInventorySubmissionTypes },
-                  },
-                  select: {
-                    id: true,
-                    type: true,
-                    updatedAt: true,
-                    files: {
-                      where: { type: SubmissionFileType.RECOGNITION },
-                      select: {
-                        file: { select: { blobPath: true, mimeType: true } },
-                      },
-                      take: 1,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    for (const inventory of inventories) {
-      const submissions = inventory.submission?.subject.submissions ?? [];
-      if (submissions.length === 0) continue;
-
-      if (inventory.year === null) {
-        throw new DataIntegrityError(
-          `Carbon inventory ${inventory.id} has no year, but has approved submissions. This should not happen. Please investigate the data integrity of this inventory.`
-        );
-      }
-
-      const subtotals = inventory.subtotals;
-
-      const totalEmissions = subtotals.reduce(
-        (sum, row) => sum + kgToTon(Number(row.value)),
-        0
-      );
-
-      const items = await mapApprovedSubmissionsToRecognitions({
-        submissions,
-        measurementYear: inventory.year,
-        totalEmissions,
-        blobServiceClient,
-        containerName,
-      });
-
-      result.push(...items);
-    }
-  }
-
   const requestedReductionProjectSubmissionTypes = submissionTypes
     ? intersection(
         submissionTypes,
@@ -153,83 +57,25 @@ export const getOrganizationRecognitionsService = async (
       )
     : REDUCTION_PROJECT_RECOGNITION_SUBMISSION_TYPES;
 
-  if (requestedReductionProjectSubmissionTypes.length > 0) {
-    const reductionProjects = await prismaClient.reductionProject.findMany({
-      where: {
-        organizationId: BigInt(organizationId),
-        status: ReductionProjectStatus.ACTIVE,
-        ...(yearFilter !== undefined ? { year: yearFilter } : {}),
-        submission: {
-          subject: {
-            submissions: {
-              some: {
-                status: {
-                  in: [
-                    SubmissionStatus.APPROVED,
-                    SubmissionStatus.APPROVED_AUTOMATICALLY,
-                  ],
-                },
-                type: { in: requestedReductionProjectSubmissionTypes },
-              },
-            },
-          },
-        },
-      },
-      select: {
-        year: true,
-        submission: {
-          select: {
-            subject: {
-              select: {
-                submissions: {
-                  where: {
-                    status: {
-                      in: [
-                        SubmissionStatus.APPROVED,
-                        SubmissionStatus.APPROVED_AUTOMATICALLY,
-                      ],
-                    },
-                    type: { in: requestedReductionProjectSubmissionTypes },
-                  },
-                  select: {
-                    id: true,
-                    type: true,
-                    updatedAt: true,
-                    files: {
-                      where: { type: SubmissionFileType.RECOGNITION },
-                      select: {
-                        file: {
-                          select: { blobPath: true, mimeType: true },
-                        },
-                      },
-                      take: 1,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+  const [carbonInventoryRecognitions, reductionProjectRecognitions] =
+    await Promise.all([
+      fetchCarbonInventoryRecognitions(
+        prismaClient,
+        orgId,
+        yearFilter,
+        requestedCarbonInventorySubmissionTypes,
+        blobConfig
+      ),
+      fetchReductionProjectRecognitions(
+        prismaClient,
+        orgId,
+        yearFilter,
+        requestedReductionProjectSubmissionTypes,
+        blobConfig
+      ),
+    ]);
 
-    for (const project of reductionProjects) {
-      const submissions = project.submission?.subject.submissions ?? [];
-      if (submissions.length === 0) continue;
-
-      const items = await mapApprovedSubmissionsToRecognitions({
-        submissions,
-        measurementYear: project.year,
-        totalEmissions: null,
-        blobServiceClient,
-        containerName,
-      });
-
-      result.push(...items);
-    }
-  }
-
-  return result.sort(
+  return [...carbonInventoryRecognitions, ...reductionProjectRecognitions].sort(
     (a, b) =>
       b.measurementYear - a.measurementYear ||
       SUBMISSION_TYPE_ORDER[b.submissionType] -
