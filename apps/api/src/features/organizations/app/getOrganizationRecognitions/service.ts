@@ -141,13 +141,13 @@ export const getOrganizationRecognitionsService = async (
         0
       );
 
-      const items = await mapApprovedSubmissionsToRecognitions(
+      const items = await mapApprovedSubmissionsToRecognitions({
         submissions,
-        inventory.year,
+        measurementYear: inventory.year,
         totalEmissions,
         blobServiceClient,
-        containerName
-      );
+        containerName,
+      });
 
       result.push(...items);
     }
@@ -225,13 +225,13 @@ export const getOrganizationRecognitionsService = async (
       const submissions = project.submission?.subject.submissions ?? [];
       if (submissions.length === 0) continue;
 
-      const items = await mapApprovedSubmissionsToRecognitions(
+      const items = await mapApprovedSubmissionsToRecognitions({
         submissions,
-        project.year,
-        null,
+        measurementYear: project.year,
+        totalEmissions: null,
         blobServiceClient,
-        containerName
-      );
+        containerName,
+      });
 
       result.push(...items);
     }

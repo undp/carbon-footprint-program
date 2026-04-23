@@ -12,13 +12,21 @@ type SubmissionForRecognition = {
   }[];
 };
 
-export const mapApprovedSubmissionsToRecognitions = async (
-  submissions: SubmissionForRecognition[],
-  measurementYear: number,
-  totalEmissions: number | null,
-  blobServiceClient: BlobServiceClient | null | undefined,
-  containerName: string | null | undefined
-) =>
+type MapApprovedSubmissionsToRecognitionsParams = {
+  submissions: SubmissionForRecognition[];
+  measurementYear: number;
+  totalEmissions: number | null;
+  blobServiceClient: BlobServiceClient | null | undefined;
+  containerName: string | null | undefined;
+};
+
+export const mapApprovedSubmissionsToRecognitions = async ({
+  submissions,
+  measurementYear,
+  totalEmissions,
+  blobServiceClient,
+  containerName,
+}: MapApprovedSubmissionsToRecognitionsParams) =>
   Promise.all(
     submissions.map(async (submission) => {
       const recognitionFile = submission.files[0]?.file;
