@@ -25,6 +25,7 @@ import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
 
 import { mapApprovedSubmissionsToRecognitions } from "./helpers.js";
+import { Prisma } from "@repo/database";
 
 export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
@@ -44,9 +45,6 @@ export const getOrganizationRecognitionsService = async (
   }
 
   const yearFilter = year ? parseInt(year, 10) : undefined;
-  const submissionTypeFilter = submissionTypes?.length
-    ? { in: submissionTypes }
-    : undefined;
 
   const includeCarbonInventories =
     !submissionTypes?.length ||
@@ -56,6 +54,19 @@ export const getOrganizationRecognitionsService = async (
   const result: GetOrganizationRecognitionsResponse = [];
 
   if (includeCarbonInventories) {
+    const carbonInventoryTypes = [
+      SubmissionType.CARBON_INVENTORY_CALCULATION,
+      SubmissionType.CARBON_INVENTORY_VERIFICATION,
+    ] as const;
+
+    const carbonInventorySubmissionTypes = submissionTypes
+      ? carbonInventoryTypes.filter((t) => submissionTypes.includes(t))
+      : [...carbonInventoryTypes];
+
+    const carbonInventorySubmissionTypeFilter: Prisma.SubmissionWhereInput = {
+      type: { in: carbonInventorySubmissionTypes },
+    };
+
     const inventories = await prismaClient.carbonInventory.findMany({
       where: {
         organizationId: BigInt(organizationId),
@@ -71,7 +82,7 @@ export const getOrganizationRecognitionsService = async (
                     SubmissionStatus.APPROVED_AUTOMATICALLY,
                   ],
                 },
-                ...(submissionTypeFilter && { type: submissionTypeFilter }),
+                ...carbonInventorySubmissionTypeFilter,
               },
             },
           },
@@ -91,7 +102,7 @@ export const getOrganizationRecognitionsService = async (
                         SubmissionStatus.APPROVED_AUTOMATICALLY,
                       ],
                     },
-                    ...(submissionTypeFilter && { type: submissionTypeFilter }),
+                    ...carbonInventorySubmissionTypeFilter,
                   },
                   select: {
                     id: true,
