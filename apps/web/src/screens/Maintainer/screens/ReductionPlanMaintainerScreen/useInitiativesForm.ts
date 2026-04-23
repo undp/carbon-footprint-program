@@ -75,6 +75,7 @@ export const useInitiativesForm = () => {
   const fieldArray = useFieldArray({
     control: form.control,
     name: "initiatives",
+    keyName: "_id",
   });
 
   const handleCellChange = useCallback(
