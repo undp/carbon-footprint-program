@@ -10,7 +10,8 @@ import {
   Stack,
   Alert,
 } from "@mui/material";
-import { WarningAmberOutlined } from "@mui/icons-material";
+import { WarningAmberOutlined, ArrowForwardRounded } from "@mui/icons-material";
+
 import type { BadgeDTO } from "@repo/types";
 import { BadgePreviewMini } from "./BadgePreviewMini";
 
@@ -45,7 +46,16 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
   const incoming = mode === "activate" ? props.incoming : null;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      slotProps={{
+        paper: {
+          sx: { maxWidth: "fit-content" },
+        },
+      }}
+      open={open}
+      onClose={onClose}
+      fullWidth
+    >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <WarningAmberOutlined color="warning" />
         {mode === "activate" ? "Reemplazar sello activo" : "Desactivar sello"}
@@ -69,7 +79,7 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
                   fontSize: 24,
                 }}
               >
-                →
+                <ArrowForwardRounded />
               </Box>
               <BadgePreviewMini
                 badge={incoming}
