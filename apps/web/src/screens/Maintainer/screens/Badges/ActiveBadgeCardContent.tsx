@@ -17,6 +17,8 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
       display: "flex",
       flexDirection: "column",
       flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
     }}
   >
     <BadgePreview src={active.previewUrl} alt={active.fileName} />
