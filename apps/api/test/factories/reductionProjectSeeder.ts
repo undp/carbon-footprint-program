@@ -81,6 +81,7 @@ export async function setupReductionProjectPrerequisites(
     usageMode: "SIMPLIFIED",
     status: InventoryStatus.ACTIVE,
     methodologyVersionId,
+    year: 2024,
   });
 
   // 5. Create APPROVED verification submission for carbon inventory
