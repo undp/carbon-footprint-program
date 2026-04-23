@@ -67,6 +67,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
       try {
         const result = await upload(file, type);
         setNewlyUploadedId(result.badge.id);
+        (document.activeElement as HTMLElement | null)?.blur();
         setHistoryOpen(true);
       } catch (err) {
         const message =
@@ -88,6 +89,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
   const handleActivateClick = useCallback(
     (badge: BadgeDTO) => {
       if (active) {
+        (document.activeElement as HTMLElement | null)?.blur();
         setDialogState({ mode: "activate", incoming: badge, outgoing: active });
       } else {
         activate.mutate(badge.id, { onSuccess: () => setHistoryOpen(false) });
@@ -96,11 +98,15 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
     [active, activate]
   );
 
-  const handleDeactivateClick = useCallback(() => {
-    if (active) {
-      setDialogState({ mode: "deactivate", outgoing: active });
-    }
-  }, [active]);
+  const handleDeactivateClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (active) {
+        event.currentTarget.blur();
+        setDialogState({ mode: "deactivate", outgoing: active });
+      }
+    },
+    [active]
+  );
 
   const handleDialogClose = useCallback(() => {
     setDialogState(null);
@@ -199,7 +205,10 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
               sx={{ mr: "auto" }}
               size="small"
               startIcon={<HistoryOutlined />}
-              onClick={() => setHistoryOpen(true)}
+              onClick={(event) => {
+                event.currentTarget.blur();
+                setHistoryOpen(true);
+              }}
               disabled={history.length === 0}
             >
               Ver historial ({history.length})
