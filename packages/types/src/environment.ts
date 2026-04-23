@@ -1,4 +1,7 @@
-const NODE_ENV = process.env.NODE_ENV ?? "production";
+const getEnv = (key: string): string | undefined =>
+  typeof process !== "undefined" ? process.env[key] : undefined;
+
+const NODE_ENV = getEnv("NODE_ENV") ?? "production";
 
 export const IS_DEVELOPMENT = NODE_ENV === "development";
 
@@ -8,4 +11,4 @@ export const IS_DEVELOPMENT = NODE_ENV === "development";
  * Set LOCAL_BYPASS_REQUIRED_FIELDS=true in your .envrc to enable.
  */
 export const LOCAL_BYPASS_REQUIRED_FIELDS =
-  process.env.LOCAL_BYPASS_REQUIRED_FIELDS === "true";
+  getEnv("LOCAL_BYPASS_REQUIRED_FIELDS") === "true";
