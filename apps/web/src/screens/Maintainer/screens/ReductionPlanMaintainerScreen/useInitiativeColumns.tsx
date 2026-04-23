@@ -164,7 +164,7 @@ export const useInitiativeColumns = ({
     () => [
       {
         field: "title",
-        headerName: "Título",
+        headerName: "Nombre",
         flex: 0.3,
         minWidth: 180,
         renderCell: (params: GridRenderCellParams<InitiativeFormRow>) => {
