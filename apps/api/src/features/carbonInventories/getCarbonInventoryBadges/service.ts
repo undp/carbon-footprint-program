@@ -3,6 +3,7 @@ import {
   GetCarbonInventoryBadgesResponse,
   SubmissionStatus,
   BadgeType,
+  ReductionProjectStatus,
 } from "@repo/types";
 import { sortBy } from "lodash-es";
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -78,11 +79,77 @@ export const getCarbonInventoryBadgesService = async (
 
   if (!carbonInventory) return [];
 
-  const badges = carbonInventory.submission?.subject.submissions
-    .map((s) => s.badge)
-    .filter((b) => b !== null);
+  const reductionProjects = await prismaClient.reductionProject.findMany({
+    where: {
+      carbonInventoryId: BigInt(id),
+      status: ReductionProjectStatus.ACTIVE,
+      submission: {
+        subject: {
+          submissions: {
+            some: {
+              status: {
+                in: [
+                  SubmissionStatus.APPROVED,
+                  SubmissionStatus.APPROVED_AUTOMATICALLY,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+    select: {
+      submission: {
+        select: {
+          subject: {
+            select: {
+              submissions: {
+                where: {
+                  status: {
+                    in: [
+                      SubmissionStatus.APPROVED,
+                      SubmissionStatus.APPROVED_AUTOMATICALLY,
+                    ],
+                  },
+                },
+                select: {
+                  badge: {
+                    select: {
+                      type: true,
+                      file: {
+                        select: {
+                          blobPath: true,
+                          mimeType: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 
-  if (!badges || badges.length === 0) return [];
+  const inventoryBadges =
+    carbonInventory.submission?.subject.submissions
+      .map((s) => s.badge)
+      .filter((b) => b !== null) ?? [];
+
+  const reductionBadges = reductionProjects.flatMap(
+    (p) =>
+      p.submission?.subject.submissions
+        .map((s) => s.badge)
+        .filter((b) => b !== null) ?? []
+  );
+
+  const badges = [...inventoryBadges, ...reductionBadges].filter(
+    (b) => b.type !== BadgeType.ORGANIZATION_ACCREDITATION
+  );
+
+  if (badges.length === 0) return [];
 
   const sortedBadged = sortBy(badges, ({ type }) => BADGE_SORT_ORDER[type]);
 

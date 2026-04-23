@@ -14,7 +14,7 @@ CREATE TABLE "reduction_projects" (
     "considered_gei" TEXT[],
     "reported_elsewhere" BOOLEAN NOT NULL DEFAULT false,
     "reported_elsewhere_description" TEXT,
-    "year" INTEGER,
+    "year" INTEGER NOT NULL,
     "baseline_scenario" DECIMAL(15,4) NOT NULL,
     "project_scenario" DECIMAL(15,4) NOT NULL,
     "status" "reduction_project_status" NOT NULL DEFAULT 'ACTIVE',

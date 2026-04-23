@@ -101,7 +101,6 @@ export const ReductionProjectsScreen: FC = () => {
             (p) => String(p.organizationId) === selectedOrganizationId
           );
     return [...new Set(filtered.map((p) => p.year))]
-      .filter((year): year is number => year !== null)
       .sort((a, b) => b - a)
       .map(String);
   }, [minimalProjects, selectedOrganizationId]);

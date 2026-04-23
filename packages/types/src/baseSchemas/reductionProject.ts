@@ -35,11 +35,7 @@ export const ReductionProjectBaseSchema = z
       .max(REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH)
       .nullable()
       .describe("Details when reported elsewhere"),
-    year: z
-      .number()
-      .int()
-      .nullable()
-      .describe("Reporting year for scenario metrics"),
+    year: z.number().int().describe("Reporting year for scenario metrics"),
     baselineScenario: z.number().describe("Baseline scenario emissions"),
     projectScenario: z.number().describe("Project scenario emissions"),
     status: z

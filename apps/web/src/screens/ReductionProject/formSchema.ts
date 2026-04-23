@@ -66,9 +66,14 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           message: "Debe aceptar la declaración jurada para continuar",
         });
       }
-      if (
+      if (data.year === "") {
+        ctx.addIssue({
+          code: "custom",
+          path: ["year"],
+          message: "El año es requerido",
+        });
+      } else if (
         data.implementationDate &&
-        data.year !== "" &&
         new Date(data.implementationDate).getFullYear() > data.year
       ) {
         ctx.addIssue({

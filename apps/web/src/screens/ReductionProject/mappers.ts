@@ -17,7 +17,7 @@ export const mapProjectToFormValues = (
   consideredGei: project.consideredGei,
   reportedElsewhere: project.reportedElsewhere,
   reportedElsewhereDescription: project.reportedElsewhereDescription ?? "",
-  year: project.year ?? "",
+  year: project.year,
   baselineScenario: project.baselineScenario.toString(),
   projectScenario: project.projectScenario.toString(),
   files: [],
@@ -41,7 +41,7 @@ export const mapFormValuesToMutationData = (
     reportedElsewhereDescription: values.reportedElsewhere
       ? values.reportedElsewhereDescription
       : null,
-    year: values.year !== "" ? values.year : null,
+    year: Number(values.year),
     baselineScenario: Number(values.baselineScenario),
     projectScenario: Number(values.projectScenario),
     fileUuids,
