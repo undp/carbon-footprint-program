@@ -17,21 +17,27 @@ export const badgeConfirmUploadHandler = async (
   const { badgeType } = request.params;
   const { uuid, originalName } = request.body;
 
-  const blobStorage = request.server.blobStorage;
-  if (!blobStorage) {
+  const { blobStorage, blobServiceClient, storageContainerName } =
+    request.server;
+  if (!blobStorage || !blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
   }
 
   log.info({ uuid, badgeType }, "Confirming badge upload...");
 
-  // TODO: Once a badge maintainer role is implemented, pass request.currentUser.id
-  // to the service so createdById is populated for auditing.
   const prisma = request.server.prisma;
-  const result = await badgeConfirmUploadService(prisma, blobStorage, {
-    badgeType,
-    uuid,
-    originalName,
-  });
+  const result = await badgeConfirmUploadService(
+    prisma,
+    blobStorage,
+    blobServiceClient,
+    storageContainerName,
+    {
+      badgeType,
+      uuid,
+      originalName,
+      userId: request.currentUser?.id.toString(),
+    }
+  );
 
   log.info({ uuid, badgeType }, "Badge upload confirmed");
   return reply.status(201).send(result);

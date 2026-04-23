@@ -1,0 +1,34 @@
+import { BadgeType } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
+
+export const BADGE_TYPE_LABELS: Record<BadgeType, string> = {
+  [BadgeType.ORGANIZATION_ACCREDITATION]: `Reconocimiento de ${VOCAB.inscription.noun.singular}`,
+  [BadgeType.CARBON_INVENTORY_CALCULATION]: "Reconocimiento de medición",
+  [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Reconocimiento de verificación",
+  [BadgeType.REDUCTION_PROJECT_VERIFICATION]: "Reconocimiento de reducción",
+  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]:
+    "Reconocimiento de neutralización",
+};
+
+type BadgeUploadErrorCode = "BADGE_UPLOAD_VALIDATION_ERROR";
+
+export const BADGE_UPLOAD_ERROR_MESSAGES: Record<BadgeUploadErrorCode, string> =
+  {
+    BADGE_UPLOAD_VALIDATION_ERROR:
+      "Archivo inválido (tipo o tamaño no permitido)",
+  };
+
+/** MIME types accepted by the badge upload input */
+export const BADGE_UPLOAD_ACCEPTED_MIME_TYPES = [
+  "image/png",
+  "image/svg+xml",
+  "image/jpeg",
+  "image/webp",
+] as const;
+
+/** `accept` attribute string for the badge <input type="file" /> */
+export const BADGE_UPLOAD_ACCEPT_ATTRIBUTE =
+  BADGE_UPLOAD_ACCEPTED_MIME_TYPES.join(",");
+
+/** Human-readable list of allowed badge file extensions (for UI copy) */
+export const BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL = "PNG, SVG, JPG o WebP";

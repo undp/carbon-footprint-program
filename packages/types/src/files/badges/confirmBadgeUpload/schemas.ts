@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { BadgeTypeSchema, FileBaseSchema } from "../../../baseSchemas/index.js";
+import { BadgeTypeSchema } from "../../../baseSchemas/index.js";
+import { BadgeDTOSchema } from "../../../badges/listBadges/schemas.js";
 
 export const ConfirmBadgeUploadParamsSchema = z.object({
   badgeType: BadgeTypeSchema.describe("The type of the badge"),
@@ -20,4 +21,6 @@ export const ConfirmBadgeUploadBodySchema = z.object({
     .describe("The original file name"),
 });
 
-export const ConfirmBadgeUploadResponseSchema = FileBaseSchema;
+export const ConfirmBadgeUploadResponseSchema = z.object({
+  badge: BadgeDTOSchema.describe("The newly created badge (INACTIVE)"),
+});

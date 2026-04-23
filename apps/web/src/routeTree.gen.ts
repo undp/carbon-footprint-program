@@ -37,6 +37,7 @@ import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emissio
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
 import { Route as AppReductionProjectsIndexRouteImport } from './routes/app/reduction-projects/index'
 import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
@@ -189,6 +190,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBadgesRoute = AdminBadgesRouteImport.update({
+  id: '/badges',
+  path: '/badges',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppReductionProjectsIndexRoute =
   AppReductionProjectsIndexRouteImport.update({
     id: '/',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/capinaut': typeof CapinautRoute
   '/carbon-inventory': typeof CarbonInventoryRouteWithChildren
   '/transparency': typeof TransparencyRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/capinaut': typeof CapinautRoute
   '/carbon-inventory': typeof CarbonInventoryRouteWithChildren
   '/transparency': typeof TransparencyRoute
+  '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/carbon-inventory'
     | '/transparency'
+    | '/admin/badges'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/dimensions'
@@ -421,6 +431,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/capinaut'
     | '/transparency'
+    | '/admin/badges'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/dimensions'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/carbon-inventory'
     | '/transparency'
+    | '/admin/badges'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/dimensions'
@@ -703,6 +715,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/badges': {
+      id: '/admin/badges'
+      path: '/badges'
+      fullPath: '/admin/badges'
+      preLoaderRoute: typeof AdminBadgesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/reduction-projects/': {
       id: '/app/reduction-projects/'
       path: '/'
@@ -784,6 +803,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminBadgesRoute: typeof AdminBadgesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDimensionsRoute: typeof AdminDimensionsRoute
@@ -800,6 +820,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBadgesRoute: AdminBadgesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDimensionsRoute: AdminDimensionsRoute,

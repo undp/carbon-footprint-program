@@ -9,3 +9,14 @@ export const EMISSION_FACTOR_GAS_DETAILS_TOLERANCE = 1e-4;
 
 /** Default expiry time in minutes for SAS URLs (read & write) */
 export const SAS_URL_EXPIRY_MINUTES = 15;
+
+/** Allowed MIME types for badge uploads */
+export const BADGE_ALLOWED_MIME_TYPES = [
+  "image/png",
+  "image/svg+xml",
+  "image/jpeg",
+  "image/webp",
+] as const;
+
+/** Maximum badge file size in bytes (5 MB) */
+export const BADGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
