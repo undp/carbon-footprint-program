@@ -2,6 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import {
   type GetSubcategoryRecommendationsResponse,
   SubcategoryRecommendationModeEnum,
+  SubcategoryRecommendationStatus,
   SystemParameterKeyEnum,
 } from "@repo/types";
 import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
@@ -45,10 +46,12 @@ export const getSubcategoryRecommendationsService = async (
     {
       where: isSpecific
         ? {
+            status: SubcategoryRecommendationStatus.ACTIVE,
             sectorId: BigInt(sectorId),
             subsectorId: subsectorId ? BigInt(subsectorId) : null,
           }
         : {
+            status: SubcategoryRecommendationStatus.ACTIVE,
             sectorId: BigInt(sectorId),
             OR: [
               { subsectorId: subsectorId ? BigInt(subsectorId) : null },
