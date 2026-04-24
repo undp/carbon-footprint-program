@@ -26,9 +26,12 @@ The `Explanation` database model SHALL include `name String` (NOT NULL) and `des
 #### Scenario: User back-relation
 
 - **WHEN** the `User` model is inspected
-- **THEN** it has no back-relation named `explanation_created_by`
+- **THEN** it has no back-relation named `explanation_created_by` (the `explanationsCreated` field tied to `@relation("explanation_created_by")` is removed)
+- **AND** it retains the `explanationsUpdated` back-relation tied to `@relation("explanation_updated_by")`, matching the `Explanation.updater` relation that is kept
 
 ### Requirement: Standalone catalog seed is idempotent and content-preserving
+
+The create branch MUST set `name`, `description`, and `content: ""`. The `updatedById` field MUST be left as null during seeding, as seeds are not user-initiated operations. The update branch MUST refresh `name` and `description` only; it MUST NOT overwrite `content` or `updatedById`.
 
 Seeding SHALL upsert one row per `EXPLANATION_CATALOG` entry keyed by `slug`. The create branch MUST set `name`, `description`, and `content: ""`. The update branch MUST refresh `name` and `description` only; it MUST NOT overwrite `content`.
 
