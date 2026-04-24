@@ -18,6 +18,7 @@ import {
 import {
   type GetSubcategoryRecommendationsResponse,
   SubcategoryRecommendationModeEnum,
+  SubcategoryRecommendationStatus,
   SystemParameterKeyEnum,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -404,6 +405,111 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
         response.body
       ) as GetSubcategoryRecommendationsResponse;
       expect(body).toHaveLength(0);
+    });
+  });
+
+  describe("DELETED rows excluded", () => {
+    it("should exclude DELETED rows in SPECIFIC mode", async () => {
+      await prisma.systemParameter.update({
+        where: { key: SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE },
+        data: { value: SubcategoryRecommendationModeEnum.SPECIFIC },
+      });
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData,
+        {
+          organizationData: {
+            name: "Test Corp",
+            sectorId: sectorId.toString(),
+            subsectorId: subsectorId.toString(),
+            sizeId: null,
+            mainActivityId: null,
+            mainActivityQuantity: null,
+          },
+        }
+      );
+
+      // Active row for the matching tuple
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId,
+          sectorId,
+          subsectorId,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+      });
+
+      // Deleted row for the matching tuple
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: otherSubcategoryId,
+          sectorId,
+          subsectorId,
+          status: SubcategoryRecommendationStatus.DELETED,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/subcategory-recommendations`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetSubcategoryRecommendationsResponse;
+      expect(body).toContain(subcategoryId.toString());
+      expect(body).not.toContain(otherSubcategoryId.toString());
+    });
+
+    it("should exclude DELETED rows in UNION mode", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData,
+        {
+          organizationData: {
+            name: "Test Corp",
+            sectorId: sectorId.toString(),
+            subsectorId: subsectorId.toString(),
+            sizeId: null,
+            mainActivityId: null,
+            mainActivityQuantity: null,
+          },
+        }
+      );
+
+      // Active row
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId,
+          sectorId,
+          subsectorId: null,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+      });
+
+      // Deleted row (should NOT appear)
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: otherSubcategoryId,
+          sectorId,
+          subsectorId: null,
+          status: SubcategoryRecommendationStatus.DELETED,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/subcategory-recommendations`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetSubcategoryRecommendationsResponse;
+      expect(body).toContain(subcategoryId.toString());
+      expect(body).not.toContain(otherSubcategoryId.toString());
     });
   });
 
