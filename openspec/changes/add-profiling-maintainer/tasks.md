@@ -1,134 +1,224 @@
-## 1. Pre-flight
+> Rule: **no DB queries in any task**. Every task MUST be satisfied by reading code, editing files, or running the project's scripted commands (format / lint / type-check / test / build). Do not run `psql`, `prisma db execute`, or any `SELECT …` statement as part of a task.
 
-- [ ] 1.1 Grep current call sites to inventory what must change: `rg 'ADMIN_ITEMS|Routes\.ADMIN_MAIN_ACTIVITIES|country_sector\b|CountrySector\b|country_subsector\b|CountrySubsector\b' apps/ packages/`. Save a baseline for later audit. Confirm `Routes.ADMIN_ITEMS` has a single consumer (the sidebar) before deletion — if any other site references it, resolve before proceeding.
-- [ ] 1.2 Verify the singleton-country assumption: run `SELECT COUNT(*) FROM country;` against a representative shared env → confirm `1`. If any deployment reports >1, stop and revisit the `country.findFirst()` decision in design.md.
-- [ ] 1.3 Confirm no audit log / row-level policy depends on "only SUPERADMIN writes to `organization_main_activity`"; `rg 'organization_main_activity|OrganizationMainActivity' apps/api/src/` and inspect all write paths. Relaxing to `[ADMIN, SUPERADMIN]` is only safe if no such policy exists.
-- [ ] 1.4 Confirm no consumer of `getApiErrorMessage` depends on the current mapping for P2002 on `country_sector`/`country_subsector` unique violations (there should be none today — admin CRUD does not exist yet).
+## 1. Pre-flight (code-level only)
+
+- [ ] 1.1 Grep the call sites that must change: `rg 'ADMIN_ITEMS|UnderConstructionScreen|country_sector\b|CountrySector\b|country_subsector\b|CountrySubsector\b|OrganizationMainActivity|organization_main_activity|CountryOrganizationSize|country_organization_size' apps/ packages/`. Save the output for later audit.
+- [ ] 1.2 Confirm `Routes.ADMIN_ITEMS` has a single consumer (the sidebar). If any other site references it, resolve before proceeding.
+- [ ] 1.3 Confirm that the `main-activities` route's current component is `UnderConstructionScreen` and that no other screen imports `UnderConstructionScreen` in a way that would regress when we swap the main-activities component.
+- [ ] 1.4 Confirm that `getApiErrorMessage` currently has no mapping for `country_sector`/`country_subsector`/`organization_main_activity`/`country_organization_size` P2002 violations (there should be none today — admin CRUD does not exist yet).
+- [ ] 1.5 List the front selector consumers that will need the union helper (pre-identified — verify they still exist):
+  - `apps/web/src/screens/MyOrganization/components/OrganizationForm/hooks/useOrganizationForm.ts`
+  - `apps/web/src/screens/MyOrganization/components/OrganizationForm/OrganizationFormDialog.tsx`
+  - `apps/web/src/screens/MyOrganization/components/OrganizationProfileSection.tsx`
+  - `apps/web/src/screens/CarbonInventory/BusinessProfilingScreen.tsx`
+  - `apps/web/src/screens/CarbonInventory/hooks/useBusinessProfilingData.ts`
 
 ## 2. Database — schema + migration
 
-- [ ] 2.1 Edit `packages/database/src/prisma/schema.prisma`: add `description String?` to `CountrySector` (place after `name`).
-- [ ] 2.2 Edit the same file: add `description String?` to `CountrySubsector` (place after `name`).
-- [ ] 2.3 Generate a new migration directory `packages/database/src/prisma/migrations/<timestamp>_add_description_to_country_sector_and_subsector/migration.sql` with `ALTER TABLE country_sector ADD COLUMN description TEXT;` and `ALTER TABLE country_subsector ADD COLUMN description TEXT;`. Both columns NULL-able, no default.
-- [ ] 2.4 Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
-- [ ] 2.5 Run `pnpm --filter database db:seed` against a local DB to confirm seed still succeeds (no seed change required; existing seeds set `description` implicitly null).
-- [ ] 2.6 Sanity-check: `SELECT description FROM country_sector LIMIT 5;` → all null. Same for `country_subsector`.
+- [ ] 2.1 Edit `packages/database/src/prisma/schema.prisma`: declare four dedicated enums — `enum CountrySectorStatus { ACTIVE DELETED }`, `enum CountrySubsectorStatus { ACTIVE DELETED }`, `enum OrganizationMainActivityStatus { ACTIVE DELETED }`, `enum CountryOrganizationSizeStatus { ACTIVE DELETED }`. No shared `MaintainerRecordStatus` enum.
+- [ ] 2.2 Add to `CountrySector`: `status CountrySectorStatus @default(ACTIVE)` and `description String?`. REMOVE the `@@unique([countryId, name])` attribute (to be replaced by the partial index in SQL).
+- [ ] 2.3 Add to `CountrySubsector`: `status CountrySubsectorStatus @default(ACTIVE)` and `description String?`. REMOVE the `@@unique([countrySectorId, name])` attribute.
+- [ ] 2.4 Add to `OrganizationMainActivity`: `status OrganizationMainActivityStatus @default(ACTIVE)` and `description String?`. REMOVE the existing `@@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")` attribute.
+- [ ] 2.5 Add to `CountryOrganizationSize`: `status CountryOrganizationSizeStatus @default(ACTIVE)`, `description String?`, `createdById BigInt? @map("created_by_id")`, `updatedById BigInt? @map("updated_by_id")`, `creator User? @relation("country_organization_size_created_by", …)`, `updater User? @relation("country_organization_size_updated_by", …)`. REMOVE the `@@unique([countryId, name])` attribute. Add matching back-relations on `User`.
+- [ ] 2.6 Generate a new migration `packages/database/src/prisma/migrations/<timestamp>_add_soft_delete_to_profiling_catalogs/migration.sql`. Contents (in order):
+  - Create the four enums:
+    - `CREATE TYPE "CountrySectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
+    - `CREATE TYPE "CountrySubsectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
+    - `CREATE TYPE "OrganizationMainActivityStatus" AS ENUM ('ACTIVE', 'DELETED');`
+    - `CREATE TYPE "CountryOrganizationSizeStatus" AS ENUM ('ACTIVE', 'DELETED');`
+  - `ALTER TABLE country_sector ADD COLUMN description TEXT, ADD COLUMN status "CountrySectorStatus" NOT NULL DEFAULT 'ACTIVE';`
+  - `ALTER TABLE country_subsector ADD COLUMN description TEXT, ADD COLUMN status "CountrySubsectorStatus" NOT NULL DEFAULT 'ACTIVE';`
+  - `ALTER TABLE organization_main_activity ADD COLUMN description TEXT, ADD COLUMN status "OrganizationMainActivityStatus" NOT NULL DEFAULT 'ACTIVE';`
+  - `ALTER TABLE country_organization_size ADD COLUMN description TEXT, ADD COLUMN status "CountryOrganizationSizeStatus" NOT NULL DEFAULT 'ACTIVE', ADD COLUMN created_by_id BIGINT, ADD COLUMN updated_by_id BIGINT;`
+  - Add FK constraints on `country_organization_size.created_by_id` and `.updated_by_id` referencing `user.id`.
+  - Drop existing full unique indexes on the four tables (`country_sector_country_id_name_key`, `country_subsector_country_sector_id_name_key`, `organization_main_activity_name_country_sector_id_country_s_key`, `country_organization_size_country_id_name_key` — verify exact names in the repo's prior migrations before writing the DROP statements).
+  - Create the partial unique indexes:
+    - `CREATE UNIQUE INDEX country_sector_country_id_name_active_key ON country_sector (country_id, name) WHERE status = 'ACTIVE';`
+    - `CREATE UNIQUE INDEX country_subsector_country_sector_id_name_active_key ON country_subsector (country_sector_id, name) WHERE status = 'ACTIVE';`
+    - `CREATE UNIQUE INDEX organization_main_activity_unique_active_key ON organization_main_activity (name, country_sector_id, country_subsector_id) WHERE status = 'ACTIVE';`
+    - `CREATE UNIQUE INDEX country_organization_size_country_id_name_active_key ON country_organization_size (country_id, name) WHERE status = 'ACTIVE';`
+  - Include an inline `-- NOTE: Partial unique indexes. Prisma will not track these on future schema diffs. Preserve them manually when touching these tables.` comment at the top of the indexes section.
+- [ ] 2.7 Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
+- [ ] 2.8 Run `pnpm --filter database db:seed` against a local DB to confirm the seed still succeeds.
 
-## 3. Shared types — Zod schemas
+## 3. Shared types — base schemas
 
-- [ ] 3.1 `packages/types/src/baseSchemas/countrySector.ts`: add `description: z.string().nullable().describe("CountrySector.description")` to `CountrySectorBaseSchema`. Include `createdAt`, `updatedAt`, `createdById`, `updatedById` on an extended admin schema, not the base.
-- [ ] 3.2 `packages/types/src/baseSchemas/countrySubsector.ts`: mirror 3.1.
-- [ ] 3.3 Create `packages/types/src/countrySectors/admin/` tree:
-  - [ ] 3.3a `createCountrySector/schemas.ts` + `types.ts`: input `{ name: z.string().trim().min(1).max(255); description: z.string().trim().max(2000).nullable().optional() }` (trim BEFORE min/max so whitespace-only names fail validation). Response shape: admin sector (`id`, `name`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`).
-  - [ ] 3.3b `updateCountrySector/schemas.ts` + `types.ts`: `params: { id }`; `body`: each of `name` / `description` optional BUT the body MUST be refined with `.refine(v => Object.keys(v).length > 0, { message: "Se requiere al menos un campo para actualizar" })` so empty-object PATCH returns 400. Response: admin sector shape.
-  - [ ] 3.3c `deleteCountrySector/schemas.ts` + `types.ts`: `params: { id }`; no response body. Wire the route with `response: { 204: z.null() }` (or equivalent empty-response shape) — do NOT mirror `deleteCategory` which returns 200 with `{ message, id }`.
-  - [ ] 3.3d `getAllCountrySectors/schemas.ts` + `types.ts` (admin variant): response is an array of the admin sector shape WITH nested admin-subsector summary.
-  - [ ] 3.3e `index.ts` at each level re-exporting.
-- [ ] 3.4 Create `packages/types/src/countrySubsectors/admin/` tree mirroring 3.3 (create/update/delete/getAll). Create endpoint requires `countrySectorId`.
-- [ ] 3.5 Update `packages/types/src/index.ts` to re-export the new admin trees.
-- [ ] 3.6 Run `pnpm type-check`; resolve any downstream compile hits (should be zero — existing app schema was not edited).
+- [ ] 3.1 `packages/types/src/baseSchemas/countrySector.ts`: extend `CountrySectorBaseSchema` with `status: z.nativeEnum(CountrySectorStatus)` and `description: z.string().nullable()`. Use the per-table enum imported from `@prisma/client` (or re-exported from `packages/database`).
+- [ ] 3.2 Mirror for `countrySubsector.ts` (`CountrySubsectorStatus`), `organizationMainActivity.ts` (`OrganizationMainActivityStatus`), `countryOrganizationSize.ts` (`CountryOrganizationSizeStatus`). For `organizationMainActivity` and `countryOrganizationSize`, ensure the base schema also exposes auditor ids for the admin variant (but not the public one).
+- [ ] 3.3 Re-export the four Prisma-generated enums (`CountrySectorStatus`, `CountrySubsectorStatus`, `OrganizationMainActivityStatus`, `CountryOrganizationSizeStatus`) from `packages/types/src/baseSchemas/` so frontend and API consumers import them from `@repo/types` without reaching into `@prisma/client` directly. Do NOT introduce a shared alias type across the four.
 
-## 4. API — countrySectors admin endpoints
+## 4. Shared types — admin schemas (per domain)
 
-- [ ] 4.1 `apps/api/src/features/countrySectors/admin/createCountrySector/route.ts`: `POST /admin/country-sectors`, `requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])`, schema wired to Zod, uses `ApiErrorResponseSchema` for 400/409/500.
-- [ ] 4.2 `apps/api/src/features/countrySectors/admin/createCountrySector/handler.ts` + `service.ts`: resolve `countryId` via `country.findFirst({ orderBy: { id: "asc" } })` (throw `NoCountryFoundError` if missing); normalize empty-string `description` → `null` (tri-state: `undefined` → omit from insert / DB default null; `null` → explicit null; `""` → null); persist; catch P2002 → `DatabaseUniqueConstraintViolationError` (HTTP 409) with Spanish `userMessage`. Stamp `createdById` from `request.currentUser`.
-- [ ] 4.3 `apps/api/src/features/countrySectors/admin/updateCountrySector/` (route/handler/service): same auth; wrap in `prisma.$transaction` (read existing → apply partial update). Apply PATCH tri-state: `description: undefined` → field omitted from Prisma update data; `description: null` → set to null; `description: ""` → normalize to null. Catch P2002 (HTTP 409). Stamp `updatedById`.
-- [ ] 4.4 `apps/api/src/features/countrySectors/admin/deleteCountrySector/` (route/handler/service): same auth; wrap reference-check + delete in `prisma.$transaction`; before deleting, count `CountrySubsector.countrySectorId`, `OrganizationMainActivity.countrySectorId`, `OrganizationData.sectorId`, `SubcategoryRecommendation.sectorId` referencing the id in parallel (`Promise.all`). If any count > 0, throw `DataIntegrityError` (HTTP 500 per `apps/api/src/errors/DataIntegrityError.ts`) with Spanish `userMessage` listing the blocking reference types. NOTE: READ COMMITTED isolation means the transaction does not fully prevent TOCTOU; the FK constraint is the final guardrail (surfacing as a P2003 Prisma error) — do not claim TOCTOU-proof in comments.
-- [ ] 4.5 `apps/api/src/features/countrySectors/admin/getAllCountrySectors/` (route/handler/service): same auth; return admin shape including `description`, auditor ids, and nested `subsectors` with their admin fields. Sort by `name` ASC, subsectors by `name` ASC.
-- [ ] 4.6 Register the four new routes under `apps/api/src/routes/api/admin/country-sectors/index.ts` following the `routes/api/admin/organizations/index.ts` pattern (`fastify.addHook("onRequest", fastify.requireAuth); fastify.addHook("preHandler", fastify.requireRoles([SUPERADMIN, ADMIN]));` then register the four route functions).
-- [ ] 4.7 Ensure the existing public `apps/api/src/features/countrySectors/getAllCountrySectors` is untouched and still registered at its current mount point.
+For each of the four domains, create a `packages/types/src/<domain>/admin/` tree with these subdirectories:
 
-## 5. API — countrySubsectors admin endpoints
+- [ ] 4.1 `create<Domain>/schemas.ts` + `types.ts`: input `{ name: z.string().trim().min(1).max(255), description: z.string().trim().max(2000).nullable().optional() }` plus any domain-specific fields (`countrySectorId` on subsector/main activity, `countrySubsectorId` on main activity). Response: admin record shape including `status`, `description`, auditors, and (for list) `isInUse`.
+- [ ] 4.2 `update<Domain>/schemas.ts` + `types.ts`: `params: { id }`; `body`: all fields optional BUT refined with `.refine(v => Object.keys(v).length > 0, { message: "Se requiere al menos un campo para actualizar" })`. Response: admin record shape.
+- [ ] 4.3 `delete<Domain>/schemas.ts` + `types.ts`: `params: { id }`. Response: admin record shape (the updated, DELETED row — NOT 204).
+- [ ] 4.4 `restore<Domain>/schemas.ts` + `types.ts`: `params: { id }`. No body. Response: admin record shape (the updated, ACTIVE row).
+- [ ] 4.5 `getAll<Domain>/schemas.ts` + `types.ts` (admin variant): `querystring: { status: z.enum(["active", "deleted", "all"]).optional().default("active") }`. Response: array of admin record shape with `isInUse`.
+- [ ] 4.6 `index.ts` re-exports at each level.
 
-- [ ] 5.1 `apps/api/src/features/countrySubsectors/admin/createCountrySubsector/`: `POST /admin/country-subsectors`, same auth. Require `countrySectorId` in body; validate the parent sector exists inside the transaction — missing parent → throw `ResourceNotFoundError` (HTTP 404); P2002 on `(countrySectorId, name)` → `DatabaseUniqueConstraintViolationError` (HTTP 409) with Spanish message. Apply description tri-state normalization as in 4.2.
-- [ ] 5.2 `apps/api/src/features/countrySubsectors/admin/updateCountrySubsector/`: same auth; PATCH body refined to require ≥1 field (empty body → 400). Allow changing `countrySectorId` (re-parenting); validate new parent exists inside the transaction — missing parent → `ResourceNotFoundError` (HTTP 404). Catch P2002 (HTTP 409). Apply description tri-state normalization as in 4.3.
-- [ ] 5.3 `apps/api/src/features/countrySubsectors/admin/deleteCountrySubsector/`: same auth; wrap reference-check + delete in `prisma.$transaction`; count `OrganizationMainActivity.countrySubsectorId`, `OrganizationData.subsectorId`, `SubcategoryRecommendation.subsectorId` in parallel. Any count > 0 → `DataIntegrityError` (HTTP 500) with Spanish `userMessage`. Same TOCTOU caveat as 4.4.
-- [ ] 5.4 `apps/api/src/features/countrySubsectors/admin/getAllCountrySubsectors/`: same auth; return admin shape including `description`, parent `countrySectorId` + parent name for display. Sort by parent name then subsector name.
-- [ ] 5.5 Register the four new routes under `apps/api/src/routes/api/admin/country-subsectors/index.ts` following the `routes/api/admin/organizations/index.ts` pattern (same `onRequest` / `preHandler` hook wiring as 4.6).
-- [ ] 5.6 Run `pnpm --filter api type-check && pnpm --filter api lint`; resolve.
+Repeat 4.1–4.6 for `countrySectors`, `countrySubsectors`, `organizationMainActivities`, `countryOrganizationSizes`.
 
-## 6. API — integration tests
+- [ ] 4.7 Update `packages/types/src/index.ts` to re-export the new trees.
+- [ ] 4.8 Run `pnpm type-check`; resolve any downstream compile hits.
 
-- [ ] 6.1 `apps/api/test/features/countrySectors/createCountrySector/integration.test.ts`: (a) 201 with full payload, (b) 201 with null description, (c) 400 on empty name, (d) 400 on whitespace-only name (trimmed below min(1)), (e) 409 on duplicate name within same country, (f) 401 for unauthenticated, 403 for USER role, (g) 201 for both ADMIN and SUPERADMIN.
-- [ ] 6.2 `apps/api/test/features/countrySectors/updateCountrySector/integration.test.ts`: (a) 200 partial update of name, (b) 200 partial update of description, (c) 200 clearing description via null, (d) 200 with description: "" normalized to null, (e) 400 on empty body `{}`, (f) 409 when new name collides with another sector, (g) 404 on unknown id.
-- [ ] 6.3 `apps/api/test/features/countrySectors/deleteCountrySector/integration.test.ts`: (a) 204 (no body) on clean row, (b) 500 via `DataIntegrityError` when referenced by a `CountrySubsector`, (c) 500 when referenced by `OrganizationMainActivity.countrySectorId`, (d) 500 when referenced by `OrganizationData.sectorId`, (e) 500 when referenced by `SubcategoryRecommendation.sectorId`, (f) 404 on unknown id. Assert response body's `code === "DATA_INTEGRITY_ERROR"` and a Spanish `userMessage` is present.
-- [ ] 6.4 `apps/api/test/features/countrySectors/getAllCountrySectors/integration.test.ts` (admin variant): (a) returns sectors with description + auditor fields, (b) sorted alphabetically, (c) includes nested subsectors. Distinct from any existing app-side test to avoid cross-pollution.
-- [ ] 6.5–6.8 Mirror 6.1–6.4 for `countrySubsectors`. For delete, block on `OrganizationMainActivity.countrySubsectorId`, `OrganizationData.subsectorId`, `SubcategoryRecommendation.subsectorId` (all 500). For create/update, test parent-sector validation: missing parent on create → 404; re-parenting to missing sector on update → 404; re-parenting into a name collision → 409.
-- [ ] 6.9 Add a smoke test confirming that public `GET /country-sectors` (app endpoint) still returns the expected shape (no `description`), unchanged by this feature.
-- [ ] 6.10 Add factory helpers `apps/api/test/factories/countrySectorFactory.ts` and `countrySubsectorFactory.ts` (they do not exist today) mirroring the conventions of existing factories under `apps/api/test/factories/`. These are required for the tests in 6.1–6.8.
-- [ ] 6.11 Run `pnpm test --filter=api -- /countrySectors --coverage=false` and `/countrySubsectors --coverage=false`; fix failures.
+## 5. API — countrySectors admin endpoints
 
-## 7. Shared maintainer layout — optional scope refactor
+- [ ] 5.1 `apps/api/src/features/countrySectors/admin/createCountrySector/` (route/handler/service): `POST /admin/country-sectors`, `requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])`. Resolve `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`; throw `NoCountryFoundError` if missing. Normalize description tri-state. Catch Prisma P2002 → `DatabaseUniqueConstraintViolationError` with Spanish `userMessage`. Stamp `createdById`.
+- [ ] 5.2 `getAllCountrySectors/` (admin variant, under `admin/`): accept `status` query; when `status=active`, also restrict nested subsectors to `ACTIVE`. Compute `isInUse` per row via Prisma `_count` selects across `organizationData` and `organizationMainActivities`. Sort alphabetically.
+- [ ] 5.3 `updateCountrySector/`: wrap in `prisma.$transaction`. Apply description tri-state. P2002 → 409. Stamp `updatedById`. Do not allow changing `status` via this endpoint.
+- [ ] 5.4 `deleteCountrySector/`: wrap in `prisma.$transaction`. Count ACTIVE references: `countrySubsector`, `organizationMainActivity`, `subcategoryRecommendation`. If any > 0, throw `DataIntegrityError` with Spanish `userMessage` listing the blocking types. Otherwise, update `status: DELETED`. Return the updated row.
+- [ ] 5.5 `restoreCountrySector/`: wrap in `prisma.$transaction`. If the row's current `status` is already `ACTIVE`, throw a 400 error with a Spanish `userMessage`. Check for ACTIVE collision on `(countryId, name)` — if found, throw `DatabaseUniqueConstraintViolationError` (409). Otherwise update `status: ACTIVE`. Return the updated row.
+- [ ] 5.6 Register the five routes under `apps/api/src/routes/api/admin/country-sectors/index.ts` following the `routes/api/admin/organizations/index.ts` pattern.
+- [ ] 5.7 Edit the **public** `apps/api/src/features/countrySectors/getAllCountrySectors/service.ts`: add `where: { status: 'ACTIVE' }` on the top-level query AND on the nested subsector include. Confirm the response shape stays byte-compatible.
 
-- [ ] 7.1 `apps/web/src/screens/Maintainer/components/MaintainerScreenLayout.tsx`: make `scope?: ScopedMethodologyContext`. When undefined, skip `methodologySelector` rendering and treat `isViewOnly` as `false`. Preserve all existing behavior for callers that still pass `scope`.
-- [ ] 7.2 `apps/web/src/screens/Maintainer/hooks/useMaintainerEditingState.ts`: make `methodologyVersionId?: string | null` optional. When undefined, the scope-change reset effect is a no-op.
-- [ ] 7.3 `apps/web/src/screens/Maintainer/hooks/useMaintainerExitEditMode.ts`: make `effectiveMethodologyId`, `methodologies`, `selectMethodology`, `stopEditing` optional. When all undefined, `handleExitEditMode` just cancels the row edit without methodology fan-out.
-- [ ] 7.4 `apps/web/src/screens/Maintainer/hooks/useMaintainerFormSync.ts` uses `methodologyVersionId` in a reset-on-change effect. Widen the prop type from `string | undefined` to keep accepting `undefined` (already the case) — no code change required; profiling maintainers will pass `undefined` and the effect runs once on mount (benign). Confirm behavior with a quick manual test; if the initial reset clobbers server-synced form state, guard the effect with `if (methodologyVersionId === undefined) return;`.
-- [ ] 7.5 Smoke-test existing screens that still pass scope (Categories, Subcategories, Dimensions, EmissionFactors, Methodologies) to confirm no regression: `pnpm --filter web type-check && pnpm --filter web lint`; run affected screens manually in dev.
+## 6. API — countrySubsectors admin endpoints
 
-## 8. Frontend — routes and sidebar
+- [ ] 6.1 Mirror 5.1 for subsectors: require `countrySectorId`; validate inside transaction that the parent sector exists AND is `ACTIVE`. Missing / DELETED parent → `ResourceNotFoundError` (404).
+- [ ] 6.2 Mirror 5.2: admin list with `status` filter and `isInUse` (OR across `organizationData.subsectorId` and `organizationMainActivity.countrySubsectorId`).
+- [ ] 6.3 Mirror 5.3: PATCH may re-parent via `countrySectorId`; validate new parent inside the transaction.
+- [ ] 6.4 Mirror 5.4: soft-delete blocked by ACTIVE `organizationMainActivity.countrySubsectorId` or any `subcategoryRecommendation.subsectorId`.
+- [ ] 6.5 Mirror 5.5: restore with `(countrySectorId, name)` collision check.
+- [ ] 6.6 Mirror 5.6: register the routes under `routes/api/admin/country-subsectors/index.ts`.
 
-- [ ] 8.1 `apps/web/src/interfaces/routes/routes.const.ts`: add `ADMIN_SECTORS: "/admin/sectors"` and `ADMIN_SUBSECTORS: "/admin/subsectors"`. Remove `ADMIN_ITEMS`.
-- [ ] 8.2 Delete `apps/web/src/routes/admin/items.tsx`. Verify via grep that nothing else imports `ADMIN_ITEMS`; the sidebar is the only consumer.
-- [ ] 8.3 Create `apps/web/src/routes/admin/sectors.tsx` with `createFileRoute(Routes.ADMIN_SECTORS)`, `beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })`, `component: SectorsMaintainerScreen`.
-- [ ] 8.4 Create `apps/web/src/routes/admin/subsectors.tsx` mirroring 8.3 with `SubsectorsMaintainerScreen`.
-- [ ] 8.5 Edit `apps/web/src/routes/admin/main-activities.tsx`: widen `requireRole` to `[SystemRole.ADMIN, SystemRole.SUPERADMIN]`. Component stays as `UnderConstructionScreen`.
-- [ ] 8.6 Run TanStack Router codegen (`pnpm --filter web dev` will auto-regenerate `routeTree.gen.ts`, or trigger the codegen script explicitly) and commit the regenerated file.
-- [ ] 8.7 `apps/web/src/screens/Maintainer/layout/MaintainerLayout.tsx`: remove the `Rubros` entry (lines ~66-78). Insert a `Perfilamiento` entry in the same position with:
-  - `text: "Perfilamiento"`, `icon: <BusinessCenterOutlined />`, `path: Routes.ADMIN_SECTORS` (landing destination when clicked on parent), `requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN]`.
-  - Children (in order): `Rubros` (`Routes.ADMIN_SECTORS`, icon `CategoryOutlined`), `Subrubros` (`Routes.ADMIN_SUBSECTORS`, icon `AccountTreeOutlined`), `Actividades Principales` (`Routes.ADMIN_MAIN_ACTIVITIES`, icon `CategoryOutlined`).
-- [ ] 8.8 Add the `BusinessCenterOutlined` import to `MaintainerLayout.tsx`.
-- [ ] 8.9 Run `pnpm --filter web type-check` and `pnpm --filter web lint`; resolve.
+## 7. API — organizationMainActivities admin endpoints
 
-## 9. Frontend — query hooks
+- [ ] 7.1 Mirror 5.1 for main activities: optional `countrySectorId` and `countrySubsectorId`; when provided, validate parents are ACTIVE inside the transaction.
+- [ ] 7.2 Mirror 5.2: admin list with `status` filter; `isInUse` computed as `organizationData.mainActivityId` count > 0; include parent sector/subsector `name` on each row for display.
+- [ ] 7.3 Mirror 5.3: PATCH may re-parent; validate inside transaction.
+- [ ] 7.4 Mirror 5.4: soft-delete never blocked by catalog references.
+- [ ] 7.5 Mirror 5.5: restore with `(name, countrySectorId, countrySubsectorId)` collision check.
+- [ ] 7.6 Register the routes under `routes/api/admin/organization-main-activities/index.ts`.
+- [ ] 7.7 Edit the public main-activity endpoint(s) under `apps/api/src/features/organizationMainActivities/` to filter `status = 'ACTIVE'`.
 
-- [ ] 9.1 Create `apps/web/src/api/query/countrySectors/` with: `keys.ts` (structured key factory with `app` and `admin` namespaces; admin subkeys for `list`), `useAdminCountrySectors.ts` (query), `useCreateCountrySector.ts`, `useUpdateCountrySector.ts`, `useDeleteCountrySector.ts` (all three mutations invalidate `countrySectorsKeys.admin.all` AND `countrySectorsKeys.app.all` on success).
-- [ ] 9.2 Mirror for `apps/web/src/api/query/countrySubsectors/`. Subsector mutations invalidate both admin subsector keys AND admin sector keys (nested list) and the app-side sector key.
-- [ ] 9.3 If the existing org-form hook already uses a `countrySectorsKeys` factory, migrate it to the new `.app` namespace without changing its return shape. Audit via grep: `rg 'useCountrySectors\|country-sectors'\|getAllCountrySectors' apps/web/src/`.
-- [ ] 9.4 `apps/web/src/utils/getApiErrorMessage.ts`: ensure the function prefers the server-supplied `userMessage` when present, and add code-keyed Spanish fallbacks for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` (sector/subsector) and `DATA_INTEGRITY_ERROR` (delete-blocked) as a defense-in-depth fallback in case a future caller forgets to set `userMessage`. Do NOT shadow existing P2002 messages for other domains — key the fallback on error code + context if needed.
+## 8. API — countryOrganizationSizes admin endpoints
 
-## 10. Frontend — Sectors maintainer screen
+- [ ] 8.1 Mirror 5.1 for sizes: resolve `countryId` via singleton; stamp `createdById`.
+- [ ] 8.2 Mirror 5.2: admin list with `status` filter; `isInUse` computed as `organizationData.countryOrganizationSizeId` count > 0.
+- [ ] 8.3 Mirror 5.3: PATCH with tri-state description; stamp `updatedById`.
+- [ ] 8.4 Mirror 5.4: soft-delete never blocked by catalog references.
+- [ ] 8.5 Mirror 5.5: restore with `(countryId, name)` collision check.
+- [ ] 8.6 Register the routes under `routes/api/admin/country-organization-sizes/index.ts`.
+- [ ] 8.7 Edit the public `getAllCountryOrganizationSizes` service to filter `status = 'ACTIVE'`.
 
-- [ ] 10.1 Create `apps/web/src/screens/Maintainer/hooks/useSectorsForm.ts` based on `useSubcategoriesForm.ts`: field array of `{ id, name, description: string | null }`; schema with Spanish messages (name required, trimmed, max 255; description nullable, max 2000).
-- [ ] 10.2 Create `apps/web/src/screens/Maintainer/hooks/useSectorColumns.tsx`: columns for name (inline edit), description (inline edit or modal textarea — choose modal if pattern already exists for long text), actions (start/stop/cancel/delete). Read-only view when `viewOnly=true`.
-- [ ] 10.3 Create `apps/web/src/screens/Maintainer/screens/SectorsMaintainerScreen.tsx` by adapting `SubcategoriesMaintainerScreen.tsx`:
-  - Drop methodology scope / `useMaintainerMethodologyScope`.
-  - Wire `useMaintainerEditingState` and `useMaintainerFormSync` without `methodologyVersionId`.
-  - Use `useAdminCountrySectors` as the server source; `addMutation`, `updateMutation`, `deleteMutation` from step 9.1.
-  - `handleStopEditRow`, `handleCancelEditRow`, `handleAddRow`, `handleDelete` — same structure, sector payload shape.
-  - `MaintainerScreenLayout` called without `scope`; pass `title: "Rubros"`, `addLabel: "Agregar rubro"`.
-  - Snackbar messages in Spanish ("Rubro creado exitosamente", "Cambios guardados satisfactoriamente", "Rubro eliminado", error fallbacks via `getApiErrorMessage`).
-- [ ] 10.4 Export `SectorsMaintainerScreen` from `apps/web/src/screens/Maintainer/screens/index.ts`.
+## 9. API — integration tests
 
-## 11. Frontend — Subsectors maintainer screen
+Create integration tests under `apps/api/test/features/<domain>/<action>/integration.test.ts` covering, for each of the four domains:
 
-- [ ] 11.1 Create `apps/web/src/screens/Maintainer/hooks/useSubsectorsForm.ts`: field array `{ id, countrySectorId, name, description }`. Schema includes `countrySectorId` required.
-- [ ] 11.2 Create `apps/web/src/screens/Maintainer/hooks/useSubsectorColumns.tsx`: columns for parent-rubro dropdown (options from `useAdminCountrySectors`), name, description, actions.
-- [ ] 11.3 Create `apps/web/src/screens/Maintainer/screens/SubsectorsMaintainerScreen.tsx` mirroring the Sectors screen but with the parent-sector dropdown column. Empty-state when no sectors exist: render an empty grid with a helper text "Crea primero un rubro" and disable the add button.
-- [ ] 11.4 Export `SubsectorsMaintainerScreen` from `apps/web/src/screens/Maintainer/screens/index.ts`.
+- [ ] 9.1 Create: valid payload → 201; missing name → 400; whitespace-only name → 400; ACTIVE-collision on unique scope → 409; missing/DELETED parent (where applicable) → 404; USER role → 403.
+- [ ] 9.2 List (admin): default `status=active` returns only ACTIVE; `status=deleted` returns only DELETED; `status=all` returns both; each row carries `isInUse`; invalid `status` value → 400.
+- [ ] 9.3 Update: partial name OK; description tri-state (null, empty string, omitted) handled correctly; empty body → 400; rename into ACTIVE collision → 409; re-parent to missing/DELETED parent → 404.
+- [ ] 9.4 Delete (soft-delete): clean row → 200 and status transitions to `DELETED`; blocked by ACTIVE catalog reference → 500; user-data reference alone does NOT block.
+- [ ] 9.5 Restore: DELETED row with no collision → 200 and status transitions to `ACTIVE`; collision with ACTIVE row → 409; restore on already-ACTIVE row → 400.
+- [ ] 9.6 Public endpoint smoke test (per domain): DELETED rows absent from the response; response shape byte-compatible with the pre-change contract.
+- [ ] 9.7 Add factory helpers where missing: `countrySectorFactory.ts`, `countrySubsectorFactory.ts`, `organizationMainActivityFactory.ts`, `countryOrganizationSizeFactory.ts`. Factories default new rows to `ACTIVE`; expose a `{ status: "DELETED" }` override.
+- [ ] 9.8 Run `pnpm test --filter=api -- /countrySectors --coverage=false && pnpm test --filter=api -- /countrySubsectors --coverage=false && pnpm test --filter=api -- /organizationMainActivities --coverage=false && pnpm test --filter=api -- /countryOrganizationSizes --coverage=false`.
 
-## 12. Frontend — smoke test
+## 10. Frontend — routes and sidebar
 
-- [ ] 12.1 `pnpm format && pnpm lint && pnpm type-check` all green.
-- [ ] 12.2 Run dev server; log in as ADMIN. Confirm:
-  - Sidebar shows "Perfilamiento" with three children (Rubros, Subrubros, Actividades Principales).
-  - Clicking "Rubros" → `/admin/sectors` renders the Sectors maintainer with existing seed data.
-  - Clicking "Subrubros" → `/admin/subsectors` renders the Subsectors maintainer with the parent column populated.
-  - Clicking "Actividades Principales" still renders `UnderConstructionScreen`.
-  - CRUD round-trip on a rubro: create → rename → add a subrubro → try to delete the rubro (should block with Spanish error) → delete the subrubro → delete the rubro (succeeds).
-- [ ] 12.3 Log out, log in as USER. Confirm no admin routes are reachable.
-- [ ] 12.4 Log in as SUPERADMIN. Confirm "Metodologías" branch is still visible and "Perfilamiento" is visible.
-- [ ] 12.5 App-level regression: open an organization-creation form and confirm the rubro dropdown still loads via the public `getAllCountrySectors` endpoint without description fields.
+- [ ] 10.1 `apps/web/src/interfaces/routes/routes.const.ts`: add `ADMIN_SECTORS: "/admin/sectors"`, `ADMIN_SUBSECTORS: "/admin/subsectors"`, `ADMIN_ORGANIZATION_SIZES: "/admin/organization-sizes"`. Remove `ADMIN_ITEMS`.
+- [ ] 10.2 Delete `apps/web/src/routes/admin/items.tsx`.
+- [ ] 10.3 Create `apps/web/src/routes/admin/sectors.tsx`: `createFileRoute(Routes.ADMIN_SECTORS)`, `beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })`, component `SectorsMaintainerScreen`.
+- [ ] 10.4 Create `apps/web/src/routes/admin/subsectors.tsx` mirroring 10.3 with `SubsectorsMaintainerScreen`.
+- [ ] 10.5 Create `apps/web/src/routes/admin/organization-sizes.tsx` mirroring 10.3 with `OrganizationSizesMaintainerScreen`.
+- [ ] 10.6 Edit `apps/web/src/routes/admin/main-activities.tsx`: widen `requireRole` to `[SystemRole.ADMIN, SystemRole.SUPERADMIN]`; replace the `UnderConstructionScreen` component with `MainActivitiesMaintainerScreen`.
+- [ ] 10.7 Run TanStack Router codegen (dev server or explicit codegen script) and commit the regenerated `routeTree.gen.ts`.
+- [ ] 10.8 `apps/web/src/screens/Maintainer/layout/MaintainerLayout.tsx`: remove the existing `Rubros` entry. Insert `Perfilamiento` (icon `BusinessCenterOutlined`, `requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN]`) in the same position, with **four** children in order: `Rubros` (→ `ADMIN_SECTORS`), `Subrubros` (→ `ADMIN_SUBSECTORS`), `Actividades Principales` (→ `ADMIN_MAIN_ACTIVITIES`), `Tamaño de la Organización` (→ `ADMIN_ORGANIZATION_SIZES`).
+- [ ] 10.9 Add the `BusinessCenterOutlined` import.
 
-## 13. Docs
+## 11. Frontend — shared components
 
-- [ ] 13.1 Create `docs/development/maintainers/profiling.md` describing the capability, the two-screen layout, the delete-blocking rules, the auth gate, and the single-country assumption.
-- [ ] 13.2 Cross-link from `docs/` index / README where appropriate.
+- [ ] 11.1 Create `apps/web/src/utils/mergeSelectedOption.ts`: generic helper `<T extends { id: string | number; name: string }>(options: T[], selected: T | null | undefined): T[]` that returns `options` if `selected` is `null`/`undefined` OR if `selected.id` is already present; otherwise `[selected, ...options]` sorted by `name`. Export from `apps/web/src/utils/index.ts`.
+- [ ] 11.2 Create `apps/web/src/screens/Maintainer/components/dialogs/InUseWarningDialog.tsx`: controlled MUI `Dialog` with Spanish copy parameterized by `entityLabel` (e.g., "rubro", "subrubro", "actividad principal", "tamaño"). Props: `open`, `onConfirm`, `onCancel`, `entityLabel`.
+- [ ] 11.3 Create `apps/web/src/screens/Maintainer/components/ProfilingMaintainerScreenLayout.tsx`: wraps `FormProvider` + `MaintainerPageHeader` (passing `extra` for the status filter) + children + `UnsavedChangesDialog` + `InUseWarningDialog`. Props accept the form instance, title, addLabel, statusFilter node, the in-use dialog state, and the blocker result. NOT modifying `MaintainerScreenLayout` or its hooks.
+- [ ] 11.4 Create `apps/web/src/screens/Maintainer/components/MaintainerStatusFilterToggle.tsx`: tri-state toggle (`Activos` / `Eliminados` / `Todos`) rendered as an MUI `ToggleButtonGroup`. Props: `value`, `onChange`.
 
-## 14. Pre-commit checklist
+## 12. Frontend — query hooks (per domain)
 
-- [ ] 14.1 `pnpm format && pnpm lint && pnpm type-check` — all green.
-- [ ] 14.2 Full test suite: `pnpm test --filter=api -- /countrySectors --coverage=false && pnpm test --filter=api -- /countrySubsectors --coverage=false`.
-- [ ] 14.3 Build: `pnpm build`.
-- [ ] 14.4 Grep cleanup: `rg 'ADMIN_ITEMS' apps/ packages/` returns zero hits.
-- [ ] 14.5 Commit in modular chunks per CLAUDE.md (schema + migration, types, API per feature, frontend refactor, frontend screens, docs) with Conventional Commit messages.
+Create or extend `apps/web/src/api/query/<domain>/`:
+
+- [ ] 12.1 `keys.ts`: structured key factory with `.app` and `.admin` namespaces; admin namespace includes `list(status)`.
+- [ ] 12.2 `useAdmin<Domain>.ts`: query hook accepting the `status` filter.
+- [ ] 12.3 `useCreate<Domain>.ts`: mutation invalidating `keys.admin.all` AND `keys.app.all`.
+- [ ] 12.4 `useUpdate<Domain>.ts`: same invalidation as 12.3.
+- [ ] 12.5 `useSoftDelete<Domain>.ts`: same invalidation.
+- [ ] 12.6 `useRestore<Domain>.ts`: same invalidation.
+- [ ] 12.7 Audit existing hook files under each domain (`useCountrySectors.ts`, `useOrganizationMainActivities.ts`, `useCountryOrganizationSizes.ts`) — migrate their existing key factory to the new `.app` namespace without changing the returned data shape.
+- [ ] 12.8 `apps/web/src/utils/getApiErrorMessage.ts`: add Spanish fallbacks for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` (per domain if needed) and `DATA_INTEGRITY_ERROR`. Prefer `userMessage` when present.
+
+Repeat 12.1–12.7 for `countrySectors`, `countrySubsectors`, `organizationMainActivities`, `countryOrganizationSizes`.
+
+## 13. Frontend — Sectors maintainer screen
+
+- [ ] 13.1 Create `apps/web/src/screens/Maintainer/hooks/useSectorsForm.ts`: field array `{ id, name, description: string | null, status, isInUse }`; Zod schema with Spanish messages.
+- [ ] 13.2 Create `apps/web/src/screens/Maintainer/hooks/useSectorColumns.tsx`: columns for `name` (inline-edit, disabled for DELETED rows), `description`, `status` (chip), actions (edit/save/cancel/soft-delete for ACTIVE; restore for DELETED).
+- [ ] 13.3 Create `apps/web/src/screens/Maintainer/screens/SectorsMaintainerScreen.tsx` using `ProfilingMaintainerScreenLayout`. Wire `useAdminCountrySectors(status)`, `useCreate…`, `useUpdate…`, `useSoftDelete…`, `useRestore…`. Pass `MaintainerStatusFilterToggle` into the layout's status-filter slot.
+  - On save of a PATCH, compute which visible fields changed. If `isInUse` is true AND a visible field changed, open `InUseWarningDialog` with `entityLabel="rubro"`; dispatch the mutation only on confirm.
+  - Spanish snackbars: "Rubro creado exitosamente", "Cambios guardados satisfactoriamente", "Rubro eliminado", "Rubro restaurado".
+- [ ] 13.4 Export from `apps/web/src/screens/Maintainer/screens/index.ts`.
+
+## 14. Frontend — Subsectors maintainer screen
+
+- [ ] 14.1 `useSubsectorsForm.ts`: field array `{ id, countrySectorId, name, description, status, isInUse }`.
+- [ ] 14.2 `useSubsectorColumns.tsx`: parent-rubro dropdown (options from admin ACTIVE sectors), `name`, `description`, `status`, actions.
+- [ ] 14.3 `SubsectorsMaintainerScreen.tsx`: mirror 13.3 with `entityLabel="subrubro"`. Visible-field change detection covers both `name` and `countrySectorId`. Empty-state helper "Crea primero un rubro" when the admin ACTIVE sector list is empty; add button disabled.
+- [ ] 14.4 Export.
+
+## 15. Frontend — MainActivities maintainer screen
+
+- [ ] 15.1 `useMainActivitiesForm.ts`: field array `{ id, countrySectorId?, countrySubsectorId?, name, description, status, isInUse }`.
+- [ ] 15.2 `useMainActivityColumns.tsx`: optional parent-rubro dropdown (from admin ACTIVE sectors), optional parent-subrubro dropdown (from admin ACTIVE subsectors filtered by selected rubro), `name`, `description`, `status`, actions.
+- [ ] 15.3 `MainActivitiesMaintainerScreen.tsx`: mirror 13.3 with `entityLabel="actividad principal"`. Visible-field change detection covers `name`, `countrySectorId`, `countrySubsectorId`.
+- [ ] 15.4 Export.
+
+## 16. Frontend — OrganizationSizes maintainer screen
+
+- [ ] 16.1 `useOrganizationSizesForm.ts`: field array `{ id, name, description, status, isInUse }`.
+- [ ] 16.2 `useOrganizationSizeColumns.tsx`: `name`, `description`, `status`, actions.
+- [ ] 16.3 `OrganizationSizesMaintainerScreen.tsx`: mirror 13.3 with `entityLabel="tamaño"`.
+- [ ] 16.4 Export.
+
+## 17. Frontend — apply union helper at selector consumers
+
+For each consumer, import `mergeSelectedOption` and wrap the dropdown options before rendering. Initial-selected value comes from the parent resource's response (`organization.data.sectorId` + `organization.data.sectorName` already available on the current payload — verify shape and extend the API response if a name is missing):
+
+- [ ] 17.1 `apps/web/src/screens/MyOrganization/components/OrganizationForm/hooks/useOrganizationForm.ts` — apply to the four dropdowns.
+- [ ] 17.2 `apps/web/src/screens/MyOrganization/components/OrganizationForm/OrganizationFormDialog.tsx` — verify consumption of the merged options; no direct fetch duplication.
+- [ ] 17.3 `apps/web/src/screens/MyOrganization/components/OrganizationProfileSection.tsx` — apply where selectors are rendered.
+- [ ] 17.4 `apps/web/src/screens/CarbonInventory/BusinessProfilingScreen.tsx` — apply to the four dropdowns.
+- [ ] 17.5 `apps/web/src/screens/CarbonInventory/hooks/useBusinessProfilingData.ts` — apply where the hook exposes the options.
+- [ ] 17.6 Verify that the public responses already include `{ id, name }` for every currently-selected entity. If any parent resource payload omits the name (only the id), extend the API response to include it — this is cheaper than a separate fetch. Do not add a `?includeIds=` parameter on the public list endpoints.
+
+## 18. Frontend — smoke test (no DB queries)
+
+- [ ] 18.1 `pnpm format && pnpm lint && pnpm type-check` — all green.
+- [ ] 18.2 Run the dev server; log in as ADMIN. For each of the four maintainer screens:
+  - Sidebar entry renders under "Perfilamiento".
+  - The screen loads with the default ACTIVE filter.
+  - Create → rename → soft-delete round-trip, verifying Spanish snackbars and grid state transitions.
+  - Toggle to "Eliminados" → verify the DELETED row appears, edit controls are disabled, Restore works.
+  - Rename an in-use row → `InUseWarningDialog` appears; cancel returns to edit; confirm dispatches.
+  - Edit only the `description` of an in-use row → no dialog, PATCH succeeds.
+- [ ] 18.3 As ADMIN, verify soft-delete blocking: soft-delete a sector that has ACTIVE subsectors → Spanish error snackbar; soft-delete a subsector used by `SubcategoryRecommendation` → Spanish error snackbar; soft-delete a main activity or size → always succeeds.
+- [ ] 18.4 Log in as USER → confirm no admin routes reachable.
+- [ ] 18.5 Log in as SUPERADMIN → confirm "Metodologías" is still visible AND "Perfilamiento" is visible.
+- [ ] 18.6 Union regression: pick an organization referencing a catalog entity, soft-delete that entity via the admin maintainer, then reopen the organization form → the dropdown still shows the (now DELETED) entity by name alongside ACTIVE options; the form saves successfully without changing the selection.
+
+## 19. Docs
+
+- [ ] 19.1 Create `docs/development/maintainers/profiling.md`:
+  - Four maintainers, their routes, their screens.
+  - Soft-delete lifecycle and catalog-reference blocking matrix.
+  - Partial unique index rule (and the Prisma blind-spot warning).
+  - `InUseWarningDialog` trigger rules.
+  - `mergeSelectedOption` helper and the list of selector consumers.
+- [ ] 19.2 Cross-link from `docs/` index / README where appropriate.
+
+## 20. Pre-commit checklist
+
+- [ ] 20.1 `pnpm format && pnpm lint && pnpm type-check`.
+- [ ] 20.2 Full API tests for the four domains (from 9.8).
+- [ ] 20.3 Build: `pnpm build`.
+- [ ] 20.4 Grep cleanup: `rg 'ADMIN_ITEMS' apps/ packages/` returns zero; `rg 'UnderConstructionScreen' apps/web/src/routes/admin/` returns zero.
+- [ ] 20.5 Commit in modular chunks per CLAUDE.md (schema + migration, enum + shared types, public endpoint filter, API admin per domain, shared FE components, FE per domain, union consumers, docs) with Conventional Commit messages.
