@@ -41,7 +41,7 @@ The API SHALL expose `GET /subcategory-recommendations`, restricted to users wit
 
 ### Requirement: Admin create endpoint rejects conflicting groups with 409
 
-The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: number, subsectorId: number | null, subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subcategoryIds` array MUST contain at least one id. The service SHALL run inside a single `prisma.$transaction`: it first checks whether any `ACTIVE` row exists for `(sectorId, subsectorId)` and, if so, rejects the request with a `409 Conflict`. Otherwise, it inserts one `ACTIVE` row per submitted `subcategoryId` with `createdById = currentUser.id` and returns the refreshed group. If a concurrent writer commits first and the partial unique ACTIVE index rejects the insert with a Prisma `P2002` unique-constraint violation, the service SHALL translate that violation into the same `409 Conflict` response so the race path and the pre-check path share a single deterministic error surface.
+The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: number, subsectorId: number | null, subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subcategoryIds` array MUST contain at least one id and MUST contain only unique values; duplicates MUST be rejected at the schema layer with `400 Bad Request` before any database access. The service SHALL run inside a single `prisma.$transaction`: it first checks whether any `ACTIVE` row exists for `(sectorId, subsectorId)` and, if so, rejects the request with a `409 Conflict`. Otherwise, it inserts one `ACTIVE` row per submitted `subcategoryId` with `createdById = currentUser.id` and returns the refreshed group. If a concurrent writer commits first and the partial unique ACTIVE index rejects the insert with a Prisma `P2002` unique-constraint violation, the service SHALL translate that violation into the same `409 Conflict` response so the race path and the pre-check path share a single deterministic error surface.
 
 #### Scenario: Successful creation
 
@@ -71,6 +71,11 @@ The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: 
 - **WHEN** an admin calls `POST` with `{ subcategoryIds: [] }`
 - **THEN** the response is `400` (schema validation) and no rows are inserted
 
+#### Scenario: Duplicate subcategoryIds are rejected
+
+- **WHEN** an admin calls `POST` with `{ sectorId: 1, subsectorId: 2, subcategoryIds: [10, 10] }`
+- **THEN** the response is `400` (schema validation rejects duplicates) and no rows are inserted
+
 #### Scenario: Non-admin users are forbidden
 
 - **WHEN** an authenticated user without `ADMIN`/`SUPERADMIN` calls the create endpoint
@@ -78,7 +83,7 @@ The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: 
 
 ### Requirement: Admin update endpoint idempotently bulk-replaces a group
 
-The API SHALL expose `PUT /subcategory-recommendations?sectorId=<number>&subsectorId=<number|null>` with body `{ subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subsectorId` query parameter encodes `null` by **omitting the parameter** or sending it with an **empty value** (`subsectorId=`); both forms MUST be accepted and treated as equivalent. Any non-integer, non-empty value (including the literal string `"null"`) MUST be rejected with `400 Bad Request`. Clients MUST omit `subsectorId` from the URL when the target tuple has a `null` subsector; the empty-value form is accepted only for tolerance. The service SHALL run inside a single `prisma.$transaction` and diff the submitted `subcategoryIds` against the existing `ACTIVE` rows for the given `(sectorId, subsectorId)` tuple: rows present only in the existing set are transitioned to `status = DELETED` with `updatedById = currentUser.id`; rows present only in the submitted set are created with `status = ACTIVE` and `createdById = currentUser.id`. The endpoint SHALL be idempotent — calling it on a tuple with no `ACTIVE` rows SHALL NOT error. No DELETE endpoint is exposed; an empty `subcategoryIds` array is the deletion path.
+The API SHALL expose `PUT /subcategory-recommendations?sectorId=<number>&subsectorId=<number|null>` with body `{ subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subcategoryIds` array MAY be empty (deletion path) but non-empty arrays MUST contain only unique values; duplicates MUST be rejected at the schema layer with `400 Bad Request` before any database access. The `subsectorId` query parameter encodes `null` by **omitting the parameter** or sending it with an **empty value** (`subsectorId=`); both forms MUST be accepted and treated as equivalent. Any non-integer, non-empty value (including the literal string `"null"`) MUST be rejected with `400 Bad Request`. Clients MUST omit `subsectorId` from the URL when the target tuple has a `null` subsector; the empty-value form is accepted only for tolerance. The service SHALL run inside a single `prisma.$transaction` and diff the submitted `subcategoryIds` against the existing `ACTIVE` rows for the given `(sectorId, subsectorId)` tuple: rows present only in the existing set are transitioned to `status = DELETED` with `updatedById = currentUser.id`; rows present only in the submitted set are created with `status = ACTIVE` and `createdById = currentUser.id`. The endpoint SHALL be idempotent — calling it on a tuple with no `ACTIVE` rows SHALL NOT error. No DELETE endpoint is exposed; an empty `subcategoryIds` array is the deletion path.
 
 #### Scenario: Remove-only diff
 
@@ -107,6 +112,11 @@ The API SHALL expose `PUT /subcategory-recommendations?sectorId=<number>&subsect
 
 - **WHEN** an admin calls `PUT` with `{ subcategoryIds: [] }` on a tuple that has no `ACTIVE` rows
 - **THEN** the response is `200` with `subcategoryIds: []` and no database state changes
+
+#### Scenario: Duplicate subcategoryIds are rejected
+
+- **WHEN** an admin calls `PUT` with `{ subcategoryIds: [10, 10] }`
+- **THEN** the response is `400` (schema validation rejects duplicates) and no rows are changed
 
 #### Scenario: Transactional atomicity
 
