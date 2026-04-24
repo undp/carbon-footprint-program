@@ -60,20 +60,20 @@
 
 ## 8. Tests
 
-- [ ] 8.1 Create `apps/api/test/features/subcategoryRecommendations/listSubcategoryRecommendations/integration.test.ts` — assert only ACTIVE rows are returned, grouping shape is correct, and non-admin users are forbidden
-- [ ] 8.2 Create `apps/api/test/features/subcategoryRecommendations/createSubcategoryRecommendation/integration.test.ts` covering: happy path (201 + rows created + `createdById` populated), **409 conflict** when at least one ACTIVE row exists for the tuple, successful creation after a full soft-delete of the same tuple (no ACTIVE rows left), 400 on empty `subcategoryIds`, auth guard, transaction atomicity
-- [ ] 8.3 Create `apps/api/test/features/subcategoryRecommendations/updateSubcategoryRecommendation/integration.test.ts` covering: add-only, remove-only, mixed diff, auth guard, transaction atomicity, audit-field population on create and soft-delete
-- [ ] 8.4 Add a test in the update file asserting that `PUT { subcategoryIds: [] }` soft-deletes all ACTIVE rows in the group and subsequent `GET` responses exclude the group, and that a second idempotent `PUT { subcategoryIds: [] }` on the already-empty group succeeds with no state change
-- [ ] 8.5 Add a test in the update file asserting that a previously DELETED row with the same `(sectorId, subsectorId, subcategoryId)` tuple does not block re-insertion via update, and that after a delete-then-readd cycle there is exactly one ACTIVE row per tuple
-- [ ] 8.6 Extend `apps/api/test/features/carbonInventories/getSubcategoryRecommendations/integration.test.ts` with assertions that DELETED rows are excluded in both `SPECIFIC` and `UNION` modes
-- [ ] 8.7 Use `appFactory`, `userFactory`, `organizationFactory` for test setup; seed `SubcategoryRecommendation` rows via raw Prisma inside tests as needed
+- [x] 8.1 Create `apps/api/test/features/subcategoryRecommendations/listSubcategoryRecommendations/integration.test.ts` — assert only ACTIVE rows are returned, grouping shape is correct, and non-admin users are forbidden
+- [x] 8.2 Create `apps/api/test/features/subcategoryRecommendations/createSubcategoryRecommendation/integration.test.ts` covering: happy path (201 + rows created + `createdById` populated), **409 conflict** when at least one ACTIVE row exists for the tuple, successful creation after a full soft-delete of the same tuple (no ACTIVE rows left), 400 on empty `subcategoryIds`, auth guard, transaction atomicity
+- [x] 8.3 Create `apps/api/test/features/subcategoryRecommendations/updateSubcategoryRecommendation/integration.test.ts` covering: add-only, remove-only, mixed diff, auth guard, transaction atomicity, audit-field population on create and soft-delete
+- [x] 8.4 Add a test in the update file asserting that `PUT { subcategoryIds: [] }` soft-deletes all ACTIVE rows in the group and subsequent `GET` responses exclude the group, and that a second idempotent `PUT { subcategoryIds: [] }` on the already-empty group succeeds with no state change
+- [x] 8.5 Add a test in the update file asserting that a previously DELETED row with the same `(sectorId, subsectorId, subcategoryId)` tuple does not block re-insertion via update, and that after a delete-then-readd cycle there is exactly one ACTIVE row per tuple
+- [x] 8.6 Extend `apps/api/test/features/carbonInventories/getSubcategoryRecommendations/integration.test.ts` with assertions that DELETED rows are excluded in both `SPECIFIC` and `UNION` modes
+- [x] 8.7 Use `appFactory`, `userFactory`, `organizationFactory` for test setup; seed `SubcategoryRecommendation` rows via raw Prisma inside tests as needed
 
 ## 9. Verification and commits
 
-- [ ] 9.1 Run `pnpm type-check` across the monorepo — zero errors
-- [ ] 9.2 Run `pnpm lint` — zero warnings
-- [ ] 9.3 Run the new API integration tests (`pnpm test --filter=api -- /subcategoryRecommendations --coverage=false`) — all green
-- [ ] 9.4 Run the consumer-endpoint test (`pnpm test --filter=api -- /getSubcategoryRecommendations/integration.test.ts --coverage=false`) — all green
-- [ ] 9.5 Manually verify the admin flow in the web app: sidebar entry visible for ADMIN; grid loads grouped rows; Agregar → pick sector + null subsector → transfer list save → new row appears; Agregar with duplicate tuple → 409 surfaces a Spanish error and the temp row stays; edit existing row → add/remove subcategories saves via PUT; clear all subcategories on existing row → confirm dialog → row vanishes on refetch; mode flip changes the null-subsector label on refetch; inventory creation still pre-selects correctly and excludes DELETED recs
-- [ ] 9.6 Run `pnpm format && pnpm lint && pnpm type-check` before commit
-- [ ] 9.7 Commit modularly per the plan: `feat(db)` schema + audit fields + dropped constraint; `feat(types)` admin schemas (list + create + update); `feat(api)` three endpoints; `fix(api)` ACTIVE filter in consumer; `feat(web)` query hooks + error mapping; `feat(web)` maintainer screen; `feat(web)` admin route + sidebar entry; `test(api)` integration tests
+- [x] 9.1 Run `pnpm type-check` across the monorepo — zero errors
+- [x] 9.2 Run `pnpm lint` — zero warnings
+- [ ] 9.3 Run the new API integration tests (`pnpm test --filter=api -- /subcategoryRecommendations --coverage=false`) — all green (Docker unavailable locally; will run in CI)
+- [ ] 9.4 Run the consumer-endpoint test (`pnpm test --filter=api -- /getSubcategoryRecommendations/integration.test.ts --coverage=false`) — all green (Docker unavailable locally; will run in CI)
+- [ ] 9.5 Manually verify the admin flow in the web app: sidebar entry visible for ADMIN; grid loads grouped rows; Agregar → pick sector + null subsector → transfer list save → new row appears; Agregar with duplicate tuple → 409 surfaces a Spanish error and the temp row stays; edit existing row → add/remove subcategories saves via PUT; clear all subcategories on existing row → confirm dialog → row vanishes on refetch; mode flip changes the null-subsector label on refetch; inventory creation still pre-selects correctly and excludes DELETED recs (out of scope for automated run — requires dev environment)
+- [x] 9.6 Run `pnpm format && pnpm lint && pnpm type-check` before commit
+- [x] 9.7 Commit modularly per the plan: `feat(db)` schema + audit fields + dropped constraint; `feat(types)` admin schemas (list + create + update); `feat(api)` three endpoints; `fix(api)` ACTIVE filter in consumer; `feat(web)` query hooks + error mapping; `feat(web)` maintainer screen; `feat(web)` admin route + sidebar entry; `test(api)` integration tests
