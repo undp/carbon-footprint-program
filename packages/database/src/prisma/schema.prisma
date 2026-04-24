@@ -248,6 +248,8 @@ model User {
   categoriesUpdated                    Category[]                     @relation("category_updated_by")
   subcategoriesCreated                 Subcategory[]                  @relation("subcategory_created_by")
   subcategoriesUpdated                 Subcategory[]                  @relation("subcategory_updated_by")
+  subcategoryRecommendationsCreated    SubcategoryRecommendation[]    @relation("subcategory_recommendation_created_by")
+  subcategoryRecommendationsUpdated    SubcategoryRecommendation[]    @relation("subcategory_recommendation_updated_by")
   emissionFactorDimensionsCreated      EmissionFactorDimension[]      @relation("emission_factor_dimension_created_by")
   emissionFactorDimensionsUpdated      EmissionFactorDimension[]      @relation("emission_factor_dimension_updated_by")
   emissionFactorDimensionValuesCreated EmissionFactorDimensionValue[] @relation("emission_factor_dimension_value_created_by")
@@ -456,18 +458,32 @@ model SubcategoryMeasurementUnit {
 }
 
 model SubcategoryRecommendation {
-  id            BigInt            @id @default(autoincrement())
-  subcategoryId BigInt            @map("subcategory_id")
-  sectorId      BigInt            @map("sector_id")
-  subsectorId   BigInt?           @map("subsector_id")
-  createdAt     DateTime          @default(now()) @map("created_at")
-  updatedAt     DateTime?         @updatedAt @map("updated_at")
-  subcategory   Subcategory       @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  sector        CountrySector     @relation(fields: [sectorId], references: [id])
-  subsector     CountrySubsector? @relation(fields: [subsectorId], references: [id])
+  id            BigInt                          @id @default(autoincrement())
+  subcategoryId BigInt                          @map("subcategory_id")
+  sectorId      BigInt                          @map("sector_id")
+  subsectorId   BigInt?                         @map("subsector_id")
+  status        SubcategoryRecommendationStatus @default(ACTIVE)
+  createdAt     DateTime                        @default(now()) @map("created_at")
+  updatedAt     DateTime?                       @updatedAt @map("updated_at")
+  createdById   BigInt?                         @map("created_by_id")
+  updatedById   BigInt?                         @map("updated_by_id")
+  subcategory   Subcategory                     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  sector        CountrySector                   @relation(fields: [sectorId], references: [id])
+  subsector     CountrySubsector?               @relation(fields: [subsectorId], references: [id])
+  creator       User?                           @relation("subcategory_recommendation_created_by", fields: [createdById], references: [id])
+  updater       User?                           @relation("subcategory_recommendation_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([subcategoryId, sectorId, subsectorId])
+  // Partial unique index exists in SQL migration:
+  // ("subcategory_id", "sector_id", "subsector_id") WHERE status = 'ACTIVE'
+
   @@map("subcategory_recommendation")
+}
+
+enum SubcategoryRecommendationStatus {
+  ACTIVE
+  DELETED
+
+  @@map("subcategory_recommendation_status")
 }
 
 model EmissionFactorDimension {
