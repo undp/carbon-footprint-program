@@ -110,7 +110,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   {
     text: "Iniciativas",
     icon: <ListAltOutlined />,
-    path: Routes.ADMIN_REDUCTION_PLAN,
+    path: Routes.ADMIN_REDUCTION_PLAN_INITIATIVES,
     requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
   },
   {

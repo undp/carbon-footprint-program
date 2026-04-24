@@ -1,6 +1,10 @@
 export { EditableTextCell } from "./EditableTextCell";
 export { EditableNumberCell } from "./EditableNumberCell";
 export { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
+export {
+  AutocompleteCell,
+  type AutocompleteCellOption,
+} from "./AutocompleteCell";
 export { MethodologyRegulationCell } from "./MethodologyRegulationCell";
 export { EmissionFactorSourceCell } from "./EmissionFactorSourceCell";
 export { IconPickerCell } from "./IconPickerCell";

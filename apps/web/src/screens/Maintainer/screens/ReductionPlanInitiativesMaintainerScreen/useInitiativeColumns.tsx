@@ -1,129 +1,16 @@
-import { useMemo, useCallback, FC } from "react";
-import { Autocomplete, TextField, Tooltip, Typography } from "@mui/material";
+import { useMemo, useCallback } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useFormContext, useFormState, useWatch } from "react-hook-form";
-import { EditableTextCell } from "../../components/cells";
+import {
+  EditableTextCell,
+  AutocompleteCell,
+  type AutocompleteCellOption,
+} from "../../components/cells";
 import { ActionButtons } from "../../components/ActionButtons";
-import { getNestedError } from "../../components/cells/cellUtils";
 import type { InitiativeFormRow } from "./useInitiativesForm";
-
-interface Option {
-  id: string;
-  name: string;
-}
-
-interface AutocompleteCellProps {
-  rowIndex: number;
-  fieldName: "categoryId" | "subcategoryId";
-  isEditing: boolean;
-  options: Option[];
-  disabled?: boolean;
-  onChange: (value: string) => void;
-  onClick?: () => void;
-  placeholder?: string;
-}
-
-const AutocompleteCell: FC<AutocompleteCellProps> = ({
-  rowIndex,
-  fieldName,
-  isEditing,
-  options,
-  disabled,
-  onChange,
-  onClick,
-  placeholder,
-}) => {
-  const { control } = useFormContext();
-  const value = useWatch({
-    name: `initiatives.${rowIndex}.${fieldName}`,
-  }) as string;
-  const { errors } = useFormState({
-    control,
-    name: `initiatives.${rowIndex}.${fieldName}`,
-  });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    "initiatives",
-    rowIndex,
-    fieldName
-  );
-
-  const selected = options.find((o) => o.id === value) ?? null;
-
-  if (!isEditing) {
-    const label = selected?.name ?? "—";
-    const interactive = Boolean(onClick);
-    return (
-      <Typography
-        onClick={onClick}
-        role={interactive ? "button" : undefined}
-        tabIndex={interactive ? 0 : undefined}
-        onKeyDown={
-          interactive
-            ? (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onClick?.();
-                }
-              }
-            : undefined
-        }
-        sx={{
-          px: 1,
-          py: 0.5,
-          minHeight: "2rem",
-          display: "flex",
-          alignItems: "center",
-          borderRadius: 1,
-          cursor: interactive ? "pointer" : "default",
-          width: "100%",
-          whiteSpace: "normal",
-          wordBreak: "break-word",
-          color: selected ? undefined : "text.secondary",
-          "&:hover": interactive ? { backgroundColor: "grey.100" } : {},
-          "&:focus-visible": interactive
-            ? { outline: "2px solid", outlineColor: "primary.main" }
-            : {},
-        }}
-      >
-        {label}
-      </Typography>
-    );
-  }
-
-  return (
-    <Tooltip title={fieldError?.message ?? ""} arrow placement="top">
-      <Autocomplete<Option, false, false, false>
-        fullWidth
-        size="small"
-        disabled={disabled}
-        options={options}
-        value={selected}
-        getOptionLabel={(option) => option.name}
-        isOptionEqualToValue={(option, v) => option.id === v.id}
-        onChange={(_, newValue) => onChange(newValue?.id ?? "")}
-        sx={{
-          "& .MuiAutocomplete-inputRoot": { py: 0 },
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            placeholder={placeholder}
-            error={!!fieldError}
-            onKeyDown={(e) => e.stopPropagation()}
-            sx={{
-              "& .MuiOutlinedInput-root": { backgroundColor: "white" },
-              minHeight: 0,
-            }}
-          />
-        )}
-      />
-    </Tooltip>
-  );
-};
 
 interface UseInitiativeColumnsParams {
   editingRowId: string | null;
+  newRowId: string | null;
   onCellChange: (
     rowIndex: number,
     field: keyof InitiativeFormRow,
@@ -135,12 +22,13 @@ interface UseInitiativeColumnsParams {
   onDelete: (row: InitiativeFormRow) => void;
   onCategoryChange: (rowIndex: number, categoryId: string) => void;
   rows: InitiativeFormRow[];
-  categories: Option[];
-  subcategories: Array<Option & { categoryId: string }>;
+  categories: AutocompleteCellOption[];
+  subcategories: Array<AutocompleteCellOption & { categoryId: string }>;
 }
 
 export const useInitiativeColumns = ({
   editingRowId,
+  newRowId,
   onCellChange,
   onStartEditRow,
   onStopEditRow,
@@ -181,6 +69,7 @@ export const useInitiativeColumns = ({
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
               truncateLines={2}
+              autoFocus={editing && params.row.id === newRowId}
             />
           );
         },
@@ -189,7 +78,7 @@ export const useInitiativeColumns = ({
         field: "description",
         headerName: "Descripción",
         flex: 0.5,
-        minWidth: 260,
+        minWidth: 250,
         renderCell: (params: GridRenderCellParams<InitiativeFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -204,8 +93,8 @@ export const useInitiativeColumns = ({
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
               multiline
-              maxRows={6}
-              truncateLines={4}
+              maxRows={3}
+              truncateLines={3}
             />
           );
         },
@@ -220,6 +109,7 @@ export const useInitiativeColumns = ({
           const editing = isEditing(params.row.id);
           return (
             <AutocompleteCell
+              formArrayName="initiatives"
               rowIndex={rowIndex}
               fieldName="categoryId"
               isEditing={editing}
@@ -247,6 +137,7 @@ export const useInitiativeColumns = ({
           );
           return (
             <AutocompleteCell
+              formArrayName="initiatives"
               rowIndex={rowIndex}
               fieldName="subcategoryId"
               isEditing={editing}
@@ -304,6 +195,7 @@ export const useInitiativeColumns = ({
       subcategories,
       rows,
       editingRowId,
+      newRowId,
     ]
   );
 };
