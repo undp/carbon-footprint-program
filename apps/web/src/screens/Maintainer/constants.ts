@@ -1,5 +1,22 @@
 import type { SelectOption } from "./types";
 
+// Subcategory recommendations screen labels
+export const SUBCATEGORY_RECOMMENDATIONS_LABELS = {
+  SECTOR: "Sector",
+  SUBSECTOR: "Subsector",
+  ALL_SUBSECTORS: "Todos los subsectores",
+  NO_SUBSECTOR: "Sin subsector especificado",
+  SCREEN_TITLE: "Recomendaciones de Subcategorías",
+  ADD_ROW: "Agregar recomendación",
+  SUBCATEGORIES_COLUMN: "Subcategorías",
+  EDIT_SUBCATEGORIES: "Editar subcategorías",
+  SAVE_ROW: "Guardar",
+  CANCEL_ROW: "Cancelar",
+  DELETE_GROUP_CONFIRM: "¿Eliminar todas las recomendaciones de este grupo?",
+} as const;
+
+export const ALL_SUBSECTORS_VALUE: null = null;
+
 export const NORMATIVA_OPTIONS: SelectOption[] = [
   { label: "GHG Protocol", value: "GHG Protocol" },
   { label: "ISO 14064", value: "ISO 14064" },
