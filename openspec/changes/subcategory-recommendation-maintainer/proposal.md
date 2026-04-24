@@ -6,7 +6,7 @@ This change ships an in-app maintainer so admins can edit recommendations direct
 
 ## What Changes
 
-- Add a `status` field (`ACTIVE`/`DELETED`) and `createdById`/`updatedById` audit columns to `SubcategoryRecommendation`. **BREAKING (internal schema)**: drop the `@@unique([subcategoryId, sectorId, subsectorId])` constraint so DELETED history can accumulate without blocking new inserts of the same tuple. Uniqueness of ACTIVE rows per tuple is enforced by the services inside a transaction.
+- Add a `status` field (`ACTIVE`/`DELETED`) and `createdById`/`updatedById` audit columns to `SubcategoryRecommendation`. **BREAKING (internal schema)**: drop the `@@unique([subcategoryId, sectorId, subsectorId])` constraint so DELETED history can accumulate without blocking new inserts of the same tuple.
 - Expose three admin-only endpoints for managing recommendations:
   - `GET /subcategory-recommendations` — returns ACTIVE rows grouped by `(sectorId, subsectorId)` with the resolved names and selected subcategory IDs.
   - `POST /subcategory-recommendations` with body `{ sectorId, subsectorId: number|null, subcategoryIds: number[] }` — creates a new group. Returns **409** if any ACTIVE row already exists for `(sectorId, subsectorId)`; the admin must edit the existing group instead. Body requires at least one subcategory.
