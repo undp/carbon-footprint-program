@@ -5,6 +5,7 @@
 
 - The GitHub MCP is configured, authenticated, and available.
 - A PR already exists for branch <branch-name>.
+- Docker is running (required by Testcontainers for integration tests).
 
 ### Instructions:
 
