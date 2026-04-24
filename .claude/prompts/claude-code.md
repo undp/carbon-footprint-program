@@ -3,7 +3,7 @@
 
 ### Preconditions:
 
-- The Github MCP is configured, authenticated, and available.
+- The GitHub MCP is configured, authenticated, and available.
 - A PR already exists for branch <branch-name>.
 
 ### Instructions:
