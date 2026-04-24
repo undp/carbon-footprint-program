@@ -48,7 +48,7 @@ The migration file MUST include an inline SQL comment warning that future schema
 
 Every `DELETE /admin/…/:id` endpoint for the four profiling catalogs MUST transition `status` from `ACTIVE` to `DELETED` inside a `prisma.$transaction`. Physical deletion (hard-delete) MUST NOT be exposed on any admin route of these catalogs.
 
-Soft-delete MUST be blocked (respond with `DataIntegrityError`, HTTP `500`) if ANY other _catalog_ record with `status = 'ACTIVE'` still references the target. The blocking matrix is:
+Soft-delete MUST be blocked (respond with `DeleteBlockedByReferencesError`, HTTP `409`) if ANY other _catalog_ record with `status = 'ACTIVE'` still references the target. The blocking matrix is:
 
 | Target                     | Blocked by (ACTIVE only)                                                                                             |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -59,12 +59,12 @@ Soft-delete MUST be blocked (respond with `DataIntegrityError`, HTTP `500`) if A
 
 User-data references (`OrganizationData.sectorId`, `.subsectorId`, `.mainActivityId`, `.countryOrganizationSizeId`) MUST NOT block soft-delete under any circumstance; the selector-union requirement below guarantees user-facing rendering.
 
-The `DataIntegrityError` raised on block MUST carry a Spanish `userMessage` naming the offending reference type(s) so the admin knows what to clear first.
+The `DeleteBlockedByReferencesError` raised on block MUST carry a Spanish `userMessage` naming the offending reference type(s) so the admin knows what to clear first.
 
 #### Scenario: Catalog-reference blocks soft-delete
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one `ACTIVE` row
-- **THEN** the response is `500` with a Spanish `userMessage` and the target row's `status` stays `ACTIVE`
+- **THEN** the response is `409` with a Spanish `userMessage` and the target row's `status` stays `ACTIVE`
 
 #### Scenario: User-data reference does not block soft-delete
 

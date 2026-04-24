@@ -63,7 +63,7 @@ The Categorías / Sub-categorías pair remains the codebase reference for hierar
 
 ### Decision: Catalog-level references block soft-delete; user-data references do not
 
-**Choice:** Soft-delete is blocked (throws `DataIntegrityError`) when another _catalog_ record still references the target in an ACTIVE state. User-data references (everything under `organization_data` and related carbon-inventory-profiling records) do NOT block — they are exactly what soft-delete is designed to tolerate.
+**Choice:** Soft-delete is blocked (throws `DeleteBlockedByReferencesError`, HTTP `409`) when another _catalog_ record still references the target in an ACTIVE state. User-data references (everything under `organization_data` and related carbon-inventory-profiling records) do NOT block — they are exactly what soft-delete is designed to tolerate.
 
 Blocking matrix:
 
@@ -191,7 +191,7 @@ The prior plan left `Actividades Principales` as an `UnderConstructionScreen`; t
 - **Widening `main-activities` auth AND swapping its component at once** is an intentional combined change; reviewers should verify (a) the real component works under ADMIN and SUPERADMIN, (b) no audit log expects SUPERADMIN-only writes to `organization_main_activity`.
 - **Restore collision UX.** If an admin soft-deletes "Industria" and then creates a fresh "Industria", the soft-deleted row cannot be restored without first renaming or soft-deleting the new one. This is inherent to the chosen uniqueness model; the error message must be explicit so the admin knows what to do.
 - **Union-on-front helper is easy to forget.** Every new selector that consumes these catalogs needs the merge call. Document the helper, add a linting convention (e.g., name the dropdown options `mergedSectorOptions`) and surface it in the new maintainers doc.
-- **`DataIntegrityError` remains HTTP 500.** Preserved from the prior ADR — admin-facing error, treated as domain validation on the front via `code === "DATA_INTEGRITY_ERROR"`. If monitoring pages on 5xx, add an allow-list.
+- **Delete-block status is HTTP 409 via a dedicated `DeleteBlockedByReferencesError`.** Blocking a soft-delete because of ACTIVE catalog references is business-rule validation, not a server failure, so it must surface as a 4xx (matches the repo's `DatabaseUniqueConstraintViolationError` precedent at 409). Introduce a new error class rather than repurposing `DataIntegrityError` (which stays at 500 for genuine integrity failures and must not change behavior for other callers). The frontend treats `code === "DELETE_BLOCKED_BY_REFERENCES"` as a domain-validation snackbar.
 - **Dialog accuracy is bounded by `isInUse` freshness.** If two admins are editing simultaneously, one confirms "not in use" based on the list snapshot, and the other has meanwhile referenced the row, the first admin proceeds without warning. Acceptable for a low-frequency admin operation; the confirmation is advisory, not a lock.
 
 ## Migration Plan

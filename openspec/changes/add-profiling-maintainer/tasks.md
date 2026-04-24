@@ -72,10 +72,11 @@ Repeat 4.1–4.6 for `countrySectors`, `countrySubsectors`, `organizationMainAct
 
 ## 5. API — countrySectors admin endpoints
 
+- [ ] 5.0 Create `apps/api/src/errors/DeleteBlockedByReferencesError.ts` (code `DELETE_BLOCKED_BY_REFERENCES`, HTTP 409) and re-export it from `apps/api/src/errors/index.ts`. Follow the existing `DatabaseUniqueConstraintViolationError` shape (`createError` with an interpolatable message template so the Spanish `userMessage` can name the blocking reference type(s)).
 - [ ] 5.1 `apps/api/src/features/countrySectors/admin/createCountrySector/` (route/handler/service): `POST /admin/country-sectors`, `requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])`. Resolve `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`; throw `NoCountryFoundError` if missing. Normalize description tri-state. Catch Prisma P2002 → `DatabaseUniqueConstraintViolationError` with Spanish `userMessage`. Stamp `createdById`.
 - [ ] 5.2 `getAllCountrySectors/` (admin variant, under `admin/`): accept `status` query; when `status=active`, also restrict nested subsectors to `ACTIVE`. Compute `isInUse` per row via Prisma `_count` selects across `organizationData` and `organizationMainActivities`. Sort alphabetically.
 - [ ] 5.3 `updateCountrySector/`: wrap in `prisma.$transaction`. Apply description tri-state. P2002 → 409. Stamp `updatedById`. Do not allow changing `status` via this endpoint.
-- [ ] 5.4 `deleteCountrySector/`: wrap in `prisma.$transaction`. Count ACTIVE references: `countrySubsector`, `organizationMainActivity`, `subcategoryRecommendation`. If any > 0, throw `DataIntegrityError` with Spanish `userMessage` listing the blocking types. Otherwise, update `status: DELETED`. Return the updated row.
+- [ ] 5.4 `deleteCountrySector/`: wrap in `prisma.$transaction`. Count ACTIVE references: `countrySubsector`, `organizationMainActivity`, `subcategoryRecommendation`. If any > 0, throw `DeleteBlockedByReferencesError` (HTTP 409, new error class under `apps/api/src/errors/` with code `DELETE_BLOCKED_BY_REFERENCES`) with Spanish `userMessage` listing the blocking types. Otherwise, update `status: DELETED`. Return the updated row.
 - [ ] 5.5 `restoreCountrySector/`: wrap in `prisma.$transaction`. If the row's current `status` is already `ACTIVE`, throw a 400 error with a Spanish `userMessage`. Check for ACTIVE collision on `(countryId, name)` — if found, throw `DatabaseUniqueConstraintViolationError` (409). Otherwise update `status: ACTIVE`. Return the updated row.
 - [ ] 5.6 Register the five routes under `apps/api/src/routes/api/admin/country-sectors/index.ts` following the `routes/api/admin/organizations/index.ts` pattern.
 - [ ] 5.7 Edit the **public** `apps/api/src/features/countrySectors/getAllCountrySectors/service.ts`: add `where: { status: 'ACTIVE' }` on the top-level query AND on the nested subsector include. Confirm the response shape stays byte-compatible.
@@ -116,7 +117,7 @@ Create integration tests under `apps/api/test/features/<domain>/<action>/integra
 - [ ] 9.1 Create: valid payload → 201; missing name → 400; whitespace-only name → 400; ACTIVE-collision on unique scope → 409; missing/DELETED parent (where applicable) → 404; USER role → 403.
 - [ ] 9.2 List (admin): default `status=active` returns only ACTIVE; `status=deleted` returns only DELETED; `status=all` returns both; each row carries `isInUse`; invalid `status` value → 400.
 - [ ] 9.3 Update: partial name OK; description tri-state (null, empty string, omitted) handled correctly; empty body → 400; rename into ACTIVE collision → 409; re-parent to missing/DELETED parent → 404.
-- [ ] 9.4 Delete (soft-delete): clean row → 200 and status transitions to `DELETED`; blocked by ACTIVE catalog reference → 500; user-data reference alone does NOT block.
+- [ ] 9.4 Delete (soft-delete): clean row → 200 and status transitions to `DELETED`; blocked by ACTIVE catalog reference → 409 with `code === "DELETE_BLOCKED_BY_REFERENCES"`; user-data reference alone does NOT block.
 - [ ] 9.5 Restore: DELETED row with no collision → 200 and status transitions to `ACTIVE`; collision with ACTIVE row → 409; restore on already-ACTIVE row → 400.
 - [ ] 9.6 Public endpoint smoke test (per domain): DELETED rows absent from the response; response shape byte-compatible with the pre-change contract.
 - [ ] 9.7 Add factory helpers where missing: `countrySectorFactory.ts`, `countrySubsectorFactory.ts`, `organizationMainActivityFactory.ts`, `countryOrganizationSizeFactory.ts`. Factories default new rows to `ACTIVE`; expose a `{ status: "DELETED" }` override.
@@ -152,7 +153,7 @@ Create or extend `apps/web/src/api/query/<domain>/`:
 - [ ] 12.5 `useSoftDelete<Domain>.ts`: same invalidation.
 - [ ] 12.6 `useRestore<Domain>.ts`: same invalidation.
 - [ ] 12.7 Audit existing hook files under each domain (`useCountrySectors.ts`, `useOrganizationMainActivities.ts`, `useCountryOrganizationSizes.ts`) — migrate their existing key factory to the new `.app` namespace without changing the returned data shape.
-- [ ] 12.8 `apps/web/src/utils/getApiErrorMessage.ts`: add Spanish fallbacks for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` (per domain if needed) and `DATA_INTEGRITY_ERROR`. Prefer `userMessage` when present.
+- [ ] 12.8 `apps/web/src/utils/getApiErrorMessage.ts`: add Spanish fallbacks for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` (per domain if needed) and `DELETE_BLOCKED_BY_REFERENCES`. Prefer `userMessage` when present.
 
 Repeat 12.1–12.7 for `countrySectors`, `countrySubsectors`, `organizationMainActivities`, `countryOrganizationSizes`.
 
