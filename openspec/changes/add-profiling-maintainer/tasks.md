@@ -92,9 +92,9 @@ Repeat 4.1–4.6 for `countrySectors`, `countrySubsectors`, `organizationMainAct
 
 ## 7. API — organizationMainActivities admin endpoints
 
-- [ ] 7.1 Mirror 5.1 for main activities: optional `countrySectorId` and `countrySubsectorId`; when provided, validate parents are ACTIVE inside the transaction.
+- [ ] 7.1 Mirror 5.1 for main activities: optional `countrySectorId` and `countrySubsectorId`; when provided, validate parents are ACTIVE inside the transaction. When BOTH are provided, also load the subsector inside the same transaction and assert that `subsector.countrySectorId === supplied countrySectorId`; on mismatch, fail the transaction with a 400 error carrying a Spanish `userMessage` (e.g., "El subrubro seleccionado no pertenece al rubro indicado"). Do not persist the row on mismatch.
 - [ ] 7.2 Mirror 5.2: admin list with `status` filter; `isInUse` computed as `organizationData.mainActivityId` count > 0; include parent sector/subsector `name` on each row for display.
-- [ ] 7.3 Mirror 5.3: PATCH may re-parent; validate inside transaction.
+- [ ] 7.3 Mirror 5.3: PATCH may re-parent; validate inside transaction, including the subsector→sector pairing check. Compute the effective `(countrySectorId, countrySubsectorId)` pair by merging the patch with the persisted values, and assert the subsector belongs to the effective sector. On mismatch, fail with 400 and a Spanish `userMessage`; do not persist.
 - [ ] 7.4 Mirror 5.4: soft-delete never blocked by catalog references.
 - [ ] 7.5 Mirror 5.5: restore with `(name, countrySectorId, countrySubsectorId)` collision check.
 - [ ] 7.6 Register the routes under `routes/api/admin/organization-main-activities/index.ts`.
@@ -114,9 +114,9 @@ Repeat 4.1–4.6 for `countrySectors`, `countrySubsectors`, `organizationMainAct
 
 Create integration tests under `apps/api/test/features/<domain>/<action>/integration.test.ts` covering, for each of the four domains:
 
-- [ ] 9.1 Create: valid payload → 201; missing name → 400; whitespace-only name → 400; ACTIVE-collision on unique scope → 409; missing/DELETED parent (where applicable) → 404; USER role → 403.
+- [ ] 9.1 Create: valid payload → 201; missing name → 400; whitespace-only name → 400; ACTIVE-collision on unique scope → 409; missing/DELETED parent (where applicable) → 404; USER role → 403. For main activities specifically, also cover the sector/subsector pairing invariant: when both IDs are provided and the subsector does NOT belong to the sector → 400 with a Spanish `userMessage` and no row persisted.
 - [ ] 9.2 List (admin): default `status=active` returns only ACTIVE; `status=deleted` returns only DELETED; `status=all` returns both; each row carries `isInUse`; invalid `status` value → 400.
-- [ ] 9.3 Update: partial name OK; description tri-state (null, empty string, omitted) handled correctly; empty body → 400; rename into ACTIVE collision → 409; re-parent to missing/DELETED parent → 404.
+- [ ] 9.3 Update: partial name OK; description tri-state (null, empty string, omitted) handled correctly; empty body → 400; rename into ACTIVE collision → 409; re-parent to missing/DELETED parent → 404. For main activities specifically, also cover the sector/subsector pairing invariant on PATCH: (a) re-parent to a `(sectorId, subsectorId)` pair where the subsector does not belong to the sector → 400; (b) PATCH that changes only `countrySectorId` while the persisted `countrySubsectorId` no longer belongs to the new sector → 400; (c) PATCH that changes only `countrySubsectorId` to a subsector under a different sector than the persisted `countrySectorId` → 400. No row persisted on mismatch.
 - [ ] 9.4 Delete (soft-delete): clean row → 200 and status transitions to `DELETED`; blocked by ACTIVE catalog reference → 409 with `code === "DELETE_BLOCKED_BY_REFERENCES"`; user-data reference alone does NOT block.
 - [ ] 9.5 Restore: DELETED row with no collision → 200 and status transitions to `ACTIVE`; collision with ACTIVE row → 409; restore on already-ACTIVE row → 400.
 - [ ] 9.6 Public endpoint smoke test (per domain): DELETED rows absent from the response; response shape byte-compatible with the pre-change contract.
