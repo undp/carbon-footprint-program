@@ -7,7 +7,7 @@ The system SHALL expose a shared, code-declared catalog of explanation slugs fro
 #### Scenario: Initial catalog contents
 
 - **WHEN** the catalog is loaded
-- **THEN** it contains at least the five reduction-project slugs: `reduction_projects_list`, `reduction_project_basis`, `reduction_project_gwp`, `reduction_project_gei_considered`, `reduction_project_reported_elsewhere`, each with a Spanish `name` and `description`
+- **THEN** it contains at least the five reduction-project slugs: `reduction_projects_list`, `reduction_project_basis`, `reduction_project_gwp`, `reduction_project_gei_considered`, `reduction_project_reported_elsewhere`, each with a Spanish `name` (and, for the initial catalog, a Spanish `description`)
 
 #### Scenario: Slug type is a closed union
 
