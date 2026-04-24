@@ -94,25 +94,25 @@ The admin list response SHALL include `countrySectorId` and the parent sector's 
 
 ### Requirement: Soft-delete blocks on ACTIVE catalog references only
 
-`DELETE /admin/country-sectors/:id` MUST throw `DataIntegrityError` (HTTP `500`) if ANY of the following ACTIVE rows reference the sector:
+`DELETE /admin/country-sectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the sector:
 
 - `CountrySubsector.countrySectorId = id` AND `CountrySubsector.status = 'ACTIVE'`
 - `OrganizationMainActivity.countrySectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
 - `SubcategoryRecommendation.sectorId = id`
 
-`DELETE /admin/country-subsectors/:id` MUST throw `DataIntegrityError` if ANY of the following ACTIVE rows reference the subsector:
+`DELETE /admin/country-subsectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the subsector:
 
 - `OrganizationMainActivity.countrySubsectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
 - `SubcategoryRecommendation.subsectorId = id`
 
 User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT block soft-delete. The front-side selector union covers the display of those rows.
 
-Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DataIntegrityError` MUST carry a Spanish `userMessage` naming which reference type(s) block the delete.
+Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DeleteBlockedByReferencesError` MUST carry a Spanish `userMessage` naming which reference type(s) block the delete.
 
 #### Scenario: Sector with ACTIVE subsectors cannot be soft-deleted
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one ACTIVE row
-- **THEN** the response is `500` with a Spanish `userMessage` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
+- **THEN** the response is `409` with a Spanish `userMessage` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
 
 #### Scenario: Sector with only DELETED subsectors can be soft-deleted
 
@@ -127,7 +127,7 @@ Reference checks and the status update MUST occur inside a single `prisma.$trans
 #### Scenario: Subsector referenced by SubcategoryRecommendation blocked
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one `SubcategoryRecommendation.subsectorId`
-- **THEN** the response is `500` and the subsector's `status` stays `ACTIVE`
+- **THEN** the response is `409` and the subsector's `status` stays `ACTIVE`
 
 ### Requirement: Unique-constraint violations surface Spanish error messages
 
@@ -136,7 +136,7 @@ The create, update, and restore endpoints MUST catch Prisma P2002 unique-constra
 - Sector collision → "Ya existe un rubro con ese nombre"
 - Subsector collision → "Ya existe un subrubro con ese nombre para el rubro seleccionado"
 
-The frontend `getApiErrorMessage` MUST prefer the server-supplied `userMessage` and fall back to a code-keyed Spanish string for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` and `DATA_INTEGRITY_ERROR`.
+The frontend `getApiErrorMessage` MUST prefer the server-supplied `userMessage` and fall back to a code-keyed Spanish string for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` and `DELETE_BLOCKED_BY_REFERENCES`.
 
 #### Scenario: Duplicate ACTIVE sector name rejected
 
