@@ -77,7 +77,7 @@ Each of the four admin domains SHALL expose `POST /admin/<domain>/:id/restore` t
 
 Inside the transaction, the service MUST verify that no currently-ACTIVE row collides on the target's unique-scope key. On collision the service MUST throw `DatabaseUniqueConstraintViolationError` (HTTP `409`) with a Spanish `userMessage` instructing the admin to first rename or soft-delete the colliding ACTIVE row.
 
-Restore MUST be a no-op (`400` with a clear message, OR `200` returning the unchanged row — services SHOULD choose one consistent behavior across the four domains) when called on a row whose `status` is already `ACTIVE`.
+Restore MUST reject with `400` and a Spanish `userMessage` when called on a row whose `status` is already `ACTIVE`. All four restore endpoints MUST behave identically; returning `200` on an already-ACTIVE row is NOT permitted.
 
 #### Scenario: Restore success
 
@@ -88,6 +88,11 @@ Restore MUST be a no-op (`400` with a clear message, OR `200` returning the unch
 
 - **WHEN** an ADMIN calls the restore endpoint on a DELETED row whose `name` matches an ACTIVE row in the same unique scope
 - **THEN** the response is `409` with a Spanish `userMessage` and the row stays `DELETED`
+
+#### Scenario: Restore rejected on already-ACTIVE row
+
+- **WHEN** an ADMIN calls the restore endpoint on a row whose `status` is already `ACTIVE`
+- **THEN** the response is `400` with a Spanish `userMessage` and the row is unchanged
 
 ### Requirement: Admin list supports status filter and returns isInUse
 
