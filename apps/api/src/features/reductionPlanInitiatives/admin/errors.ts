@@ -6,8 +6,8 @@ export const ReductionPlanInitiativeNotFoundError = createError(
   404
 );
 
-export const SubcategoryNotFoundForInitiativeError = createError(
-  "SUBCATEGORY_NOT_FOUND_FOR_INITIATIVE",
+export const SubcategoryNotFoundForReductionPlanInitiativeError = createError(
+  "SUBCATEGORY_NOT_FOUND_FOR_REDUCTION_PLAN_INITIATIVE",
   "Subcategory not found (ID: %s)",
   404
 );

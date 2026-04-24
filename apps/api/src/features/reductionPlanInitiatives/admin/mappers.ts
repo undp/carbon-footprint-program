@@ -1,7 +1,7 @@
 import { Prisma } from "@repo/database";
-import type { AdminInitiativeListItem } from "@repo/types";
+import type { AdminReductionPlanInitiativeListItem } from "@repo/types";
 
-export const adminInitiativeInclude = {
+export const adminReductionPlanInitiativeInclude = {
   subcategory: {
     select: {
       id: true,
@@ -11,13 +11,14 @@ export const adminInitiativeInclude = {
   },
 } satisfies Prisma.ReductionPlanInitiativeInclude;
 
-type AdminInitiativeRow = Prisma.ReductionPlanInitiativeGetPayload<{
-  include: typeof adminInitiativeInclude;
-}>;
+type AdminReductionPlanInitiativeRow =
+  Prisma.ReductionPlanInitiativeGetPayload<{
+    include: typeof adminReductionPlanInitiativeInclude;
+  }>;
 
-export const mapInitiativeToListItem = (
-  row: AdminInitiativeRow
-): AdminInitiativeListItem => ({
+export const mapReductionPlanInitiativeToListItem = (
+  row: AdminReductionPlanInitiativeRow
+): AdminReductionPlanInitiativeListItem => ({
   id: row.id.toString(),
   title: row.title,
   description: row.description,

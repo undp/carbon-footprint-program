@@ -1,1 +1,0 @@
-export { ReductionPlanInitiativesMaintainerScreen } from "./ReductionPlanInitiativesMaintainerScreen";

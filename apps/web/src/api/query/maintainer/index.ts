@@ -33,8 +33,8 @@ export {
   useDeleteEmissionFactorDimension,
 } from "./useEmissionFactorDimensions";
 export {
-  useInitiatives,
-  useCreateInitiative,
-  useUpdateInitiative,
-  useDeleteInitiative,
-} from "./useInitiatives";
+  useReductionPlanInitiatives,
+  useAddReductionPlanInitiative,
+  useUpdateReductionPlanInitiative,
+  useDeleteReductionPlanInitiative,
+} from "./useReductionPlanInitiatives";
