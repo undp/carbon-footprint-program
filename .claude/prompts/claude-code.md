@@ -20,7 +20,7 @@
    - If valid and aligned with the spec: make the fix → run format/lint/type-check → commit → push. Then reply with the commit SHA and a summary of the solution.
    - If it contradicts the spec or your reasoning: reply explaining your decision, citing the spec or technical rationale.
 8. After addressing all comments, do a final pass: re-read the spec, run tests, confirm everything is consistent. If tests fail, fix the failures, run format/lint/type-check, commit, and push before proceeding.
-9. Poll the PR for new review comments every 3 minutes (still filtering to comments created after the review-cycle cutoff). Process any new comments using the same rules from step 7, then repeat the final pass from step 8. After 30 minutes with no new comments, reduce polling frequency to every 30 minutes. Stop polling when the PR is approved.
+9. Poll the PR for new review comments every 3 minutes (still filtering to comments created after the review-cycle cutoff). On each poll, first check the PR state — stop polling immediately if the PR is approved, merged, closed, or no longer open (e.g., converted to draft). If the PR is still open, process any new comments using the same rules from step 7, then repeat the final pass from step 8. After 30 minutes with no new comments, reduce polling frequency to every 30 minutes.
 
 ### Tips:
 
