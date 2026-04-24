@@ -2,7 +2,7 @@
 
 ### Requirement: Soft-delete and audit trail on SubcategoryRecommendation
 
-The `SubcategoryRecommendation` model SHALL include a `status` field typed as `SubcategoryRecommendationStatus` (values: `ACTIVE`, `DELETED`) with default `ACTIVE`, together with nullable `createdById` and `updatedById` references to `User`. The composite uniqueness of `(sectorId, subsectorId, subcategoryId)` SHALL NOT be enforced by a database constraint; the admin create and update services are jointly responsible for ensuring at most one `ACTIVE` row exists per `(sectorId, subsectorId, subcategoryId)` tuple under normal admin flow.
+The `SubcategoryRecommendation` model SHALL include a `status` field typed as `SubcategoryRecommendationStatus` (values: `ACTIVE`, `DELETED`) with default `ACTIVE`, together with nullable `createdById` and `updatedById` references to `User`. At most one `ACTIVE` row SHALL exist per `(sectorId, subsectorId, subcategoryId)` tuple; this invariant SHALL be enforced at the database layer by a partial unique index covering only rows where `status = 'ACTIVE'` (declared via raw SQL in the migration, since Prisma's schema DSL does not support partial unique indexes natively). DELETED rows SHALL be excluded from the index and MAY accumulate freely for historical audit.
 
 #### Scenario: New rows default to ACTIVE
 
@@ -41,7 +41,7 @@ The API SHALL expose `GET /subcategory-recommendations`, restricted to users wit
 
 ### Requirement: Admin create endpoint rejects conflicting groups with 409
 
-The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: number, subsectorId: number | null, subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subcategoryIds` array MUST contain at least one id. The service SHALL run inside a single `prisma.$transaction`: it first checks whether any `ACTIVE` row exists for `(sectorId, subsectorId)` and, if so, rejects the request with a `409 Conflict`. Otherwise, it inserts one `ACTIVE` row per submitted `subcategoryId` with `createdById = currentUser.id` and returns the refreshed group.
+The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: number, subsectorId: number | null, subcategoryIds: number[] }`, restricted to `SystemRole.ADMIN` and `SystemRole.SUPERADMIN`. The `subcategoryIds` array MUST contain at least one id. The service SHALL run inside a single `prisma.$transaction`: it first checks whether any `ACTIVE` row exists for `(sectorId, subsectorId)` and, if so, rejects the request with a `409 Conflict`. Otherwise, it inserts one `ACTIVE` row per submitted `subcategoryId` with `createdById = currentUser.id` and returns the refreshed group. If a concurrent writer commits first and the partial unique ACTIVE index rejects the insert with a Prisma `P2002` unique-constraint violation, the service SHALL translate that violation into the same `409 Conflict` response so the race path and the pre-check path share a single deterministic error surface.
 
 #### Scenario: Successful creation
 
@@ -54,6 +54,11 @@ The API SHALL expose `POST /subcategory-recommendations` with body `{ sectorId: 
 - **WHEN** at least one `ACTIVE` row exists for `(sectorId=1, subsectorId=2)`
 - **AND** an admin calls `POST` with the same `(sectorId, subsectorId)` tuple
 - **THEN** the response is `409` with an error code indicating the group already exists, and no rows are inserted
+
+#### Scenario: Concurrent POSTs for the same tuple are serialized by the partial unique index
+
+- **WHEN** two admins call `POST` with the same `(sectorId, subsectorId)` tuple simultaneously and both pass the in-service pre-check before either commits
+- **THEN** the partial unique ACTIVE index accepts exactly one insert; the other insert fails with a Prisma `P2002` unique-constraint violation, which the service translates to a `409 Conflict` response identical to the pre-check path, and the database retains only the winning admin's ACTIVE rows
 
 #### Scenario: Creation after a full soft-delete succeeds
 

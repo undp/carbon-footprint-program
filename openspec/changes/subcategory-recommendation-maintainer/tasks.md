@@ -3,8 +3,8 @@
 - [ ] 1.1 Add enum `SubcategoryRecommendationStatus { ACTIVE, DELETED }` to `packages/database/src/prisma/schema.prisma`
 - [ ] 1.2 Add `status SubcategoryRecommendationStatus @default(ACTIVE)` to the `SubcategoryRecommendation` model
 - [ ] 1.3 Add `createdById BigInt? @map("created_by_id")` and `updatedById BigInt? @map("updated_by_id")` to `SubcategoryRecommendation`, with `creator`/`updater` relations on `User`
-- [ ] 1.4 Drop the `@@unique([subcategoryId, sectorId, subsectorId])` constraint on `SubcategoryRecommendation`
-- [ ] 1.5 Edit the existing migration in place (no incremental migration) per project memory rule
+- [ ] 1.4 Remove the full `@@unique([subcategoryId, sectorId, subsectorId])` constraint on `SubcategoryRecommendation` and replace it with a **partial unique index** scoped to ACTIVE rows via raw SQL in the migration: `CREATE UNIQUE INDEX "subcategory_recommendation_active_unique" ON "subcategory_recommendation" ("subcategory_id", "sector_id", "subsector_id") WHERE "status" = 'ACTIVE';` (Prisma's schema DSL does not support partial unique indexes, so this must be added in the migration SQL directly)
+- [ ] 1.5 Edit the existing migration in place (no incremental migration) per project memory rule — include both the schema changes and the partial unique index DDL in the same migration file
 - [ ] 1.6 Ask user to regenerate the Prisma client and re-run `seedSubcategoryRecommendations.ts` (agent does not run build commands)
 
 ## 2. Shared types package
@@ -20,7 +20,7 @@
 
 - [ ] 3.1 Create feature folder `apps/api/src/features/subcategoryRecommendations/` with `listSubcategoryRecommendations/`, `createSubcategoryRecommendation/`, and `updateSubcategoryRecommendation/` subfolders, each containing `route.ts`, `handler.ts`, and `service.ts`
 - [ ] 3.2 Implement `listSubcategoryRecommendations/service.ts`: fetch `ACTIVE` rows with `include: { sector: true, subsector: true }` scoped to the resolved country's sectors/subsectors, group server-side by `(sectorId, subsectorId)`, and return the shape defined in task 2.2
-- [ ] 3.3 Implement `createSubcategoryRecommendation/service.ts` inside a `prisma.$transaction`: check for any `ACTIVE` row matching `(sectorId, subsectorId)`; if found, throw a conflict error that maps to `409`; otherwise `createMany` one row per submitted `subcategoryId` with `status = ACTIVE` and `createdById`; return the refreshed group
+- [ ] 3.3 Implement `createSubcategoryRecommendation/service.ts` inside a `prisma.$transaction`: check for any `ACTIVE` row matching `(sectorId, subsectorId)`; if found, throw a conflict error that maps to `409`; otherwise `createMany` one row per submitted `subcategoryId` with `status = ACTIVE` and `createdById`; wrap the `createMany` in a `try/catch` that maps Prisma `P2002` unique-constraint violations (raised by the partial unique ACTIVE index under concurrent inserts) into the same 409 conflict error so the race path and the pre-check path share a single error surface; return the refreshed group
 - [ ] 3.4 Implement `updateSubcategoryRecommendation/service.ts` inside a `prisma.$transaction`: read existing `ACTIVE` rows for `(sectorId, subsectorId)`, compute `toRemove` → `updateMany` to `DELETED` with `updatedById`, compute `toAdd` → `createMany` with `status = ACTIVE` and `createdById`; return the refreshed group (empty `subcategoryIds: []` when the submitted array is empty; no error when no ACTIVE rows existed before the call)
 - [ ] 3.5 Create shared helper `apps/api/src/features/subcategoryRecommendations/helpers.ts` with `buildGroupedResponse(rows)` for reuse by list, create, and update
 - [ ] 3.6 Reuse an existing error class from `apps/api/src/errors/` for the create conflict (e.g., `DatabaseUniqueConstraintViolationError` or an equivalent); if nothing fits, add a minimal `ResourceAlreadyExistsError` consistent with the existing error surface rather than a feature-specific class
