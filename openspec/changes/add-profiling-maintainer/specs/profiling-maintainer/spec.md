@@ -1,257 +1,223 @@
 ## ADDED Requirements
 
-### Requirement: Country sectors and subsectors carry an optional description
+### Requirement: Country sectors and subsectors carry status, description, and auditors
 
-Each `CountrySector` and `CountrySubsector` record SHALL carry a nullable `description` text field. The column MUST be backward-compatible (existing rows default to `null`) and MUST round-trip through the admin API unchanged.
+Each `CountrySector` and `CountrySubsector` record SHALL carry:
 
-#### Scenario: Sector created without description
+- `status` — non-nullable, defaulting to `ACTIVE`. Each table uses its own dedicated enum: `country_sector.status: CountrySectorStatus { ACTIVE, DELETED }`; `country_subsector.status: CountrySubsectorStatus { ACTIVE, DELETED }`.
+- `description: String?` — nullable.
 
-- **WHEN** an admin creates a sector without supplying `description`
-- **THEN** the row is persisted with `description = null` and admin read endpoints return `null` for that field
+The `updatedAt` timestamp doubles as the soft-delete timestamp (the `ACTIVE → DELETED` transition updates `updatedAt` via Prisma's `@updatedAt`). A dedicated `deletedAt` column MUST NOT be added.
 
-#### Scenario: Sector description replaced
+Existing `createdById` / `updatedById` auditor columns on both tables remain unchanged.
 
-- **WHEN** an admin updates a sector with a new `description` string
-- **THEN** the column is overwritten and subsequent reads return the new value
+The full-table unique constraints `(countryId, name)` on `CountrySector` and `(countrySectorId, name)` on `CountrySubsector` MUST be replaced by **partial unique indexes** scoped to `status = 'ACTIVE'`, declared via raw SQL in the migration (Prisma does not support partial indexes natively):
 
-#### Scenario: Sector description cleared
+- `country_sector`: `UNIQUE (country_id, name) WHERE status = 'ACTIVE'`
+- `country_subsector`: `UNIQUE (country_sector_id, name) WHERE status = 'ACTIVE'`
 
-- **WHEN** an admin updates a sector passing `description: null`
-- **THEN** the column is set to `null`
+#### Scenario: Sector created with default status
 
-#### Scenario: Subsector description behavior mirrors sector
+- **WHEN** an admin creates a sector
+- **THEN** the row is persisted with `status = 'ACTIVE'` without the client having to supply it
 
-- **WHEN** an admin creates or updates a subsector with or without a `description`
-- **THEN** the behavior matches the corresponding sector scenarios above
+#### Scenario: Two ACTIVE rows cannot share a name within the same country
+
+- **WHEN** two create requests target the same `(countryId, name)` with `status = 'ACTIVE'`
+- **THEN** the second is rejected with `409` via `DatabaseUniqueConstraintViolationError`
+
+#### Scenario: A DELETED row may share a name with an ACTIVE row
+
+- **WHEN** a sector is soft-deleted and a new sector is created with the same `name` in the same country
+- **THEN** both rows coexist, the partial index is not violated, and the ACTIVE row is the one surfaced to consumers
+
+#### Scenario: Subsector storage mirrors sector
+
+- **WHEN** a subsector is created, renamed, soft-deleted, or restored
+- **THEN** the same status, description, partial-index, and auditor semantics apply under the `(countrySectorId, name)` scope
 
 ### Requirement: Admin CRUD endpoints over country sectors
 
-The system SHALL expose the following admin endpoints under `/admin/country-sectors`:
+The system SHALL expose the following admin endpoints under `/admin/country-sectors`, all requiring authentication AND `SystemRole.ADMIN` or `SystemRole.SUPERADMIN`:
 
-- `POST /admin/country-sectors` — create a sector. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000) }`. Response: `201` with the created admin sector record.
-- `PATCH /admin/country-sectors/:id` — partial update. Any of `name`, `description` MAY be provided, but the body MUST contain at least one field; an empty body (`{}`) MUST be rejected with `400`. Response: `200` with the updated admin sector record.
-- `DELETE /admin/country-sectors/:id` — delete. Response: `204` No Content on success (no body).
-- `GET /admin/country-sectors` — list all sectors with admin fields (`description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`) and their nested subsectors. Sorted by sector name ASC, subsectors within each sector sorted by name ASC.
+- `POST /admin/country-sectors` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000) }`. Server resolves `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`. Stamps `createdById` from `request.currentUser`. Response: `201` with the admin sector record.
+- `GET /admin/country-sectors?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `isInUse`) and nested subsectors filtered by the same `status` parameter. Default `status=active`. Sort by sector name ASC, nested subsectors by name ASC.
+- `PATCH /admin/country-sectors/:id` — partial update. Any of `name`, `description` MAY be provided; the body MUST contain at least one field (empty `{}` → `400`). Stamps `updatedById`. Response: `200`.
+- `DELETE /admin/country-sectors/:id` — **soft-delete** (transitions `status: ACTIVE → DELETED`). Subject to the catalog-reference blocking rules below. Response: `200` with the updated record.
+- `POST /admin/country-sectors/:id/restore` — restore (transitions `status: DELETED → ACTIVE`). Rejected `409` via `DatabaseUniqueConstraintViolationError` if the `name` collides with a currently-ACTIVE sector in the same country. Response: `200` with the updated record.
 
-All four endpoints MUST require authentication AND `SystemRole.ADMIN` or `SystemRole.SUPERADMIN` via `requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])`. Unauthenticated requests MUST return `401`; authenticated requests by a user with `SystemRole.USER` MUST return `403`.
+All endpoints MUST return `401` for unauthenticated requests and `403` for `SystemRole.USER`.
 
-The create endpoint MUST resolve the deployment's `countryId` via the singleton pattern `country.findFirst({ orderBy: { id: "asc" } })`. The request MUST NOT accept a `countryId` field.
+The `description` field MUST follow PATCH tri-state semantics: `undefined` leaves the stored value unchanged; `null` clears it; `""` is normalized to `null` at the service layer. The `name` field MUST be validated as `.trim().min(1).max(255)`.
 
-The create and update endpoints MUST stamp `createdById` / `updatedById` from `request.currentUser`.
+The admin list response MUST include a per-row `isInUse: boolean` computed as `OR` across the user-data references (`organization_data.sectorId`) AND catalog references that carry user effect transitively (`organization_main_activity.countrySectorId`). This powers the edit-warning dialog trigger on the frontend.
 
-The `description` field on create and update MUST follow PATCH tri-state semantics: `undefined` (omitted) leaves the stored value unchanged on update; `null` clears the value; an empty string `""` MUST be normalized to `null` at the service layer before persistence. The `name` field MUST be validated as `.trim().min(1).max(255)` so that whitespace-only input is rejected.
+#### Scenario: Admin soft-deletes a sector with no references
 
-#### Scenario: Admin creates a sector
+- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector with no ACTIVE catalog references
+- **THEN** the response is `200`, the row's `status` is `DELETED`, `updatedAt` is refreshed, and the row is no longer returned by `GET` with default `status=active`
 
-- **WHEN** an authenticated ADMIN calls `POST /admin/country-sectors` with `{ name: "Industria", description: "Manufactura y transformación" }`
-- **THEN** a new row is created with `countryId` from the singleton country, `createdById` set to the current user, and the response is `201` with the admin shape
+#### Scenario: Admin restores a sector
 
-#### Scenario: Empty PATCH body rejected
+- **WHEN** an ADMIN calls `POST /admin/country-sectors/:id/restore` on a DELETED sector whose name does not collide with any ACTIVE sector
+- **THEN** the response is `200`, the row's `status` is `ACTIVE`, and the row appears in subsequent `GET` calls with default `status=active`
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-sectors/:id` with an empty body `{}`
-- **THEN** the response is `400` with a Spanish validation message; no row is modified
+#### Scenario: Restore is blocked by name collision
 
-#### Scenario: Whitespace-only name rejected
+- **WHEN** an ADMIN attempts to restore a DELETED sector whose `name` matches an ACTIVE sector in the same country
+- **THEN** the response is `409` with a Spanish `userMessage` instructing to rename or soft-delete the colliding row first
 
-- **WHEN** an ADMIN submits `{ name: "   " }` to create or update
-- **THEN** the response is `400` because the trimmed value fails the `min(1)` check
+#### Scenario: Admin list filter
 
-#### Scenario: Unauthenticated request is rejected
-
-- **WHEN** a request without auth is sent to any of the four admin endpoints
-- **THEN** the response is `401`
-
-#### Scenario: USER role is rejected
-
-- **WHEN** a request authenticated as `SystemRole.USER` is sent to any of the four admin endpoints
-- **THEN** the response is `403`
-
-#### Scenario: Both ADMIN and SUPERADMIN succeed
-
-- **WHEN** an authenticated ADMIN OR SUPERADMIN calls any of the four admin endpoints with valid input
-- **THEN** the request succeeds (no role-level rejection)
+- **WHEN** an ADMIN calls `GET /admin/country-sectors?status=all`
+- **THEN** the response includes both ACTIVE and DELETED sectors, each carrying its current `status`, alphabetically sorted
 
 ### Requirement: Admin CRUD endpoints over country subsectors
 
-The system SHALL expose analogous admin endpoints under `/admin/country-subsectors`: `POST`, `PATCH /:id`, `DELETE /:id`, and `GET`. Authorization, auditor stamping, and description-normalization rules MUST match the sector endpoints.
+The system SHALL expose analogous admin endpoints under `/admin/country-subsectors` (`POST`, `GET`, `PATCH /:id`, `DELETE /:id`, `POST /:id/restore`). Authorization, auditor stamping, description normalization, status filter, and `isInUse` behavior MUST match the sector endpoints.
 
-The create endpoint body MUST require `countrySectorId: string` and SHALL validate that the parent sector exists within the same `prisma.$transaction` as the insert. The update endpoint MAY accept `countrySectorId` for re-parenting; the new parent MUST be validated inside the update transaction.
+The create endpoint body MUST require `countrySectorId: string` and SHALL validate inside `prisma.$transaction` that the parent sector exists AND is `ACTIVE`. A non-existent or DELETED parent MUST result in `404` via `ResourceNotFoundError`. The update endpoint MAY accept `countrySectorId` for re-parenting; the new parent MUST be validated the same way.
 
-The admin list endpoint SHALL return each subsector with `countrySectorId` and the parent sector's `name` for display. Sort order SHALL be parent sector name ASC, then subsector name ASC.
+The admin list response SHALL include `countrySectorId` and the parent sector's `name`. Sort by parent sector name ASC, subsector name ASC.
 
-#### Scenario: Subsector created with valid parent
+`isInUse` for subsector is computed as `OR` across `organization_data.subsectorId` AND `organization_main_activity.countrySubsectorId`.
 
-- **WHEN** an ADMIN calls `POST /admin/country-subsectors` with `{ countrySectorId: "<valid sector id>", name: "Alimentos" }`
-- **THEN** the subsector is persisted and linked to the given sector
+#### Scenario: Subsector creation rejects DELETED parent
 
-#### Scenario: Subsector creation with invalid parent is rejected
+- **WHEN** an ADMIN calls `POST /admin/country-subsectors` with a `countrySectorId` whose sector is DELETED
+- **THEN** the response is `404` and no row is persisted
 
-- **WHEN** an ADMIN calls `POST /admin/country-subsectors` with a `countrySectorId` that does not exist
-- **THEN** the response is `404` (via `ResourceNotFoundError`) with a Spanish error message indicating the parent sector was not found; no row is persisted
+#### Scenario: Subsector re-parenting validated inside transaction
 
-#### Scenario: Subsector re-parented via update
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector
+- **THEN** the subsector's parent is updated atomically alongside the validation
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId`
-- **THEN** the subsector's `countrySectorId` is replaced and subsequent reads reflect the new parent
+### Requirement: Soft-delete blocks on ACTIVE catalog references only
 
-#### Scenario: Subsector re-parented to a non-existent sector
+`DELETE /admin/country-sectors/:id` MUST throw `DataIntegrityError` (HTTP `500`) if ANY of the following ACTIVE rows reference the sector:
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a `countrySectorId` that does not exist
-- **THEN** the response is `404` (via `ResourceNotFoundError`) and the existing row is not modified
+- `CountrySubsector.countrySectorId = id` AND `CountrySubsector.status = 'ACTIVE'`
+- `OrganizationMainActivity.countrySectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
+- `SubcategoryRecommendation.sectorId = id`
+
+`DELETE /admin/country-subsectors/:id` MUST throw `DataIntegrityError` if ANY of the following ACTIVE rows reference the subsector:
+
+- `OrganizationMainActivity.countrySubsectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
+- `SubcategoryRecommendation.subsectorId = id`
+
+User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT block soft-delete. The front-side selector union covers the display of those rows.
+
+Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DataIntegrityError` MUST carry a Spanish `userMessage` naming which reference type(s) block the delete.
+
+#### Scenario: Sector with ACTIVE subsectors cannot be soft-deleted
+
+- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one ACTIVE row
+- **THEN** the response is `500` with a Spanish `userMessage` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
+
+#### Scenario: Sector with only DELETED subsectors can be soft-deleted
+
+- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors are all DELETED
+- **THEN** the response is `200` and the sector transitions to `DELETED`
+
+#### Scenario: Sector referenced only by OrganizationData can be soft-deleted
+
+- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector referenced by `OrganizationData.sectorId` but no ACTIVE catalog row
+- **THEN** the response is `200`, the sector transitions to `DELETED`, and existing `OrganizationData` rows retain their reference
+
+#### Scenario: Subsector referenced by SubcategoryRecommendation blocked
+
+- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one `SubcategoryRecommendation.subsectorId`
+- **THEN** the response is `500` and the subsector's `status` stays `ACTIVE`
 
 ### Requirement: Unique-constraint violations surface Spanish error messages
 
-The create and update endpoints for both sectors and subsectors MUST catch Prisma P2002 unique-constraint errors and translate them into a `DatabaseUniqueConstraintViolationError` carrying a Spanish `userMessage`:
+The create, update, and restore endpoints MUST catch Prisma P2002 unique-constraint errors (triggered by the partial unique index on the `ACTIVE` subset) and translate them into `DatabaseUniqueConstraintViolationError` with a Spanish `userMessage`:
 
-- Sector: `(countryId, name)` collision → "Ya existe un rubro con ese nombre"
-- Subsector: `(countrySectorId, name)` collision → "Ya existe un subrubro con ese nombre para el rubro seleccionado"
+- Sector collision → "Ya existe un rubro con ese nombre"
+- Subsector collision → "Ya existe un subrubro con ese nombre para el rubro seleccionado"
 
-The frontend error-message mapper (`getApiErrorMessage`) MUST prefer the `userMessage` carried on the error response when present, falling back to a code-keyed Spanish string (keyed on the error `code`) so that a missing `userMessage` still renders a Spanish error.
+The frontend `getApiErrorMessage` MUST prefer the server-supplied `userMessage` and fall back to a code-keyed Spanish string for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` and `DATA_INTEGRITY_ERROR`.
 
-#### Scenario: Duplicate sector name rejected
+#### Scenario: Duplicate ACTIVE sector name rejected
 
-- **WHEN** an ADMIN attempts to create a sector with a `name` that already exists in the same country
+- **WHEN** an ADMIN attempts to create a sector with a `name` that matches an existing ACTIVE sector in the same country
 - **THEN** the response is `409` with the Spanish message above and no row is created
 
-#### Scenario: Duplicate subsector within same parent rejected
+#### Scenario: Rename into an ACTIVE collision rejected
 
-- **WHEN** an ADMIN attempts to create a subsector with a `(countrySectorId, name)` that already exists
-- **THEN** the response is `409` with the Spanish message above and no row is created
+- **WHEN** an ADMIN calls `PATCH /admin/country-sectors/:id` renaming a sector to a `name` already used by another ACTIVE sector in the same country
+- **THEN** the response is `409` and the existing row is not modified
 
-#### Scenario: Renaming a sector to collide with another rejected
+### Requirement: Public read endpoint filters to ACTIVE and preserves shape
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-sectors/:id` with a `name` that already belongs to another sector in the same country
-- **THEN** the response is `409` with the same Spanish message as the create-collision case and the existing row is not modified
+The existing app-facing `GET /country-sectors` endpoint MUST filter rows to `status = 'ACTIVE'` at the service layer. Its response shape MUST remain unchanged (`id`, `name`, nested `{ id, name }` subsectors — no `description`, no auditors, no `status`). No `?status` parameter is exposed on the public side.
 
-#### Scenario: Re-parenting a subsector into a name collision rejected
+#### Scenario: Public endpoint hides DELETED sectors
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` under which a subsector with the same `name` already exists
-- **THEN** the response is `409` with the subsector-collision Spanish message and the existing row is not modified
-
-### Requirement: Delete blocks when references exist
-
-`DELETE /admin/country-sectors/:id` MUST refuse deletion and throw `DataIntegrityError` (HTTP `500`, as currently defined in `apps/api/src/errors/DataIntegrityError.ts`) if any of the following rows reference the sector (Prisma field names shown):
-
-- `CountrySubsector.countrySectorId = id`
-- `OrganizationMainActivity.countrySectorId = id`
-- `OrganizationData.sectorId = id`
-- `SubcategoryRecommendation.sectorId = id`
-
-`DELETE /admin/country-subsectors/:id` MUST similarly refuse if any of the following reference the subsector (Prisma field names shown):
-
-- `OrganizationMainActivity.countrySubsectorId = id`
-- `OrganizationData.subsectorId = id`
-- `SubcategoryRecommendation.subsectorId = id`
-
-Reference checks and deletion MUST occur inside a single `prisma.$transaction`. Note: under Postgres default isolation (READ COMMITTED) the transaction is best-effort and a concurrent insert of a dependent row can still race the reference check; the database foreign-key constraint is the final guardrail (a racing FK violation surfaces as a separate Prisma error, not as `DataIntegrityError`). The thrown `DataIntegrityError` MUST include a Spanish `userMessage` that names the blocking reference type(s) so the admin can act.
-
-#### Scenario: Sector with subsectors cannot be deleted
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector with at least one `CountrySubsector`
-- **THEN** the response is `500` with a Spanish `userMessage` explaining subsectors must be removed first, and no row is deleted
-
-#### Scenario: Sector used by organizations cannot be deleted
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector referenced by `OrganizationData.sectorId`
-- **THEN** the response is `500` with a Spanish `userMessage`, and no row is deleted
-
-#### Scenario: Sector with no references is deleted
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector with zero references of any kind
-- **THEN** the row is removed and the response is `204` No Content
-
-#### Scenario: Subsector blocking mirrors sector
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by `OrganizationData.subsectorId`, `OrganizationMainActivity.countrySubsectorId`, or `SubcategoryRecommendation.subsectorId`
-- **THEN** the response is `500` with the corresponding Spanish `userMessage`
-
-### Requirement: Public read endpoint remains unchanged
-
-The existing app-facing `GET /country-sectors` endpoint (consumed by the organization-creation form) MUST remain functionally unchanged. Its response shape MUST NOT include `description`, `createdAt`, `updatedAt`, or auditor identifiers, and it MUST NOT require admin authorization.
-
-#### Scenario: Public endpoint shape preserved
-
-- **WHEN** any client calls the existing public `GET /country-sectors`
-- **THEN** the response contains only the pre-existing fields (`id`, `name`, nested `{ id, name }` subsectors) and omits admin-only fields
+- **WHEN** a client calls the public `GET /country-sectors`
+- **THEN** the response contains only `ACTIVE` sectors and, within each, only `ACTIVE` subsectors; the shape matches the pre-change contract
 
 ### Requirement: Admin sidebar exposes a "Perfilamiento" group
 
 The admin sidebar SHALL replace the existing top-level `Rubros` entry with a `Perfilamiento` entry occupying the same position. The `Perfilamiento` entry SHALL:
 
 - Render with the `BusinessCenterOutlined` MUI icon.
-- Require role `[SystemRole.ADMIN, SystemRole.SUPERADMIN]` (widened from the prior `[SystemRole.SUPERADMIN]` gate on the old `Rubros` group).
-- Contain three children in this order: `Rubros` (→ `/admin/sectors`), `Subrubros` (→ `/admin/subsectors`), `Actividades Principales` (→ `/admin/main-activities`, destination unchanged).
+- Require role `[SystemRole.ADMIN, SystemRole.SUPERADMIN]`.
+- Contain four children in this order: `Rubros` (→ `/admin/sectors`), `Subrubros` (→ `/admin/subsectors`), `Actividades Principales` (→ `/admin/main-activities`), `Tamaño de la Organización` (→ `/admin/organization-sizes`).
 
-The Metodologías group and its children SHALL retain their existing `[SystemRole.SUPERADMIN]` gate; the auth widening applies only to the new Perfilamiento group.
+The Metodologías group and its children SHALL retain their existing `[SystemRole.SUPERADMIN]` gate.
 
-#### Scenario: ADMIN sees Perfilamiento
+#### Scenario: ADMIN sees Perfilamiento with four children
 
 - **WHEN** a user with `SystemRole.ADMIN` loads the admin layout
-- **THEN** the sidebar shows a `Perfilamiento` entry with three children and does NOT show the Metodologías entry
+- **THEN** the sidebar shows a `Perfilamiento` entry with exactly four children in the order above and no Metodologías entry
 
-#### Scenario: SUPERADMIN sees both Metodologías and Perfilamiento
-
-- **WHEN** a user with `SystemRole.SUPERADMIN` loads the admin layout
-- **THEN** the sidebar shows both the Metodologías and Perfilamiento groups
-
-#### Scenario: USER sees neither admin-scoped group
+#### Scenario: USER sees neither group
 
 - **WHEN** a user with `SystemRole.USER` loads the admin layout
-- **THEN** the sidebar shows only entries whose `requiredRoles` they satisfy; Metodologías and Perfilamiento are hidden
+- **THEN** Metodologías and Perfilamiento are hidden
 
 ### Requirement: Admin routes for sectors and subsectors
 
-The system SHALL register `/admin/sectors` and `/admin/subsectors` as TanStack Router file routes. Each route's `beforeLoad` MUST enforce `requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })`. The corresponding route constants `Routes.ADMIN_SECTORS` and `Routes.ADMIN_SUBSECTORS` SHALL be exported from the central route constants file. The obsolete `Routes.ADMIN_ITEMS` constant and its `admin/items.tsx` route file MUST be removed.
-
-The existing `admin/main-activities.tsx` route SHALL have its `beforeLoad` widened from `[SystemRole.SUPERADMIN]` to `[SystemRole.ADMIN, SystemRole.SUPERADMIN]`.
-
-#### Scenario: ADMIN accesses sectors route
-
-- **WHEN** a user with `SystemRole.ADMIN` navigates to `/admin/sectors`
-- **THEN** the Sectors maintainer screen renders
+The system SHALL register `/admin/sectors` and `/admin/subsectors` as TanStack Router file routes. Each route's `beforeLoad` MUST enforce `requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })`. The constants `Routes.ADMIN_SECTORS` and `Routes.ADMIN_SUBSECTORS` SHALL be exported from the central route constants file. The obsolete `Routes.ADMIN_ITEMS` and its `admin/items.tsx` file MUST be removed.
 
 #### Scenario: USER is redirected from sectors route
 
 - **WHEN** a user with `SystemRole.USER` attempts to navigate to `/admin/sectors`
-- **THEN** the router redirects to `Routes.ADMIN_DASHBOARD` per the `beforeLoad` guard
+- **THEN** the router redirects to `Routes.ADMIN_DASHBOARD`
 
-### Requirement: Sectors maintainer screen
+### Requirement: Sectors and Subsectors maintainer screens
 
-The Sectors maintainer screen at `/admin/sectors` SHALL:
+The screens at `/admin/sectors` and `/admin/subsectors` SHALL:
 
-- Render inside the shared `MaintainerScreenLayout` without a methodology scope (title "Rubros", add label "Agregar rubro").
-- Display a `MaintainerDataGrid` with inline-editable rows. Columns MUST include, at minimum, `name` and `description`, plus an actions column with start/stop/cancel/delete controls.
-- Use the admin-side query hooks to fetch the list and run create/update/delete mutations. A successful mutation MUST invalidate both the admin list cache and the public app-side sector cache so that open organization forms see fresh data.
+- Render inside the new `ProfilingMaintainerScreenLayout` (NOT `MaintainerScreenLayout`). The existing `MaintainerScreenLayout` MUST NOT be modified as part of this capability.
+- Display a `MaintainerDataGrid` with inline-editable rows.
+  - Sectors columns: `name`, `description`, row actions (start/stop/cancel/soft-delete OR restore, depending on row status).
+  - Subsectors columns: parent-rubro selector (populated from admin ACTIVE sectors), `name`, `description`, row actions.
+- Surface a tri-state status filter toggle (`Activos` | `Eliminados` | `Todos`) inside `MaintainerPageHeader.extra`, defaulting to `Activos`. The filter value is passed through to the admin list query.
+- Render DELETED rows in a visually distinct style (dimmed / `Chip` "Eliminado") and swap row actions to a single `Restore` button; edit is disabled for DELETED rows.
+- Use the admin-side query hooks to fetch the list and run create / update / soft-delete / restore mutations. Successful mutations MUST invalidate both admin and public-side caches (`countrySectorsKeys.admin.all` AND `countrySectorsKeys.app.all`) so open forms see fresh ACTIVE options.
 - Block navigation while a row is dirty (`useBlocker` against `form.formState.isDirty`).
 - Surface server errors via snackbar using `getApiErrorMessage`.
-- Show Spanish snackbar messages on success: "Rubro creado exitosamente", "Cambios guardados satisfactoriamente", "Rubro eliminado".
+- On save of an edit that changes a **visible** field (`name` for sector; `name` or `countrySectorId` for subsector) on a row whose `isInUse` is `true`, open `InUseWarningDialog` BEFORE dispatching the PATCH. Confirm → PATCH. Cancel → remain in edit mode.
+- Show Spanish snackbar messages on success: "Rubro creado exitosamente", "Cambios guardados satisfactoriamente", "Rubro eliminado", "Rubro restaurado" (and the subrubro equivalents).
 
-#### Scenario: Admin creates a rubro end-to-end
+#### Scenario: Admin restores a soft-deleted rubro
 
-- **WHEN** an ADMIN adds a row, fills `name` + optional `description`, and confirms
-- **THEN** the row is persisted, the grid shows the saved row with its server-assigned id, and a success snackbar appears in Spanish
+- **WHEN** an ADMIN toggles the filter to "Eliminados", clicks Restore on a row, and the restore succeeds
+- **THEN** the row is removed from the DELETED list, a Spanish snackbar "Rubro restaurado" appears, and the row reappears when the filter switches to "Activos"
 
-#### Scenario: Admin deletes a rubro that has subsectors
+#### Scenario: In-use warning on rename
 
-- **WHEN** an ADMIN triggers delete on a rubro that has at least one subsector
-- **THEN** the backend returns `500` via `DataIntegrityError`, the row remains in the grid, and an error snackbar in Spanish (from the error's `userMessage`) explains the blocking condition
+- **WHEN** an ADMIN edits the `name` of a rubro whose admin list row carries `isInUse: true` and confirms
+- **THEN** `InUseWarningDialog` appears; on confirm, the PATCH is dispatched and succeeds; on cancel, the row remains in edit mode with the pending name
 
-### Requirement: Subsectors maintainer screen
+#### Scenario: Description-only edit bypasses the warning
 
-The Subsectors maintainer screen at `/admin/subsectors` SHALL:
+- **WHEN** an ADMIN edits only the `description` of a rubro whose `isInUse` is `true`
+- **THEN** the PATCH is dispatched without `InUseWarningDialog` appearing, and the row is saved
 
-- Render inside the shared `MaintainerScreenLayout` without a methodology scope (title "Subrubros", add label "Agregar subrubro").
-- Display a `MaintainerDataGrid` whose columns include a parent-rubro selector (populated from the admin sector list), `name`, `description`, and actions.
-- Reuse the admin-side subsector query + mutation hooks. Mutations MUST invalidate the subsector admin cache, the sector admin cache (nested subsectors display), and the public app-side sector cache.
-- Show an empty-state message "Crea primero un rubro" and disable the add button when zero sectors exist.
-- Block navigation while a row is dirty and surface errors via snackbar, identically to the Sectors screen.
+#### Scenario: Subsector empty state when no sectors exist
 
-#### Scenario: Admin re-parents a subsector
-
-- **WHEN** an ADMIN changes the parent rubro of a subsector row and confirms
-- **THEN** the row is updated server-side and the grid re-sorts under the new parent on refetch
-
-#### Scenario: Empty state when no rubros exist
-
-- **WHEN** the Subsectors screen loads and the admin sector list is empty
+- **WHEN** the Subsectors screen loads and the admin ACTIVE sector list is empty
 - **THEN** the grid shows the "Crea primero un rubro" helper text and the add button is disabled

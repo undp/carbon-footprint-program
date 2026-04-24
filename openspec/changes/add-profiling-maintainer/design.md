@@ -1,164 +1,207 @@
 ## Context
 
-`country_sector` and `country_subsector` are the backbone of organization profiling: every organization's `OrganizationData` references a sector (rubro) and optionally a subsector (subrubro), and `OrganizationMainActivity` rows hang off both. Today the catalog is managed exclusively via seed files and SQL — there is one read-only endpoint (`GET /country-sectors`) that populates the org-creation form, but no admin surface to create, rename, or retire rows without a redeploy. For a country-agnostic platform meant to be operated by each country's own team, this is an operational bottleneck.
+The four profiling catalogs — `country_sector`, `country_subsector`, `organization_main_activity`, `country_organization_size` — are the backbone of organization profiling: every `OrganizationData` record references them, every carbon inventory profiling screen depends on them, and they drive downstream artifacts like `SubcategoryRecommendation`. Today they are managed exclusively by seed files and SQL; the admin sidebar reserves a "Rubros" branch whose single child ("Actividades Principales") is an `UnderConstructionScreen`. For a country-agnostic platform, the absence of an admin UI is an operational bottleneck.
 
-The admin sidebar already reserves a "Rubros" branch with a single `Under Construction` child ("Actividades Principales"). That placeholder is inert and visible only to SUPERADMIN. The path forward is to fold it into a new, higher-level "Perfilamiento" group, open to `[ADMIN, SUPERADMIN]`, that houses all catalog maintainers tied to organization profiling.
+A first draft of this change proposed: hard-delete with reference blocking, reuse of `MaintainerScreenLayout` by making its methodology `scope` optional, and two maintainers (Rubros + Subrubros) leaving Actividades Principales as a placeholder. User review during exploration reversed three of those positions. This document captures both the original decisions (marked **superseded**) and the new ones, so reviewers can see the reasoning chain.
 
-The Categorías / Sub-categorías pair is the reference pattern for hierarchical maintainers in this codebase: two separate screens, separate sidebar entries, subsector rows carry a `categoryId` foreign key rendered as a dropdown column, editing happens inline row-by-row in a `MaintainerDataGrid`, and navigation is blocked while a row is dirty. That pattern maps cleanly here, with one caveat: Categorías / Sub-categorías are scoped to a `MethodologyVersion` (published vs. draft → view-only vs. editable); sectors / subsectors are not scoped to anything.
+The Categorías / Sub-categorías pair remains the codebase reference for hierarchical maintainers, and this change still borrows its DataGrid / hooks skeleton. The divergence is at the layout level (see Decision: dedicated simpler layout) and at the data lifecycle level (see Decision: soft-delete replaces hard-delete).
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Provide admin CRUD over `country_sector` and `country_subsector` consistent with the existing maintainer UX.
-- Add a `description` field to both tables, visible in the UI and round-tripped through the API.
-- Restructure the admin sidebar to introduce a "Perfilamiento" group that houses the two new maintainers plus the existing "Actividades Principales" placeholder.
-- Widen access to `[ADMIN, SUPERADMIN]` for the entire "Perfilamiento" group.
-- Keep the existing app-facing `getAllCountrySectors` endpoint working unchanged for the organization-creation form.
-- Block destructive deletes: refuse to delete a sector or subsector that is still referenced.
-- Preserve country-agnosticism: no hardcoded country values, single-country singleton resolved via `country.findFirst()`.
+- Provide admin CRUD over all four profiling catalogs, consistent with each other and with the inline-edit DataGrid convention.
+- Support soft-delete with restore; preserve historical references so consumer screens keep rendering human-readable labels.
+- Gate edits that would propagate to existing users behind an explicit "in use" confirmation dialog.
+- Restructure the admin sidebar into a single "Perfilamiento" group housing the four maintainers, open to `[ADMIN, SUPERADMIN]`.
+- Keep public read endpoints backward-compatible in shape; filter DELETED rows at the service layer without changing response schemas.
+- Preserve country-agnosticism: single-country singleton resolved via `country.findFirst()` for create endpoints that need it.
 
 **Non-Goals:**
 
-- No soft-delete or archival mechanism (`deletedAt`). If a row cannot be deleted due to references, the user must clear them first.
-- No bulk import / CSV upload. Admins edit row-by-row.
-- No reordering (no `sortOrder` column). Rows sort alphabetically, matching the existing read endpoint.
-- No translation of `name` or `description` (country-agnostic ≠ multi-language; each deployment picks one language).
-- No implementation of the "Actividades Principales" screen — it remains `UnderConstructionScreen`, only its auth gate and sidebar location change.
-- No change to `country_sector` / `country_subsector` usage at the organization-profiling (`OrganizationData`) layer.
+- No hard-delete. Once soft-delete is the model, there is no "purge" action. If a row must be physically removed, that is a DB-level operation outside this change.
+- No bulk import / CSV upload.
+- No reordering (no `sortOrder` column). Rows sort alphabetically.
+- No translation of `name` or `description`.
+- No cascade soft-delete. A sector with ACTIVE catalog children is blocked from soft-delete; the admin must clear the children first.
+- No backend `?includeIds=` parameter on public endpoints; the union is computed on the frontend.
 
 ## Decisions
 
-### Decision: Two separate screens, not master-detail
+### Decision: Soft-delete replaces hard-delete (supersedes prior ADR)
 
-**Choice:** Mirror the Categorías / Sub-categorías pattern — `/admin/sectors` and `/admin/subsectors` each render their own `MaintainerDataGrid`. The Subsectors screen has a `Rubro` dropdown column for the parent.
+**Choice:** Every `DELETE /admin/…/:id` transitions the target row to `status = DELETED` inside a transaction. Existing references keep pointing at the row. A sibling `POST /admin/…/:id/restore` endpoint reverses the transition.
 
-**Alternatives considered:**
-
-- Master-detail single screen (list on the left, children on the right) — gives the clearest jerarchy view but requires a brand-new component with no precedent in the codebase, and the user explicitly selected "Opción A".
-- Expandable tree grid — MUI DataGrid's tree-data support is clunky and would force a custom component.
-
-**Rationale:** Maximum reuse of the existing maintainer pattern (layout, DataGrid, hooks) and zero new UI concepts to learn. The "two sidebar entries" cost is the accepted trade-off.
-
-### Decision: Decouple `MaintainerScreenLayout` from methodology scope
-
-**Choice:** Make `scope: ScopedMethodologyContext` optional on `MaintainerScreenLayoutProps`. When absent, the header renders without the methodology selector and `isViewOnly` defaults to `false`. `useMaintainerEditingState` and `useMaintainerExitEditMode` accept `methodologyVersionId?: string | null`; when omitted, methodology-reset effects become no-ops.
+**Supersedes:** The prior ADR "Delete blocks on any reference; no cascade, no soft-delete" (previous `design.md`). The prior rationale — "keeps the schema shape unchanged" and "burden of cleanup on the admin" — was overturned because (a) the burden is impractical in production (a sector used by thousands of organizations cannot realistically be cleaned up before retirement), and (b) the catalog is inherently versioned: an entry's obsolescence does not retroactively invalidate the data that was captured under it.
 
 **Alternatives considered:**
 
-- Fork a `MaintainerSimpleScreenLayout` with no scope — duplicates ~150 lines of layout for no gain.
-- Pass a stub `scope` object with neutralized values from the new screens — leaks the methodology concept into unrelated features.
+- Keep hard-delete with reference blocking (the prior ADR) — blocks all meaningful deletions in production.
+- Cascade hard-delete — catastrophic for historical `OrganizationData`.
+- Coexist hard-delete + soft-delete as separate actions — doubles the UX surface with no clear rule for when each applies.
 
-**Rationale:** The layout's responsibility is "maintainer chrome" (title, add button, edit toolbar, exit-edit dialog); methodology scope is an orthogonal concern that only some maintainers have. Making it optional is a small, non-breaking change that existing callers tolerate without edits.
+**Rationale:** Soft-delete matches the real-world lifecycle ("this is no longer selectable going forward") while preserving historical integrity. The cost — extra column, filter everywhere, partial indexes, selector union — is one-time and contained inside this change.
+
+### Decision: `status` enum only; `updatedAt` doubles as the soft-delete timestamp
+
+**Choice:** Add a `status` column, defaulting to `ACTIVE`, to each of the four tables, typed by a **dedicated enum per table**:
+
+- `country_sector.status: CountrySectorStatus { ACTIVE, DELETED }`
+- `country_subsector.status: CountrySubsectorStatus { ACTIVE, DELETED }`
+- `organization_main_activity.status: OrganizationMainActivityStatus { ACTIVE, DELETED }`
+- `country_organization_size.status: CountryOrganizationSizeStatus { ACTIVE, DELETED }`
+
+**Do not** add a dedicated `deletedAt` column. When an admin soft-deletes, the service issues `status = 'DELETED'`; Prisma's `@updatedAt` automatically refreshes `updatedAt`, which becomes the implicit deletion timestamp.
+
+**Alternatives considered:**
+
+- Dedicated `deletedAt DateTime?` column — more explicit but duplicates `updatedAt` for DELETED rows; a status change is always an update, so the timestamp is already captured.
+- Single `deletedAt DateTime?` column (no `status`) — classic Rails pattern; breaks the "status toggle" mental model and forces every query to use `WHERE deleted_at IS NULL` instead of the more readable `WHERE status = 'ACTIVE'`.
+- **One shared `MaintainerRecordStatus` enum across the four tables** — tempting for reuse, but couples the four catalogs at the type level. If any one of them later needs a third state (e.g., `ARCHIVED` on `country_organization_size`), extending the shared enum drags all siblings into the change and forces unnecessary migrations on the others. Per-table enums keep each catalog evolvable independently at the cost of four near-identical type definitions — a cheap, local duplication.
+
+**Rationale:** Status-as-enum reads naturally in filters and matches how admin UI thinks about the state ("Active" / "Deleted"). Reusing `updatedAt` is not lossy because every soft-delete IS an update — the timestamp semantics align. If we later need a distinct "last non-status update" vs. "deletion time" breakdown, we can add `deletedAt` additively without reworking the schema.
+
+### Decision: Catalog-level references block soft-delete; user-data references do not
+
+**Choice:** Soft-delete is blocked (throws `DataIntegrityError`) when another _catalog_ record still references the target in an ACTIVE state. User-data references (everything under `organization_data` and related carbon-inventory-profiling records) do NOT block — they are exactly what soft-delete is designed to tolerate.
+
+Blocking matrix:
+
+| Target soft-delete           | Blocked by (ACTIVE only)                                                                                                 | NOT blocked by                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| `country_sector`             | `country_subsector.countrySectorId`, `organization_main_activity.countrySectorId`, `subcategory_recommendation.sectorId` | `organization_data.sectorId`                  |
+| `country_subsector`          | `organization_main_activity.countrySubsectorId`, `subcategory_recommendation.subsectorId`                                | `organization_data.subsectorId`               |
+| `organization_main_activity` | — (no catalog record references main activity)                                                                           | `organization_data.mainActivityId`            |
+| `country_organization_size`  | —                                                                                                                        | `organization_data.countryOrganizationSizeId` |
+
+**Alternatives considered:**
+
+- Never block (even if a subsector is ACTIVE under a sector, soft-delete the sector and orphan the child) — produces a nonsensical state where the child is ACTIVE but its parent is DELETED. Selector behavior becomes undefined.
+- Cascade soft-delete (deleting a sector soft-deletes all ACTIVE subsectors + main activities under it) — silently changes the state of entities the admin did not explicitly touch; a rename is irreversible without a separate restore pass per child. Too lossy.
+
+**Rationale:** Blocking at the catalog boundary keeps the invariant "every ACTIVE record points at ACTIVE parents" without requiring explicit cascade semantics. The admin is guided to clear the catalog children first (itself a soft-delete), preserving intent at each step.
+
+### Decision: Partial unique indexes scoped to `status = 'ACTIVE'`
+
+**Choice:** Drop the existing full-table `@@unique` constraints and replace them with partial unique indexes on `(… , name) WHERE status = 'ACTIVE'`. Declared via raw SQL in the migration because Prisma does not support partial indexes natively. The Prisma schema retains the columns but removes the `@@unique(...)` attribute; a `@@index(..., map: "…")` or equivalent comment documents the partial index for future schema reviewers.
+
+**Alternatives considered:**
+
+- Composite unique including `status` (`@@unique([countryId, name, status])`) — allows one ACTIVE and one DELETED with the same name, but also allows two DELETED rows with the same name, which is confusing on restore (which one takes the name?).
+- Rename-on-delete (append `_deleted_<timestamp>` to name when soft-deleting) — corrupts the display label for historical references that still render the name.
+- No uniqueness when DELETED — admin can create a new ACTIVE "Industria" while a DELETED "Industria" exists; restore collision handled at the endpoint level with a 409.
+
+**Rationale:** Partial index is the exact semantic we want: "at most one ACTIVE row per name scope; DELETED rows are free to share names with each other or with the ACTIVE one." The operational cost (raw SQL, Prisma blind spot on future migrations) is mitigated by a CLAUDE.md note and a visible comment in the schema.
+
+### Decision: Restore collision handling via 409 at the endpoint
+
+**Choice:** `POST /admin/…/:id/restore` validates inside a transaction that no currently-ACTIVE row shares the target's unique scope (`(countryId, name)` for sector/size, `(countrySectorId, name)` for subsector, `(name, countrySectorId, countrySubsectorId)` for main activity). If a collision exists, respond `409` via `DatabaseUniqueConstraintViolationError` with a Spanish `userMessage` instructing the admin to first rename or soft-delete the colliding ACTIVE row.
+
+**Alternatives considered:**
+
+- Auto-rename the restored row on collision — produces silent semantic drift.
+- Restore + hard-delete the ACTIVE colliding row — destructive, not reversible.
+
+**Rationale:** Surfacing the collision lets the admin decide which label the live catalog should carry. The error is recoverable (they can rename either row and retry).
+
+### Decision: Front-side union for selectors (no backend `?includeIds=`)
+
+**Choice:** Public list endpoints return only `status = ACTIVE` rows. Forms that render these catalogs as selectors MUST merge the form's initial value (`{ id, name }`) into the options list, de-duplicated by `id`, before rendering. A small shared helper (`mergeSelectedOption(options, selected)`) goes into `apps/web/src/utils/` for reuse.
+
+**Alternatives considered:**
+
+- Backend `?includeIds=5,12` parameter — centralizes the logic server-side but requires every selector consumer to pass the right ids, couples the public API shape to a UI concern, and needs schema changes.
+- Return DELETED rows in the public endpoint with a `status` field, let the front filter — regresses privacy of "retired" entries for non-edit consumers, and forces every public-API consumer to filter.
+- Fetch the single DELETED entity separately by id — doubles the query count on every form mount.
+
+**Rationale:** The front already has the `{ id, name }` of whatever the parent resource stored; merging is trivial and purely UI-scoped. Public API stays shape-stable, and the concern is contained to selector components.
+
+### Decision: Dedicated simpler layout (supersedes prior ADR)
+
+**Choice:** Introduce `ProfilingMaintainerScreenLayout` under `apps/web/src/screens/Maintainer/components/`. It wraps `MaintainerPageHeader` (reused via its `extra` slot to host the status filter) and `UnsavedChangesDialog`, with a `FormProvider` wrapper and a grid container. It does NOT include: methodology selector, InfoBanner, EditModeToolbar, or ExitEditModeDialog. The existing `MaintainerScreenLayout` is **not modified**.
+
+**Supersedes:** The prior ADR "Decouple `MaintainerScreenLayout` from methodology scope" (previous `design.md`). That plan would have made `scope`, `isViewOnly`, and the exit-edit flow conditional on a non-profiling caller; the branching would touch ~5 existing callers and leak no-op branches throughout the component.
+
+**Alternatives considered:**
+
+- Make `scope` optional on the existing layout (the superseded plan) — fragile conditionals in a shared component used by five other screens.
+- Inline the layout into each profiling screen — duplicates ~80 lines four times.
+
+**Rationale:** The profiling maintainers have a genuinely simpler chrome (no methodology scope, no view-only mode, no edit-mode toolbar). A parallel component expresses that simplicity directly. The duplication vs. `MaintainerScreenLayout` is small and worth it to keep each component focused on its own lifecycle.
+
+### Decision: "In use" edit-warning dialog — trigger rules
+
+**Choice:** Introduce a shared `InUseWarningDialog` under `apps/web/src/screens/Maintainer/components/dialogs/`. The maintainer screens call it on row save, before issuing the PATCH, when **both** conditions hold:
+
+1. The edit changes a **visible** field — `name` (all four domains), `countrySectorId` (subsector, main activity), or `countrySubsectorId` (main activity). `description` changes are exempt.
+2. The target row has user-data references — the admin list endpoint returns `isInUse: boolean` per row, computed at query time as `OR` over the relevant `organization_data.*` counts (and `organization_main_activity.*` for sector/subsector, since those are admin-level references that still affect users transitively via the main activity dropdown).
+
+If both hold, the dialog blocks the PATCH until the admin confirms. Confirm → PATCH; Cancel → stay in edit mode.
+
+**Alternatives considered:**
+
+- Always warn on any edit — noisy for description-only edits and for freshly-created rows that nobody uses yet.
+- Warn only on rename, even if the row is not in use — misleading because no one is affected.
+- Compute `isInUse` lazily per-click instead of in the list response — extra round-trip on every edit confirm; list-response computation is one query per row via Prisma `_count` select.
+
+**Rationale:** The warning's value is proportional to the number of affected consumers; firing it only when consumers exist AND a visible field changes matches the dialog's copy ("afectará a todos los usuarios que lo tengan seleccionado").
+
+### Decision: Admin list — toggle + restore (`?status=active|deleted|all`)
+
+**Choice:** The admin `GET /admin/…` endpoints accept `?status=active|deleted|all`, defaulting to `active`. The maintainer screen exposes a tri-state toggle in the `MaintainerPageHeader`'s `extra` slot. DELETED rows render in a visually distinct style (dimmed row, `Chip` with "Eliminado") and expose a `Restore` action button in place of the usual edit / delete row actions. The edit-warning dialog does not apply to DELETED rows because they cannot be edited (restore first).
+
+**Alternatives considered:**
+
+- Two separate screens (one for ACTIVE, one for DELETED) — doubles sidebar entries.
+- Inline DELETED rows with the ACTIVE ones, no toggle — clutters the default admin view.
+
+**Rationale:** Default `active` keeps the primary workflow clean; the `all` option supports audit inspection; the `deleted` option makes restore discoverable. The admin stays on one screen.
 
 ### Decision: Admin endpoints live under `admin/` subdirectory, separate from public read
 
-**Choice:** New endpoints go under `apps/api/src/features/countrySectors/admin/` (and mirrored subsectors directory), not alongside the existing `getAllCountrySectors`. The existing `getAllCountrySectors` endpoint remains at `apps/api/src/features/countrySectors/getAllCountrySectors` and serves the organization form unchanged (no `description`, no auditor fields).
+**Choice (carried forward, unchanged):** New endpoints go under `apps/api/src/features/{domain}/admin/`, not alongside the existing public endpoints. Admin responses carry `status`, `description`, auditor ids, and `isInUse`; public responses stay flat (`id`, `name`, and parent-name where applicable).
 
-**Alternatives considered:**
-
-- Extend the existing public endpoint to return `description` and add auditor fields conditionally — leaks admin-only columns to anonymous / non-admin callers.
-- Put everything flat under `features/countrySectors/` — mirrors today's structure but hides the authorization boundary.
-
-**Rationale:** `admin/` segregation matches the convention already in place for organizations (`apps/api/src/features/organizations/admin/` vs. `organizations/app/`). It also makes the authorization surface obvious at a glance — everything under `admin/` requires `ADMIN` or `SUPERADMIN`.
-
-### Decision: Delete blocks on any reference; no cascade, no soft-delete
-
-**Choice:** `deleteCountrySector` throws `DataIntegrityError` if any of the following exist (Prisma field names):
-
-- `CountrySubsector.countrySectorId = id`
-- `OrganizationMainActivity.countrySectorId = id`
-- `OrganizationData.sectorId = id`
-- `SubcategoryRecommendation.sectorId = id`
-
-Mirror for `deleteCountrySubsector`: block on `OrganizationMainActivity.countrySubsectorId`, `OrganizationData.subsectorId`, `SubcategoryRecommendation.subsectorId`.
-
-**Status code:** `DataIntegrityError` is defined in `apps/api/src/errors/DataIntegrityError.ts` with HTTP status **500**. We accept that status for this change rather than introducing a new 409-class error or mutating the shared error (which would affect every other caller). The Spanish `userMessage` — not the HTTP code — is what the admin sees. Frontend code treats `DATA_INTEGRITY_ERROR` as a domain-validation failure, not a generic server error.
-
-Reference existence checks happen inside an interactive Prisma transaction ahead of the delete call. **This is best-effort**: under Postgres default isolation (READ COMMITTED) a concurrent INSERT of a dependent row (e.g. an `OrganizationData` pointing at the sector) can slip between the count check and the `DELETE`. The foreign-key constraint itself is the final guardrail — a racing FK violation surfaces as a separate Prisma error (P2003), not as `DataIntegrityError`. Upgrading to SERIALIZABLE or `SELECT … FOR UPDATE` was considered overkill for a low-frequency admin operation.
-
-**Alternatives considered:**
-
-- Cascade delete — catastrophic for `OrganizationData` (would erase organization profiling on sector deletion).
-- Soft delete via `deletedAt` column — larger scope, requires plumbing through every consumer that reads sectors/subsectors and every unique constraint.
-- `SET NULL` on the dependent columns — silently corrupts organization profiling data.
-
-**Rationale:** Blocking puts the burden of data cleanup on the admin who initiated the delete, surfaces the real-world impact upfront, and keeps the schema shape unchanged. The UX cost is acceptable for a low-frequency admin operation.
-
-### Decision: Unique-constraint violations → mapped Spanish messages
-
-**Choice:** Wrap `create` / `update` service bodies in try/catch around Prisma P2002 errors; use `extractP2002Fields()` from `apps/api/src/errors/` to detect which unique constraint fired and map to a domain-specific `DatabaseUniqueConstraintViolationError` with a Spanish `userMessage`. Add error codes to `getApiErrorMessage` in the web app if not already generic-enough.
-
-**Alternatives considered:**
-
-- Pre-check for name uniqueness before insert — adds a query, still requires try/catch for the race.
-- Surface raw Prisma error codes to the client — breaks the Spanish-UX requirement.
-
-**Rationale:** Matches the error-handling convention already used across `categories` / `subcategories` / `organizations`. The extra `try/catch` is cheap and avoids TOCTOU.
-
-### Decision: `description` nullable, optional on input, max 2000 chars
-
-**Choice:** DB column `String?` (nullable). Zod: `description: z.string().trim().max(2000, { message: "La descripción no puede superar 2000 caracteres" }).nullable().optional()` on create + update inputs. `name`: `z.string().trim().min(1).max(255)` (trim first so whitespace-only input fails validation). PATCH `description` follows tri-state: `undefined` = omit from update (no-op), `null` = clear, `""` = normalized to `null` at the service layer. PATCH body is refined with `.refine(v => Object.keys(v).length > 0)` so a bare `{}` returns 400. UI renders a multi-line textarea that can be left blank. Existing rows without descriptions keep `null`.
-
-**Alternatives considered:**
-
-- Required description — breaks backward compatibility; every existing seed row would violate.
-- `@db.Text` unbounded — no upper guardrail; lets admins paste arbitrarily large strings.
-
-**Rationale:** Optional nullable is the only shape that preserves backward compatibility with existing data. 2000 chars is a soft-reasonable cap for a short explanatory blurb (matches the usage intent: "what this rubro covers"), far smaller than any realistic DB-level issue.
+**Rationale:** Matches the existing `organizations/admin/` vs. `organizations/app/` segregation and makes the authorization boundary obvious.
 
 ### Decision: Single-country resolution via `country.findFirst()`
 
-**Choice:** Create endpoints resolve `countryId` via `prismaClient.country.findFirst({ orderBy: { id: "asc" } })` — same pattern as `createMethodology` and `createOrganization`. If no country exists, throw `NoCountryFoundError` (already defined).
+**Choice (carried forward):** Create endpoints resolve `countryId` via the singleton pattern. Create payloads do not accept `countryId`. Applies to sector, organization-size (both scoped to country); subsector scopes to `countrySectorId` instead; main activity has no country/sector scope in its unique constraint, but when creating it with a sector/subsector the server validates the parent exists.
 
-**Alternatives considered:**
-
-- Accept `countryId` in the request body — leaks the multi-country abstraction that no Huella Latam deployment uses.
-- Inject via a server-side constant / env var — adds deployment friction and config surface.
-
-**Rationale:** Every deployment has exactly one `Country` row today. The pattern is already established; being consistent beats inventing new country-resolution code.
-
-### Decision: Sidebar restructure — "Rubros" disappears, "Perfilamiento" absorbs its child
+### Decision: Sidebar restructure — four children under "Perfilamiento"
 
 **Choice:** `SIDEBAR_DEFS` in `MaintainerLayout.tsx`:
 
-- Remove the `Rubros` top-level entry (parent of today's `Actividades Principales`).
-- Insert `Perfilamiento` (icon `BusinessCenterOutlined`, `requiredRoles: [ADMIN, SUPERADMIN]`) in the same position, with three children in this order: `Rubros` (→ `/admin/sectors`), `Subrubros` (→ `/admin/subsectors`), `Actividades Principales` (→ `/admin/main-activities`, unchanged destination).
-- Drop `Routes.ADMIN_ITEMS` from the routes constant and delete `apps/web/src/routes/admin/items.tsx`.
+- Remove the `Rubros` top-level entry.
+- Insert `Perfilamiento` (icon `BusinessCenterOutlined`, `requiredRoles: [ADMIN, SUPERADMIN]`) in the same position.
+- Four children in this order: `Rubros` (→ `/admin/sectors`), `Subrubros` (→ `/admin/subsectors`), `Actividades Principales` (→ `/admin/main-activities`), `Tamaño de la Organización` (→ `/admin/organization-sizes`).
 
-**Alternatives considered:**
+The prior plan left `Actividades Principales` as an `UnderConstructionScreen`; this update swaps it for the real maintainer screen.
 
-- Keep "Rubros" and add "Perfilamiento" as a sibling group — produces two overlapping concepts ("Rubros" as top-level + "Rubro y Subrubro" inside "Perfilamiento") that would confuse admins.
-- Rename "Rubros" → "Perfilamiento" in place — fine, but loses the opportunity to house subsectors and actividades principales under one coherent group.
+### Decision: `country_organization_size` gains auditor fields
 
-**Rationale:** The user confirmed they wanted "Rubros" gone and "Actividades Principales" moved under "Perfilamiento" (decision 1). Drops an orphaned route file and keeps the information architecture clean.
+**Choice:** Add `createdById BigInt?` and `updatedById BigInt?` to `country_organization_size`, with Prisma relations mirroring the other three models. No data migration for existing rows (they keep `NULL`).
 
-### Decision: Query-key segregation between admin and app hooks
-
-**Choice:** Admin-side hooks use a distinct key namespace — e.g. `countrySectorsKeys.admin.list()` vs. `countrySectorsKeys.app.list()`. Admin mutations invalidate the admin list; the app list is invalidated separately only where cross-effects matter (creating/deleting a sector could affect the org-creation form's dropdown, so admin mutations MUST also invalidate `countrySectorsKeys.app.all`).
-
-**Alternatives considered:**
-
-- Single shared key — forces admin and form consumers to share cache entries even though their response shapes differ (admin returns `description` + auditors, app does not).
-- Admin mutations invalidate only admin keys — leaves stale dropdowns in the org-creation form until a hard refresh.
-
-**Rationale:** Admin and app responses are intentionally different shapes; sharing keys would force a union type across consumers. Cross-invalidating on mutation is the right compromise — admin writes are low-frequency, so aggressive invalidation has negligible cost.
+**Rationale:** Consistency across the four profiling maintainers — same admin UX would otherwise expose auditor columns on three screens and blank on the fourth.
 
 ## Risks / Trade-offs
 
-- **Sidebar refactor is a breaking UX change for SUPERADMINs** who currently navigate via "Rubros → Actividades Principales". The destination URL is unchanged (`/admin/main-activities`), so bookmarks still work, but the breadcrumb / menu path changes. Acceptable; no release-notes concern for an admin-only placeholder screen.
-- **Widening "Actividades Principales" auth from SUPERADMIN to [ADMIN, SUPERADMIN]** is intentional, but the current screen is `UnderConstructionScreen` — no real behavior to guard. When that maintainer is actually implemented, it will need its own auth review.
-- **Decoupling `MaintainerScreenLayout` from scope** touches a component used by 5 existing screens. Each existing caller must be re-tested to confirm the optional-scope refactor is truly non-breaking (the change is purely additive at the type level: existing callers still pass `scope`, new callers omit it).
-- **Delete-blocking across 4 reference types on sector** and 3 on subsector means the integration test matrix is larger than for simpler features; any missed reference type silently enables accidental cascade deletes at the Prisma default-FK level. Mitigation: one integration test per reference type.
-- **Shared `DatabaseUniqueConstraintViolationError` mapping** must be verified not to regress existing P2002 users; add a smoke test around categories/subcategories unique-violation messages during implementation to catch accidental message shadowing.
-- **Delete-block status is 500, not 409.** Some clients or log-based alerting may treat 500s as "server error" and page on them. `DATA_INTEGRITY_ERROR` is intentional admin-input validation, not server failure; if monitoring escalates on 5xx, either (a) add a code-level allow-list (`DATA_INTEGRITY_ERROR` is not paged) or (b) swap to a bespoke 409 error in a follow-up. Not in scope here because no monitoring on these routes exists today.
-- **`country.findFirst()` silently picks the lowest-id country** in a multi-country DB. Huella Latam is single-country by deployment, so this is safe in practice, but the invariant should be documented inline.
-- **No reordering / `sortOrder`** means admins cannot pin a particular rubro to the top of the organization-form dropdown. If product asks for this later, it is an additive migration + column; acceptable scope deferral.
+- **Schema change is cross-cutting.** Four tables gain a `status` column, four tables gain `description`, one gains auditors. The migration must be atomic; a partial rollout leaves the API expecting columns that don't exist. Coordinate deploy as a single pre-deploy migration + single API+web release.
+- **Partial unique indexes are Prisma-invisible.** Any future migration that regenerates the unique constraint (e.g., via `prisma migrate dev` diffing against the schema) will silently recreate a full-table unique index, breaking the soft-delete invariant. Mitigations: (a) inline SQL comment in the migration file; (b) CLAUDE.md note; (c) PR-level checklist item "did you preserve the partial index?" when touching these tables.
+- **`isInUse` count on every list row.** For sector this means counting across four reference tables per row. On a representative dataset (say 50 sectors × 4 counts × a few thousand organizations) this is not a concern, but if the list grows, move to an on-demand endpoint (`GET /admin/country-sectors/:id/usage`) and drop `isInUse` from the list. Not a day-one concern.
+- **Widening `main-activities` auth AND swapping its component at once** is an intentional combined change; reviewers should verify (a) the real component works under ADMIN and SUPERADMIN, (b) no audit log expects SUPERADMIN-only writes to `organization_main_activity`.
+- **Restore collision UX.** If an admin soft-deletes "Industria" and then creates a fresh "Industria", the soft-deleted row cannot be restored without first renaming or soft-deleting the new one. This is inherent to the chosen uniqueness model; the error message must be explicit so the admin knows what to do.
+- **Union-on-front helper is easy to forget.** Every new selector that consumes these catalogs needs the merge call. Document the helper, add a linting convention (e.g., name the dropdown options `mergedSectorOptions`) and surface it in the new maintainers doc.
+- **`DataIntegrityError` remains HTTP 500.** Preserved from the prior ADR — admin-facing error, treated as domain validation on the front via `code === "DATA_INTEGRITY_ERROR"`. If monitoring pages on 5xx, add an allow-list.
+- **Dialog accuracy is bounded by `isInUse` freshness.** If two admins are editing simultaneously, one confirms "not in use" based on the list snapshot, and the other has meanwhile referenced the row, the first admin proceeds without warning. Acceptable for a low-frequency admin operation; the confirmation is advisory, not a lock.
 
 ## Migration Plan
 
-1. Merge schema + migration: `packages/database/src/prisma/migrations/<timestamp>_add_description_to_country_sector_and_subsector/migration.sql` adds nullable `description TEXT` columns. Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
-2. Deploy DB change (pre-deploy migration). No seed re-run required; existing rows keep `description = NULL`.
-3. Deploy API + web changes together (shared types, atomic).
-4. Post-deploy smoke test: (a) log in as ADMIN, confirm "Perfilamiento" group is visible with three children; (b) create, rename, delete a test rubro; (c) attempt to delete a rubro that has associated organizations → confirm blocking error in Spanish; (d) create a subrubro under the test rubro; (e) confirm the organization-creation form in the app still shows the test rubro in its dropdown.
-5. **Rollback**: revert the deploy. Migration rollback requires a manual follow-up migration (`DROP COLUMN description` on both tables) — no data loss since the column is admin-only and starts empty.
+1. Merge schema + migration atomically: the migration file creates the four dedicated enums (`CountrySectorStatus`, `CountrySubsectorStatus`, `OrganizationMainActivityStatus`, `CountryOrganizationSizeStatus`), adds `status` + `description` on four tables, adds auditor columns on `country_organization_size`, drops the existing full unique constraints, creates the partial unique indexes via raw SQL. Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
+2. Deploy DB change (pre-deploy migration). Existing rows inherit `status = 'ACTIVE'`; new columns start NULL.
+3. Deploy API + web changes together.
+4. Post-deploy verification walkthrough (manual, not scripted — no DB queries in tasks per project rule):
+   a. Log in as ADMIN; confirm "Perfilamiento" group with four children.
+   b. On each maintainer: create a row, rename, soft-delete, toggle to "Eliminados", restore, try to create a duplicate of a restored row (should 409), rename a row that has references (dialog appears).
+   c. Open an organization-creation form and a carbon-inventory profiling screen; confirm dropdowns only list ACTIVE options.
+   d. Pick an existing organization that references (manually, via UI) a catalog entry; soft-delete that entry; reopen the organization form → confirm the DELETED entry still renders by name in the selector (union pattern working).
+5. **Rollback**: revert the deploy. Schema rollback requires a follow-up migration to drop the new columns and re-add the full unique constraints — no data loss since soft-delete preserves every row.
