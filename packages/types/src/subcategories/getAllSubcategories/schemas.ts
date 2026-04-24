@@ -6,9 +6,11 @@ import {
 } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 
-// Query Schema — methodologyVersionId is required
+// Query Schema — methodologyVersionId is optional; when omitted, all active
+// subcategories across methodologies are returned (used by the subcategory
+// recommendations maintainer, which is not methodology-scoped).
 export const GetAllSubcategoriesQuerySchema = z.strictObject({
-  methodologyVersionId: IdSchema.describe(
+  methodologyVersionId: IdSchema.optional().describe(
     "The ID of the methodology version to filter subcategories by"
   ),
 });
