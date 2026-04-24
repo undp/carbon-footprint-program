@@ -2,7 +2,7 @@
 
 ### Requirement: Soft-delete and audit trail on SubcategoryRecommendation
 
-The `SubcategoryRecommendation` model SHALL include a `status` field typed as `SubcategoryRecommendationStatus` (values: `ACTIVE`, `DELETED`) with default `ACTIVE`, together with nullable `createdById` and `updatedById` references to `User`. At most one `ACTIVE` row SHALL exist per `(sectorId, subsectorId, subcategoryId)` tuple; this invariant SHALL be enforced at the database layer by a partial unique index covering only rows where `status = 'ACTIVE'` (declared via raw SQL in the migration, since Prisma's schema DSL does not support partial unique indexes natively). DELETED rows SHALL be excluded from the index and MAY accumulate freely for historical audit.
+The `SubcategoryRecommendation` model SHALL include a `status` field typed as `SubcategoryRecommendationStatus` (values: `ACTIVE`, `DELETED`) with default `ACTIVE`, together with nullable `createdById` and `updatedById` references to `User`. At most one `ACTIVE` row SHALL exist per `(subcategoryId, sectorId, subsectorId)` tuple; this invariant SHALL be enforced at the database layer by a partial unique index covering only rows where `status = 'ACTIVE'` (declared via raw SQL in the migration, since Prisma's schema DSL does not support partial unique indexes natively). DELETED rows SHALL be excluded from the index and MAY accumulate freely for historical audit.
 
 #### Scenario: New rows default to ACTIVE
 
