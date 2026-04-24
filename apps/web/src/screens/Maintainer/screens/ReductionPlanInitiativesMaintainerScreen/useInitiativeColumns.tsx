@@ -78,7 +78,7 @@ export const useInitiativeColumns = ({
         field: "description",
         headerName: "Descripción",
         flex: 0.5,
-        minWidth: 260,
+        minWidth: 250,
         renderCell: (params: GridRenderCellParams<InitiativeFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -93,10 +93,8 @@ export const useInitiativeColumns = ({
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
               multiline
-              maxRows={6}
-              truncateLines={4}
-              displayPaddingX={2}
-              displayPaddingY={1.5}
+              maxRows={3}
+              truncateLines={3}
             />
           );
         },
