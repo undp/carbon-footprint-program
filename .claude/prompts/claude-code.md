@@ -15,7 +15,7 @@
 4. Implement the feature using the skill "opsx:apply <spec-name>".
    Follow all guidelines in ".claude/CLAUDE.md" — especially modular commits.
 5. Record the current UTC timestamp as the **review-cycle cutoff** (this marks the start of this review run).
-6. Comment "@coderabbitai review" on the PR to trigger an incremental review. Poll PR comments every 60 seconds until CodeRabbit's review summary comment appears (this signals the review is complete). If no review summary appears after 1 hour, proceed without CodeRabbit review and note this in a PR comment.
+6. Comment "@coderabbitai review" on the PR to trigger an incremental review. Poll PR comments every 60 seconds until CodeRabbit's review summary comment appears **with a `created_at` timestamp after the review-cycle cutoff** (this signals the current review is complete — ignore older summaries from previous cycles). If no matching summary appears after 1 hour, proceed without CodeRabbit review and note this in a PR comment.
 7. Read all PR review comments created **after the review-cycle cutoff** that are unresolved and have no fix commit — ignore any comments from earlier review cycles. For each:
    - If valid and aligned with the spec: make the fix → run format/lint/type-check → commit → push. Then reply with the commit SHA and a summary of the solution.
    - If it contradicts the spec or your reasoning: reply explaining your decision, citing the spec or technical rationale.
