@@ -50,6 +50,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL:
     "La variable a eliminar no fue encontrada.",
 
+  // Subcategory recommendations
+  SUBCATEGORY_RECOMMENDATION_GROUP_ALREADY_EXISTS:
+    "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva.",
+
   // Methodologies
   METHODOLOGY_NAME_VERSION_ALREADY_EXISTS:
     "Ya existe una metodología con este nombre y versión.",
