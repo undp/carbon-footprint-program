@@ -44,19 +44,19 @@
 
 ## 6. Web — maintainer screen
 
-- [ ] 6.1 Add screen labels to `apps/web/src/screens/Maintainer/constants.ts` in Spanish: `"Sector"`, `"Subsector"`, `"Todos los subsectores"`, `"Sin subsector especificado"`, `"Recomendaciones de Subcategorías"`, `"Agregar recomendación"`, `"Subcategorías"`, `"Editar subcategorías"`, `"¿Eliminar todas las recomendaciones de este grupo?"`, and sentinel `ALL_SUBSECTORS_VALUE = null`
-- [ ] 6.2 Create `apps/web/src/screens/Maintainer/hooks/useSubcategoryRecommendationsForm.ts` using React Hook Form + `zodResolver` and a schema from `@repo/types` that enforces sector required; temp-row creation schema also requires `subcategoryIds.min(1)`; existing-row update schema allows `subcategoryIds: []` (which triggers the confirmation dialog)
-- [ ] 6.3 Create `apps/web/src/screens/Maintainer/hooks/useSubcategoryRecommendationColumns.tsx` with sector, subsector (with mode-aware null label), and subcategorías (chip preview + Editar button) columns; reuse `useCountrySectors` and add/reuse `useCountrySubsectors` as needed
-- [ ] 6.4 Create `apps/web/src/screens/Maintainer/components/SubcategoryTransferListDialog.tsx`: two-column transfer list backed by MUI `List` + `Checkbox`, available subcategories grouped by category, emits `subcategoryIds: number[]`; reuses `useSubcategories` and `useCategories`; disables Save when `isNew && selection.length === 0`
-- [ ] 6.5 Create `apps/web/src/screens/Maintainer/screens/SubcategoryRecommendationsMaintainerScreen.tsx` mirroring `SubcategoriesMaintainerScreen.tsx`, using `MaintainerScreenLayout` + `MaintainerDataGrid`; wire the Agregar button to insert a temp row (`id: "temp-${n}"`) at the top; branch save behavior by `isNew` (temp → create mutation / existing → update mutation); on create-mutation 409, keep the temp row visible with the mapped Spanish error; on successful save, invalidation removes the temp row via list refetch
-- [ ] 6.6 Use the existing `ConfirmDialog` (or the app's established confirmation pattern) to wrap the empty-save flow on existing rows with the prompt "¿Eliminar todas las recomendaciones de este grupo?"
-- [ ] 6.7 Read `SUBCATEGORY_RECOMMENDATION_MODE` via `useSystemParameters` and thread it into the column defs to render the correct null-subsector label
+- [x] 6.1 Add screen labels to `apps/web/src/screens/Maintainer/constants.ts` in Spanish: `"Sector"`, `"Subsector"`, `"Todos los subsectores"`, `"Sin subsector especificado"`, `"Recomendaciones de Subcategorías"`, `"Agregar recomendación"`, `"Subcategorías"`, `"Editar subcategorías"`, `"¿Eliminar todas las recomendaciones de este grupo?"`, and sentinel `ALL_SUBSECTORS_VALUE = null`
+- [x] 6.2 Create `apps/web/src/screens/Maintainer/hooks/useSubcategoryRecommendationsForm.ts` using React Hook Form + `zodResolver` and a schema from `@repo/types` that enforces sector required; temp-row creation schema also requires `subcategoryIds.min(1)`; existing-row update schema allows `subcategoryIds: []` (which triggers the confirmation dialog)
+- [x] 6.3 Create `apps/web/src/screens/Maintainer/hooks/useSubcategoryRecommendationColumns.tsx` with sector, subsector (with mode-aware null label), and subcategorías (chip preview + Editar button) columns; reuse `useCountrySectors` and add/reuse `useCountrySubsectors` as needed
+- [x] 6.4 Create `apps/web/src/screens/Maintainer/components/SubcategoryTransferListDialog.tsx`: two-column transfer list backed by MUI `List` + `Checkbox`, available subcategories grouped by category, emits `subcategoryIds: number[]`; reuses `useSubcategories` and `useCategories`; disables Save when `isNew && selection.length === 0`
+- [x] 6.5 Create `apps/web/src/screens/Maintainer/screens/SubcategoryRecommendationsMaintainerScreen.tsx` mirroring `SubcategoriesMaintainerScreen.tsx`, using `MaintainerScreenLayout` + `MaintainerDataGrid`; wire the Agregar button to insert a temp row (`id: "temp-${n}"`) at the top; branch save behavior by `isNew` (temp → create mutation / existing → update mutation); on create-mutation 409, keep the temp row visible with the mapped Spanish error; on successful save, invalidation removes the temp row via list refetch
+- [x] 6.6 Use the existing `ConfirmDialog` (or the app's established confirmation pattern) to wrap the empty-save flow on existing rows with the prompt "¿Eliminar todas las recomendaciones de este grupo?"
+- [x] 6.7 Read `SUBCATEGORY_RECOMMENDATION_MODE` via `useSystemParameters` and thread it into the column defs to render the correct null-subsector label
 
 ## 7. Web — route and sidebar
 
-- [ ] 7.1 Create `apps/web/src/routes/admin/subcategory-recommendations.tsx` with `beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN])` rendering `SubcategoryRecommendationsMaintainerScreen`
-- [ ] 7.2 Let TanStack Router regenerate `routeTree.gen.ts` (do not edit manually)
-- [ ] 7.3 Add a top-level entry to `SIDEBAR_DEFS` in `apps/web/src/screens/Maintainer/MaintainerLayout.tsx` — label "Recomendaciones de Subcategorías", path `/admin/subcategory-recommendations`, icon `RecommendOutlined` (or equivalent), `requiredRoles: [ADMIN, SUPERADMIN]`
+- [x] 7.1 Create `apps/web/src/routes/admin/subcategory-recommendations.tsx` with `beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN])` rendering `SubcategoryRecommendationsMaintainerScreen`
+- [x] 7.2 Let TanStack Router regenerate `routeTree.gen.ts` (do not edit manually)
+- [x] 7.3 Add a top-level entry to `SIDEBAR_DEFS` in `apps/web/src/screens/Maintainer/MaintainerLayout.tsx` — label "Recomendaciones de Subcategorías", path `/admin/subcategory-recommendations`, icon `RecommendOutlined` (or equivalent), `requiredRoles: [ADMIN, SUPERADMIN]`
 
 ## 8. Tests
 
