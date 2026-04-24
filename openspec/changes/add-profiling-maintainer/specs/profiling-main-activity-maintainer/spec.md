@@ -27,9 +27,9 @@ The soft-delete timestamp is captured by `updatedAt` (no separate `deletedAt`).
 
 The system SHALL expose the following admin endpoints under `/admin/organization-main-activities`, all requiring `SystemRole.ADMIN` or `SystemRole.SUPERADMIN`:
 
-- `POST` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000), countrySectorId?: string | null, countrySubsectorId?: string | null }`. When `countrySectorId` is provided, the parent sector MUST exist and be `ACTIVE` (validated inside `prisma.$transaction`); same for `countrySubsectorId`. A DELETED or missing parent MUST return `404` via `ResourceNotFoundError`.
+- `POST` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000), countrySectorId?: string | null, countrySubsectorId?: string | null }`. When `countrySectorId` is provided, the parent sector MUST exist and be `ACTIVE` (validated inside `prisma.$transaction`); same for `countrySubsectorId`. A DELETED or missing parent MUST return `404` via `ResourceNotFoundError`. When BOTH `countrySectorId` and `countrySubsectorId` are provided, the subsector's `countrySectorId` MUST match the supplied `countrySectorId` — checked inside the same transaction. A mismatched pair MUST be rejected with `400` and a Spanish `userMessage` indicating the subsector does not belong to the selected sector; the row MUST NOT be persisted.
 - `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, parent `countrySectorId`, `countrySectorName`, `countrySubsectorId`, `countrySubsectorName`, auditors, `isInUse`). Default `status=active`. Sort by main-activity `name` ASC.
-- `PATCH /:id` — partial update. Any of `name`, `description`, `countrySectorId`, `countrySubsectorId` MAY be provided. Empty body → `400`. Parent FKs validated inside transaction as in create. Stamps `updatedById`.
+- `PATCH /:id` — partial update. Any of `name`, `description`, `countrySectorId`, `countrySubsectorId` MAY be provided. Empty body → `400`. Parent FKs validated inside transaction as in create, including the subsector→sector consistency check: after resolving the effective `(countrySectorId, countrySubsectorId)` pair (merging the patch with the persisted values), the subsector's `countrySectorId` MUST match the effective `countrySectorId`. A mismatched pair MUST be rejected with `400` and a Spanish `userMessage`; the row MUST NOT be persisted. Stamps `updatedById`.
 - `DELETE /:id` — soft-delete. Not blocked by any catalog reference (no catalog table references main activity). Response: `200` with the updated record.
 - `POST /:id/restore` — restore; rejects `409` on unique-scope name collision with another ACTIVE main activity under the same `(countrySectorId, countrySubsectorId)`.
 
@@ -49,8 +49,18 @@ Validation and auditor stamping rules match the sector endpoints: `name` trimmed
 
 #### Scenario: Re-parent via PATCH
 
-- **WHEN** an ADMIN calls PATCH with a new `(countrySectorId, countrySubsectorId)` pair pointing at ACTIVE parents
+- **WHEN** an ADMIN calls PATCH with a new `(countrySectorId, countrySubsectorId)` pair pointing at ACTIVE parents and the subsector's `countrySectorId` matches the supplied sector
 - **THEN** the row is updated atomically; subsequent GET reflects the new parents
+
+#### Scenario: Mismatched sector/subsector pair rejected on create
+
+- **WHEN** an ADMIN calls `POST /admin/organization-main-activities` with both `countrySectorId` and `countrySubsectorId` where the subsector's `countrySectorId` does NOT match the supplied `countrySectorId`
+- **THEN** the response is `400` with a Spanish `userMessage` explaining the subsector does not belong to the selected sector; no row is persisted
+
+#### Scenario: Mismatched sector/subsector pair rejected on PATCH
+
+- **WHEN** an ADMIN calls PATCH with a `(countrySectorId, countrySubsectorId)` pair (or an effective pair after merging with persisted values) whose subsector does NOT belong to the supplied sector
+- **THEN** the response is `400` with a Spanish `userMessage` and the row is unchanged
 
 #### Scenario: Soft-delete never blocked
 
