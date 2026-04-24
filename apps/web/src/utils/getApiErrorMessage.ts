@@ -57,6 +57,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   METHODOLOGY_HAS_ACTIVE_INVENTORIES:
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   METHODOLOGY_IS_DELETED: "La metodología ya fue eliminada.",
+
+  // Subcategory recommendations
+  DATABASE_UNIQUE_CONSTRAINT_VIOLATION:
+    "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva.",
 };
 
 export const getApiErrorMessage = (

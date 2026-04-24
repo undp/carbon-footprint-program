@@ -34,13 +34,13 @@
 
 ## 5. Web — query hooks and error mapping
 
-- [ ] 5.1 Create `apps/web/src/api/query/subcategoryRecommendations/keys.ts` with `subcategoryRecommendationKeys.all` and `.list()`
-- [ ] 5.2 Create `apps/web/src/api/query/subcategoryRecommendations/useSubcategoryRecommendations.ts` (list query hook)
-- [ ] 5.3 Create `apps/web/src/api/query/subcategoryRecommendations/useCreateSubcategoryRecommendation.ts` (POST mutation; invalidates the list key on success; surfaces 409 so the caller can show a Spanish error and keep the temp row)
-- [ ] 5.4 Create `apps/web/src/api/query/subcategoryRecommendations/useUpdateSubcategoryRecommendation.ts` (PUT mutation; invalidates the list key; used for both modify and empty-body delete flows)
-- [ ] 5.5 Derive hook types from `@repo/types` request/response types via `z.infer`
-- [ ] 5.6 Reuse the existing `apps/web/src/api/query/systemParameters/useSystemParameters.ts` hook — no new hook needed
-- [ ] 5.7 Map the new 409 error code in `apps/web/src/utils/getApiErrorMessage.ts` to a Spanish message prompting the admin to edit the existing group (e.g., "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva.")
+- [x] 5.1 Create `apps/web/src/api/query/subcategoryRecommendations/keys.ts` with `subcategoryRecommendationKeys.all` and `.list()`
+- [x] 5.2 Create `apps/web/src/api/query/subcategoryRecommendations/useSubcategoryRecommendations.ts` (list query hook)
+- [x] 5.3 Create `apps/web/src/api/query/subcategoryRecommendations/useCreateSubcategoryRecommendation.ts` (POST mutation; invalidates the list key on success; surfaces 409 so the caller can show a Spanish error and keep the temp row)
+- [x] 5.4 Create `apps/web/src/api/query/subcategoryRecommendations/useUpdateSubcategoryRecommendation.ts` (PUT mutation; invalidates the list key; used for both modify and empty-body delete flows)
+- [x] 5.5 Derive hook types from `@repo/types` request/response types via `z.infer`
+- [x] 5.6 Reuse the existing `apps/web/src/api/query/systemParameters/useSystemParameters.ts` hook — no new hook needed
+- [x] 5.7 Map the new 409 error code in `apps/web/src/utils/getApiErrorMessage.ts` to a Spanish message prompting the admin to edit the existing group (e.g., "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva.")
 
 ## 6. Web — maintainer screen
 
