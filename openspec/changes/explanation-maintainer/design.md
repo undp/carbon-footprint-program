@@ -83,8 +83,6 @@ Cascade to section-component props (`*ExplanationSlug?: ExplanationSlug | null`)
 
 **Why not** `createMany({ skipDuplicates: true })`? It would never refresh `name`/`description` when we add or rename catalog entries, producing drift between code and DB.
 
-The admin read/write endpoints mirror this same catalog filter (`where: { slug: { in: EXPLANATION_CATALOG slugs } }` on list, `404` on update for unknown slugs), so the catalog is the sole source of truth end-to-end — a slug removed from code immediately disappears from the admin surface while its content stays intact in DB.
-
 ### 9. Content validation: empty allowed, max 10 000 chars
 
 Empty is a legal "not yet authored" state (operator hasn't filled it in). 10 000 chars is a pragmatic upper bound — well above any realistic markdown blurb, far below payload-size concerns.
@@ -96,8 +94,8 @@ Categories maintainer is SUPERADMIN-only. Explanations is intentionally broader:
 ## Risks / Trade-offs
 
 - **Schema column drop on a shipped model** → Safe today because the table is empty in all deployments; verify pre-deploy by checking row count in each environment. If any row existed, we'd need a data migration.
-- **Catalog drift between code and DB** → Reseed upserts every slug in `EXPLANATION_CATALOG`, so adding a slug provisions the row. Removing a slug leaves an orphan row in DB, but the admin list query filters with `where: { slug: { in: EXPLANATION_CATALOG slugs } }` (and `updateExplanation` rejects unknown slugs with `404`), so orphans are never returned from the API or rendered in the maintainer screen. Orphans are inert and their `content` is preserved; if the slug is re-added later, the existing row is picked up by the upsert. No manual `DELETE` needed for correctness.
-- **Empty-content rows visible in the UI** → By design. Operators see empty entries and fill them in. `InfoButton` in reduction-project screens must handle empty `content` gracefully — render no button (or a neutral disabled state) rather than opening an empty modal. Verify during manual QA with a catalog slug whose DB row has `content = ""`.
+- **Catalog drift between code and DB** → Reseed runs upsert every time, so adding a slug automatically provisions the row; removing a slug from the catalog leaves an orphan row in DB (not shown in UI because the admin list derives from DB, not catalog). Acceptable — orphans are inert until a manual `DELETE`.
+- **Empty-content rows visible in the UI** → By design. Operators see empty entries and can fill them in. InfoButton in reduction-project screens should gracefully handle empty content (verify during manual QA).
 - **Prop rename churn** → Contained to 4 web files (3 components + 1 caller). Grep-verified scope.
 - **`ExplanationModal` extension** → Only adds optional `loading?: boolean`; existing category/subcategory call sites unchanged.
 - **10 000-char limit** → If operators later need longer content, bumping the limit is a one-line Zod change + DB column is already `Text` (unbounded).
@@ -105,10 +103,11 @@ Categories maintainer is SUPERADMIN-only. Explanations is intentionally broader:
 ## Migration Plan
 
 1. Merge schema change → `pnpm --filter database dev:generate && pnpm --filter database dev:build` locally; Prisma migration SQL auto-generated.
-2. Apply migration (drops `createdById` column + FK, adds `name` NOT NULL with no default).
-3. Run seed (or `seedExplanations` alone) to populate the 5 catalog rows.
-4. Deploy API + web together (admin routes require the new types package and vice versa).
-5. Smoke-test `/admin/explanations` as ADMIN and as USER (redirect to dashboard).
+2. In each deployment environment: verify `SELECT count(*) FROM "Explanation"` returns 0 before running the migration. If non-zero, abort and audit.
+3. Apply migration (drops `createdById` column + FK, adds `name` NOT NULL with no default — safe because row count is 0).
+4. Run seed (or `seedExplanations` alone) to populate the 5 catalog rows.
+5. Deploy API + web together (admin routes require the new types package and vice versa).
+6. Smoke-test `/admin/explanations` as ADMIN and as USER (redirect to dashboard).
 
 **Rollback**: if the migration fails or content needs reverting, the reverse migration is `ALTER TABLE` restoring `createdById` and dropping `name`/`description`. Because `content` edits are the only user-generated data, a `pg_dump` of the `Explanation` table before deploy is a sufficient safety net.
 

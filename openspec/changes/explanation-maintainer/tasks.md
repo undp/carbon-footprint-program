@@ -27,10 +27,10 @@
 
 ## 5. API — admin endpoints
 
-- [ ] 5.1 Create `apps/api/src/features/explanations/admin/getAllExplanations/service.ts` using `prisma.explanation.findMany({ where: { slug: { in: Object.keys(EXPLANATION_CATALOG) as ExplanationSlug[] } }, orderBy: { name: "asc" }, select: { slug: true, name: true, description: true, content: true, createdAt: true, updatedAt: true, updatedById: true } })` — the `where` filter ensures orphan rows (slugs no longer in the catalog) are excluded from the admin response
+- [ ] 5.1 Create `apps/api/src/features/explanations/admin/getAllExplanations/service.ts` using `prisma.explanation.findMany({ orderBy: { name: "asc" } })` with explicit `select` for `slug`, `name`, `description`, `content`, `createdAt`, `updatedAt`, `updatedById`
 - [ ] 5.2 Create `apps/api/src/features/explanations/admin/getAllExplanations/handler.ts`
 - [ ] 5.3 Create `apps/api/src/features/explanations/admin/getAllExplanations/route.ts` with Zod schema, no per-route auth hooks (handled at file scope)
-- [ ] 5.4 Create `apps/api/src/features/explanations/admin/updateExplanation/service.ts` implementing `prisma.$transaction` that (a) rejects slugs not present in `EXPLANATION_CATALOG` with `ExplanationNotFoundError` (so orphan rows are treated as not-found from the admin surface, mirroring the list filter), (b) verifies the row exists in DB (throw `ExplanationNotFoundError`), then updates `content`, `updatedById`, `updatedAt`; returns full row
+- [ ] 5.4 Create `apps/api/src/features/explanations/admin/updateExplanation/service.ts` implementing `prisma.$transaction` that verifies slug existence (throw `ExplanationNotFoundError`) then updates `content`, `updatedById`, `updatedAt`; returns full row
 - [ ] 5.5 Create `apps/api/src/features/explanations/admin/updateExplanation/handler.ts` (pulls `currentUser` from request)
 - [ ] 5.6 Create `apps/api/src/features/explanations/admin/updateExplanation/route.ts` with Zod schema including `404` with `ApiErrorResponseSchema`
 
@@ -43,8 +43,8 @@
 ## 7. API — tests
 
 - [ ] 7.1 Add `apps/api/test/factories/explanationFactory.ts` that creates rows with required fields + overridable slug/name/description/content
-- [ ] 7.2 Create `apps/api/test/features/explanations/admin/getAllExplanations/integration.test.ts` covering 401 unauth, 403 non-admin, 200 sorted-by-name ADMIN happy path, and a case where a DB row whose slug is not in `EXPLANATION_CATALOG` is excluded from the response (guardrail against the catalog filter regressing)
-- [ ] 7.3 Create `apps/api/test/features/explanations/admin/updateExplanation/integration.test.ts` covering 401, 403, 404 unknown slug, 404 orphan slug (exists in DB but not in `EXPLANATION_CATALOG`), 400 content too long, 200 empty content accepted, 200 happy-path updates `content`+`updatedById`+`updatedAt`
+- [ ] 7.2 Create `apps/api/test/features/explanations/admin/getAllExplanations/integration.test.ts` covering 401 unauth, 403 non-admin, and 200 sorted-by-name ADMIN happy path
+- [ ] 7.3 Create `apps/api/test/features/explanations/admin/updateExplanation/integration.test.ts` covering 401, 403, 404 unknown slug, 400 content too long, 200 empty content accepted, 200 happy-path updates `content`+`updatedById`+`updatedAt`
 
 ## 8. Web — query hooks + route
 

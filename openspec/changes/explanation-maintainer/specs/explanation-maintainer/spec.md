@@ -7,7 +7,7 @@ The system SHALL expose a shared, code-declared catalog of explanation slugs fro
 #### Scenario: Initial catalog contents
 
 - **WHEN** the catalog is loaded
-- **THEN** it contains at least the five reduction-project slugs: `reduction_projects_list`, `reduction_project_basis`, `reduction_project_gwp`, `reduction_project_gei_considered`, `reduction_project_reported_elsewhere`, each with a Spanish `name` (and, for the initial catalog, a Spanish `description`)
+- **THEN** it contains at least the five reduction-project slugs: `reduction_projects_list`, `reduction_project_basis`, `reduction_project_gwp`, `reduction_project_gei_considered`, `reduction_project_reported_elsewhere`, each with a Spanish `name` and `description`
 
 #### Scenario: Slug type is a closed union
 
@@ -26,12 +26,11 @@ The `Explanation` database model SHALL include `name String` (NOT NULL) and `des
 #### Scenario: User back-relation
 
 - **WHEN** the `User` model is inspected
-- **THEN** it has no back-relation named `explanation_created_by` (the `explanationsCreated` field tied to `@relation("explanation_created_by")` is removed)
-- **AND** it retains the `explanationsUpdated` back-relation tied to `@relation("explanation_updated_by")`, matching the `Explanation.updater` relation that is kept
+- **THEN** it has no back-relation named `explanation_created_by`
 
 ### Requirement: Standalone catalog seed is idempotent and content-preserving
 
-Seeding SHALL upsert one row per `EXPLANATION_CATALOG` entry keyed by `slug`. The create branch MUST set `name`, `description`, and `content: ""`, and MUST leave `updatedById` as null (seeds are not user-initiated operations). The update branch MUST refresh only `name` and `description`; it MUST NOT overwrite `content` or `updatedById`.
+Seeding SHALL upsert one row per `EXPLANATION_CATALOG` entry keyed by `slug`. The create branch MUST set `name`, `description`, and `content: ""`. The update branch MUST refresh `name` and `description` only; it MUST NOT overwrite `content`.
 
 #### Scenario: First seed of an empty database
 
