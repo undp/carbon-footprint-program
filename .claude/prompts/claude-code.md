@@ -9,7 +9,7 @@
 
 ### Instructions:
 
-1. Checkout to branch <branch-name> and pull latest from origin.
+1. **Protected-branch gate**: verify that `<branch-name>` is not a protected branch (`main`, `master`, `release`, `prod`, `staging`). If it matches, abort immediately with a clear error — do not checkout, push, or modify the branch. After validation passes, checkout to branch `<branch-name>` and pull latest from origin.
 2. Run session setup: `pnpm install` and `.claude/setup.sh`.
 3. Read the OpenSpec named <spec-name>.
 4. Implement the feature using the skill "opsx:apply <spec-name>".
