@@ -3,6 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useExplanations, useUpdateExplanation } from "@/api/query/maintainer";
 import type { GetAllExplanationsResponse } from "@repo/types";
+import type { ExplanationSlug } from "@repo/constants";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
@@ -37,7 +38,10 @@ export const ExplanationsMaintainerScreen: FC = () => {
     async (content: string) => {
       if (!editingSlug) return;
       try {
-        await updateMutation.mutateAsync({ slug: editingSlug, content });
+        await updateMutation.mutateAsync({
+          slug: editingSlug as ExplanationSlug,
+          content,
+        });
         enqueueSnackbar("Explicación guardada", { variant: "success" });
       } catch (error) {
         enqueueSnackbar(
