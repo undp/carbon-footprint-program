@@ -35,6 +35,7 @@ import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizat
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
 import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
 import { Route as AdminItemsRouteImport } from './routes/admin/items'
+import { Route as AdminExplanationsRouteImport } from './routes/admin/explanations'
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -184,6 +185,11 @@ const AdminItemsRoute = AdminItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExplanationsRoute = AdminExplanationsRouteImport.update({
+  id: '/explanations',
+  path: '/explanations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
   id: '/emission-factors',
   path: '/emission-factors',
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/explanations': typeof AdminExplanationsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
@@ -327,6 +334,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/explanations': typeof AdminExplanationsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/explanations': typeof AdminExplanationsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
@@ -417,6 +426,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
+    | '/admin/explanations'
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
+    | '/admin/explanations'
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
@@ -501,6 +512,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
+    | '/admin/explanations'
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
@@ -727,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminItemsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/explanations': {
+      id: '/admin/explanations'
+      path: '/explanations'
+      fullPath: '/admin/explanations'
+      preLoaderRoute: typeof AdminExplanationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/emission-factors': {
       id: '/admin/emission-factors'
       path: '/emission-factors'
@@ -848,6 +867,7 @@ interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDimensionsRoute: typeof AdminDimensionsRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
+  AdminExplanationsRoute: typeof AdminExplanationsRoute
   AdminItemsRoute: typeof AdminItemsRoute
   AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
@@ -867,6 +887,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDimensionsRoute: AdminDimensionsRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
+  AdminExplanationsRoute: AdminExplanationsRoute,
   AdminItemsRoute: AdminItemsRoute,
   AdminMainActivitiesRoute: AdminMainActivitiesRoute,
   AdminMethodologiesRoute: AdminMethodologiesRoute,
