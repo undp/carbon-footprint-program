@@ -81,9 +81,15 @@ const SubcategoryTransferListDialogContent: FC<
   }, [availableSubcategories, selectedSet]);
 
   const toggle = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => {
+      const set = new Set(prev);
+      if (set.has(id)) {
+        set.delete(id);
+      } else {
+        set.add(id);
+      }
+      return [...set];
+    });
   };
 
   const saveDisabled = isNew && selectedIds.length === 0;
@@ -150,7 +156,12 @@ const SubcategoryTransferListDialogContent: FC<
                         <ListItem key={item.id} disablePadding>
                           <ListItemButton onClick={() => toggle(item.id)}>
                             <ListItemIcon>
-                              <Checkbox edge="start" checked={false} />
+                              <Checkbox
+                                edge="start"
+                                checked={false}
+                                tabIndex={-1}
+                                inputProps={{ "aria-label": item.name }}
+                              />
                             </ListItemIcon>
                             <ListItemText primary={item.name} />
                           </ListItemButton>
@@ -203,7 +214,12 @@ const SubcategoryTransferListDialogContent: FC<
                         <ListItem key={item.id} disablePadding>
                           <ListItemButton onClick={() => toggle(item.id)}>
                             <ListItemIcon>
-                              <Checkbox edge="start" checked />
+                              <Checkbox
+                                edge="start"
+                                checked
+                                tabIndex={-1}
+                                inputProps={{ "aria-label": item.name }}
+                              />
                             </ListItemIcon>
                             <ListItemText primary={item.name} />
                           </ListItemButton>
