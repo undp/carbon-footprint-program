@@ -18,7 +18,7 @@ const buildSearchParams = ({
 }: UpdateSubcategoryRecommendationQuery): URLSearchParams => {
   const params = new URLSearchParams();
   params.set("sectorId", String(sectorId));
-  if (subsectorId !== null) {
+  if (subsectorId != null) {
     params.set("subsectorId", String(subsectorId));
   }
   return params;
