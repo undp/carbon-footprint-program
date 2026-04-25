@@ -3,7 +3,7 @@ import type {
   UpdateExplanationRequest,
   UpdateExplanationResponse,
 } from "@repo/types";
-import { EXPLANATION_CATALOG, type ExplanationSlug } from "@repo/constants";
+import { EXPLANATION_CATALOG } from "@repo/constants";
 import { ExplanationNotFoundError } from "../../errors.js";
 
 export const updateExplanationService = async (
@@ -12,9 +12,7 @@ export const updateExplanationService = async (
   body: UpdateExplanationRequest,
   userId: bigint | null
 ): Promise<UpdateExplanationResponse> => {
-  const catalogSlugs = Object.keys(EXPLANATION_CATALOG) as ExplanationSlug[];
-
-  if (!catalogSlugs.includes(slug as ExplanationSlug)) {
+  if (!Object.prototype.hasOwnProperty.call(EXPLANATION_CATALOG, slug)) {
     throw new ExplanationNotFoundError(slug);
   }
 
