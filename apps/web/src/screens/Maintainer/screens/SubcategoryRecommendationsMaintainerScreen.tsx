@@ -323,11 +323,18 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const handleConfirmEmptyDelete = useCallback(async () => {
     if (!confirmEmpty) return;
     const row = rows.find((r) => r.id === confirmEmpty.rowId);
-    if (row) {
-      await runUpdate(row, []);
+    if (!row) {
+      void enqueueSnackbar({
+        message:
+          "La recomendación ya no existe. La lista se actualizó en otra ventana.",
+        variant: "warning",
+      });
+      setConfirmEmpty(null);
+      return;
     }
+    await runUpdate(row, []);
     setConfirmEmpty(null);
-  }, [confirmEmpty, rows, runUpdate]);
+  }, [confirmEmpty, rows, runUpdate, enqueueSnackbar]);
 
   const columns = useSubcategoryRecommendationColumns({
     sectors: sectors ?? [],
