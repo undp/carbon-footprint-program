@@ -125,6 +125,6 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetAllExplanationsResponse;
     expect(body).toHaveLength(1);
-    expect(body[0]!.slug).toBe(catalogSlug);
+    expect(body[0].slug).toBe(catalogSlug);
   });
 });
