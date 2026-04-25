@@ -53,6 +53,11 @@ export const useSubcategoryRecommendationColumns = ({
     [subcategories]
   );
 
+  const rowIndexById = useMemo(
+    () => new Map(rows.map((r, i) => [r.id, i])),
+    [rows]
+  );
+
   return useMemo<GridColDef<SubcategoryRecommendationRow>[]>(
     () => [
       {
@@ -64,7 +69,7 @@ export const useSubcategoryRecommendationColumns = ({
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
-          const rowIndex = rows.findIndex((r) => r.id === params.row.id);
+          const rowIndex = rowIndexById.get(params.row.id) ?? -1;
           if (rowIndex < 0) return null;
 
           if (isNewRow(params.row.id)) {
@@ -103,7 +108,7 @@ export const useSubcategoryRecommendationColumns = ({
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
-          const rowIndex = rows.findIndex((r) => r.id === params.row.id);
+          const rowIndex = rowIndexById.get(params.row.id) ?? -1;
           if (rowIndex < 0) return null;
 
           if (isNewRow(params.row.id)) {
@@ -152,14 +157,14 @@ export const useSubcategoryRecommendationColumns = ({
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
-          const rowIndex = rows.findIndex((r) => r.id === params.row.id);
+          const rowIndex = rowIndexById.get(params.row.id) ?? -1;
           if (rowIndex < 0) return null;
 
-          const selectedNames = params.row.subcategoryIds
-            .map((id) => subcategoriesById.get(id)?.name)
-            .filter((name): name is string => Boolean(name));
-          const preview = selectedNames.slice(0, 3);
-          const remaining = selectedNames.length - preview.length;
+          const selectedSubcategories = params.row.subcategoryIds
+            .map((id) => subcategoriesById.get(id))
+            .filter((sc): sc is SubcategoryOption => sc !== undefined);
+          const preview = selectedSubcategories.slice(0, 3);
+          const remaining = selectedSubcategories.length - preview.length;
 
           return (
             <Stack
@@ -186,9 +191,13 @@ export const useSubcategoryRecommendationColumns = ({
                     Sin subcategorías seleccionadas
                   </Typography>
                 ) : (
-                  preview.map((name) => (
-                    <Tooltip key={name} title={name} arrow>
-                      <Chip label={name} size="small" sx={{ maxWidth: 200 }} />
+                  preview.map((sub) => (
+                    <Tooltip key={sub.id} title={sub.name} arrow>
+                      <Chip
+                        label={sub.name}
+                        size="small"
+                        sx={{ maxWidth: 200 }}
+                      />
                     </Tooltip>
                   ))
                 )}
@@ -219,7 +228,7 @@ export const useSubcategoryRecommendationColumns = ({
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
           if (!isNewRow(params.row.id)) return null;
-          const rowIndex = rows.findIndex((r) => r.id === params.row.id);
+          const rowIndex = rowIndexById.get(params.row.id) ?? -1;
           if (rowIndex < 0) return null;
           return (
             <Button
@@ -235,7 +244,7 @@ export const useSubcategoryRecommendationColumns = ({
       },
     ],
     [
-      rows,
+      rowIndexById,
       sectors,
       subcategoriesById,
       nullSubsectorLabel,
