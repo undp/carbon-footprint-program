@@ -170,26 +170,27 @@ async function seedSubcategoryExplanations(
 }
 
 async function seedStandaloneExplanations(prisma: PrismaClient) {
-  let upsertedCount = 0;
+  const entries = Object.entries(EXPLANATION_CATALOG);
 
-  for (const [slug, entry] of Object.entries(EXPLANATION_CATALOG)) {
-    await prisma.explanation.upsert({
-      where: { slug },
-      create: {
-        slug,
-        name: entry.name,
-        description: entry.description ?? null,
-        content: "",
-      },
-      update: {
-        name: entry.name,
-        description: entry.description ?? null,
-      },
-    });
-    upsertedCount++;
-  }
+  await Promise.all(
+    entries.map(([slug, entry]) =>
+      prisma.explanation.upsert({
+        where: { slug },
+        create: {
+          slug,
+          name: entry.name,
+          description: entry.description ?? null,
+          content: "",
+        },
+        update: {
+          name: entry.name,
+          description: entry.description ?? null,
+        },
+      })
+    )
+  );
 
-  console.log(`   ✓ Upserted ${upsertedCount} standalone explanation rows`);
+  console.log(`   ✓ Upserted ${entries.length} standalone explanation rows`);
 }
 
 export async function seedExplanations(
