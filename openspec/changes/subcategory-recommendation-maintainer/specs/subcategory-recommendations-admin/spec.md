@@ -176,7 +176,7 @@ The web app SHALL render an admin-only screen at `/admin/subcategory-recommendat
 #### Scenario: Existing rows save via PUT
 
 - **WHEN** the admin clicks "Editar" on a persisted row's Subcategorías column, modifies the selection, and saves
-- **THEN** the screen fires the update mutation (`PUT /subcategory-recommendations?sectorId=&subsectorId=`) with the new `subcategoryIds`
+- **THEN** the screen fires the update mutation (`PUT /subcategory-recommendations?sectorId=<sectorId>&subsectorId=<subsectorId>`) with the new `subcategoryIds`
 
 #### Scenario: Empty save on an existing row triggers a confirmation dialog
 

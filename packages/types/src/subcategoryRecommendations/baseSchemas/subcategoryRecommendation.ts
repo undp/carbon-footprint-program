@@ -8,8 +8,8 @@ export const SubcategoryRecommendationBaseSchema = z.object({
   status: z.enum(["ACTIVE", "DELETED"]),
   createdById: z.string().nullable(),
   updatedById: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime().nullable(),
 });
 
 export type SubcategoryRecommendationBase = z.infer<

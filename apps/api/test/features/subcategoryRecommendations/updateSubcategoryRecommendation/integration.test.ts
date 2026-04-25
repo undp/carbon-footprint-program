@@ -54,7 +54,11 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
 
   afterEach(async () => {
     await prisma.subcategoryRecommendation.deleteMany({
-      where: { sectorId: BigInt(sectorId), subsectorId: null },
+      where: {
+        sectorId: BigInt(sectorId),
+        subsectorId: null,
+        createdById: testUser.id,
+      },
     });
   });
 
@@ -74,12 +78,12 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
 
   describe("Diff operations", () => {
     it("add-only: should add new subcategories to existing group", async () => {
-      await seedActive([subcategoryIds[0]!]);
+      await seedActive([subcategoryIds[0]]);
 
       const response = await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[0]!, subcategoryIds[1]!] },
+        payload: { subcategoryIds: [subcategoryIds[0], subcategoryIds[1]] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -87,17 +91,17 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         response.body
       ) as UpdateSubcategoryRecommendationResponse;
       expect(body.subcategoryIds).toHaveLength(2);
-      expect(body.subcategoryIds).toContain(subcategoryIds[0]!);
-      expect(body.subcategoryIds).toContain(subcategoryIds[1]!);
+      expect(body.subcategoryIds).toContain(subcategoryIds[0]);
+      expect(body.subcategoryIds).toContain(subcategoryIds[1]);
     });
 
     it("remove-only: should soft-delete removed subcategories", async () => {
-      await seedActive([subcategoryIds[0]!, subcategoryIds[1]!]);
+      await seedActive([subcategoryIds[0], subcategoryIds[1]]);
 
       const response = await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[0]!] },
+        payload: { subcategoryIds: [subcategoryIds[0]] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -105,12 +109,12 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         response.body
       ) as UpdateSubcategoryRecommendationResponse;
       expect(body.subcategoryIds).toHaveLength(1);
-      expect(body.subcategoryIds).toContain(subcategoryIds[0]!);
+      expect(body.subcategoryIds).toContain(subcategoryIds[0]);
 
       const deleted = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
-          subcategoryId: BigInt(subcategoryIds[1]!),
+          subcategoryId: BigInt(subcategoryIds[1]),
           status: SubcategoryRecommendationStatus.DELETED,
         },
       });
@@ -119,12 +123,12 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
     });
 
     it("mixed diff: should add and remove correctly", async () => {
-      await seedActive([subcategoryIds[0]!, subcategoryIds[1]!]);
+      await seedActive([subcategoryIds[0], subcategoryIds[1]]);
 
       const response = await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[0]!, subcategoryIds[2]!] },
+        payload: { subcategoryIds: [subcategoryIds[0], subcategoryIds[2]] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -132,13 +136,13 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         response.body
       ) as UpdateSubcategoryRecommendationResponse;
       expect(body.subcategoryIds).toHaveLength(2);
-      expect(body.subcategoryIds).toContain(subcategoryIds[0]!);
-      expect(body.subcategoryIds).toContain(subcategoryIds[2]!);
-      expect(body.subcategoryIds).not.toContain(subcategoryIds[1]!);
+      expect(body.subcategoryIds).toContain(subcategoryIds[0]);
+      expect(body.subcategoryIds).toContain(subcategoryIds[2]);
+      expect(body.subcategoryIds).not.toContain(subcategoryIds[1]);
     });
 
     it("empty array: should soft-delete all ACTIVE rows", async () => {
-      await seedActive([subcategoryIds[0]!, subcategoryIds[1]!]);
+      await seedActive([subcategoryIds[0], subcategoryIds[1]]);
 
       const response = await app.inject({
         method: "PUT",
@@ -165,12 +169,13 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         method: "GET",
         url: "/api/subcategory-recommendations",
       });
-      const list = JSON.parse(listResponse.body) as {
+      const list = JSON.parse(listResponse.body) as Array<{
         sectorId: number;
+        subsectorId: number | null;
         subcategoryIds: number[];
-      }[];
+      }>;
       const group = list.find(
-        (g) => g.sectorId === sectorId && g.subcategoryIds.length > 0
+        (g) => g.sectorId === sectorId && g.subsectorId === null
       );
       expect(group).toBeUndefined();
     });
@@ -204,7 +209,7 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
     });
 
     it("delete-then-readd: re-adding a previously DELETED tuple creates a new ACTIVE row", async () => {
-      await seedActive([subcategoryIds[0]!]);
+      await seedActive([subcategoryIds[0]]);
 
       // Delete it via PUT []
       await app.inject({
@@ -217,7 +222,7 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
       const response = await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[0]!] },
+        payload: { subcategoryIds: [subcategoryIds[0]] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -226,7 +231,7 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         where: {
           sectorId: BigInt(sectorId),
           subsectorId: null,
-          subcategoryId: BigInt(subcategoryIds[0]!),
+          subcategoryId: BigInt(subcategoryIds[0]),
           status: SubcategoryRecommendationStatus.ACTIVE,
         },
       });
@@ -236,18 +241,18 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
 
   describe("Audit fields", () => {
     it("should set createdById on new rows and updatedById on soft-deletes", async () => {
-      await seedActive([subcategoryIds[0]!]);
+      await seedActive([subcategoryIds[0]]);
 
       await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[0]!, subcategoryIds[1]!] },
+        payload: { subcategoryIds: [subcategoryIds[0], subcategoryIds[1]] },
       });
 
       const newRow = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
-          subcategoryId: BigInt(subcategoryIds[1]!),
+          subcategoryId: BigInt(subcategoryIds[1]),
           status: SubcategoryRecommendationStatus.ACTIVE,
         },
       });
@@ -256,13 +261,13 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
       await app.inject({
         method: "PUT",
         url: url(),
-        payload: { subcategoryIds: [subcategoryIds[1]!] },
+        payload: { subcategoryIds: [subcategoryIds[1]] },
       });
 
       const softDeleted = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
-          subcategoryId: BigInt(subcategoryIds[0]!),
+          subcategoryId: BigInt(subcategoryIds[0]),
           status: SubcategoryRecommendationStatus.DELETED,
         },
         orderBy: { id: "desc" },
@@ -277,7 +282,7 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
         method: "PUT",
         url: url(),
         payload: {
-          subcategoryIds: [subcategoryIds[0]!, subcategoryIds[0]!],
+          subcategoryIds: [subcategoryIds[0], subcategoryIds[0]],
         },
       });
       expect(response.statusCode).toBe(400);

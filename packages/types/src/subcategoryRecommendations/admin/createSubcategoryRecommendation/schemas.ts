@@ -8,7 +8,7 @@ export const CreateSubcategoryRecommendationBodySchema = z.object({
     .array(z.number().int().positive())
     .min(1, { message: "Se requiere al menos una subcategoría" })
     .refine((arr) => new Set(arr).size === arr.length, {
-      message: "subcategoryIds must be unique",
+      message: "Las subcategorías no pueden repetirse",
     }),
 });
 

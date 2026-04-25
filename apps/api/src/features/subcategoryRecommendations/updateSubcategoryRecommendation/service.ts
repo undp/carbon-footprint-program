@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import { SubcategoryRecommendationStatus } from "@repo/types";
 import type {
   UpdateSubcategoryRecommendationBody,
@@ -7,6 +7,7 @@ import type {
   User,
 } from "@repo/types";
 import { buildGroupedResponse } from "../helpers.js";
+import { SubcategoryRecommendationGroupAlreadyExistsError } from "../errors.js";
 
 export const updateSubcategoryRecommendationService = async (
   prismaClient: PrismaClient,
@@ -64,15 +65,25 @@ export const updateSubcategoryRecommendationService = async (
     }
 
     if (toAddIds.length > 0) {
-      await tx.subcategoryRecommendation.createMany({
-        data: toAddIds.map((subcategoryId) => ({
-          subcategoryId: BigInt(subcategoryId),
-          sectorId,
-          subsectorId,
-          status: SubcategoryRecommendationStatus.ACTIVE,
-          createdById: userId,
-        })),
-      });
+      try {
+        await tx.subcategoryRecommendation.createMany({
+          data: toAddIds.map((subcategoryId) => ({
+            subcategoryId: BigInt(subcategoryId),
+            sectorId,
+            subsectorId,
+            status: SubcategoryRecommendationStatus.ACTIVE,
+            createdById: userId,
+          })),
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          throw new SubcategoryRecommendationGroupAlreadyExistsError();
+        }
+        throw error;
+      }
     }
 
     return tx.subcategoryRecommendation.findMany({
@@ -100,5 +111,9 @@ export const updateSubcategoryRecommendationService = async (
     };
   }
 
-  return grouped[0]!;
+  const result = grouped[0];
+  if (!result) {
+    throw new Error("Failed to build response after updating recommendations");
+  }
+  return result;
 };

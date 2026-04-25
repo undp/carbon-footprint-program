@@ -2,9 +2,11 @@ import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { FormProvider } from "react-hook-form";
 import { useSnackbar } from "notistack";
-import { useSubcategoryRecommendations } from "@/api/query/subcategoryRecommendations";
-import { useCreateSubcategoryRecommendation } from "@/api/query/subcategoryRecommendations";
-import { useUpdateSubcategoryRecommendation } from "@/api/query/subcategoryRecommendations";
+import {
+  useSubcategoryRecommendations,
+  useCreateSubcategoryRecommendation,
+  useUpdateSubcategoryRecommendation,
+} from "@/api/query/subcategoryRecommendations";
 import { useSystemParameters } from "@/api/query/systemParameters";
 import { useCountrySectors } from "@/api/query";
 import { SystemParameterKeyEnum } from "@repo/types";

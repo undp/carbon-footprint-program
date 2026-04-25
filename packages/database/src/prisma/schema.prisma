@@ -288,10 +288,10 @@ model User {
   filesUploaded                        File[]                         @relation("file_created_by")
   explanationsCreated                  Explanation[]                  @relation("explanation_created_by")
   explanationsUpdated                  Explanation[]                  @relation("explanation_updated_by")
-  reductionPlanInitiativesCreated         ReductionPlanInitiative[]        @relation("reduction_plan_initiative_created_by")
-  reductionPlanInitiativesUpdated         ReductionPlanInitiative[]        @relation("reduction_plan_initiative_updated_by")
-  subcategoryRecommendationsCreated       SubcategoryRecommendation[]      @relation("subcategory_recommendation_created_by")
-  subcategoryRecommendationsUpdated       SubcategoryRecommendation[]      @relation("subcategory_recommendation_updated_by")
+  reductionPlanInitiativesCreated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_created_by")
+  reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
+  subcategoryRecommendationsCreated    SubcategoryRecommendation[]    @relation("subcategory_recommendation_created_by")
+  subcategoryRecommendationsUpdated    SubcategoryRecommendation[]    @relation("subcategory_recommendation_updated_by")
 
   @@map("user")
 }

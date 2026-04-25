@@ -55,7 +55,11 @@ describe("POST /api/subcategory-recommendations - Integration Tests", () => {
 
   afterEach(async () => {
     await prisma.subcategoryRecommendation.deleteMany({
-      where: { sectorId: BigInt(sectorId) },
+      where: {
+        sectorId: BigInt(sectorId),
+        subsectorId: null,
+        createdById: testUser.id,
+      },
     });
   });
 

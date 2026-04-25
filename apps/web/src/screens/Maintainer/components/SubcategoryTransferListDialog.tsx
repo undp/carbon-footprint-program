@@ -38,7 +38,8 @@ export const SubcategoryTransferListDialog: FC<
     () => new Set(selectedIds)
   );
 
-  const { data: methodologies } = useMethodologies();
+  const { data: methodologies, isLoading: isLoadingMethodologies } =
+    useMethodologies();
   const activeMethodologyVersionId = useMemo(() => {
     return methodologies?.find(
       (m) => m.status === MethodologyVersionStatus.PUBLISHED
@@ -71,7 +72,8 @@ export const SubcategoryTransferListDialog: FC<
     });
   };
 
-  const isLoading = isLoadingSubcategories || isLoadingCategories;
+  const isLoading =
+    isLoadingMethodologies || isLoadingSubcategories || isLoadingCategories;
   const isSaveDisabled = isNew && checked.size === 0;
 
   return (

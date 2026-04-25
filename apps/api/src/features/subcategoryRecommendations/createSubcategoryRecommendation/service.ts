@@ -65,5 +65,8 @@ export const createSubcategoryRecommendationService = async (
   });
 
   const [result] = buildGroupedResponse(group);
-  return result!;
+  if (!result) {
+    throw new Error("Failed to build response after creating recommendations");
+  }
+  return result;
 };

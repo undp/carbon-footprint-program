@@ -49,7 +49,9 @@ describe("GET /api/subcategory-recommendations - Integration Tests", () => {
       orderBy: { id: "asc" },
     });
 
-    if (!sector || !subcategory) return;
+    if (!sector || !subcategory) {
+      throw new Error("Missing required sector/subcategory fixture");
+    }
 
     await prisma.subcategoryRecommendation.createMany({
       data: [
@@ -128,21 +130,23 @@ describe("GET /api/subcategory-recommendations - Integration Tests", () => {
       orderBy: { id: "asc" },
     });
 
-    if (!sector || subcategories.length < 2) return;
+    if (!sector || subcategories.length < 2) {
+      throw new Error("Missing required sector/subcategory fixtures");
+    }
 
     await prisma.subcategoryRecommendation.createMany({
       data: [
         {
           sectorId: sector.id,
           subsectorId: null,
-          subcategoryId: subcategories[0]!.id,
+          subcategoryId: subcategories[0].id,
           status: SubcategoryRecommendationStatus.ACTIVE,
           createdById: testUser.id,
         },
         {
           sectorId: sector.id,
           subsectorId: null,
-          subcategoryId: subcategories[1]!.id,
+          subcategoryId: subcategories[1].id,
           status: SubcategoryRecommendationStatus.DELETED,
           createdById: testUser.id,
         },
@@ -160,10 +164,9 @@ describe("GET /api/subcategory-recommendations - Integration Tests", () => {
     ) as ListSubcategoryRecommendationsResponse;
 
     const matchingGroup = body.find((g) => g.sectorId === Number(sector.id));
-    if (matchingGroup) {
-      expect(matchingGroup.subcategoryIds).not.toContain(
-        Number(subcategories[1]!.id)
-      );
-    }
+    expect(matchingGroup).toBeDefined();
+    expect(matchingGroup!.subcategoryIds).not.toContain(
+      Number(subcategories[1].id)
+    );
   });
 });
