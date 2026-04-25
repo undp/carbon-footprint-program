@@ -10,6 +10,8 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { SystemRole } from "@repo/database";
+import { ExplanationSlug } from "@repo/constants";
+import type { UpdateExplanationResponse } from "@repo/types";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import {
@@ -55,7 +57,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     try {
       const response = await app.inject({
         method: "PATCH",
-        url: "/api/admin/explanations/reduction-project-gwp",
+        url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_GWP}`,
         payload: { content: "x" },
       });
       expect(response.statusCode).toBe(403);
@@ -67,7 +69,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     }
   });
 
-  it("returns 404 when no row exists for the given slug", async () => {
+  it("returns 404 when slug is not in the catalog", async () => {
     const response = await app.inject({
       method: "PATCH",
       url: "/api/admin/explanations/does_not_exist",
@@ -76,9 +78,24 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     expect(response.statusCode).toBe(404);
   });
 
+  it("returns 404 when slug exists in DB but not in EXPLANATION_CATALOG", async () => {
+    await createTestExplanation(prisma, {
+      slug: "orphan_slug_not_in_catalog",
+      name: "Orphan",
+      content: "old",
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: "/api/admin/explanations/orphan_slug_not_in_catalog",
+      payload: { content: "new" },
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
   it("returns 400 when content exceeds the max length", async () => {
     await createTestExplanation(prisma, {
-      slug: "reduction-project-gwp",
+      slug: ExplanationSlug.REDUCTION_PROJECT_GWP,
       name: "GWP",
       content: "",
     });
@@ -86,34 +103,32 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     const tooLong = "x".repeat(10_001);
     const response = await app.inject({
       method: "PATCH",
-      url: "/api/admin/explanations/reduction-project-gwp",
+      url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_GWP}`,
       payload: { content: tooLong },
     });
     expect(response.statusCode).toBe(400);
   });
 
-  it("accepts an empty content string and returns 204", async () => {
+  it("accepts an empty content string", async () => {
     await createTestExplanation(prisma, {
-      slug: "reduction-project-basis",
+      slug: ExplanationSlug.REDUCTION_PROJECT_BASIS,
       name: "Basis",
       content: "non-empty",
     });
 
     const response = await app.inject({
       method: "PATCH",
-      url: "/api/admin/explanations/reduction-project-basis",
+      url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_BASIS}`,
       payload: { content: "" },
     });
 
-    expect(response.statusCode).toBe(204);
-    const persisted = await prisma.explanation.findUnique({
-      where: { slug: "reduction-project-basis" },
-    });
-    expect(persisted?.content).toBe("");
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as UpdateExplanationResponse;
+    expect(body.content).toBe("");
   });
 
-  it("persists content, updatedById and updatedAt on the happy path", async () => {
-    const slug = "reduction-project-gwp";
+  it("updates content, updatedById and updatedAt on the happy path", async () => {
+    const slug = ExplanationSlug.REDUCTION_PROJECT_GWP;
     const before = await createTestExplanation(prisma, {
       slug,
       name: "GWP",
@@ -126,15 +141,20 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
       payload: { content: "New markdown" },
     });
 
-    expect(response.statusCode).toBe(204);
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as UpdateExplanationResponse;
+    expect(body.slug).toBe(slug);
+    expect(body.content).toBe("New markdown");
+    expect(body.updatedById).toBe(testUser.id.toString());
+    expect(body.updatedAt).not.toBeNull();
+    if (before.updatedAt) {
+      expect(new Date(body.updatedAt!).getTime()).toBeGreaterThan(
+        before.updatedAt.getTime()
+      );
+    }
 
     const persisted = await prisma.explanation.findUnique({ where: { slug } });
     expect(persisted?.content).toBe("New markdown");
     expect(persisted?.updatedById).toBe(testUser.id);
-    if (before.updatedAt && persisted?.updatedAt) {
-      expect(persisted.updatedAt.getTime()).toBeGreaterThan(
-        before.updatedAt.getTime()
-      );
-    }
   });
 });

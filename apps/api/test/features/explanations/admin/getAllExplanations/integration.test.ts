@@ -10,6 +10,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { SystemRole } from "@repo/database";
+import { EXPLANATION_CATALOG, ExplanationSlug } from "@repo/constants";
 import type { GetAllExplanationsResponse } from "@repo/types";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -67,21 +68,21 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     }
   });
 
-  it("returns rows in name ascending order", async () => {
+  it("returns rows in name ascending order for ADMIN", async () => {
     await createTestExplanation(prisma, {
-      slug: "reduction-projects-list",
+      slug: ExplanationSlug.REDUCTION_PROJECTS_LIST,
       name: "Zeta",
       description: null,
       content: "z",
     });
     await createTestExplanation(prisma, {
-      slug: "reduction-project-basis",
+      slug: ExplanationSlug.REDUCTION_PROJECT_BASIS,
       name: "Alfa",
       description: "alfa-desc",
       content: "a",
     });
     await createTestExplanation(prisma, {
-      slug: "reduction-project-gwp",
+      slug: ExplanationSlug.REDUCTION_PROJECT_GWP,
       name: "Delta",
       description: null,
       content: "d",
@@ -96,8 +97,34 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     const body = JSON.parse(response.body) as GetAllExplanationsResponse;
     expect(body.map((row) => row.name)).toEqual(["Alfa", "Delta", "Zeta"]);
     const alfa = body.find((row) => row.name === "Alfa")!;
-    expect(alfa.slug).toBe("reduction-project-basis");
+    expect(alfa.slug).toBe(ExplanationSlug.REDUCTION_PROJECT_BASIS);
     expect(alfa.description).toBe("alfa-desc");
     expect(alfa.content).toBe("a");
+  });
+
+  it("excludes rows whose slug is not in EXPLANATION_CATALOG", async () => {
+    await createTestExplanation(prisma, {
+      slug: "orphan_slug_not_in_catalog",
+      name: "Orphan",
+      content: "orphan-content",
+    });
+
+    const catalogSlug = ExplanationSlug.REDUCTION_PROJECT_GEI_CONSIDERED;
+    await createTestExplanation(prisma, {
+      slug: catalogSlug,
+      name: EXPLANATION_CATALOG[catalogSlug].name,
+      description: EXPLANATION_CATALOG[catalogSlug].description ?? null,
+      content: "hello",
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/explanations",
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as GetAllExplanationsResponse;
+    expect(body).toHaveLength(1);
+    expect(body[0].slug).toBe(catalogSlug);
   });
 });
