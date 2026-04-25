@@ -121,6 +121,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
           <Button
             size="small"
             variant="outlined"
+            aria-label={`Editar explicación ${params.row.name}`}
             onClick={() => handleOpenEdit(params.row.slug)}
           >
             Editar
@@ -138,6 +139,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
         extra={
           <TextField
             size="small"
+            label="Buscar"
             placeholder="Buscar por nombre o slug"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
