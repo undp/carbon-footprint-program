@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
+import { EXPLANATION_CATALOG } from "@repo/constants";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -168,12 +169,36 @@ async function seedSubcategoryExplanations(
   );
 }
 
+async function seedStandaloneExplanations(prisma: PrismaClient) {
+  let upsertedCount = 0;
+
+  for (const [slug, entry] of Object.entries(EXPLANATION_CATALOG)) {
+    await prisma.explanation.upsert({
+      where: { slug },
+      create: {
+        slug,
+        name: entry.name,
+        description: entry.description ?? null,
+        content: "",
+      },
+      update: {
+        name: entry.name,
+        description: entry.description ?? null,
+      },
+    });
+    upsertedCount++;
+  }
+
+  console.log(`   ✓ Upserted ${upsertedCount} standalone explanation rows`);
+}
+
 export async function seedExplanations(
   prisma: PrismaClient,
   dataset: SeedsDataset
 ) {
   console.log("Seeding explanations...");
 
+  await seedStandaloneExplanations(prisma);
   await seedCategoryExplanations(prisma, dataset);
   await seedSubcategoryExplanations(prisma, dataset);
 }
