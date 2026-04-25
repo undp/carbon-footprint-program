@@ -17,7 +17,7 @@ export const updateSubcategoryRecommendationRoute = (
         tags: ["subcategory-recommendations"],
         summary: "Bulk-replace a subcategory recommendation group",
         description:
-          "Idempotent diff-based replace for a (sectorId, subsectorId) group. Empty body soft-deletes the group.",
+          "Idempotent diff-based replace for a (sectorId, subsectorId) group. An empty `subcategoryIds` array soft-deletes the group.",
         querystring: UpdateSubcategoryRecommendationQuerySchema,
         body: UpdateSubcategoryRecommendationRequestSchema,
         response: {
