@@ -281,7 +281,6 @@ model User {
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
   filesUploaded                        File[]                         @relation("file_created_by")
-  explanationsCreated                  Explanation[]                  @relation("explanation_created_by")
   explanationsUpdated                  Explanation[]                  @relation("explanation_updated_by")
   reductionPlanInitiativesCreated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_created_by")
   reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
@@ -377,12 +376,12 @@ model MethodologyVersion {
 
 model Explanation {
   slug        String    @id
+  name        String
+  description String?
   content     String
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
-  createdById BigInt?   @map("created_by_id")
   updatedById BigInt?   @map("updated_by_id")
-  creator     User?     @relation("explanation_created_by", fields: [createdById], references: [id])
   updater     User?     @relation("explanation_updated_by", fields: [updatedById], references: [id])
 
   @@map("explanation")
