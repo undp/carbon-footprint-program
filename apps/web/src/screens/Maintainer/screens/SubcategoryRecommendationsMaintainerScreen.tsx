@@ -107,15 +107,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
 
       const row = currentRows[rowIndex];
 
-      handleCellChange(rowIndex, "subcategoryIds", subcategoryIds);
       setTransferListState({ open: false, rowId: null });
 
       if (isNewRow(rowId)) {
-        // Keep editing until user stops the row
+        // For temp rows: update the form immediately (not yet persisted)
+        handleCellChange(rowIndex, "subcategoryIds", subcategoryIds);
         return;
       }
 
-      // For existing rows: if subcategoryIds is empty, show confirm dialog
+      // For existing rows: if subcategoryIds is empty, show confirm dialog first
       if (subcategoryIds.length === 0) {
         setConfirmDeleteState({
           open: true,
@@ -125,13 +125,14 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         return;
       }
 
-      // Submit update immediately
+      // Non-empty update: persist first, then update form on success
       try {
         await updateMutation.mutateAsync({
           sectorId: row.sectorId!,
           subsectorId: row.subsectorId,
           data: { subcategoryIds },
         });
+        handleCellChange(rowIndex, "subcategoryIds", subcategoryIds);
         setEditingRowId(null);
         enqueueSnackbar({ message: "Cambios guardados", variant: "success" });
       } catch (error) {
@@ -154,8 +155,10 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     const rowId = confirmDeleteState.rowId;
     if (!rowId) return;
 
-    const row = currentRows.find((r) => r.id === rowId);
-    if (!row) return;
+    const rowIndex = currentRows.findIndex((r) => r.id === rowId);
+    if (rowIndex === -1) return;
+
+    const row = currentRows[rowIndex];
 
     setConfirmDeleteState({ open: false, rowId: null, pendingIds: [] });
 
@@ -165,6 +168,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         subsectorId: row.subsectorId,
         data: { subcategoryIds: [] },
       });
+      handleCellChange(rowIndex, "subcategoryIds", []);
       setEditingRowId(null);
       enqueueSnackbar({
         message: "Recomendaciones eliminadas",
@@ -176,7 +180,13 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         variant: "error",
       });
     }
-  }, [confirmDeleteState, currentRows, updateMutation, enqueueSnackbar]);
+  }, [
+    confirmDeleteState,
+    currentRows,
+    handleCellChange,
+    updateMutation,
+    enqueueSnackbar,
+  ]);
 
   // --- Row editing handlers ---
   const handleAddRow = useCallback(() => {

@@ -87,6 +87,7 @@ describe("GET /api/subcategory-recommendations - Integration Tests", () => {
     const matchingGroup = body.find(
       (g) =>
         g.sectorId === Number(sector.id) &&
+        g.subsectorId === null &&
         g.subcategoryIds.includes(Number(subcategory.id))
     );
     expect(matchingGroup).toBeDefined();
@@ -163,7 +164,9 @@ describe("GET /api/subcategory-recommendations - Integration Tests", () => {
       response.body
     ) as ListSubcategoryRecommendationsResponse;
 
-    const matchingGroup = body.find((g) => g.sectorId === Number(sector.id));
+    const matchingGroup = body.find(
+      (g) => g.sectorId === Number(sector.id) && g.subsectorId === null
+    );
     expect(matchingGroup).toBeDefined();
     expect(matchingGroup!.subcategoryIds).not.toContain(
       Number(subcategories[1].id)

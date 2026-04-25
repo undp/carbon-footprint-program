@@ -90,7 +90,9 @@ describe("POST /api/subcategory-recommendations - Integration Tests", () => {
           subsectorId: null,
           subcategoryId: BigInt(subcategoryId),
           status: SubcategoryRecommendationStatus.ACTIVE,
+          createdById: testUser.id,
         },
+        orderBy: { id: "desc" },
       });
       expect(created).not.toBeNull();
       expect(created!.createdById).toBe(testUser.id);
@@ -125,7 +127,9 @@ describe("POST /api/subcategory-recommendations - Integration Tests", () => {
         where: {
           sectorId: BigInt(sectorId),
           subsectorId: null,
+          subcategoryId: BigInt(subcategoryId),
           status: SubcategoryRecommendationStatus.ACTIVE,
+          createdById: testUser.id,
         },
       });
       expect(activeCount).toBe(1);

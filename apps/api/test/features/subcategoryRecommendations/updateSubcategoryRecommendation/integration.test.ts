@@ -114,9 +114,12 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
       const deleted = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
+          subsectorId: null,
           subcategoryId: BigInt(subcategoryIds[1]),
           status: SubcategoryRecommendationStatus.DELETED,
+          createdById: testUser.id,
         },
+        orderBy: { id: "desc" },
       });
       expect(deleted).not.toBeNull();
       expect(deleted!.updatedById).toBe(testUser.id);
@@ -252,10 +255,14 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
       const newRow = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
+          subsectorId: null,
           subcategoryId: BigInt(subcategoryIds[1]),
           status: SubcategoryRecommendationStatus.ACTIVE,
+          createdById: testUser.id,
         },
+        orderBy: { id: "desc" },
       });
+      expect(newRow).not.toBeNull();
       expect(newRow!.createdById).toBe(testUser.id);
 
       await app.inject({
@@ -267,11 +274,14 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
       const softDeleted = await prisma.subcategoryRecommendation.findFirst({
         where: {
           sectorId: BigInt(sectorId),
+          subsectorId: null,
           subcategoryId: BigInt(subcategoryIds[0]),
           status: SubcategoryRecommendationStatus.DELETED,
+          createdById: testUser.id,
         },
         orderBy: { id: "desc" },
       });
+      expect(softDeleted).not.toBeNull();
       expect(softDeleted!.updatedById).toBe(testUser.id);
     });
   });
