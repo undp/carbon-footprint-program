@@ -100,6 +100,18 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     expect(alfa.slug).toBe(ExplanationSlug.REDUCTION_PROJECT_BASIS);
     expect(alfa.description).toBe("alfa-desc");
     expect(alfa.content).toBe("a");
+
+    for (const row of body) {
+      expect(typeof row.createdAt).toBe("string");
+      expect(Number.isNaN(Date.parse(row.createdAt))).toBe(false);
+      if (row.updatedAt !== null) {
+        expect(typeof row.updatedAt).toBe("string");
+        expect(Number.isNaN(Date.parse(row.updatedAt))).toBe(false);
+      }
+      if (row.updatedById !== null) {
+        expect(typeof row.updatedById).toBe("string");
+      }
+    }
   });
 
   it("excludes rows whose slug is not in EXPLANATION_CATALOG", async () => {
