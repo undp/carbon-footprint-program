@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
+  ListSubcategoryRecommendationsResponse,
   UpdateSubcategoryRecommendationBody,
   UpdateSubcategoryRecommendationResponse,
 } from "@repo/types";
@@ -30,7 +31,30 @@ export const useUpdateSubcategoryRecommendation = () => {
         .put("subcategory-recommendations", { json: data, searchParams })
         .json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedGroup) => {
+      queryClient.setQueryData<ListSubcategoryRecommendationsResponse>(
+        subcategoryRecommendationKeys.list(),
+        (old) => {
+          if (!old) return old;
+          if (updatedGroup.subcategoryIds.length === 0) {
+            return old.filter(
+              (g) =>
+                !(
+                  g.sectorId === updatedGroup.sectorId &&
+                  g.subsectorId === updatedGroup.subsectorId
+                )
+            );
+          }
+          const idx = old.findIndex(
+            (g) =>
+              g.sectorId === updatedGroup.sectorId &&
+              g.subsectorId === updatedGroup.subsectorId
+          );
+          return idx === -1
+            ? [...old, updatedGroup]
+            : old.map((g, i) => (i === idx ? updatedGroup : g));
+        }
+      );
       void queryClient.invalidateQueries({
         queryKey: subcategoryRecommendationKeys.list(),
       });

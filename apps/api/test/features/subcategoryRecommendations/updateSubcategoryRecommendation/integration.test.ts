@@ -164,6 +164,7 @@ describe("PUT /api/subcategory-recommendations - Integration Tests", () => {
           sectorId: BigInt(sectorId),
           subsectorId: null,
           status: SubcategoryRecommendationStatus.ACTIVE,
+          createdById: testUser.id,
         },
       });
       expect(activeCount).toBe(0);
