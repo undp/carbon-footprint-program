@@ -4,19 +4,22 @@ import { Control, Controller, useWatch } from "react-hook-form";
 import { FormTextField } from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
+import {
+  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+  type ExplanationSlug,
+} from "@repo/constants";
 import type { ReductionProjectFormValues } from "../formSchema";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  reportedElsewhereExplanationId?: string | null;
+  reportedElsewhereExplanationSlug?: ExplanationSlug | null;
 }
 
 export const ReportedElsewhereSection: FC<Props> = ({
   control,
   disabled,
-  reportedElsewhereExplanationId,
+  reportedElsewhereExplanationSlug,
 }) => {
   const reportedElsewhere = useWatch({ control, name: "reportedElsewhere" });
   const { openExplanationBySlug } = useExplanationDialog();
@@ -30,7 +33,7 @@ export const ReportedElsewhereSection: FC<Props> = ({
         <InfoButton
           label="Más información"
           onClick={() =>
-            openExplanationBySlug(reportedElsewhereExplanationId ?? null)
+            openExplanationBySlug(reportedElsewhereExplanationSlug ?? null)
           }
         />
       </Box>

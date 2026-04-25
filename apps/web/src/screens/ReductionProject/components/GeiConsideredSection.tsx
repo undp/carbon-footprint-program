@@ -14,19 +14,20 @@ import {
 import { Control, Controller, useWatch } from "react-hook-form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
+import type { ExplanationSlug } from "@repo/constants";
 import type { ReductionProjectFormValues } from "../formSchema";
 import { GEI_ITEMS } from "../constants";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  geiExplanationId?: string | null;
+  geiExplanationSlug?: ExplanationSlug | null;
 }
 
 export const GeiConsideredSection: FC<Props> = ({
   control,
   disabled,
-  geiExplanationId,
+  geiExplanationSlug,
 }) => {
   const consideredGei = useWatch({ control, name: "consideredGei" });
   const { openExplanationBySlug } = useExplanationDialog();
@@ -39,7 +40,7 @@ export const GeiConsideredSection: FC<Props> = ({
         </Typography>
         <InfoButton
           label="Más información"
-          onClick={() => openExplanationBySlug(geiExplanationId ?? null)}
+          onClick={() => openExplanationBySlug(geiExplanationSlug ?? null)}
         />
       </Box>
       <TableContainer

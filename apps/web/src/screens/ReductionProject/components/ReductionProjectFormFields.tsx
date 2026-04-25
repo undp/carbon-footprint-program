@@ -9,7 +9,10 @@ import {
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
-import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
+import {
+  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+  type ExplanationSlug,
+} from "@repo/constants";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
@@ -30,7 +33,7 @@ interface Props {
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
   hasInventorySelected: boolean;
-  gwpExplanationId?: string | null;
+  gwpExplanationSlug?: ExplanationSlug | null;
 }
 
 export const ReductionProjectFormFields: FC<Props> = ({
@@ -44,7 +47,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   subcategories,
   isLoadingSubcategories,
   hasInventorySelected,
-  gwpExplanationId,
+  gwpExplanationSlug,
 }) => {
   const { openExplanationBySlug } = useExplanationDialog();
   const organizationOptions = useSelectorOptions(organizations, "name", "id");
@@ -196,7 +199,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Box className="mt-4">
             <InfoButton
               label="Más información"
-              onClick={() => openExplanationBySlug(gwpExplanationId ?? null)}
+              onClick={() => openExplanationBySlug(gwpExplanationSlug ?? null)}
             />
           </Box>
         </Box>
