@@ -320,6 +320,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
           });
+          throw error;
         }
       }
     },
