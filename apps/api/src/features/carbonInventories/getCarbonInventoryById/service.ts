@@ -70,29 +70,30 @@ export const getCarbonInventoryByIdService = async (
 
   if (!inventory) throw new CarbonInventoryNotFoundError(id);
 
-  const subcategories = await prismaClient.subcategory.findMany({
-    where: {
-      id: {
-        in: uniq(map(inventory.lines, "subcategoryId")),
-      },
-    },
-    select: {
-      id: true,
-      dimensions: {
-        where: {
-          status: EmissionFactorDimensionStatus.ACTIVE,
-        },
-        select: {
-          id: true,
+  const [subcategories, references] = await Promise.all([
+    prismaClient.subcategory.findMany({
+      where: {
+        id: {
+          in: uniq(map(inventory.lines, "subcategoryId")),
         },
       },
-    },
-  });
-
-  const references = await resolveInventoryOrganizationDataReferences(
-    prismaClient,
-    inventory.organizationData
-  );
+      select: {
+        id: true,
+        dimensions: {
+          where: {
+            status: EmissionFactorDimensionStatus.ACTIVE,
+          },
+          select: {
+            id: true,
+          },
+        },
+      },
+    }),
+    resolveInventoryOrganizationDataReferences(
+      prismaClient,
+      inventory.organizationData
+    ),
+  ]);
 
   return {
     ...mapCarbonInventoryWithLinesToResponse(
