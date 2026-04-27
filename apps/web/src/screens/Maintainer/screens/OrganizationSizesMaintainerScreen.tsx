@@ -43,7 +43,7 @@ import {
   InUseWarningDialog,
   type ProfilingEntityLabel,
 } from "../components/dialogs/InUseWarningDialog";
-import { StylizedDataGrid } from "@components";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 const FormSchema = z.object({
@@ -334,7 +334,8 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             No hay tamaños para mostrar.
           </Typography>
         ) : (
-          <StylizedDataGrid
+          <MaintainerDataGrid
+            editingRowId={null}
             rows={rows}
             columns={columns}
             getRowId={(row: { id: string }) => row.id}
