@@ -1,9 +1,11 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAllExplanationsResponse } from "@repo/types";
+import type { GetAllExplanationsResponse, User } from "@repo/types";
 import { EXPLANATION_CATALOG, type ExplanationSlug } from "@repo/constants";
 
 export const getAllExplanationsService = async (
-  prismaClient: PrismaClient
+  prismaClient: PrismaClient,
+  _query: null,
+  _user: User | null
 ): Promise<GetAllExplanationsResponse> => {
   const catalogSlugs = Object.keys(EXPLANATION_CATALOG) as ExplanationSlug[];
 
