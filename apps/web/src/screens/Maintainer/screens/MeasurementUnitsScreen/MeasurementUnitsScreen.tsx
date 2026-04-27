@@ -40,7 +40,7 @@ export const MeasurementUnitsScreen: FC = () => {
   const updateMutation = useUpdateMeasurementUnit();
   const deleteMutation = useDeleteMeasurementUnit();
 
-  const { form, fieldArray } = useMeasurementUnitsForm();
+  const { form, fieldArray, handleCellChange } = useMeasurementUnitsForm();
   const currentRows = form.watch("measurementUnits");
 
   const editingRowIdRef = useRef(editingRowId);
@@ -264,25 +264,6 @@ export const MeasurementUnitsScreen: FC = () => {
     enableBeforeUnload: form.formState.isDirty,
     withResolver: true,
   });
-
-  const handleCellChange = useCallback(
-    <K extends keyof MeasurementUnitForm>(
-      rowIndex: number,
-      field: K,
-      value: MeasurementUnitForm[K]
-    ) => {
-      const currentRow = form.getValues(`measurementUnits.${rowIndex}`);
-      if (!currentRow) return;
-      const updatedRow = { ...structuredClone(currentRow), [field]: value };
-      fieldArray.update(rowIndex, updatedRow);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setValue(`measurementUnits.${rowIndex}.${field}` as any, value, {
-        shouldDirty: true,
-      });
-      void form.trigger(`measurementUnits.${rowIndex}.${field}`);
-    },
-    [form, fieldArray]
-  );
 
   const columns = useMeasurementUnitColumns({
     editingRowId,

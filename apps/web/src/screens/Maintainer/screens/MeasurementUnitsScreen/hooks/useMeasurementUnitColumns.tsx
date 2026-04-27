@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { Box, MenuItem, Select, Tooltip, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 import { InfoOutlined, LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Magnitude } from "@repo/types";
@@ -7,6 +7,7 @@ import { MAGNITUDE_LABELS } from "@/config/vocab";
 import {
   EditableTextCell,
   EditableNumberCell,
+  MagnitudeSelectCell,
 } from "../../../components/cells";
 import { ActionButtons } from "../../../components/ActionButtons";
 import { ToggleCell } from "../../../components/ToggleCell";
@@ -108,34 +109,10 @@ export const useMeasurementUnitColumns = ({
           const editing = isEditing(params.row.id);
           const isLocked = params.row.referenceCount > 0;
 
-          if (editing && !isLocked) {
-            return (
-              <Select
-                size="small"
-                fullWidth
-                value={params.row.magnitude}
-                onChange={(e) =>
-                  onCellChange(
-                    rowIndex,
-                    "magnitude",
-                    e.target.value as Magnitude
-                  )
-                }
-                sx={{ backgroundColor: "white" }}
-              >
-                {Object.values(Magnitude).map((mag) => (
-                  <MenuItem key={mag} value={mag}>
-                    {MAGNITUDE_LABELS[mag]}
-                  </MenuItem>
-                ))}
-              </Select>
-            );
-          }
-
-          const magnitude = params.row.magnitude as Magnitude;
-          const label = MAGNITUDE_LABELS[magnitude] ?? params.row.magnitude;
-
           if (editing && isLocked) {
+            const label =
+              MAGNITUDE_LABELS[params.row.magnitude as Magnitude] ??
+              params.row.magnitude;
             return (
               <Tooltip title="No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.">
                 <Box
@@ -154,7 +131,21 @@ export const useMeasurementUnitColumns = ({
             );
           }
 
-          return <Typography variant="body2">{label}</Typography>;
+          return (
+            <MagnitudeSelectCell
+              formArrayName="measurementUnits"
+              rowIndex={rowIndex}
+              isEditing={editing}
+              onChange={(value: Magnitude) =>
+                onCellChange(rowIndex, "magnitude", value)
+              }
+              onClick={
+                !editing && !isProtectedRow(params.row)
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+            />
+          );
         },
       },
       {
