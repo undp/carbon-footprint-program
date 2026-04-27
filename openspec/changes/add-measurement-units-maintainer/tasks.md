@@ -74,8 +74,12 @@
 - [ ] 7.3 Create `service.ts` inside a `$transaction`:
   - Resolve target MU by id; throw `MeasurementUnitNotFoundError` if missing.
   - `assertNotKgMu(target)` and `assertNotBaseUnit(target)`.
-  - Set `status = DELETED` on the target MU.
-  - Cascade soft-delete the canonical RMU (find by `denominatorMeasurementUnitId = target.id`, set `status = DELETED`).
+  - Resolve `kg.id` via `resolveKgMeasurementUnit(tx)`.
+  - Look up the canonical RMU via `tx.rateMeasurementUnit.findFirst({ where: { denominatorMeasurementUnitId: target.id, numeratorMeasurementUnitId: kg.id } })`.
+    - **Not found**: abort the transaction and throw `DataIntegrityError` (log the target MU id + abbreviation for operator forensics). Per the spec scenario "Soft-deleting an MU whose canonical RMU is missing fails with data-integrity error", the endpoint MUST NOT silently flip the MU to `DELETED` without a corresponding RMU. This branch should be unreachable at runtime (seed coverage check + create cascade guarantee), but is defensive against database drift.
+    - **Found, status `DELETED`**: idempotent path. Skip the RMU update entirely (do NOT re-issue an UPDATE that would no-op or trample audit columns). Continue to flip the MU.
+    - **Found, status `ACTIVE`**: set `status = DELETED` on the RMU.
+  - Set `status = DELETED` on the target MU (in the same transaction as the RMU branch above).
 - [ ] 7.4 Return `{ id, status: "DELETED" }`.
 
 ## 8. API — Update Existing List Endpoints
@@ -130,7 +134,7 @@
 
 - [ ] 16.1 Integration test for `createMeasurementUnit`: happy-path create, abbreviation collision (ACTIVE) → 409, base collision → 409, restore-with-no-refs (full overwrite), restore-with-refs (label-only overwrite), `kg` lookup failure path, auth checks (401, 403).
 - [ ] 16.2 Integration test for `updateMeasurementUnit`: rename cascade to RMU, locked-field rejection when `referenceCount > 0`, `kg` row rejection, base-unit rejection, `isBase` toggle rejection, abbreviation collision on rename, 404 path, auth checks.
-- [ ] 16.3 Integration test for `deleteMeasurementUnit`: happy-path soft-delete cascades to RMU, `kg` rejection, base rejection, 404 path, auth checks. Verify the row remains queryable when status is excluded from the filter.
+- [ ] 16.3 Integration test for `deleteMeasurementUnit`: happy-path soft-delete cascades the canonical RMU from `ACTIVE → DELETED`; idempotent path where the canonical RMU is already `DELETED` succeeds with HTTP 200, flips the MU to `DELETED`, and leaves the RMU row's status (and `updatedAt`) untouched; missing-canonical-RMU path (force the inconsistency in the test by deleting the RMU row directly) responds with HTTP 500, the MU's status remains `ACTIVE` (transaction rolled back), and a `DataIntegrityError` is logged; `kg` rejection, base rejection, 404 path, auth checks. Verify the row remains queryable when status is excluded from the filter.
 - [ ] 16.4 Integration test for `getAllMeasurementUnits`: returns only `ACTIVE`, includes `referenceCount`, default order is `(magnitude, name)`.
 
 ## 17. Documentation
