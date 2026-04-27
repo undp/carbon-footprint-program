@@ -13,7 +13,7 @@ const StandaloneExplanationsSchema = z.array(
     slug: z
       .string()
       .min(1)
-      .regex(/^[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$/),
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     name: z.string().min(1),
     description: z.string().nullable().optional(),
     content: z.string(),

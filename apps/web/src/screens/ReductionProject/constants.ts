@@ -21,9 +21,9 @@ export const GEI_ITEMS: { label: string; value: ConsideredGei }[] = [
 ];
 
 export const REDUCTION_PROJECT_EXPLANATION_SLUGS = {
-  LIST: "reduction_projects_list",
-  BASIS: "reduction_project_basis",
-  GWP: "reduction_project_gwp",
-  GEI_CONSIDERED: "reduction_project_gei_considered",
-  REPORTED_ELSEWHERE: "reduction_project_reported_elsewhere",
+  LIST: "reduction-projects-list",
+  BASIS: "reduction-project-basis",
+  GWP: "reduction-project-gwp",
+  GEI_CONSIDERED: "reduction-project-gei-considered",
+  REPORTED_ELSEWHERE: "reduction-project-reported-elsewhere",
 } as const;

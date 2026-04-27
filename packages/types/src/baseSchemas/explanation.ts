@@ -6,8 +6,8 @@ export const ExplanationBaseSchema = z.object({
     .string()
     .min(1)
     .regex(
-      /^[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$/,
-      "Slug must contain only alphanumeric characters separated by underscores"
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must contain only lowercase alphanumeric characters separated by hyphens"
     )
     .describe("The slug identifier of the explanation"),
   name: z.string().describe("The human-readable name of the explanation"),

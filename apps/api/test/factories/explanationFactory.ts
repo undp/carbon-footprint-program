@@ -6,11 +6,11 @@ export async function createTestExplanation(
     Pick<Explanation, "slug" | "name" | "description" | "content">
   >
 ): Promise<Explanation> {
-  const randomSuffix = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
   return prisma.explanation.create({
     data: {
-      slug: overrides?.slug ?? `test_explanation_${randomSuffix}`,
+      slug: overrides?.slug ?? `test-explanation-${randomSuffix}`,
       name: overrides?.name ?? `Test Explanation ${randomSuffix}`,
       description: overrides?.description ?? null,
       content: overrides?.content ?? "",
