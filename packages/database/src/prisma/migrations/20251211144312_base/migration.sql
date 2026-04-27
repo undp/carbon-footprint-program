@@ -4,6 +4,15 @@ CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' 
 -- CreateEnum
 CREATE TYPE "system_role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
 
+-- CreateEnum
+CREATE TYPE "country_sector_status" AS ENUM ('ACTIVE', 'DELETED');
+
+-- CreateEnum
+CREATE TYPE "country_subsector_status" AS ENUM ('ACTIVE', 'DELETED');
+
+-- CreateEnum
+CREATE TYPE "country_organization_size_status" AS ENUM ('ACTIVE', 'DELETED');
+
 -- CreateTable
 CREATE TABLE "country" (
     "id" BIGSERIAL NOT NULL,
@@ -52,8 +61,12 @@ CREATE TABLE "country_organization_size" (
     "id" BIGSERIAL NOT NULL,
     "country_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" "country_organization_size_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "country_organization_size_pkey" PRIMARY KEY ("id")
 );
@@ -63,6 +76,8 @@ CREATE TABLE "country_sector" (
     "id" BIGSERIAL NOT NULL,
     "country_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" "country_sector_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -76,6 +91,8 @@ CREATE TABLE "country_subsector" (
     "id" BIGSERIAL NOT NULL,
     "country_sector_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" "country_subsector_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -149,13 +166,16 @@ CREATE UNIQUE INDEX "country_parameter_country_id_key_key" ON "country_parameter
 CREATE UNIQUE INDEX "system_parameter_key_key" ON "system_parameter"("key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "country_organization_size_country_id_name_key" ON "country_organization_size"("country_id", "name");
+-- NOTE: Partial unique index (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.
+CREATE UNIQUE INDEX "country_organization_size_country_id_name_key" ON "country_organization_size"("country_id", "name") WHERE "status" = 'ACTIVE';
 
 -- CreateIndex
-CREATE UNIQUE INDEX "country_sector_country_id_name_key" ON "country_sector"("country_id", "name");
+-- NOTE: Partial unique index (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.
+CREATE UNIQUE INDEX "country_sector_country_id_name_key" ON "country_sector"("country_id", "name") WHERE "status" = 'ACTIVE';
 
 -- CreateIndex
-CREATE UNIQUE INDEX "country_subsector_country_sector_id_name_key" ON "country_subsector"("country_sector_id", "name");
+-- NOTE: Partial unique index (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.
+CREATE UNIQUE INDEX "country_subsector_country_sector_id_name_key" ON "country_subsector"("country_sector_id", "name") WHERE "status" = 'ACTIVE';
 
 -- CreateIndex
 CREATE UNIQUE INDEX "country_job_position_country_id_name_key" ON "country_job_position"("country_id", "name");
@@ -192,6 +212,12 @@ ALTER TABLE "system_parameter" ADD CONSTRAINT "system_parameter_updated_by_id_fk
 
 -- AddForeignKey
 ALTER TABLE "country_organization_size" ADD CONSTRAINT "country_organization_size_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "country_organization_size" ADD CONSTRAINT "country_organization_size_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "country_organization_size" ADD CONSTRAINT "country_organization_size_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "country_sector" ADD CONSTRAINT "country_sector_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

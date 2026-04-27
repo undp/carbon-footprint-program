@@ -62,15 +62,23 @@ model SystemParameter {
 }
 
 model CountryOrganizationSize {
-  id               BigInt             @id @default(autoincrement())
-  countryId        BigInt             @map("country_id")
+  id               BigInt                        @id @default(autoincrement())
+  countryId        BigInt                        @map("country_id")
   name             String
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime?          @updatedAt @map("updated_at")
-  country          Country            @relation(fields: [countryId], references: [id])
+  description      String?
+  status           CountryOrganizationSizeStatus @default(ACTIVE)
+  createdAt        DateTime                      @default(now()) @map("created_at")
+  updatedAt        DateTime?                     @updatedAt @map("updated_at")
+  createdById      BigInt?                       @map("created_by_id")
+  updatedById      BigInt?                       @map("updated_by_id")
+  country          Country                       @relation(fields: [countryId], references: [id])
+  creator          User?                         @relation("country_organization_size_created_by", fields: [createdById], references: [id])
+  updater          User?                         @relation("country_organization_size_updated_by", fields: [updatedById], references: [id])
   organizationData OrganizationData[]
 
-  @@unique([countryId, name])
+  // NOTE: Partial unique index (countryId, name) WHERE status = 'ACTIVE'.
+  // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
+  // Preserve the WHERE clause manually when touching this table.
   @@map("country_organization_size")
 }
 
@@ -78,6 +86,8 @@ model CountrySector {
   id                         BigInt                      @id @default(autoincrement())
   countryId                  BigInt                      @map("country_id")
   name                       String
+  description                String?
+  status                     CountrySectorStatus         @default(ACTIVE)
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
@@ -90,7 +100,9 @@ model CountrySector {
   organizationData           OrganizationData[]
   subcategoryRecommendations SubcategoryRecommendation[]
 
-  @@unique([countryId, name])
+  // NOTE: Partial unique index (countryId, name) WHERE status = 'ACTIVE'.
+  // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
+  // Preserve the WHERE clause manually when touching this table.
   @@map("country_sector")
 }
 
@@ -98,6 +110,8 @@ model CountrySubsector {
   id                         BigInt                      @id @default(autoincrement())
   countrySectorId            BigInt                      @map("country_sector_id")
   name                       String
+  description                String?
+  status                     CountrySubsectorStatus      @default(ACTIVE)
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
@@ -109,26 +123,32 @@ model CountrySubsector {
   organizationData           OrganizationData[]
   subcategoryRecommendations SubcategoryRecommendation[]
 
-  @@unique([countrySectorId, name])
+  // NOTE: Partial unique index (countrySectorId, name) WHERE status = 'ACTIVE'.
+  // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
+  // Preserve the WHERE clause manually when touching this table.
   @@map("country_subsector")
 }
 
 model OrganizationMainActivity {
-  id                 BigInt             @id @default(autoincrement())
+  id                 BigInt                          @id @default(autoincrement())
   name               String
-  countrySectorId    BigInt?            @map("country_sector_id")
-  countrySubsectorId BigInt?            @map("country_subsector_id")
-  createdAt          DateTime           @default(now()) @map("created_at")
-  updatedAt          DateTime?          @updatedAt @map("updated_at")
-  createdById        BigInt?            @map("created_by_id")
-  updatedById        BigInt?            @map("updated_by_id")
-  countrySector      CountrySector?     @relation(fields: [countrySectorId], references: [id])
-  countrySubsector   CountrySubsector?  @relation(fields: [countrySubsectorId], references: [id])
-  creator            User?              @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
-  updater            User?              @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  description        String?
+  status             OrganizationMainActivityStatus  @default(ACTIVE)
+  countrySectorId    BigInt?                         @map("country_sector_id")
+  countrySubsectorId BigInt?                         @map("country_subsector_id")
+  createdAt          DateTime                        @default(now()) @map("created_at")
+  updatedAt          DateTime?                       @updatedAt @map("updated_at")
+  createdById        BigInt?                         @map("created_by_id")
+  updatedById        BigInt?                         @map("updated_by_id")
+  countrySector      CountrySector?                  @relation(fields: [countrySectorId], references: [id])
+  countrySubsector   CountrySubsector?               @relation(fields: [countrySubsectorId], references: [id])
+  creator            User?                           @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
+  updater            User?                           @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
   organizationData   OrganizationData[]
 
-  @@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")
+  // NOTE: Partial unique index (name, countrySectorId, countrySubsectorId) NULLS NOT DISTINCT WHERE status = 'ACTIVE'.
+  // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
+  // Preserve the WHERE clause manually when touching this table.
   @@map("organization_main_activity")
 }
 
@@ -175,6 +195,34 @@ enum SubcategoryStatus {
   DELETED
 
   @@map("subcategory_status")
+}
+
+enum CountrySectorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_sector_status")
+}
+
+enum CountrySubsectorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_subsector_status")
+}
+
+enum OrganizationMainActivityStatus {
+  ACTIVE
+  DELETED
+
+  @@map("organization_main_activity_status")
+}
+
+enum CountryOrganizationSizeStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_organization_size_status")
 }
 
 enum EmissionFactorDimensionStatus {
@@ -229,6 +277,8 @@ model User {
   termsAcceptedAt                      DateTime?                      @map("terms_accepted_at")
   countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
   countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
+  countryOrganizationSizesCreated      CountryOrganizationSize[]      @relation("country_organization_size_created_by")
+  countryOrganizationSizesUpdated      CountryOrganizationSize[]      @relation("country_organization_size_updated_by")
   countrySectorsCreated                CountrySector[]                @relation("country_sector_created_by")
   countrySectorsUpdated                CountrySector[]                @relation("country_sector_updated_by")
   countrySubsectorsCreated             CountrySubsector[]             @relation("country_subsector_created_by")

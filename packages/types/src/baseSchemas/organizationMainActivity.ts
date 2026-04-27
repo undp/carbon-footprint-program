@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OrganizationMainActivityStatus } from "@repo/database/enums";
 import { IdSchema } from "../zod.js";
 
 export const OrganizationMainActivityBaseSchema = z.object({
@@ -8,6 +9,13 @@ export const OrganizationMainActivityBaseSchema = z.object({
   name: z
     .string()
     .describe("The name of the organization main business activity."),
+  description: z
+    .string()
+    .nullable()
+    .describe("Optional description of the main activity"),
+  status: z
+    .enum(OrganizationMainActivityStatus)
+    .describe("Lifecycle status of the main activity"),
   countrySectorId: IdSchema.nullable().describe(
     "The ID of the associated country sector."
   ),

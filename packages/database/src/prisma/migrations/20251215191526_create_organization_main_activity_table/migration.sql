@@ -1,7 +1,12 @@
+-- CreateEnum
+CREATE TYPE "organization_main_activity_status" AS ENUM ('ACTIVE', 'DELETED');
+
 -- CreateTable
 CREATE TABLE "organization_main_activity" (
     "id" BIGSERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
+    "status" "organization_main_activity_status" NOT NULL DEFAULT 'ACTIVE',
     "country_sector_id" BIGINT,
     "country_subsector_id" BIGINT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
