@@ -20,26 +20,33 @@
 - [ ] 2.3 Add to `CountrySubsector`: `status CountrySubsectorStatus @default(ACTIVE)` and `description String?`. REMOVE the `@@unique([countrySectorId, name])` attribute.
 - [ ] 2.4 Add to `OrganizationMainActivity`: `status OrganizationMainActivityStatus @default(ACTIVE)` and `description String?`. REMOVE the existing `@@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")` attribute.
 - [ ] 2.5 Add to `CountryOrganizationSize`: `status CountryOrganizationSizeStatus @default(ACTIVE)`, `description String?`, `createdById BigInt? @map("created_by_id")`, `updatedById BigInt? @map("updated_by_id")`, `creator User? @relation("country_organization_size_created_by", …)`, `updater User? @relation("country_organization_size_updated_by", …)`. REMOVE the `@@unique([countryId, name])` attribute. Add matching back-relations on `User`.
-- [ ] 2.6 Generate a new migration `packages/database/src/prisma/migrations/<timestamp>_add_soft_delete_to_profiling_catalogs/migration.sql`. Contents (in order):
-  - Create the four enums:
-    - `CREATE TYPE "CountrySectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
-    - `CREATE TYPE "CountrySubsectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
-    - `CREATE TYPE "OrganizationMainActivityStatus" AS ENUM ('ACTIVE', 'DELETED');`
-    - `CREATE TYPE "CountryOrganizationSizeStatus" AS ENUM ('ACTIVE', 'DELETED');`
-  - `ALTER TABLE country_sector ADD COLUMN description TEXT, ADD COLUMN status "CountrySectorStatus" NOT NULL DEFAULT 'ACTIVE';`
-  - `ALTER TABLE country_subsector ADD COLUMN description TEXT, ADD COLUMN status "CountrySubsectorStatus" NOT NULL DEFAULT 'ACTIVE';`
-  - `ALTER TABLE organization_main_activity ADD COLUMN description TEXT, ADD COLUMN status "OrganizationMainActivityStatus" NOT NULL DEFAULT 'ACTIVE';`
-  - `ALTER TABLE country_organization_size ADD COLUMN description TEXT, ADD COLUMN status "CountryOrganizationSizeStatus" NOT NULL DEFAULT 'ACTIVE', ADD COLUMN created_by_id BIGINT, ADD COLUMN updated_by_id BIGINT;`
-  - Add FK constraints on `country_organization_size.created_by_id` and `.updated_by_id` referencing `user.id`.
-  - Drop existing full unique indexes on the four tables (`country_sector_country_id_name_key`, `country_subsector_country_sector_id_name_key`, `organization_main_activity_name_country_sector_id_country_s_key`, `country_organization_size_country_id_name_key` — verify exact names in the repo's prior migrations before writing the DROP statements).
-  - Create the partial unique indexes:
-    - `CREATE UNIQUE INDEX country_sector_country_id_name_active_key ON country_sector (country_id, name) WHERE status = 'ACTIVE';`
-    - `CREATE UNIQUE INDEX country_subsector_country_sector_id_name_active_key ON country_subsector (country_sector_id, name) WHERE status = 'ACTIVE';`
-    - `CREATE UNIQUE INDEX organization_main_activity_unique_active_key ON organization_main_activity (name, country_sector_id, country_subsector_id) WHERE status = 'ACTIVE';`
-    - `CREATE UNIQUE INDEX country_organization_size_country_id_name_active_key ON country_organization_size (country_id, name) WHERE status = 'ACTIVE';`
-  - Include an inline `-- NOTE: Partial unique indexes. Prisma will not track these on future schema diffs. Preserve them manually when touching these tables.` comment at the top of the indexes section.
-- [ ] 2.7 Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
-- [ ] 2.8 Run `pnpm --filter database db:seed` against a local DB to confirm the seed still succeeds.
+- [ ] 2.6 **Modify the original migrations in place** (the project is not yet in production, so editing existing migration files is acceptable and preferred over a follow-up migration). Do NOT create a new `<timestamp>_add_soft_delete_to_profiling_catalogs` directory.
+  - [ ] 2.6a Edit `packages/database/src/prisma/migrations/20251211144312_base/migration.sql`:
+    - At the top of the file (before any `CREATE TABLE`), add three `CREATE TYPE` statements:
+      - `CREATE TYPE "CountrySectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
+      - `CREATE TYPE "CountrySubsectorStatus" AS ENUM ('ACTIVE', 'DELETED');`
+      - `CREATE TYPE "CountryOrganizationSizeStatus" AS ENUM ('ACTIVE', 'DELETED');`
+    - In `CREATE TABLE "country_organization_size"`, add columns: `"description" TEXT`, `"status" "CountryOrganizationSizeStatus" NOT NULL DEFAULT 'ACTIVE'`, `"created_by_id" BIGINT`, `"updated_by_id" BIGINT`.
+    - In `CREATE TABLE "country_sector"`, add columns: `"description" TEXT`, `"status" "CountrySectorStatus" NOT NULL DEFAULT 'ACTIVE'`.
+    - In `CREATE TABLE "country_subsector"`, add columns: `"description" TEXT`, `"status" "CountrySubsectorStatus" NOT NULL DEFAULT 'ACTIVE'`.
+    - Replace the `CREATE UNIQUE INDEX "country_organization_size_country_id_name_key"` line with: `CREATE UNIQUE INDEX "country_organization_size_country_id_name_key" ON "country_organization_size"("country_id", "name") WHERE "status" = 'ACTIVE';`
+    - Replace the `CREATE UNIQUE INDEX "country_sector_country_id_name_key"` line with: `CREATE UNIQUE INDEX "country_sector_country_id_name_key" ON "country_sector"("country_id", "name") WHERE "status" = 'ACTIVE';`
+    - Replace the `CREATE UNIQUE INDEX "country_subsector_country_sector_id_name_key"` line with: `CREATE UNIQUE INDEX "country_subsector_country_sector_id_name_key" ON "country_subsector"("country_sector_id", "name") WHERE "status" = 'ACTIVE';`
+    - Add two new `ALTER TABLE … ADD CONSTRAINT … FOREIGN KEY` statements for `country_organization_size_created_by_id_fkey` and `country_organization_size_updated_by_id_fkey`, referencing `user(id)` with `ON DELETE SET NULL ON UPDATE CASCADE` (mirror the FK pattern already used by `country_sector_created_by_id_fkey`).
+    - Add an inline `-- NOTE: Partial unique indexes (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.` comment immediately above each replaced unique-index statement.
+
+  - [ ] 2.6b Edit `packages/database/src/prisma/migrations/20251215191526_create_organization_main_activity_table/migration.sql`:
+    - Add `CREATE TYPE "OrganizationMainActivityStatus" AS ENUM ('ACTIVE', 'DELETED');` at the top of the file (before the `CREATE TABLE`).
+    - In `CREATE TABLE "organization_main_activity"`, add columns: `"description" TEXT`, `"status" "OrganizationMainActivityStatus" NOT NULL DEFAULT 'ACTIVE'`.
+    - Leave the existing full unique index in this file unchanged — the partial index replaces it in `20251215191534_create_organization_main_activity_unique_constraint` (see 2.6c).
+
+  - [ ] 2.6c Edit `packages/database/src/prisma/migrations/20251215191534_create_organization_main_activity_unique_constraint/migration.sql`:
+    - Replace the `CREATE UNIQUE INDEX "organization_main_activity_name_country_sector_id_country_s_key" … NULLS NOT DISTINCT;` block with: `CREATE UNIQUE INDEX "organization_main_activity_name_country_sector_id_country_s_key" ON "organization_main_activity"("name", "country_sector_id", "country_subsector_id") NULLS NOT DISTINCT WHERE "status" = 'ACTIVE';`
+    - Update the existing comment so it documents both the `NULLS NOT DISTINCT` rationale AND the partial-index rationale (Prisma does not track the WHERE clause; preserve manually).
+
+- [ ] 2.7 Drop and re-create the local development database so the edited migrations replay from a clean slate (`pnpm --filter database db:reset` or equivalent). DO NOT attempt incremental migration; editing existing migration files breaks the migration history hash and Prisma will refuse to apply them on top of the previous state.
+- [ ] 2.8 Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
+- [ ] 2.9 Run `pnpm --filter database db:seed` against the freshly-reset local DB to confirm the seed still succeeds and the partial indexes accept the seed data.
 
 ## 3. Shared types — base schemas
 
