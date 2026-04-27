@@ -1,6 +1,7 @@
 import {
   type PrismaClient,
   OrganizationMainActivityStatus,
+  Prisma,
 } from "@repo/database";
 import {
   type RestoreOrganizationMainActivityResponse,
@@ -31,52 +32,65 @@ export const restoreOrganizationMainActivityService = async (
 
   const activityId = BigInt(id);
 
-  return await prismaClient.$transaction(async (tx) => {
-    const existing = await tx.organizationMainActivity.findUnique({
-      where: { id: activityId },
-      select: {
-        id: true,
-        status: true,
-        name: true,
-        countrySectorId: true,
-        countrySubsectorId: true,
-      },
-    });
-    if (!existing) {
-      throw new ResourceNotFoundError("OrganizationMainActivity", id);
-    }
+  try {
+    return await prismaClient.$transaction(async (tx) => {
+      const existing = await tx.organizationMainActivity.findUnique({
+        where: { id: activityId },
+        select: {
+          id: true,
+          status: true,
+          name: true,
+          countrySectorId: true,
+          countrySubsectorId: true,
+        },
+      });
+      if (!existing) {
+        throw new ResourceNotFoundError("OrganizationMainActivity", id);
+      }
 
-    if (existing.status === OrganizationMainActivityStatus.ACTIVE) {
-      const err = new RestoreOnActiveError();
-      err.message = "La actividad principal ya se encuentra activa.";
-      throw err;
-    }
+      if (existing.status === OrganizationMainActivityStatus.ACTIVE) {
+        const err = new RestoreOnActiveError();
+        err.message = "La actividad principal ya se encuentra activa.";
+        throw err;
+      }
 
-    const collision = await tx.organizationMainActivity.findFirst({
-      where: {
-        name: existing.name,
-        countrySectorId: existing.countrySectorId,
-        countrySubsectorId: existing.countrySubsectorId,
-        status: OrganizationMainActivityStatus.ACTIVE,
-        id: { not: activityId },
-      },
-      select: { id: true },
+      const collision = await tx.organizationMainActivity.findFirst({
+        where: {
+          name: existing.name,
+          countrySectorId: existing.countrySectorId,
+          countrySubsectorId: existing.countrySubsectorId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+          id: { not: activityId },
+        },
+        select: { id: true },
+      });
+      if (collision) {
+        const err = new DatabaseUniqueConstraintViolationError();
+        err.message =
+          "Ya existe una actividad principal activa con el mismo nombre y rubro/subrubro. Renombra o elimina la activa antes de restaurar.";
+        throw err;
+      }
+
+      const updated = await tx.organizationMainActivity.update({
+        where: { id: activityId },
+        data: {
+          status: OrganizationMainActivityStatus.ACTIVE,
+          updatedById: BigInt(user.id),
+        },
+        select: adminMainActivitySelect,
+      });
+      return mapMainActivityToAdmin(updated);
     });
-    if (collision) {
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
       const err = new DatabaseUniqueConstraintViolationError();
       err.message =
         "Ya existe una actividad principal activa con el mismo nombre y rubro/subrubro. Renombra o elimina la activa antes de restaurar.";
       throw err;
     }
-
-    const updated = await tx.organizationMainActivity.update({
-      where: { id: activityId },
-      data: {
-        status: OrganizationMainActivityStatus.ACTIVE,
-        updatedById: BigInt(user.id),
-      },
-      select: adminMainActivitySelect,
-    });
-    return mapMainActivityToAdmin(updated);
-  });
+    throw error;
+  }
 };
