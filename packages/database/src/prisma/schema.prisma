@@ -348,6 +348,7 @@ model MeasurementUnit {
   abbreviation                String                       @unique
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
+  status                      MeasurementUnitStatus        @default(ACTIVE)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
   lineInputs                  CarbonInventoryLineInput[]
@@ -362,6 +363,7 @@ model RateMeasurementUnit {
   abbreviation                 String                      @unique
   numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
   denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
+  status                       MeasurementUnitStatus       @default(ACTIVE)
   denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
   numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
   emissionFactors              EmissionFactor[]
@@ -384,6 +386,13 @@ enum Magnitude {
   ROOMS
 
   @@map("Magnitude")
+}
+
+enum MeasurementUnitStatus {
+  ACTIVE
+  DELETED
+
+  @@map("measurement_unit_status")
 }
 
 enum MethodologyVersionStatus {

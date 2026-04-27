@@ -2,6 +2,9 @@
 CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' ,'AREA' ,'POWER' ,'ENERGY' ,'DISTANCE_MASS' ,'ROOMS');
 
 -- CreateEnum
+CREATE TYPE "measurement_unit_status" AS ENUM ('ACTIVE', 'DELETED');
+
+-- CreateEnum
 CREATE TYPE "system_role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
 
 -- CreateTable
@@ -143,6 +146,7 @@ CREATE TABLE "measurement_unit" (
     "abbreviation" TEXT NOT NULL,
     "base_factor" DOUBLE PRECISION NOT NULL,
     "is_base" BOOLEAN NOT NULL,
+    "status" "measurement_unit_status" NOT NULL DEFAULT 'ACTIVE',
 
     CONSTRAINT "measurement_unit_pkey" PRIMARY KEY ("id")
 );
@@ -154,6 +158,7 @@ CREATE TABLE "rate_measurement_unit" (
     "abbreviation" TEXT NOT NULL,
     "numerator_measurement_unit_id" BIGINT NOT NULL,
     "denominator_measurement_unit_id" BIGINT NOT NULL,
+    "status" "measurement_unit_status" NOT NULL DEFAULT 'ACTIVE',
 
     CONSTRAINT "rate_measurement_unit_pkey" PRIMARY KEY ("id")
 );
