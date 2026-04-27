@@ -337,8 +337,25 @@ model User {
   explanationsUpdated                  Explanation[]                  @relation("explanation_updated_by")
   reductionPlanInitiativesCreated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_created_by")
   reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
+  roleAuditAsTarget                    UserRoleAudit[]                @relation("user_role_audit_target")
+  roleAuditAsActor                     UserRoleAudit[]                @relation("user_role_audit_actor")
 
   @@map("user")
+}
+
+model UserRoleAudit {
+  id           BigInt     @id @default(autoincrement())
+  userId       BigInt     @map("user_id")
+  previousRole SystemRole @map("previous_role")
+  newRole      SystemRole @map("new_role")
+  changedById  BigInt     @map("changed_by_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  user      User @relation("user_role_audit_target", fields: [userId], references: [id], onDelete: Restrict)
+  changedBy User @relation("user_role_audit_actor", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@map("user_role_audit")
 }
 
 enum Magnitude {
