@@ -7,7 +7,7 @@
 
 ## 1. Types package — discriminated update body
 
-- [ ] 1.1 Refactor `packages/types/src/users/updateUser/schemas.ts` to define `SelfProfileUpdateSchema` (existing partial profile fields, no `role`, with the at-least-one-field refinement) and `AdminRoleUpdateSchema` (`{ role: SystemRoleSchema }`, strict)
+- [ ] 1.1 Refactor `packages/types/src/users/updateUser/schemas.ts` to define `SelfProfileUpdateSchema` (existing partial profile fields, no `role`, no at-least-one-field refinement so no-op profile updates validate) and `AdminRoleUpdateSchema` (`{ role: SystemRoleSchema }`, strict)
 - [ ] 1.2 Replace `UpdateUserBodySchema` with `z.union([SelfProfileUpdateSchema, AdminRoleUpdateSchema])`
 - [ ] 1.3 Update `packages/types/src/users/updateUser/types.ts` so `UpdateUserBody` is `z.infer<typeof UpdateUserBodySchema>`; export `SelfProfileUpdate` and `AdminRoleUpdate` inferred types alongside
 - [ ] 1.4 Verify exports from `packages/types/src/users/index.ts` still expose all needed names; update if necessary
