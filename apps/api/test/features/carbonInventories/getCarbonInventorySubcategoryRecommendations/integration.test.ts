@@ -254,7 +254,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(body).not.toContain(otherSubcategoryId.toString());
     });
 
-    it("should return empty when SPECIFIC mode finds no exact subsector match", async () => {
+    it("should fall back to (sectorId, null) recommendations when SPECIFIC mode finds no exact subsector match", async () => {
       await prisma.systemParameter.update({
         where: {
           key: SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE,
@@ -277,7 +277,8 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
         }
       );
 
-      // Only a null-subsector recommendation exists, no exact match
+      // Only a null-subsector recommendation exists, no exact match —
+      // SPECIFIC mode falls back to the general recommendations.
       await prisma.subcategoryRecommendation.create({
         data: { subcategoryId, sectorId, subsectorId: null },
       });
@@ -291,7 +292,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetSubcategoryRecommendationsResponse;
-      expect(body).toHaveLength(0);
+      expect(body).toContain(subcategoryId.toString());
     });
 
     it("should deduplicate subcategory IDs when the same subcategory appears in multiple recommendations", async () => {

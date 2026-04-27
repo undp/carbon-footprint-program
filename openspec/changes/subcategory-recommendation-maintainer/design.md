@@ -3,7 +3,7 @@
 `SubcategoryRecommendation` is a simple join table with the fields `id`, `sectorId`, `subsectorId?`, `subcategoryId`, and timestamps. A single `(sectorId, subsectorId, subcategoryIds[])` "group" is represented as N rows — one per subcategory — sharing the same sector/subsector pair. The table is consumed by `getSubcategoryRecommendations/service.ts`, which returns different row sets based on the `SUBCATEGORY_RECOMMENDATION_MODE` system parameter:
 
 - `UNION` — returns recommendations for the org's sector ∪ sector+subsector; a `null` subsector row is treated as a wildcard that applies to every inventory under the sector.
-- `SPECIFIC` — returns recommendations matched exactly on the org's `(sectorId, subsectorId)`; a `null` subsector row only matches inventories with no subsector.
+- `SPECIFIC` — prefers recommendations matched exactly on the org's `(sectorId, subsectorId)`; if no `ACTIVE` rows exist for that tuple (or the org has no subsector), it falls back to the `(sectorId, null)` general recommendations.
 
 Today the table is seeded from `seedSubcategoryRecommendations.ts` and has no write path from the app. Admins need to edit the recommendation matrix directly. The existing Categories/Subcategories maintainer (`apps/web/src/screens/Maintainer/screens/SubcategoriesMaintainerScreen.tsx` + `MaintainerDataGrid`) is the established pattern for admin CRUD against reference tables, and it is the target model for this feature.
 

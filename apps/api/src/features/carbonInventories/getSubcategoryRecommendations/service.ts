@@ -34,30 +34,54 @@ export const getSubcategoryRecommendationsService = async (
   }
 
   const subsectorId = orgData?.subsectorId ?? null;
+  const sectorIdBig = BigInt(sectorId);
+  const subsectorIdBig = subsectorId ? BigInt(subsectorId) : null;
 
   const mode = await getSystemParameterValue(
     prismaClient,
     SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE
   );
 
-  const isSpecific = mode === SubcategoryRecommendationModeEnum.SPECIFIC;
+  if (mode === SubcategoryRecommendationModeEnum.SPECIFIC) {
+    // SPECIFIC: prefer the (sectorId, subsectorId) match if any ACTIVE rows
+    // exist for it; otherwise fall back to the (sectorId, null) general
+    // recommendations. When the org has no subsector, only the general
+    // recommendations apply.
+    if (subsectorIdBig !== null) {
+      const specific = await prismaClient.subcategoryRecommendation.findMany({
+        where: {
+          sectorId: sectorIdBig,
+          subsectorId: subsectorIdBig,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+        select: { subcategoryId: true },
+      });
 
+      if (specific.length > 0) {
+        return [...new Set(specific.map((r) => r.subcategoryId.toString()))];
+      }
+    }
+
+    const general = await prismaClient.subcategoryRecommendation.findMany({
+      where: {
+        sectorId: sectorIdBig,
+        subsectorId: null,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+      select: { subcategoryId: true },
+    });
+    return [...new Set(general.map((r) => r.subcategoryId.toString()))];
+  }
+
+  // UNION: merge the org's specific subsector match with the general
+  // (subsectorId = null) recommendations.
   const recommendations = await prismaClient.subcategoryRecommendation.findMany(
     {
-      where: isSpecific
-        ? {
-            sectorId: BigInt(sectorId),
-            subsectorId: subsectorId ? BigInt(subsectorId) : null,
-            status: SubcategoryRecommendationStatus.ACTIVE,
-          }
-        : {
-            sectorId: BigInt(sectorId),
-            OR: [
-              { subsectorId: subsectorId ? BigInt(subsectorId) : null },
-              { subsectorId: null },
-            ],
-            status: SubcategoryRecommendationStatus.ACTIVE,
-          },
+      where: {
+        sectorId: sectorIdBig,
+        OR: [{ subsectorId: subsectorIdBig }, { subsectorId: null }],
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
       select: { subcategoryId: true },
     }
   );
