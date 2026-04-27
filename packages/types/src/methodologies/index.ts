@@ -6,5 +6,7 @@ export * from "./duplicateMethodology/schemas.js";
 export * from "./duplicateMethodology/types.js";
 export * from "./getAllMethodologies/schemas.js";
 export * from "./getAllMethodologies/types.js";
+export * from "./getMethodologyById/schemas.js";
+export * from "./getMethodologyById/types.js";
 export * from "./updateMethodology/schemas.js";
 export * from "./updateMethodology/types.js";
