@@ -154,9 +154,12 @@ To make that trust enforceable, `seedMeasurementUnits.ts` SHALL include a covera
 
 ### 9. Authorization
 
-**Decision**: Both `SystemRole.SUPERADMIN` and `SystemRole.ADMIN` may use this screen and call its endpoints. Client-side: `beforeLoad: requireRole([SystemRole.SUPERADMIN, SystemRole.ADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })`. Server-side: route module declares `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as a `preHandler` hook covering all endpoints.
+**Decision**: Both `SystemRole.SUPERADMIN` and `SystemRole.ADMIN` may use the maintainer screen and call its mutation endpoints. The list/read endpoints (`getAllMeasurementUnits`, `getAllRateMeasurementUnits`) remain accessible to non-admin users, because they are consumed by the carbon-inventory `EmissionEditor` flow (unit pickers) used by every role.
 
-**Rationale**: Measurement units are a normal operational concern, not a privilege requiring the SUPERADMIN tier. The Categories maintainer is SUPERADMIN-only because category structure relates to methodology versions, which have a higher governance tier. Measurement units do not.
+- **Client-side** (UI route): `beforeLoad: requireRole([SystemRole.SUPERADMIN, SystemRole.ADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })` on the `/admin/units` route only.
+- **Server-side**: scope the role guard to mutations only. The `apps/api/src/routes/api/measurement-units/index.ts` module SHALL register the existing list routes at the outer scope (no role hook, preserving today's accessibility), then use `fastify.register((f) => { ... })` to create a child scope that adds `f.addHook("onRequest", f.requireAuth)` and `f.addHook("preHandler", f.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN]))`, and registers `createMeasurementUnit`, `updateMeasurementUnit`, `deleteMeasurementUnit` inside that scope. This mirrors the pattern already in use in `apps/api/src/routes/api/badges/index.ts`.
+
+**Rationale**: Measurement units are a normal operational concern, not a privilege requiring the SUPERADMIN tier — that's why both roles can mutate. The Categories maintainer is SUPERADMIN-only because category structure relates to methodology versions, which have a higher governance tier. Measurement units do not. Splitting the hook scope by route is required because the same module exposes both public read endpoints (used by every authenticated user via pickers) and admin-only writes; a module-wide guard would regress those reads.
 
 ### 10. UI: inline-edit `StylizedDataGrid` with native column filters and sorting
 
