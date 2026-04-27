@@ -129,6 +129,7 @@ export const UsersScreen: FC = () => {
 
       {isSuperadmin && (
         <ChangeRoleDialog
+          key={changeRoleUserId}
           open={changeRoleUserId !== null}
           user={changeRoleUser}
           viewerId={viewerId}

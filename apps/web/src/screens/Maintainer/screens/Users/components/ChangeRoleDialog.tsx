@@ -8,7 +8,6 @@ import {
   TextField,
   MenuItem,
   Alert,
-  Tooltip,
 } from "@mui/material";
 import { enqueueSnackbar } from "notistack";
 import { SystemRole } from "@repo/types";
@@ -100,15 +99,15 @@ export const ChangeRoleDialog: FC<ChangeRoleDialogProps> = ({
         >
           {ALL_ROLES.map((role) => {
             const isDisabled = disabledRoles.has(role);
-            const tooltip = isDisabled ? TOOLTIP_COPY.lastSuperadmin : "";
             return (
-              <Tooltip key={role} title={tooltip} placement="right">
-                <span>
-                  <MenuItem value={role} disabled={isDisabled}>
-                    {ROLE_LABELS[role]}
-                  </MenuItem>
-                </span>
-              </Tooltip>
+              <MenuItem
+                key={role}
+                value={role}
+                disabled={isDisabled}
+                title={isDisabled ? TOOLTIP_COPY.lastSuperadmin : undefined}
+              >
+                {ROLE_LABELS[role]}
+              </MenuItem>
             );
           })}
         </TextField>
