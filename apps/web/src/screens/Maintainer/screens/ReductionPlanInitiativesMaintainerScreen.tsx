@@ -37,6 +37,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     useReductionPlanInitiatives();
 
   const { data: methodologies = [] } = useMethodologies();
+
   const activeMethodologyVersionId = useMemo(
     () =>
       methodologies.find((m) => m.status === MethodologyVersionStatus.PUBLISHED)
