@@ -105,7 +105,7 @@
 
 ## 12. Frontend — Vocabulary
 
-- [ ] 12.1 Add `MAGNITUDE_LABELS: Record<Magnitude, string>` to `apps/web/src/config/vocab.ts` covering every value in the `Magnitude` enum, in Spanish.
+- [ ] 12.1 Add `MAGNITUDE_LABELS: Record<Magnitude, string>` to `apps/web/src/config/vocab.ts` covering every value in the `Magnitude` enum, in Spanish, using the exact mapping specified in `specs/measurement-units-maintainer-screen/spec.md` (MASS → "Masa", VOLUME → "Volumen", DISTANCE → "Distancia", TIME → "Tiempo", ANIMALS → "Animales", AREA → "Área", POWER → "Potencia", ENERGY → "Energía", DISTANCE_MASS → "Distancia · Masa", ROOMS → "Habitaciones"). The `Record<Magnitude, string>` typing SHALL be preserved so that future enum additions cause a type error until labeled.
 
 ## 13. Frontend — Screen
 
