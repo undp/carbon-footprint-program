@@ -26,4 +26,5 @@ export {
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
   CountryOrganizationSizeStatus,
+  MeasurementUnitStatus,
 } from "@repo/database/enums";
