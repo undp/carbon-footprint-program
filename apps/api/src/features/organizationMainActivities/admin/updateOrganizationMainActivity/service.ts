@@ -80,6 +80,7 @@ export const updateOrganizationMainActivityService = async (
           );
         }
       }
+      let validatedSubsector: { countrySectorId: bigint } | null = null;
       if (
         data.countrySubsectorId !== undefined &&
         effectiveSubsectorId !== null
@@ -97,16 +98,20 @@ export const updateOrganizationMainActivityService = async (
             data.countrySubsectorId as string
           );
         }
+        validatedSubsector = { countrySectorId: subsector.countrySectorId };
       }
 
-      // If both effective ids are present, assert the subsector belongs to the effective
-      // sector. We re-fetch the subsector to avoid relying on a possibly skipped lookup
-      // above (e.g. if the patch only changed countrySectorId).
+      // If both effective ids are present, assert the subsector belongs to the
+      // effective sector. Reuse the subsector validated above when available;
+      // only re-fetch when the patch did not touch countrySubsectorId (e.g. the
+      // patch changed only countrySectorId).
       if (effectiveSubsectorId !== null && effectiveSectorId !== null) {
-        const subsector = await tx.countrySubsector.findUnique({
-          where: { id: effectiveSubsectorId },
-          select: { countrySectorId: true },
-        });
+        const subsector =
+          validatedSubsector ??
+          (await tx.countrySubsector.findUnique({
+            where: { id: effectiveSubsectorId },
+            select: { countrySectorId: true },
+          }));
         if (!subsector || subsector.countrySectorId !== effectiveSectorId) {
           const err = new SectorSubsectorMismatchError();
           err.message =
