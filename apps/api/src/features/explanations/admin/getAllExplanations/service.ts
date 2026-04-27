@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetAllExplanationsResponse, User } from "@repo/types";
 import { EXPLANATION_CATALOG, type ExplanationSlug } from "@repo/constants";
+import { mapExplanationToResponse } from "../../mappers.js";
 
 export const getAllExplanationsService = async (
   prismaClient: PrismaClient,
@@ -23,13 +24,5 @@ export const getAllExplanationsService = async (
     },
   });
 
-  return explanations.map((row) => ({
-    slug: row.slug,
-    name: row.name,
-    description: row.description,
-    content: row.content,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
-    updatedById: row.updatedById !== null ? row.updatedById.toString() : null,
-  }));
+  return explanations.map(mapExplanationToResponse);
 };

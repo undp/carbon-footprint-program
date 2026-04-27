@@ -5,6 +5,7 @@ import type {
 } from "@repo/types";
 import { EXPLANATION_CATALOG } from "@repo/constants";
 import { ExplanationNotFoundError } from "../../errors.js";
+import { mapExplanationToResponse } from "../../mappers.js";
 
 export const updateExplanationService = async (
   prismaClient: PrismaClient,
@@ -43,15 +44,6 @@ export const updateExplanationService = async (
       },
     });
 
-    return {
-      slug: updated.slug,
-      name: updated.name,
-      description: updated.description,
-      content: updated.content,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : null,
-      updatedById:
-        updated.updatedById !== null ? updated.updatedById.toString() : null,
-    };
+    return mapExplanationToResponse(updated);
   });
 };
