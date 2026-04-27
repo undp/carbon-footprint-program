@@ -19,6 +19,7 @@ export const MaintainerStatusFilterToggle: FC<Props> = ({
     value={value}
     exclusive
     size="small"
+    aria-label="Filtro de estado del mantenedor"
     onChange={(_, next: AdminListStatusFilter | null) => {
       if (next !== null) {
         onChange(next);

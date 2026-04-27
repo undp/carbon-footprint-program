@@ -40,12 +40,14 @@ export const InUseWarningDialog: FC<Props> = ({
     <DialogContent>
       <DialogContentText>
         Este {entityLabel} está siendo utilizado por organizaciones y huellas.
-        Cambiar su nombre afectará a todos los usuarios que lo tengan
-        seleccionado. ¿Deseas continuar?
+        Este cambio afectará a todos los usuarios que lo tengan seleccionado.
+        ¿Deseas continuar?
       </DialogContentText>
     </DialogContent>
     <DialogActions>
-      <Button onClick={onCancel}>Cancelar</Button>
+      <Button autoFocus onClick={onCancel}>
+        Cancelar
+      </Button>
       <Button onClick={onConfirm} variant="contained" color="primary">
         Continuar
       </Button>
