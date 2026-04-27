@@ -29,6 +29,7 @@
 ## 3. API — service authorization
 
 - [ ] 3.1 Relax the route guard on `apps/api/src/features/users/updateUser/route.ts` from `requireRoles([ADMIN, SUPERADMIN])` to `fastify.requireAuth`
+- [ ] 3.1a Extend the `schema.response` map in `apps/api/src/features/users/updateUser/route.ts` with `403: ApiErrorResponseSchema` and `409: ApiErrorResponseSchema` (alongside the existing `200`/`400`/`404`/`422`) so the typed contract, Fastify response serialization, and Swagger docs cover `SelfRoleChangeError` (403), `InsufficientPermissionsError` (403), `LastSuperadminError` (409), and `InvalidRoleTransitionError` (409)
 - [ ] 3.2 Refactor `updateUserService` in `apps/api/src/features/users/updateUser/service.ts` to accept the discriminated body and branch on its shape
 - [ ] 3.3 Implement the self-profile branch: `actor.id === target.id` required; otherwise throw `InsufficientPermissionsError`
 - [ ] 3.4 Implement the admin-role branch: `actor.role === SUPERADMIN`; otherwise throw `InsufficientPermissionsError`
