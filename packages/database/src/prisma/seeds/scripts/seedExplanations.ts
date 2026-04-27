@@ -2,8 +2,23 @@ import { type PrismaClient } from "@/index.js";
 import { readdirSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
-import { EXPLANATION_CATALOG } from "@repo/constants";
+import { z } from "zod";
+import {
+  generateSeedDataPath,
+  type SeedsDataset,
+} from "@/prisma/seeds/utils/index.js";
+
+const StandaloneExplanationsSchema = z.array(
+  z.object({
+    slug: z
+      .string()
+      .min(1)
+      .regex(/^[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$/),
+    name: z.string().min(1),
+    description: z.string().nullable().optional(),
+    content: z.string(),
+  })
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -169,28 +184,46 @@ async function seedSubcategoryExplanations(
   );
 }
 
-async function seedStandaloneExplanations(prisma: PrismaClient) {
-  const entries = Object.entries(EXPLANATION_CATALOG);
-
-  await Promise.all(
-    entries.map(([slug, entry]) =>
-      prisma.explanation.upsert({
-        where: { slug },
-        create: {
-          slug,
-          name: entry.name,
-          description: entry.description ?? null,
-          content: "",
-        },
-        update: {
-          name: entry.name,
-          description: entry.description ?? null,
-        },
-      })
-    )
+async function seedStandaloneExplanations(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
+  const filePath = generateSeedDataPath(
+    __dirname,
+    "standalone_explanations.json",
+    dataset
   );
 
-  console.log(`   ✓ Upserted ${entries.length} standalone explanation rows`);
+  let raw: string;
+  try {
+    raw = readFileSync(filePath, "utf-8");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT"
+    ) {
+      console.log(
+        `   ⚠ No standalone_explanations.json found for dataset ${dataset}, skipping.`
+      );
+      return;
+    }
+    throw error;
+  }
+
+  const entries = StandaloneExplanationsSchema.parse(JSON.parse(raw));
+
+  await prisma.explanation.createMany({
+    data: entries.map((entry) => ({
+      slug: entry.slug,
+      name: entry.name,
+      description: entry.description ?? null,
+      content: entry.content,
+    })),
+    skipDuplicates: true,
+  });
+
+  console.log(`   ✓ Seeded ${entries.length} standalone explanation rows`);
 }
 
 export async function seedExplanations(
@@ -199,7 +232,7 @@ export async function seedExplanations(
 ) {
   console.log("Seeding explanations...");
 
-  await seedStandaloneExplanations(prisma);
+  await seedStandaloneExplanations(prisma, dataset);
   await seedCategoryExplanations(prisma, dataset);
   await seedSubcategoryExplanations(prisma, dataset);
 }

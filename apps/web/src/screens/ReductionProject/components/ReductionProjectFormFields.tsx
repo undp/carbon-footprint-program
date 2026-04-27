@@ -9,10 +9,7 @@ import {
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
-import {
-  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
-  type ExplanationSlug,
-} from "@repo/constants";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
@@ -33,7 +30,7 @@ interface Props {
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
   hasInventorySelected: boolean;
-  gwpExplanationSlug?: ExplanationSlug | null;
+  gwpExplanationSlug?: string | null;
 }
 
 export const ReductionProjectFormFields: FC<Props> = ({

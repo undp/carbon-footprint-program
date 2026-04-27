@@ -7,7 +7,6 @@ import type {
   UpdateExplanationRequest,
   UpdateExplanationResponse,
 } from "@repo/types";
-import type { ExplanationSlug } from "@repo/constants";
 
 export const useExplanations = () =>
   useQuery<GetAllExplanationsResponse>({
@@ -17,7 +16,7 @@ export const useExplanations = () =>
   });
 
 interface UpdateExplanationVariables {
-  slug: ExplanationSlug;
+  slug: string;
   content: UpdateExplanationRequest["content"];
 }
 

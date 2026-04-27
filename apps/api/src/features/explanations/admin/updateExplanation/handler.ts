@@ -13,20 +13,14 @@ export const updateExplanationHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "admin-explanations" });
-  log.info({ slug: request.params.slug }, "Updating explanation...");
+  const { slug } = request.params;
+  log.info(`Updating explanation ${slug}...`);
 
   const prisma = request.server.prisma;
-  const userIdRaw = request.currentUser?.id;
-  const userId =
-    typeof userIdRaw === "string" ? BigInt(userIdRaw) : (userIdRaw ?? null);
+  const user = request.currentUser ?? null;
 
-  const updated = await updateExplanationService(
-    prisma,
-    request.params.slug,
-    request.body,
-    userId
-  );
+  const data = await updateExplanationService(prisma, slug, request.body, user);
 
-  log.info({ slug: request.params.slug }, "Explanation updated successfully");
-  return reply.status(200).send(updated);
+  log.info(`Explanation ${slug} updated successfully`);
+  return reply.status(200).send(data);
 };

@@ -4,16 +4,13 @@ import { Control, Controller, useWatch } from "react-hook-form";
 import { FormTextField } from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import {
-  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
-  type ExplanationSlug,
-} from "@repo/constants";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 import type { ReductionProjectFormValues } from "../formSchema";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  reportedElsewhereExplanationSlug?: ExplanationSlug | null;
+  reportedElsewhereExplanationSlug?: string | null;
 }
 
 export const ReportedElsewhereSection: FC<Props> = ({

@@ -117,7 +117,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     text: "Explicaciones",
     icon: <HelpOutlineOutlined />,
     path: Routes.ADMIN_EXPLANATIONS,
-    requiredRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN],
   },
   {
     text: "Historial de cambios",

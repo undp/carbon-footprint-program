@@ -14,14 +14,13 @@ import {
 import { Control, Controller, useWatch } from "react-hook-form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import type { ExplanationSlug } from "@repo/constants";
 import type { ReductionProjectFormValues } from "../formSchema";
 import { GEI_ITEMS } from "../constants";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  geiExplanationSlug?: ExplanationSlug | null;
+  geiExplanationSlug?: string | null;
 }
 
 export const GeiConsideredSection: FC<Props> = ({

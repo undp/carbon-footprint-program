@@ -2,8 +2,8 @@ import type { PrismaClient } from "@repo/database";
 import type {
   UpdateExplanationRequest,
   UpdateExplanationResponse,
+  User,
 } from "@repo/types";
-import { EXPLANATION_CATALOG } from "@repo/constants";
 import { ExplanationNotFoundError } from "../../errors.js";
 import { mapExplanationToResponse } from "../../mappers.js";
 
@@ -11,12 +11,8 @@ export const updateExplanationService = async (
   prismaClient: PrismaClient,
   slug: string,
   body: UpdateExplanationRequest,
-  userId: bigint | null
+  user: User | null
 ): Promise<UpdateExplanationResponse> => {
-  if (!Object.prototype.hasOwnProperty.call(EXPLANATION_CATALOG, slug)) {
-    throw new ExplanationNotFoundError(slug);
-  }
-
   return prismaClient.$transaction(async (tx) => {
     const existing = await tx.explanation.findUnique({
       where: { slug },
@@ -31,7 +27,7 @@ export const updateExplanationService = async (
       where: { slug },
       data: {
         content: body.content,
-        updatedById: userId,
+        updatedById: user ? BigInt(user.id) : null,
       },
       select: {
         slug: true,

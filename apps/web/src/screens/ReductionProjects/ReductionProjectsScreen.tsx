@@ -20,7 +20,7 @@ import {
   ScreenEmptyState,
 } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import { ExplanationSlug } from "@repo/constants";
+import { REDUCTION_PROJECT_EXPLANATION_SLUGS } from "../ReductionProject/constants";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import {
@@ -338,7 +338,7 @@ export const ReductionProjectsScreen: FC = () => {
             <InfoButton
               label="Más información"
               onClick={() =>
-                openExplanationBySlug(ExplanationSlug.REDUCTION_PROJECTS_LIST)
+                openExplanationBySlug(REDUCTION_PROJECT_EXPLANATION_SLUGS.LIST)
               }
             />
           </Box>
