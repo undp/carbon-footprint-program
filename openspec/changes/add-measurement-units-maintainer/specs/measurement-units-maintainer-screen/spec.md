@@ -54,7 +54,7 @@ For any row whose `referenceCount > 0`, the cells for `magnitude`, `baseFactor`,
 #### Scenario: Editing a referenced unit
 
 - **WHEN** the admin enters edit mode on a row with `referenceCount > 0`
-- **THEN** the `magnitude`, `baseFactor`, and `isBase` cells SHALL be disabled and SHALL show a tooltip explaining that the unit is in use; the `name` and `abbreviation` cells SHALL be editable
+- **THEN** the `magnitude`, `baseFactor`, and `isBase` cells SHALL be disabled and SHALL display a hover-triggered tooltip (e.g., a MUI `Tooltip` wrapping the cell) explaining that the unit is in use; the help text SHALL NOT be rendered as inline text or always-visible messaging next to the cell. The `name` and `abbreviation` cells SHALL be editable
 
 #### Scenario: Editing an unreferenced unit
 
