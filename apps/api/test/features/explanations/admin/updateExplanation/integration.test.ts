@@ -55,7 +55,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     try {
       const response = await app.inject({
         method: "PATCH",
-        url: "/api/admin/explanations/reduction_project_gwp",
+        url: "/api/admin/explanations/reduction-project-gwp",
         payload: { content: "x" },
       });
       expect(response.statusCode).toBe(403);
@@ -78,7 +78,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
 
   it("returns 400 when content exceeds the max length", async () => {
     await createTestExplanation(prisma, {
-      slug: "reduction_project_gwp",
+      slug: "reduction-project-gwp",
       name: "GWP",
       content: "",
     });
@@ -86,7 +86,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     const tooLong = "x".repeat(10_001);
     const response = await app.inject({
       method: "PATCH",
-      url: "/api/admin/explanations/reduction_project_gwp",
+      url: "/api/admin/explanations/reduction-project-gwp",
       payload: { content: tooLong },
     });
     expect(response.statusCode).toBe(400);
@@ -94,26 +94,26 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
 
   it("accepts an empty content string and returns 204", async () => {
     await createTestExplanation(prisma, {
-      slug: "reduction_project_basis",
+      slug: "reduction-project-basis",
       name: "Basis",
       content: "non-empty",
     });
 
     const response = await app.inject({
       method: "PATCH",
-      url: "/api/admin/explanations/reduction_project_basis",
+      url: "/api/admin/explanations/reduction-project-basis",
       payload: { content: "" },
     });
 
     expect(response.statusCode).toBe(204);
     const persisted = await prisma.explanation.findUnique({
-      where: { slug: "reduction_project_basis" },
+      where: { slug: "reduction-project-basis" },
     });
     expect(persisted?.content).toBe("");
   });
 
   it("persists content, updatedById and updatedAt on the happy path", async () => {
-    const slug = "reduction_project_gwp";
+    const slug = "reduction-project-gwp";
     const before = await createTestExplanation(prisma, {
       slug,
       name: "GWP",
