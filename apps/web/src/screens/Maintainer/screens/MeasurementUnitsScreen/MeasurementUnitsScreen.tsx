@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
+import { FormProvider } from "react-hook-form";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import {
@@ -310,7 +311,7 @@ export const MeasurementUnitsScreen: FC = () => {
   }
 
   return (
-    <>
+    <FormProvider {...form}>
       <MaintainerPageHeader
         title="Unidades de medida"
         onAddRow={handleAddRow}
@@ -355,6 +356,6 @@ export const MeasurementUnitsScreen: FC = () => {
         onCancel={() => reset?.()}
         onConfirm={() => proceed?.()}
       />
-    </>
+    </FormProvider>
   );
 };
