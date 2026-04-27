@@ -13,6 +13,8 @@ export const deleteCountrySubsectorRoute = (fastify: FastifyZodInstance) => {
       schema: {
         tags: ["admin-country-subsectors"],
         summary: "Soft-delete a country subsector",
+        description:
+          "Transitions the row to status=DELETED. Blocked when ACTIVE catalog references (main activities, subcategory recommendations) point at it.",
         params: DeleteCountrySubsectorParamsSchema,
         response: {
           200: DeleteCountrySubsectorResponseSchema,
