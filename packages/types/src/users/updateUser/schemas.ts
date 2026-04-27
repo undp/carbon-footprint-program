@@ -1,6 +1,7 @@
-import { UserBaseSchema } from "../../baseSchemas/index.js";
+import { z } from "zod";
+import { UserBaseSchema, SystemRoleSchema } from "../../baseSchemas/index.js";
 
-export const UpdateUserBodySchema = UserBaseSchema.pick({
+export const SelfProfileUpdateSchema = UserBaseSchema.pick({
   email: true,
   countryJobPositionId: true,
   firstName: true,
@@ -10,10 +11,18 @@ export const UpdateUserBodySchema = UserBaseSchema.pick({
   termsAccepted: true,
 })
   .partial()
-  .strict()
-  .refine((value) => Object.values(value).some((v) => v !== undefined), {
-    message: "At least one field must be provided with a defined value",
-  });
+  .strict();
+
+export const AdminRoleUpdateSchema = z
+  .object({
+    role: SystemRoleSchema,
+  })
+  .strict();
+
+export const UpdateUserBodySchema = z.union([
+  SelfProfileUpdateSchema,
+  AdminRoleUpdateSchema,
+]);
 
 export const UpdateUserParamsSchema = UserBaseSchema.pick({
   id: true,
