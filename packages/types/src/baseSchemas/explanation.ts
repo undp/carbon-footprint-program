@@ -18,6 +18,9 @@ export const ExplanationBaseSchema = z.object({
   content: z.string().describe("The markdown content of the explanation"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The last update date"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the explanation (always null today: rows are seeded)"
+  ),
   updatedById: IdSchema.nullable().describe(
     "The ID of the user who last updated the explanation"
   ),
