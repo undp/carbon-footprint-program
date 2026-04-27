@@ -2,8 +2,8 @@
 CREATE TABLE "user_role_audit" (
     "id" BIGSERIAL NOT NULL,
     "user_id" BIGINT NOT NULL,
-    "previous_role" "SystemRole" NOT NULL,
-    "new_role" "SystemRole" NOT NULL,
+    "previous_role" "system_role" NOT NULL,
+    "new_role" "system_role" NOT NULL,
     "changed_by_id" BIGINT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
