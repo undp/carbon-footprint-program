@@ -394,6 +394,8 @@ export const MainActivitiesMaintainerScreen: FC = () => {
                     fullWidth
                     multiline
                     minRows={2}
+                    error={!!form.formState.errors.description}
+                    helperText={form.formState.errors.description?.message}
                     {...form.register("description", {
                       setValueAs: (v: unknown) =>
                         typeof v === "string" && v.trim() === "" ? null : v,
