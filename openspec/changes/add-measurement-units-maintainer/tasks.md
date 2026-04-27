@@ -9,10 +9,17 @@
 
 ## 2. Types — Shared Schemas (`packages/types`)
 
+- [ ] 2.0 Add `MEASUREMENT_UNIT_NAME_MAX_LENGTH` and `MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH` to `packages/constants/src/` (e.g., a new `measurementUnit.ts` module exported via `packages/constants/src/index.ts`). Suggested values: name = `100`, abbreviation = `30` (room for compound abbreviations like `tonelada-kilometro`); confirm during review. Both Zod schemas (task 2.3) and any frontend form-side validation SHALL import from `@repo/constants` rather than re-declaring numeric literals.
 - [ ] 2.1 Export the `MeasurementUnitStatus` Prisma enum from `@repo/types` (alongside `Magnitude`).
 - [ ] 2.2 Update the existing `packages/types/src/baseSchemas/category.ts` (or wherever `MeasurementUnitBaseSchema` lives) to include `status: z.nativeEnum(MeasurementUnitStatus)` and `referenceCount: z.number().int().nonnegative()` on the response shape.
-- [ ] 2.3 Create `packages/types/src/measurementUnits/admin/createMeasurementUnit/schemas.ts` and `types.ts`. Request shape: `{ name, abbreviation, magnitude, baseFactor, isBase }`. Validations: `name` and `abbreviation` non-empty strings; `baseFactor > 0`; `magnitude` is `z.nativeEnum(Magnitude)`; `isBase` boolean. Response: full MU including `status`, `referenceCount`, and a discriminator (`"created" | "restored-full" | "restored-labels"`) so the UI can show a contextual confirmation.
-- [ ] 2.4 Create `packages/types/src/measurementUnits/admin/updateMeasurementUnit/schemas.ts` and `types.ts`. Request shape: a partial of `{ name, abbreviation, magnitude, baseFactor, isBase }` with all fields optional; same validations as create when present. Path param: `id` as string-coerced bigint.
+- [ ] 2.3 Create `packages/types/src/measurementUnits/admin/createMeasurementUnit/schemas.ts` and `types.ts`. Request shape: `{ name, abbreviation, magnitude, baseFactor, isBase }`. Validations:
+  - `name`: `z.string().trim().min(1, ...).max(MEASUREMENT_UNIT_NAME_MAX_LENGTH, ...)` with Spanish error messages.
+  - `abbreviation`: `z.string().trim().min(1, ...).max(MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH, ...).regex(/^[^\s\/\x00-\x1F\x7F]+$/, ...)` to reject whitespace, ASCII control chars, and `/`.
+  - `baseFactor`: `z.number().finite().positive()` (rejects `Infinity`/`-Infinity`/`NaN`/`<= 0`).
+  - `magnitude`: `z.nativeEnum(Magnitude)`.
+  - `isBase`: `z.boolean()`.
+  - Response: full MU including `status`, `referenceCount`, and a discriminator (`"created" | "restored-full" | "restored-labels"`).
+- [ ] 2.4 Create `packages/types/src/measurementUnits/admin/updateMeasurementUnit/schemas.ts` and `types.ts`. Request shape: derive from the create body schema via `.partial()` so the same per-field rules from 2.3 fire whenever a field is present (do NOT redefine validations — reuse the create schema as the source of truth). Path param: `id` as string-coerced bigint.
 - [ ] 2.5 Create `packages/types/src/measurementUnits/admin/deleteMeasurementUnit/schemas.ts` and `types.ts`. Path param: `id`. Response: `{ id, status }`.
 - [ ] 2.6 Update `packages/types/src/measurementUnits/getAllMeasurementUnits/schemas.ts` so each item includes `status` and `referenceCount`.
 - [ ] 2.7 Update `packages/types/src/measurementUnits/getAllRateMeasurementUnits/schemas.ts` so each item includes `status`.
@@ -132,7 +139,7 @@
 
 ## 16. Testing — API
 
-- [ ] 16.1 Integration test for `createMeasurementUnit`: happy-path create, abbreviation collision (ACTIVE) → 409, base collision → 409, restore-with-no-refs (full overwrite), restore-with-refs (label-only overwrite), `kg` lookup failure path, auth checks (401, 403).
+- [ ] 16.1 Integration test for `createMeasurementUnit`: happy-path create, abbreviation collision (ACTIVE) → 409, base collision → 409, restore-with-no-refs (full overwrite), restore-with-refs (label-only overwrite), `kg` lookup failure path, auth checks (401, 403). **Validation cases (all → HTTP 400, exercising the Zod schema from 2.3)**: empty `name`, empty `abbreviation`, name/abbreviation exceeding the `@repo/constants` max-length, abbreviation containing whitespace, abbreviation containing the `/` character, abbreviation containing an ASCII control character, `baseFactor = 0`, `baseFactor = -1`, `baseFactor = Infinity`, `baseFactor = NaN`, invalid `magnitude` string. The same validation cases SHALL also be exercised against the update endpoint in 16.2 (since the update body is `.partial()` of the create body, the rules apply when the field is present).
 - [ ] 16.2 Integration test for `updateMeasurementUnit`: rename cascade to RMU, locked-field rejection when `referenceCount > 0`, `kg` row rejection, base-unit rejection, `isBase` toggle rejection, abbreviation collision on rename, 404 path, auth checks.
 - [ ] 16.3 Integration test for `deleteMeasurementUnit`: happy-path soft-delete cascades the canonical RMU from `ACTIVE → DELETED`; idempotent path where the canonical RMU is already `DELETED` succeeds with HTTP 200, flips the MU to `DELETED`, and leaves the RMU row's status (and `updatedAt`) untouched; missing-canonical-RMU path (force the inconsistency in the test by deleting the RMU row directly) responds with HTTP 500, the MU's status remains `ACTIVE` (transaction rolled back), and a `DataIntegrityError` is logged; `kg` rejection, base rejection, 404 path, auth checks. Verify the row remains queryable when status is excluded from the filter.
 - [ ] 16.4 Integration test for `getAllMeasurementUnits`: returns only `ACTIVE`, includes `referenceCount`, default order is `(magnitude, name)`.
