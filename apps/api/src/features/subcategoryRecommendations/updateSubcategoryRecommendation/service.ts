@@ -7,7 +7,6 @@ import {
   type User,
 } from "@repo/types";
 import { UserNotFoundError } from "../../users/errors.js";
-import { loadGroup, resolveDefaultCountryId } from "../helpers.js";
 
 export const updateSubcategoryRecommendationService = async (
   prismaClient: PrismaClient,
@@ -23,13 +22,8 @@ export const updateSubcategoryRecommendationService = async (
   const subsectorId =
     query.subsectorId !== null ? BigInt(query.subsectorId) : null;
   const userId = BigInt(user.id);
-  const requestedIds = new Set(
-    data.subcategoryIds.map((id) => BigInt(id).toString())
-  );
 
   return prismaClient.$transaction(async (tx) => {
-    const countryId = await resolveDefaultCountryId(tx);
-
     const existingRows = await tx.subcategoryRecommendation.findMany({
       where: {
         sectorId,
@@ -39,14 +33,12 @@ export const updateSubcategoryRecommendationService = async (
       select: { id: true, subcategoryId: true },
     });
 
-    const existingIds = new Set(
-      existingRows.map((row) => row.subcategoryId.toString())
-    );
+    const existingIds = existingRows.map((row) => row.subcategoryId.toString());
 
     const toRemove = existingRows.filter(
-      (row) => !requestedIds.has(row.subcategoryId.toString())
+      (row) => !data.subcategoryIds.includes(row.subcategoryId.toString())
     );
-    const toAdd = [...requestedIds].filter((id) => !existingIds.has(id));
+    const toAdd = data.subcategoryIds.filter((id) => !existingIds.includes(id));
 
     if (toRemove.length > 0) {
       await tx.subcategoryRecommendation.updateMany({
@@ -71,32 +63,10 @@ export const updateSubcategoryRecommendationService = async (
       });
     }
 
-    const refreshed = await loadGroup(tx, sectorId, subsectorId);
-    if (refreshed) {
-      return refreshed;
-    }
-
-    // Empty group after update — resolve names so the response still has
-    // context for the client.
-    const [sector, subsector] = await Promise.all([
-      tx.countrySector.findFirst({
-        where: { id: sectorId, countryId },
-        select: { id: true, name: true },
-      }),
-      subsectorId !== null
-        ? tx.countrySubsector.findFirst({
-            where: { id: subsectorId },
-            select: { id: true, name: true },
-          })
-        : Promise.resolve(null),
-    ]);
-
     return {
       sectorId: sectorId.toString(),
       subsectorId: subsectorId?.toString() ?? null,
-      sectorName: sector?.name ?? "",
-      subsectorName: subsector?.name ?? null,
-      subcategoryIds: [],
+      subcategoryIds: data.subcategoryIds,
     };
   });
 };
