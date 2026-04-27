@@ -18,7 +18,7 @@ import {
   useDeleteMeasurementUnit,
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../../layout/MaintainerPageHeader";
-import { StylizedDataGrid } from "@components";
+import { MaintainerDataGrid } from "../../components/MaintainerDataGrid";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
 import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
@@ -329,26 +329,12 @@ export const MeasurementUnitsScreen: FC = () => {
           fila.
         </Typography>
         <Box className="flex w-full">
-          <StylizedDataGrid
-            sx={(theme) => ({
-              "& .MuiDataGrid-columnHeader": {
-                backgroundColor: theme.palette.grey[200],
-              },
-              "& .MuiDataGrid-cell": {
-                display: "flex",
-                alignItems: "center",
-              },
-              "& .MuiDataGrid-row.row--editing": {
-                backgroundColor: theme.palette.grey[100],
-              },
-            })}
+          <MaintainerDataGrid
+            editingRowId={editingRowId}
             loading={isLoading}
             columns={columns}
             rows={currentRows}
             getRowId={(row: MeasurementUnitForm) => row.id}
-            getRowClassName={({ id }) =>
-              String(id) === editingRowId ? "row--editing" : ""
-            }
             initialState={{ sorting: { sortModel } }}
             disableColumnFilter={false}
             disableColumnSelector={false}
