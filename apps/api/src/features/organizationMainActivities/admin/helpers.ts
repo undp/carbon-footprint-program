@@ -26,20 +26,14 @@ export const mapMainActivityToAdmin = (
     name: row.name,
     description: row.description,
     status: row.status,
-    countrySectorId: row.countrySectorId
-      ? row.countrySectorId.toString()
-      : null,
-    countrySubsectorId: row.countrySubsectorId
-      ? row.countrySubsectorId.toString()
-      : null,
-    countrySectorName: row.countrySector ? row.countrySector.name : null,
-    countrySubsectorName: row.countrySubsector
-      ? row.countrySubsector.name
-      : null,
+    countrySectorId: row.countrySectorId?.toString() ?? null,
+    countrySubsectorId: row.countrySubsectorId?.toString() ?? null,
+    countrySectorName: row.countrySector?.name ?? null,
+    countrySubsectorName: row.countrySubsector?.name ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
-    createdById: row.createdById ? row.createdById.toString() : null,
-    updatedById: row.updatedById ? row.updatedById.toString() : null,
+    createdById: row.createdById?.toString() ?? null,
+    updatedById: row.updatedById?.toString() ?? null,
     isInUse: counts.organizationData > 0,
   };
 };

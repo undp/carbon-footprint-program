@@ -37,8 +37,8 @@ export const mapCountrySubsectorToAdmin = (
     status: row.status,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
-    createdById: row.createdById ? row.createdById.toString() : null,
-    updatedById: row.updatedById ? row.updatedById.toString() : null,
+    createdById: row.createdById?.toString() ?? null,
+    updatedById: row.updatedById?.toString() ?? null,
     isInUse:
       counts.organizationData +
         counts.organizationMainActivities +
