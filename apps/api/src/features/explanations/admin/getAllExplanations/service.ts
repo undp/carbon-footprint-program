@@ -1,13 +1,12 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetAllExplanationsResponse, User } from "@repo/types";
-import { mapExplanationToResponse } from "../../mappers.js";
 
-export const getAllExplanationsService = async (
+export const getAllExplanationsService = (
   prismaClient: PrismaClient,
   _query: null,
   _user: User | null
-): Promise<GetAllExplanationsResponse> => {
-  const explanations = await prismaClient.explanation.findMany({
+): Promise<GetAllExplanationsResponse> =>
+  prismaClient.explanation.findMany({
     orderBy: { name: "asc" },
     select: {
       slug: true,
@@ -16,6 +15,3 @@ export const getAllExplanationsService = async (
       content: true,
     },
   });
-
-  return explanations.map(mapExplanationToResponse);
-};

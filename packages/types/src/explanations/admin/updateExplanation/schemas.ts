@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-export const EXPLANATION_CONTENT_MAX_LENGTH = 10000;
+import { EXPLANATION_CONTENT_MAX_LENGTH } from "@repo/constants";
 
 export const UpdateExplanationParamsSchema = z
   .object({
