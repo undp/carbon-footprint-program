@@ -1,35 +1,16 @@
-import { FC, useCallback, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { useBlocker } from "@tanstack/react-router";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import {
-  EditOutlined,
-  DeleteOutlineOutlined,
-  RestoreOutlined,
-} from "@mui/icons-material";
-import type { GridColDef } from "@mui/x-data-grid";
-import { useSnackbar } from "notistack";
 import { z } from "zod";
+import { Box, Typography } from "@mui/material";
 import {
   CountrySectorStatus,
   type AdminCountrySector,
   type AdminListStatusFilter,
+  type CreateCountrySectorRequest,
+  type UpdateCountrySectorRequest,
 } from "@repo/types";
-import { useBlocker } from "@tanstack/react-router";
 import {
   useAdminCountrySectors,
   useCreateCountrySector,
@@ -39,38 +20,47 @@ import {
 } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
 import { MaintainerStatusFilterToggle } from "../components/MaintainerStatusFilterToggle";
-import {
-  InUseWarningDialog,
-  type ProfilingEntityLabel,
-} from "../components/dialogs/InUseWarningDialog";
+import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
-import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
+import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
+import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
+import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
+import {
+  useSectorProfilingColumns,
+  type SectorFormRow,
+} from "../hooks/useSectorProfilingColumns";
 
-const FormSchema = z.object({
+const RowSchema = z.object({
+  id: z.string(),
   name: z
     .string()
     .trim()
     .min(1, "El nombre es obligatorio")
     .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z.string().trim().max(2000).nullable(),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
+  status: z.enum(CountrySectorStatus),
+  isInUse: z.boolean(),
 });
+
+const FormSchema = z.object({ sectors: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
-const ENTITY_LABEL: ProfilingEntityLabel = "rubro";
+const toFormSector = (s: AdminCountrySector): SectorFormRow => ({
+  id: s.id,
+  name: s.name,
+  description: s.description,
+  status: s.status,
+  isInUse: s.isInUse,
+});
 
 export const SectorsMaintainerScreen: FC = () => {
-  const { enqueueSnackbar } = useSnackbar();
   const [statusFilter, setStatusFilter] =
     useState<AdminListStatusFilter>("active");
-  const [dialogState, setDialogState] = useState<
-    | { mode: "closed" }
-    | { mode: "create" }
-    | { mode: "edit"; row: AdminCountrySector }
-  >({ mode: "closed" });
-  const [pendingPatch, setPendingPatch] = useState<{
-    id: string;
-    body: { name?: string; description?: string | null };
-  } | null>(null);
 
   const { data: rows, isLoading } = useAdminCountrySectors(statusFilter);
   const createMutation = useCreateCountrySector();
@@ -80,273 +70,181 @@ export const SectorsMaintainerScreen: FC = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { name: "", description: null },
+    defaultValues: { sectors: [] },
+    mode: "onBlur",
+  });
+  const fieldArray = useFieldArray({ control: form.control, name: "sectors" });
+  const { editingRowId, setEditingRowId, isNewRow } =
+    useProfilingEditingState();
+
+  const toFormData = useCallback(
+    (data: unknown[]) => (data as AdminCountrySector[]).map(toFormSector),
+    []
+  );
+  useProfilingFormSync({
+    form,
+    fieldName: "sectors",
+    editingRowId,
+    serverData: rows,
+    toFormData,
   });
 
-  const isDirty = form.formState.isDirty;
-  const blocker = useBlocker({
-    shouldBlockFn: () => isDirty || dialogState.mode !== "closed",
-    withResolver: true,
-  });
-
-  const openCreate = () => {
-    form.reset({ name: "", description: null });
-    setDialogState({ mode: "create" });
-  };
-  const openEdit = useCallback(
-    (row: AdminCountrySector) => {
-      form.reset({ name: row.name, description: row.description });
-      setDialogState({ mode: "edit", row });
+  const handleCellChange = useCallback(
+    (rowIndex: number, field: "name" | "description", value: string) => {
+      form.setValue(
+        `sectors.${rowIndex}.${field}` as `sectors.${number}.name`,
+        (field === "description" && value.trim() === ""
+          ? null
+          : value) as never,
+        { shouldDirty: true }
+      );
+      void form.trigger(
+        `sectors.${rowIndex}.${field}` as `sectors.${number}.name`
+      );
     },
     [form]
   );
-  const closeDialog = () => {
-    form.reset({ name: "", description: null });
-    setDialogState({ mode: "closed" });
-  };
 
-  const handleSubmit = form.handleSubmit(async (values) => {
-    if (dialogState.mode === "create") {
-      try {
-        await createMutation.mutateAsync({
-          name: values.name,
-          description: values.description ?? null,
-        });
-        enqueueSnackbar("Rubro creado exitosamente", { variant: "success" });
-        closeDialog();
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(error, "No se pudo crear el rubro"),
-          { variant: "error" }
-        );
-      }
-    } else if (dialogState.mode === "edit") {
-      const body: { name?: string; description?: string | null } = {};
-      if (values.name !== dialogState.row.name) body.name = values.name;
-      if (values.description !== dialogState.row.description)
-        body.description = values.description;
-      if (Object.keys(body).length === 0) {
-        closeDialog();
-        return;
-      }
-      const visibleChanged = body.name !== undefined;
-      if (visibleChanged && dialogState.row.isInUse) {
-        // Defer the PATCH until the admin confirms via InUseWarningDialog.
-        setPendingPatch({ id: dialogState.row.id, body });
-        return;
-      }
-      await dispatchPatch(dialogState.row.id, body);
-    }
+  const actions = useProfilingRowActions<
+    FormValues,
+    AdminCountrySector,
+    SectorFormRow,
+    CreateCountrySectorRequest,
+    UpdateCountrySectorRequest
+  >({
+    form,
+    fieldArray,
+    fieldName: "sectors",
+    serverRows: rows,
+    toFormRow: toFormSector,
+    toCreateBody: (row) => ({
+      name: row.name,
+      description: row.description ?? null,
+    }),
+    diffUpdateBody: (formRow, serverRow) => {
+      const body: UpdateCountrySectorRequest = {};
+      if (formRow.name !== serverRow.name) body.name = formRow.name;
+      if (formRow.description !== serverRow.description)
+        body.description = formRow.description;
+      return Object.keys(body).length === 0 ? null : body;
+    },
+    visibleFieldsChanged: (body) => body.name !== undefined,
+    newRowDefaults: () => ({
+      id: `temp_${Date.now()}`,
+      name: "",
+      description: null,
+      status: CountrySectorStatus.ACTIVE,
+      isInUse: false,
+    }),
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    restoreMutation,
+    editingRowId,
+    setEditingRowId,
+    isNewRow,
+    successMessages: {
+      create: "Rubro creado exitosamente",
+      update: "Cambios guardados satisfactoriamente",
+      delete: "Rubro eliminado",
+      restore: "Rubro restaurado",
+    },
+    errorMessages: {
+      create: "No se pudo crear el rubro",
+      update: "No se pudo guardar el rubro",
+      delete: "No se pudo eliminar el rubro",
+      restore: "No se pudo restaurar el rubro",
+    },
   });
 
-  const dispatchPatch = async (
-    id: string,
-    body: { name?: string; description?: string | null }
-  ) => {
-    try {
-      await updateMutation.mutateAsync({ id, body });
-      enqueueSnackbar("Cambios guardados satisfactoriamente", {
-        variant: "success",
-      });
-      closeDialog();
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo guardar el rubro"),
-        { variant: "error" }
-      );
-    }
-  };
+  const currentRows = useWatch({ control: form.control, name: "sectors" });
 
-  const handleSoftDelete = useCallback(
-    async (row: AdminCountrySector) => {
-      try {
-        await deleteMutation.mutateAsync(row.id);
-        enqueueSnackbar("Rubro eliminado", { variant: "success" });
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(error, "No se pudo eliminar el rubro"),
-          { variant: "error" }
-        );
-      }
-    },
-    [deleteMutation, enqueueSnackbar]
-  );
-  const handleRestore = useCallback(
-    async (row: AdminCountrySector) => {
-      try {
-        await restoreMutation.mutateAsync(row.id);
-        enqueueSnackbar("Rubro restaurado", { variant: "success" });
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(error, "No se pudo restaurar el rubro"),
-          { variant: "error" }
-        );
-      }
-    },
-    [restoreMutation, enqueueSnackbar]
-  );
+  const columns = useSectorProfilingColumns({
+    editingRowId,
+    rows: currentRows,
+    onCellChange: handleCellChange,
+    onStartEditRow: actions.handleStartEditRow,
+    onStopEditRow: actions.handleStopEditRow,
+    onCancelEditRow: actions.handleCancelEditRow,
+    onDelete: actions.handleDelete,
+    onRestore: actions.handleRestore,
+    restoreDisabled: restoreMutation.isPending,
+  });
 
-  const columns = useMemo<GridColDef<AdminCountrySector>[]>(
-    () => [
-      { field: "name", headerName: "Nombre", flex: 1, minWidth: 200 },
-      {
-        field: "description",
-        headerName: "Descripción",
-        flex: 2,
-        minWidth: 250,
-        renderCell: ({ row }) => row.description ?? "—",
-      },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        renderCell: ({ row }) =>
-          row.status === CountrySectorStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : (
-            <Chip label="Eliminado" size="small" color="default" />
-          ),
-      },
-      {
-        field: "actions",
-        headerName: "Acciones",
-        width: 140,
-        sortable: false,
-        renderCell: ({ row }) =>
-          row.status === CountrySectorStatus.ACTIVE ? (
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title="Editar">
-                <IconButton size="small" onClick={() => openEdit(row)}>
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Eliminar">
-                <IconButton
-                  size="small"
-                  onClick={() => handleSoftDelete(row)}
-                  disabled={deleteMutation.isPending}
-                >
-                  <DeleteOutlineOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          ) : (
-            <Tooltip title="Restaurar">
-              <IconButton
-                size="small"
-                onClick={() => handleRestore(row)}
-                disabled={restoreMutation.isPending}
-              >
-                <RestoreOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          ),
-      },
-    ],
-    [
-      deleteMutation.isPending,
-      restoreMutation.isPending,
-      openEdit,
-      handleSoftDelete,
-      handleRestore,
-    ]
+  const { paginationModel, setPaginationModel, jumpToLastPage } =
+    useJumpToLastPageOnAdd();
+
+  const handleAddRow = useCallback(() => {
+    actions.handleAddRow();
+    jumpToLastPage(currentRows.length + 1);
+  }, [actions, jumpToLastPage, currentRows.length]);
+
+  // Scroll to bottom when a new row is added
+  useEffect(() => {
+    if (!editingRowId?.startsWith("temp_")) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    });
+  }, [editingRowId]);
+
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: () => form.formState.isDirty,
+    enableBeforeUnload: form.formState.isDirty,
+    withResolver: true,
+  });
+
+  const isEmpty = useMemo(
+    () => !isLoading && (!rows || rows.length === 0),
+    [isLoading, rows]
   );
 
   return (
     <ProfilingMaintainerScreenLayout
       title="Rubros"
       addLabel="Agregar rubro"
-      onAddRow={openCreate}
+      onAddRow={handleAddRow}
+      addDisabled={editingRowId !== null}
       statusFilter={
         <MaintainerStatusFilterToggle
           value={statusFilter}
           onChange={setStatusFilter}
+          disabled={editingRowId !== null}
         />
       }
       form={form}
-      blockerStatus={blocker.status}
-      onBlockerProceed={blocker.proceed}
-      onBlockerReset={blocker.reset}
+      blockerStatus={status}
+      onBlockerProceed={() => proceed?.()}
+      onBlockerReset={() => reset?.()}
       extraDialogs={
-        <>
-          <Dialog open={dialogState.mode !== "closed"} onClose={closeDialog}>
-            <DialogTitle>
-              {dialogState.mode === "create" ? "Nuevo rubro" : "Editar rubro"}
-            </DialogTitle>
-            <form onSubmit={handleSubmit} noValidate>
-              <DialogContent>
-                <Stack spacing={2} sx={{ minWidth: 400 }}>
-                  <TextField
-                    label="Nombre"
-                    fullWidth
-                    autoFocus
-                    {...form.register("name")}
-                    error={!!form.formState.errors.name}
-                    helperText={form.formState.errors.name?.message}
-                  />
-                  <TextField
-                    label="Descripción (opcional)"
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    {...form.register("description", {
-                      setValueAs: (v: unknown) =>
-                        typeof v === "string" && v.trim() === "" ? null : v,
-                    })}
-                    error={!!form.formState.errors.description}
-                    helperText={form.formState.errors.description?.message}
-                  />
-                </Stack>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={closeDialog}>Cancelar</Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {dialogState.mode === "create" ? "Crear" : "Guardar"}
-                </Button>
-              </DialogActions>
-            </form>
-          </Dialog>
-          <InUseWarningDialog
-            open={pendingPatch !== null}
-            entityLabel={ENTITY_LABEL}
-            onCancel={() => setPendingPatch(null)}
-            onConfirm={async () => {
-              if (!pendingPatch) return;
-              const { id, body } = pendingPatch;
-              setPendingPatch(null);
-              await dispatchPatch(id, body);
-            }}
-          />
-        </>
+        <InUseWarningDialog
+          open={actions.pendingPatch !== null}
+          entityLabel="rubro"
+          onCancel={actions.cancelPendingPatch}
+          onConfirm={actions.dispatchPendingPatch}
+        />
       }
     >
       <Box sx={{ width: "100%" }}>
-        {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : !rows || rows.length === 0 ? (
+        {isEmpty ? (
           <Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
             No hay rubros para mostrar.
           </Typography>
         ) : (
           <MaintainerDataGrid
-            editingRowId={null}
-            rows={rows}
+            editingRowId={editingRowId}
             columns={columns}
-            getRowId={(row: { id: string }) => row.id}
+            rows={currentRows}
+            loading={isLoading}
+            getRowId={(row: SectorFormRow) => row.id}
             hideFooter={false}
             pagination
             pageSizeOptions={[10, 25, 50, 100]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
-            }}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            showToolbar
+            disableColumnFilter={false}
+            disableColumnSorting={false}
+            disableColumnMenu={false}
           />
         )}
       </Box>

@@ -1,36 +1,16 @@
-import { FC, useCallback, useMemo, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { useBlocker } from "@tanstack/react-router";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import {
-  EditOutlined,
-  DeleteOutlineOutlined,
-  RestoreOutlined,
-} from "@mui/icons-material";
-import type { GridColDef } from "@mui/x-data-grid";
-import { useSnackbar } from "notistack";
 import { z } from "zod";
+import { Box, Typography } from "@mui/material";
 import {
   OrganizationMainActivityStatus,
   type AdminOrganizationMainActivity,
   type AdminListStatusFilter,
+  type CreateOrganizationMainActivityRequest,
+  type UpdateOrganizationMainActivityRequest,
 } from "@repo/types";
-import { useBlocker } from "@tanstack/react-router";
 import {
   useAdminOrganizationMainActivities,
   useCreateOrganizationMainActivity,
@@ -42,46 +22,52 @@ import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { useAdminCountrySubsectors } from "@/api/query/countrySubsectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
 import { MaintainerStatusFilterToggle } from "../components/MaintainerStatusFilterToggle";
-import {
-  InUseWarningDialog,
-  type ProfilingEntityLabel,
-} from "../components/dialogs/InUseWarningDialog";
+import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
-import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
+import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
+import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
+import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
+import {
+  useMainActivityProfilingColumns,
+  type MainActivityFormRow,
+} from "../hooks/useMainActivityProfilingColumns";
 
-const FormSchema = z.object({
+const RowSchema = z.object({
+  id: z.string(),
   name: z
     .string()
     .trim()
     .min(1, "El nombre es obligatorio")
     .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z.string().trim().max(2000).nullable(),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
   countrySectorId: z.string().nullable(),
   countrySubsectorId: z.string().nullable(),
+  status: z.enum(OrganizationMainActivityStatus),
+  isInUse: z.boolean(),
 });
+const FormSchema = z.object({ mainActivities: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
-const ENTITY_LABEL: ProfilingEntityLabel = "actividad principal";
+const toFormMainActivity = (
+  s: AdminOrganizationMainActivity
+): MainActivityFormRow => ({
+  id: s.id,
+  name: s.name,
+  description: s.description,
+  countrySectorId: s.countrySectorId,
+  countrySubsectorId: s.countrySubsectorId,
+  status: s.status,
+  isInUse: s.isInUse,
+});
 
 export const MainActivitiesMaintainerScreen: FC = () => {
-  const { enqueueSnackbar } = useSnackbar();
   const [statusFilter, setStatusFilter] =
     useState<AdminListStatusFilter>("active");
-  const [dialogState, setDialogState] = useState<
-    | { mode: "closed" }
-    | { mode: "create" }
-    | { mode: "edit"; row: AdminOrganizationMainActivity }
-  >({ mode: "closed" });
-  type PatchBody = {
-    name?: string;
-    description?: string | null;
-    countrySectorId?: string | null;
-    countrySubsectorId?: string | null;
-  };
-  const [pendingPatch, setPendingPatch] = useState<{
-    id: string;
-    body: PatchBody;
-  } | null>(null);
 
   const { data: rows, isLoading } =
     useAdminOrganizationMainActivities(statusFilter);
@@ -92,394 +78,247 @@ export const MainActivitiesMaintainerScreen: FC = () => {
   const deleteMutation = useSoftDeleteOrganizationMainActivity();
   const restoreMutation = useRestoreOrganizationMainActivity();
 
+  const sectorOptions = useMemo(
+    () => (activeSectors ?? []).map((s) => ({ id: s.id, name: s.name })),
+    [activeSectors]
+  );
+  const subsectorOptions = useMemo(
+    () =>
+      (activeSubsectors ?? []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        countrySectorId: s.countrySectorId,
+      })),
+    [activeSubsectors]
+  );
+
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: "",
-      description: null,
-      countrySectorId: null,
-      countrySubsectorId: null,
-    },
+    defaultValues: { mainActivities: [] },
+    mode: "onBlur",
   });
-
-  const blocker = useBlocker({
-    shouldBlockFn: () =>
-      form.formState.isDirty || dialogState.mode !== "closed",
-    withResolver: true,
-  });
-
-  const sectorOptions = activeSectors ?? [];
-  const watchedSectorId = useWatch({
+  const fieldArray = useFieldArray({
     control: form.control,
-    name: "countrySectorId",
+    name: "mainActivities",
   });
-  const watchedSubsectorId = useWatch({
-    control: form.control,
-    name: "countrySubsectorId",
-  });
-  const filteredSubsectorOptions = useMemo(() => {
-    if (!activeSubsectors) return [];
-    if (!watchedSectorId) return activeSubsectors;
-    return activeSubsectors.filter(
-      (s) => s.countrySectorId === watchedSectorId
-    );
-  }, [activeSubsectors, watchedSectorId]);
+  const { editingRowId, setEditingRowId, isNewRow } =
+    useProfilingEditingState();
 
-  const openCreate = () => {
-    form.reset({
-      name: "",
-      description: null,
-      countrySectorId: null,
-      countrySubsectorId: null,
-    });
-    setDialogState({ mode: "create" });
-  };
-  const openEdit = useCallback(
-    (row: AdminOrganizationMainActivity) => {
-      form.reset({
-        name: row.name,
-        description: row.description,
-        countrySectorId: row.countrySectorId,
-        countrySubsectorId: row.countrySubsectorId,
-      });
-      setDialogState({ mode: "edit", row });
+  const toFormData = useCallback(
+    (data: unknown[]) =>
+      (data as AdminOrganizationMainActivity[]).map(toFormMainActivity),
+    []
+  );
+  useProfilingFormSync({
+    form,
+    fieldName: "mainActivities",
+    editingRowId,
+    serverData: rows,
+    toFormData,
+  });
+
+  const handleCellChange = useCallback(
+    (rowIndex: number, field: "name" | "description", value: string) => {
+      const next =
+        field === "description" && value.trim() === "" ? null : value;
+      form.setValue(
+        `mainActivities.${rowIndex}.${field}` as `mainActivities.${number}.name`,
+        next as never,
+        { shouldDirty: true }
+      );
+      void form.trigger(
+        `mainActivities.${rowIndex}.${field}` as `mainActivities.${number}.name`
+      );
     },
     [form]
   );
-  const closeDialog = () => {
-    form.reset({
+
+  const handleSectorChange = useCallback(
+    (rowIndex: number, sectorId: string | null) => {
+      form.setValue(`mainActivities.${rowIndex}.countrySectorId`, sectorId, {
+        shouldDirty: true,
+      });
+      // Clear subsector if it no longer matches the chosen sector.
+      const currentSubsectorId = form.getValues(
+        `mainActivities.${rowIndex}.countrySubsectorId`
+      );
+      if (currentSubsectorId) {
+        const sub = subsectorOptions.find((s) => s.id === currentSubsectorId);
+        if (sub && sub.countrySectorId !== sectorId) {
+          form.setValue(`mainActivities.${rowIndex}.countrySubsectorId`, null, {
+            shouldDirty: true,
+          });
+        }
+      }
+    },
+    [form, subsectorOptions]
+  );
+
+  const handleSubsectorChange = useCallback(
+    (rowIndex: number, subsectorId: string | null) => {
+      form.setValue(
+        `mainActivities.${rowIndex}.countrySubsectorId`,
+        subsectorId,
+        { shouldDirty: true }
+      );
+    },
+    [form]
+  );
+
+  const actions = useProfilingRowActions<
+    FormValues,
+    AdminOrganizationMainActivity,
+    MainActivityFormRow,
+    CreateOrganizationMainActivityRequest,
+    UpdateOrganizationMainActivityRequest
+  >({
+    form,
+    fieldArray,
+    fieldName: "mainActivities",
+    serverRows: rows,
+    toFormRow: toFormMainActivity,
+    toCreateBody: (row) => ({
+      name: row.name,
+      description: row.description ?? null,
+      countrySectorId: row.countrySectorId ?? null,
+      countrySubsectorId: row.countrySubsectorId ?? null,
+    }),
+    diffUpdateBody: (formRow, serverRow) => {
+      const body: UpdateOrganizationMainActivityRequest = {};
+      if (formRow.name !== serverRow.name) body.name = formRow.name;
+      if (formRow.description !== serverRow.description)
+        body.description = formRow.description;
+      if (formRow.countrySectorId !== serverRow.countrySectorId)
+        body.countrySectorId = formRow.countrySectorId;
+      if (formRow.countrySubsectorId !== serverRow.countrySubsectorId)
+        body.countrySubsectorId = formRow.countrySubsectorId;
+      return Object.keys(body).length === 0 ? null : body;
+    },
+    visibleFieldsChanged: (body) =>
+      body.name !== undefined ||
+      body.countrySectorId !== undefined ||
+      body.countrySubsectorId !== undefined,
+    newRowDefaults: () => ({
+      id: `temp_${Date.now()}`,
       name: "",
       description: null,
       countrySectorId: null,
       countrySubsectorId: null,
-    });
-    setDialogState({ mode: "closed" });
-  };
-
-  const dispatchPatch = async (id: string, body: PatchBody) => {
-    try {
-      await updateMutation.mutateAsync({ id, body });
-      enqueueSnackbar("Cambios guardados satisfactoriamente", {
-        variant: "success",
-      });
-      closeDialog();
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo guardar la actividad principal"),
-        { variant: "error" }
-      );
-    }
-  };
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    if (dialogState.mode === "create") {
-      try {
-        await createMutation.mutateAsync({
-          name: values.name,
-          description: values.description ?? null,
-          countrySectorId: values.countrySectorId ?? null,
-          countrySubsectorId: values.countrySubsectorId ?? null,
-        });
-        enqueueSnackbar("Actividad principal creada exitosamente", {
-          variant: "success",
-        });
-        closeDialog();
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(error, "No se pudo crear la actividad principal"),
-          { variant: "error" }
-        );
-      }
-    } else if (dialogState.mode === "edit") {
-      const body: PatchBody = {};
-      if (values.name !== dialogState.row.name) body.name = values.name;
-      if (values.description !== dialogState.row.description)
-        body.description = values.description;
-      if (values.countrySectorId !== dialogState.row.countrySectorId)
-        body.countrySectorId = values.countrySectorId;
-      if (values.countrySubsectorId !== dialogState.row.countrySubsectorId)
-        body.countrySubsectorId = values.countrySubsectorId;
-      if (Object.keys(body).length === 0) {
-        closeDialog();
-        return;
-      }
-      const visibleChanged =
-        body.name !== undefined ||
-        body.countrySectorId !== undefined ||
-        body.countrySubsectorId !== undefined;
-      if (visibleChanged && dialogState.row.isInUse) {
-        setPendingPatch({ id: dialogState.row.id, body });
-        return;
-      }
-      await dispatchPatch(dialogState.row.id, body);
-    }
+      status: OrganizationMainActivityStatus.ACTIVE,
+      isInUse: false,
+    }),
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    restoreMutation,
+    editingRowId,
+    setEditingRowId,
+    isNewRow,
+    successMessages: {
+      create: "Actividad principal creada exitosamente",
+      update: "Cambios guardados satisfactoriamente",
+      delete: "Actividad principal eliminada",
+      restore: "Actividad principal restaurada",
+    },
+    errorMessages: {
+      create: "No se pudo crear la actividad principal",
+      update: "No se pudo guardar la actividad principal",
+      delete: "No se pudo eliminar la actividad principal",
+      restore: "No se pudo restaurar la actividad principal",
+    },
   });
 
-  const handleSoftDelete = useCallback(
-    async (row: AdminOrganizationMainActivity) => {
-      try {
-        await deleteMutation.mutateAsync(row.id);
-        enqueueSnackbar("Actividad principal eliminada", {
-          variant: "success",
-        });
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(
-            error,
-            "No se pudo eliminar la actividad principal"
-          ),
-          { variant: "error" }
-        );
-      }
-    },
-    [deleteMutation, enqueueSnackbar]
-  );
-  const handleRestore = useCallback(
-    async (row: AdminOrganizationMainActivity) => {
-      try {
-        await restoreMutation.mutateAsync(row.id);
-        enqueueSnackbar("Actividad principal restaurada", {
-          variant: "success",
-        });
-      } catch (error) {
-        enqueueSnackbar(
-          getApiErrorMessage(
-            error,
-            "No se pudo restaurar la actividad principal"
-          ),
-          { variant: "error" }
-        );
-      }
-    },
-    [restoreMutation, enqueueSnackbar]
-  );
+  const currentRows = useWatch({
+    control: form.control,
+    name: "mainActivities",
+  });
 
-  const columns = useMemo<GridColDef<AdminOrganizationMainActivity>[]>(
-    () => [
-      { field: "name", headerName: "Nombre", flex: 1, minWidth: 220 },
-      {
-        field: "countrySectorName",
-        headerName: "Rubro",
-        flex: 1,
-        minWidth: 160,
-        renderCell: ({ row }) => row.countrySectorName ?? "—",
-      },
-      {
-        field: "countrySubsectorName",
-        headerName: "Subrubro",
-        flex: 1,
-        minWidth: 160,
-        renderCell: ({ row }) => row.countrySubsectorName ?? "—",
-      },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        renderCell: ({ row }) =>
-          row.status === OrganizationMainActivityStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : (
-            <Chip label="Eliminado" size="small" color="default" />
-          ),
-      },
-      {
-        field: "actions",
-        headerName: "Acciones",
-        width: 140,
-        sortable: false,
-        renderCell: ({ row }) =>
-          row.status === OrganizationMainActivityStatus.ACTIVE ? (
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title="Editar">
-                <IconButton size="small" onClick={() => openEdit(row)}>
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Eliminar">
-                <IconButton
-                  size="small"
-                  onClick={() => handleSoftDelete(row)}
-                  disabled={deleteMutation.isPending}
-                >
-                  <DeleteOutlineOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          ) : (
-            <Tooltip title="Restaurar">
-              <IconButton
-                size="small"
-                onClick={() => handleRestore(row)}
-                disabled={restoreMutation.isPending}
-              >
-                <RestoreOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          ),
-      },
-    ],
-    [
-      deleteMutation.isPending,
-      restoreMutation.isPending,
-      openEdit,
-      handleSoftDelete,
-      handleRestore,
-    ]
-  );
+  const columns = useMainActivityProfilingColumns({
+    editingRowId,
+    rows: currentRows,
+    sectorOptions,
+    subsectorOptions,
+    onCellChange: handleCellChange,
+    onSectorChange: handleSectorChange,
+    onSubsectorChange: handleSubsectorChange,
+    onStartEditRow: actions.handleStartEditRow,
+    onStopEditRow: actions.handleStopEditRow,
+    onCancelEditRow: actions.handleCancelEditRow,
+    onDelete: actions.handleDelete,
+    onRestore: actions.handleRestore,
+    restoreDisabled: restoreMutation.isPending,
+  });
+
+  const { paginationModel, setPaginationModel, jumpToLastPage } =
+    useJumpToLastPageOnAdd();
+
+  const handleAddRow = useCallback(() => {
+    actions.handleAddRow();
+    jumpToLastPage(currentRows.length + 1);
+  }, [actions, jumpToLastPage, currentRows.length]);
+
+  useEffect(() => {
+    if (!editingRowId?.startsWith("temp_")) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    });
+  }, [editingRowId]);
+
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: () => form.formState.isDirty,
+    enableBeforeUnload: form.formState.isDirty,
+    withResolver: true,
+  });
+
+  const isEmpty = !isLoading && (!rows || rows.length === 0);
 
   return (
     <ProfilingMaintainerScreenLayout
       title="Actividades Principales"
       addLabel="Agregar actividad"
-      onAddRow={openCreate}
+      onAddRow={handleAddRow}
+      addDisabled={editingRowId !== null}
       statusFilter={
         <MaintainerStatusFilterToggle
           value={statusFilter}
           onChange={setStatusFilter}
+          disabled={editingRowId !== null}
         />
       }
       form={form}
-      blockerStatus={blocker.status}
-      onBlockerProceed={blocker.proceed}
-      onBlockerReset={blocker.reset}
+      blockerStatus={status}
+      onBlockerProceed={() => proceed?.()}
+      onBlockerReset={() => reset?.()}
       extraDialogs={
-        <>
-          <Dialog open={dialogState.mode !== "closed"} onClose={closeDialog}>
-            <DialogTitle>
-              {dialogState.mode === "create"
-                ? "Nueva actividad principal"
-                : "Editar actividad principal"}
-            </DialogTitle>
-            <form onSubmit={handleSubmit} noValidate>
-              <DialogContent>
-                <Stack spacing={2} sx={{ minWidth: 420 }}>
-                  <TextField
-                    label="Nombre"
-                    fullWidth
-                    autoFocus
-                    {...form.register("name")}
-                    error={!!form.formState.errors.name}
-                    helperText={form.formState.errors.name?.message}
-                  />
-                  <TextField
-                    select
-                    label="Rubro (opcional)"
-                    fullWidth
-                    value={watchedSectorId ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value || null;
-                      form.setValue("countrySectorId", value, {
-                        shouldDirty: true,
-                      });
-                      // Clear subsector if it no longer matches the chosen sector.
-                      const currentSubsectorId =
-                        form.getValues("countrySubsectorId");
-                      if (currentSubsectorId && activeSubsectors) {
-                        const sub = activeSubsectors.find(
-                          (s) => s.id === currentSubsectorId
-                        );
-                        if (sub && sub.countrySectorId !== value) {
-                          form.setValue("countrySubsectorId", null, {
-                            shouldDirty: true,
-                          });
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>Sin rubro</em>
-                    </MenuItem>
-                    {sectorOptions.map((s) => (
-                      <MenuItem key={s.id} value={s.id}>
-                        {s.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    select
-                    label="Subrubro (opcional)"
-                    fullWidth
-                    value={watchedSubsectorId ?? ""}
-                    onChange={(e) =>
-                      form.setValue(
-                        "countrySubsectorId",
-                        e.target.value || null,
-                        { shouldDirty: true }
-                      )
-                    }
-                  >
-                    <MenuItem value="">
-                      <em>Sin subrubro</em>
-                    </MenuItem>
-                    {filteredSubsectorOptions.map((s) => (
-                      <MenuItem key={s.id} value={s.id}>
-                        {s.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    label="Descripción (opcional)"
-                    fullWidth
-                    multiline
-                    minRows={2}
-                    error={!!form.formState.errors.description}
-                    helperText={form.formState.errors.description?.message}
-                    {...form.register("description", {
-                      setValueAs: (v: unknown) =>
-                        typeof v === "string" && v.trim() === "" ? null : v,
-                    })}
-                  />
-                </Stack>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={closeDialog}>Cancelar</Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {dialogState.mode === "create" ? "Crear" : "Guardar"}
-                </Button>
-              </DialogActions>
-            </form>
-          </Dialog>
-          <InUseWarningDialog
-            open={pendingPatch !== null}
-            entityLabel={ENTITY_LABEL}
-            onCancel={() => setPendingPatch(null)}
-            onConfirm={async () => {
-              if (!pendingPatch) return;
-              const { id, body } = pendingPatch;
-              setPendingPatch(null);
-              await dispatchPatch(id, body);
-            }}
-          />
-        </>
+        <InUseWarningDialog
+          open={actions.pendingPatch !== null}
+          entityLabel="actividad principal"
+          onCancel={actions.cancelPendingPatch}
+          onConfirm={actions.dispatchPendingPatch}
+        />
       }
     >
       <Box sx={{ width: "100%" }}>
-        {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : !rows || rows.length === 0 ? (
+        {isEmpty ? (
           <Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
             No hay actividades principales para mostrar.
           </Typography>
         ) : (
           <MaintainerDataGrid
-            editingRowId={null}
-            rows={rows}
+            editingRowId={editingRowId}
             columns={columns}
-            getRowId={(row: { id: string }) => row.id}
+            rows={currentRows}
+            loading={isLoading}
+            getRowId={(row: MainActivityFormRow) => row.id}
             hideFooter={false}
             pagination
             pageSizeOptions={[10, 25, 50, 100]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
-            }}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            showToolbar
+            disableColumnFilter={false}
+            disableColumnSorting={false}
+            disableColumnMenu={false}
           />
         )}
       </Box>
