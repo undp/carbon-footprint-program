@@ -6,7 +6,7 @@ Admins currently have no way to view the user base or manage who else has admini
 
 - Add a new admin screen at `/admin/users` listing all users, split visually by a tab group: **Usuarios** (`role = USER`) and **Administradores** (`role ∈ {ADMIN, SUPERADMIN}`).
 - Add a KPI section with two cards mirroring the tabs (total Usuarios, total Administradores with SUPERADMIN breakdown in subtitle).
-- Add a "Promover a admin" header action and per-row actions ("Cambiar rol", "Revocar admin") on the Administradores tab. All write actions are visible to **SUPERADMIN only**; ADMINs see the screen read-only.
+- Add a "Promover a admin" header action (screen-level, rendered above the tab group and visible on both tabs) and per-row actions ("Cambiar rol", "Revocar admin") on the Administradores tab. All write actions are visible to **SUPERADMIN only**; ADMINs see the screen read-only.
 - Add a sidebar entry for the new screen in the maintainer layout, visible to ADMIN+SUPERADMIN.
 - **BREAKING (internal contract)**: extend `UpdateUserBodySchema` into a discriminated union of `SelfProfileUpdate` (existing fields, no `role`) and `AdminRoleUpdate` (`role` only). Existing callers using the old shape continue to work because their bodies match the `SelfProfileUpdate` branch.
 - Relax the route guard on `PATCH /users/:id` from `requireRoles([ADMIN, SUPERADMIN])` to `requireAuth`. Field-level and row-level authorization moves into the service layer. This also fixes a latent bug where USERs could not complete their own profile via `UserFormScreen`.
