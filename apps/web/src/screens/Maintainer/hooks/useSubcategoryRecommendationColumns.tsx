@@ -14,10 +14,6 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
 import {
-  ALL_SUBSECTORS_VALUE,
-  SUBCATEGORY_RECOMMENDATIONS_LABELS,
-} from "../constants";
-import {
   isNewRow,
   type SubcategoryRecommendationRow,
 } from "./useSubcategoryRecommendationsForm";
@@ -62,7 +58,7 @@ export const useSubcategoryRecommendationColumns = ({
     () => [
       {
         field: "sectorName",
-        headerName: SUBCATEGORY_RECOMMENDATIONS_LABELS.sectorColumn,
+        headerName: "Sector",
         flex: 1,
         minWidth: 180,
         sortable: false,
@@ -101,7 +97,7 @@ export const useSubcategoryRecommendationColumns = ({
       },
       {
         field: "subsectorName",
-        headerName: SUBCATEGORY_RECOMMENDATIONS_LABELS.subsectorColumn,
+        headerName: "Subsector",
         flex: 1,
         minWidth: 200,
         sortable: false,
@@ -125,10 +121,7 @@ export const useSubcategoryRecommendationColumns = ({
                 disabled={!params.row.sectorId}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  onChangeSubsector(
-                    rowIndex,
-                    raw === "__NULL__" ? ALL_SUBSECTORS_VALUE : raw
-                  );
+                  onChangeSubsector(rowIndex, raw === "__NULL__" ? null : raw);
                 }}
               >
                 <MenuItem value="__NULL__">{nullSubsectorLabel}</MenuItem>
@@ -150,7 +143,7 @@ export const useSubcategoryRecommendationColumns = ({
       },
       {
         field: "subcategoryIds",
-        headerName: SUBCATEGORY_RECOMMENDATIONS_LABELS.subcategoriesColumn,
+        headerName: "Subcategorías",
         flex: 3,
         minWidth: 320,
         sortable: false,
@@ -211,7 +204,7 @@ export const useSubcategoryRecommendationColumns = ({
                 startIcon={<EditIcon />}
                 onClick={() => onOpenEdit(rowIndex)}
               >
-                {SUBCATEGORY_RECOMMENDATIONS_LABELS.editSubcategories}
+                Editar subcategorías
               </Button>
             </Stack>
           );
