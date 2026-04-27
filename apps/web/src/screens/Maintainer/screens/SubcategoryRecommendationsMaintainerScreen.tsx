@@ -15,17 +15,20 @@ import { useSnackbar } from "notistack";
 import {
   SubcategoryRecommendationModeEnum,
   SystemParameterKeyEnum,
-  type GetAllCountrySectorsResponse,
 } from "@repo/types";
 import {
   useSubcategoryRecommendations,
   useCreateSubcategoryRecommendation,
   useUpdateSubcategoryRecommendation,
-  useAllSubcategories,
 } from "@/api/query/subcategoryRecommendations";
 import { useCountrySectors } from "@/api/query/countrySectors";
+import {
+  useGetMethodologyById,
+  useMethodologies,
+} from "@/api/query/maintainer";
 import { useSystemParameters } from "@/api/query/systemParameters/useSystemParameters";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { AppHttpError } from "@/api/http/errors";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import {
   SubcategoryTransferListDialog,
@@ -38,28 +41,9 @@ import {
   type SubcategoryRecommendationRow,
 } from "../hooks/useSubcategoryRecommendationsForm";
 import {
-  ALL_SUBSECTORS_VALUE,
-  SUBCATEGORY_RECOMMENDATIONS_LABELS,
-} from "../constants";
-
-const buildRowId = (sectorId: string, subsectorId: string | null): string =>
-  `${sectorId}-${subsectorId ?? "null"}`;
-
-const findSectorAndSubsectorNames = (
-  sectors: GetAllCountrySectorsResponse,
-  sectorId: string,
-  subsectorId: string | null
-) => {
-  const sector = sectors.find((s) => s.id === sectorId);
-  const subsector =
-    subsectorId !== null
-      ? (sector?.subsectors.find((sub) => sub.id === subsectorId) ?? null)
-      : null;
-  return {
-    sectorName: sector?.name ?? "",
-    subsectorName: subsector?.name ?? null,
-  };
-};
+  buildRowId,
+  findSectorAndSubsectorNames,
+} from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 
 export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -74,10 +58,18 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     isError: isErrorSectors,
   } = useCountrySectors();
   const {
-    data: allSubcategories,
-    isLoading: isLoadingSubcategories,
-    isError: isErrorSubcategories,
-  } = useAllSubcategories();
+    data: methodologies,
+    isLoading: isLoadingMethodologies,
+    isError: isErrorMethodologies,
+  } = useMethodologies();
+  // Use the first methodology to source category/subcategory options.
+  // TODO: revisit if multiple methodologies need to be supported here.
+  const defaultMethodologyId = methodologies?.[0]?.id;
+  const {
+    data: methodology,
+    isLoading: isLoadingMethodology,
+    isError: isErrorMethodology,
+  } = useGetMethodologyById(defaultMethodologyId);
   const { data: systemParameters, isLoading: isLoadingParams } =
     useSystemParameters([
       SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE,
@@ -106,8 +98,8 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
 
   const nullSubsectorLabel =
     recommendationMode === SubcategoryRecommendationModeEnum.SPECIFIC
-      ? SUBCATEGORY_RECOMMENDATIONS_LABELS.noSubsectorSpecified
-      : SUBCATEGORY_RECOMMENDATIONS_LABELS.allSubsectors;
+      ? "Sin subsector especificado"
+      : "Todos los subsectores";
 
   const persistedRows = useMemo<SubcategoryRecommendationRow[]>(
     () =>
@@ -136,13 +128,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
 
   const subcategoryOptions = useMemo<SubcategoryOption[]>(
     () =>
-      (allSubcategories ?? []).map((sc) => ({
-        id: sc.id,
-        name: sc.name,
-        categoryId: sc.category.id,
-        categoryName: sc.category.name,
-      })),
-    [allSubcategories]
+      (methodology?.categories ?? []).flatMap((category) =>
+        category.subcategories.map((subcategory) => ({
+          id: subcategory.id,
+          name: subcategory.name,
+          categoryId: category.id,
+          categoryName: category.name,
+        }))
+      ),
+    [methodology]
   );
 
   const handleAddRow = useCallback(() => {
@@ -151,7 +145,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       {
         id: tempId,
         sectorId: "",
-        subsectorId: ALL_SUBSECTORS_VALUE,
+        subsectorId: null,
         sectorName: "",
         subsectorName: null,
         subcategoryIds: [],
@@ -185,7 +179,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
             ...r,
             sectorId,
             sectorName,
-            subsectorId: ALL_SUBSECTORS_VALUE,
+            subsectorId: null,
             subsectorName: null,
           };
         })
@@ -252,10 +246,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           variant: "success",
         });
       } catch (error) {
-        void enqueueSnackbar({
-          message: getApiErrorMessage(error, "Error al crear la recomendación"),
-          variant: "error",
-        });
+        // 409 surfaces as a feature-specific Spanish message because the
+        // global handler emits a generic DATABASE_UNIQUE_CONSTRAINT code
+        // that can apply to any module.
+        const isConflict =
+          error instanceof AppHttpError && error.detail.status === 409;
+        const message = isConflict
+          ? "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva."
+          : getApiErrorMessage(error, "Error al crear la recomendación");
+        void enqueueSnackbar({ message, variant: "error" });
       }
     },
     [createMutation, enqueueSnackbar]
@@ -350,10 +349,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const isLoading =
     isLoadingGroups ||
     isLoadingSectors ||
-    isLoadingSubcategories ||
+    isLoadingMethodologies ||
+    isLoadingMethodology ||
     isLoadingParams;
 
-  const hasError = isErrorGroups || isErrorSectors || isErrorSubcategories;
+  const hasError =
+    isErrorGroups ||
+    isErrorSectors ||
+    isErrorMethodologies ||
+    isErrorMethodology;
 
   return (
     <>
@@ -366,14 +370,14 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         }}
       >
         <Typography variant="h5" fontWeight={600}>
-          {SUBCATEGORY_RECOMMENDATIONS_LABELS.screenTitle}
+          Recomendaciones de Subcategorías
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddRow}
         >
-          {SUBCATEGORY_RECOMMENDATIONS_LABELS.addRow}
+          Agregar recomendación
         </Button>
       </Box>
       {hasError && (
@@ -409,11 +413,12 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         onClose={() => setConfirmEmpty(null)}
       >
         <DialogTitle>
-          {SUBCATEGORY_RECOMMENDATIONS_LABELS.emptyGroupConfirmTitle}
+          ¿Eliminar todas las recomendaciones de este grupo?
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {SUBCATEGORY_RECOMMENDATIONS_LABELS.emptyGroupConfirmBody}
+            Al guardar sin subcategorías, todas las recomendaciones de este
+            grupo serán eliminadas.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
