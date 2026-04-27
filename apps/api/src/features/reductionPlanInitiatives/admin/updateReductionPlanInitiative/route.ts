@@ -30,6 +30,7 @@ export const updateReductionPlanInitiativeRoute: StandardRouteSignature = (
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

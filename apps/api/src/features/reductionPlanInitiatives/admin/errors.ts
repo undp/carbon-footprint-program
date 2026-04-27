@@ -11,3 +11,9 @@ export const SubcategoryNotFoundForReductionPlanInitiativeError = createError(
   "Subcategory not found (ID: %s)",
   404
 );
+
+export const ReductionPlanInitiativeTitleAlreadyExistsError = createError(
+  "REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS",
+  "A reduction plan initiative with this title already exists in this subcategory",
+  409
+);

@@ -9,8 +9,10 @@ import type {
   UpdateReductionPlanInitiativeResponse,
   User,
 } from "@repo/types";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import {
   ReductionPlanInitiativeNotFoundError,
+  ReductionPlanInitiativeTitleAlreadyExistsError,
   SubcategoryNotFoundForReductionPlanInitiativeError,
 } from "../errors.js";
 
@@ -47,16 +49,29 @@ export const updateReductionPlanInitiativeService = async (
     updateData.subcategoryId = BigInt(data.subcategoryId);
   }
 
-  const result = await prismaClient.reductionPlanInitiative.updateMany({
-    where: {
-      id: reductionPlanInitiativeId,
-      status: ReductionPlanInitiativeStatus.ACTIVE,
-    },
-    data: updateData,
-  });
+  try {
+    const result = await prismaClient.reductionPlanInitiative.updateMany({
+      where: {
+        id: reductionPlanInitiativeId,
+        status: ReductionPlanInitiativeStatus.ACTIVE,
+      },
+      data: updateData,
+    });
 
-  if (result.count === 0) {
-    throw new ReductionPlanInitiativeNotFoundError(id);
+    if (result.count === 0) {
+      throw new ReductionPlanInitiativeNotFoundError(id);
+    }
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+      if (duplicatedFields.includes("title")) {
+        throw new ReductionPlanInitiativeTitleAlreadyExistsError();
+      }
+    }
+    throw error;
   }
 
   return {};

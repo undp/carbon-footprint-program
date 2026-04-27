@@ -52,7 +52,26 @@ const ReductionPlanInitiativeRowSchema =
   });
 
 const reductionPlanInitiativesFormSchema = z.object({
-  reductionPlanInitiatives: z.array(ReductionPlanInitiativeRowSchema),
+  reductionPlanInitiatives: z
+    .array(ReductionPlanInitiativeRowSchema)
+    .superRefine((rows, ctx) => {
+      const seen = new Map<string, number>();
+      rows.forEach((row, index) => {
+        const trimmed = row.title.trim().toLowerCase();
+        if (!row.subcategoryId || !trimmed) return;
+        const key = `${row.subcategoryId}::${trimmed}`;
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            path: [index, "title"],
+            message:
+              "Ya existe una iniciativa con este título en esta sub-categoría",
+          });
+        } else {
+          seen.set(key, index);
+        }
+      });
+    }),
 });
 
 export function toFormReductionPlanInitiative(

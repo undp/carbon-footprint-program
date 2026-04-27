@@ -32,3 +32,8 @@ ALTER TABLE "reduction_plan_initiative" ADD CONSTRAINT "reduction_plan_initiativ
 
 -- AddForeignKey
 ALTER TABLE "reduction_plan_initiative" ADD CONSTRAINT "reduction_plan_initiative_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Partial unique index — at most one ACTIVE initiative per (subcategory, title)
+CREATE UNIQUE INDEX "reduction_plan_initiative_subcategory_id_title_active_unique"
+  ON "reduction_plan_initiative"("subcategory_id", "title")
+  WHERE status = 'ACTIVE';

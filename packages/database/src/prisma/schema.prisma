@@ -1105,5 +1105,8 @@ model ReductionPlanInitiative {
   creator           User?                         @relation("reduction_plan_initiative_created_by", fields: [createdById], references: [id])
   updater           User?                         @relation("reduction_plan_initiative_updated_by", fields: [updatedById], references: [id])
 
+  // Partial unique index exists in SQL migration:
+  // ("subcategory_id", "title") WHERE status = 'ACTIVE'
+
   @@map("reduction_plan_initiative")
 }

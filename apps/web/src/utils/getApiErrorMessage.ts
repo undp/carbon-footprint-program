@@ -50,6 +50,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL:
     "La variable a eliminar no fue encontrada.",
 
+  // Reduction plan initiatives
+  REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS:
+    "Ya existe una iniciativa con este título en esta sub-categoría.",
+  SUBCATEGORY_NOT_FOUND_FOR_REDUCTION_PLAN_INITIATIVE:
+    "La sub-categoría asociada no fue encontrada.",
+  REDUCTION_PLAN_INITIATIVE_NOT_FOUND: "La iniciativa no fue encontrada.",
+
   // Methodologies
   METHODOLOGY_NAME_VERSION_ALREADY_EXISTS:
     "Ya existe una metodología con este nombre y versión.",

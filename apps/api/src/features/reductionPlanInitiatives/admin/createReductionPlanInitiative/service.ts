@@ -1,4 +1,5 @@
 import {
+  Prisma,
   ReductionPlanInitiativeStatus,
   SubcategoryStatus,
   type PrismaClient,
@@ -8,7 +9,11 @@ import type {
   CreateReductionPlanInitiativeResponse,
   User,
 } from "@repo/types";
-import { SubcategoryNotFoundForReductionPlanInitiativeError } from "../errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import {
+  ReductionPlanInitiativeTitleAlreadyExistsError,
+  SubcategoryNotFoundForReductionPlanInitiativeError,
+} from "../errors.js";
 
 export const createReductionPlanInitiativeService = async (
   prismaClient: PrismaClient,
@@ -31,20 +36,33 @@ export const createReductionPlanInitiativeService = async (
 
   const createdById = user ? BigInt(user.id) : null;
 
-  const reductionPlanInitiative =
-    await prismaClient.reductionPlanInitiative.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        subcategoryId: subcategory.id,
-        dimensionValue1Id: null,
-        dimensionValue2Id: null,
-        status: ReductionPlanInitiativeStatus.ACTIVE,
-        createdById,
-        updatedAt: null,
-      },
-      select: { id: true },
-    });
+  try {
+    const reductionPlanInitiative =
+      await prismaClient.reductionPlanInitiative.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          subcategoryId: subcategory.id,
+          dimensionValue1Id: null,
+          dimensionValue2Id: null,
+          status: ReductionPlanInitiativeStatus.ACTIVE,
+          createdById,
+          updatedAt: null,
+        },
+        select: { id: true },
+      });
 
-  return { id: reductionPlanInitiative.id.toString() };
+    return { id: reductionPlanInitiative.id.toString() };
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+      if (duplicatedFields.includes("title")) {
+        throw new ReductionPlanInitiativeTitleAlreadyExistsError();
+      }
+    }
+    throw error;
+  }
 };
