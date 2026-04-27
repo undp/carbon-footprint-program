@@ -201,7 +201,7 @@ For each consumer, import `mergeSelectedOption` and wrap the dropdown options be
 
 ## 18. Frontend — smoke test (no DB queries)
 
-- [ ] 18.1 `pnpm format && pnpm lint && pnpm type-check` — all green.
+- [x] 18.1 `pnpm format && pnpm lint && pnpm type-check` — all green.
 - [ ] 18.2 Run the dev server; log in as ADMIN. For each of the four maintainer screens:
   - Sidebar entry renders under "Perfilamiento".
   - The screen loads with the default ACTIVE filter.
@@ -216,18 +216,18 @@ For each consumer, import `mergeSelectedOption` and wrap the dropdown options be
 
 ## 19. Docs
 
-- [ ] 19.1 Create `docs/development/maintainers/profiling.md`:
+- [x] 19.1 Create `docs/development/maintainers/profiling.md`:
   - Four maintainers, their routes, their screens.
   - Soft-delete lifecycle and catalog-reference blocking matrix.
   - Partial unique index rule (and the Prisma blind-spot warning).
   - `InUseWarningDialog` trigger rules.
   - `mergeSelectedOption` helper and the list of selector consumers.
-- [ ] 19.2 Cross-link from `docs/` index / README where appropriate.
+- [x] 19.2 Cross-link from `docs/` index / README where appropriate.
 
 ## 20. Pre-commit checklist
 
-- [ ] 20.1 `pnpm format && pnpm lint && pnpm type-check`.
+- [x] 20.1 `pnpm format && pnpm lint && pnpm type-check`.
 - [ ] 20.2 Full API tests for the four domains (from 9.8).
 - [ ] 20.3 Build: `pnpm build`.
-- [ ] 20.4 Grep cleanup: `rg 'ADMIN_ITEMS' apps/ packages/` returns zero; `rg 'UnderConstructionScreen' apps/web/src/routes/admin/` returns zero.
-- [ ] 20.5 Commit in modular chunks per CLAUDE.md (schema + migration, enum + shared types, public endpoint filter, API admin per domain, shared FE components, FE per domain, union consumers, docs) with Conventional Commit messages.
+- [x] 20.4 Grep cleanup: `rg 'ADMIN_ITEMS' apps/ packages/` returns zero; `rg 'UnderConstructionScreen' apps/web/src/routes/admin/` returns zero.
+- [x] 20.5 Commit in modular chunks per CLAUDE.md (schema + migration, enum + shared types, public endpoint filter, API admin per domain, shared FE components, FE per domain, union consumers, docs) with Conventional Commit messages.
