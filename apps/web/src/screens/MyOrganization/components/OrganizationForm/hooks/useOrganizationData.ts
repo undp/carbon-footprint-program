@@ -82,15 +82,17 @@ export const useOrganizationData = ({
   const subsectorOptions = useMemo(() => {
     const baseSubsectors = selectedSector?.subsectors ?? [];
     // Subsector union: include the currently-persisted subsector even when it is no
-    // longer ACTIVE under the selected sector. We still scope by the chosen sector
-    // because rendering an unrelated subsector option would be misleading.
+    // longer ACTIVE under the selected sector. Require `initialSector` to be present
+    // AND match the currently selected sector before merging so we never surface an
+    // unrelated subsector option after the user picks a different rubro.
     if (
       !initialSubsector ||
-      (initialSector && initialSector.id !== selectedSectorId)
+      !initialSector ||
+      initialSector.id !== selectedSectorId
     ) {
       return baseSubsectors;
     }
-    return mergeSelectedOption(baseSubsectors, initialSubsector ?? null);
+    return mergeSelectedOption(baseSubsectors, initialSubsector);
   }, [selectedSector, initialSubsector, initialSector, selectedSectorId]);
 
   const selectedActivity = useMemo(
