@@ -165,7 +165,7 @@ If both hold, the dialog blocks the PATCH until the admin confirms. Confirm → 
 
 ### Decision: Single-country resolution via `country.findFirst()`
 
-**Choice (carried forward):** Create endpoints resolve `countryId` via the singleton pattern. Create payloads do not accept `countryId`. Applies to sector, organization-size (both scoped to country); subsector scopes to `countrySectorId` instead; main activity has no country/sector scope in its unique constraint, but when creating it with a sector/subsector the server validates the parent exists.
+**Choice (carried forward):** Create endpoints resolve `countryId` via the singleton pattern. Create payloads do not accept `countryId`. Applies to sector and organization-size (both scoped to country); subsector scopes to `countrySectorId` instead. Main activity uniqueness is scoped by the triple `(name, countrySectorId, countrySubsectorId)` (as a partial unique index `WHERE status = 'ACTIVE'`, matching the partial-index decision above and the restore-collision rule at line ~98); when creating or PATCH-updating with a sector and/or subsector, the server validates parent existence and ACTIVE status, and — when both are provided — that the subsector belongs to the supplied sector.
 
 ### Decision: Sidebar restructure — four children under "Perfilamiento"
 
