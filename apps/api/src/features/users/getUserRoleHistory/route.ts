@@ -25,6 +25,7 @@ export const getUserRoleHistoryRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetUserRoleHistoryResponseSchema,
           403: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
       preHandler: [
