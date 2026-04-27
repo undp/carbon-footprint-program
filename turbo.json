@@ -73,6 +73,10 @@
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
     },
+    "db:restore": {
+      "cache": false,
+      "dependsOn": ["build"]
+    },
     "@repo/database#lint": {
       "cache": false,
       "dependsOn": ["build"],
