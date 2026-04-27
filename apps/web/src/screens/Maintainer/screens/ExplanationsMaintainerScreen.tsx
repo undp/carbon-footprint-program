@@ -1,25 +1,21 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, InputAdornment, TextField, Typography } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
-import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useSnackbar } from "notistack";
 import { useExplanations, useUpdateExplanation } from "@/api/query/maintainer";
 import type { GetAllExplanationsResponse } from "@repo/types";
+import { useFuzzySearch } from "@/hooks";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
+import { useExplanationColumns } from "../hooks/useExplanationColumns";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 type ExplanationRow = GetAllExplanationsResponse[number];
 
-const normalize = (value: string): string =>
-  value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const EXPLANATION_FUSE_OPTIONS = {
+  keys: ["name", "slug"],
+};
 
 export const ExplanationsMaintainerScreen: FC = () => {
   const { data, isLoading, isError } = useExplanations();
@@ -34,15 +30,11 @@ export const ExplanationsMaintainerScreen: FC = () => {
     [data, editingSlug]
   );
 
-  const filteredRows = useMemo<ExplanationRow[]>(() => {
-    if (!data) return [];
-    if (!searchText.trim()) return data;
-    const term = normalize(searchText.trim());
-    return data.filter(
-      (row) =>
-        normalize(row.name).includes(term) || normalize(row.slug).includes(term)
-    );
-  }, [data, searchText]);
+  const rows = useMemo<ExplanationRow[]>(() => data ?? [], [data]);
+  const { results: filteredRows } = useFuzzySearch(rows, {
+    query: searchText,
+    fuseOptions: EXPLANATION_FUSE_OPTIONS,
+  });
 
   const handleOpenEdit = useCallback((slug: string) => {
     setEditingSlug(slug);
@@ -69,64 +61,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
     [editingSlug, updateMutation, enqueueSnackbar]
   );
 
-  const columns = useMemo<GridColDef<ExplanationRow>[]>(
-    () => [
-      {
-        field: "name",
-        headerName: "Nombre",
-        flex: 1,
-        minWidth: 220,
-        sortable: false,
-      },
-      {
-        field: "description",
-        headerName: "Descripción",
-        flex: 1.5,
-        minWidth: 280,
-        sortable: false,
-        renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
-          <Typography variant="body2" color="text.secondary" component="span">
-            {params.row.description ?? "—"}
-          </Typography>
-        ),
-      },
-      {
-        field: "slug",
-        headerName: "Slug",
-        flex: 1,
-        minWidth: 240,
-        sortable: false,
-        renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
-          <Typography
-            variant="body2"
-            sx={{ fontFamily: "monospace" }}
-            component="span"
-          >
-            {params.row.slug}
-          </Typography>
-        ),
-      },
-      {
-        field: "actions",
-        headerName: "Acciones",
-        sortable: false,
-        filterable: false,
-        disableColumnMenu: true,
-        width: 140,
-        renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
-          <Button
-            size="small"
-            variant="outlined"
-            aria-label={`Editar explicación ${params.row.name}`}
-            onClick={() => handleOpenEdit(params.row.slug)}
-          >
-            Editar
-          </Button>
-        ),
-      },
-    ],
-    [handleOpenEdit]
-  );
+  const columns = useExplanationColumns({ onEdit: handleOpenEdit });
 
   return (
     <>
