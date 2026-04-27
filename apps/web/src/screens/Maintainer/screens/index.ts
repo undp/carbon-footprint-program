@@ -8,3 +8,4 @@ export { SectorsMaintainerScreen } from "./SectorsMaintainerScreen";
 export { SubsectorsMaintainerScreen } from "./SubsectorsMaintainerScreen";
 export { MainActivitiesMaintainerScreen } from "./MainActivitiesMaintainerScreen";
 export { OrganizationSizesMaintainerScreen } from "./OrganizationSizesMaintainerScreen";
+export { MeasurementUnitsScreen } from "./MeasurementUnitsScreen";
