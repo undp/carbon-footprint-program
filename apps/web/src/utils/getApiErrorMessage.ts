@@ -146,6 +146,12 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Una unidad base debe tener un factor base igual a 1.",
   BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT:
     "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
+
+  // User role management
+  SELF_ROLE_CHANGE: "No puedes cambiar tu propio rol.",
+  LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",
+  INSUFFICIENT_PERMISSIONS: "No tienes permisos para realizar esta acción.",
+  INVALID_ROLE_TRANSITION: "La transición de rol solicitada no es válida.",
 };
 
 /**
