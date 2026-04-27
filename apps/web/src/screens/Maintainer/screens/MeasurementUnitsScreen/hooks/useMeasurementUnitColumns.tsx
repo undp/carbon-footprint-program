@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
-import { InfoOutlined, LockOutlined } from "@mui/icons-material";
+import { LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Magnitude } from "@repo/types";
 import { MAGNITUDE_LABELS } from "@/config/vocab";
@@ -67,9 +67,7 @@ export const useMeasurementUnitColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "name", value)}
               onClick={
-                !editing && !isProtectedRow(params.row)
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !editing ? () => onStartEditRow(params.row.id) : undefined
               }
             />
           );
@@ -82,6 +80,30 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const protected_ = isProtectedRow(params.row);
+          const isLocked = protected_ || params.row.referenceCount > 0;
+
+          if (editing && isLocked) {
+            return (
+              <Tooltip title="No se puede cambiar la abreviatura porque la unidad ya tiene datos asociados.">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    color: "text.disabled",
+                    cursor: "default",
+                  }}
+                >
+                  <LockOutlined sx={{ fontSize: 14 }} />
+                  <Typography variant="body2">
+                    {params.row.abbreviation}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            );
+          }
+
           return (
             <EditableTextCell
               formArrayName="measurementUnits"
@@ -92,9 +114,7 @@ export const useMeasurementUnitColumns = ({
                 onCellChange(rowIndex, "abbreviation", value)
               }
               onClick={
-                !editing && !isProtectedRow(params.row)
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !editing ? () => onStartEditRow(params.row.id) : undefined
               }
             />
           );
@@ -107,7 +127,8 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
-          const isLocked = params.row.referenceCount > 0;
+          const protected_ = isProtectedRow(params.row);
+          const isLocked = protected_ || params.row.referenceCount > 0;
 
           if (editing && isLocked) {
             const label =
@@ -140,7 +161,7 @@ export const useMeasurementUnitColumns = ({
                 onCellChange(rowIndex, "magnitude", value)
               }
               onClick={
-                !editing && !isProtectedRow(params.row)
+                !editing && !protected_
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
@@ -158,7 +179,8 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
-          const isLocked = params.row.referenceCount > 0;
+          const protected_ = isProtectedRow(params.row);
+          const isLocked = protected_ || params.row.referenceCount > 0;
 
           if (editing && isLocked) {
             return (
@@ -189,7 +211,7 @@ export const useMeasurementUnitColumns = ({
               isEditing={editing && !isLocked}
               onChange={(value) => onCellChange(rowIndex, "baseFactor", value)}
               onClick={
-                !editing && !isProtectedRow(params.row)
+                !editing && !protected_
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
@@ -206,7 +228,8 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
-          const isLocked = params.row.referenceCount > 0;
+          const protected_ = isProtectedRow(params.row);
+          const isLocked = protected_ || params.row.referenceCount > 0;
 
           if (editing && isLocked) {
             return (
@@ -250,30 +273,6 @@ export const useMeasurementUnitColumns = ({
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
 
-          if (protected_) {
-            const tooltip =
-              params.row.abbreviation === "kg"
-                ? 'La unidad "kg" es de sistema y no puede modificarse ni eliminarse.'
-                : "Las unidades base de magnitud no pueden modificarse ni eliminarse.";
-
-            return (
-              <Tooltip title={tooltip}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                  }}
-                >
-                  <InfoOutlined
-                    sx={{ fontSize: 20, color: "text.secondary" }}
-                  />
-                </Box>
-              </Tooltip>
-            );
-          }
-
           return (
             <ActionButtons
               isActiveRow={editing}
@@ -283,7 +282,9 @@ export const useMeasurementUnitColumns = ({
               onEdit={
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
-              onDelete={!editing ? () => onDelete(params.row) : undefined}
+              onDelete={
+                !editing && !protected_ ? () => onDelete(params.row) : undefined
+              }
               deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta unidad de medida?"
             />
           );
