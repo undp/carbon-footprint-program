@@ -53,7 +53,7 @@ export const createCountryOrganizationSizeService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
           const err = new DatabaseUniqueConstraintViolationError();
-          (err as Error & { userMessage?: string }).userMessage =
+          err.message =
             "Ya existe un tamaño de organización activo con ese nombre.";
           throw err;
         }

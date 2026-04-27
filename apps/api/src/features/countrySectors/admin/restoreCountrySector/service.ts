@@ -39,8 +39,7 @@ export const restoreCountrySectorService = async (
 
     if (existing.status === CountrySectorStatus.ACTIVE) {
       const err = new RestoreOnActiveError();
-      (err as Error & { userMessage?: string }).userMessage =
-        "El rubro ya se encuentra activo.";
+      err.message = "El rubro ya se encuentra activo.";
       throw err;
     }
 
@@ -55,7 +54,7 @@ export const restoreCountrySectorService = async (
     });
     if (collision) {
       const err = new DatabaseUniqueConstraintViolationError();
-      (err as Error & { userMessage?: string }).userMessage =
+      err.message =
         "Ya existe un rubro activo con el mismo nombre. Renombra o elimina el rubro activo antes de restaurar.";
       throw err;
     }

@@ -145,25 +145,12 @@ const errorHandler = (
   // otherwise derive a status-aligned fallback
   const code = error.code ?? getDefaultCodeForStatus(statusCode);
 
-  // Forward an optional Spanish, end-user-friendly message attached on the thrown
-  // error (services set this for known business-rule errors). Only forward strings
-  // and only on client-error status codes — never leak internal-server-error details
-  // through this field, even if a service set it accidentally.
-  const userMessageCandidate = (
-    error as FastifyError & { userMessage?: unknown }
-  ).userMessage;
-  const userMessage =
-    statusCode < 500 && typeof userMessageCandidate === "string"
-      ? userMessageCandidate
-      : undefined;
-
   const response: ApiErrorResponse = {
     code,
     message:
       statusCode >= 500 && IS_PROD
         ? "An unexpected error occurred"
         : error.message,
-    ...(userMessage ? { userMessage } : {}),
   };
 
   return reply.status(statusCode).send(response);

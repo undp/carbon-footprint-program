@@ -59,12 +59,12 @@ Soft-delete MUST be blocked (respond with `DeleteBlockedByReferencesError`, HTTP
 
 User-data references (`OrganizationData.sectorId`, `.subsectorId`, `.mainActivityId`, `.countryOrganizationSizeId`) MUST NOT block soft-delete under any circumstance; the selector-union requirement below guarantees user-facing rendering.
 
-The `DeleteBlockedByReferencesError` raised on block MUST carry a Spanish `userMessage` naming the offending reference type(s) so the admin knows what to clear first.
+The `DeleteBlockedByReferencesError` raised on block MUST carry a Spanish sentence on `error.message` naming the offending reference type(s) so the admin knows what to clear first. (Spanish text travels on the standard `message` field of `ApiErrorResponseSchema`; no parallel `userMessage` field exists.)
 
 #### Scenario: Catalog-reference blocks soft-delete
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one `ACTIVE` row
-- **THEN** the response is `409` with a Spanish `userMessage` and the target row's `status` stays `ACTIVE`
+- **THEN** the response is `409` with a Spanish sentence on `message` and the target row's `status` stays `ACTIVE`
 
 #### Scenario: User-data reference does not block soft-delete
 
@@ -75,9 +75,9 @@ The `DeleteBlockedByReferencesError` raised on block MUST carry a Spanish `userM
 
 Each of the four admin domains SHALL expose `POST /admin/<domain>/:id/restore` that transitions the target from `status = 'DELETED'` to `status = 'ACTIVE'` inside a `prisma.$transaction`.
 
-Inside the transaction, the service MUST verify that no currently-ACTIVE row collides on the target's unique-scope key. On collision the service MUST throw `DatabaseUniqueConstraintViolationError` (HTTP `409`) with a Spanish `userMessage` instructing the admin to first rename or soft-delete the colliding ACTIVE row.
+Inside the transaction, the service MUST verify that no currently-ACTIVE row collides on the target's unique-scope key. On collision the service MUST throw `DatabaseUniqueConstraintViolationError` (HTTP `409`) and overwrite `error.message` with a Spanish sentence instructing the admin to first rename or soft-delete the colliding ACTIVE row.
 
-Restore MUST reject with `400` and a Spanish `userMessage` when called on a row whose `status` is already `ACTIVE`. All four restore endpoints MUST behave identically; returning `200` on an already-ACTIVE row is NOT permitted.
+Restore MUST reject with `400` and a Spanish sentence on `error.message` when called on a row whose `status` is already `ACTIVE`. All four restore endpoints MUST behave identically; returning `200` on an already-ACTIVE row is NOT permitted.
 
 #### Scenario: Restore success
 
@@ -87,12 +87,12 @@ Restore MUST reject with `400` and a Spanish `userMessage` when called on a row 
 #### Scenario: Restore rejected by collision
 
 - **WHEN** an ADMIN calls the restore endpoint on a DELETED row whose `name` matches an ACTIVE row in the same unique scope
-- **THEN** the response is `409` with a Spanish `userMessage` and the row stays `DELETED`
+- **THEN** the response is `409` with a Spanish sentence on `message` and the row stays `DELETED`
 
 #### Scenario: Restore rejected on already-ACTIVE row
 
 - **WHEN** an ADMIN calls the restore endpoint on a row whose `status` is already `ACTIVE`
-- **THEN** the response is `400` with a Spanish `userMessage` and the row is unchanged
+- **THEN** the response is `400` with a Spanish sentence on `message` and the row is unchanged
 
 ### Requirement: Admin list supports status filter and returns isInUse
 

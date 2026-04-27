@@ -64,6 +64,14 @@ const ERROR_MESSAGES: Record<string, string> = {
   METHODOLOGY_HAS_ACTIVE_INVENTORIES:
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   METHODOLOGY_IS_DELETED: "La metodología ya fue eliminada.",
+
+  // Profiling catalogs (rubros / subrubros / actividades / tamaños). Services set a
+  // Spanish, context-specific sentence on the thrown error's `message` (surfaced via
+  // `error.apiMessage`) so the FE doesn't need a fallback per code; these entries are
+  // here only for codes whose API messages remain in English.
+  RESTORE_ON_ACTIVE: "El registro ya se encuentra activo.",
+  SECTOR_SUBSECTOR_MISMATCH:
+    "El subrubro seleccionado no pertenece al rubro indicado.",
 };
 
 export const getApiErrorMessage = (
@@ -73,7 +81,16 @@ export const getApiErrorMessage = (
   if (error instanceof AppHttpError) {
     const code = error.errorCode;
     if (code && code in ERROR_MESSAGES) {
+      // Prefer the per-code static fallback for legacy error codes whose API messages
+      // remain in English (the static map carries the Spanish copy).
       return ERROR_MESSAGES[code];
+    }
+    // For new error codes (e.g., profiling maintainers), services set the thrown
+    // error's `message` to a Spanish sentence — surface it directly so the FE doesn't
+    // need a code-by-code fallback.
+    const apiMessage = error.apiMessage;
+    if (apiMessage) {
+      return apiMessage;
     }
   }
   return fallback;

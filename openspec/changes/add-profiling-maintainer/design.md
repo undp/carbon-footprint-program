@@ -95,7 +95,7 @@ Blocking matrix:
 
 ### Decision: Restore collision handling via 409 at the endpoint
 
-**Choice:** `POST /admin/…/:id/restore` validates inside a transaction that no currently-ACTIVE row shares the target's unique scope (`(countryId, name)` for sector/size, `(countrySectorId, name)` for subsector, `(name, countrySectorId, countrySubsectorId)` for main activity). If a collision exists, respond `409` via `DatabaseUniqueConstraintViolationError` with a Spanish `userMessage` instructing the admin to first rename or soft-delete the colliding ACTIVE row.
+**Choice:** `POST /admin/…/:id/restore` validates inside a transaction that no currently-ACTIVE row shares the target's unique scope (`(countryId, name)` for sector/size, `(countrySectorId, name)` for subsector, `(name, countrySectorId, countrySubsectorId)` for main activity). If a collision exists, respond `409` via `DatabaseUniqueConstraintViolationError` and overwrite `error.message` with a Spanish sentence instructing the admin to first rename or soft-delete the colliding ACTIVE row. (No `userMessage` field — Spanish text travels on the standard `message` field; the FE's `getApiErrorMessage` falls back to the API's `message` when no per-code static entry exists.)
 
 **Alternatives considered:**
 

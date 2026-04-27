@@ -5,7 +5,9 @@ export type AppError =
 
 /**
  * Mirrors the API's `ApiErrorResponse` shape returned by the error handler.
- * Every API error response contains at least `{ code, message }`.
+ * Every API error response contains at least `{ code, message }`. Services should set the
+ * thrown error's `message` to a Spanish, end-user-friendly sentence so the frontend can
+ * surface it directly via `getApiErrorMessage`.
  */
 export interface ApiErrorBody {
   code: string;
@@ -32,6 +34,13 @@ export class AppHttpError extends Error {
   /** Returns the machine-readable error code from the API response, if present. */
   get errorCode(): string | undefined {
     return isApiErrorBody(this.detail.body) ? this.detail.body.code : undefined;
+  }
+
+  /** Returns the Spanish, end-user-friendly message attached on the API response, if present. */
+  get apiMessage(): string | undefined {
+    return isApiErrorBody(this.detail.body)
+      ? this.detail.body.message
+      : undefined;
   }
 }
 

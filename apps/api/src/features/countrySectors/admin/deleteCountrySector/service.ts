@@ -62,8 +62,7 @@ export const deleteCountrySectorService = async (
 
     if (blockingTypes.length > 0) {
       const err = new DeleteBlockedByReferencesError(blockingTypes.join(", "));
-      (err as Error & { userMessage?: string }).userMessage =
-        `No se puede eliminar el rubro porque tiene ${blockingTypes.join(", ")} activos asociados. Elimínalos primero.`;
+      err.message = `No se puede eliminar el rubro porque tiene ${blockingTypes.join(", ")} activos asociados. Elimínalos primero.`;
       throw err;
     }
 

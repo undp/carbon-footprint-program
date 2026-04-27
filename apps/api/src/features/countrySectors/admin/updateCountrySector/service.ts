@@ -65,8 +65,7 @@ export const updateCountrySectorService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
           const err = new DatabaseUniqueConstraintViolationError();
-          (err as Error & { userMessage?: string }).userMessage =
-            "Ya existe un rubro activo con ese nombre.";
+          err.message = "Ya existe un rubro activo con ese nombre.";
           throw err;
         }
       }

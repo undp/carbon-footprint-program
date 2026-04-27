@@ -48,8 +48,7 @@ export const restoreOrganizationMainActivityService = async (
 
     if (existing.status === OrganizationMainActivityStatus.ACTIVE) {
       const err = new RestoreOnActiveError();
-      (err as Error & { userMessage?: string }).userMessage =
-        "La actividad principal ya se encuentra activa.";
+      err.message = "La actividad principal ya se encuentra activa.";
       throw err;
     }
 
@@ -65,7 +64,7 @@ export const restoreOrganizationMainActivityService = async (
     });
     if (collision) {
       const err = new DatabaseUniqueConstraintViolationError();
-      (err as Error & { userMessage?: string }).userMessage =
+      err.message =
         "Ya existe una actividad principal activa con el mismo nombre y rubro/subrubro. Renombra o elimina la activa antes de restaurar.";
       throw err;
     }

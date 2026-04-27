@@ -50,8 +50,7 @@ export const restoreCountryOrganizationSizeService = async (
 
     if (existing.status === CountryOrganizationSizeStatus.ACTIVE) {
       const err = new RestoreOnActiveError();
-      (err as Error & { userMessage?: string }).userMessage =
-        "El tamaño de organización ya se encuentra activo.";
+      err.message = "El tamaño de organización ya se encuentra activo.";
       throw err;
     }
 
@@ -66,7 +65,7 @@ export const restoreCountryOrganizationSizeService = async (
     });
     if (collision) {
       const err = new DatabaseUniqueConstraintViolationError();
-      (err as Error & { userMessage?: string }).userMessage =
+      err.message =
         "Ya existe un tamaño de organización activo con el mismo nombre. Renombra o elimina el activo antes de restaurar.";
       throw err;
     }

@@ -109,7 +109,7 @@ export const updateOrganizationMainActivityService = async (
         });
         if (!subsector || subsector.countrySectorId !== effectiveSectorId) {
           const err = new SectorSubsectorMismatchError();
-          (err as Error & { userMessage?: string }).userMessage =
+          err.message =
             "El subrubro seleccionado no pertenece al rubro indicado.";
           throw err;
         }
@@ -151,7 +151,7 @@ export const updateOrganizationMainActivityService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
           const err = new DatabaseUniqueConstraintViolationError();
-          (err as Error & { userMessage?: string }).userMessage =
+          err.message =
             "Ya existe una actividad principal activa con ese nombre y la misma combinación de rubro/subrubro.";
           throw err;
         }

@@ -44,8 +44,7 @@ export const restoreCountrySubsectorService = async (
 
     if (existing.status === CountrySubsectorStatus.ACTIVE) {
       const err = new RestoreOnActiveError();
-      (err as Error & { userMessage?: string }).userMessage =
-        "El subrubro ya se encuentra activo.";
+      err.message = "El subrubro ya se encuentra activo.";
       throw err;
     }
 
@@ -60,7 +59,7 @@ export const restoreCountrySubsectorService = async (
     });
     if (collision) {
       const err = new DatabaseUniqueConstraintViolationError();
-      (err as Error & { userMessage?: string }).userMessage =
+      err.message =
         "Ya existe un subrubro activo con el mismo nombre dentro del rubro. Renombra o elimina el subrubro activo antes de restaurar.";
       throw err;
     }

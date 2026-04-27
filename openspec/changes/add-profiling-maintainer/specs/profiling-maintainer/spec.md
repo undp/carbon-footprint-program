@@ -65,7 +65,7 @@ The admin list response MUST include a per-row `isInUse: boolean` computed as `O
 #### Scenario: Restore is blocked by name collision
 
 - **WHEN** an ADMIN attempts to restore a DELETED sector whose `name` matches an ACTIVE sector in the same country
-- **THEN** the response is `409` with a Spanish `userMessage` instructing to rename or soft-delete the colliding row first
+- **THEN** the response is `409` with a Spanish sentence on `message` instructing to rename or soft-delete the colliding row first
 
 #### Scenario: Admin list filter
 
@@ -107,12 +107,12 @@ The admin list response SHALL include `countrySectorId` and the parent sector's 
 
 User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT block soft-delete. The front-side selector union covers the display of those rows.
 
-Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DeleteBlockedByReferencesError` MUST carry a Spanish `userMessage` naming which reference type(s) block the delete.
+Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DeleteBlockedByReferencesError` MUST carry a Spanish sentence on `error.message` naming which reference type(s) block the delete.
 
 #### Scenario: Sector with ACTIVE subsectors cannot be soft-deleted
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one ACTIVE row
-- **THEN** the response is `409` with a Spanish `userMessage` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
+- **THEN** the response is `409` with a Spanish sentence on `message` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
 
 #### Scenario: Sector with only DELETED subsectors can be soft-deleted
 
@@ -131,12 +131,12 @@ Reference checks and the status update MUST occur inside a single `prisma.$trans
 
 ### Requirement: Unique-constraint violations surface Spanish error messages
 
-The create, update, and restore endpoints MUST catch Prisma P2002 unique-constraint errors (triggered by the partial unique index on the `ACTIVE` subset) and translate them into `DatabaseUniqueConstraintViolationError` with a Spanish `userMessage`:
+The create, update, and restore endpoints MUST catch Prisma P2002 unique-constraint errors (triggered by the partial unique index on the `ACTIVE` subset) and translate them into `DatabaseUniqueConstraintViolationError`. Service code MUST overwrite `error.message` on the thrown error with a Spanish, end-user-friendly sentence (no separate `userMessage` field — Spanish text travels on the standard `message` field of `ApiErrorResponseSchema`):
 
 - Sector collision → "Ya existe un rubro con ese nombre"
 - Subsector collision → "Ya existe un subrubro con ese nombre para el rubro seleccionado"
 
-The frontend `getApiErrorMessage` MUST prefer the server-supplied `userMessage` and fall back to a code-keyed Spanish string for `DATABASE_UNIQUE_CONSTRAINT_VIOLATION` and `DELETE_BLOCKED_BY_REFERENCES`.
+The frontend `getApiErrorMessage` MUST fall back to the API's `message` (via `AppHttpError#apiMessage`) when the error code has no per-code static entry, so that dynamic Spanish supplied by the API surfaces directly without each code requiring its own frontend mapping.
 
 #### Scenario: Duplicate ACTIVE sector name rejected
 
