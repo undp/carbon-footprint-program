@@ -77,12 +77,30 @@ The screen SHALL hide the edit and delete actions on the row whose `abbreviation
 
 ### Requirement: Magnitude column displays Spanish labels via vocab
 
-The `magnitude` column SHALL render values via the `MAGNITUDE_LABELS: Record<Magnitude, string>` constant defined in `apps/web/src/config/vocab.ts`. The constant SHALL provide a Spanish label for every value of the `Magnitude` enum.
+The `magnitude` column SHALL render values via the `MAGNITUDE_LABELS: Record<Magnitude, string>` constant defined in `apps/web/src/config/vocab.ts`. `MAGNITUDE_LABELS` SHALL include a Spanish label for every member of the `Magnitude` enum as defined in `packages/database/src/prisma/schema.prisma` (and re-exported from `@repo/types`); the keys of `MAGNITUDE_LABELS` SHALL exactly match the enum members so that TypeScript's `Record<Magnitude, string>` type prevents omissions at compile time. The mapping SHALL be:
+
+- `MASS` → "Masa"
+- `VOLUME` → "Volumen"
+- `DISTANCE` → "Distancia"
+- `TIME` → "Tiempo"
+- `ANIMALS` → "Animales"
+- `AREA` → "Área"
+- `POWER` → "Potencia"
+- `ENERGY` → "Energía"
+- `DISTANCE_MASS` → "Distancia · Masa"
+- `ROOMS` → "Habitaciones"
+
+If a new value is added to the `Magnitude` enum in the future, `MAGNITUDE_LABELS` MUST be updated to include a Spanish label for it (a missing key will fail type-check via the `Record<Magnitude, string>` constraint).
 
 #### Scenario: Spanish label rendering
 
 - **WHEN** the grid renders a row whose `magnitude = "MASS"`
-- **THEN** the cell SHALL display `MAGNITUDE_LABELS["MASS"]` (e.g., "Masa") rather than the raw enum value
+- **THEN** the cell SHALL display `MAGNITUDE_LABELS["MASS"]` (i.e., "Masa") rather than the raw enum value
+
+#### Scenario: Full enum coverage enforced at compile time
+
+- **WHEN** a developer adds a new value to the `Magnitude` enum without extending `MAGNITUDE_LABELS`
+- **THEN** `pnpm type-check` SHALL fail because `MAGNITUDE_LABELS` is typed as `Record<Magnitude, string>` and the new key is missing
 
 ### Requirement: Restored-unit confirmation surfaces in the UI
 
