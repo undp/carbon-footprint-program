@@ -9,9 +9,13 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { createTestCountryOrganizationSize } from "@test/factories/countryOrganizationSizeFactory.js";
 import type { GetAllCountryOrganizationSizesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  CountryOrganizationSizeStatus,
+} from "@repo/database";
 
 describe("GET /api/country-organization-sizes - Integration Tests", () => {
   let app: FastifyInstance;
@@ -109,6 +113,39 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
       const ids = body.map((os) => Number(os.id));
       const sortedIds = [...ids].sort();
       expect(ids).toEqual(sortedIds);
+    });
+  });
+
+  describe("Soft-delete filter (smoke)", () => {
+    const PUBLIC_PREFIX = "Test - PublicSize ";
+
+    afterEach(async () => {
+      await prisma.countryOrganizationSize.deleteMany({
+        where: { name: { startsWith: PUBLIC_PREFIX } },
+      });
+    });
+
+    it("excludes DELETED sizes from the public response", async () => {
+      const random = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const active = await createTestCountryOrganizationSize(prisma, {
+        name: `${PUBLIC_PREFIX}Active ${random}`,
+      });
+      const deleted = await createTestCountryOrganizationSize(prisma, {
+        name: `${PUBLIC_PREFIX}Deleted ${random}`,
+        status: CountryOrganizationSizeStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-organization-sizes",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllCountryOrganizationSizesResponse;
+      const ids = body.map((os) => os.id);
+      expect(ids).toContain(active.id.toString());
+      expect(ids).not.toContain(deleted.id.toString());
     });
   });
 
