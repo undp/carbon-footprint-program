@@ -20,7 +20,7 @@ interface UseUsersColumnsProps {
 }
 
 export const useUsersColumns = ({
-  activeTab,
+  activeTab: _activeTab,
   viewerRole,
   viewerId,
   onViewHistory,
@@ -28,7 +28,7 @@ export const useUsersColumns = ({
 }: UseUsersColumnsProps): GridColDef<UserRow>[] => {
   const cellClassName = "content-center";
   const isSuperadmin = viewerRole === SystemRole.SUPERADMIN;
-  const showChangeRole = activeTab === "administradores" && isSuperadmin;
+  const showChangeRole = isSuperadmin;
 
   return useMemo<GridColDef<UserRow>[]>(
     () => [
