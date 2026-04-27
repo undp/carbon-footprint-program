@@ -2,20 +2,17 @@ import { FC, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   TextField,
-  Typography,
 } from "@mui/material";
-import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
+import { useFuzzySearch } from "@/hooks";
+import {
+  SubcategoryTransferColumn,
+  type SubcategoryGroup,
+} from "./SubcategoryTransferColumn";
 
 export interface SubcategoryOption {
   id: string;
@@ -33,6 +30,20 @@ interface SubcategoryTransferListDialogProps {
   onSave: (selectedIds: string[]) => void;
 }
 
+const groupByCategory = (
+  subcategories: SubcategoryOption[]
+): SubcategoryGroup[] => {
+  const map = new Map<string, SubcategoryOption[]>();
+  for (const sc of subcategories) {
+    const list = map.get(sc.categoryName) ?? [];
+    list.push(sc);
+    map.set(sc.categoryName, list);
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([categoryName, items]) => ({ categoryName, items }));
+};
+
 const SubcategoryTransferListDialogContent: FC<
   SubcategoryTransferListDialogProps
 > = ({
@@ -46,38 +57,28 @@ const SubcategoryTransferListDialogContent: FC<
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
   const [filter, setFilter] = useState("");
 
-  const normalizedFilter = filter.trim().toLowerCase();
-
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
-  const groupedAvailable = useMemo(() => {
-    const filtered = availableSubcategories.filter(
-      (sc) =>
-        !selectedSet.has(sc.id) &&
-        (normalizedFilter === "" ||
-          sc.name.toLowerCase().includes(normalizedFilter) ||
-          sc.categoryName.toLowerCase().includes(normalizedFilter))
-    );
-    const groups = new Map<string, SubcategoryOption[]>();
-    for (const sc of filtered) {
-      const list = groups.get(sc.categoryName) ?? [];
-      list.push(sc);
-      groups.set(sc.categoryName, list);
-    }
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [availableSubcategories, selectedSet, normalizedFilter]);
+  const availableItems = useMemo(
+    () => availableSubcategories.filter((sc) => !selectedSet.has(sc.id)),
+    [availableSubcategories, selectedSet]
+  );
+
+  const { results: filteredAvailable } = useFuzzySearch(availableItems, {
+    query: filter,
+    fuseOptions: { keys: ["name", "categoryName"] },
+  });
+
+  const groupedAvailable = useMemo(
+    () => groupByCategory(filteredAvailable),
+    [filteredAvailable]
+  );
 
   const groupedSelected = useMemo(() => {
     const selectedItems = availableSubcategories.filter((sc) =>
       selectedSet.has(sc.id)
     );
-    const groups = new Map<string, SubcategoryOption[]>();
-    for (const sc of selectedItems) {
-      const list = groups.get(sc.categoryName) ?? [];
-      list.push(sc);
-      groups.set(sc.categoryName, list);
-    }
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return groupByCategory(selectedItems);
   }, [availableSubcategories, selectedSet]);
 
   const toggle = (id: string) => {
@@ -96,9 +97,7 @@ const SubcategoryTransferListDialogContent: FC<
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>
-        {SUBCATEGORY_RECOMMENDATIONS_LABELS.editSubcategories}
-      </DialogTitle>
+      <DialogTitle>Editar subcategorías</DialogTitle>
       <DialogContent dividers>
         <TextField
           size="small"
@@ -115,122 +114,20 @@ const SubcategoryTransferListDialogContent: FC<
             gap: 2,
           }}
         >
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Disponibles
-            </Typography>
-            <Box
-              sx={{
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                maxHeight: 420,
-                overflow: "auto",
-              }}
-            >
-              {groupedAvailable.length === 0 ? (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ p: 2 }}
-                >
-                  No hay subcategorías disponibles
-                </Typography>
-              ) : (
-                groupedAvailable.map(([categoryName, items]) => (
-                  <Box key={categoryName}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        fontWeight: 600,
-                        px: 2,
-                        py: 1,
-                        bgcolor: "grey.100",
-                      }}
-                    >
-                      {categoryName}
-                    </Typography>
-                    <List dense disablePadding>
-                      {items.map((item) => (
-                        <ListItem key={item.id} disablePadding>
-                          <ListItemButton onClick={() => toggle(item.id)}>
-                            <ListItemIcon>
-                              <Checkbox
-                                edge="start"
-                                checked={false}
-                                tabIndex={-1}
-                                inputProps={{ "aria-label": item.name }}
-                              />
-                            </ListItemIcon>
-                            <ListItemText primary={item.name} />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                ))
-              )}
-            </Box>
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Seleccionadas ({selectedIds.length})
-            </Typography>
-            <Box
-              sx={{
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                maxHeight: 420,
-                overflow: "auto",
-              }}
-            >
-              {groupedSelected.length === 0 ? (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ p: 2 }}
-                >
-                  Ninguna subcategoría seleccionada
-                </Typography>
-              ) : (
-                groupedSelected.map(([categoryName, items]) => (
-                  <Box key={categoryName}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: "block",
-                        fontWeight: 600,
-                        px: 2,
-                        py: 1,
-                        bgcolor: "grey.100",
-                      }}
-                    >
-                      {categoryName}
-                    </Typography>
-                    <List dense disablePadding>
-                      {items.map((item) => (
-                        <ListItem key={item.id} disablePadding>
-                          <ListItemButton onClick={() => toggle(item.id)}>
-                            <ListItemIcon>
-                              <Checkbox
-                                edge="start"
-                                checked
-                                tabIndex={-1}
-                                inputProps={{ "aria-label": item.name }}
-                              />
-                            </ListItemIcon>
-                            <ListItemText primary={item.name} />
-                          </ListItemButton>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                ))
-              )}
-            </Box>
-          </Box>
+          <SubcategoryTransferColumn
+            title="Disponibles"
+            emptyText="No hay subcategorías disponibles"
+            groups={groupedAvailable}
+            checked={false}
+            onToggle={toggle}
+          />
+          <SubcategoryTransferColumn
+            title={`Seleccionadas (${selectedIds.length})`}
+            emptyText="Ninguna subcategoría seleccionada"
+            groups={groupedSelected}
+            checked
+            onToggle={toggle}
+          />
         </Box>
       </DialogContent>
       <DialogActions>
