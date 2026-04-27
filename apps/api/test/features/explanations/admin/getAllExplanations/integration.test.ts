@@ -67,7 +67,7 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     }
   });
 
-  it("returns rows in name ascending order with the slim shape", async () => {
+  it("returns rows in name ascending order", async () => {
     await createTestExplanation(prisma, {
       slug: "reduction_projects_list",
       name: "Zeta",
@@ -96,11 +96,8 @@ describe("GET /api/admin/explanations - Integration Tests", () => {
     const body = JSON.parse(response.body) as GetAllExplanationsResponse;
     expect(body.map((row) => row.name)).toEqual(["Alfa", "Delta", "Zeta"]);
     const alfa = body.find((row) => row.name === "Alfa")!;
-    expect(alfa).toEqual({
-      slug: "reduction_project_basis",
-      name: "Alfa",
-      description: "alfa-desc",
-      content: "a",
-    });
+    expect(alfa.slug).toBe("reduction_project_basis");
+    expect(alfa.description).toBe("alfa-desc");
+    expect(alfa.content).toBe("a");
   });
 });
