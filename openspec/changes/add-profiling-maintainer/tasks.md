@@ -122,7 +122,7 @@ Create integration tests under `apps/api/test/features/<domain>/<action>/integra
 - [x] 9.5 Restore: DELETED row with no collision → 200 and status transitions to `ACTIVE`; collision with ACTIVE row → 409; restore on already-ACTIVE row → 400.
 - [x] 9.6 Public endpoint smoke test (per domain): DELETED rows absent from the response; response shape byte-compatible with the pre-change contract.
 - [x] 9.7 Add factory helpers where missing: `countrySectorFactory.ts`, `countrySubsectorFactory.ts`, `organizationMainActivityFactory.ts`, `countryOrganizationSizeFactory.ts`. Each factory MUST type its `status` override with its per-table enum (imported from `@prisma/client` or re-exported by `@repo/types`): `CountrySectorStatus` for sectors, `CountrySubsectorStatus` for subsectors, `OrganizationMainActivityStatus` for main activities, `CountryOrganizationSizeStatus` for sizes. Default new rows to the enum's `ACTIVE` member and require callers to pass enum values (e.g., `CountrySectorStatus.DELETED`) — raw string literals (`{ status: "DELETED" }`) MUST NOT be accepted by the override API. Update any test that overrides `status` to use the enum constants.
-- [x] 9.8 Run `pnpm test --filter=api -- /countrySectors --coverage=false && pnpm test --filter=api -- /countrySubsectors --coverage=false && pnpm test --filter=api -- /organizationMainActivities --coverage=false && pnpm test --filter=api -- /countryOrganizationSizes --coverage=false`. NOTE: Docker is not available in the local sandbox; tests rely on Testcontainers and will run in CI.
+- [ ] 9.8 (pending CI) Run `pnpm test --filter=api -- /countrySectors --coverage=false && pnpm test --filter=api -- /countrySubsectors --coverage=false && pnpm test --filter=api -- /organizationMainActivities --coverage=false && pnpm test --filter=api -- /countryOrganizationSizes --coverage=false`. NOTE: Docker is not available in the local sandbox; tests rely on Testcontainers and will run in CI.
 
 ## 10. Frontend — routes and sidebar
 
@@ -227,7 +227,7 @@ For each consumer, import `mergeSelectedOption` and wrap the dropdown options be
 ## 20. Pre-commit checklist
 
 - [x] 20.1 `pnpm format && pnpm lint && pnpm type-check`.
-- [x] 20.2 Full API tests for the four domains (from 9.8). NOTE: Docker is not available in the local sandbox; tests rely on Testcontainers (real PostgreSQL) and will run in CI.
+- [ ] 20.2 (pending CI) Full API tests for the four domains (from 9.8). NOTE: Docker is not available in the local sandbox; tests rely on Testcontainers (real PostgreSQL) and will run in CI.
 - [x] 20.3 Build: `pnpm build`. (`pnpm --filter web build` requires `VITE_API_BASE_URL` set; unrelated to this change. API + types build clean.)
 - [x] 20.4 Grep cleanup: `rg 'ADMIN_ITEMS' apps/ packages/` returns zero; `rg 'UnderConstructionScreen' apps/web/src/routes/admin/` returns zero. NOTE: `units.tsx` and `parameters.tsx` retain `UnderConstructionScreen` legitimately (they are out of scope for this change — those routes were already under construction before).
 - [x] 20.5 Commit in modular chunks per CLAUDE.md (schema + migration, enum + shared types, public endpoint filter, API admin per domain, shared FE components, FE per domain, union consumers, docs) with Conventional Commit messages.

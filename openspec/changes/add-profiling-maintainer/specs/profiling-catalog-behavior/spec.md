@@ -100,12 +100,12 @@ Each `GET /admin/<domain>` endpoint MUST accept `?status=active|deleted|all`, de
 
 Each admin list response MUST include `isInUse: boolean` per row, computed inside the same query as an `OR` across the user-data reference counts relevant to the row's domain:
 
-- Sector: `organization_data.sectorId` OR `organization_main_activity.countrySectorId`
-- Subsector: `organization_data.subsectorId` OR `organization_main_activity.countrySubsectorId`
+- Sector: `organization_data.sectorId` OR `organization_main_activity.countrySectorId` (only counting `organization_main_activity` rows where `status = 'ACTIVE'`)
+- Subsector: `organization_data.subsectorId` OR `organization_main_activity.countrySubsectorId` (only counting `organization_main_activity` rows where `status = 'ACTIVE'`)
 - Main activity: `organization_data.mainActivityId`
 - Organization size: `organization_data.countryOrganizationSizeId`
 
-The `isInUse` field drives the edit-warning dialog on the frontend. For main activity, the inclusion of `organization_main_activity.countrySectorId` in the sector computation (and `countrySubsectorId` in the subsector computation) reflects the transitive effect of the main-activity dropdown on end users.
+The `isInUse` field drives the edit-warning dialog on the frontend. For main activity, the inclusion of `organization_main_activity.countrySectorId` in the sector computation (and `countrySubsectorId` in the subsector computation) reflects the transitive effect of the main-activity dropdown on end users — soft-deleted (`status = 'DELETED'`) main activities never participate in this transitive count.
 
 #### Scenario: Default filter hides DELETED
 

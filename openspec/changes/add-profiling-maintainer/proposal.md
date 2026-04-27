@@ -50,9 +50,8 @@ This change introduces a new **"Perfilamiento"** grouping in the admin panel tha
 - All 4 public list endpoints stay returning only `status = ACTIVE` rows. No backend parameter is added.
 - Every form that consumes a catalog as a selector MUST, before rendering the dropdown options, merge the currently-selected entity (obtained from the form's initial value — the front already has `{ id, name }` from the parent resource's response) into the ACTIVE list, de-duplicated by `id`.
 - Consumers that require the union (from the front audit):
-  - `apps/web/src/screens/MyOrganization/components/OrganizationForm/hooks/useOrganizationForm.ts` — sectors, subsectors, main activities, organization sizes.
+  - `apps/web/src/screens/MyOrganization/components/OrganizationForm/hooks/useOrganizationData.ts` — sectors, subsectors, main activities, organization sizes.
   - `apps/web/src/screens/MyOrganization/components/OrganizationForm/OrganizationFormDialog.tsx`
-  - `apps/web/src/screens/MyOrganization/components/OrganizationProfileSection.tsx`
   - `apps/web/src/screens/CarbonInventory/BusinessProfilingScreen.tsx`
   - `apps/web/src/screens/CarbonInventory/hooks/useBusinessProfilingData.ts`
 - Read-only displays (`InventoryAttributesCard`, `Transparency*`, `SubmissionHistory`, Excel export) need no change — they render the name from the parent payload regardless of status.
