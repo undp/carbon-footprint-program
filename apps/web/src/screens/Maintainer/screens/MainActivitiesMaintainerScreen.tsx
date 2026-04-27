@@ -473,6 +473,11 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             rows={rows}
             columns={columns}
             getRowId={(row: { id: string }) => row.id}
+            pagination
+            pageSizeOptions={[10, 25, 50, 100]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 10 } },
+            }}
           />
         )}
       </Box>
