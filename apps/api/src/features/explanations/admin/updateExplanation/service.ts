@@ -5,7 +5,6 @@ import type {
   User,
 } from "@repo/types";
 import { ExplanationNotFoundError } from "../../errors.js";
-import { mapExplanationToResponse } from "../../mappers.js";
 
 export const updateExplanationService = async (
   prismaClient: PrismaClient,
@@ -23,24 +22,14 @@ export const updateExplanationService = async (
       throw new ExplanationNotFoundError(slug);
     }
 
-    const updated = await tx.explanation.update({
+    await tx.explanation.update({
       where: { slug },
       data: {
         content: body.content,
         updatedById: user ? BigInt(user.id) : null,
       },
-      select: {
-        slug: true,
-        name: true,
-        description: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        createdById: true,
-        updatedById: true,
-      },
     });
 
-    return mapExplanationToResponse(updated);
+    return {};
   });
 };

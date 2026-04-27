@@ -10,7 +10,6 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { SystemRole } from "@repo/database";
-import type { UpdateExplanationResponse } from "@repo/types";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import {
@@ -93,7 +92,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("accepts an empty content string", async () => {
+  it("accepts an empty content string and returns an empty body", async () => {
     await createTestExplanation(prisma, {
       slug: "reduction_project_basis",
       name: "Basis",
@@ -107,11 +106,14 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body) as UpdateExplanationResponse;
-    expect(body.content).toBe("");
+    expect(JSON.parse(response.body)).toEqual({});
+    const persisted = await prisma.explanation.findUnique({
+      where: { slug: "reduction_project_basis" },
+    });
+    expect(persisted?.content).toBe("");
   });
 
-  it("updates content, updatedById and updatedAt on the happy path", async () => {
+  it("persists content, updatedById and updatedAt on the happy path", async () => {
     const slug = "reduction_project_gwp";
     const before = await createTestExplanation(prisma, {
       slug,
@@ -126,19 +128,15 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body) as UpdateExplanationResponse;
-    expect(body.slug).toBe(slug);
-    expect(body.content).toBe("New markdown");
-    expect(body.updatedById).toBe(testUser.id.toString());
-    expect(body.updatedAt).not.toBeNull();
-    if (before.updatedAt) {
-      expect(new Date(body.updatedAt!).getTime()).toBeGreaterThan(
-        before.updatedAt.getTime()
-      );
-    }
+    expect(JSON.parse(response.body)).toEqual({});
 
     const persisted = await prisma.explanation.findUnique({ where: { slug } });
     expect(persisted?.content).toBe("New markdown");
     expect(persisted?.updatedById).toBe(testUser.id);
+    if (before.updatedAt && persisted?.updatedAt) {
+      expect(persisted.updatedAt.getTime()).toBeGreaterThan(
+        before.updatedAt.getTime()
+      );
+    }
   });
 });

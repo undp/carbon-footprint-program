@@ -14,10 +14,6 @@ export const getAllExplanationsService = async (
       name: true,
       description: true,
       content: true,
-      createdAt: true,
-      updatedAt: true,
-      createdById: true,
-      updatedById: true,
     },
   });
 

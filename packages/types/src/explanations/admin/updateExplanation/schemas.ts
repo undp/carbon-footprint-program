@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ExplanationBaseSchema } from "../../../baseSchemas/index.js";
 
 export const EXPLANATION_CONTENT_MAX_LENGTH = 10000;
 
@@ -15,4 +14,4 @@ export const UpdateExplanationRequestSchema = z
   })
   .strict();
 
-export const UpdateExplanationResponseSchema = ExplanationBaseSchema;
+export const UpdateExplanationResponseSchema = z.object({}).strict();
