@@ -33,6 +33,8 @@ interface EditableTextCellProps {
   displayPaddingY?: number;
   /** Auto-focus the input when entering edit mode (useful for new rows). */
   autoFocus?: boolean;
+  /** Text shown in read mode when the cell value is empty / null. */
+  placeholder?: string;
 }
 
 interface EditingTextFieldProps {
@@ -113,10 +115,14 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   displayPaddingX = 1,
   displayPaddingY = 0.5,
   autoFocus = false,
+  placeholder,
 }) => {
   const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
   const { control } = useFormContext();
-  const formValue = useWatch({ name: formPath }) as string;
+  const rawValue = useWatch({ name: formPath }) as string | null | undefined;
+  const formValue = rawValue ?? "";
+  const isEmpty = formValue === "";
+  const displayValue = isEmpty && placeholder ? placeholder : formValue;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
     errors as unknown as Record<string, unknown>,
@@ -126,7 +132,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   );
 
   const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
-    formValue,
+    displayValue,
     truncateLines,
   ]);
 
@@ -152,7 +158,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
     return (
       <Tooltip
-        title={isOverflowed ? formValue : ""}
+        title={isOverflowed ? displayValue : ""}
         arrow
         placement="top"
         enterDelay={500}
@@ -169,6 +175,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             borderRadius: 1,
             cursor: onClick ? "pointer" : "default",
             transition: "background-color 0.15s ease",
+            color: isEmpty && placeholder ? "text.disabled" : undefined,
             "&:hover": onClick
               ? {
                   backgroundColor: "grey.100",
@@ -177,7 +184,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             ...truncateSx,
           }}
         >
-          {formValue}
+          {displayValue}
         </Typography>
       </Tooltip>
     );
@@ -185,7 +192,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
   return (
     <EditingTextField
-      initialValue={formValue}
+      initialValue={rawValue ?? ""}
       onChange={onChange}
       fieldError={fieldError}
       multiline={multiline}
