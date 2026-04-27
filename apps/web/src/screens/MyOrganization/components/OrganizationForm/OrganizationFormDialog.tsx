@@ -82,6 +82,10 @@ export const OrganizationFormDialog: FC<Props> = ({
     jobPositionsLoading,
   } = useOrganizationData({
     selectedSectorId: selectedSectorId || undefined,
+    initialSector: organization?.sector,
+    initialSubsector: organization?.subsector,
+    initialMainActivity: organization?.mainActivity,
+    initialOrganizationSize: organization?.countryOrganizationSize,
   });
 
   const confirmDialog = useConfirmDialog();
