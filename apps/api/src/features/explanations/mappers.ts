@@ -9,6 +9,7 @@ type ExplanationRow = Pick<
   | "content"
   | "createdAt"
   | "updatedAt"
+  | "createdById"
   | "updatedById"
 >;
 
@@ -22,6 +23,7 @@ export function mapExplanationToResponse(
     content: row.content,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt?.toISOString() ?? null,
+    createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
   };
 }
