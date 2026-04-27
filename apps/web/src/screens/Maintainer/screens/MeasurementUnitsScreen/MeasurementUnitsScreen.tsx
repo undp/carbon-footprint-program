@@ -271,12 +271,17 @@ export const MeasurementUnitsScreen: FC = () => {
       field: K,
       value: MeasurementUnitForm[K]
     ) => {
+      const currentRow = form.getValues(`measurementUnits.${rowIndex}`);
+      if (!currentRow) return;
+      const updatedRow = { ...structuredClone(currentRow), [field]: value };
+      fieldArray.update(rowIndex, updatedRow);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       form.setValue(`measurementUnits.${rowIndex}.${field}` as any, value, {
         shouldDirty: true,
       });
+      void form.trigger(`measurementUnits.${rowIndex}.${field}`);
     },
-    [form]
+    [form, fieldArray]
   );
 
   const columns = useMeasurementUnitColumns({
