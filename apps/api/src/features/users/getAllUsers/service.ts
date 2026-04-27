@@ -6,10 +6,18 @@ export const getAllUsersService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllUsersResponse> => {
   const users = await prismaClient.user.findMany({
+    include: {
+      countryJobPosition: {
+        select: { id: true, name: true },
+      },
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  return users.map(mapUserToResponse);
+  return users.map((user) => ({
+    ...mapUserToResponse(user),
+    jobPositionName: user.countryJobPosition?.name ?? null,
+  }));
 };

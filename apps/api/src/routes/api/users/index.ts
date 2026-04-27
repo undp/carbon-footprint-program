@@ -5,6 +5,7 @@ import { getUserByIdRoute } from "@/features/users/getUserById/route.js";
 import { updateUserRoute } from "@/features/users/updateUser/route.js";
 import { deleteUserRoute } from "@/features/users/deleteUser/route.js";
 import { getMeRoute } from "@/features/users/getMe/route.js";
+import { getUserRoleHistoryRoute } from "@/features/users/getUserRoleHistory/route.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -14,4 +15,5 @@ export default function usersRoutes(fastify: FastifyZodInstance) {
   updateUserRoute(fastify);
   deleteUserRoute(fastify);
   getMeRoute(fastify);
+  getUserRoleHistoryRoute(fastify);
 }

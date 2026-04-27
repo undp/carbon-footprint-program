@@ -6,4 +6,6 @@ export const GetUserRoleHistoryParamsSchema = UserBaseSchema.pick({
   id: true,
 }).strict();
 
-export const GetUserRoleHistoryResponseSchema = z.array(UserRoleAuditBaseSchema);
+export const GetUserRoleHistoryResponseSchema = z.array(
+  UserRoleAuditBaseSchema
+);

@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient, Prisma, SystemRole } from "@repo/database";
 import type { UpdateUserBody, UpdateUserResponse, User } from "@repo/types";
 import { mapUserToResponse } from "../mappers.js";
 import {
@@ -6,51 +6,82 @@ import {
   IdpUserIdAlreadyInUseError,
   InvalidCountryJobPositionIdError,
   UserNotFoundError,
+  SelfRoleChangeError,
+  LastSuperadminError,
+  InsufficientPermissionsError,
+  InvalidRoleTransitionError,
 } from "../errors.js";
 import {
   DatabaseUniqueConstraintViolationError,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { withSerializableRetry } from "@/utils/prismaRetry.js";
+
+const ALLOWED_TRANSITIONS: Record<SystemRole, SystemRole[]> = {
+  [SystemRole.USER]: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
+  [SystemRole.ADMIN]: [
+    SystemRole.USER,
+    SystemRole.ADMIN,
+    SystemRole.SUPERADMIN,
+  ],
+  [SystemRole.SUPERADMIN]: [
+    SystemRole.USER,
+    SystemRole.ADMIN,
+    SystemRole.SUPERADMIN,
+  ],
+};
 
 export const updateUserService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateUserBody,
-  user: User | null
+  actor: User | null
 ): Promise<UpdateUserResponse> => {
-  // Build the update data object dynamically based on provided fields
+  if ("role" in data) {
+    return handleAdminRoleUpdate(prismaClient, id, data.role, actor);
+  }
+  return handleSelfProfileUpdate(prismaClient, id, data, actor);
+};
+
+async function handleSelfProfileUpdate(
+  prismaClient: PrismaClient,
+  id: string,
+  data: Exclude<UpdateUserBody, { role: SystemRole }>,
+  actor: User | null
+): Promise<UpdateUserResponse> {
+  if (!actor || actor.id !== id) {
+    throw new InsufficientPermissionsError();
+  }
+
   const updateData: Prisma.UserUncheckedUpdateInput = {};
 
   if (data.email !== undefined) {
     updateData.email = data.email;
   }
-
   if (data.countryJobPositionId !== undefined) {
     updateData.countryJobPositionId =
       data.countryJobPositionId === null
         ? null
         : BigInt(data.countryJobPositionId);
   }
-
   if (data.firstName !== undefined) {
     updateData.firstName = data.firstName;
   }
-
   if (data.lastName !== undefined) {
     updateData.lastName = data.lastName;
   }
-
   if (data.idpUserId !== undefined) {
     updateData.idpUserId = data.idpUserId;
   }
-
   if (data.idpName !== undefined) {
     updateData.idpName = data.idpName ?? null;
   }
+  if (data.termsAccepted !== undefined) {
+    updateData.termsAccepted = data.termsAccepted;
+  }
 
-  // Only set updatedById if there are actual fields to update
   if (Object.keys(updateData).length > 0) {
-    updateData.updatedById = user ? BigInt(user.id) : null;
+    updateData.updatedById = BigInt(actor.id);
   }
 
   try {
@@ -65,23 +96,88 @@ export const updateUserService = async (
         throw new UserNotFoundError(id);
       }
       if (error.code === "P2002") {
-        // Unique constraint violation
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-
         if (duplicatedFields.includes("idp_user_id")) {
           throw new IdpUserIdAlreadyInUseError();
         }
         if (duplicatedFields.includes("email")) {
           throw new EmailAlreadyInUseError();
         }
-        // Fallback for other unique constraint violations
         throw new DatabaseUniqueConstraintViolationError();
       }
       if (error.code === "P2003") {
-        // Foreign key constraint violation
         throw new InvalidCountryJobPositionIdError();
       }
     }
     throw error;
   }
-};
+}
+
+async function handleAdminRoleUpdate(
+  prismaClient: PrismaClient,
+  id: string,
+  newRole: SystemRole,
+  actor: User | null
+): Promise<UpdateUserResponse> {
+  if (!actor || actor.role !== SystemRole.SUPERADMIN) {
+    throw new InsufficientPermissionsError();
+  }
+
+  if (actor.id === id) {
+    throw new SelfRoleChangeError();
+  }
+
+  const updatedUser = await withSerializableRetry(prismaClient, async (tx) => {
+    const target = await tx.user.findUnique({
+      where: { id: BigInt(id) },
+      select: { id: true, role: true },
+    });
+
+    if (!target) {
+      throw new UserNotFoundError(id);
+    }
+
+    const previousRole = target.role;
+
+    if (!ALLOWED_TRANSITIONS[previousRole].includes(newRole)) {
+      throw new InvalidRoleTransitionError();
+    }
+
+    if (previousRole === newRole) {
+      return tx.user.findUniqueOrThrow({ where: { id: BigInt(id) } });
+    }
+
+    if (
+      previousRole === SystemRole.SUPERADMIN &&
+      newRole !== SystemRole.SUPERADMIN
+    ) {
+      const superadminCount = await tx.user.count({
+        where: { role: SystemRole.SUPERADMIN },
+      });
+      if (superadminCount <= 1) {
+        throw new LastSuperadminError();
+      }
+    }
+
+    const result = await tx.user.update({
+      where: { id: BigInt(id) },
+      data: {
+        role: newRole,
+        updatedById: BigInt(actor.id),
+      },
+    });
+
+    await tx.userRoleAudit.create({
+      data: {
+        userId: BigInt(id),
+        previousRole,
+        newRole,
+        changedById: BigInt(actor.id),
+      },
+    });
+
+    return result;
+  });
+
+  return mapUserToResponse(updatedUser);
+}

@@ -4,5 +4,9 @@ import type {
   GetUserRoleHistoryResponseSchema,
 } from "./schemas.ts";
 
-export type GetUserRoleHistoryParams = z.infer<typeof GetUserRoleHistoryParamsSchema>;
-export type GetUserRoleHistoryResponse = z.infer<typeof GetUserRoleHistoryResponseSchema>;
+export type GetUserRoleHistoryParams = z.infer<
+  typeof GetUserRoleHistoryParamsSchema
+>;
+export type GetUserRoleHistoryResponse = z.infer<
+  typeof GetUserRoleHistoryResponseSchema
+>;

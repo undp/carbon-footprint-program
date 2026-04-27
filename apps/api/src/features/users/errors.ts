@@ -23,3 +23,27 @@ export const InvalidCountryJobPositionIdError = createError(
   "Invalid countryJobPositionId: the provided reference does not exist",
   400
 );
+
+export const SelfRoleChangeError = createError(
+  "SELF_ROLE_CHANGE",
+  "You cannot change your own role",
+  403
+);
+
+export const LastSuperadminError = createError(
+  "LAST_SUPERADMIN",
+  "Cannot demote the last superadmin",
+  409
+);
+
+export const InsufficientPermissionsError = createError(
+  "INSUFFICIENT_PERMISSIONS",
+  "You do not have permission to perform this action",
+  403
+);
+
+export const InvalidRoleTransitionError = createError(
+  "INVALID_ROLE_TRANSITION",
+  "The requested role transition is not allowed",
+  409
+);
