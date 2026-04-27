@@ -80,7 +80,7 @@
 
 ## 8. API — Update Existing List Endpoints
 
-- [ ] 8.1 Update `apps/api/src/features/measurementUnits/getAllMeasurementUnits/service.ts` to filter `where: { status: "ACTIVE" }` and to include `referenceCount` per row (counted via `getReferenceCount` or an aggregation query). Default order: `(magnitude ASC, name ASC)`.
+- [ ] 8.1 Update `apps/api/src/features/measurementUnits/getAllMeasurementUnits/service.ts` to filter `where: { status: "ACTIVE" }`, apply default ordering `(magnitude ASC, name ASC)`, and include `referenceCount` per row. The implementation MUST NOT call `getReferenceCount` per row (that helper exists for single-row endpoints and would cause N+1 query fan-out). Instead, compute counts for all returned MUs in a single pass: run one `groupBy({ by: [<fk>], where: { <fk>: { in: muIds } }, _count: { _all: true } })` per referencing column — `CarbonInventoryLineInput.measurementUnitId`, `SubcategoryMeasurementUnit.measurementUnitId`, and the three canonical-RMU references via the joined RMU ids (`EmissionFactor.rateMeasurementUnitId`, `CarbonInventoryLineInput.manualFactorRateUnitId`, `CarbonInventoryLineFactor.appliedFactorRateUnitId`) — execute these `groupBy` queries in parallel via `Promise.all`, then merge the per-fk maps into a single `Map<muId, number>` and attach the count to each row before returning. The number of queries is fixed (one per referencing column) regardless of row count.
 - [ ] 8.2 Update `getAllRateMeasurementUnits/service.ts` to filter `where: { status: "ACTIVE" }`.
 - [ ] 8.3 Update both response schemas in `packages/types/src/measurementUnits/...` accordingly (covered in 2.6 and 2.7).
 
