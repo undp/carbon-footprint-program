@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
-import { SubcategoryRecommendationGroupSchema } from "../listSubcategoryRecommendations/schemas.js";
+import { SubcategoryRecommendationGroupRefSchema } from "../getAllSubcategoryRecommendations/schemas.js";
 
 export const CreateSubcategoryRecommendationRequestSchema = z.object({
   sectorId: IdSchema.describe("The ID of the sector"),
@@ -17,4 +17,4 @@ export const CreateSubcategoryRecommendationRequestSchema = z.object({
 });
 
 export const CreateSubcategoryRecommendationResponseSchema =
-  SubcategoryRecommendationGroupSchema;
+  SubcategoryRecommendationGroupRefSchema;
