@@ -196,8 +196,12 @@ The prior plan left `Actividades Principales` as an `UnderConstructionScreen`; t
 
 ## Migration Plan
 
-1. Merge schema + migration atomically: the migration file creates the four dedicated enums (`CountrySectorStatus`, `CountrySubsectorStatus`, `OrganizationMainActivityStatus`, `CountryOrganizationSizeStatus`), adds `status` + `description` on four tables, adds auditor columns on `country_organization_size`, drops the existing full unique constraints, creates the partial unique indexes via raw SQL. Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
-2. Deploy DB change (pre-deploy migration). Existing rows inherit `status = 'ACTIVE'`; new columns start NULL.
+1. **Edit existing migrations in place — do not generate a new follow-up migration.** The application is not yet in production, so editing the original `CREATE TABLE` migrations is acceptable and preferred over a forward-only diff:
+   - `20251211144312_base/migration.sql` — declare `CountrySectorStatus`, `CountrySubsectorStatus`, `CountryOrganizationSizeStatus`; extend the three relevant `CREATE TABLE` blocks with `status`, `description`, and (for `country_organization_size`) auditor columns; replace the three full unique indexes with partial indexes scoped to `status = 'ACTIVE'`; add FKs for the new auditor columns.
+   - `20251215191526_create_organization_main_activity_table/migration.sql` — declare `OrganizationMainActivityStatus`; extend the table's `CREATE TABLE` with `status` and `description`.
+   - `20251215191534_create_organization_main_activity_unique_constraint/migration.sql` — append the `WHERE "status" = 'ACTIVE'` clause to the `NULLS NOT DISTINCT` unique index.
+   - Run `pnpm --filter database dev:generate && pnpm --filter database dev:build`.
+2. **Reset the local development DB** (`pnpm --filter database db:reset` or equivalent). Editing existing migration files invalidates Prisma's migration history hash; a clean replay from scratch is required. Existing rows in any local environment will be re-seeded; production has no data to lose because no production deployment exists yet.
 3. Deploy API + web changes together.
 4. Post-deploy verification walkthrough (manual, not scripted — no DB queries in tasks per project rule):
    a. Log in as ADMIN; confirm "Perfilamiento" group with four children.
