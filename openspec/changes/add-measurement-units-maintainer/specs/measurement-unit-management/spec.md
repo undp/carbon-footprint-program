@@ -11,8 +11,18 @@ The system SHALL introduce a Prisma enum `MeasurementUnitStatus { ACTIVE, DELETE
 
 #### Scenario: Soft-deleting an MU cascades to its canonical RMU
 
-- **WHEN** an admin soft-deletes a `MeasurementUnit` with abbreviation `X`
-- **THEN** the system SHALL set `status = DELETED` on the MU and on the `RateMeasurementUnit` whose `denominatorMeasurementUnitId = MU.id` and `numeratorMeasurementUnitId = (kg).id`, all in the same database transaction
+- **WHEN** an admin soft-deletes a `MeasurementUnit` with abbreviation `X` whose canonical `RateMeasurementUnit` (`denominatorMeasurementUnitId = MU.id AND numeratorMeasurementUnitId = (kg).id`) exists with `status = ACTIVE`
+- **THEN** the system SHALL set `status = DELETED` on both the MU and the canonical RMU in the same database transaction, and respond with HTTP 200
+
+#### Scenario: Soft-deleting an MU whose canonical RMU is already DELETED is idempotent
+
+- **WHEN** an admin soft-deletes a `MeasurementUnit` with abbreviation `X` whose canonical `RateMeasurementUnit` is found but already has `status = DELETED`
+- **THEN** the system SHALL still flip the MU to `status = DELETED` in the same transaction, SHALL leave the RMU's `status = DELETED` unchanged (no error, no second update), and SHALL respond with HTTP 200 — the operation is idempotent with respect to the RMU
+
+#### Scenario: Soft-deleting an MU whose canonical RMU is missing fails with data-integrity error
+
+- **WHEN** an admin soft-deletes a `MeasurementUnit` with abbreviation `X` and no `RateMeasurementUnit` exists with `denominatorMeasurementUnitId = MU.id AND numeratorMeasurementUnitId = (kg).id`
+- **THEN** the system SHALL abort the transaction (the MU's status SHALL NOT be changed), SHALL throw a `DataIntegrityError` (logged with the MU id and abbreviation so operators can locate the broken row), and SHALL respond with HTTP 500. This state should be impossible because of the seed-time coverage check and the create-cascade rule, but the endpoint MUST NOT silently succeed and leave an MU `DELETED` with no corresponding RMU update
 
 ### Requirement: Every measurement unit has exactly one canonical rate measurement unit
 
