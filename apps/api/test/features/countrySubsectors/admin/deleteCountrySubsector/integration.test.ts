@@ -74,7 +74,7 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
     expect(body.status).toBe(CountrySubsectorStatus.DELETED);
   });
 
-  it("does NOT block when only DELETED main activities reference it", async () => {
+  it("allows soft-delete when referenced only by DELETED main activities", async () => {
     const parent = await createTestCountrySector(prisma, {
       name: uniqueName("Parent"),
     });

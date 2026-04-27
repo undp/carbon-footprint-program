@@ -304,6 +304,16 @@ describe("GET /api/country-sectors - Integration Tests", () => {
         name: `${PUBLIC_PREFIX}DeletedSector ${random}`,
         status: CountrySectorStatus.DELETED,
       });
+      // Attach an ACTIVE subsector under the DELETED sector to ensure the
+      // assertion below isn't a false positive — the public endpoint must
+      // skip the parent sector even when it has live children.
+      const activeSubsectorOfDeletedSector = await createTestCountrySubsector(
+        prisma,
+        deletedSector.id,
+        {
+          name: `${PUBLIC_PREFIX}ActiveSubOfDeleted ${random}`,
+        }
+      );
       const activeSector = await createTestCountrySector(prisma, {
         name: `${PUBLIC_PREFIX}ActiveSector ${random}`,
       });
@@ -332,6 +342,14 @@ describe("GET /api/country-sectors - Integration Tests", () => {
       const ids = body.map((s) => s.id);
       expect(ids).toContain(activeSector.id.toString());
       expect(ids).not.toContain(deletedSector.id.toString());
+      // The DELETED sector must not surface even though it owns an ACTIVE
+      // subsector — the response should never include its subsector either.
+      const allSubsectorIds = body.flatMap((s) =>
+        s.subsectors.map((sub) => sub.id)
+      );
+      expect(allSubsectorIds).not.toContain(
+        activeSubsectorOfDeletedSector.id.toString()
+      );
 
       const found = body.find((s) => s.id === activeSector.id.toString())!;
       const subIds = found.subsectors.map((sub) => sub.id);
