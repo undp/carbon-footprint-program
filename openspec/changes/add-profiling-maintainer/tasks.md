@@ -59,7 +59,7 @@
 For each of the four domains, create a `packages/types/src/<domain>/admin/` tree with these subdirectories:
 
 - [ ] 4.1 `create<Domain>/schemas.ts` + `types.ts`: input `{ name: z.string().trim().min(1).max(255), description: z.string().trim().max(2000).nullable().optional() }` plus any domain-specific fields (`countrySectorId` on subsector/main activity, `countrySubsectorId` on main activity). Response: admin record shape including `status`, `description`, auditors, and (for list) `isInUse`.
-- [ ] 4.2 `update<Domain>/schemas.ts` + `types.ts`: `params: { id }`; `body`: all fields optional BUT refined with `.refine(v => Object.keys(v).length > 0, { message: "Se requiere al menos un campo para actualizar" })`. Response: admin record shape.
+- [ ] 4.2 `update<Domain>/schemas.ts` + `types.ts`: `params: { id }`; `body`: all fields optional BUT refined with `.refine(v => Object.values(v).some((value) => value !== undefined), { message: "Se requiere al menos un campo para actualizar" })`. Checking defined values (not just keys) prevents no-op payloads like `{ name: undefined }` from passing schema validation. Response: admin record shape.
 - [ ] 4.3 `delete<Domain>/schemas.ts` + `types.ts`: `params: { id }`. Response: admin record shape (the updated, DELETED row — NOT 204).
 - [ ] 4.4 `restore<Domain>/schemas.ts` + `types.ts`: `params: { id }`. No body. Response: admin record shape (the updated, ACTIVE row).
 - [ ] 4.5 `getAll<Domain>/schemas.ts` + `types.ts` (admin variant): `querystring: { status: z.enum(["active", "deleted", "all"]).optional().default("active") }`. Response: array of admin record shape with `isInUse`.
