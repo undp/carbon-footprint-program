@@ -57,7 +57,7 @@
       - Compute `referenceCount` via `getReferenceCount(tx, found.id)`.
       - If `referenceCount > 0`: update only `name`, `abbreviation`, set `status = ACTIVE`. Action = `"restored-labels"`.
       - Else: full overwrite of `{ name, abbreviation, magnitude, baseFactor, isBase }`, set `status = ACTIVE`. Action = `"restored-full"`.
-      - Cascade-restore the RMU: find by `denominatorMeasurementUnitId = found.id`; rebuild `abbreviation`/`name` via `buildCanonicalRmuFields(updatedMu)`; set status `ACTIVE`. Throw `MeasurementUnitAbbreviationAlreadyExistsError` if a separate ACTIVE RMU already holds the new RMU abbreviation (P2002 trap).
+      - Cascade-restore the RMU: locate the canonical RMU via the FK pair `tx.rateMeasurementUnit.findFirst({ where: { numeratorMeasurementUnitId: kg.id, denominatorMeasurementUnitId: found.id } })` (do NOT match on `denominatorMeasurementUnitId` alone — multiple RMUs can share a denominator). Rebuild `abbreviation`/`name` via `buildCanonicalRmuFields(updatedMu)`; set `status = ACTIVE`. Throw `MeasurementUnitAbbreviationAlreadyExistsError` if a separate ACTIVE RMU already holds the new RMU abbreviation (P2002 trap).
     - **Found, status ACTIVE**: throw `MeasurementUnitAbbreviationAlreadyExistsError`.
 - [ ] 5.4 Catch `Prisma.PrismaClientKnownRequestError` with `code === "P2002"` and translate into `MeasurementUnitAbbreviationAlreadyExistsError`.
 
@@ -71,7 +71,7 @@
   - If `body.isBase` is present and differs from `target.isBase`: throw `BaseUnitToggleNotAllowedError`.
   - Compute `referenceCount`. If any of `magnitude`, `baseFactor` is in the body and `referenceCount > 0`: throw `MeasurementUnitFieldsLockedError`.
   - Apply the partial update to the MU.
-  - Cascade-update RMU: if `name` or `abbreviation` changed, rebuild RMU `name`/`abbreviation` via `buildCanonicalRmuFields(updatedMu)`. Catch P2002 → `MeasurementUnitAbbreviationAlreadyExistsError`.
+  - Cascade-update RMU: if `name` or `abbreviation` changed, resolve `kg.id` via `resolveKgMeasurementUnit(tx)`, locate the canonical RMU via the FK pair `tx.rateMeasurementUnit.findFirst({ where: { numeratorMeasurementUnitId: kg.id, denominatorMeasurementUnitId: target.id } })` (matching on the canonical `(kg, MU)` pair, not denominator alone), and rebuild its `name`/`abbreviation` via `buildCanonicalRmuFields(updatedMu)`. If the canonical RMU is missing, throw `DataIntegrityError` (this should be unreachable per the seed coverage check + create cascade; matches the soft-delete defense in 7.3). Catch P2002 → `MeasurementUnitAbbreviationAlreadyExistsError`.
 - [ ] 6.4 Catch and translate Prisma P2002 errors as in 5.4.
 
 ## 7. API — Soft-Delete Endpoint
