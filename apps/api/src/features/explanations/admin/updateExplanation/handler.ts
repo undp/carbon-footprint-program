@@ -19,8 +19,8 @@ export const updateExplanationHandler = async (
   const prisma = request.server.prisma;
   const user = request.currentUser ?? null;
 
-  const data = await updateExplanationService(prisma, slug, request.body, user);
+  await updateExplanationService(prisma, slug, request.body, user);
 
   log.info(`Explanation ${slug} updated successfully`);
-  return reply.status(200).send(data);
+  return reply.status(204).send();
 };

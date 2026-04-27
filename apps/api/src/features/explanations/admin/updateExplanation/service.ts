@@ -1,9 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  UpdateExplanationRequest,
-  UpdateExplanationResponse,
-  User,
-} from "@repo/types";
+import type { UpdateExplanationRequest, User } from "@repo/types";
 import { ExplanationNotFoundError } from "../../errors.js";
 
 export const updateExplanationService = async (
@@ -11,7 +7,7 @@ export const updateExplanationService = async (
   slug: string,
   body: UpdateExplanationRequest,
   user: User | null
-): Promise<UpdateExplanationResponse> => {
+): Promise<void> => {
   const { count } = await prismaClient.explanation.updateMany({
     where: { slug },
     data: {
@@ -23,6 +19,4 @@ export const updateExplanationService = async (
   if (count === 0) {
     throw new ExplanationNotFoundError(slug);
   }
-
-  return {};
 };

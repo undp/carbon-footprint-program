@@ -2,7 +2,6 @@ import { z } from "zod";
 import type {
   UpdateExplanationParamsSchema,
   UpdateExplanationRequestSchema,
-  UpdateExplanationResponseSchema,
 } from "./schemas.ts";
 
 export type UpdateExplanationParams = z.infer<
@@ -11,8 +10,4 @@ export type UpdateExplanationParams = z.infer<
 
 export type UpdateExplanationRequest = z.infer<
   typeof UpdateExplanationRequestSchema
->;
-
-export type UpdateExplanationResponse = z.infer<
-  typeof UpdateExplanationResponseSchema
 >;

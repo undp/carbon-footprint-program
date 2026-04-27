@@ -5,7 +5,6 @@ import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllExplanationsResponse,
   UpdateExplanationRequest,
-  UpdateExplanationResponse,
 } from "@repo/types";
 
 export const useExplanations = () =>
@@ -22,17 +21,12 @@ interface UpdateExplanationVariables {
 
 export const useUpdateExplanation = () => {
   const queryClient = useQueryClient();
-  return useMutation<
-    UpdateExplanationResponse,
-    Error,
-    UpdateExplanationVariables
-  >({
-    mutationFn: ({ slug, content }) =>
-      apiClient
-        .patch(`admin/explanations/${encodeURIComponent(slug)}`, {
-          json: { content },
-        })
-        .json(),
+  return useMutation<void, Error, UpdateExplanationVariables>({
+    mutationFn: async ({ slug, content }) => {
+      await apiClient.patch(`admin/explanations/${encodeURIComponent(slug)}`, {
+        json: { content },
+      });
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.explanations.all(),

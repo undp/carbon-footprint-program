@@ -12,5 +12,3 @@ export const UpdateExplanationRequestSchema = z
     content: z.string().max(EXPLANATION_CONTENT_MAX_LENGTH),
   })
   .strict();
-
-export const UpdateExplanationResponseSchema = z.object({}).strict();
