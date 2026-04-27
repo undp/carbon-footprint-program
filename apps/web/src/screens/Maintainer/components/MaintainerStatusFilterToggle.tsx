@@ -5,6 +5,7 @@ import type { AdminListStatusFilter } from "@repo/types";
 interface Props {
   value: AdminListStatusFilter;
   onChange: (next: AdminListStatusFilter) => void;
+  disabled?: boolean;
 }
 
 /**
@@ -14,12 +15,14 @@ interface Props {
 export const MaintainerStatusFilterToggle: FC<Props> = ({
   value,
   onChange,
+  disabled = false,
 }) => (
   <ToggleButtonGroup
     value={value}
     exclusive
     size="small"
     aria-label="Filtro de estado del mantenedor"
+    disabled={disabled}
     onChange={(_, next: AdminListStatusFilter | null) => {
       if (next !== null) {
         onChange(next);
