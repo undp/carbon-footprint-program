@@ -1,6 +1,7 @@
 import {
   type PrismaClient,
   CountrySubsectorStatus,
+  CountrySectorStatus,
   Prisma,
 } from "@repo/database";
 import { type RestoreCountrySubsectorResponse, type User } from "@repo/types";
@@ -51,6 +52,22 @@ export const restoreCountrySubsectorService = async (
         const err = new RestoreOnActiveError();
         err.message = "El subrubro ya se encuentra activo.";
         throw err;
+      }
+
+      // Block restore when the parent sector has been soft-deleted so the
+      // catalog never exposes an ACTIVE subsector orphaned from its rubro.
+      const parentSector = await tx.countrySector.findFirst({
+        where: {
+          id: existing.countrySectorId,
+          status: CountrySectorStatus.ACTIVE,
+        },
+        select: { id: true },
+      });
+      if (!parentSector) {
+        throw new ResourceNotFoundError(
+          "CountrySector",
+          existing.countrySectorId.toString()
+        );
       }
 
       const collision = await tx.countrySubsector.findFirst({

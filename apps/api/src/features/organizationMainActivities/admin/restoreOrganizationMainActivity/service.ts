@@ -1,6 +1,8 @@
 import {
   type PrismaClient,
   OrganizationMainActivityStatus,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
   Prisma,
 } from "@repo/database";
 import {
@@ -12,6 +14,12 @@ import {
   ResourceNotFoundError,
 } from "@/errors/index.js";
 import createError from "@fastify/error";
+
+const SectorSubsectorMismatchError = createError(
+  "SECTOR_SUBSECTOR_MISMATCH",
+  "The provided subsector does not belong to the provided sector",
+  400
+);
 import { UserNotFoundError } from "../../../users/errors.js";
 import { adminMainActivitySelect, mapMainActivityToAdmin } from "../helpers.js";
 
@@ -52,6 +60,50 @@ export const restoreOrganizationMainActivityService = async (
         const err = new RestoreOnActiveError();
         err.message = "La actividad principal ya se encuentra activa.";
         throw err;
+      }
+
+      // Block restore when the linked rubro/subrubro is no longer ACTIVE so
+      // restored activities never resurrect with stale parent references.
+      if (existing.countrySectorId !== null) {
+        const parentSector = await tx.countrySector.findFirst({
+          where: {
+            id: existing.countrySectorId,
+            status: CountrySectorStatus.ACTIVE,
+          },
+          select: { id: true },
+        });
+        if (!parentSector) {
+          throw new ResourceNotFoundError(
+            "CountrySector",
+            existing.countrySectorId.toString()
+          );
+        }
+      }
+
+      if (existing.countrySubsectorId !== null) {
+        const parentSubsector = await tx.countrySubsector.findFirst({
+          where: {
+            id: existing.countrySubsectorId,
+            status: CountrySubsectorStatus.ACTIVE,
+          },
+          select: { id: true, countrySectorId: true },
+        });
+        if (!parentSubsector) {
+          throw new ResourceNotFoundError(
+            "CountrySubsector",
+            existing.countrySubsectorId.toString()
+          );
+        }
+
+        if (
+          existing.countrySectorId !== null &&
+          parentSubsector.countrySectorId !== existing.countrySectorId
+        ) {
+          const err = new SectorSubsectorMismatchError();
+          err.message =
+            "El subrubro asociado ya no pertenece al rubro indicado.";
+          throw err;
+        }
       }
 
       const collision = await tx.organizationMainActivity.findFirst({
