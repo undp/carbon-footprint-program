@@ -166,9 +166,9 @@ describe("GET /api/users/:id/role-history - Integration Tests", () => {
       data: { role: loggedUser.role },
     });
 
-    expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body) as GetUserRoleHistoryResponse;
-    expect(body).toHaveLength(0);
+    expect(response.statusCode).toBe(404);
+    const body = JSON.parse(response.body) as { code: string };
+    expect(body.code).toBe("USER_NOT_FOUND");
   });
 
   it("4b.7 empty array when target user has no recorded transitions", async () => {
