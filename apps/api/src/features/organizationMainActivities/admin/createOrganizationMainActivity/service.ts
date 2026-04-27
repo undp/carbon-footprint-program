@@ -33,7 +33,7 @@ export const createOrganizationMainActivityService = async (
     throw new UserNotFoundError();
   }
 
-  const sectorId =
+  let sectorId =
     data.countrySectorId !== undefined && data.countrySectorId !== null
       ? BigInt(data.countrySectorId)
       : null;
@@ -73,6 +73,11 @@ export const createOrganizationMainActivityService = async (
           err.message =
             "El subrubro seleccionado no pertenece al rubro indicado.";
           throw err;
+        }
+        // Persist the implied sector when the request only supplied a subsector
+        // so the row never stores a subsector with a null parent sector.
+        if (sectorId === null) {
+          sectorId = subsector.countrySectorId;
         }
       }
 
