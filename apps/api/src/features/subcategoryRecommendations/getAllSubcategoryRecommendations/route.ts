@@ -1,9 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { ListSubcategoryRecommendationsResponseSchema } from "@repo/types";
+import { GetAllSubcategoryRecommendationsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { listSubcategoryRecommendationsHandler } from "./handler.js";
+import { getAllSubcategoryRecommendationsHandler } from "./handler.js";
 
-export const listSubcategoryRecommendationsRoute = (
+export const getAllSubcategoryRecommendationsRoute = (
   fastify: FastifyZodInstance
 ) => {
   fastify.get(
@@ -11,16 +11,17 @@ export const listSubcategoryRecommendationsRoute = (
     {
       schema: {
         tags: ["subcategory-recommendations"],
-        summary: "List subcategory recommendations grouped by sector/subsector",
+        summary:
+          "Get all subcategory recommendations grouped by sector/subsector",
         description:
           "Returns ACTIVE recommendations grouped by (sectorId, subsectorId).",
         response: {
-          200: ListSubcategoryRecommendationsResponseSchema,
+          200: GetAllSubcategoryRecommendationsResponseSchema,
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
         },
       },
     },
-    listSubcategoryRecommendationsHandler
+    getAllSubcategoryRecommendationsHandler
   );
 };

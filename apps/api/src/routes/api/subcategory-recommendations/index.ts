@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { SystemRole } from "@repo/types";
-import { listSubcategoryRecommendationsRoute } from "@/features/subcategoryRecommendations/listSubcategoryRecommendations/route.js";
+import { getAllSubcategoryRecommendationsRoute } from "@/features/subcategoryRecommendations/getAllSubcategoryRecommendations/route.js";
 import { createSubcategoryRecommendationRoute } from "@/features/subcategoryRecommendations/createSubcategoryRecommendation/route.js";
 import { updateSubcategoryRecommendationRoute } from "@/features/subcategoryRecommendations/updateSubcategoryRecommendation/route.js";
 
@@ -13,7 +13,7 @@ export default function subcategoryRecommendationsRoutes(
     fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
   );
 
-  listSubcategoryRecommendationsRoute(fastify);
+  getAllSubcategoryRecommendationsRoute(fastify);
   createSubcategoryRecommendationRoute(fastify);
   updateSubcategoryRecommendationRoute(fastify);
 }

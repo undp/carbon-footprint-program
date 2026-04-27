@@ -1,13 +1,20 @@
 import type { PrismaClient } from "@repo/database";
 import {
   SubcategoryRecommendationStatus,
-  type ListSubcategoryRecommendationsResponse,
+  type GetAllSubcategoryRecommendationsResponse,
+  type User,
 } from "@repo/types";
-import { buildGroupedResponse, resolveDefaultCountryId } from "../helpers.js";
+import {
+  activeRecommendationRowSelect,
+  buildGroupedResponse,
+  resolveDefaultCountryId,
+} from "../helpers.js";
 
-export const listSubcategoryRecommendationsService = async (
-  prismaClient: PrismaClient
-): Promise<ListSubcategoryRecommendationsResponse> => {
+export const getAllSubcategoryRecommendationsService = async (
+  prismaClient: PrismaClient,
+  _query: null,
+  _user: User | null
+): Promise<GetAllSubcategoryRecommendationsResponse> => {
   const countryId = await resolveDefaultCountryId(prismaClient);
 
   const rows = await prismaClient.subcategoryRecommendation.findMany({
@@ -15,13 +22,7 @@ export const listSubcategoryRecommendationsService = async (
       status: SubcategoryRecommendationStatus.ACTIVE,
       sector: { countryId },
     },
-    select: {
-      sectorId: true,
-      subsectorId: true,
-      subcategoryId: true,
-      sector: { select: { id: true, name: true } },
-      subsector: { select: { id: true, name: true } },
-    },
+    select: activeRecommendationRowSelect,
     orderBy: [
       { sectorId: "asc" },
       { subsectorId: "asc" },

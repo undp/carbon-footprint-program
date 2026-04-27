@@ -30,7 +30,7 @@ This change ships an in-app maintainer so admins can edit recommendations direct
 
 - **Database**: `SubcategoryRecommendation` table — add `status`, `createdById`, `updatedById`; drop composite unique constraint. New Prisma enum `SubcategoryRecommendationStatus`. Direct migration edit (dev phase).
 - **API**:
-  - New feature folder `apps/api/src/features/subcategoryRecommendations/` with three subfolders: `listSubcategoryRecommendations/`, `createSubcategoryRecommendation/` (POST, 409 on conflict), `updateSubcategoryRecommendation/` (PUT, idempotent bulk-replace).
+  - New feature folder `apps/api/src/features/subcategoryRecommendations/` with three subfolders: `getAllSubcategoryRecommendations/`, `createSubcategoryRecommendation/` (POST, 409 on conflict), `updateSubcategoryRecommendation/` (PUT, idempotent bulk-replace).
   - New route group `apps/api/src/routes/api/subcategory-recommendations/` guarded by `requireRoles([SUPERADMIN, ADMIN])`.
   - `apps/api/src/features/carbonInventories/getSubcategoryRecommendations/service.ts` — add `status = ACTIVE` filter in both `SPECIFIC` and non-specific branches.
 - **Types**: new domain `packages/types/src/subcategoryRecommendations/` with base, list, create, and update schemas.

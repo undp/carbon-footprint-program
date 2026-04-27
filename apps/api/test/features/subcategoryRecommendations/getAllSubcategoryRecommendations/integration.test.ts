@@ -15,7 +15,7 @@ import {
   SystemRole,
   SubcategoryRecommendationStatus,
 } from "@repo/database/enums";
-import type { ListSubcategoryRecommendationsResponse } from "@repo/types";
+import type { GetAllSubcategoryRecommendationsResponse } from "@repo/types";
 
 type SeededRefs = {
   countryId: bigint;
@@ -130,7 +130,7 @@ describe("GET /api/subcategory-recommendations - Integration", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(
       response.body
-    ) as ListSubcategoryRecommendationsResponse;
+    ) as GetAllSubcategoryRecommendationsResponse;
     const group = body.find(
       (g) =>
         g.sectorId === refs.sectorId.toString() &&

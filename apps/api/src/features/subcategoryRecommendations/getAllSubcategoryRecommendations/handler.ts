@@ -1,17 +1,11 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
-import { listSubcategoryRecommendationsService } from "./service.js";
+import { createGetAllHandler } from "@/handlerFactory/index.js";
+import type { GetAllSubcategoryRecommendationsResponse } from "@repo/types";
+import { getAllSubcategoryRecommendationsService } from "./service.js";
 
-export const listSubcategoryRecommendationsHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "subcategoryRecommendations" });
-  log.info("Listing subcategory recommendations...");
-
-  const data = await listSubcategoryRecommendationsService(
-    request.server.prisma
+export const getAllSubcategoryRecommendationsHandler =
+  createGetAllHandler<GetAllSubcategoryRecommendationsResponse>(
+    "subcategoryRecommendations",
+    getAllSubcategoryRecommendationsService,
+    "SubcategoryRecommendation",
+    false
   );
-
-  log.info("Subcategory recommendations listed successfully");
-  return reply.status(200).send(data);
-};
