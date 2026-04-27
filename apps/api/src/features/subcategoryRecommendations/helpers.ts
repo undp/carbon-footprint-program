@@ -1,17 +1,18 @@
-import type { PrismaClient } from "@repo/database";
-import {
-  SubcategoryRecommendationStatus,
-  type SubcategoryRecommendationGroup,
-} from "@repo/types";
+import type { Prisma, PrismaClient } from "@repo/database";
+import type { SubcategoryRecommendationGroup } from "@repo/types";
 import { ApplicationConfigError } from "@/errors/ApplicationConfigError.js";
 
-type ActiveRecommendationRow = {
-  sectorId: bigint;
-  subsectorId: bigint | null;
-  subcategoryId: bigint;
-  sector: { id: bigint; name: string };
-  subsector: { id: bigint; name: string } | null;
-};
+export const activeRecommendationRowSelect = {
+  sectorId: true,
+  subsectorId: true,
+  subcategoryId: true,
+  sector: { select: { id: true, name: true } },
+  subsector: { select: { id: true, name: true } },
+} satisfies Prisma.SubcategoryRecommendationSelect;
+
+type ActiveRecommendationRow = Prisma.SubcategoryRecommendationGetPayload<{
+  select: typeof activeRecommendationRowSelect;
+}>;
 
 export const buildGroupedResponse = (
   rows: ActiveRecommendationRow[]
@@ -55,32 +56,4 @@ export const resolveDefaultCountryId = async (
   }
 
   return country.id;
-};
-
-export const loadGroup = async (
-  tx: Pick<PrismaClient, "subcategoryRecommendation">,
-  sectorId: bigint,
-  subsectorId: bigint | null
-): Promise<SubcategoryRecommendationGroup | null> => {
-  const rows = await tx.subcategoryRecommendation.findMany({
-    where: {
-      sectorId,
-      subsectorId,
-      status: SubcategoryRecommendationStatus.ACTIVE,
-    },
-    select: {
-      sectorId: true,
-      subsectorId: true,
-      subcategoryId: true,
-      sector: { select: { id: true, name: true } },
-      subsector: { select: { id: true, name: true } },
-    },
-    orderBy: { subcategoryId: "asc" },
-  });
-
-  if (rows.length === 0) {
-    return null;
-  }
-
-  return buildGroupedResponse(rows)[0] ?? null;
 };
