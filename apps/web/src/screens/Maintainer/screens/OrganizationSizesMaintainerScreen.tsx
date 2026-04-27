@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -94,10 +94,13 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
     form.reset({ name: "", description: null });
     setDialogState({ mode: "create" });
   };
-  const openEdit = (row: AdminCountryOrganizationSize) => {
-    form.reset({ name: row.name, description: row.description });
-    setDialogState({ mode: "edit", row });
-  };
+  const openEdit = useCallback(
+    (row: AdminCountryOrganizationSize) => {
+      form.reset({ name: row.name, description: row.description });
+      setDialogState({ mode: "edit", row });
+    },
+    [form]
+  );
   const closeDialog = () => {
     form.reset({ name: "", description: null });
     setDialogState({ mode: "closed" });
@@ -154,28 +157,34 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
     }
   });
 
-  const handleSoftDelete = async (row: AdminCountryOrganizationSize) => {
-    try {
-      await deleteMutation.mutateAsync(row.id);
-      enqueueSnackbar("Tamaño eliminado", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo eliminar el tamaño"),
-        { variant: "error" }
-      );
-    }
-  };
-  const handleRestore = async (row: AdminCountryOrganizationSize) => {
-    try {
-      await restoreMutation.mutateAsync(row.id);
-      enqueueSnackbar("Tamaño restaurado", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo restaurar el tamaño"),
-        { variant: "error" }
-      );
-    }
-  };
+  const handleSoftDelete = useCallback(
+    async (row: AdminCountryOrganizationSize) => {
+      try {
+        await deleteMutation.mutateAsync(row.id);
+        enqueueSnackbar("Tamaño eliminado", { variant: "success" });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(error, "No se pudo eliminar el tamaño"),
+          { variant: "error" }
+        );
+      }
+    },
+    [deleteMutation, enqueueSnackbar]
+  );
+  const handleRestore = useCallback(
+    async (row: AdminCountryOrganizationSize) => {
+      try {
+        await restoreMutation.mutateAsync(row.id);
+        enqueueSnackbar("Tamaño restaurado", { variant: "success" });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(error, "No se pudo restaurar el tamaño"),
+          { variant: "error" }
+        );
+      }
+    },
+    [restoreMutation, enqueueSnackbar]
+  );
 
   const columns = useMemo<GridColDef<AdminCountryOrganizationSize>[]>(
     () => [
@@ -234,8 +243,13 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
           ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [deleteMutation.isPending, restoreMutation.isPending]
+    [
+      deleteMutation.isPending,
+      restoreMutation.isPending,
+      openEdit,
+      handleSoftDelete,
+      handleRestore,
+    ]
   );
 
   return (

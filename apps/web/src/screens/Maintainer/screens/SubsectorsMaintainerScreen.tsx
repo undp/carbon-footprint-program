@@ -1,5 +1,5 @@
-import { FC, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FC, useCallback, useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
@@ -99,19 +99,26 @@ export const SubsectorsMaintainerScreen: FC = () => {
 
   const sectorOptions = useMemo(() => activeSectors ?? [], [activeSectors]);
   const noSectors = sectorOptions.length === 0;
+  const watchedSectorId = useWatch({
+    control: form.control,
+    name: "countrySectorId",
+  });
 
   const openCreate = () => {
     form.reset({ name: "", description: null, countrySectorId: "" });
     setDialogState({ mode: "create" });
   };
-  const openEdit = (row: AdminCountrySubsector) => {
-    form.reset({
-      name: row.name,
-      description: row.description,
-      countrySectorId: row.countrySectorId,
-    });
-    setDialogState({ mode: "edit", row });
-  };
+  const openEdit = useCallback(
+    (row: AdminCountrySubsector) => {
+      form.reset({
+        name: row.name,
+        description: row.description,
+        countrySectorId: row.countrySectorId,
+      });
+      setDialogState({ mode: "edit", row });
+    },
+    [form]
+  );
   const closeDialog = () => {
     form.reset({ name: "", description: null, countrySectorId: "" });
     setDialogState({ mode: "closed" });
@@ -180,28 +187,34 @@ export const SubsectorsMaintainerScreen: FC = () => {
     }
   });
 
-  const handleSoftDelete = async (row: AdminCountrySubsector) => {
-    try {
-      await deleteMutation.mutateAsync(row.id);
-      enqueueSnackbar("Subrubro eliminado", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo eliminar el subrubro"),
-        { variant: "error" }
-      );
-    }
-  };
-  const handleRestore = async (row: AdminCountrySubsector) => {
-    try {
-      await restoreMutation.mutateAsync(row.id);
-      enqueueSnackbar("Subrubro restaurado", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo restaurar el subrubro"),
-        { variant: "error" }
-      );
-    }
-  };
+  const handleSoftDelete = useCallback(
+    async (row: AdminCountrySubsector) => {
+      try {
+        await deleteMutation.mutateAsync(row.id);
+        enqueueSnackbar("Subrubro eliminado", { variant: "success" });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(error, "No se pudo eliminar el subrubro"),
+          { variant: "error" }
+        );
+      }
+    },
+    [deleteMutation, enqueueSnackbar]
+  );
+  const handleRestore = useCallback(
+    async (row: AdminCountrySubsector) => {
+      try {
+        await restoreMutation.mutateAsync(row.id);
+        enqueueSnackbar("Subrubro restaurado", { variant: "success" });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(error, "No se pudo restaurar el subrubro"),
+          { variant: "error" }
+        );
+      }
+    },
+    [restoreMutation, enqueueSnackbar]
+  );
 
   const sectorNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -274,8 +287,14 @@ export const SubsectorsMaintainerScreen: FC = () => {
           ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [deleteMutation.isPending, restoreMutation.isPending, sectorNameById]
+    [
+      deleteMutation.isPending,
+      restoreMutation.isPending,
+      sectorNameById,
+      openEdit,
+      handleSoftDelete,
+      handleRestore,
+    ]
   );
 
   return (
@@ -309,7 +328,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
                     select
                     label="Rubro"
                     fullWidth
-                    value={form.watch("countrySectorId")}
+                    value={watchedSectorId}
                     onChange={(e) =>
                       form.setValue("countrySectorId", e.target.value, {
                         shouldDirty: true,

@@ -1,5 +1,5 @@
-import { FC, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FC, useCallback, useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
@@ -109,7 +109,14 @@ export const MainActivitiesMaintainerScreen: FC = () => {
   });
 
   const sectorOptions = activeSectors ?? [];
-  const watchedSectorId = form.watch("countrySectorId");
+  const watchedSectorId = useWatch({
+    control: form.control,
+    name: "countrySectorId",
+  });
+  const watchedSubsectorId = useWatch({
+    control: form.control,
+    name: "countrySubsectorId",
+  });
   const filteredSubsectorOptions = useMemo(() => {
     if (!activeSubsectors) return [];
     if (!watchedSectorId) return activeSubsectors;
@@ -127,15 +134,18 @@ export const MainActivitiesMaintainerScreen: FC = () => {
     });
     setDialogState({ mode: "create" });
   };
-  const openEdit = (row: AdminOrganizationMainActivity) => {
-    form.reset({
-      name: row.name,
-      description: row.description,
-      countrySectorId: row.countrySectorId,
-      countrySubsectorId: row.countrySubsectorId,
-    });
-    setDialogState({ mode: "edit", row });
-  };
+  const openEdit = useCallback(
+    (row: AdminOrganizationMainActivity) => {
+      form.reset({
+        name: row.name,
+        description: row.description,
+        countrySectorId: row.countrySectorId,
+        countrySubsectorId: row.countrySubsectorId,
+      });
+      setDialogState({ mode: "edit", row });
+    },
+    [form]
+  );
   const closeDialog = () => {
     form.reset({
       name: "",
@@ -205,31 +215,44 @@ export const MainActivitiesMaintainerScreen: FC = () => {
     }
   });
 
-  const handleSoftDelete = async (row: AdminOrganizationMainActivity) => {
-    try {
-      await deleteMutation.mutateAsync(row.id);
-      enqueueSnackbar("Actividad principal eliminada", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(error, "No se pudo eliminar la actividad principal"),
-        { variant: "error" }
-      );
-    }
-  };
-  const handleRestore = async (row: AdminOrganizationMainActivity) => {
-    try {
-      await restoreMutation.mutateAsync(row.id);
-      enqueueSnackbar("Actividad principal restaurada", { variant: "success" });
-    } catch (error) {
-      enqueueSnackbar(
-        getApiErrorMessage(
-          error,
-          "No se pudo restaurar la actividad principal"
-        ),
-        { variant: "error" }
-      );
-    }
-  };
+  const handleSoftDelete = useCallback(
+    async (row: AdminOrganizationMainActivity) => {
+      try {
+        await deleteMutation.mutateAsync(row.id);
+        enqueueSnackbar("Actividad principal eliminada", {
+          variant: "success",
+        });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(
+            error,
+            "No se pudo eliminar la actividad principal"
+          ),
+          { variant: "error" }
+        );
+      }
+    },
+    [deleteMutation, enqueueSnackbar]
+  );
+  const handleRestore = useCallback(
+    async (row: AdminOrganizationMainActivity) => {
+      try {
+        await restoreMutation.mutateAsync(row.id);
+        enqueueSnackbar("Actividad principal restaurada", {
+          variant: "success",
+        });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(
+            error,
+            "No se pudo restaurar la actividad principal"
+          ),
+          { variant: "error" }
+        );
+      }
+    },
+    [restoreMutation, enqueueSnackbar]
+  );
 
   const columns = useMemo<GridColDef<AdminOrganizationMainActivity>[]>(
     () => [
@@ -295,8 +318,13 @@ export const MainActivitiesMaintainerScreen: FC = () => {
           ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [deleteMutation.isPending, restoreMutation.isPending]
+    [
+      deleteMutation.isPending,
+      restoreMutation.isPending,
+      openEdit,
+      handleSoftDelete,
+      handleRestore,
+    ]
   );
 
   return (
@@ -337,7 +365,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
                     select
                     label="Rubro (opcional)"
                     fullWidth
-                    value={form.watch("countrySectorId") ?? ""}
+                    value={watchedSectorId ?? ""}
                     onChange={(e) => {
                       const value = e.target.value || null;
                       form.setValue("countrySectorId", value, {
@@ -371,7 +399,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
                     select
                     label="Subrubro (opcional)"
                     fullWidth
-                    value={form.watch("countrySubsectorId") ?? ""}
+                    value={watchedSubsectorId ?? ""}
                     onChange={(e) =>
                       form.setValue(
                         "countrySubsectorId",
