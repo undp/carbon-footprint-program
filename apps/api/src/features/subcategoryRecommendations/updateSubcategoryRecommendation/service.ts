@@ -63,10 +63,6 @@ export const updateSubcategoryRecommendationService = async (
       });
     }
 
-    return {
-      sectorId: sectorId.toString(),
-      subsectorId: subsectorId?.toString() ?? null,
-      subcategoryIds: data.subcategoryIds,
-    };
+    return {};
   });
 };

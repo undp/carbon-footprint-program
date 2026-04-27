@@ -49,10 +49,6 @@ export const createSubcategoryRecommendationService = async (
       })),
     });
 
-    return {
-      sectorId: sectorId.toString(),
-      subsectorId: subsectorId?.toString() ?? null,
-      subcategoryIds: data.subcategoryIds,
-    };
+    return {};
   });
 };
