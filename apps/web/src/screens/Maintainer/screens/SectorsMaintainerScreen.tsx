@@ -341,6 +341,7 @@ export const SectorsMaintainerScreen: FC = () => {
             rows={rows}
             columns={columns}
             getRowId={(row: { id: string }) => row.id}
+            hideFooter={false}
             pagination
             pageSizeOptions={[10, 25, 50, 100]}
             initialState={{
