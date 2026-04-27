@@ -6,7 +6,7 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 export const autoConfig: FastifyCorsOptions = {
   origin: ALLOWED_ORIGIN || true,
   credentials: !!ALLOWED_ORIGIN,
-  methods: ["GET", "POST", "PATCH", "DELETE"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
 };
 
 export default fp<FastifyCorsOptions>(

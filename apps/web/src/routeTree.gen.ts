@@ -26,6 +26,7 @@ import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organizat
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
+import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
@@ -38,7 +39,6 @@ import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
-import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
 import { Route as AppReductionProjectsIndexRouteImport } from './routes/app/reduction-projects/index'
 import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
@@ -136,6 +136,12 @@ const AdminUnitsRoute = AdminUnitsRouteImport.update({
   path: '/units',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSubcategoryRecommendationsRoute =
+  AdminSubcategoryRecommendationsRouteImport.update({
+    id: '/subcategory-recommendations',
+    path: '/subcategory-recommendations',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
   id: '/subcategories',
   path: '/subcategories',
@@ -196,12 +202,6 @@ const AdminBadgesRoute = AdminBadgesRouteImport.update({
   path: '/badges',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminSubcategoryRecommendationsRoute =
-  AdminSubcategoryRecommendationsRouteImport.update({
-    id: '/subcategory-recommendations',
-    path: '/subcategory-recommendations',
-    getParentRoute: () => AdminRoute,
-  } as any)
 const AppReductionProjectsIndexRoute =
   AppReductionProjectsIndexRouteImport.update({
     id: '/',
@@ -651,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUnitsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/subcategory-recommendations': {
+      id: '/admin/subcategory-recommendations'
+      path: '/subcategory-recommendations'
+      fullPath: '/admin/subcategory-recommendations'
+      preLoaderRoute: typeof AdminSubcategoryRecommendationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/subcategories': {
       id: '/admin/subcategories'
       path: '/subcategories'
@@ -733,13 +740,6 @@ declare module '@tanstack/react-router' {
       path: '/badges'
       fullPath: '/admin/badges'
       preLoaderRoute: typeof AdminBadgesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/subcategory-recommendations': {
-      id: '/admin/subcategory-recommendations'
-      path: '/subcategory-recommendations'
-      fullPath: '/admin/subcategory-recommendations'
-      preLoaderRoute: typeof AdminSubcategoryRecommendationsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/app/reduction-projects/': {
