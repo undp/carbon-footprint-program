@@ -108,10 +108,9 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     requiredRoles: [SystemRole.SUPERADMIN],
   },
   {
-    text: "Iniciativas",
+    text: "Iniciativas de Planes de Reducción",
     icon: <ListAltOutlined />,
     path: Routes.ADMIN_REDUCTION_PLAN_INITIATIVES,
-    requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
   },
   {
     text: "Historial de cambios",
