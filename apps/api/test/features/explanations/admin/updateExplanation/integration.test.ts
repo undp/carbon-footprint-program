@@ -10,7 +10,6 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { SystemRole } from "@repo/database";
-import { ExplanationSlug } from "@repo/constants";
 import type { UpdateExplanationResponse } from "@repo/types";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -57,7 +56,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     try {
       const response = await app.inject({
         method: "PATCH",
-        url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_GWP}`,
+        url: "/api/admin/explanations/reduction_project_gwp",
         payload: { content: "x" },
       });
       expect(response.statusCode).toBe(403);
@@ -69,7 +68,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     }
   });
 
-  it("returns 404 when slug is not in the catalog", async () => {
+  it("returns 404 when no row exists for the given slug", async () => {
     const response = await app.inject({
       method: "PATCH",
       url: "/api/admin/explanations/does_not_exist",
@@ -78,24 +77,9 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     expect(response.statusCode).toBe(404);
   });
 
-  it("returns 404 when slug exists in DB but not in EXPLANATION_CATALOG", async () => {
-    await createTestExplanation(prisma, {
-      slug: "orphan_slug_not_in_catalog",
-      name: "Orphan",
-      content: "old",
-    });
-
-    const response = await app.inject({
-      method: "PATCH",
-      url: "/api/admin/explanations/orphan_slug_not_in_catalog",
-      payload: { content: "new" },
-    });
-    expect(response.statusCode).toBe(404);
-  });
-
   it("returns 400 when content exceeds the max length", async () => {
     await createTestExplanation(prisma, {
-      slug: ExplanationSlug.REDUCTION_PROJECT_GWP,
+      slug: "reduction_project_gwp",
       name: "GWP",
       content: "",
     });
@@ -103,7 +87,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     const tooLong = "x".repeat(10_001);
     const response = await app.inject({
       method: "PATCH",
-      url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_GWP}`,
+      url: "/api/admin/explanations/reduction_project_gwp",
       payload: { content: tooLong },
     });
     expect(response.statusCode).toBe(400);
@@ -111,14 +95,14 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
 
   it("accepts an empty content string", async () => {
     await createTestExplanation(prisma, {
-      slug: ExplanationSlug.REDUCTION_PROJECT_BASIS,
+      slug: "reduction_project_basis",
       name: "Basis",
       content: "non-empty",
     });
 
     const response = await app.inject({
       method: "PATCH",
-      url: `/api/admin/explanations/${ExplanationSlug.REDUCTION_PROJECT_BASIS}`,
+      url: "/api/admin/explanations/reduction_project_basis",
       payload: { content: "" },
     });
 
@@ -128,7 +112,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
   });
 
   it("updates content, updatedById and updatedAt on the happy path", async () => {
-    const slug = ExplanationSlug.REDUCTION_PROJECT_GWP;
+    const slug = "reduction_project_gwp";
     const before = await createTestExplanation(prisma, {
       slug,
       name: "GWP",

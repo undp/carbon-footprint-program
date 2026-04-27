@@ -12,15 +12,14 @@ import { ExplanationContent } from "@/components/ExplanationContent";
 import { ExplanationSkeleton } from "@/components/ExplanationSkeleton";
 import { useSnackbar } from "notistack";
 import { useExplanation } from "@/api/query/explanations";
-import type { ExplanationSlug } from "@repo/constants";
 
 type ExplanationState =
-  | { mode: "slug"; slug: ExplanationSlug | null }
+  | { mode: "slug"; slug: string | null }
   | { mode: "content"; content: string | null }
   | null;
 
 interface ExplanationContextType {
-  openExplanationBySlug: (slug: ExplanationSlug | null) => void;
+  openExplanationBySlug: (slug: string | null) => void;
   openExplanationContent: (content: string | null) => void;
 }
 
@@ -38,7 +37,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
     isError,
   } = useExplanation(slugForFetch);
 
-  const openExplanationBySlug = useCallback((slug: ExplanationSlug | null) => {
+  const openExplanationBySlug = useCallback((slug: string | null) => {
     setState({ mode: "slug", slug });
   }, []);
 
