@@ -17,7 +17,7 @@ import {
   WorkspacePremiumOutlined,
   RecommendOutlined,
   ListAltOutlined,
-  HelpOutlineOutlined,
+  InfoOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -115,7 +115,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   },
   {
     text: "Explicaciones",
-    icon: <HelpOutlineOutlined />,
+    icon: <InfoOutlined />,
     path: Routes.ADMIN_EXPLANATIONS,
   },
   {
