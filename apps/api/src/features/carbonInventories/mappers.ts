@@ -111,24 +111,19 @@ export type InventoryOrganizationDataReferences = {
   mainActivity: { id: string; name: string } | null;
 };
 
-const EMPTY_REFERENCES: InventoryOrganizationDataReferences = {
-  sector: null,
-  subsector: null,
-  size: null,
-  mainActivity: null,
-};
-
 function mapBaseCarbonInventory(
   item: PrismaCarbonInventory,
-  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
+  references?: InventoryOrganizationDataReferences
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "subcategories" | "organizationName" | "recognitions"
 > {
-  // The Prisma JSON column does not store the resolved {id, name} pairs — those are
-  // injected here via `references` (or fall back to null if the caller did not resolve
-  // them). Strip any incoming `sector`/`subsector`/`size`/`mainActivity` so the JSON
-  // column never overrides what the caller passes in.
+  // The Prisma JSON column may already carry resolved `{id, name}` snapshots from
+  // earlier writes. Callers that re-resolve catalog rows (including DELETED ones) pass
+  // them in via `references` so the response always reflects the freshest names.
+  // When `references` is omitted — or any individual entry is null/undefined — fall
+  // back to the snapshot persisted in the JSON column so existing inventories are not
+  // stripped of their stored data.
   const rawJson = (item.organizationData ?? null) as
     | (Record<string, unknown> & {
         sector?: unknown;
@@ -140,18 +135,18 @@ function mapBaseCarbonInventory(
   const stripped = rawJson
     ? (() => {
         const {
-          sector: _s,
-          subsector: _ss,
-          size: _sz,
-          mainActivity: _ma,
+          sector: rawSector,
+          subsector: rawSubsector,
+          size: rawSize,
+          mainActivity: rawMainActivity,
           ...rest
         } = rawJson;
         return {
           ...rest,
-          sector: references.sector,
-          subsector: references.subsector,
-          size: references.size,
-          mainActivity: references.mainActivity,
+          sector: references?.sector ?? rawSector ?? null,
+          subsector: references?.subsector ?? rawSubsector ?? null,
+          size: references?.size ?? rawSize ?? null,
+          mainActivity: references?.mainActivity ?? rawMainActivity ?? null,
         };
       })()
     : null;
@@ -190,7 +185,7 @@ function mapBaseCarbonInventory(
 export function mapCarbonInventoryWithLinesToResponse(
   item: CarbonInventoryWithLines,
   subcategories: SubcategoryWithDimensions[],
-  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
+  references?: InventoryOrganizationDataReferences
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "organizationName" | "recognitions"
@@ -234,7 +229,7 @@ export function mapCarbonInventoryWithLinesToResponse(
 // Map carbon inventory without subcategories, organizationName, and status to responses
 export function mapCarbonInventoryToResponse(
   item: PrismaCarbonInventory,
-  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
+  references?: InventoryOrganizationDataReferences
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "subcategories" | "organizationName" | "recognitions"
