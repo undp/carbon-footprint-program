@@ -15,5 +15,3 @@ export const UpdateExplanationRequestSchema = z
       .describe("The updated content of the explanation"),
   })
   .strict();
-
-export const UpdateExplanationResponseSchema = z.object({}).strict();

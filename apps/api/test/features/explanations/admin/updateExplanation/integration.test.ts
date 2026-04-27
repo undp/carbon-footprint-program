@@ -92,7 +92,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("accepts an empty content string and returns an empty body", async () => {
+  it("accepts an empty content string and returns 204", async () => {
     await createTestExplanation(prisma, {
       slug: "reduction_project_basis",
       name: "Basis",
@@ -105,8 +105,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
       payload: { content: "" },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({});
+    expect(response.statusCode).toBe(204);
     const persisted = await prisma.explanation.findUnique({
       where: { slug: "reduction_project_basis" },
     });
@@ -127,8 +126,7 @@ describe("PATCH /api/admin/explanations/:slug - Integration Tests", () => {
       payload: { content: "New markdown" },
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({});
+    expect(response.statusCode).toBe(204);
 
     const persisted = await prisma.explanation.findUnique({ where: { slug } });
     expect(persisted?.content).toBe("New markdown");
