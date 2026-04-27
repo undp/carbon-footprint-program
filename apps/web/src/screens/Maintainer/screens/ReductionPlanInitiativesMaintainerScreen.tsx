@@ -310,7 +310,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
-        hideDownload
+        showDownload={false}
       />
       <Box className="rounded-sm bg-white p-3">
         <form id="reduction-plan-initiatives-form" noValidate>

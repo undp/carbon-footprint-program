@@ -9,7 +9,7 @@ interface Props {
   addLabel?: string;
   addDisabled?: boolean;
   extra?: ReactNode;
-  hideDownload?: boolean;
+  showDownload?: boolean;
 }
 
 export const MaintainerPageHeader: FC<Props> = ({
@@ -18,7 +18,7 @@ export const MaintainerPageHeader: FC<Props> = ({
   addLabel = "Agregar",
   addDisabled,
   extra,
-  hideDownload,
+  showDownload = true,
 }) => (
   <Paper
     elevation={0}
@@ -36,7 +36,7 @@ export const MaintainerPageHeader: FC<Props> = ({
     </Typography>
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
       {extra}
-      {!hideDownload && <DownloadMenu />}
+      {showDownload && <DownloadMenu />}
       {onAddRow && (
         <Button
           variant="contained"
