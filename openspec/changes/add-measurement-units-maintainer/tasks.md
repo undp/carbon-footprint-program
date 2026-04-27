@@ -67,7 +67,7 @@
 - [ ] 6.2 Create `handler.ts`.
 - [ ] 6.3 Create `service.ts` inside a `$transaction`:
   - Resolve target MU by id; throw `MeasurementUnitNotFoundError` if missing.
-  - `assertNotKgMu(target)`; if any field is being changed and `target.isBase === true`, `assertNotBaseUnit(target)`.
+  - `assertNotKgMu(target)`. Then, unconditionally, if `target.isBase === true`, call `assertNotBaseUnit(target)` — any PATCH targeting a base MU SHALL throw `BaseUnitImmutableError` regardless of which fields are present in the body. This matches the spec's unconditional "base units SHALL NOT be updated" rule.
   - If `body.isBase` is present and differs from `target.isBase`: throw `BaseUnitToggleNotAllowedError`.
   - Compute `referenceCount`. If any of `magnitude`, `baseFactor` is in the body and `referenceCount > 0`: throw `MeasurementUnitFieldsLockedError`.
   - Apply the partial update to the MU.
