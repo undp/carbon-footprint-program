@@ -98,16 +98,67 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
   };
 }
 
+/**
+ * Resolved `{ id, name }` references for the catalog entities referenced by the
+ * inventory's `organizationData` snapshot. Passed in by services that fetched the rows
+ * by id (including DELETED rows) so the response carries names for the FE selector
+ * union helper.
+ */
+export type InventoryOrganizationDataReferences = {
+  sector: { id: string; name: string } | null;
+  subsector: { id: string; name: string } | null;
+  size: { id: string; name: string } | null;
+  mainActivity: { id: string; name: string } | null;
+};
+
+const EMPTY_REFERENCES: InventoryOrganizationDataReferences = {
+  sector: null,
+  subsector: null,
+  size: null,
+  mainActivity: null,
+};
+
 function mapBaseCarbonInventory(
-  item: PrismaCarbonInventory
+  item: PrismaCarbonInventory,
+  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "subcategories" | "organizationName" | "recognitions"
 > {
-  // Validate organizationData with runtime type checking using Zod
-  const organizationDataResult = OrganizationDataFieldSchema.safeParse(
-    item.organizationData
-  );
+  // The Prisma JSON column does not store the resolved {id, name} pairs — those are
+  // injected here via `references` (or fall back to null if the caller did not resolve
+  // them). Strip any incoming `sector`/`subsector`/`size`/`mainActivity` so the JSON
+  // column never overrides what the caller passes in.
+  const rawJson = (item.organizationData ?? null) as
+    | (Record<string, unknown> & {
+        sector?: unknown;
+        subsector?: unknown;
+        size?: unknown;
+        mainActivity?: unknown;
+      })
+    | null;
+  const stripped = rawJson
+    ? (() => {
+        const {
+          sector: _s,
+          subsector: _ss,
+          size: _sz,
+          mainActivity: _ma,
+          ...rest
+        } = rawJson;
+        return {
+          ...rest,
+          sector: references.sector,
+          subsector: references.subsector,
+          size: references.size,
+          mainActivity: references.mainActivity,
+        };
+      })()
+    : null;
+
+  // Validate the merged organizationData shape with runtime type checking via Zod.
+  const organizationDataResult =
+    OrganizationDataFieldSchema.safeParse(stripped);
 
   if (!organizationDataResult.success)
     throw new DataIntegrityError(
@@ -138,12 +189,13 @@ function mapBaseCarbonInventory(
 // Map carbon inventory with subcategories to response (includes subcategories field)
 export function mapCarbonInventoryWithLinesToResponse(
   item: CarbonInventoryWithLines,
-  subcategories: SubcategoryWithDimensions[]
+  subcategories: SubcategoryWithDimensions[],
+  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "organizationName" | "recognitions"
 > {
-  const base = mapBaseCarbonInventory(item);
+  const base = mapBaseCarbonInventory(item, references);
   const parsedLines: LineResponse[] = item.lines.map(mapLineToResponse);
 
   const linesBySubcategoryId = groupBy<LineResponse>(
@@ -181,10 +233,11 @@ export function mapCarbonInventoryWithLinesToResponse(
 
 // Map carbon inventory without subcategories, organizationName, and status to responses
 export function mapCarbonInventoryToResponse(
-  item: PrismaCarbonInventory
+  item: PrismaCarbonInventory,
+  references: InventoryOrganizationDataReferences = EMPTY_REFERENCES
 ): Omit<
   GetCarbonInventoryByIdResponse,
   "status" | "subcategories" | "organizationName" | "recognitions"
 > {
-  return mapBaseCarbonInventory(item);
+  return mapBaseCarbonInventory(item, references);
 }

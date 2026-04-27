@@ -103,6 +103,13 @@ export const BusinessProfilingScreen: FC = () => {
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,
+    initialSector: existingInventory?.organizationData?.sector ?? undefined,
+    initialSubsector:
+      existingInventory?.organizationData?.subsector ?? undefined,
+    initialMainActivity:
+      existingInventory?.organizationData?.mainActivity ?? undefined,
+    initialOrganizationSize:
+      existingInventory?.organizationData?.size ?? undefined,
   });
 
   const {

@@ -11,6 +11,7 @@ import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
   carbonInventoryWithSubmissionsMinimalSelect,
   validateCarbonInventoryIsEditable,
+  resolveInventoryOrganizationDataReferences,
 } from "../helpers.js";
 
 export const updateCarbonInventoryService = async (
@@ -107,7 +108,11 @@ export const updateCarbonInventoryService = async (
       where: { id: BigInt(id) },
       data: updateData,
     });
-    return mapCarbonInventoryToResponse(item);
+    const references = await resolveInventoryOrganizationDataReferences(
+      prismaClient,
+      item.organizationData
+    );
+    return mapCarbonInventoryToResponse(item, references);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {

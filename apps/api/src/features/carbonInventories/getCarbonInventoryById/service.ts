@@ -11,6 +11,7 @@ import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
   calculateDisplayStatus,
   calculateEarnedRecognitions,
+  resolveInventoryOrganizationDataReferences,
 } from "../helpers.js";
 
 export const getCarbonInventoryByIdService = async (
@@ -88,8 +89,17 @@ export const getCarbonInventoryByIdService = async (
     },
   });
 
+  const references = await resolveInventoryOrganizationDataReferences(
+    prismaClient,
+    inventory.organizationData
+  );
+
   return {
-    ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
+    ...mapCarbonInventoryWithLinesToResponse(
+      inventory,
+      subcategories,
+      references
+    ),
     organizationName: inventory.organization?.summary?.name ?? null,
     status: calculateDisplayStatus(inventory),
     recognitions: calculateEarnedRecognitions(inventory),
