@@ -13,12 +13,14 @@ import {
   SquareFootOutlined,
   TaskOutlined,
   BusinessOutlined,
+  BusinessCenterOutlined,
   ViewColumnOutlined,
   WorkspacePremiumOutlined,
   RecommendOutlined,
   ListAltOutlined,
   InfoOutlined,
   AutoAwesomeMotionOutlined,
+  StraightenOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -73,15 +75,30 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
-    text: "Rubros",
-    icon: <CategoryOutlined />,
-    path: Routes.ADMIN_ITEMS,
-    requiredRoles: [SystemRole.SUPERADMIN],
+    text: "Perfilamiento",
+    icon: <BusinessCenterOutlined />,
+    path: Routes.ADMIN_SECTORS,
+    requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
     children: [
       {
+        text: "Rubros",
+        icon: <CategoryOutlined fontSize="small" />,
+        path: Routes.ADMIN_SECTORS,
+      },
+      {
+        text: "Subrubros",
+        icon: <AccountTreeOutlined fontSize="small" />,
+        path: Routes.ADMIN_SUBSECTORS,
+      },
+      {
         text: "Actividades Principales",
-        icon: <CategoryOutlined />,
+        icon: <CategoryOutlined fontSize="small" />,
         path: Routes.ADMIN_MAIN_ACTIVITIES,
+      },
+      {
+        text: "Tamaño de la Organización",
+        icon: <StraightenOutlined fontSize="small" />,
+        path: Routes.ADMIN_ORGANIZATION_SIZES,
       },
     ],
   },
