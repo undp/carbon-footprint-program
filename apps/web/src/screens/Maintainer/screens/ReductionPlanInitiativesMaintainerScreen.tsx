@@ -31,13 +31,34 @@ import { useReductionPlanInitiativeColumns } from "../hooks/useReductionPlanInit
 const isNewRow = (id: string) => id.startsWith("temp_");
 
 export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
+  // UI hooks
   const { enqueueSnackbar } = useSnackbar();
+  const apiRef = useGridApiRef();
 
+  // Local state hooks
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [newRowId, setNewRowId] = useState<string | null>(null);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+
+  // Form hooks
+  const { form, fieldArray, handleCellChange } =
+    useReductionPlanInitiativesForm();
+  const currentRows = form.watch("reductionPlanInitiatives");
+
+  // Data query hooks
   const { data: reductionPlanInitiatives, isLoading } =
     useReductionPlanInitiatives();
-
   const { data: methodologies = [] } = useMethodologies();
 
+  // Data mutation hooks
+  const createMutation = useAddReductionPlanInitiative();
+  const updateMutation = useUpdateReductionPlanInitiative();
+  const deleteMutation = useDeleteReductionPlanInitiative();
+
+  // Memo hooks
   const activeMethodologyVersionId = useMemo(
     () =>
       methodologies.find((m) => m.status === MethodologyVersionStatus.PUBLISHED)
@@ -47,7 +68,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   const { data: subcategoriesData = [] } = useSubcategories(
     activeMethodologyVersionId
   );
-
   const subcategories = useMemo(
     () =>
       subcategoriesData.map((s) => ({
@@ -68,22 +88,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       ),
     [subcategoriesData]
   );
-
-  const [editingRowId, setEditingRowId] = useState<string | null>(null);
-  const [newRowId, setNewRowId] = useState<string | null>(null);
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10,
-  });
-  const apiRef = useGridApiRef();
-
-  const createMutation = useAddReductionPlanInitiative();
-  const updateMutation = useUpdateReductionPlanInitiative();
-  const deleteMutation = useDeleteReductionPlanInitiative();
-
-  const { form, fieldArray, handleCellChange } =
-    useReductionPlanInitiativesForm();
-  const currentRows = form.watch("reductionPlanInitiatives");
 
   const toFormData = useCallback(
     (data: unknown[]) =>
