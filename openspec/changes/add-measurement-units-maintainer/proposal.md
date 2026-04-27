@@ -14,7 +14,7 @@ In addition, every `MeasurementUnit` is paired with a canonical `RateMeasurement
 - System-protected rows: the `kg` MU and any MU with `isBase=true` cannot be modified or soft-deleted. Each `Magnitude` value SHALL have exactly one base unit; the system rejects any operation that would create a second base or remove the existing one.
 - Re-create-after-delete: creating a unit whose abbreviation matches an existing soft-deleted row restores that row instead of inserting a new one. If references exist, only `name` and `abbreviation` are overwritten; otherwise the full payload is applied. Status flips back to `ACTIVE` and the cascade restores the RMU.
 - Picker-vs-display read pattern: every endpoint that lists MUs/RMUs _for selection_ (pickers) SHALL filter `status: ACTIVE`. Read-through joins on stored references (history) resolve regardless of status so historical line inputs and factors continue to display the unit name.
-- One-time backfill migration that creates the canonical `kg/<abbrev>` RMU for any existing MU lacking one.
+- Schema additions are folded into the original base migration that creates `measurement_unit` and `rate_measurement_unit` (`20251211144312_base/migration.sql`); no new migration file is added and no canonical-RMU backfill runs at deploy time.
 - Authorization: `[SUPERADMIN, ADMIN]` on both client (`requireRole` in `beforeLoad`) and server (`fastify.requireRoles`).
 - Add Spanish labels for the `Magnitude` enum to `apps/web/src/config/vocab.ts`.
 
@@ -22,7 +22,7 @@ In addition, every `MeasurementUnit` is paired with a canonical `RateMeasurement
 
 ### New Capabilities
 
-- `measurement-unit-management`: Backend CRUD + cascade + soft-delete + restore + lock + backfill for `MeasurementUnit` and the canonical `RateMeasurementUnit`. Includes the database schema additions (`MeasurementUnitStatus` enum, `status` columns, migration).
+- `measurement-unit-management`: Backend CRUD + cascade + soft-delete + restore + lock for `MeasurementUnit` and the canonical `RateMeasurementUnit`. Includes the database schema additions (`MeasurementUnitStatus` enum, `status` columns) folded into the existing base migration.
 - `measurement-units-maintainer-screen`: Frontend admin screen at `/admin/units` providing the inline-edit DataGrid UI for measurement-unit management.
 
 ### Modified Capabilities
@@ -31,7 +31,7 @@ None as named OpenSpec capabilities. The existing read endpoints (`getAllMeasure
 
 ## Impact
 
-- **Database**: New shared enum `MeasurementUnitStatus { ACTIVE, DELETED }`. New `status` column on `MeasurementUnit` and `RateMeasurementUnit` (default `ACTIVE`). One forward-only migration plus a backfill step for missing canonical RMUs. No data is destroyed.
+- **Database**: New shared enum `MeasurementUnitStatus { ACTIVE, DELETED }`. New `status` column on `MeasurementUnit` and `RateMeasurementUnit` (default `ACTIVE`). The enum and columns are added by editing the original base migration (`20251211144312_base/migration.sql`) — no new migration file and no backfill step. No data is destroyed.
 - **API**: New feature endpoints under `apps/api/src/features/measurementUnits/`: `createMeasurementUnit`, `updateMeasurementUnit`, `deleteMeasurementUnit`. Existing list endpoints gain `status: ACTIVE` filter and a `referenceCount` (or `isLocked`) field per row.
 - **Types**: New schemas under `packages/types/src/measurementUnits/admin/<endpoint>/`. The `MeasurementUnitStatus` enum exported from `@repo/types`.
 - **Frontend**: New `MeasurementUnitsScreen` at `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/`, new query/mutation hooks under `apps/web/src/api/query/maintainer/`, route component swap at `apps/web/src/routes/admin/units.tsx`, and `MAGNITUDE_LABELS` added to `apps/web/src/config/vocab.ts`. Nav already wired (`MaintainerLayout.tsx` → `Routes.ADMIN_UNITS`).

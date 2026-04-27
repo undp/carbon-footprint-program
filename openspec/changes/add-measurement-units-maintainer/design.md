@@ -142,16 +142,15 @@ The `isBase` invariant is therefore: **every `Magnitude` has exactly one base un
 
 **Implementation note**: This rule is cross-cutting. The implementation includes an audit step — grep the codebase for all reads of `measurementUnit` and `rateMeasurementUnit`, classify each as picker vs. display, and add the `status: ACTIVE` filter only where appropriate.
 
-### 8. Backfill migration
+### 8. Schema additions in the base migration
 
-**Decision**: At deploy time, run a one-shot migration that:
+**Decision**: The `MeasurementUnitStatus` enum and the `status` columns on `MeasurementUnit` and `RateMeasurementUnit` are added by editing the original base migration that creates these tables (`20251211144312_base/migration.sql`) — not by adding a new migration file. The columns default to `ACTIVE`, so seed data inserted by the base migration receives the correct status without any additional step.
 
-1. Adds the `MeasurementUnitStatus` enum and the `status` columns (default `ACTIVE`).
-2. For every existing `MeasurementUnit` lacking a canonical RMU `kg/<abbrev>`, creates one (idempotent).
+No backfill step is needed: the seed already pairs every `MeasurementUnit` with its canonical `kg/<abbrev>` `RateMeasurementUnit`, and country deployments are responsible for keeping their own seeds consistent. The cascade rule (#2) only governs admin-driven CRUD going forward; pre-existing rows are trusted as-is.
 
-The migration is forward-only and pure additive — no rows are deleted or modified beyond the new column default.
+To make that trust enforceable, `seedMeasurementUnits.ts` SHALL include a coverage check after inserting RMUs: for every `MeasurementUnit`, assert that at least one `RateMeasurementUnit` exists with `numeratorMeasurementUnitId = (kg).id` and `denominatorMeasurementUnitId = MU.id`. If any MU is missing its canonical RMU (or if the `kg` MU itself is missing), the seed throws with a descriptive list. This turns a silent seed-data drift into a loud failure at deploy time.
 
-**Rationale**: The cascade rule must hold for the full table from day one. Inspecting the seed shows every existing RMU already follows the `kg/<MU>` form, so the backfill is expected to be a no-op in practice — but the migration is still required to make the rule a database-level guarantee for any country deployment whose seeds may differ.
+**Rationale**: Since this change has not yet been applied to any deployment, folding the schema additions into the base migration keeps the migration history clean and avoids a redundant follow-up. Skipping the canonical-RMU backfill removes a class of edge cases (overwriting a country's hand-tuned RMU label, ordering hazards around `kg` lookup) for no real benefit — the cascade rule applies to new admin actions, not to historical seed state.
 
 ### 9. Authorization
 
@@ -177,4 +176,4 @@ The migration is forward-only and pure additive — no rows are deleted or modif
 - **[Magnitude immutability is a hard rule]** → Once an admin picks the wrong magnitude on creation, they cannot fix it after data is recorded; their only recourse is to soft-delete and create a replacement under a different abbreviation. Mitigation: clear error messages, magnitude shown prominently in the create form, and a confirm step.
 - **[Restore-with-partial-overwrite is asymmetric]** → A soft-deleted unit with no references restores fully; one with references restores only its labels. The screen's UX must communicate this clearly when admins re-create an existing abbreviation. Mitigation: the API response should indicate whether the operation was a fresh create, full restore, or label-only restore so the UI can show an appropriate confirmation.
 - **[`kg.id` lookup at every cascade]** → Adds one query per create/update/restore. Negligible at admin scale (low traffic), but worth caching within the request transaction. Mitigation: resolve `kg` once at the start of each transaction.
-- **[Backfill migration may behave differently per deployment]** → If a country deployment seeded a unit without its canonical RMU, the backfill creates the RMU with default-derived strings. This may shadow a custom RMU name the country had used before. Mitigation: idempotent backfill that only creates when missing — never overwrites.
+- **[Pre-existing seed gaps go unfixed]** → Because we are not backfilling canonical RMUs, a country deployment that seeded an MU without its `kg/<abbrev>` RMU will keep that gap until an admin re-saves the MU through the maintainer screen (which re-triggers the cascade). Mitigation: country deployments are responsible for their own seed consistency; the cascade rule guarantees correctness from the first admin write forward.

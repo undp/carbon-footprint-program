@@ -3,8 +3,8 @@
 - [ ] 1.1 Add a new Prisma enum `MeasurementUnitStatus { ACTIVE, DELETED }` (mapped to `measurement_unit_status`) in `packages/database/src/prisma/schema.prisma`.
 - [ ] 1.2 Add `status MeasurementUnitStatus @default(ACTIVE)` to the `MeasurementUnit` model.
 - [ ] 1.3 Add `status MeasurementUnitStatus @default(ACTIVE)` to the `RateMeasurementUnit` model.
-- [ ] 1.4 Generate the migration. The migration SHALL set all existing rows to `ACTIVE` (default does this implicitly).
-- [ ] 1.5 Add a backfill step inside the migration (or a separate migration) that, for every `MeasurementUnit` without a `RateMeasurementUnit` where `numeratorMeasurementUnitId = (kg).id AND denominatorMeasurementUnitId = MU.id`, inserts the missing canonical RMU with `abbreviation = "kg/" || MU.abbreviation`, `name = "kg por " || MU.name`, and `status = ACTIVE`. The step SHALL be idempotent (no-op when the RMU already exists). It SHALL throw if the `kg` MU does not exist.
+- [ ] 1.4 Edit the original base migration (`packages/database/src/prisma/migrations/20251211144312_base/migration.sql`) where `measurement_unit` and `rate_measurement_unit` are created: add the `measurement_unit_status` enum type and add the `status` column (defaulting to `ACTIVE`) to both `CREATE TABLE` statements. Do NOT create a new migration file.
+- [ ] 1.5 Update `packages/database/src/prisma/seeds/scripts/seedMeasurementUnits.ts` to assert canonical-RMU coverage at seed time. After the rate measurement units are inserted, resolve the `kg` MU and verify that for every `MeasurementUnit` there exists at least one `RateMeasurementUnit` with `numeratorMeasurementUnitId = kg.id AND denominatorMeasurementUnitId = MU.id`. Throw a descriptive error listing every MU that is missing its canonical RMU (and throw separately if the `kg` MU itself is missing). The check SHALL run for every dataset.
 - [ ] 1.6 Run `pnpm prisma generate` to update the Prisma client types.
 
 ## 2. Types — Shared Schemas (`packages/types`)
@@ -132,7 +132,6 @@
 - [ ] 16.2 Integration test for `updateMeasurementUnit`: rename cascade to RMU, locked-field rejection when `referenceCount > 0`, `kg` row rejection, base-unit rejection, `isBase` toggle rejection, abbreviation collision on rename, 404 path, auth checks.
 - [ ] 16.3 Integration test for `deleteMeasurementUnit`: happy-path soft-delete cascades to RMU, `kg` rejection, base rejection, 404 path, auth checks. Verify the row remains queryable when status is excluded from the filter.
 - [ ] 16.4 Integration test for `getAllMeasurementUnits`: returns only `ACTIVE`, includes `referenceCount`, default order is `(magnitude, name)`.
-- [ ] 16.5 Test the backfill migration logic (or its programmatic equivalent) on a fixture where one MU lacks its canonical RMU: backfill creates exactly the missing one and is a no-op on a second run.
 
 ## 17. Documentation
 

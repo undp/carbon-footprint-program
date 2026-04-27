@@ -4,10 +4,10 @@
 
 The system SHALL introduce a Prisma enum `MeasurementUnitStatus { ACTIVE, DELETED }` and add a `status` column with default `ACTIVE` to both `MeasurementUnit` and `RateMeasurementUnit`. No row is ever hard-deleted by the maintainer endpoints.
 
-#### Scenario: Existing rows after migration
+#### Scenario: Existing rows after schema change
 
-- **WHEN** the migration is applied to a database with pre-existing measurement units and rate measurement units
-- **THEN** every existing row SHALL have `status = ACTIVE` and no rows SHALL be removed
+- **WHEN** the base migration (which now includes the `status` column with default `ACTIVE`) is applied
+- **THEN** every existing row SHALL have `status = ACTIVE` via the column default and no rows SHALL be removed
 
 #### Scenario: Soft-deleting an MU cascades to its canonical RMU
 
@@ -28,10 +28,10 @@ For every `MeasurementUnit X`, the system SHALL maintain exactly one `RateMeasur
 - **WHEN** an admin renames an MU's `abbreviation` from `m3` to `m^3` (or its `name`)
 - **THEN** the system SHALL update the canonical RMU's `abbreviation` and `name` from the new MU values in the same transaction; the RMU's id, numerator, denominator, and status SHALL remain unchanged
 
-#### Scenario: Backfill migration creates missing canonical RMU
+#### Scenario: Seed-time canonical RMU coverage check
 
-- **WHEN** the backfill step runs against a deployment where some MU lacks a canonical RMU
-- **THEN** the system SHALL insert the missing RMU using the derived `abbreviation` and `name`; the step SHALL be idempotent (re-running it on the same database SHALL be a no-op)
+- **WHEN** the measurement-unit seed script runs for any dataset
+- **THEN** after inserting the seeded rate measurement units, the script SHALL verify that every `MeasurementUnit` has at least one `RateMeasurementUnit` with `numeratorMeasurementUnitId = (kg).id AND denominatorMeasurementUnitId = MU.id`, and SHALL throw a descriptive error naming every MU lacking its canonical RMU (or naming `kg` if the `kg` MU itself is missing)
 
 ### Requirement: The `kg` measurement unit is system-protected
 
