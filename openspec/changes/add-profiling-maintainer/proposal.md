@@ -94,7 +94,7 @@ The existing public read endpoints (`GET /country-sectors`, `GET /country-organi
 
 - `name`: `z.string().trim().min(1).max(255)` (trim before min/max).
 - `description`: `z.string().trim().max(2000).nullable().optional()`; PATCH tri-state (`undefined` = no-op, `null` = clear, `""` → normalized to null at service).
-- PATCH body refined with `.refine(v => Object.keys(v).length > 0)` so empty `{}` returns 400.
+- PATCH body refined with `.refine(v => Object.values(v).some((value) => value !== undefined))` so empty `{}` and no-op payloads (e.g. `{ name: undefined }`) return 400.
 - All Zod messages in Spanish.
 
 ### Docs
