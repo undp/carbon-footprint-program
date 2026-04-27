@@ -34,7 +34,7 @@ export const UsersScreen: FC = () => {
   const viewerId = me?.id ?? "";
   const isSuperadmin = viewerRole === SystemRole.SUPERADMIN;
 
-  const allUsers = users ?? [];
+  const allUsers = useMemo<GetAllUsersResponse>(() => users ?? [], [users]);
 
   const filteredUsers = useMemo((): GetAllUsersResponse => {
     if (activeTab === "usuarios") {

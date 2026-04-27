@@ -108,13 +108,6 @@ export const useUsersColumns = ({
         },
       },
     ],
-    [
-      activeTab,
-      viewerRole,
-      viewerId,
-      onViewHistory,
-      onChangeRole,
-      showChangeRole,
-    ]
+    [viewerId, onViewHistory, onChangeRole, showChangeRole]
   );
 };
