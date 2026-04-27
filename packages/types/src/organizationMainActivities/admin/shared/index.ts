@@ -1,1 +1,4 @@
-export * from "./schemas.js";
+export {
+  AdminOrganizationMainActivitySchema,
+  type AdminOrganizationMainActivity,
+} from "./schemas.js";

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AdminListStatusFilterSchema } from "../../../countrySectors/admin/getAllAdminCountrySectors/schemas.js";
+import { AdminListStatusFilterSchema } from "../../../admin/shared/schemas.js";
 import { AdminOrganizationMainActivitySchema } from "../shared/schemas.js";
 
 export const GetAllAdminOrganizationMainActivitiesQuerySchema = z.object({

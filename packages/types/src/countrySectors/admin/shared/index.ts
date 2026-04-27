@@ -1,1 +1,4 @@
-export * from "./schemas.js";
+export {
+  AdminCountrySectorSchema,
+  type AdminCountrySector,
+} from "./schemas.js";
