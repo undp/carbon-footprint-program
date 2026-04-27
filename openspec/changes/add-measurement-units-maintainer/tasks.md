@@ -86,7 +86,7 @@
 
 ## 9. API — Route Registration
 
-- [ ] 9.1 Update or create the route module under `apps/api/src/routes/api/measurement-units/index.ts` to register the new create/update/delete routes alongside the existing list route. Apply hooks: `fastify.addHook("onRequest", fastify.requireAuth)` and `fastify.addHook("preHandler", fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN]))` once at the module level so they cover every route.
+- [ ] 9.1 Update `apps/api/src/routes/api/measurement-units/index.ts` to register the new mutation routes without regressing the existing public-list endpoints. Keep `getAllMeasurementUnitsRoute(fastify)` and `getAllRateMeasurementUnitsRoute(fastify)` at the outer scope (no auth/role hooks), then call `fastify.register((f) => { ... })` to create a child scope that adds `f.addHook("onRequest", f.requireAuth)` and `f.addHook("preHandler", f.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN]))`, and inside that scope register `createMeasurementUnitRoute(f)`, `updateMeasurementUnitRoute(f)`, and `deleteMeasurementUnitRoute(f)`. Mirror the existing pattern from `apps/api/src/routes/api/badges/index.ts`. Do NOT apply the role guard at the module level — the list endpoints are consumed by the `EmissionEditor` (`apps/web/src/screens/CarbonInventory/components/EmissionEditor/hooks/useEmissionEditorData.ts`) for non-admin users.
 
 ## 10. API — Cross-cutting Picker Audit
 
