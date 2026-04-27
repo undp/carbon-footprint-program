@@ -172,7 +172,7 @@
 - [ ] 15.1 Run `pnpm format && pnpm lint && pnpm type-check`
 - [ ] 15.2 Run `pnpm test --filter=api -- /updateUser/integration.test.ts --coverage=false` and confirm green
 - [ ] 15.3 Manual smoke test: log in as USER and complete profile via `UserFormScreen` (regression check for the latent self-edit bug)
-- [ ] 15.4 Manual smoke test: log in as ADMIN, open `/admin/users`, verify read-only state (no header button, no row actions)
+- [ ] 15.4 Manual smoke test: log in as ADMIN, open `/admin/users`, and verify the read-only state precisely: the "Ver historial" row action is **visible** on both tabs (consistent with tasks 10.4 and 14.2), AND **no role-mutating row actions** are rendered (e.g., no "Cambiar rol"), AND **no header role-change button** is rendered (no "Promover a admin")
 - [ ] 15.5 Manual smoke test: log in as SUPERADMIN, exercise promote and unified change-role flows (including demote-to-USER via the inline confirmation); verify INV-1 (own row) and INV-2 (last SUPERADMIN) UI gates
 - [ ] 15.6 Verify the new screen contains no country-coded literals (INV-3): all strings sourced from `screens/Users/constants.ts` or `getApiErrorMessage`
 - [ ] 15.7 Manual smoke test: after a role change, "Ver historial" on that user shows the new transition as the most recent entry; pre-existing admins (no transitions) show the empty state
