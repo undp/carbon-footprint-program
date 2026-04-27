@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from "react";
+import { FC, ReactNode, useCallback, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -31,14 +31,14 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       await onSave(localValue);
       onClose();
     } catch {
       // The parent surfaces the error; keep the modal open so edits are not lost.
     }
-  };
+  }, [localValue, onClose, onSave]);
 
   return (
     <>
