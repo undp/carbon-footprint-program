@@ -73,7 +73,7 @@ Both string fields are rebuilt from the parent MU on every MU rename. The RMU ha
 
 **Alternatives considered**:
 
-- **B1: partial unique index** (`UNIQUE WHERE status='ACTIVE'`): cleanest model but Prisma lacks first-class support — would require raw SQL migration and removing `@unique` from the schema. Rejected for tooling friction.
+- **B1: partial unique index** (`UNIQUE WHERE status='ACTIVE'`): technically viable. Prisma 5+ supports filtered unique constraints declaratively via the model-level `@@unique([abbreviation], where: { status: MeasurementUnitStatus.ACTIVE })` syntax behind the `partialIndexes` preview flag (must be added to `previewFeatures` in `schema.prisma` alongside the existing `views`), and Prisma Migrate auto-generates the SQL — no raw migration or removal of `@unique` required. The feature is supported on PostgreSQL (this project's database), SQLite, SQL Server, and CockroachDB; it is NOT supported on MySQL. Rejected not on technical grounds but because the chosen approach (B2: lookup-including-deleted with restore-or-error branching) gives admins a friendlier "your unit was soft-deleted, here it is again with the new payload" recovery path. Under B1, an admin re-creating the abbreviation of a soft-deleted unit would just succeed silently into a new row, leaving the deleted row orphaned and breaking the implicit "one logical unit per abbreviation" mental model. B2 was chosen for restore/branching semantics, not because B1 is unimplementable.
 - **B3: disallow reuse**: simplest server logic but an admin who deletes a unit by mistake can never restore it. Worst UX. Rejected.
 
 ### 4. Field-locking based on reference count
