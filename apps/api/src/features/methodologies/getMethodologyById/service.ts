@@ -14,7 +14,12 @@ export const getMethodologyByIdService = async (
   const methodology = await prismaClient.methodologyVersion.findFirst({
     where: {
       id: BigInt(id),
-      status: { not: MethodologyVersionStatus.DELETED },
+      status: {
+        in: [
+          MethodologyVersionStatus.PUBLISHED,
+          MethodologyVersionStatus.UNPUBLISHED,
+        ],
+      },
     },
     select: {
       id: true,
