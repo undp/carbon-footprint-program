@@ -18,8 +18,8 @@ export const KPI_LABELS = {
 
 export const ROLE_LABELS: Record<SystemRole, string> = {
   [SystemRole.USER]: "Usuario",
-  [SystemRole.ADMIN]: "Administrador",
-  [SystemRole.SUPERADMIN]: "Super Administrador",
+  [SystemRole.ADMIN]: "Admin",
+  [SystemRole.SUPERADMIN]: "Superadmin",
 };
 
 export const COLUMN_HEADERS = {
