@@ -173,16 +173,46 @@ The endpoints `POST /api/measurement-units`, `PATCH /api/measurement-units/:id`,
 
 ### Requirement: Validation rules for create and update
 
-The create endpoint and the update endpoint SHALL validate inputs via Zod. `name` and `abbreviation` SHALL be non-empty strings. `baseFactor` SHALL be a positive number greater than zero. `magnitude` SHALL be a value of the `Magnitude` enum. `isBase` SHALL be a boolean. The update endpoint accepts a partial of these fields with the same per-field validations when present.
+The create endpoint and the update endpoint SHALL validate inputs via the same Zod schemas declared in `packages/types/src/measurementUnits/admin/{createMeasurementUnit,updateMeasurementUnit}/schemas.ts` and passed to Fastify's `schema` option (so request validation, response serialization, and Swagger docs all derive from a single source). The update endpoint's body schema is a `.partial()` of the create body schema; every per-field rule below applies on update whenever the field is present.
 
-#### Scenario: Negative baseFactor
+The rules are:
+
+- `name`: non-empty string, trimmed of leading/trailing whitespace, length ≤ `MEASUREMENT_UNIT_NAME_MAX_LENGTH`.
+- `abbreviation`: non-empty string, trimmed, length ≤ `MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH`, MUST NOT contain whitespace characters, control characters, or the `/` character (because `/` collides with the canonical RMU derivation `kg/<abbreviation>`).
+- `baseFactor`: a finite number strictly greater than zero (`Infinity`, `-Infinity`, `NaN`, and `0` are rejected).
+- `magnitude`: a member of the `Magnitude` enum.
+- `isBase`: a boolean.
+
+The two `MEASUREMENT_UNIT_*_MAX_LENGTH` constants SHALL live in `packages/constants/` (per the country-agnosticism rule for shared limits) and SHALL be re-used by both the Zod schema in `packages/types` and any frontend form-side validation.
+
+#### Scenario: Negative or zero baseFactor
 
 - **WHEN** an admin creates an MU with `baseFactor <= 0`
 - **THEN** the system SHALL respond with HTTP 400
 
+#### Scenario: Non-finite baseFactor
+
+- **WHEN** an admin creates an MU with `baseFactor` equal to `Infinity`, `-Infinity`, or `NaN`
+- **THEN** the system SHALL respond with HTTP 400 (Zod's `.finite()` rejects it)
+
 #### Scenario: Empty abbreviation
 
-- **WHEN** an admin creates an MU with `abbreviation = ""`
+- **WHEN** an admin creates an MU with `abbreviation = ""` (or a string that becomes empty after trimming)
+- **THEN** the system SHALL respond with HTTP 400
+
+#### Scenario: Empty name
+
+- **WHEN** an admin creates an MU with `name = ""` (or a string that becomes empty after trimming)
+- **THEN** the system SHALL respond with HTTP 400
+
+#### Scenario: Abbreviation contains invalid characters
+
+- **WHEN** an admin creates or updates an MU with an `abbreviation` that contains any whitespace character (space, tab, newline), any ASCII control character, or the `/` character (e.g., `"m s"`, `"kg\n"`, `"m/s"`)
+- **THEN** the system SHALL respond with HTTP 400. The `/` rule exists specifically to prevent corrupting the canonical RMU abbreviation `kg/<MU.abbreviation>`
+
+#### Scenario: Name or abbreviation exceeds maximum length
+
+- **WHEN** an admin creates or updates an MU with `name.length > MEASUREMENT_UNIT_NAME_MAX_LENGTH` or `abbreviation.length > MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH`
 - **THEN** the system SHALL respond with HTTP 400
 
 #### Scenario: Invalid magnitude
