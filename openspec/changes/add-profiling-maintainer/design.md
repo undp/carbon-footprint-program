@@ -87,7 +87,7 @@ Blocking matrix:
 
 **Alternatives considered:**
 
-- Composite unique including `status` (`@@unique([countryId, name, status])`) — allows one ACTIVE and one DELETED with the same name, but also allows two DELETED rows with the same name, which is confusing on restore (which one takes the name?).
+- Composite unique including `status` (`@@unique([countryId, name, status])`) — enforces uniqueness across the full `(countryId, name, status)` triplet, so it correctly rejects a second ACTIVE row with the same `(countryId, name)` AND a second DELETED row with that same `(countryId, name)`. What it permits is one ACTIVE plus one DELETED sharing the same `(countryId, name)`, which is the part we want — but the cost is that the constraint applies symmetrically to the DELETED side, forcing a rename on every soft-delete pair. A partial unique index `(countryId, name) WHERE status = 'ACTIVE'` (the chosen approach) is the cleaner fit: only the ACTIVE subset is constrained, DELETED rows are free to share names with each other (audit history retains the original label without contortion), and restore-side collisions are handled at the endpoint with an explicit 409.
 - Rename-on-delete (append `_deleted_<timestamp>` to name when soft-deleting) — corrupts the display label for historical references that still render the name.
 - No uniqueness when DELETED — admin can create a new ACTIVE "Industria" while a DELETED "Industria" exists; restore collision handled at the endpoint level with a 409.
 
