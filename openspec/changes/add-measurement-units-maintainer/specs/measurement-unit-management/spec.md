@@ -107,8 +107,13 @@ The create endpoint SHALL look up an existing row by abbreviation including `DEL
 
 #### Scenario: Rename collides with a soft-deleted abbreviation
 
-- **WHEN** an admin updates an MU's `abbreviation` to a value that any other row (ACTIVE or DELETED) already holds
+- **WHEN** an admin updates an MU's `abbreviation` to a value that any **other** row (ACTIVE or DELETED, with a different `id` than the target MU) already holds
 - **THEN** the system SHALL respond with HTTP 409 and the `MeasurementUnitAbbreviationAlreadyExistsError` code
+
+#### Scenario: No-op rename to the same abbreviation succeeds
+
+- **WHEN** an admin sends an update whose `abbreviation` field equals the target MU's current `abbreviation` (the rename is a no-op against itself)
+- **THEN** the system SHALL NOT respond with `MeasurementUnitAbbreviationAlreadyExistsError`. The update SHALL succeed with HTTP 200; because nothing changed on the abbreviation, the canonical RMU's `abbreviation`/`name` SHALL NOT be re-derived (the cascade triggers only when `name` or `abbreviation` actually changes per the update service)
 
 ### Requirement: Mutating physical fields is locked once a unit is referenced
 
