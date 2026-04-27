@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import type { PrismaClient } from "@repo/database";
 import {
   SubcategoryRecommendationStatus,
   type CreateSubcategoryRecommendationRequest,
@@ -7,7 +7,6 @@ import {
 } from "@repo/types";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/DatabaseUniqueConstraintViolationError.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { loadGroup } from "../helpers.js";
 
 export const createSubcategoryRecommendationService = async (
   prismaClient: PrismaClient,
@@ -22,50 +21,38 @@ export const createSubcategoryRecommendationService = async (
   const subsectorId = data.subsectorId ? BigInt(data.subsectorId) : null;
   const userId = BigInt(user.id);
 
-  try {
-    return await prismaClient.$transaction(async (tx) => {
-      const existingActive = await tx.subcategoryRecommendation.findFirst({
-        where: {
-          sectorId,
-          subsectorId,
-          status: SubcategoryRecommendationStatus.ACTIVE,
-        },
-        select: { id: true },
-      });
-
-      if (existingActive) {
-        throw new DatabaseUniqueConstraintViolationError();
-      }
-
-      await tx.subcategoryRecommendation.createMany({
-        data: data.subcategoryIds.map((subcategoryId) => ({
-          sectorId,
-          subsectorId,
-          subcategoryId: BigInt(subcategoryId),
-          status: SubcategoryRecommendationStatus.ACTIVE,
-          createdById: userId,
-          updatedAt: null,
-        })),
-      });
-
-      const refreshed = await loadGroup(tx, sectorId, subsectorId);
-      if (!refreshed) {
-        throw new Error(
-          "Failed to load the refreshed subcategory recommendation group"
-        );
-      }
-      return refreshed;
+  return prismaClient.$transaction(async (tx) => {
+    const existingActive = await tx.subcategoryRecommendation.findFirst({
+      where: {
+        sectorId,
+        subsectorId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+      select: { id: true },
     });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      // Partial unique ACTIVE index rejected a concurrent insert — surface
-      // the same 409 the pre-check path returns so both paths collapse into
-      // a single error surface.
+
+    if (existingActive) {
       throw new DatabaseUniqueConstraintViolationError();
     }
-    throw error;
-  }
+
+    // Concurrent inserts that bypass the pre-check are rejected by the
+    // partial unique ACTIVE index (P2002); the global error handler maps
+    // that to a 409 response.
+    await tx.subcategoryRecommendation.createMany({
+      data: data.subcategoryIds.map((subcategoryId) => ({
+        sectorId,
+        subsectorId,
+        subcategoryId: BigInt(subcategoryId),
+        status: SubcategoryRecommendationStatus.ACTIVE,
+        createdById: userId,
+        updatedAt: null,
+      })),
+    });
+
+    return {
+      sectorId: sectorId.toString(),
+      subsectorId: subsectorId?.toString() ?? null,
+      subcategoryIds: data.subcategoryIds,
+    };
+  });
 };
