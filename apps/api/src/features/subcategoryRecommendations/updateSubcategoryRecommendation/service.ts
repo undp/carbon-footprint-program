@@ -6,6 +6,7 @@ import {
   type UpdateSubcategoryRecommendationResponse,
   type User,
 } from "@repo/types";
+import { difference } from "lodash-es";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const updateSubcategoryRecommendationService = async (
@@ -34,15 +35,16 @@ export const updateSubcategoryRecommendationService = async (
     });
 
     const existingIds = existingRows.map((row) => row.subcategoryId.toString());
+    const idsToRemove = difference(existingIds, data.subcategoryIds);
+    const idsToAdd = difference(data.subcategoryIds, existingIds);
 
-    const toRemove = existingRows.filter(
-      (row) => !data.subcategoryIds.includes(row.subcategoryId.toString())
-    );
-    const toAdd = data.subcategoryIds.filter((id) => !existingIds.includes(id));
+    if (idsToRemove.length > 0) {
+      const rowIdsToRemove = existingRows
+        .filter((row) => idsToRemove.includes(row.subcategoryId.toString()))
+        .map((row) => row.id);
 
-    if (toRemove.length > 0) {
       await tx.subcategoryRecommendation.updateMany({
-        where: { id: { in: toRemove.map((row) => row.id) } },
+        where: { id: { in: rowIdsToRemove } },
         data: {
           status: SubcategoryRecommendationStatus.DELETED,
           updatedById: userId,
@@ -50,9 +52,9 @@ export const updateSubcategoryRecommendationService = async (
       });
     }
 
-    if (toAdd.length > 0) {
+    if (idsToAdd.length > 0) {
       await tx.subcategoryRecommendation.createMany({
-        data: toAdd.map((subcategoryId) => ({
+        data: idsToAdd.map((subcategoryId) => ({
           sectorId,
           subsectorId,
           subcategoryId: BigInt(subcategoryId),
