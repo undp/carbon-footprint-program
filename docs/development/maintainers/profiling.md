@@ -80,8 +80,15 @@ The helper is identity-stable when no merge is needed. It sorts the result alpha
 **Wired consumers:**
 
 - `apps/web/src/screens/MyOrganization/components/OrganizationForm/hooks/useOrganizationData.ts` — sectors, subsectors, main activities, organization sizes. Driven by the parent `OrganizationFormDialog` which passes `organization.sector / .subsector / .mainActivity / .countryOrganizationSize`.
+- `apps/web/src/screens/CarbonInventory/hooks/useBusinessProfilingData.ts` — same four selectors. Driven by `BusinessProfilingScreen`, which passes the inventory's `organizationData.{sector,subsector,mainActivity,size}` resolved references.
 
-**Not yet wired** (follow-up): `apps/web/src/screens/CarbonInventory/hooks/useBusinessProfilingData.ts`. The carbon inventory's `organizationData` payload currently carries only catalog ids — extending that response shape to include names is required before this consumer can apply the union.
+**Read-only consumers (no union needed):**
+
+- `apps/web/src/screens/MyOrganization/components/OrganizationProfileSection.tsx` — purely displays `profile.sector?.name` etc. The `getOrganizationByIdService` joins on the catalog tables via Prisma `include` (no status filter), so DELETED rows still return their name and the section renders them as-is. No selector dropdowns means there is no list to merge into.
+
+### Inventory-side resolved references
+
+The inventory's `organizationData` JSON column stores only ids. To support the selector union without leaking JSON-column responsibility into the rendering layer, the `getCarbonInventoryById` and `updateCarbonInventory` services resolve the four ids to `{ id, name }` via a `Promise.all` of `findUnique` calls (no status filter — DELETED rows are returned). The resolved pairs land on the response under `organizationData.sector / .subsector / .size / .mainActivity`. The shared resolver lives in `apps/api/src/features/carbonInventories/helpers.ts` (`resolveInventoryOrganizationDataReferences`).
 
 ## Admin list filter + restore
 
