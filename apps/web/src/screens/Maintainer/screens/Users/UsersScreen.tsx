@@ -108,16 +108,15 @@ export const UsersScreen: FC = () => {
         </Stack>
       </Card>
 
+      <UsersScreenTabs activeTab={activeTab} />
+
       <UsersScreenKpiSection />
 
-      <Box>
-        <UsersScreenTabs activeTab={activeTab} />
-        <UsersScreenTable
-          rows={filteredUsers}
-          columns={columns}
-          isLoading={isLoading}
-        />
-      </Box>
+      <UsersScreenTable
+        rows={filteredUsers}
+        columns={columns}
+        isLoading={isLoading}
+      />
 
       {isSuperadmin && (
         <PromoteUserDialog
