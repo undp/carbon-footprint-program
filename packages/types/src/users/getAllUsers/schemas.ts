@@ -11,6 +11,11 @@ export const UserOrganizationMembershipItemSchema = z.object({
 export const GetAllUsersItemSchema = UserBaseSchema.extend({
   jobPositionName: z.string().nullable(),
   organizations: z.array(UserOrganizationMembershipItemSchema),
+  active: z
+    .boolean()
+    .describe(
+      "Whether the user is considered active based on the system parameter threshold"
+    ),
 });
 
 export const GetAllUsersResponseSchema = z.array(GetAllUsersItemSchema);

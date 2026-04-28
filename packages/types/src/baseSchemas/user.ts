@@ -37,6 +37,10 @@ export const UserBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The date the user accepted the terms"),
+  lastAccessAt: z.iso
+    .datetime()
+    .nullable()
+    .describe("The date the user last accessed the app"),
 });
 
 export type User = z.infer<typeof UserBaseSchema>;
