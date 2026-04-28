@@ -27,5 +27,16 @@ export const getMeService = async (
     return null;
   }
 
-  return mapUserToResponse(user);
+  const now = new Date();
+  const [updatedUser] = await prismaClient.$transaction([
+    prismaClient.user.update({
+      where: { id: user.id },
+      data: { lastAccessAt: now },
+    }),
+    prismaClient.userAccessLog.create({
+      data: { userId: user.id, createdAt: now },
+    }),
+  ]);
+
+  return mapUserToResponse(updatedUser);
 };
