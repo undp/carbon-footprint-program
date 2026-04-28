@@ -3,7 +3,7 @@ import { IdSchema } from "../../../zod.js";
 import { AdminOrganizationMainActivitySchema } from "../shared/schemas.js";
 
 export const RestoreOrganizationMainActivityParamsSchema = z.strictObject({
-  id: IdSchema.describe("ID de la actividad principal a restaurar"),
+  id: IdSchema.describe("The ID of the organization main activity to restore"),
 });
 
 export const RestoreOrganizationMainActivityResponseSchema =

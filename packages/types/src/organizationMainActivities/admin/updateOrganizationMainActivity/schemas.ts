@@ -3,7 +3,7 @@ import { IdSchema } from "../../../zod.js";
 import { AdminOrganizationMainActivitySchema } from "../shared/schemas.js";
 
 export const UpdateOrganizationMainActivityParamsSchema = z.strictObject({
-  id: IdSchema.describe("ID de la actividad principal a actualizar"),
+  id: IdSchema.describe("The ID of the organization main activity to update"),
 });
 
 export const UpdateOrganizationMainActivityRequestSchema = z
@@ -11,29 +11,29 @@ export const UpdateOrganizationMainActivityRequestSchema = z
     name: z
       .string()
       .trim()
-      .min(1, { message: "El nombre es obligatorio" })
-      .max(255, { message: "El nombre no puede superar los 255 caracteres" })
+      .min(1, { message: "Name is required" })
+      .max(255, { message: "Name cannot exceed 255 characters" })
       .optional()
-      .describe("Nuevo nombre"),
+      .describe("New name of the organization main activity"),
     countrySectorId: IdSchema.nullable()
       .optional()
-      .describe("Nuevo rubro padre"),
+      .describe("New parent country sector ID (null to clear)"),
     countrySubsectorId: IdSchema.nullable()
       .optional()
-      .describe("Nuevo subrubro padre"),
+      .describe("New parent country subsector ID (null to clear)"),
     description: z
       .string()
       .trim()
-      .max(2000, {
-        message: "La descripción no puede superar los 2000 caracteres",
-      })
+      .max(2000, { message: "Description cannot exceed 2000 characters" })
       .nullable()
       .optional()
-      .describe("Nueva descripción (null para limpiar)"),
+      .describe(
+        "New description of the organization main activity (null to clear)"
+      ),
   })
   .strict()
   .refine((value) => Object.values(value).some((v) => v !== undefined), {
-    message: "Se requiere al menos un campo para actualizar",
+    message: "At least one field is required to update",
   });
 
 export const UpdateOrganizationMainActivityResponseSchema =

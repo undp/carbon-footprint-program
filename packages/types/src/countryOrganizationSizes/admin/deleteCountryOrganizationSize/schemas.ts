@@ -3,7 +3,7 @@ import { IdSchema } from "../../../zod.js";
 import { AdminCountryOrganizationSizeSchema } from "../shared/schemas.js";
 
 export const DeleteCountryOrganizationSizeParamsSchema = z.strictObject({
-  id: IdSchema.describe("ID del tamaño de organización a eliminar"),
+  id: IdSchema.describe("The ID of the country organization size to delete"),
 });
 
 export const DeleteCountryOrganizationSizeResponseSchema =

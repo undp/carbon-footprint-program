@@ -3,7 +3,7 @@ import { IdSchema } from "../../../zod.js";
 import { AdminCountrySectorSchema } from "../shared/schemas.js";
 
 export const UpdateCountrySectorParamsSchema = z.strictObject({
-  id: IdSchema.describe("ID del rubro a actualizar"),
+  id: IdSchema.describe("The ID of the country sector to update"),
 });
 
 export const UpdateCountrySectorRequestSchema = z
@@ -11,23 +11,21 @@ export const UpdateCountrySectorRequestSchema = z
     name: z
       .string()
       .trim()
-      .min(1, { message: "El nombre es obligatorio" })
-      .max(255, { message: "El nombre no puede superar los 255 caracteres" })
+      .min(1, { message: "Name is required" })
+      .max(255, { message: "Name cannot exceed 255 characters" })
       .optional()
-      .describe("Nuevo nombre del rubro"),
+      .describe("New name of the country sector"),
     description: z
       .string()
       .trim()
-      .max(2000, {
-        message: "La descripción no puede superar los 2000 caracteres",
-      })
+      .max(2000, { message: "Description cannot exceed 2000 characters" })
       .nullable()
       .optional()
-      .describe("Nueva descripción del rubro (null para limpiar)"),
+      .describe("New description of the country sector (null to clear)"),
   })
   .strict()
   .refine((value) => Object.values(value).some((v) => v !== undefined), {
-    message: "Se requiere al menos un campo para actualizar",
+    message: "At least one field is required to update",
   });
 
 export const UpdateCountrySectorResponseSchema = AdminCountrySectorSchema;

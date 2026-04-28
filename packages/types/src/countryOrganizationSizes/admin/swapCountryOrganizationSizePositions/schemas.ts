@@ -4,8 +4,10 @@ import { AdminCountryOrganizationSizeSchema } from "../shared/schemas.js";
 
 export const SwapCountryOrganizationSizePositionsRequestSchema = z.strictObject(
   {
-    sizeIdA: IdSchema.describe("ID del primer tamaño de organización"),
-    sizeIdB: IdSchema.describe("ID del segundo tamaño de organización"),
+    sizeIdA: IdSchema.describe("The ID of the first country organization size"),
+    sizeIdB: IdSchema.describe(
+      "The ID of the second country organization size"
+    ),
   }
 );
 
@@ -13,5 +15,5 @@ export const SwapCountryOrganizationSizePositionsResponseSchema = z.object({
   organizationSizes: z
     .array(AdminCountryOrganizationSizeSchema)
     .length(2)
-    .describe("Los dos tamaños con sus posiciones intercambiadas"),
+    .describe("The two organization sizes with their positions swapped"),
 });
