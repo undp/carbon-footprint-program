@@ -292,6 +292,10 @@ export const SubsectorsMaintainerScreen: FC = () => {
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
+            localeText={{
+              noRowsLabel: "No hay subrubros para mostrar",
+              noResultsOverlayLabel: "No se encontraron subrubros",
+            }}
           />
         )}
       </Box>

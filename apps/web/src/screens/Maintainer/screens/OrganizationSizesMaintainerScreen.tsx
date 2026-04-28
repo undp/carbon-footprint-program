@@ -318,6 +318,10 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
+            localeText={{
+              noRowsLabel: "No hay tamaños para mostrar",
+              noResultsOverlayLabel: "No se encontraron tamaños",
+            }}
           />
         )}
       </Box>

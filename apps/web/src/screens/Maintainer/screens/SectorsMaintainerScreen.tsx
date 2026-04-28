@@ -260,6 +260,10 @@ export const SectorsMaintainerScreen: FC = () => {
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
+            localeText={{
+              noRowsLabel: "No hay rubros para mostrar",
+              noResultsOverlayLabel: "No se encontraron rubros",
+            }}
           />
         )}
       </Box>

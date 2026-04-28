@@ -333,6 +333,11 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
+            localeText={{
+              noRowsLabel: "No hay actividades principales para mostrar",
+              noResultsOverlayLabel:
+                "No se encontraron actividades principales",
+            }}
           />
         )}
       </Box>
