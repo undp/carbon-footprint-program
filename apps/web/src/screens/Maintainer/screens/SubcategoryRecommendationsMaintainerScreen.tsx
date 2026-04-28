@@ -135,21 +135,13 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     [persistedRows]
   );
 
-  // Apply local edits on top of persisted rows; filter temp rows that already
-  // collide with a persisted (sector, subsector) — avoids duplicates after a
-  // successful POST invalidates the list query.
   const rows = useMemo<SubcategoryRecommendationRow[]>(() => {
-    const persistedIds = new Set(persistedRows.map((r) => r.id));
-    const visibleTempRows = tempRows.filter((r) => {
-      if (!r.sectorId) return true;
-      return !persistedIds.has(buildRowId(r.sectorId, r.subsectorId));
-    });
     const decoratedPersisted = persistedRows.map((r) => {
       const edit = editedRows.get(r.id);
       if (!edit) return r;
       return { ...r, subcategoryIds: edit.subcategoryIds };
     });
-    return [...visibleTempRows, ...decoratedPersisted];
+    return [...tempRows, ...decoratedPersisted];
   }, [tempRows, persistedRows, editedRows]);
 
   const isRowDirty = useCallback(
