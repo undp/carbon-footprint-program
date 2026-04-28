@@ -1,5 +1,6 @@
 import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
 import type { GetAllMeasurementUnitsResponse } from "@repo/types";
+import { mapMeasurementUnitToResponse } from "../mappers.js";
 
 export const getAllMeasurementUnitsService = async (
   prismaClient: PrismaClient
@@ -114,15 +115,6 @@ export const getAllMeasurementUnitsService = async (
       (manualFactorCountByRmuId.get(rmuIdStr) ?? 0) +
       (appliedFactorCountByRmuId.get(rmuIdStr) ?? 0);
 
-    return {
-      id: muIdStr,
-      name: mu.name,
-      magnitude: mu.magnitude,
-      abbreviation: mu.abbreviation,
-      baseFactor: mu.baseFactor,
-      isBase: mu.isBase,
-      status: mu.status,
-      referenceCount,
-    };
+    return mapMeasurementUnitToResponse(mu, referenceCount);
   });
 };
