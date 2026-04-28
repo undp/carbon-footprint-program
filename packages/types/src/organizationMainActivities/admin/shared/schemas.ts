@@ -20,6 +20,13 @@ export const AdminOrganizationMainActivitySchema =
       .describe(
         "Whether the row is referenced by user data (organization profiling)"
       ),
+    impactedChildren: z
+      .object({
+        organizationData: z.number().int().nonnegative(),
+      })
+      .describe(
+        "Counts of external references that would be impacted if this main activity is soft-deleted."
+      ),
   });
 
 export type AdminOrganizationMainActivity = z.infer<

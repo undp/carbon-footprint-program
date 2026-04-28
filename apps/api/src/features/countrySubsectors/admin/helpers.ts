@@ -44,6 +44,11 @@ export const mapCountrySubsectorToAdmin = (
         counts.organizationMainActivities +
         counts.subcategoryRecommendations >
       0,
+    impactedChildren: {
+      activeMainActivities: counts.organizationMainActivities,
+      organizationData: counts.organizationData,
+      subcategoryRecommendations: counts.subcategoryRecommendations,
+    },
   };
 };
 

@@ -35,6 +35,9 @@ export const mapMainActivityToAdmin = (
     createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
     isInUse: counts.organizationData > 0,
+    impactedChildren: {
+      organizationData: counts.organizationData,
+    },
   };
 };
 

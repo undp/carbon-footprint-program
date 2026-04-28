@@ -11,6 +11,16 @@ export const AdminCountrySectorSchema = CountrySectorBaseSchema.extend({
     .describe(
       "Whether the row is referenced by user data (organization profiling) or by other catalog records"
     ),
+  impactedChildren: z
+    .object({
+      activeSubsectors: z.number().int().nonnegative(),
+      activeMainActivities: z.number().int().nonnegative(),
+      organizationData: z.number().int().nonnegative(),
+      subcategoryRecommendations: z.number().int().nonnegative(),
+    })
+    .describe(
+      "Counts of catalog children + external references that would be impacted if this sector is soft-deleted. Used by the admin UI to show a confirmation dialog before delete."
+    ),
 });
 
 export type AdminCountrySector = z.infer<typeof AdminCountrySectorSchema>;
