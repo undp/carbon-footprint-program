@@ -4,6 +4,7 @@ import { listQueryParam } from "../../zod.js";
 export const SystemParameterKeySchema = z.enum([
   "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
   "SUBCATEGORY_RECOMMENDATION_MODE",
+  "USER_INACTIVE_THRESHOLD_DAYS",
 ]);
 
 export const SystemParameterKeyEnum = SystemParameterKeySchema.enum;
@@ -25,6 +26,8 @@ export const SubcategoryRecommendationModeSchema = z.enum([
 export const SubcategoryRecommendationModeEnum =
   SubcategoryRecommendationModeSchema.enum;
 
+export const UserInactiveThresholdDaysSchema = z.string().regex(/^\d+$/);
+
 /**
  * IMPORTANT: Every system parameter key MUST have an entry in this discriminated union.
  * This is intentional — if the API returns a parameter whose key is not registered here,
@@ -45,6 +48,10 @@ export const SystemParameterEntrySchema = z.discriminatedUnion("key", [
   z.object({
     key: z.literal(SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE),
     value: SubcategoryRecommendationModeSchema,
+  }),
+  z.object({
+    key: z.literal(SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS),
+    value: UserInactiveThresholdDaysSchema,
   }),
 ]);
 

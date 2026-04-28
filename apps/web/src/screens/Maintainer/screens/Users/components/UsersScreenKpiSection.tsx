@@ -1,13 +1,14 @@
 import { FC, useMemo } from "react";
-import { Stack, useTheme } from "@mui/material";
+import { Stack, Tooltip, useTheme } from "@mui/material";
 import {
   PeopleOutlined,
   AdminPanelSettingsOutlined,
   TrendingUpOutlined,
   SecurityOutlined,
 } from "@mui/icons-material";
-import { SystemRole } from "@repo/types";
+import { SystemParameterKeyEnum, SystemRole } from "@repo/types";
 import { useUsers } from "@/api/query/users";
+import { useSystemParameters } from "@/api/query/systemParameters";
 import { KpiSummaryCard } from "@/screens/AdminDashboard/components/KpiSummaryCard";
 import { KPI_LABELS, type TabKey } from "../constants";
 
@@ -19,17 +20,31 @@ export const UsersScreenKpiSection: FC<UsersScreenKpiSectionProps> = ({
   activeTab,
 }) => {
   const { data: users, isLoading, isError } = useUsers();
+  const { data: systemParameters } = useSystemParameters([
+    SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS,
+  ]);
   const theme = useTheme();
 
+  const thresholdDays = useMemo(() => {
+    const param = systemParameters?.find(
+      (p) => p.key === SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS
+    );
+    return parseInt(param?.value ?? "90", 10) || 90;
+  }, [systemParameters]);
+
   const counts = useMemo(() => {
-    if (!users) return { users: 0, admins: 0, superAdmins: 0 };
-    const userCount = users.filter((u) => u.role === SystemRole.USER).length;
+    if (!users)
+      return { users: 0, active: 0, inactive: 0, admins: 0, superAdmins: 0 };
+    const regularUsers = users.filter((u) => u.role === SystemRole.USER);
+    const activeCount = regularUsers.filter((u) => u.active).length;
     const adminCount = users.filter((u) => u.role === SystemRole.ADMIN).length;
     const superAdminCount = users.filter(
       (u) => u.role === SystemRole.SUPERADMIN
     ).length;
     return {
-      users: userCount,
+      users: regularUsers.length,
+      active: activeCount,
+      inactive: regularUsers.length - activeCount,
       admins: adminCount,
       superAdmins: superAdminCount,
     };
@@ -47,17 +62,24 @@ export const UsersScreenKpiSection: FC<UsersScreenKpiSectionProps> = ({
           isLoading={isLoading}
           hasError={isError}
         />
-        <KpiSummaryCard
-          title={KPI_LABELS.actividad}
-          color={theme.palette.success.main}
-          Icon={TrendingUpOutlined}
-          primaryValue={counts.users}
-          primaryLabel="Activos"
-          secondaryValue={0}
-          secondaryLabel="Inactivos"
-          isLoading={isLoading}
-          hasError={isError}
-        />
+        <Tooltip
+          title={`Usuarios activos: accedieron en los últimos ${thresholdDays} días`}
+          arrow
+        >
+          <span>
+            <KpiSummaryCard
+              title={KPI_LABELS.actividad}
+              color={theme.palette.success.main}
+              Icon={TrendingUpOutlined}
+              primaryValue={counts.active}
+              primaryLabel="Activos"
+              secondaryValue={counts.inactive}
+              secondaryLabel="Inactivos"
+              isLoading={isLoading}
+              hasError={isError}
+            />
+          </span>
+        </Tooltip>
       </Stack>
     );
   }
