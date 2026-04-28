@@ -277,6 +277,7 @@ model User {
   updatedById                          BigInt?                        @map("updated_by_id")
   termsAccepted                        Boolean                        @default(false) @map("terms_accepted")
   termsAcceptedAt                      DateTime?                      @map("terms_accepted_at")
+  lastAccessAt                         DateTime?                      @map("last_access_at")
   countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
   countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
   countryOrganizationSizesCreated      CountryOrganizationSize[]      @relation("country_organization_size_created_by")
@@ -339,6 +340,7 @@ model User {
   reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
   roleAuditAsTarget                    UserRoleAudit[]                @relation("user_role_audit_target")
   roleAuditAsActor                     UserRoleAudit[]                @relation("user_role_audit_actor")
+  accessLogs                           UserAccessLog[]
 
   @@map("user")
 }
@@ -356,6 +358,18 @@ model UserRoleAudit {
 
   @@index([userId, createdAt])
   @@map("user_role_audit")
+}
+
+model UserAccessLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("user_access_log")
 }
 
 enum Magnitude {
