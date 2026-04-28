@@ -4,10 +4,7 @@ import {
   OrganizationMainActivityStatus,
 } from "@repo/database";
 import { type DeleteCountrySubsectorResponse, type User } from "@repo/types";
-import {
-  DeleteBlockedByReferencesError,
-  ResourceNotFoundError,
-} from "@/errors/index.js";
+import { ResourceNotFoundError } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountrySubsectorSelect,
@@ -34,34 +31,26 @@ export const deleteCountrySubsectorService = async (
       throw new ResourceNotFoundError("CountrySubsector", id);
     }
 
-    const [activeMainActivities, recommendations] = await Promise.all([
-      tx.organizationMainActivity.count({
-        where: {
-          countrySubsectorId: subsectorId,
-          status: OrganizationMainActivityStatus.ACTIVE,
-        },
-      }),
-      tx.subcategoryRecommendation.count({
-        where: { subsectorId: subsectorId },
-      }),
-    ]);
+    const updaterId = BigInt(user.id);
 
-    const blockingTypes: string[] = [];
-    if (activeMainActivities > 0) blockingTypes.push("actividades principales");
-    if (recommendations > 0)
-      blockingTypes.push("recomendaciones de subcategoría");
-
-    if (blockingTypes.length > 0) {
-      const err = new DeleteBlockedByReferencesError(blockingTypes.join(", "));
-      err.message = `No se puede eliminar el subrubro porque tiene ${blockingTypes.join(", ")} activos asociados. Elimínalos primero.`;
-      throw err;
-    }
+    // Cascade soft-delete: las main activities hijas se eliminan junto con el subrubro.
+    // El conteo de impacto se muestra en el frontend antes de confirmar.
+    await tx.organizationMainActivity.updateMany({
+      where: {
+        countrySubsectorId: subsectorId,
+        status: OrganizationMainActivityStatus.ACTIVE,
+      },
+      data: {
+        status: OrganizationMainActivityStatus.DELETED,
+        updatedById: updaterId,
+      },
+    });
 
     const updated = await tx.countrySubsector.update({
       where: { id: subsectorId },
       data: {
         status: CountrySubsectorStatus.DELETED,
-        updatedById: BigInt(user.id),
+        updatedById: updaterId,
       },
       select: adminCountrySubsectorSelect,
     });

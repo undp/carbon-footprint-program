@@ -5,10 +5,7 @@ import {
   OrganizationMainActivityStatus,
 } from "@repo/database";
 import { type DeleteCountrySectorResponse, type User } from "@repo/types";
-import {
-  DeleteBlockedByReferencesError,
-  ResourceNotFoundError,
-} from "@/errors/index.js";
+import { ResourceNotFoundError } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountrySectorSelect,
@@ -35,42 +32,38 @@ export const deleteCountrySectorService = async (
       throw new ResourceNotFoundError("CountrySector", id);
     }
 
-    const [activeSubsectors, activeMainActivities, recommendations] =
-      await Promise.all([
-        tx.countrySubsector.count({
-          where: {
-            countrySectorId: sectorId,
-            status: CountrySubsectorStatus.ACTIVE,
-          },
-        }),
-        tx.organizationMainActivity.count({
-          where: {
-            countrySectorId: sectorId,
-            status: OrganizationMainActivityStatus.ACTIVE,
-          },
-        }),
-        tx.subcategoryRecommendation.count({
-          where: { sectorId: sectorId },
-        }),
-      ]);
+    const updaterId = BigInt(user.id);
 
-    const blockingTypes: string[] = [];
-    if (activeSubsectors > 0) blockingTypes.push("subrubros");
-    if (activeMainActivities > 0) blockingTypes.push("actividades principales");
-    if (recommendations > 0)
-      blockingTypes.push("recomendaciones de subcategoría");
-
-    if (blockingTypes.length > 0) {
-      const err = new DeleteBlockedByReferencesError(blockingTypes.join(", "));
-      err.message = `No se puede eliminar el rubro porque tiene ${blockingTypes.join(", ")} activos asociados. Elimínalos primero.`;
-      throw err;
-    }
+    // Cascade soft-delete: deepest level first. Hijos/refs externas que apunten a estas
+    // filas quedarán con FK a un row DELETED — el frontend muestra el conteo de impacto
+    // en un dialog de confirmación previo (ver DeleteWarningDialog) para que el usuario
+    // pueda decidir informado.
+    await tx.organizationMainActivity.updateMany({
+      where: {
+        countrySectorId: sectorId,
+        status: OrganizationMainActivityStatus.ACTIVE,
+      },
+      data: {
+        status: OrganizationMainActivityStatus.DELETED,
+        updatedById: updaterId,
+      },
+    });
+    await tx.countrySubsector.updateMany({
+      where: {
+        countrySectorId: sectorId,
+        status: CountrySubsectorStatus.ACTIVE,
+      },
+      data: {
+        status: CountrySubsectorStatus.DELETED,
+        updatedById: updaterId,
+      },
+    });
 
     const updated = await tx.countrySector.update({
       where: { id: sectorId },
       data: {
         status: CountrySectorStatus.DELETED,
-        updatedById: BigInt(user.id),
+        updatedById: updaterId,
       },
       select: adminCountrySectorSelect,
     });

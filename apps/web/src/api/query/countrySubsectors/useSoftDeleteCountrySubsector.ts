@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DeleteCountrySubsectorResponse } from "@repo/types";
 import { countrySubsectorKeys } from "./keys";
 import { countrySectorKeys } from "../countrySectors/keys";
+import { organizationMainActivityKeys } from "../organizationMainActivities/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
@@ -15,6 +16,10 @@ export const useSoftDeleteCountrySubsector = () => {
       });
       void queryClient.invalidateQueries({
         queryKey: countrySectorKeys.app.all,
+      });
+      // Cascade soft-delete also affects main activities.
+      void queryClient.invalidateQueries({
+        queryKey: organizationMainActivityKeys.all,
       });
     },
   });
