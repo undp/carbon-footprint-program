@@ -102,13 +102,19 @@ export const useUsersColumns = ({
             } satisfies GridColDef<UserRow>,
           ]
         : []),
-      {
-        field: "role",
-        headerName: COLUMN_HEADERS.role,
-        cellClassName,
-        flex: 0.9,
-        renderCell: (params) => <UserRoleChip role={params.row.role} />,
-      },
+      ...(!isUsuariosTab
+        ? [
+            {
+              field: "role",
+              headerName: COLUMN_HEADERS.role,
+              cellClassName,
+              flex: 0.9,
+              renderCell: (params: { row: UserRow }) => (
+                <UserRoleChip role={params.row.role} />
+              ),
+            } satisfies GridColDef<UserRow>,
+          ]
+        : []),
       {
         field: "createdAt",
         headerName: COLUMN_HEADERS.createdAt,
