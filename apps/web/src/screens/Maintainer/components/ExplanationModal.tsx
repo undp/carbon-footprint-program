@@ -1,13 +1,17 @@
-import { FC, ReactNode, useCallback, useState } from "react";
+import { FC, ReactNode, SyntheticEvent, useCallback, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   Button,
   CircularProgress,
-  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Tab,
+  Tabs,
 } from "@mui/material";
+import { ExplanationEditorTab } from "./ExplanationModal/ExplanationEditorTab";
+import { ExplanationPreviewTab } from "./ExplanationModal/ExplanationPreviewTab";
 
 interface ExplanationModalProps {
   open: boolean;
@@ -20,6 +24,8 @@ interface ExplanationModalProps {
   onClose: () => void;
 }
 
+type TabValue = "edit" | "preview";
+
 const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
   title = "Editar Explicación",
@@ -29,33 +35,62 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   onSave,
   onClose,
 }) => {
-  const [localValue, setLocalValue] = useState(value);
+  const [content, setContent] = useState(value);
+  const [tab, setTab] = useState<TabValue>(readOnly ? "preview" : "edit");
+
+  const handleTabChange = (_event: SyntheticEvent, next: TabValue) => {
+    setTab(next);
+  };
 
   const handleSave = useCallback(async () => {
     try {
-      await onSave(localValue);
+      await onSave(content);
       onClose();
     } catch {
-      // The parent surfaces the error; keep the modal open so edits are not lost.
+      // Parent surfaces the error; keep the modal open so edits are not lost.
     }
-  }, [localValue, onClose, onSave]);
+  }, [content, onClose, onSave]);
 
   return (
     <>
       <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
-      <DialogContent>
+      <DialogContent
+        sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+      >
         {subtitle}
-        <TextField
-          fullWidth
-          multiline
-          minRows={8}
-          maxRows={20}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          placeholder="Escribe la explicación aquí..."
-          slotProps={{ input: { readOnly: readOnly || loading } }}
-          sx={{ mt: 1 }}
-        />
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          sx={(theme) => ({
+            minHeight: 0,
+            "& .MuiTabs-indicator": {
+              backgroundColor: theme.palette.primary.main,
+              height: 2,
+            },
+            "& .MuiTab-root": {
+              textTransform: "none",
+              minHeight: 40,
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              color: theme.palette.text.secondary,
+              "&.Mui-selected": { color: theme.palette.primary.dark },
+            },
+          })}
+        >
+          {!readOnly && <Tab value="edit" label="Editar" />}
+          <Tab value="preview" label="Vista Previa" />
+        </Tabs>
+        <Box sx={{ mt: 1 }}>
+          {tab === "edit" && !readOnly ? (
+            <ExplanationEditorTab
+              value={content}
+              onChange={setContent}
+              disabled={loading}
+            />
+          ) : (
+            <ExplanationPreviewTab content={content} />
+          )}
+        </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         {readOnly ? (
@@ -93,9 +128,9 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
   <Dialog
     open={open}
     onClose={contentProps.loading ? undefined : contentProps.onClose}
-    maxWidth="md"
+    maxWidth="lg"
     fullWidth
-    PaperProps={{ sx: { maxHeight: "90vh" } }}
+    slotProps={{ paper: { sx: { maxHeight: "90vh" } } }}
   >
     {open && <ExplanationModalContent {...contentProps} />}
   </Dialog>
