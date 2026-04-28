@@ -48,7 +48,6 @@ export const createMeasurementUnitService = async (
           magnitude: body.magnitude,
           baseFactor: body.baseFactor,
           isBase: body.isBase,
-          status: MeasurementUnitStatus.ACTIVE,
         },
       });
 
@@ -57,7 +56,6 @@ export const createMeasurementUnitService = async (
           ...buildCanonicalRmuFields(newMu),
           numeratorMeasurementUnitId: kg.id,
           denominatorMeasurementUnitId: newMu.id,
-          status: MeasurementUnitStatus.ACTIVE,
         },
       });
 
