@@ -1,24 +1,30 @@
-import { CountryOrganizationSizeStatus } from "@repo/database";
+import { Prisma } from "@repo/database";
 import type { AdminCountryOrganizationSize } from "@repo/types";
 
-type SizeRow = {
-  id: bigint;
-  countryId: bigint;
-  name: string;
-  description: string | null;
-  position: number;
-  status: CountryOrganizationSizeStatus;
-  createdAt: Date;
-  updatedAt: Date | null;
-  createdById: bigint | null;
-  updatedById: bigint | null;
-  _count?: { organizationData: number };
-};
+export const adminCountryOrganizationSizeSelect = {
+  id: true,
+  countryId: true,
+  name: true,
+  description: true,
+  position: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  createdById: true,
+  updatedById: true,
+  _count: {
+    select: { organizationData: true },
+  },
+} satisfies Prisma.CountryOrganizationSizeSelect;
+
+type SizeRow = Prisma.CountryOrganizationSizeGetPayload<{
+  select: typeof adminCountryOrganizationSizeSelect;
+}>;
 
 export const mapCountryOrganizationSizeToAdmin = (
   row: SizeRow
 ): AdminCountryOrganizationSize => {
-  const counts = row._count ?? { organizationData: 0 };
+  const counts = row._count;
   return {
     id: row.id.toString(),
     countryId: row.countryId.toString(),
@@ -36,19 +42,3 @@ export const mapCountryOrganizationSizeToAdmin = (
     },
   };
 };
-
-export const adminCountryOrganizationSizeSelect = {
-  id: true,
-  countryId: true,
-  name: true,
-  description: true,
-  position: true,
-  status: true,
-  createdAt: true,
-  updatedAt: true,
-  createdById: true,
-  updatedById: true,
-  _count: {
-    select: { organizationData: true },
-  },
-} as const;

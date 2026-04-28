@@ -1,67 +1,9 @@
 import {
-  CountrySectorStatus,
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
+  Prisma,
 } from "@repo/database";
 import type { AdminCountrySector } from "@repo/types";
-
-/**
- * Maps a Prisma `country_sector` row plus its `_count` aggregations into the
- * admin-facing payload. `isInUse` is `true` when ANY user-data or catalog-level
- * reference points at this row (catalog references also block soft-delete; user-data
- * references only drive the in-use warning dialog).
- */
-type CountrySectorRow = {
-  id: bigint;
-  countryId: bigint;
-  name: string;
-  description: string | null;
-  status: CountrySectorStatus;
-  createdAt: Date;
-  updatedAt: Date | null;
-  createdById: bigint | null;
-  updatedById: bigint | null;
-  _count?: {
-    organizationData: number;
-    subsectors: number;
-    organizationMainActivities: number;
-    subcategoryRecommendations: number;
-  };
-};
-
-export const mapCountrySectorToAdmin = (
-  row: CountrySectorRow
-): AdminCountrySector => {
-  const counts = row._count ?? {
-    organizationData: 0,
-    subsectors: 0,
-    organizationMainActivities: 0,
-    subcategoryRecommendations: 0,
-  };
-  return {
-    id: row.id.toString(),
-    countryId: row.countryId.toString(),
-    name: row.name,
-    description: row.description,
-    status: row.status,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
-    createdById: row.createdById?.toString() ?? null,
-    updatedById: row.updatedById?.toString() ?? null,
-    isInUse:
-      counts.organizationData +
-        counts.subsectors +
-        counts.organizationMainActivities +
-        counts.subcategoryRecommendations >
-      0,
-    impactedChildren: {
-      activeSubsectors: counts.subsectors,
-      activeMainActivities: counts.organizationMainActivities,
-      organizationData: counts.organizationData,
-      subcategoryRecommendations: counts.subcategoryRecommendations,
-    },
-  };
-};
 
 /**
  * Standard `select` shape used by every admin endpoint that returns a `country_sector`,
@@ -89,4 +31,43 @@ export const adminCountrySectorSelect = {
       subcategoryRecommendations: true,
     },
   },
-} as const;
+} satisfies Prisma.CountrySectorSelect;
+
+type CountrySectorRow = Prisma.CountrySectorGetPayload<{
+  select: typeof adminCountrySectorSelect;
+}>;
+
+/**
+ * Maps a Prisma `country_sector` row plus its `_count` aggregations into the
+ * admin-facing payload. `isInUse` is `true` when ANY user-data or catalog-level
+ * reference points at this row (catalog references also block soft-delete; user-data
+ * references only drive the in-use warning dialog).
+ */
+export const mapCountrySectorToAdmin = (
+  row: CountrySectorRow
+): AdminCountrySector => {
+  const counts = row._count;
+  return {
+    id: row.id.toString(),
+    countryId: row.countryId.toString(),
+    name: row.name,
+    description: row.description,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
+    createdById: row.createdById?.toString() ?? null,
+    updatedById: row.updatedById?.toString() ?? null,
+    isInUse:
+      counts.organizationData +
+        counts.subsectors +
+        counts.organizationMainActivities +
+        counts.subcategoryRecommendations >
+      0,
+    impactedChildren: {
+      activeSubsectors: counts.subsectors,
+      activeMainActivities: counts.organizationMainActivities,
+      organizationData: counts.organizationData,
+      subcategoryRecommendations: counts.subcategoryRecommendations,
+    },
+  };
+};
