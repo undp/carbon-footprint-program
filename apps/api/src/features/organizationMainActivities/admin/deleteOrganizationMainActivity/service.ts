@@ -1,6 +1,7 @@
 import {
   type PrismaClient,
   OrganizationMainActivityStatus,
+  Prisma,
 } from "@repo/database";
 import {
   type DeleteOrganizationMainActivityResponse,
@@ -21,19 +22,11 @@ export const deleteOrganizationMainActivityService = async (
 
   const activityId = BigInt(id);
 
-  return await prismaClient.$transaction(async (tx) => {
-    const existing = await tx.organizationMainActivity.findUnique({
-      where: { id: activityId },
-      select: { id: true },
-    });
-    if (!existing) {
-      throw new ResourceNotFoundError("OrganizationMainActivity", id);
-    }
-
-    // Soft-delete is never blocked by catalog references — no other catalog table
-    // references organization_main_activity. User-data references on
-    // organization_data.mainActivityId do NOT block.
-    const updated = await tx.organizationMainActivity.update({
+  // Soft-delete is never blocked by catalog references — no other catalog table
+  // references organization_main_activity. User-data references on
+  // organization_data.mainActivityId do NOT block.
+  try {
+    const updated = await prismaClient.organizationMainActivity.update({
       where: { id: activityId },
       data: {
         status: OrganizationMainActivityStatus.DELETED,
@@ -41,7 +34,14 @@ export const deleteOrganizationMainActivityService = async (
       },
       select: adminMainActivitySelect,
     });
-
     return mapMainActivityToAdmin(updated);
-  });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      throw new ResourceNotFoundError("OrganizationMainActivity", id);
+    }
+    throw error;
+  }
 };

@@ -1,6 +1,7 @@
 import {
   type PrismaClient,
   CountryOrganizationSizeStatus,
+  Prisma,
 } from "@repo/database";
 import {
   type DeleteCountryOrganizationSizeResponse,
@@ -24,19 +25,11 @@ export const deleteCountryOrganizationSizeService = async (
 
   const sizeId = BigInt(id);
 
-  return await prismaClient.$transaction(async (tx) => {
-    const existing = await tx.countryOrganizationSize.findUnique({
-      where: { id: sizeId },
-      select: { id: true },
-    });
-    if (!existing) {
-      throw new ResourceNotFoundError("CountryOrganizationSize", id);
-    }
-
-    // Soft-delete is never blocked by catalog references — no other catalog table
-    // references country_organization_size. User-data references on
-    // organization_data.countryOrganizationSizeId do NOT block.
-    const updated = await tx.countryOrganizationSize.update({
+  // Soft-delete is never blocked by catalog references — no other catalog table
+  // references country_organization_size. User-data references on
+  // organization_data.countryOrganizationSizeId do NOT block.
+  try {
+    const updated = await prismaClient.countryOrganizationSize.update({
       where: { id: sizeId },
       data: {
         status: CountryOrganizationSizeStatus.DELETED,
@@ -44,7 +37,14 @@ export const deleteCountryOrganizationSizeService = async (
       },
       select: adminCountryOrganizationSizeSelect,
     });
-
     return mapCountryOrganizationSizeToAdmin(updated);
-  });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      throw new ResourceNotFoundError("CountryOrganizationSize", id);
+    }
+    throw error;
+  }
 };

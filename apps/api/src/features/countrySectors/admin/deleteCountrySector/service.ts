@@ -3,6 +3,7 @@ import {
   CountrySectorStatus,
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
+  Prisma,
 } from "@repo/database";
 import { type DeleteCountrySectorResponse, type User } from "@repo/types";
 import { ResourceNotFoundError } from "@/errors/index.js";
@@ -24,14 +25,6 @@ export const deleteCountrySectorService = async (
   const sectorId = BigInt(id);
 
   return await prismaClient.$transaction(async (tx) => {
-    const existing = await tx.countrySector.findUnique({
-      where: { id: sectorId },
-      select: { id: true, status: true },
-    });
-    if (!existing) {
-      throw new ResourceNotFoundError("CountrySector", id);
-    }
-
     const updaterId = BigInt(user.id);
 
     // Cascade soft-delete: deepest level first. Hijos/refs externas que apunten a estas
@@ -59,15 +52,24 @@ export const deleteCountrySectorService = async (
       },
     });
 
-    const updated = await tx.countrySector.update({
-      where: { id: sectorId },
-      data: {
-        status: CountrySectorStatus.DELETED,
-        updatedById: updaterId,
-      },
-      select: adminCountrySectorSelect,
-    });
-
-    return mapCountrySectorToAdmin(updated);
+    try {
+      const updated = await tx.countrySector.update({
+        where: { id: sectorId },
+        data: {
+          status: CountrySectorStatus.DELETED,
+          updatedById: updaterId,
+        },
+        select: adminCountrySectorSelect,
+      });
+      return mapCountrySectorToAdmin(updated);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        throw new ResourceNotFoundError("CountrySector", id);
+      }
+      throw error;
+    }
   });
 };
