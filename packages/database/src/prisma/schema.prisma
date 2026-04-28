@@ -61,6 +61,13 @@ model SystemParameter {
   @@map("system_parameter")
 }
 
+enum CountryOrganizationSizeStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_organization_size_status")
+}
+
 model CountryOrganizationSize {
   id               BigInt                        @id @default(autoincrement())
   countryId        BigInt                        @map("country_id")
@@ -82,6 +89,13 @@ model CountryOrganizationSize {
   // NOTE: Partial unique index (countryId, position) WHERE status <> 'DELETED' enforces unique manual ordering.
   // Both declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
   @@map("country_organization_size")
+}
+
+enum CountrySectorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_sector_status")
 }
 
 model CountrySector {
@@ -108,6 +122,13 @@ model CountrySector {
   @@map("country_sector")
 }
 
+enum CountrySubsectorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("country_subsector_status")
+}
+
 model CountrySubsector {
   id                         BigInt                      @id @default(autoincrement())
   countrySectorId            BigInt                      @map("country_sector_id")
@@ -131,21 +152,28 @@ model CountrySubsector {
   @@map("country_subsector")
 }
 
+enum OrganizationMainActivityStatus {
+  ACTIVE
+  DELETED
+
+  @@map("organization_main_activity_status")
+}
+
 model OrganizationMainActivity {
-  id                 BigInt                          @id @default(autoincrement())
+  id                 BigInt                         @id @default(autoincrement())
   name               String
   description        String?
-  status             OrganizationMainActivityStatus  @default(ACTIVE)
-  countrySectorId    BigInt?                         @map("country_sector_id")
-  countrySubsectorId BigInt?                         @map("country_subsector_id")
-  createdAt          DateTime                        @default(now()) @map("created_at")
-  updatedAt          DateTime?                       @updatedAt @map("updated_at")
-  createdById        BigInt?                         @map("created_by_id")
-  updatedById        BigInt?                         @map("updated_by_id")
-  countrySector      CountrySector?                  @relation(fields: [countrySectorId], references: [id])
-  countrySubsector   CountrySubsector?               @relation(fields: [countrySubsectorId], references: [id])
-  creator            User?                           @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
-  updater            User?                           @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  status             OrganizationMainActivityStatus @default(ACTIVE)
+  countrySectorId    BigInt?                        @map("country_sector_id")
+  countrySubsectorId BigInt?                        @map("country_subsector_id")
+  createdAt          DateTime                       @default(now()) @map("created_at")
+  updatedAt          DateTime?                      @updatedAt @map("updated_at")
+  createdById        BigInt?                        @map("created_by_id")
+  updatedById        BigInt?                        @map("updated_by_id")
+  countrySector      CountrySector?                 @relation(fields: [countrySectorId], references: [id])
+  countrySubsector   CountrySubsector?              @relation(fields: [countrySubsectorId], references: [id])
+  creator            User?                          @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
+  updater            User?                          @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
   organizationData   OrganizationData[]
 
   // NOTE: Partial unique index (name, countrySectorId, countrySubsectorId) NULLS NOT DISTINCT WHERE status = 'ACTIVE'.
@@ -197,34 +225,6 @@ enum SubcategoryStatus {
   DELETED
 
   @@map("subcategory_status")
-}
-
-enum CountrySectorStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_sector_status")
-}
-
-enum CountrySubsectorStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_subsector_status")
-}
-
-enum OrganizationMainActivityStatus {
-  ACTIVE
-  DELETED
-
-  @@map("organization_main_activity_status")
-}
-
-enum CountryOrganizationSizeStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_organization_size_status")
 }
 
 enum EmissionFactorDimensionStatus {
