@@ -7,6 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
 
 export type ProfilingEntityLabel =
   | "rubro"
@@ -39,9 +40,9 @@ export const InUseWarningDialog: FC<Props> = ({
     <DialogTitle>Cambio sobre un {entityLabel} en uso</DialogTitle>
     <DialogContent>
       <DialogContentText>
-        Este {entityLabel} está siendo utilizado por organizaciones y huellas.
-        Este cambio afectará a todos los usuarios que lo tengan seleccionado.
-        ¿Deseas continuar?
+        Este {entityLabel} está siendo utilizado por{" "}
+        {VOCAB.organization.noun.plural} y huellas. Este cambio afectará a todos
+        los usuarios que lo tengan seleccionado. ¿Deseas continuar?
       </DialogContentText>
     </DialogContent>
     <DialogActions>

@@ -2,17 +2,18 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { CountrySectorStatus } from "@repo/types";
+import {
+  CountrySectorStatus,
+  type GetAllAdminCountrySectorsResponse,
+} from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export interface SectorFormRow {
-  id: string;
-  name: string;
-  description: string | null;
-  status: CountrySectorStatus;
-  isInUse: boolean;
-}
+export type SectorFormRow = Pick<
+  GetAllAdminCountrySectorsResponse[number],
+  "id" | "name" | "description" | "status" | "isInUse" | "impactedChildren"
+>;
 
 interface UseSectorProfilingColumnsParams {
   editingRowId: string | null;
@@ -109,6 +110,8 @@ export const useSectorProfilingColumns = ({
         field: "status",
         headerName: "Estado",
         width: 130,
+        valueGetter: (_value, row: SectorFormRow) =>
+          row.status === CountrySectorStatus.ACTIVE ? "Activo" : "Eliminado",
         renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) =>
           row.status === CountrySectorStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
@@ -153,7 +156,15 @@ export const useSectorProfilingColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={() => onDelete(params.row)}
-              deleteConfirmMessage="¿Estás seguro de que deseas eliminar este rubro?"
+              renderDeleteDialog={({ open, onCancel, onConfirm }) => (
+                <DeleteWarningDialog
+                  open={open}
+                  entityLabel="rubro"
+                  impactedChildren={params.row.impactedChildren}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              )}
             />
           );
         },

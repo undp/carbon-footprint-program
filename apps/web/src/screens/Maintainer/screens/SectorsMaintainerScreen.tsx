@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,6 @@ import { Box, Typography } from "@mui/material";
 import {
   CountrySectorStatus,
   type AdminCountrySector,
-  type AdminListStatusFilter,
   type CreateCountrySectorRequest,
   type UpdateCountrySectorRequest,
 } from "@repo/types";
@@ -19,8 +18,8 @@ import {
   useRestoreCountrySector,
 } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { MaintainerStatusFilterToggle } from "../components/MaintainerStatusFilterToggle";
 import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
+import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -30,6 +29,7 @@ import {
   useSectorProfilingColumns,
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
+import { sortByStatusThenName } from "../utils/profilingSort";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -45,6 +45,12 @@ const RowSchema = z.object({
     .nullable(),
   status: z.enum(CountrySectorStatus),
   isInUse: z.boolean(),
+  impactedChildren: z.object({
+    activeSubsectors: z.number().int().nonnegative(),
+    activeMainActivities: z.number().int().nonnegative(),
+    organizationData: z.number().int().nonnegative(),
+    subcategoryRecommendations: z.number().int().nonnegative(),
+  }),
 });
 
 const FormSchema = z.object({ sectors: z.array(RowSchema) });
@@ -56,13 +62,11 @@ const toFormSector = (s: AdminCountrySector): SectorFormRow => ({
   description: s.description,
   status: s.status,
   isInUse: s.isInUse,
+  impactedChildren: s.impactedChildren,
 });
 
 export const SectorsMaintainerScreen: FC = () => {
-  const [statusFilter, setStatusFilter] =
-    useState<AdminListStatusFilter>("active");
-
-  const { data: rows, isLoading } = useAdminCountrySectors(statusFilter);
+  const { data: rows, isLoading } = useAdminCountrySectors("all");
   const createMutation = useCreateCountrySector();
   const updateMutation = useUpdateCountrySector();
   const deleteMutation = useSoftDeleteCountrySector();
@@ -81,12 +85,17 @@ export const SectorsMaintainerScreen: FC = () => {
     (data: unknown[]) => (data as AdminCountrySector[]).map(toFormSector),
     []
   );
+  const sortRows = useCallback(
+    (data: unknown[]) => sortByStatusThenName(data as SectorFormRow[]),
+    []
+  );
   useProfilingFormSync({
     form,
     fieldName: "sectors",
     editingRowId,
     serverData: rows,
     toFormData,
+    sortRows,
   });
 
   const handleCellChange = useCallback(
@@ -135,6 +144,12 @@ export const SectorsMaintainerScreen: FC = () => {
       description: null,
       status: CountrySectorStatus.ACTIVE,
       isInUse: false,
+      impactedChildren: {
+        activeSubsectors: 0,
+        activeMainActivities: 0,
+        organizationData: 0,
+        subcategoryRecommendations: 0,
+      },
     }),
     createMutation,
     updateMutation,
@@ -204,24 +219,24 @@ export const SectorsMaintainerScreen: FC = () => {
       addLabel="Agregar rubro"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
-      statusFilter={
-        <MaintainerStatusFilterToggle
-          value={statusFilter}
-          onChange={setStatusFilter}
-          disabled={editingRowId !== null}
-        />
-      }
       form={form}
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
       extraDialogs={
-        <InUseWarningDialog
-          open={actions.pendingPatch !== null}
-          entityLabel="rubro"
-          onCancel={actions.cancelPendingPatch}
-          onConfirm={actions.dispatchPendingPatch}
-        />
+        <>
+          <InUseWarningDialog
+            open={actions.pendingPatch !== null}
+            entityLabel="rubro"
+            onCancel={actions.cancelPendingPatch}
+            onConfirm={actions.dispatchPendingPatch}
+          />
+          <RestoreBlockedDialog
+            open={actions.restoreBlockedMessage !== null}
+            message={actions.restoreBlockedMessage ?? ""}
+            onClose={actions.dismissRestoreBlocked}
+          />
+        </>
       }
     >
       <Box sx={{ width: "100%" }}>

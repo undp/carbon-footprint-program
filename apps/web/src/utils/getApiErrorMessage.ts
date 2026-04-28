@@ -74,6 +74,18 @@ const ERROR_MESSAGES: Record<string, string> = {
     "El subrubro seleccionado no pertenece al rubro indicado.",
 };
 
+/**
+ * Extracts the API error code (e.g., "PARENT_NOT_ACTIVE") from a thrown HTTP error so
+ * callers can branch on it. Returns null when the error isn't an `AppHttpError` or has
+ * no code attached.
+ */
+export const getApiErrorCode = (error: unknown): string | null => {
+  if (error instanceof AppHttpError) {
+    return error.errorCode ?? null;
+  }
+  return null;
+};
+
 export const getApiErrorMessage = (
   error: unknown,
   fallback: string

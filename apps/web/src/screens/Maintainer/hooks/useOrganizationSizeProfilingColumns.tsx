@@ -2,17 +2,24 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { CountryOrganizationSizeStatus } from "@repo/types";
+import {
+  CountryOrganizationSizeStatus,
+  type GetAllAdminCountryOrganizationSizesResponse,
+} from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export interface OrganizationSizeFormRow {
-  id: string;
-  name: string;
-  description: string | null;
-  status: CountryOrganizationSizeStatus;
-  isInUse: boolean;
-}
+export type OrganizationSizeFormRow = Pick<
+  GetAllAdminCountryOrganizationSizesResponse[number],
+  | "id"
+  | "name"
+  | "description"
+  | "position"
+  | "status"
+  | "isInUse"
+  | "impactedChildren"
+>;
 
 interface UseOrganizationSizeProfilingColumnsParams {
   editingRowId: string | null;
@@ -27,6 +34,9 @@ interface UseOrganizationSizeProfilingColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: OrganizationSizeFormRow) => void;
   onRestore: (row: OrganizationSizeFormRow) => void;
+  onMoveUp: (row: OrganizationSizeFormRow) => void;
+  onMoveDown: (row: OrganizationSizeFormRow) => void;
+  moveDisabled: boolean;
   restoreDisabled: boolean;
 }
 
@@ -39,8 +49,18 @@ export const useOrganizationSizeProfilingColumns = ({
   onCancelEditRow,
   onDelete,
   onRestore,
+  onMoveUp,
+  onMoveDown,
+  moveDisabled,
   restoreDisabled,
 }: UseOrganizationSizeProfilingColumnsParams): GridColDef<OrganizationSizeFormRow>[] => {
+  const activeRowsSorted = useMemo(
+    () =>
+      [...rows]
+        .filter((r) => r.status === CountryOrganizationSizeStatus.ACTIVE)
+        .sort((a, b) => a.position - b.position),
+    [rows]
+  );
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
     [rows]
@@ -111,6 +131,10 @@ export const useOrganizationSizeProfilingColumns = ({
         field: "status",
         headerName: "Estado",
         width: 130,
+        valueGetter: (_value, row: OrganizationSizeFormRow) =>
+          row.status === CountryOrganizationSizeStatus.ACTIVE
+            ? "Activo"
+            : "Eliminado",
         renderCell: ({ row }: GridRenderCellParams<OrganizationSizeFormRow>) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
@@ -149,6 +173,17 @@ export const useOrganizationSizeProfilingColumns = ({
             );
           }
 
+          const activeIdx = activeRowsSorted.findIndex(
+            (r) => r.id === params.row.id
+          );
+          const isTemp = params.row.id.startsWith("temp_");
+          const moveBlocked = isTemp || moveDisabled || anyEditing;
+          const moveUpDisabled = moveBlocked || activeIdx <= 0;
+          const moveDownDisabled =
+            moveBlocked ||
+            activeIdx === -1 ||
+            activeIdx >= activeRowsSorted.length - 1;
+
           return (
             <ActionButtons
               isActiveRow={anyEditing && !editing}
@@ -156,7 +191,19 @@ export const useOrganizationSizeProfilingColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={() => onDelete(params.row)}
-              deleteConfirmMessage="¿Estás seguro de que deseas eliminar este tamaño?"
+              onMoveUp={() => onMoveUp(params.row)}
+              onMoveDown={() => onMoveDown(params.row)}
+              moveUpDisabled={moveUpDisabled}
+              moveDownDisabled={moveDownDisabled}
+              renderDeleteDialog={({ open, onCancel, onConfirm }) => (
+                <DeleteWarningDialog
+                  open={open}
+                  entityLabel="tamaño"
+                  impactedChildren={params.row.impactedChildren}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              )}
             />
           );
         },
@@ -165,6 +212,7 @@ export const useOrganizationSizeProfilingColumns = ({
     [
       getRowIndex,
       isEditing,
+      activeRowsSorted,
       onCellChange,
       onStartEditRow,
       editingRowId,
@@ -172,6 +220,9 @@ export const useOrganizationSizeProfilingColumns = ({
       onCancelEditRow,
       onDelete,
       onRestore,
+      onMoveUp,
+      onMoveDown,
+      moveDisabled,
       restoreDisabled,
     ]
   );

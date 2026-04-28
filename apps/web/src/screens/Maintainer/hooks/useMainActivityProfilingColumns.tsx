@@ -2,30 +2,37 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { OrganizationMainActivityStatus } from "@repo/types";
+import {
+  OrganizationMainActivityStatus,
+  type GetAllAdminOrganizationMainActivitiesResponse,
+} from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export interface MainActivityFormRow {
-  id: string;
-  name: string;
-  description: string | null;
-  countrySectorId: string | null;
-  countrySubsectorId: string | null;
-  status: OrganizationMainActivityStatus;
-  isInUse: boolean;
-}
+export type MainActivityFormRow = Pick<
+  GetAllAdminOrganizationMainActivitiesResponse[number],
+  | "id"
+  | "name"
+  | "description"
+  | "countrySectorId"
+  | "countrySubsectorId"
+  | "status"
+  | "isInUse"
+  | "impactedChildren"
+>;
 
 interface SubsectorOption {
   id: string;
   name: string;
   countrySectorId: string;
+  disabled?: boolean;
 }
 
 interface UseMainActivityProfilingColumnsParams {
   editingRowId: string | null;
   rows: MainActivityFormRow[];
-  sectorOptions: Array<{ id: string; name: string }>;
+  sectorOptions: Array<{ id: string; name: string; disabled?: boolean }>;
   subsectorOptions: SubsectorOption[];
   onCellChange: (
     rowIndex: number,
@@ -99,6 +106,11 @@ export const useMainActivityProfilingColumns = ({
         headerName: "Rubro",
         flex: 1,
         minWidth: 160,
+        valueGetter: (_value, row: MainActivityFormRow) =>
+          row.countrySectorId
+            ? (sectorOptions.find((o) => o.id === row.countrySectorId)?.name ??
+              "")
+            : "",
         renderCell: (params: GridRenderCellParams<MainActivityFormRow>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -127,6 +139,11 @@ export const useMainActivityProfilingColumns = ({
         headerName: "Subrubro",
         flex: 1,
         minWidth: 160,
+        valueGetter: (_value, row: MainActivityFormRow) =>
+          row.countrySubsectorId
+            ? (subsectorOptions.find((o) => o.id === row.countrySubsectorId)
+                ?.name ?? "")
+            : "",
         renderCell: (params: GridRenderCellParams<MainActivityFormRow>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -188,6 +205,10 @@ export const useMainActivityProfilingColumns = ({
         field: "status",
         headerName: "Estado",
         width: 130,
+        valueGetter: (_value, row: MainActivityFormRow) =>
+          row.status === OrganizationMainActivityStatus.ACTIVE
+            ? "Activo"
+            : "Eliminado",
         renderCell: ({ row }: GridRenderCellParams<MainActivityFormRow>) =>
           row.status === OrganizationMainActivityStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
@@ -233,7 +254,15 @@ export const useMainActivityProfilingColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={() => onDelete(params.row)}
-              deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta actividad principal?"
+              renderDeleteDialog={({ open, onCancel, onConfirm }) => (
+                <DeleteWarningDialog
+                  open={open}
+                  entityLabel="actividad principal"
+                  impactedChildren={params.row.impactedChildren}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              )}
             />
           );
         },

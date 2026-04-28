@@ -7,6 +7,8 @@ interface UseProfilingFormSyncOptions<TFormValues extends FieldValues> {
   editingRowId: string | null;
   serverData: unknown[] | undefined;
   toFormData: (data: unknown[]) => unknown[];
+  /** Optional default sort applied after `toFormData`, before resetting the form. */
+  sortRows?: (rows: unknown[]) => unknown[];
 }
 
 /**
@@ -19,6 +21,7 @@ export const useProfilingFormSync = <TFormValues extends FieldValues>({
   editingRowId,
   serverData,
   toFormData,
+  sortRows,
 }: UseProfilingFormSyncOptions<TFormValues>) => {
   const editingRowIdRef = useRef(editingRowId);
   useLayoutEffect(() => {
@@ -28,8 +31,10 @@ export const useProfilingFormSync = <TFormValues extends FieldValues>({
   useEffect(() => {
     if (editingRowIdRef.current !== null) return;
     if (!serverData) return;
+    const formData = toFormData(serverData);
+    const sorted = sortRows ? sortRows(formData) : formData;
     form.reset({
-      [fieldName]: toFormData(serverData),
+      [fieldName]: sorted,
     } as unknown as TFormValues);
-  }, [serverData, form, fieldName, toFormData]);
+  }, [serverData, form, fieldName, toFormData, sortRows]);
 };

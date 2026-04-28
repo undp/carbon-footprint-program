@@ -7,6 +7,8 @@ import { useOverflowTooltip } from "@/hooks";
 interface Option {
   id: string;
   name: string;
+  /** Renders as a disabled <MenuItem> (still selectable as the current value but not pickable). */
+  disabled?: boolean;
 }
 
 interface EditableSelectCellProps {
@@ -110,7 +112,7 @@ export const EditableSelectCell: FC<EditableSelectCellProps> = ({
         </MenuItem>
       )}
       {options.map((o) => (
-        <MenuItem key={o.id} value={o.id}>
+        <MenuItem key={o.id} value={o.id} disabled={o.disabled}>
           {o.name}
         </MenuItem>
       ))}

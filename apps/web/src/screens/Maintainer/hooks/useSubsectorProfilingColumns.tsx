@@ -2,23 +2,29 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { CountrySubsectorStatus } from "@repo/types";
+import {
+  CountrySubsectorStatus,
+  type GetAllAdminCountrySubsectorsResponse,
+} from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export interface SubsectorFormRow {
-  id: string;
-  name: string;
-  description: string | null;
-  countrySectorId: string;
-  status: CountrySubsectorStatus;
-  isInUse: boolean;
-}
+export type SubsectorFormRow = Pick<
+  GetAllAdminCountrySubsectorsResponse[number],
+  | "id"
+  | "name"
+  | "description"
+  | "countrySectorId"
+  | "status"
+  | "isInUse"
+  | "impactedChildren"
+>;
 
 interface UseSubsectorProfilingColumnsParams {
   editingRowId: string | null;
   rows: SubsectorFormRow[];
-  sectorOptions: Array<{ id: string; name: string }>;
+  sectorOptions: Array<{ id: string; name: string; disabled?: boolean }>;
   onCellChange: (
     rowIndex: number,
     field: "name" | "description" | "countrySectorId",
@@ -85,6 +91,8 @@ export const useSubsectorProfilingColumns = ({
         headerName: "Rubro",
         flex: 1,
         minWidth: 180,
+        valueGetter: (_value, row: SubsectorFormRow) =>
+          sectorOptions.find((o) => o.id === row.countrySectorId)?.name ?? "",
         renderCell: (params: GridRenderCellParams<SubsectorFormRow>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -139,6 +147,8 @@ export const useSubsectorProfilingColumns = ({
         field: "status",
         headerName: "Estado",
         width: 130,
+        valueGetter: (_value, row: SubsectorFormRow) =>
+          row.status === CountrySubsectorStatus.ACTIVE ? "Activo" : "Eliminado",
         renderCell: ({ row }: GridRenderCellParams<SubsectorFormRow>) =>
           row.status === CountrySubsectorStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
@@ -183,7 +193,15 @@ export const useSubsectorProfilingColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={() => onDelete(params.row)}
-              deleteConfirmMessage="¿Estás seguro de que deseas eliminar este subrubro?"
+              renderDeleteDialog={({ open, onCancel, onConfirm }) => (
+                <DeleteWarningDialog
+                  open={open}
+                  entityLabel="subrubro"
+                  impactedChildren={params.row.impactedChildren}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              )}
             />
           );
         },

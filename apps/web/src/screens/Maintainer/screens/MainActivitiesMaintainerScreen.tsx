@@ -1,13 +1,14 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import {
+  CountrySectorStatus,
+  CountrySubsectorStatus,
   OrganizationMainActivityStatus,
   type AdminOrganizationMainActivity,
-  type AdminListStatusFilter,
   type CreateOrganizationMainActivityRequest,
   type UpdateOrganizationMainActivityRequest,
 } from "@repo/types";
@@ -21,8 +22,8 @@ import {
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { useAdminCountrySubsectors } from "@/api/query/countrySubsectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { MaintainerStatusFilterToggle } from "../components/MaintainerStatusFilterToggle";
 import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
+import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -32,6 +33,7 @@ import {
   useMainActivityProfilingColumns,
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
+import { sortByStatusThenName } from "../utils/profilingSort";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -49,6 +51,9 @@ const RowSchema = z.object({
   countrySubsectorId: z.string().nullable(),
   status: z.enum(OrganizationMainActivityStatus),
   isInUse: z.boolean(),
+  impactedChildren: z.object({
+    organizationData: z.number().int().nonnegative(),
+  }),
 });
 const FormSchema = z.object({ mainActivities: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
@@ -63,33 +68,36 @@ const toFormMainActivity = (
   countrySubsectorId: s.countrySubsectorId,
   status: s.status,
   isInUse: s.isInUse,
+  impactedChildren: s.impactedChildren,
 });
 
 export const MainActivitiesMaintainerScreen: FC = () => {
-  const [statusFilter, setStatusFilter] =
-    useState<AdminListStatusFilter>("active");
-
-  const { data: rows, isLoading } =
-    useAdminOrganizationMainActivities(statusFilter);
-  const { data: activeSectors } = useAdminCountrySectors("active");
-  const { data: activeSubsectors } = useAdminCountrySubsectors("active");
+  const { data: rows, isLoading } = useAdminOrganizationMainActivities("all");
+  const { data: allSectors } = useAdminCountrySectors("all");
+  const { data: allSubsectors } = useAdminCountrySubsectors("all");
   const createMutation = useCreateOrganizationMainActivity();
   const updateMutation = useUpdateOrganizationMainActivity();
   const deleteMutation = useSoftDeleteOrganizationMainActivity();
   const restoreMutation = useRestoreOrganizationMainActivity();
 
   const sectorOptions = useMemo(
-    () => (activeSectors ?? []).map((s) => ({ id: s.id, name: s.name })),
-    [activeSectors]
+    () =>
+      (allSectors ?? []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        disabled: s.status !== CountrySectorStatus.ACTIVE,
+      })),
+    [allSectors]
   );
   const subsectorOptions = useMemo(
     () =>
-      (activeSubsectors ?? []).map((s) => ({
+      (allSubsectors ?? []).map((s) => ({
         id: s.id,
         name: s.name,
         countrySectorId: s.countrySectorId,
+        disabled: s.status !== CountrySubsectorStatus.ACTIVE,
       })),
-    [activeSubsectors]
+    [allSubsectors]
   );
 
   const form = useForm<FormValues>({
@@ -109,12 +117,17 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       (data as AdminOrganizationMainActivity[]).map(toFormMainActivity),
     []
   );
+  const sortRows = useCallback(
+    (data: unknown[]) => sortByStatusThenName(data as MainActivityFormRow[]),
+    []
+  );
   useProfilingFormSync({
     form,
     fieldName: "mainActivities",
     editingRowId,
     serverData: rows,
     toFormData,
+    sortRows,
   });
 
   const handleCellChange = useCallback(
@@ -206,6 +219,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       countrySubsectorId: null,
       status: OrganizationMainActivityStatus.ACTIVE,
       isInUse: false,
+      impactedChildren: { organizationData: 0 },
     }),
     createMutation,
     updateMutation,
@@ -278,24 +292,24 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       addLabel="Agregar actividad"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
-      statusFilter={
-        <MaintainerStatusFilterToggle
-          value={statusFilter}
-          onChange={setStatusFilter}
-          disabled={editingRowId !== null}
-        />
-      }
       form={form}
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
       extraDialogs={
-        <InUseWarningDialog
-          open={actions.pendingPatch !== null}
-          entityLabel="actividad principal"
-          onCancel={actions.cancelPendingPatch}
-          onConfirm={actions.dispatchPendingPatch}
-        />
+        <>
+          <InUseWarningDialog
+            open={actions.pendingPatch !== null}
+            entityLabel="actividad principal"
+            onCancel={actions.cancelPendingPatch}
+            onConfirm={actions.dispatchPendingPatch}
+          />
+          <RestoreBlockedDialog
+            open={actions.restoreBlockedMessage !== null}
+            message={actions.restoreBlockedMessage ?? ""}
+            onClose={actions.dismissRestoreBlocked}
+          />
+        </>
       }
     >
       <Box sx={{ width: "100%" }}>

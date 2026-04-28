@@ -7,7 +7,10 @@ import {
   type UseFormReturn,
 } from "react-hook-form";
 import { useSnackbar } from "notistack";
-import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import {
+  getApiErrorCode,
+  getApiErrorMessage,
+} from "@/utils/getApiErrorMessage";
 
 interface ServerRowBase {
   id: string;
@@ -104,6 +107,9 @@ export const useProfilingRowActions = <
   const { enqueueSnackbar } = useSnackbar();
   const [pendingPatch, setPendingPatch] =
     useState<PendingPatch<TUpdateBody> | null>(null);
+  const [restoreBlockedMessage, setRestoreBlockedMessage] = useState<
+    string | null
+  >(null);
 
   const getFormRows = useCallback(
     () =>
@@ -356,6 +362,15 @@ export const useProfilingRowActions = <
           variant: "success",
         });
       } catch (error) {
+        // PARENT_NOT_ACTIVE means the parent (sector / subsector) is soft-deleted.
+        // Show a dedicated dialog with the backend's localized message instead of a
+        // generic snackbar so the user knows which parent to restore first.
+        if (getApiErrorCode(error) === "PARENT_NOT_ACTIVE") {
+          setRestoreBlockedMessage(
+            getApiErrorMessage(error, errorMessages.restore)
+          );
+          return;
+        }
         enqueueSnackbar({
           message: getApiErrorMessage(error, errorMessages.restore),
           variant: "error",
@@ -369,6 +384,10 @@ export const useProfilingRowActions = <
       errorMessages.restore,
     ]
   );
+
+  const dismissRestoreBlocked = useCallback(() => {
+    setRestoreBlockedMessage(null);
+  }, []);
 
   const dispatchPendingPatch = useCallback(async () => {
     if (!pendingPatch) return;
@@ -391,5 +410,7 @@ export const useProfilingRowActions = <
     pendingPatch,
     dispatchPendingPatch,
     cancelPendingPatch,
+    restoreBlockedMessage,
+    dismissRestoreBlocked,
   };
 };

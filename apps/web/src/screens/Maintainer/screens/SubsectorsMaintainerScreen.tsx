@@ -1,13 +1,13 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import {
+  CountrySectorStatus,
   CountrySubsectorStatus,
   type AdminCountrySubsector,
-  type AdminListStatusFilter,
   type CreateCountrySubsectorRequest,
   type UpdateCountrySubsectorRequest,
 } from "@repo/types";
@@ -20,8 +20,8 @@ import {
 } from "@/api/query/countrySubsectors";
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { MaintainerStatusFilterToggle } from "../components/MaintainerStatusFilterToggle";
 import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
+import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -31,6 +31,7 @@ import {
   useSubsectorProfilingColumns,
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
+import { sortByStatusThenName } from "../utils/profilingSort";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -47,6 +48,11 @@ const RowSchema = z.object({
   countrySectorId: z.string().min(1, "El rubro es obligatorio"),
   status: z.enum(CountrySubsectorStatus),
   isInUse: z.boolean(),
+  impactedChildren: z.object({
+    activeMainActivities: z.number().int().nonnegative(),
+    organizationData: z.number().int().nonnegative(),
+    subcategoryRecommendations: z.number().int().nonnegative(),
+  }),
 });
 const FormSchema = z.object({ subsectors: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
@@ -58,24 +64,28 @@ const toFormSubsector = (s: AdminCountrySubsector): SubsectorFormRow => ({
   countrySectorId: s.countrySectorId,
   status: s.status,
   isInUse: s.isInUse,
+  impactedChildren: s.impactedChildren,
 });
 
 export const SubsectorsMaintainerScreen: FC = () => {
-  const [statusFilter, setStatusFilter] =
-    useState<AdminListStatusFilter>("active");
-
-  const { data: rows, isLoading } = useAdminCountrySubsectors(statusFilter);
-  const { data: activeSectors } = useAdminCountrySectors("active");
+  const { data: rows, isLoading } = useAdminCountrySubsectors("all");
+  const { data: allSectors } = useAdminCountrySectors("all");
   const createMutation = useCreateCountrySubsector();
   const updateMutation = useUpdateCountrySubsector();
   const deleteMutation = useSoftDeleteCountrySubsector();
   const restoreMutation = useRestoreCountrySubsector();
 
   const sectorOptions = useMemo(
-    () => (activeSectors ?? []).map((s) => ({ id: s.id, name: s.name })),
-    [activeSectors]
+    () =>
+      (allSectors ?? []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        disabled: s.status !== CountrySectorStatus.ACTIVE,
+      })),
+    [allSectors]
   );
-  const noSectors = sectorOptions.length === 0;
+  const hasActiveSector = sectorOptions.some((o) => !o.disabled);
+  const noSectors = !hasActiveSector;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -93,12 +103,17 @@ export const SubsectorsMaintainerScreen: FC = () => {
     (data: unknown[]) => (data as AdminCountrySubsector[]).map(toFormSubsector),
     []
   );
+  const sortRows = useCallback(
+    (data: unknown[]) => sortByStatusThenName(data as SubsectorFormRow[]),
+    []
+  );
   useProfilingFormSync({
     form,
     fieldName: "subsectors",
     editingRowId,
     serverData: rows,
     toFormData,
+    sortRows,
   });
 
   const handleCellChange = useCallback(
@@ -157,7 +172,12 @@ export const SubsectorsMaintainerScreen: FC = () => {
       id: `temp_${Date.now()}`,
       name: "",
       description: null,
-      countrySectorId: sectorOptions[0]?.id ?? "",
+      countrySectorId: sectorOptions.find((o) => !o.disabled)?.id ?? "",
+      impactedChildren: {
+        activeMainActivities: 0,
+        organizationData: 0,
+        subcategoryRecommendations: 0,
+      },
       status: CountrySubsectorStatus.ACTIVE,
       isInUse: false,
     }),
@@ -226,24 +246,24 @@ export const SubsectorsMaintainerScreen: FC = () => {
       addLabel="Agregar subrubro"
       onAddRow={handleAddRow}
       addDisabled={noSectors || editingRowId !== null}
-      statusFilter={
-        <MaintainerStatusFilterToggle
-          value={statusFilter}
-          onChange={setStatusFilter}
-          disabled={editingRowId !== null}
-        />
-      }
       form={form}
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
       extraDialogs={
-        <InUseWarningDialog
-          open={actions.pendingPatch !== null}
-          entityLabel="subrubro"
-          onCancel={actions.cancelPendingPatch}
-          onConfirm={actions.dispatchPendingPatch}
-        />
+        <>
+          <InUseWarningDialog
+            open={actions.pendingPatch !== null}
+            entityLabel="subrubro"
+            onCancel={actions.cancelPendingPatch}
+            onConfirm={actions.dispatchPendingPatch}
+          />
+          <RestoreBlockedDialog
+            open={actions.restoreBlockedMessage !== null}
+            message={actions.restoreBlockedMessage ?? ""}
+            onClose={actions.dismissRestoreBlocked}
+          />
+        </>
       }
     >
       <Box sx={{ width: "100%" }}>
