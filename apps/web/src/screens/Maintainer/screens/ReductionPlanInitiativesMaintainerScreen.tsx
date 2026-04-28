@@ -40,7 +40,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   const [newRowId, setNewRowId] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10,
+    pageSize: 25,
   });
   const [
     explicitlySelectedMethodologyVersionId,
@@ -384,6 +384,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
               getRowHeight={() => "auto"}
               getRowId={(row: ReductionPlanInitiativeFormRow) => row.id}
               hideFooter={false}
+              pagination={true}
               pageSizeOptions={[25, 50, 100]}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
