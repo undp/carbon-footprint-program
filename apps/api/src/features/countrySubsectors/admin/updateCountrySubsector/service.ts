@@ -29,14 +29,6 @@ export const updateCountrySubsectorService = async (
 
   try {
     return await prismaClient.$transaction(async (tx) => {
-      const existing = await tx.countrySubsector.findUnique({
-        where: { id: subsectorId },
-        select: { id: true },
-      });
-      if (!existing) {
-        throw new ResourceNotFoundError("CountrySubsector", id);
-      }
-
       const updateData: Prisma.CountrySubsectorUpdateInput = {
         updater: { connect: { id: BigInt(user.id) } },
       };
@@ -73,6 +65,9 @@ export const updateCountrySubsectorService = async (
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        throw new ResourceNotFoundError("CountrySubsector", id);
+      }
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
