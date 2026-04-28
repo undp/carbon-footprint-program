@@ -29,6 +29,7 @@ import {
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { AppHttpError } from "@/api/http/errors";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
 import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
 import type { SubcategoryOption } from "../components/SubcategoryTransferListDialog";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
@@ -496,7 +497,17 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
             >
               {(methodologies ?? []).map((m) => (
                 <MenuItem key={m.id} value={m.id}>
-                  {m.name}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      width: "100%",
+                    }}
+                  >
+                    <span>{m.name}</span>
+                    <MethodologyStatusChip status={m.status} />
+                  </Box>
                 </MenuItem>
               ))}
             </Select>
