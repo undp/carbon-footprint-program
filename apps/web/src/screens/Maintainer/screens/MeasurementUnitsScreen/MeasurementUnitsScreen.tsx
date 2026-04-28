@@ -316,9 +316,14 @@ export const MeasurementUnitsScreen: FC = () => {
             columns={columns}
             rows={currentRows}
             getRowId={(row: MeasurementUnitForm) => row.id}
-            initialState={{ sorting: { sortModel } }}
-            disableColumnFilter={false}
-            disableColumnSelector={false}
+            disableColumnSorting={false}
+            hideFooter={false}
+            pagination
+            pageSizeOptions={[10, 25, 50, 100]}
+            initialState={{
+              sorting: { sortModel },
+              pagination: { paginationModel: { pageSize: 25 } },
+            }}
             disableDensitySelector
           />
         </Box>
