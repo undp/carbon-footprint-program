@@ -21,6 +21,7 @@ import {
   MeasurementUnitFieldsLockedError,
   MeasurementUnitAbbreviationAlreadyExistsError,
 } from "../errors.js";
+import { mapMeasurementUnitToResponse } from "../mappers.js";
 
 export const updateMeasurementUnitService = async (
   prismaClient: PrismaClient,
@@ -96,17 +97,7 @@ export const updateMeasurementUnitService = async (
         });
       }
 
-      return {
-        id: updatedMu.id.toString(),
-        name: updatedMu.name,
-        magnitude:
-          updatedMu.magnitude as UpdateMeasurementUnitResponse["magnitude"],
-        abbreviation: updatedMu.abbreviation,
-        baseFactor: updatedMu.baseFactor,
-        isBase: updatedMu.isBase,
-        status: updatedMu.status,
-        referenceCount: refCount,
-      };
+      return mapMeasurementUnitToResponse(updatedMu, refCount);
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

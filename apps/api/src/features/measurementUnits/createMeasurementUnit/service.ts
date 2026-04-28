@@ -18,30 +18,7 @@ import {
   MagnitudeAlreadyHasBaseUnitError,
   MeasurementUnitAbbreviationAlreadyExistsError,
 } from "../errors.js";
-
-const mapToResponse = (
-  mu: {
-    id: bigint;
-    name: string;
-    magnitude: string;
-    abbreviation: string;
-    baseFactor: number;
-    isBase: boolean;
-    status: MeasurementUnitStatus;
-  },
-  referenceCount: number,
-  action: "created" | "restored-full" | "restored-labels"
-): CreateMeasurementUnitResponse => ({
-  id: mu.id.toString(),
-  name: mu.name,
-  magnitude: mu.magnitude as CreateMeasurementUnitResponse["magnitude"],
-  abbreviation: mu.abbreviation,
-  baseFactor: mu.baseFactor,
-  isBase: mu.isBase,
-  status: mu.status,
-  referenceCount,
-  action,
-});
+import { mapMeasurementUnitToResponse } from "../mappers.js";
 
 export const createMeasurementUnitService = async (
   prismaClient: PrismaClient,
@@ -89,7 +66,10 @@ export const createMeasurementUnitService = async (
           },
         });
 
-        return mapToResponse(newMu, 0, "created");
+        return {
+          ...mapMeasurementUnitToResponse(newMu, 0),
+          action: "created" as const,
+        };
       }
 
       if (existing.status === MeasurementUnitStatus.ACTIVE) {
@@ -138,7 +118,7 @@ export const createMeasurementUnitService = async (
         },
       });
 
-      return mapToResponse(updatedMu, refCount, action);
+      return { ...mapMeasurementUnitToResponse(updatedMu, refCount), action };
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
