@@ -16,6 +16,7 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/constants/package.json ./packages/constants/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install dependencies for the entire workspace
@@ -36,12 +37,14 @@ COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
+COPY --from=deps /app/packages/constants/node_modules ./packages/constants/node_modules
 COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
 
 # Copy all necessary source files
 COPY packages/database ./packages/database
 COPY packages/types ./packages/types
 COPY packages/utils ./packages/utils
+COPY packages/constants ./packages/constants
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
 
@@ -74,6 +77,7 @@ COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
 COPY --chown=fastify:nodejs packages/utils/package.json ./packages/utils/
+COPY --chown=fastify:nodejs packages/constants/package.json ./packages/constants/
 
 # Copy database package dist folder (includes compiled code, generated client, and compiled seeds)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
@@ -90,15 +94,24 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./packages/t
 # Copy utils package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/utils/dist ./packages/utils/dist
 
+# Copy constants package dist folder
+COPY --from=builder --chown=fastify:nodejs /app/packages/constants/dist ./packages/constants/dist
+
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/constants/node_modules ./packages/constants/node_modules
 # Ensure @repo/types is available inside api node_modules (ESM resolution)
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist
+
+# Ensure @repo/constants is available inside types node_modules (ESM resolution
+# from compiled @repo/types code, which imports @repo/constants)
+COPY --from=builder --chown=fastify:nodejs /app/packages/constants/package.json ./packages/types/node_modules/@repo/constants/package.json
+COPY --from=builder --chown=fastify:nodejs /app/packages/constants/dist ./packages/types/node_modules/@repo/constants/dist
 
 # Copy built application
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/dist ./apps/api/dist
