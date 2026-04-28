@@ -2,7 +2,6 @@ import { FC, useMemo, useCallback } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import {
   Button,
-  ListSubheader,
   MenuItem,
   TextField,
   Tooltip,
@@ -18,6 +17,7 @@ import type {
 import {
   EditableNumberCell,
   EmissionFactorSourceCell,
+  SubcategoryGroupedSelectCell,
 } from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
@@ -66,59 +66,6 @@ interface UseEmissionFactorColumnsParams {
   rateUnits: RateMeasurementUnit[];
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
 }
-
-const SubcategoryEditSelect: FC<{
-  rowIndex: number;
-  value: string;
-  onChange: (value: string) => void;
-  subcategories: SubcategoryOption[];
-}> = ({ rowIndex, value, onChange, subcategories }) => {
-  const { control } = useFormContext();
-  const { errors } = useFormState({
-    control,
-    name: `emissionFactors.${rowIndex}.subcategoryId`,
-  });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    "emissionFactors",
-    rowIndex,
-    "subcategoryId"
-  );
-
-  return (
-    <TextField
-      select
-      fullWidth
-      size="small"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      error={!!fieldError}
-      label={fieldError?.message ?? ""}
-      sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
-    >
-      {(() => {
-        const items: React.ReactNode[] = [];
-        let lastCategory = "";
-        for (const sc of subcategories) {
-          if (sc.categoryName !== lastCategory) {
-            lastCategory = sc.categoryName;
-            items.push(
-              <ListSubheader key={`header-${sc.categoryName}`}>
-                {sc.categoryName}
-              </ListSubheader>
-            );
-          }
-          items.push(
-            <MenuItem key={sc.id} value={sc.id}>
-              {sc.name}
-            </MenuItem>
-          );
-        }
-        return items;
-      })()}
-    </TextField>
-  );
-};
 
 const UnitEditSelect: FC<{
   rowIndex: number;
@@ -248,8 +195,10 @@ export const useEmissionFactorColumns = ({
 
           if (editing) {
             return (
-              <SubcategoryEditSelect
+              <SubcategoryGroupedSelectCell
+                formArrayName="emissionFactors"
                 rowIndex={rowIndex}
+                fieldName="subcategoryId"
                 value={formRow?.subcategoryId ?? ""}
                 onChange={(value) =>
                   onCellChange(rowIndex, "subcategoryId", value)

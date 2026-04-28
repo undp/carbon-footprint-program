@@ -16,8 +16,6 @@ import {
 export interface ReductionPlanInitiativeFormRow
   extends ReductionPlanInitiativeMutationData {
   id: string;
-  /** UI-only — filters subcategory selector, never sent to API. */
-  categoryId: string;
 }
 
 export interface ReductionPlanInitiativesFormValues {
@@ -48,7 +46,6 @@ const ReductionPlanInitiativeRowSchema =
         `Máximo ${REDUCTION_PLAN_INITIATIVE_DESCRIPTION_MAX_LENGTH} caracteres`
       ),
     subcategoryId: idField,
-    categoryId: idField,
   });
 
 const reductionPlanInitiativesFormSchema = z.object({
@@ -82,7 +79,6 @@ export function toFormReductionPlanInitiative(
     title: item.title,
     description: item.description,
     subcategoryId: item.subcategoryId,
-    categoryId: item.subcategory.category.id,
   };
 }
 

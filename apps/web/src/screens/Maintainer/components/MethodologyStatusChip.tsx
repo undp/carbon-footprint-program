@@ -1,12 +1,7 @@
 import { FC } from "react";
 import { Chip, ChipProps } from "@mui/material";
 import { MethodologyVersionStatus } from "@repo/types";
-
-const STATUS_LABEL: Record<MethodologyVersionStatus, string> = {
-  [MethodologyVersionStatus.PUBLISHED]: "Activa",
-  [MethodologyVersionStatus.UNPUBLISHED]: "Inactiva",
-  [MethodologyVersionStatus.DELETED]: "Eliminada",
-};
+import { METHODOLOGY_STATUS_LABELS } from "../constants";
 
 const STATUS_COLOR: Record<MethodologyVersionStatus, ChipProps["color"]> = {
   [MethodologyVersionStatus.PUBLISHED]: "success",
@@ -22,6 +17,6 @@ export const MethodologyStatusChip: FC<Props> = ({ status }) => (
   <Chip
     size="small"
     color={STATUS_COLOR[status]}
-    label={STATUS_LABEL[status]}
+    label={METHODOLOGY_STATUS_LABELS[status]}
   />
 );

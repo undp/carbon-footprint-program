@@ -24,13 +24,18 @@ const useReductionPlanInitiativeMutationSuccess = () => {
   };
 };
 
-export const useReductionPlanInitiatives = () =>
+export const useReductionPlanInitiatives = (methodologyVersionId?: string) =>
   useQuery<GetAllReductionPlanInitiativesResponse>({
-    queryKey: maintainerKeys.reductionPlanInitiatives.all,
+    queryKey: maintainerKeys.reductionPlanInitiatives.byMethodology(
+      methodologyVersionId ?? ""
+    ),
     queryFn: () =>
       apiClient
-        .get("admin/reduction-plan")
+        .get("admin/reduction-plan", {
+          searchParams: methodologyVersionId ? { methodologyVersionId } : {},
+        })
         .json<GetAllReductionPlanInitiativesResponse>(),
+    enabled: !!methodologyVersionId,
     staleTime: STALE_TIME_MS,
   });
 

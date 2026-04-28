@@ -1,12 +1,15 @@
 import { useMemo, useCallback } from "react";
+import { Typography } from "@mui/material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
   EditableTextCell,
-  AutocompleteCell,
-  type AutocompleteCellOption,
+  SubcategoryGroupedSelectCell,
+  type SubcategoryGroupedOption,
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import type { ReductionPlanInitiativeFormRow } from "./useReductionPlanInitiativesForm";
+
+const FIELD_ARRAY_NAME = "reductionPlanInitiatives";
 
 interface UseReductionPlanInitiativeColumnsParams {
   editingRowId: string | null;
@@ -20,13 +23,9 @@ interface UseReductionPlanInitiativeColumnsParams {
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
   onDelete: (row: ReductionPlanInitiativeFormRow) => void;
-  onCategoryChange: (rowIndex: number, categoryId: string) => void;
   rows: ReductionPlanInitiativeFormRow[];
-  categories: AutocompleteCellOption[];
-  subcategories: Array<AutocompleteCellOption & { categoryId: string }>;
+  subcategories: SubcategoryGroupedOption[];
 }
-
-const FIELD_ARRAY_NAME = "reductionPlanInitiatives";
 
 export const useReductionPlanInitiativeColumns = ({
   editingRowId,
@@ -36,9 +35,7 @@ export const useReductionPlanInitiativeColumns = ({
   onStopEditRow,
   onCancelEditRow,
   onDelete,
-  onCategoryChange,
   rows,
-  categories,
   subcategories,
 }: UseReductionPlanInitiativeColumnsParams): GridColDef<ReductionPlanInitiativeFormRow>[] => {
   const getRowIndex = useCallback(
@@ -52,6 +49,57 @@ export const useReductionPlanInitiativeColumns = ({
 
   return useMemo<GridColDef<ReductionPlanInitiativeFormRow>[]>(
     () => [
+      {
+        field: "subcategoryId",
+        headerName: "Subcategoría",
+        flex: 0.25,
+        minWidth: 200,
+        renderCell: (
+          params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
+        ) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const row = rows[rowIndex];
+
+          if (editing) {
+            return (
+              <SubcategoryGroupedSelectCell
+                formArrayName={FIELD_ARRAY_NAME}
+                rowIndex={rowIndex}
+                fieldName="subcategoryId"
+                value={row?.subcategoryId ?? ""}
+                onChange={(value) =>
+                  onCellChange(rowIndex, "subcategoryId", value)
+                }
+                subcategories={subcategories}
+              />
+            );
+          }
+
+          const name =
+            subcategories.find((sc) => sc.id === row?.subcategoryId)?.name ??
+            "";
+          return (
+            <Typography
+              variant="body2"
+              onClick={() => onStartEditRow(params.row.id)}
+              sx={{
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                cursor: "pointer",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                width: "100%",
+                "&:hover": { backgroundColor: "grey.100" },
+              }}
+            >
+              {name}
+            </Typography>
+          );
+        },
+      },
       {
         field: "title",
         headerName: "Nombre",
@@ -81,7 +129,7 @@ export const useReductionPlanInitiativeColumns = ({
       {
         field: "description",
         headerName: "Descripción",
-        flex: 0.5,
+        flex: 0.45,
         minWidth: 250,
         renderCell: (
           params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
@@ -101,69 +149,6 @@ export const useReductionPlanInitiativeColumns = ({
               multiline
               maxRows={3}
               truncateLines={3}
-            />
-          );
-        },
-      },
-      {
-        field: "categoryId",
-        headerName: "Categoría",
-        flex: 0.25,
-        minWidth: 160,
-        renderCell: (
-          params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
-        ) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
-          return (
-            <AutocompleteCell
-              formArrayName={FIELD_ARRAY_NAME}
-              rowIndex={rowIndex}
-              fieldName="categoryId"
-              isEditing={editing}
-              options={categories}
-              onChange={(value) => onCategoryChange(rowIndex, value)}
-              onClick={
-                !editing ? () => onStartEditRow(params.row.id) : undefined
-              }
-              placeholder="Seleccionar…"
-            />
-          );
-        },
-      },
-      {
-        field: "subcategoryId",
-        headerName: "Subcategoría",
-        flex: 0.25,
-        minWidth: 180,
-        renderCell: (
-          params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
-        ) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
-          const row = rows[rowIndex];
-          const filtered = subcategories.filter(
-            (s) => s.categoryId === row?.categoryId
-          );
-          return (
-            <AutocompleteCell
-              formArrayName={FIELD_ARRAY_NAME}
-              rowIndex={rowIndex}
-              fieldName="subcategoryId"
-              isEditing={editing}
-              options={filtered}
-              disabled={!row?.categoryId}
-              onChange={(value) =>
-                onCellChange(rowIndex, "subcategoryId", value)
-              }
-              onClick={
-                !editing ? () => onStartEditRow(params.row.id) : undefined
-              }
-              placeholder={
-                row?.categoryId
-                  ? "Seleccionar…"
-                  : "Selecciona una categoría primero"
-              }
             />
           );
         },
@@ -202,8 +187,6 @@ export const useReductionPlanInitiativeColumns = ({
       onStopEditRow,
       onCancelEditRow,
       onDelete,
-      onCategoryChange,
-      categories,
       subcategories,
       rows,
       editingRowId,

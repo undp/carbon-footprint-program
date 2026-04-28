@@ -1,10 +1,9 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box } from "@mui/material";
+import { Box, MenuItem, Select, Typography } from "@mui/material";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
-import { uniqBy } from "lodash-es";
 import { MethodologyVersionStatus } from "@repo/types";
 import {
   useReductionPlanInitiatives,
@@ -20,6 +19,7 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
 import {
   useReductionPlanInitiativesForm,
@@ -42,6 +42,12 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     page: 0,
     pageSize: 10,
   });
+  const [
+    explicitlySelectedMethodologyVersionId,
+    setExplicitlySelectedMethodologyVersionId,
+  ] = useState<string | undefined>(undefined);
+  const [pendingMethodologyVersionId, setPendingMethodologyVersionId] =
+    useState<string | null>(null);
 
   // Form hooks
   const { form, fieldArray, handleCellChange } =
@@ -49,43 +55,42 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   const currentRows = form.watch("reductionPlanInitiatives");
 
   // Data query hooks
-  const { data: reductionPlanInitiatives, isLoading } =
-    useReductionPlanInitiatives();
   const { data: methodologies = [] } = useMethodologies();
+
+  // Default selection derived from data: PUBLISHED methodology unless the user
+  // has explicitly picked another one.
+  const selectedMethodologyVersionId = useMemo(() => {
+    if (explicitlySelectedMethodologyVersionId)
+      return explicitlySelectedMethodologyVersionId;
+    return methodologies.find(
+      (m) => m.status === MethodologyVersionStatus.PUBLISHED
+    )?.id;
+  }, [explicitlySelectedMethodologyVersionId, methodologies]);
+
+  const { data: reductionPlanInitiatives, isLoading } =
+    useReductionPlanInitiatives(selectedMethodologyVersionId);
+  const { data: subcategoriesData = [] } = useSubcategories(
+    selectedMethodologyVersionId
+  );
 
   // Data mutation hooks
   const createMutation = useAddReductionPlanInitiative();
   const updateMutation = useUpdateReductionPlanInitiative();
   const deleteMutation = useDeleteReductionPlanInitiative();
 
-  // Memo hooks
-  const activeMethodologyVersionId = useMemo(
+  const subcategoryOptions = useMemo(
     () =>
-      methodologies.find((m) => m.status === MethodologyVersionStatus.PUBLISHED)
-        ?.id,
-    [methodologies]
-  );
-  const { data: subcategoriesData = [] } = useSubcategories(
-    activeMethodologyVersionId
-  );
-  const subcategories = useMemo(
-    () =>
-      subcategoriesData.map((s) => ({
-        id: s.id,
-        name: s.name,
-        categoryId: s.category.id,
-      })),
-    [subcategoriesData]
-  );
-  const categories = useMemo(
-    () =>
-      uniqBy(
-        subcategoriesData.map((s) => ({
-          id: s.category.id,
-          name: s.category.name,
-        })),
-        "id"
-      ),
+      [...subcategoriesData]
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          categoryName: s.category.name,
+        }))
+        .sort(
+          (a, b) =>
+            a.categoryName.localeCompare(b.categoryName) ||
+            a.name.localeCompare(b.name)
+        ),
     [subcategoriesData]
   );
 
@@ -100,7 +105,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     form,
     fieldName: "reductionPlanInitiatives",
     editingRowId,
-    methodologyVersionId: undefined,
+    methodologyVersionId: selectedMethodologyVersionId,
     serverData: reductionPlanInitiatives,
     toFormData,
   });
@@ -227,7 +232,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       title: "",
       description: "",
       subcategoryId: "",
-      categoryId: "",
     };
     const currentCount = form.getValues("reductionPlanInitiatives").length;
     const newRowIndex = currentCount;
@@ -239,8 +243,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
     setNewRowId(tempId);
-    // Scroll the grid to the freshly appended row on the next frame so it's
-    // visible before the autoFocused input triggers a scrollIntoView.
     requestAnimationFrame(() => {
       apiRef.current?.scrollToIndexes({ rowIndex: newRowIndex });
     });
@@ -270,23 +272,42 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     [form, fieldArray, editingRowId, deleteMutation, enqueueSnackbar]
   );
 
-  const handleCategoryChange = useCallback(
-    (rowIndex: number, categoryId: string) => {
-      const previousCategoryId = form.getValues(
-        `reductionPlanInitiatives.${rowIndex}.categoryId`
-      );
-      handleCellChange(rowIndex, "categoryId", categoryId);
-      if (previousCategoryId !== categoryId) {
-        const currentSubcategoryId = form.getValues(
-          `reductionPlanInitiatives.${rowIndex}.subcategoryId`
-        );
-        if (currentSubcategoryId) {
-          handleCellChange(rowIndex, "subcategoryId", "");
-        }
-      }
+  const applyMethodologyChange = useCallback(
+    (id: string) => {
+      if (editingRowId) handleCancelEditRow();
+      form.reset({ reductionPlanInitiatives: [] });
+      setExplicitlySelectedMethodologyVersionId(id);
     },
-    [form, handleCellChange]
+    [editingRowId, handleCancelEditRow, form]
   );
+
+  const handleMethodologyChange = useCallback(
+    (id: string) => {
+      if (id === selectedMethodologyVersionId) return;
+      const hasUnsavedWork = form.formState.isDirty || editingRowId !== null;
+      if (hasUnsavedWork) {
+        setPendingMethodologyVersionId(id);
+        return;
+      }
+      applyMethodologyChange(id);
+    },
+    [
+      selectedMethodologyVersionId,
+      form.formState.isDirty,
+      editingRowId,
+      applyMethodologyChange,
+    ]
+  );
+
+  const handleConfirmMethodologyChange = useCallback(() => {
+    if (!pendingMethodologyVersionId) return;
+    applyMethodologyChange(pendingMethodologyVersionId);
+    setPendingMethodologyVersionId(null);
+  }, [pendingMethodologyVersionId, applyMethodologyChange]);
+
+  const handleCancelMethodologyChange = useCallback(() => {
+    setPendingMethodologyVersionId(null);
+  }, []);
 
   const { proceed, reset, status } = useBlocker({
     shouldBlockFn: () => form.formState.isDirty,
@@ -302,20 +323,54 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     onStopEditRow: handleStopEditRow,
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
-    onCategoryChange: handleCategoryChange,
     rows: currentRows,
-    categories,
-    subcategories,
+    subcategories: subcategoryOptions,
   });
+
+  const selectedMethodology = methodologies.find(
+    (m) => m.id === selectedMethodologyVersionId
+  );
+
+  const methodologySelector = (
+    <Box className="flex items-center gap-1">
+      <Typography variant="body2" color="text.secondary" noWrap>
+        Metodología:
+      </Typography>
+      <Select
+        size="small"
+        value={selectedMethodologyVersionId ?? ""}
+        onChange={(e) => handleMethodologyChange(e.target.value)}
+        sx={{ minWidth: 280 }}
+        renderValue={() =>
+          selectedMethodology ? (
+            <Box className="flex items-center gap-2">
+              <span>{selectedMethodology.name}</span>
+              <MethodologyStatusChip status={selectedMethodology.status} />
+            </Box>
+          ) : null
+        }
+      >
+        {methodologies.map((m) => (
+          <MenuItem key={m.id} value={m.id}>
+            <Box className="flex w-full items-center justify-between gap-2">
+              <span>{m.name}</span>
+              <MethodologyStatusChip status={m.status} />
+            </Box>
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
+  );
 
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Iniciativas para planes de reducción"
         onAddRow={handleAddRow}
-        addDisabled={editingRowId !== null}
+        addDisabled={editingRowId !== null || !selectedMethodologyVersionId}
         addLabel="Agregar fila"
         showDownload={false}
+        extra={methodologySelector}
       />
       <Box className="rounded-sm bg-white p-3">
         <form id="reduction-plan-initiatives-form" noValidate>
@@ -341,6 +396,11 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         open={status === "blocked"}
         onCancel={() => reset?.()}
         onConfirm={() => proceed?.()}
+      />
+      <UnsavedChangesDialog
+        open={pendingMethodologyVersionId !== null}
+        onCancel={handleCancelMethodologyChange}
+        onConfirm={handleConfirmMethodologyChange}
       />
     </FormProvider>
   );

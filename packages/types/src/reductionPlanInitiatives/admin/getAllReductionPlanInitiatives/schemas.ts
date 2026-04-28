@@ -5,6 +5,7 @@ import {
   SubcategoryBaseSchema,
   CategoryBaseSchema,
 } from "../../../baseSchemas/index.js";
+import { IdSchema } from "../../../zod.js";
 
 export const AdminReductionPlanInitiativeListItemSchema =
   ReductionPlanInitiativeBaseSchema.pick({
@@ -23,3 +24,7 @@ export const AdminReductionPlanInitiativeListItemSchema =
 export const GetAllReductionPlanInitiativesResponseSchema = z.array(
   AdminReductionPlanInitiativeListItemSchema
 );
+
+export const GetAllReductionPlanInitiativesQuerySchema = z.object({
+  methodologyVersionId: IdSchema.optional(),
+});
