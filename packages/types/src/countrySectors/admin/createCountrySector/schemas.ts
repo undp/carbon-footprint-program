@@ -15,7 +15,6 @@ export const CreateCountrySectorRequestSchema = z.strictObject({
       message: "La descripción no puede superar los 2000 caracteres",
     })
     .nullable()
-    .optional()
     .describe("Descripción opcional del rubro"),
 });
 

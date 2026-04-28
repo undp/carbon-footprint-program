@@ -94,6 +94,7 @@ export const useOrganizationSizeProfilingColumns = ({
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
               }
               truncateLines={1}
+              maxLength={255}
             />
           );
         },
@@ -123,6 +124,7 @@ export const useOrganizationSizeProfilingColumns = ({
               maxRows={3}
               truncateLines={3}
               placeholder="—"
+              maxLength={2000}
             />
           );
         },

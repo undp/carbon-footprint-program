@@ -35,6 +35,8 @@ interface EditableTextCellProps {
   autoFocus?: boolean;
   /** Text shown in read mode when the cell value is empty / null. */
   placeholder?: string;
+  /** HTML maxLength applied to the underlying input — caps user input on the client. */
+  maxLength?: number;
 }
 
 interface EditingTextFieldProps {
@@ -44,6 +46,7 @@ interface EditingTextFieldProps {
   multiline: boolean;
   maxRows: number;
   autoFocus: boolean;
+  maxLength?: number;
 }
 
 /** Mounts fresh each time the cell enters edit mode, so useState always picks up the latest formValue. */
@@ -54,6 +57,7 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
   multiline,
   maxRows,
   autoFocus,
+  maxLength,
 }) => {
   const [localValue, setLocalValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -92,6 +96,9 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
       multiline={multiline}
       maxRows={maxRows}
       inputRef={inputRef}
+      slotProps={
+        maxLength !== undefined ? { htmlInput: { maxLength } } : undefined
+      }
       sx={{
         "& .MuiOutlinedInput-root": {
           backgroundColor: "white",
@@ -116,6 +123,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   displayPaddingY = 0.5,
   autoFocus = false,
   placeholder,
+  maxLength,
 }) => {
   const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
   const { control } = useFormContext();
@@ -198,6 +206,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
       multiline={multiline}
       maxRows={maxRows}
       autoFocus={autoFocus}
+      maxLength={maxLength}
     />
   );
 };

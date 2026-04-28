@@ -97,6 +97,7 @@ export const useMainActivityProfilingColumns = ({
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
               }
               truncateLines={1}
+              maxLength={255}
             />
           );
         },
@@ -197,6 +198,7 @@ export const useMainActivityProfilingColumns = ({
               maxRows={3}
               truncateLines={3}
               placeholder="—"
+              maxLength={2000}
             />
           );
         },

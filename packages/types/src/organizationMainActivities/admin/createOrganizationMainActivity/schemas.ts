@@ -9,12 +9,8 @@ export const CreateOrganizationMainActivityRequestSchema = z.strictObject({
     .min(1, { message: "El nombre es obligatorio" })
     .max(255, { message: "El nombre no puede superar los 255 caracteres" })
     .describe("Nombre de la actividad principal"),
-  countrySectorId: IdSchema.nullable()
-    .optional()
-    .describe("ID del rubro asociado (opcional)"),
-  countrySubsectorId: IdSchema.nullable()
-    .optional()
-    .describe("ID del subrubro asociado (opcional)"),
+  countrySectorId: IdSchema.nullable().describe("ID del rubro asociado"),
+  countrySubsectorId: IdSchema.nullable().describe("ID del subrubro asociado"),
   description: z
     .string()
     .trim()
@@ -22,7 +18,6 @@ export const CreateOrganizationMainActivityRequestSchema = z.strictObject({
       message: "La descripción no puede superar los 2000 caracteres",
     })
     .nullable()
-    .optional()
     .describe("Descripción opcional"),
 });
 
