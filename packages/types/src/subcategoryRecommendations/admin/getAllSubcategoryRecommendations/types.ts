@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  GetAllSubcategoryRecommendationsQuerySchema,
   GetAllSubcategoryRecommendationsResponseSchema,
   SubcategoryRecommendationGroupRefSchema,
   SubcategoryRecommendationGroupSchema,
@@ -10,6 +11,9 @@ export type SubcategoryRecommendationGroupRef = z.infer<
 >;
 export type SubcategoryRecommendationGroup = z.infer<
   typeof SubcategoryRecommendationGroupSchema
+>;
+export type GetAllSubcategoryRecommendationsQuery = z.infer<
+  typeof GetAllSubcategoryRecommendationsQuerySchema
 >;
 export type GetAllSubcategoryRecommendationsResponse = z.infer<
   typeof GetAllSubcategoryRecommendationsResponseSchema

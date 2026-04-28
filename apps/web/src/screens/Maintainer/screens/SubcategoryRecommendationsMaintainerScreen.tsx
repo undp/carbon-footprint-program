@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -8,14 +8,14 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  MenuItem,
+  Select,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import {
-  SubcategoryRecommendationModeEnum,
-  SystemParameterKeyEnum,
-} from "@repo/types";
+import { MethodologyVersionStatus } from "@repo/types";
 import {
   useSubcategoryRecommendations,
   useCreateSubcategoryRecommendation,
@@ -26,14 +26,13 @@ import {
   useGetMethodologyById,
   useMethodologies,
 } from "@/api/query/maintainer";
-import { useSystemParameters } from "@/api/query/systemParameters/useSystemParameters";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { AppHttpError } from "@/api/http/errors";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
-import {
-  SubcategoryTransferListDialog,
-  type SubcategoryOption,
-} from "../components/SubcategoryTransferListDialog";
+import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
+import type { SubcategoryOption } from "../components/SubcategoryTransferListDialog";
+import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
 import { useSubcategoryRecommendationColumns } from "../hooks/useSubcategoryRecommendationColumns";
 import {
   isNewRow,
@@ -45,61 +44,77 @@ import {
   findSectorAndSubsectorNames,
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 
+type EditedRowEntry = {
+  subcategoryIds: string[];
+};
+
+const arraysEqualUnordered = (a: string[], b: string[]): boolean => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((v, i) => v === sortedB[i]);
+};
+
 export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
+
+  const {
+    data: methodologies,
+    isLoading: isLoadingMethodologies,
+    isError: isErrorMethodologies,
+  } = useMethodologies();
+
+  const defaultMethodologyId = useMemo(() => {
+    if (!methodologies || methodologies.length === 0) return undefined;
+    const published = methodologies.find(
+      (m) => m.status === MethodologyVersionStatus.PUBLISHED
+    );
+    return published?.id ?? methodologies[0].id;
+  }, [methodologies]);
+
+  const [methodologyOverride, setMethodologyOverride] = useState<
+    string | undefined
+  >(undefined);
+  const selectedMethodologyId = methodologyOverride ?? defaultMethodologyId;
+
   const {
     data: groups,
     isLoading: isLoadingGroups,
     isError: isErrorGroups,
-  } = useSubcategoryRecommendations();
+  } = useSubcategoryRecommendations(selectedMethodologyId);
   const {
     data: sectors,
     isLoading: isLoadingSectors,
     isError: isErrorSectors,
   } = useCountrySectors();
   const {
-    data: methodologies,
-    isLoading: isLoadingMethodologies,
-    isError: isErrorMethodologies,
-  } = useMethodologies();
-  // Use the first methodology to source category/subcategory options.
-  // TODO: revisit if multiple methodologies need to be supported here.
-  const defaultMethodologyId = methodologies?.[0]?.id;
-  const {
     data: methodology,
     isLoading: isLoadingMethodology,
     isError: isErrorMethodology,
-  } = useGetMethodologyById(defaultMethodologyId);
-  const { data: systemParameters, isLoading: isLoadingParams } =
-    useSystemParameters([
-      SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE,
-    ]);
-
+  } = useGetMethodologyById(selectedMethodologyId);
   const createMutation = useCreateSubcategoryRecommendation();
   const updateMutation = useUpdateSubcategoryRecommendation();
 
   const [tempRows, setTempRows] = useState<SubcategoryRecommendationRow[]>([]);
-  const [editingState, setEditingState] = useState<{
-    rowId: string;
-    isNew: boolean;
-  } | null>(null);
+  const [editedRows, setEditedRows] = useState<Map<string, EditedRowEntry>>(
+    () => new Map()
+  );
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [confirmEmpty, setConfirmEmpty] = useState<{
     rowId: string;
-    sectorId: string;
-    subsectorId: string | null;
   } | null>(null);
+  const [savingRowId, setSavingRowId] = useState<string | null>(null);
+  const [pendingMethodologyId, setPendingMethodologyId] = useState<
+    string | null
+  >(null);
 
-  const recommendationMode = useMemo(() => {
-    const entry = systemParameters?.find(
-      (p) => p.key === SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE
-    );
-    return entry?.value ?? SubcategoryRecommendationModeEnum.UNION;
-  }, [systemParameters]);
-
-  const nullSubsectorLabel =
-    recommendationMode === SubcategoryRecommendationModeEnum.SPECIFIC
-      ? "Sin subsector especificado"
-      : "Todos los subsectores";
+  // Reset transient state when methodology changes
+  useEffect(() => {
+    setTempRows([]);
+    setEditedRows(new Map());
+    setEditingRowId(null);
+    setConfirmEmpty(null);
+  }, [selectedMethodologyId]);
 
   const persistedRows = useMemo<SubcategoryRecommendationRow[]>(
     () =>
@@ -114,17 +129,49 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     [groups]
   );
 
-  // Derive rows while filtering out any temp row whose (sector, subsector) pair
-  // matches an already-persisted row — avoids showing duplicates after a
+  const persistedRowsById = useMemo(
+    () => new Map(persistedRows.map((r) => [r.id, r])),
+    [persistedRows]
+  );
+
+  // Apply local edits on top of persisted rows; filter temp rows that already
+  // collide with a persisted (sector, subsector) — avoids duplicates after a
   // successful POST invalidates the list query.
-  const rows = useMemo(() => {
+  const rows = useMemo<SubcategoryRecommendationRow[]>(() => {
     const persistedIds = new Set(persistedRows.map((r) => r.id));
     const visibleTempRows = tempRows.filter((r) => {
       if (!r.sectorId) return true;
       return !persistedIds.has(buildRowId(r.sectorId, r.subsectorId));
     });
-    return [...visibleTempRows, ...persistedRows];
-  }, [tempRows, persistedRows]);
+    const decoratedPersisted = persistedRows.map((r) => {
+      const edit = editedRows.get(r.id);
+      if (!edit) return r;
+      return { ...r, subcategoryIds: edit.subcategoryIds };
+    });
+    return [...visibleTempRows, ...decoratedPersisted];
+  }, [tempRows, persistedRows, editedRows]);
+
+  const isRowDirty = useCallback(
+    (rowId: string): boolean => {
+      if (isNewRow(rowId)) return true;
+      const persisted = persistedRowsById.get(rowId);
+      const edit = editedRows.get(rowId);
+      if (!persisted || !edit) return false;
+      return !arraysEqualUnordered(
+        persisted.subcategoryIds,
+        edit.subcategoryIds
+      );
+    },
+    [persistedRowsById, editedRows]
+  );
+
+  const isDirty = useMemo(() => {
+    if (tempRows.length > 0) return true;
+    for (const id of editedRows.keys()) {
+      if (isRowDirty(id)) return true;
+    }
+    return false;
+  }, [tempRows, editedRows, isRowDirty]);
 
   const subcategoryOptions = useMemo<SubcategoryOption[]>(
     () =>
@@ -140,6 +187,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
+    if (tempRows.length > 0) return;
     const tempId = `${TEMP_ROW_PREFIX}${Date.now()}`;
     setTempRows((prev) => [
       {
@@ -152,16 +200,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       },
       ...prev,
     ]);
-  }, []);
-
-  const handleRemoveTempRow = useCallback(
-    (rowIndex: number) => {
-      const row = rows[rowIndex];
-      if (!row || !isNewRow(row.id)) return;
-      setTempRows((prev) => prev.filter((r) => r.id !== row.id));
-    },
-    [rows]
-  );
+  }, [tempRows.length]);
 
   const handleChangeSector = useCallback(
     (rowIndex: number, sectorId: string) => {
@@ -215,30 +254,49 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     (rowIndex: number) => {
       const row = rows[rowIndex];
       if (!row) return;
-      if (isNewRow(row.id) && !row.sectorId) {
-        void enqueueSnackbar({
-          message: "Selecciona un sector antes de elegir subcategorías",
-          variant: "warning",
-        });
-        return;
-      }
-      setEditingState({ rowId: row.id, isNew: isNewRow(row.id) });
+      if (isNewRow(row.id) && !row.sectorId) return;
+      setEditingRowId(row.id);
     },
-    [rows, enqueueSnackbar]
+    [rows]
   );
 
   const currentEditingRow = useMemo(
-    () => rows.find((r) => r.id === editingState?.rowId) ?? null,
-    [rows, editingState]
+    () => rows.find((r) => r.id === editingRowId) ?? null,
+    [rows, editingRowId]
+  );
+
+  const handleSaveSelection = useCallback(
+    (selectedIds: string[]) => {
+      if (!editingRowId || !currentEditingRow) return;
+
+      if (isNewRow(editingRowId)) {
+        setTempRows((prev) =>
+          prev.map((r) =>
+            r.id === editingRowId ? { ...r, subcategoryIds: selectedIds } : r
+          )
+        );
+      } else {
+        setEditedRows((prev) => {
+          const next = new Map(prev);
+          next.set(editingRowId, { subcategoryIds: selectedIds });
+          return next;
+        });
+      }
+      setEditingRowId(null);
+    },
+    [editingRowId, currentEditingRow]
   );
 
   const runCreate = useCallback(
-    async (row: SubcategoryRecommendationRow, selectedIds: string[]) => {
+    async (row: SubcategoryRecommendationRow) => {
+      if (!selectedMethodologyId) return;
       try {
+        setSavingRowId(row.id);
         await createMutation.mutateAsync({
+          methodologyId: selectedMethodologyId,
           sectorId: row.sectorId,
           subsectorId: row.subsectorId,
-          subcategoryIds: selectedIds,
+          subcategoryIds: row.subcategoryIds,
         });
         setTempRows((prev) => prev.filter((r) => r.id !== row.id));
         void enqueueSnackbar({
@@ -255,21 +313,31 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           ? "Ya existe una recomendación para este sector y subsector. Edítala en lugar de crear una nueva."
           : getApiErrorMessage(error, "Error al crear la recomendación");
         void enqueueSnackbar({ message, variant: "error" });
+      } finally {
+        setSavingRowId(null);
       }
     },
-    [createMutation, enqueueSnackbar]
+    [createMutation, enqueueSnackbar, selectedMethodologyId]
   );
 
   const runUpdate = useCallback(
     async (row: SubcategoryRecommendationRow, selectedIds: string[]) => {
+      if (!selectedMethodologyId) return;
       try {
+        setSavingRowId(row.id);
         await updateMutation.mutateAsync({
           query: {
+            methodologyId: selectedMethodologyId,
             sectorId: Number(row.sectorId),
             subsectorId:
               row.subsectorId !== null ? Number(row.subsectorId) : null,
           },
           body: { subcategoryIds: selectedIds },
+        });
+        setEditedRows((prev) => {
+          const next = new Map(prev);
+          next.delete(row.id);
+          return next;
         });
         void enqueueSnackbar({
           message: "Recomendación actualizada",
@@ -283,40 +351,50 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           ),
           variant: "error",
         });
+      } finally {
+        setSavingRowId(null);
       }
     },
-    [updateMutation, enqueueSnackbar]
+    [updateMutation, enqueueSnackbar, selectedMethodologyId]
   );
 
-  const handleSaveSelection = useCallback(
-    async (selectedIds: string[]) => {
-      if (!editingState || !currentEditingRow) return;
+  const handleSaveRow = useCallback(
+    async (rowIndex: number) => {
+      const row = rows[rowIndex];
+      if (!row) return;
 
-      if (editingState.isNew) {
-        if (selectedIds.length === 0) {
-          // Guard — transfer list disables save in this case, but the guard
-          // here prevents accidental empty POST.
-          return;
-        }
-        await runCreate(currentEditingRow, selectedIds);
-        setEditingState(null);
+      if (isNewRow(row.id)) {
+        if (!row.sectorId || row.subcategoryIds.length === 0) return;
+        await runCreate(row);
         return;
       }
 
-      if (selectedIds.length === 0) {
-        setEditingState(null);
-        setConfirmEmpty({
-          rowId: currentEditingRow.id,
-          sectorId: currentEditingRow.sectorId,
-          subsectorId: currentEditingRow.subsectorId,
-        });
+      const edit = editedRows.get(row.id);
+      const ids = edit?.subcategoryIds ?? row.subcategoryIds;
+      if (ids.length === 0) {
+        setConfirmEmpty({ rowId: row.id });
         return;
       }
-
-      await runUpdate(currentEditingRow, selectedIds);
-      setEditingState(null);
+      await runUpdate(row, ids);
     },
-    [editingState, currentEditingRow, runCreate, runUpdate]
+    [rows, editedRows, runCreate, runUpdate]
+  );
+
+  const handleCancelRow = useCallback(
+    (rowIndex: number) => {
+      const row = rows[rowIndex];
+      if (!row) return;
+      if (isNewRow(row.id)) {
+        setTempRows((prev) => prev.filter((r) => r.id !== row.id));
+        return;
+      }
+      setEditedRows((prev) => {
+        const next = new Map(prev);
+        next.delete(row.id);
+        return next;
+      });
+    },
+    [rows]
   );
 
   const handleConfirmEmptyDelete = useCallback(async () => {
@@ -338,20 +416,50 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const columns = useSubcategoryRecommendationColumns({
     sectors: sectors ?? [],
     subcategories: subcategoryOptions,
-    nullSubsectorLabel,
+    nullSubsectorLabel: SUBCATEGORY_RECOMMENDATIONS_LABELS.nullSubsectorLabel,
     onChangeSector: handleChangeSector,
     onChangeSubsector: handleChangeSubsector,
     onOpenEdit: handleOpenEdit,
-    onRemoveTempRow: handleRemoveTempRow,
+    onSaveRow: handleSaveRow,
+    onCancelRow: handleCancelRow,
+    isRowDirty,
+    savingRowId,
     rows,
   });
+
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: () => isDirty,
+    enableBeforeUnload: isDirty,
+    withResolver: true,
+  });
+
+  const handleMethodologyChange = useCallback(
+    (newId: string) => {
+      if (newId === selectedMethodologyId) return;
+      if (isDirty) {
+        setPendingMethodologyId(newId);
+        return;
+      }
+      setMethodologyOverride(newId);
+    },
+    [selectedMethodologyId, isDirty]
+  );
+
+  const confirmMethodologyChange = useCallback(() => {
+    if (!pendingMethodologyId) return;
+    setTempRows([]);
+    setEditedRows(new Map());
+    setEditingRowId(null);
+    setConfirmEmpty(null);
+    setMethodologyOverride(pendingMethodologyId);
+    setPendingMethodologyId(null);
+  }, [pendingMethodologyId]);
 
   const isLoading =
     isLoadingGroups ||
     isLoadingSectors ||
     isLoadingMethodologies ||
-    isLoadingMethodology ||
-    isLoadingParams;
+    isLoadingMethodology;
 
   const hasError =
     isErrorGroups ||
@@ -367,18 +475,41 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           alignItems: "center",
           justifyContent: "space-between",
           mb: 2,
+          gap: 2,
+          flexWrap: "wrap",
         }}
       >
         <Typography variant="h5" fontWeight={600}>
-          Recomendaciones de Subcategorías
+          {SUBCATEGORY_RECOMMENDATIONS_LABELS.title}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddRow}
-        >
-          Agregar recomendación
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box className="flex items-center gap-1">
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
+            </Typography>
+            <Select
+              size="small"
+              value={selectedMethodologyId ?? ""}
+              onChange={(e) => handleMethodologyChange(e.target.value)}
+              sx={{ minWidth: 220 }}
+              disabled={!methodologies || methodologies.length === 0}
+            >
+              {(methodologies ?? []).map((m) => (
+                <MenuItem key={m.id} value={m.id}>
+                  {m.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddRow}
+            disabled={tempRows.length > 0 || !selectedMethodologyId}
+          >
+            {SUBCATEGORY_RECOMMENDATIONS_LABELS.addRecommendation}
+          </Button>
+        </Box>
       </Box>
       {hasError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -387,8 +518,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       )}
       <Box className="rounded-sm bg-white p-3">
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          Gestiona qué subcategorías se pre-seleccionan al crear inventarios
-          según el sector y subsector de la organización.
+          {SUBCATEGORY_RECOMMENDATIONS_LABELS.description}
         </Typography>
         <MaintainerDataGrid
           editingRowId={null}
@@ -401,11 +531,16 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         />
       </Box>
       <SubcategoryTransferListDialog
-        open={editingState !== null && currentEditingRow !== null}
-        isNew={editingState?.isNew ?? false}
+        open={editingRowId !== null && currentEditingRow !== null}
+        isNew={editingRowId !== null && isNewRow(editingRowId)}
         availableSubcategories={subcategoryOptions}
         initialSelectedIds={currentEditingRow?.subcategoryIds ?? []}
-        onClose={() => setEditingState(null)}
+        sectorName={currentEditingRow?.sectorName ?? ""}
+        subsectorName={currentEditingRow?.subsectorName ?? null}
+        nullSubsectorLabel={
+          SUBCATEGORY_RECOMMENDATIONS_LABELS.nullSubsectorLabel
+        }
+        onClose={() => setEditingRowId(null)}
         onSave={handleSaveSelection}
       />
       <Dialog
@@ -413,12 +548,11 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         onClose={() => setConfirmEmpty(null)}
       >
         <DialogTitle>
-          ¿Eliminar todas las recomendaciones de este grupo?
+          {SUBCATEGORY_RECOMMENDATIONS_LABELS.emptyConfirmTitle}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Al guardar sin subcategorías, todas las recomendaciones de este
-            grupo serán eliminadas.
+            {SUBCATEGORY_RECOMMENDATIONS_LABELS.emptyConfirmBody}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -432,6 +566,16 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <UnsavedChangesDialog
+        open={status === "blocked"}
+        onCancel={() => reset?.()}
+        onConfirm={() => proceed?.()}
+      />
+      <UnsavedChangesDialog
+        open={pendingMethodologyId !== null}
+        onCancel={() => setPendingMethodologyId(null)}
+        onConfirm={confirmMethodologyChange}
+      />
     </>
   );
 };

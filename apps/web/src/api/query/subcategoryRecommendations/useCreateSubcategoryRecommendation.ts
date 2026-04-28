@@ -18,9 +18,9 @@ export const useCreateSubcategoryRecommendation = () => {
       apiClient
         .post("subcategory-recommendations", { json: body })
         .json<CreateSubcategoryRecommendationResponse>(),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: subcategoryRecommendationKeys.list(),
+        queryKey: subcategoryRecommendationKeys.list(variables.methodologyId),
       });
     },
   });

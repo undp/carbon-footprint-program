@@ -2,6 +2,9 @@ import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
 
 export const UpdateSubcategoryRecommendationQuerySchema = z.object({
+  methodologyId: IdSchema.describe(
+    "The ID of the methodology version this group belongs to"
+  ),
   sectorId: z.coerce
     .number()
     .int()

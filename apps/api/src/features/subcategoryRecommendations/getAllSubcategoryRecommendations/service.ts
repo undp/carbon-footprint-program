@@ -1,18 +1,20 @@
 import type { PrismaClient } from "@repo/database";
 import {
   SubcategoryRecommendationStatus,
+  type GetAllSubcategoryRecommendationsQuery,
   type GetAllSubcategoryRecommendationsResponse,
   type User,
 } from "@repo/types";
 import {
   activeRecommendationRowSelect,
   buildGroupedResponse,
+  methodologyVersionFilter,
   resolveDefaultCountryId,
 } from "../helpers.js";
 
 export const getAllSubcategoryRecommendationsService = async (
   prismaClient: PrismaClient,
-  _query: null,
+  query: GetAllSubcategoryRecommendationsQuery | null,
   _user: User | null
 ): Promise<GetAllSubcategoryRecommendationsResponse> => {
   const countryId = await resolveDefaultCountryId(prismaClient);
@@ -21,6 +23,7 @@ export const getAllSubcategoryRecommendationsService = async (
     where: {
       status: SubcategoryRecommendationStatus.ACTIVE,
       sector: { countryId },
+      ...(query ? methodologyVersionFilter(query.methodologyId) : {}),
     },
     select: activeRecommendationRowSelect,
     orderBy: [

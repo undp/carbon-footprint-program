@@ -7,7 +7,9 @@ import {
   type User,
 } from "@repo/types";
 import { difference } from "lodash-es";
+import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { methodologyVersionFilter } from "../helpers.js";
 
 export const updateSubcategoryRecommendationService = async (
   prismaClient: PrismaClient,
@@ -19,6 +21,7 @@ export const updateSubcategoryRecommendationService = async (
     throw new UserNotFoundError();
   }
 
+  const methodologyVersionId = BigInt(query.methodologyId);
   const sectorId = BigInt(query.sectorId);
   const subsectorId =
     query.subsectorId !== null ? BigInt(query.subsectorId) : null;
@@ -30,6 +33,7 @@ export const updateSubcategoryRecommendationService = async (
         sectorId,
         subsectorId,
         status: SubcategoryRecommendationStatus.ACTIVE,
+        ...methodologyVersionFilter(query.methodologyId),
       },
       select: { id: true, subcategoryId: true },
     });
@@ -37,6 +41,21 @@ export const updateSubcategoryRecommendationService = async (
     const existingIds = existingRows.map((row) => row.subcategoryId.toString());
     const idsToRemove = difference(existingIds, data.subcategoryIds);
     const idsToAdd = difference(data.subcategoryIds, existingIds);
+
+    if (idsToAdd.length > 0) {
+      const matchingSubcategories = await tx.subcategory.count({
+        where: {
+          id: { in: idsToAdd.map((id) => BigInt(id)) },
+          category: { methodologyVersionId },
+        },
+      });
+
+      if (matchingSubcategories !== idsToAdd.length) {
+        throw new DataIntegrityError(
+          "One or more subcategoryIds do not belong to the given methodology"
+        );
+      }
+    }
 
     if (idsToRemove.length > 0) {
       const rowIdsToRemove = existingRows

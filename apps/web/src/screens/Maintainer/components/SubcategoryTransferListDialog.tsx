@@ -6,9 +6,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
+  InputAdornment,
   TextField,
+  Typography,
 } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useFuzzySearch } from "@/hooks";
+import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
 import {
   SubcategoryTransferColumn,
   type SubcategoryGroup,
@@ -26,6 +31,9 @@ interface SubcategoryTransferListDialogProps {
   isNew: boolean;
   availableSubcategories: SubcategoryOption[];
   initialSelectedIds: string[];
+  sectorName: string;
+  subsectorName: string | null;
+  nullSubsectorLabel: string;
   onClose: () => void;
   onSave: (selectedIds: string[]) => void;
 }
@@ -51,6 +59,9 @@ const SubcategoryTransferListDialogContent: FC<
   isNew,
   availableSubcategories,
   initialSelectedIds,
+  sectorName,
+  subsectorName,
+  nullSubsectorLabel,
   onClose,
   onSave,
 }) => {
@@ -97,15 +108,38 @@ const SubcategoryTransferListDialogContent: FC<
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>Editar subcategorías</DialogTitle>
+      <DialogTitle sx={{ pb: 0.5 }}>
+        {SUBCATEGORY_RECOMMENDATIONS_LABELS.editSubcategoriesTitle}
+        <Typography variant="body2" color="text.secondary">
+          {sectorName} / {subsectorName ?? nullSubsectorLabel}
+        </Typography>
+      </DialogTitle>
       <DialogContent dividers>
         <TextField
           size="small"
           fullWidth
-          placeholder="Buscar subcategoría o categoría"
+          placeholder={SUBCATEGORY_RECOMMENDATIONS_LABELS.searchPlaceholder}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           sx={{ mb: 2 }}
+          slotProps={{
+            input: {
+              endAdornment:
+                filter.length > 0 ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      aria-label={
+                        SUBCATEGORY_RECOMMENDATIONS_LABELS.clearSearchAriaLabel
+                      }
+                      onClick={() => setFilter("")}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+            },
+          }}
         />
         <Box
           sx={{

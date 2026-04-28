@@ -14,12 +14,16 @@ import type { PrismaClient, User } from "@repo/database";
 import {
   SystemRole,
   SubcategoryRecommendationStatus,
+  MethodologyVersionStatus,
 } from "@repo/database/enums";
 
 type SeededRefs = {
   sectorId: bigint;
   subsectorId: bigint;
+  methodologyId: bigint;
   subcategoryIds: bigint[];
+  otherMethodologyId: bigint;
+  otherSubcategoryId: bigint;
 };
 
 const seed = async (prisma: PrismaClient): Promise<SeededRefs> => {
@@ -38,11 +42,47 @@ const seed = async (prisma: PrismaClient): Promise<SeededRefs> => {
   const subcategories = await prisma.subcategory.findMany({
     take: 4,
     orderBy: { id: "asc" },
+    include: { category: true },
   });
+  const methodologyId = subcategories[0].category.methodologyVersionId;
+
+  const otherMethodology = await prisma.methodologyVersion.create({
+    data: {
+      countryId: country.id,
+      name: `Other Methodology ${Date.now()}`,
+      description: "Other",
+      regulation: "TEST",
+      version: "1.0.0",
+      status: MethodologyVersionStatus.UNPUBLISHED,
+    },
+  });
+  const otherCategory = await prisma.category.create({
+    data: {
+      methodologyVersionId: otherMethodology.id,
+      name: `Other Category ${Date.now()}`,
+      icon: "icon",
+      color: "#000",
+      synonyms: "",
+      description: "",
+      position: 1,
+    },
+  });
+  const otherSubcategory = await prisma.subcategory.create({
+    data: {
+      categoryId: otherCategory.id,
+      name: `Other Subcategory ${Date.now()}`,
+      icon: "icon",
+      description: "",
+    },
+  });
+
   return {
     sectorId: sector.id,
     subsectorId: subsector.id,
+    methodologyId,
     subcategoryIds: subcategories.map((s) => s.id),
+    otherMethodologyId: otherMethodology.id,
+    otherSubcategoryId: otherSubcategory.id,
   };
 };
 
@@ -54,6 +94,15 @@ const cleanup = async (prisma: PrismaClient, refs: SeededRefs) => {
     where: { countrySectorId: refs.sectorId },
   });
   await prisma.countrySector.deleteMany({ where: { id: refs.sectorId } });
+  await prisma.subcategory.deleteMany({
+    where: { id: refs.otherSubcategoryId },
+  });
+  await prisma.category.deleteMany({
+    where: { methodologyVersionId: refs.otherMethodologyId },
+  });
+  await prisma.methodologyVersion.deleteMany({
+    where: { id: refs.otherMethodologyId },
+  });
 };
 
 describe("PUT /api/subcategory-recommendations - Integration", () => {
@@ -92,8 +141,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     });
   };
 
-  const urlFor = (sectorId: bigint, subsectorId: bigint | null) => {
+  const urlFor = (
+    methodologyId: bigint,
+    sectorId: bigint,
+    subsectorId: bigint | null
+  ) => {
     const params = new URLSearchParams();
+    params.set("methodologyId", methodologyId.toString());
     params.set("sectorId", sectorId.toString());
     if (subsectorId !== null) {
       params.set("subsectorId", subsectorId.toString());
@@ -107,7 +161,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: {
         subcategoryIds: [
           refs.subcategoryIds[0].toString(),
@@ -134,7 +188,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: {
         subcategoryIds: [refs.subcategoryIds[0].toString()],
       },
@@ -167,7 +221,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: {
         subcategoryIds: [
           refs.subcategoryIds[0].toString(),
@@ -188,13 +242,57 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     );
   });
 
+  it("only affects rows of the requested methodology", async () => {
+    refs = await seed(prisma);
+    // Same (sector, subsector) but different methodology
+    await prisma.subcategoryRecommendation.create({
+      data: {
+        sectorId: refs.sectorId,
+        subsectorId: refs.subsectorId,
+        subcategoryId: refs.otherSubcategoryId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+    });
+    await seedActive([refs.subcategoryIds[0]]);
+
+    const response = await app.inject({
+      method: "PUT",
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
+      payload: { subcategoryIds: [] },
+    });
+    expect(response.statusCode).toBe(200);
+
+    const otherActive = await prisma.subcategoryRecommendation.findFirst({
+      where: {
+        sectorId: refs.sectorId,
+        subsectorId: refs.subsectorId,
+        subcategoryId: refs.otherSubcategoryId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+    });
+    expect(otherActive).not.toBeNull();
+  });
+
+  it("rejects subcategoryIds that do not belong to the given methodology", async () => {
+    refs = await seed(prisma);
+
+    const response = await app.inject({
+      method: "PUT",
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
+      payload: {
+        subcategoryIds: [refs.otherSubcategoryId.toString()],
+      },
+    });
+    expect(response.statusCode).toBe(500);
+  });
+
   it("empty subcategoryIds soft-deletes the entire group (idempotent)", async () => {
     refs = await seed(prisma);
     await seedActive([refs.subcategoryIds[0], refs.subcategoryIds[1]]);
 
     let response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: { subcategoryIds: [] },
     });
     expect(response.statusCode).toBe(200);
@@ -210,7 +308,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     // Second idempotent call on already-empty group
     response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: { subcategoryIds: [] },
     });
     expect(response.statusCode).toBe(200);
@@ -237,7 +335,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: {
         subcategoryIds: [refs.subcategoryIds[0].toString()],
       },
@@ -266,7 +364,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     const dup = refs.subcategoryIds[0].toString();
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.sectorId, refs.subsectorId),
+      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
       payload: { subcategoryIds: [dup, dup] },
     });
     expect(response.statusCode).toBe(400);
@@ -282,7 +380,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     try {
       const response = await app.inject({
         method: "PUT",
-        url: urlFor(refs.sectorId, refs.subsectorId),
+        url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
         payload: { subcategoryIds: [refs.subcategoryIds[0].toString()] },
       });
       expect(response.statusCode).toBe(403);
@@ -298,6 +396,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     refs = await seed(prisma);
 
     const params = new URLSearchParams();
+    params.set("methodologyId", refs.methodologyId.toString());
     params.set("sectorId", refs.sectorId.toString());
     const response = await app.inject({
       method: "PUT",
@@ -322,7 +421,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     refs = await seed(prisma);
     const response = await app.inject({
       method: "PUT",
-      url: `/api/subcategory-recommendations?sectorId=${refs.sectorId.toString()}&subsectorId=null`,
+      url: `/api/subcategory-recommendations?methodologyId=${refs.methodologyId.toString()}&sectorId=${refs.sectorId.toString()}&subsectorId=null`,
       payload: {
         subcategoryIds: [refs.subcategoryIds[0].toString()],
       },

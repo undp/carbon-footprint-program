@@ -13,10 +13,12 @@ export type UpdateSubcategoryRecommendationVariables = {
 };
 
 const buildSearchParams = ({
+  methodologyId,
   sectorId,
   subsectorId,
 }: UpdateSubcategoryRecommendationQuery): URLSearchParams => {
   const params = new URLSearchParams();
+  params.set("methodologyId", methodologyId);
   params.set("sectorId", String(sectorId));
   if (subsectorId != null) {
     params.set("subsectorId", String(subsectorId));
@@ -39,9 +41,11 @@ export const useUpdateSubcategoryRecommendation = () => {
           searchParams: buildSearchParams(query),
         })
         .json<UpdateSubcategoryRecommendationResponse>(),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: subcategoryRecommendationKeys.list(),
+        queryKey: subcategoryRecommendationKeys.list(
+          variables.query.methodologyId
+        ),
       });
     },
   });

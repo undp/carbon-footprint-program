@@ -2,6 +2,14 @@ import type { Prisma, PrismaClient } from "@repo/database";
 import type { SubcategoryRecommendationGroup } from "@repo/types";
 import { ApplicationConfigError } from "@/errors/ApplicationConfigError.js";
 
+export const methodologyVersionFilter = (
+  methodologyId: string
+): Prisma.SubcategoryRecommendationWhereInput => ({
+  subcategory: {
+    category: { methodologyVersionId: BigInt(methodologyId) },
+  },
+});
+
 export const activeRecommendationRowSelect = {
   sectorId: true,
   subsectorId: true,

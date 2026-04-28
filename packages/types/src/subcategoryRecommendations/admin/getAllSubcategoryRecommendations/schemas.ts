@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
+import { MethodologyIdQuerySchema } from "../../baseSchemas/methodologyIdQuery.js";
+
+export const GetAllSubcategoryRecommendationsQuerySchema =
+  MethodologyIdQuerySchema;
 
 export const SubcategoryRecommendationGroupRefSchema = z.object({
   sectorId: IdSchema.describe("The ID of the sector"),
