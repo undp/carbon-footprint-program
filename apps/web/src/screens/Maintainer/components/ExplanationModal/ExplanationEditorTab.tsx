@@ -1,13 +1,26 @@
 import { FC, KeyboardEvent, useCallback, useLayoutEffect, useRef } from "react";
 import { Box, TextField } from "@mui/material";
-import { ExplanationToolbar, ToolbarInsertSpec } from "./ExplanationToolbar";
+import { ExplanationToolbar } from "./ExplanationToolbar";
 import { insertMarkdown } from "./insertMarkdown";
+import {
+  EDITOR_PLACEHOLDER,
+  TOOLBAR_ACTIONS,
+  ToolbarInsertSpec,
+} from "./constants";
 
 interface ExplanationEditorTabProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
 }
+
+const SHORTCUT_MAP: ReadonlyMap<string, ToolbarInsertSpec> = new Map(
+  TOOLBAR_ACTIONS.flatMap((action) =>
+    action.spec && action.shortcut
+      ? [[action.shortcut.key, action.spec] as const]
+      : []
+  )
+);
 
 export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
   value,
@@ -52,14 +65,10 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
     if (!(event.ctrlKey || event.metaKey)) return;
-    const key = event.key.toLowerCase();
-    if (key === "b") {
-      event.preventDefault();
-      applyInsert({ before: "**", after: "**", placeholder: "texto" });
-    } else if (key === "i") {
-      event.preventDefault();
-      applyInsert({ before: "*", after: "*", placeholder: "texto" });
-    }
+    const spec = SHORTCUT_MAP.get(event.key.toLowerCase());
+    if (!spec) return;
+    event.preventDefault();
+    applyInsert(spec);
   };
 
   return (
@@ -82,7 +91,7 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Escribe la explicación aquí..."
+        placeholder={EDITOR_PLACEHOLDER}
         disabled={disabled}
         slotProps={{
           input: { sx: { fontFamily: "monospace", fontSize: "0.875rem" } },
