@@ -1,18 +1,8 @@
-import type { MeasurementUnitStatus } from "@repo/database";
+import type { MeasurementUnit } from "@repo/database";
 import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 
-type MeasurementUnitRow = {
-  id: bigint | string;
-  name: string;
-  magnitude: string;
-  abbreviation: string;
-  baseFactor: number;
-  isBase: boolean;
-  status: MeasurementUnitStatus;
-};
-
 export const mapMeasurementUnitToResponse = (
-  mu: MeasurementUnitRow,
+  mu: MeasurementUnit,
   referenceCount: number
 ): GetAllMeasurementUnitsResponse[number] => ({
   id: mu.id.toString(),
