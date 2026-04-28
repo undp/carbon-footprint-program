@@ -78,7 +78,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     text: "Perfilamiento",
     icon: <BusinessCenterOutlined />,
     path: Routes.ADMIN_SECTORS,
-    requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
     children: [
       {
         text: "Rubros",
@@ -96,7 +95,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
       {
-        text: "Tamaño de la Organización",
+        text: `Tamaño de la ${capitalize(VOCAB.organization.noun.singular)}`,
         icon: <StraightenOutlined fontSize="small" />,
         path: Routes.ADMIN_ORGANIZATION_SIZES,
       },
