@@ -27,10 +27,10 @@ export const deleteCountrySectorService = async (
   return await prismaClient.$transaction(async (tx) => {
     const updaterId = BigInt(user.id);
 
-    // Cascade soft-delete: deepest level first. Hijos/refs externas que apunten a estas
-    // filas quedarán con FK a un row DELETED — el frontend muestra el conteo de impacto
-    // en un dialog de confirmación previo (ver DeleteWarningDialog) para que el usuario
-    // pueda decidir informado.
+    // Cascade soft-delete: deepest level first. Children and external references
+    // pointing at these rows remain with FK to a DELETED row — the frontend shows
+    // the impact counts in a confirmation dialog (see DeleteWarningDialog) so the
+    // user can decide informed.
     await tx.organizationMainActivity.updateMany({
       where: {
         countrySectorId: sectorId,

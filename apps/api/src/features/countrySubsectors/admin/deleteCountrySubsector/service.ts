@@ -26,8 +26,8 @@ export const deleteCountrySubsectorService = async (
   return await prismaClient.$transaction(async (tx) => {
     const updaterId = BigInt(user.id);
 
-    // Cascade soft-delete: las main activities hijas se eliminan junto con el subrubro.
-    // El conteo de impacto se muestra en el frontend antes de confirmar.
+    // Cascade soft-delete: child main activities are deleted along with the subsector.
+    // The impact count is shown in the frontend before the user confirms.
     await tx.organizationMainActivity.updateMany({
       where: {
         countrySubsectorId: subsectorId,

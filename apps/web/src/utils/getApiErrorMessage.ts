@@ -65,7 +65,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   METHODOLOGY_IS_DELETED: "La metodología ya fue eliminada.",
 
-  // Profiling catalogs (rubros / subrubros / actividades / tamaños). Services set a
+  // Profiling catalogs (sectors / subsectors / main activities / sizes). Services set a
   // Spanish, context-specific sentence on the thrown error's `message` (surfaced via
   // `error.apiMessage`) so the FE doesn't need a fallback per code; these entries are
   // here only for codes whose API messages remain in English.
