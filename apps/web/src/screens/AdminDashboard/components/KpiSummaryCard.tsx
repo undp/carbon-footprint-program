@@ -8,8 +8,8 @@ interface KpiSummaryCardProps {
   Icon: React.ElementType;
   primaryValue: number;
   primaryLabel: string;
-  secondaryValue: number;
-  secondaryLabel: string;
+  secondaryValue?: number;
+  secondaryLabel?: string;
   isLoading?: boolean;
   hasError?: boolean;
 }
@@ -75,10 +75,14 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
       </Box>
       <Stack direction="column" alignItems="baseline" spacing={0.5}>
         <Typography variant="h4" fontWeight={700}>
-          {formatQuantity(primaryValue)} | {formatQuantity(secondaryValue)}
+          {secondaryValue != null
+            ? `${formatQuantity(primaryValue)} | ${formatQuantity(secondaryValue)}`
+            : formatQuantity(primaryValue)}
         </Typography>
         <Typography variant="body2" color="text.primary">
-          {primaryLabel} | {secondaryLabel}
+          {secondaryLabel
+            ? `${primaryLabel} | ${secondaryLabel}`
+            : primaryLabel}
         </Typography>
       </Stack>
     </Card>

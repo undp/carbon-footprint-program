@@ -110,7 +110,7 @@ export const UsersScreen: FC = () => {
 
       <UsersScreenTabs activeTab={activeTab} />
 
-      <UsersScreenKpiSection />
+      <UsersScreenKpiSection activeTab={activeTab} />
 
       <UsersScreenTable
         rows={filteredUsers}

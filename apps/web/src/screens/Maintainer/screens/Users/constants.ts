@@ -15,7 +15,9 @@ export type TabKey = keyof typeof TAB_LABELS;
 
 export const KPI_LABELS = {
   usuarios: "Usuarios",
+  actividad: "Actividad",
   administradores: "Administradores",
+  superAdministradores: "Super Administradores",
 };
 
 export const ROLE_LABELS: Record<SystemRole, string> = {
