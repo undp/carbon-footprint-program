@@ -267,8 +267,6 @@ export const useMeasurementUnitColumns = ({
         width: 140,
         sortable: false,
         filterable: false,
-        headerAlign: "center",
-        align: "center",
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
