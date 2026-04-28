@@ -11,6 +11,7 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
+  ParentNotActiveError,
   ResourceNotFoundError,
 } from "@/errors/index.js";
 import createError from "@fastify/error";
@@ -64,13 +65,12 @@ export const restoreOrganizationMainActivityService = async (
 
       // Block restore when the linked rubro/subrubro is no longer ACTIVE so
       // restored activities never resurrect with stale parent references.
+      // ParentNotActiveError (vs ResourceNotFoundError) lets the frontend show a dialog
+      // explaining which parent must be restored first.
       if (existing.countrySectorId !== null) {
-        const parentSector = await tx.countrySector.findFirst({
-          where: {
-            id: existing.countrySectorId,
-            status: CountrySectorStatus.ACTIVE,
-          },
-          select: { id: true },
+        const parentSector = await tx.countrySector.findUnique({
+          where: { id: existing.countrySectorId },
+          select: { id: true, status: true, name: true },
         });
         if (!parentSector) {
           throw new ResourceNotFoundError(
@@ -78,21 +78,33 @@ export const restoreOrganizationMainActivityService = async (
             existing.countrySectorId.toString()
           );
         }
+        if (parentSector.status !== CountrySectorStatus.ACTIVE) {
+          const err = new ParentNotActiveError("CountrySector");
+          err.message = `No se puede restaurar la actividad principal "${existing.name}" porque el rubro "${parentSector.name}" está eliminado. Restáuralo primero.`;
+          throw err;
+        }
       }
 
       if (existing.countrySubsectorId !== null) {
-        const parentSubsector = await tx.countrySubsector.findFirst({
-          where: {
-            id: existing.countrySubsectorId,
-            status: CountrySubsectorStatus.ACTIVE,
+        const parentSubsector = await tx.countrySubsector.findUnique({
+          where: { id: existing.countrySubsectorId },
+          select: {
+            id: true,
+            status: true,
+            name: true,
+            countrySectorId: true,
           },
-          select: { id: true, countrySectorId: true },
         });
         if (!parentSubsector) {
           throw new ResourceNotFoundError(
             "CountrySubsector",
             existing.countrySubsectorId.toString()
           );
+        }
+        if (parentSubsector.status !== CountrySubsectorStatus.ACTIVE) {
+          const err = new ParentNotActiveError("CountrySubsector");
+          err.message = `No se puede restaurar la actividad principal "${existing.name}" porque el subrubro "${parentSubsector.name}" está eliminado. Restáuralo primero.`;
+          throw err;
         }
 
         if (

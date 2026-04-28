@@ -7,6 +7,7 @@ import {
 import { type RestoreCountrySubsectorResponse, type User } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
+  ParentNotActiveError,
   ResourceNotFoundError,
 } from "@/errors/index.js";
 import createError from "@fastify/error";
@@ -56,18 +57,22 @@ export const restoreCountrySubsectorService = async (
 
       // Block restore when the parent sector has been soft-deleted so the
       // catalog never exposes an ACTIVE subsector orphaned from its rubro.
-      const parentSector = await tx.countrySector.findFirst({
-        where: {
-          id: existing.countrySectorId,
-          status: CountrySectorStatus.ACTIVE,
-        },
-        select: { id: true },
+      // ParentNotActiveError (vs ResourceNotFoundError) lets the frontend show a dialog
+      // explaining which parent must be restored first.
+      const parentSector = await tx.countrySector.findUnique({
+        where: { id: existing.countrySectorId },
+        select: { id: true, status: true, name: true },
       });
       if (!parentSector) {
         throw new ResourceNotFoundError(
           "CountrySector",
           existing.countrySectorId.toString()
         );
+      }
+      if (parentSector.status !== CountrySectorStatus.ACTIVE) {
+        const err = new ParentNotActiveError("CountrySector");
+        err.message = `No se puede restaurar el subrubro "${existing.name}" porque el rubro "${parentSector.name}" está eliminado. Restáuralo primero.`;
+        throw err;
       }
 
       const collision = await tx.countrySubsector.findFirst({
