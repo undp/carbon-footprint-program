@@ -17,7 +17,7 @@ export const createMeasurementUnitRoute = (fastify: FastifyZodInstance) => {
           "Creates a new measurement unit and its canonical rate unit. If the abbreviation matches a soft-deleted unit, it is restored.",
         body: CreateMeasurementUnitBodySchema,
         response: {
-          200: CreateMeasurementUnitResponseSchema,
+          201: CreateMeasurementUnitResponseSchema,
           400: ApiErrorResponseSchema,
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,

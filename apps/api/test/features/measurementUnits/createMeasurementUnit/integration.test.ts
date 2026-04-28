@@ -49,7 +49,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
   }
 
   describe("Successful creation", () => {
-    it("should create a measurement unit and return 200", async () => {
+    it("should create a measurement unit and return 201", async () => {
       const payload = buildPayload();
 
       const response = await app.inject({
@@ -58,7 +58,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
       expect(body.id).toBeTruthy();
       expect(body.name).toBe(payload.name);
@@ -80,7 +80,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
 
       const mu = await prisma.measurementUnit.findUnique({
@@ -172,7 +172,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload: restorePayload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
       expect(body.action).toBe("restored-full");
       expect(body.id).toBe(created.id); // same row, restored
