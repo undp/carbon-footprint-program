@@ -142,6 +142,12 @@ System role changes (`USER`/`ADMIN`/`SUPERADMIN`) are an exception to the "last 
 
 Foreign keys use `onDelete: Restrict` on both relations, so the database blocks deletion of any referenced user record (target or actor) while audit rows still point to it — preserving the audit trail by preventing the upstream delete rather than orphaning rows. No-op transitions (target role already equals new role) do not insert a row. The full history for a user is queryable via `GET /users/:id/role-history`.
 
+### User access log (`UserAccessLog`)
+
+Session-level access events are recorded in the `UserAccessLog` table. Every time a user starts a session (via `GET /users/me`), a timestamped row is inserted. This provides a complete history of when each user accessed the platform.
+
+For full details on the data model, configuration, and admin UI integration, see [User Activity Tracking](../development/user-activity-tracking.md).
+
 ---
 
 ## Log Querying in Azure (Log Analytics)
