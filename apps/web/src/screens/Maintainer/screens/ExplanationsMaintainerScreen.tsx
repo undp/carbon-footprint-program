@@ -1,10 +1,8 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import { Box, InputAdornment, TextField, Typography } from "@mui/material";
-import { Search as SearchIcon } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useExplanations, useUpdateExplanation } from "@/api/query/maintainer";
 import type { GetAllExplanationsResponse } from "@repo/types";
-import { useFuzzySearch } from "@/hooks";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
@@ -13,16 +11,11 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 type ExplanationRow = GetAllExplanationsResponse[number];
 
-const EXPLANATION_FUSE_OPTIONS = {
-  keys: ["name", "slug"],
-};
-
 export const ExplanationsMaintainerScreen: FC = () => {
   const { data, isLoading, isError } = useExplanations();
   const updateMutation = useUpdateExplanation();
   const { enqueueSnackbar } = useSnackbar();
 
-  const [searchText, setSearchText] = useState("");
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
 
   const editingRow = useMemo(
@@ -31,10 +24,6 @@ export const ExplanationsMaintainerScreen: FC = () => {
   );
 
   const rows = useMemo<ExplanationRow[]>(() => data ?? [], [data]);
-  const { results: filteredRows } = useFuzzySearch(rows, {
-    query: searchText,
-    fuseOptions: EXPLANATION_FUSE_OPTIONS,
-  });
 
   const handleOpenEdit = useCallback((slug: string) => {
     setEditingSlug(slug);
@@ -65,28 +54,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
 
   return (
     <>
-      <MaintainerPageHeader
-        title="Explicaciones"
-        extra={
-          <TextField
-            size="small"
-            label="Buscar"
-            placeholder="Buscar por nombre o slug"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-            sx={{ minWidth: 280 }}
-          />
-        }
-      />
+      <MaintainerPageHeader title="Explicaciones" showDownload={false} />
       <Box className="rounded-sm bg-white p-3">
         {isError ? (
           <Typography variant="body2" color="error" sx={{ p: 2 }}>
@@ -97,9 +65,20 @@ export const ExplanationsMaintainerScreen: FC = () => {
             editingRowId={null}
             loading={isLoading}
             columns={columns}
-            rows={filteredRows}
+            rows={rows}
             getRowId={(row: ExplanationRow) => row.slug}
             disableRowSelectionOnClick
+            showToolbar
+            disableColumnSorting={false}
+            disableColumnFilter={false}
+            disableColumnMenu={false}
+            hideFooter={false}
+            pagination
+            pageSizeOptions={[10, 25, 50]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 25 } },
+              sorting: { sortModel: [{ field: "name", sort: "asc" }] },
+            }}
           />
         )}
       </Box>

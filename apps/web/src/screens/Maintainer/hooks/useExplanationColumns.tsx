@@ -19,14 +19,12 @@ export const useExplanationColumns = ({
         headerName: "Nombre",
         flex: 1,
         minWidth: 220,
-        sortable: false,
       },
       {
         field: "description",
         headerName: "Descripción",
         flex: 1.5,
         minWidth: 280,
-        sortable: false,
         renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
           <Typography variant="body2" color="text.secondary" component="span">
             {params.row.description ?? "—"}
@@ -34,28 +32,12 @@ export const useExplanationColumns = ({
         ),
       },
       {
-        field: "slug",
-        headerName: "Slug",
-        flex: 1,
-        minWidth: 240,
-        sortable: false,
-        renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
-          <Typography
-            variant="body2"
-            sx={{ fontFamily: "monospace" }}
-            component="span"
-          >
-            {params.row.slug}
-          </Typography>
-        ),
-      },
-      {
         field: "explanation",
         headerName: "Explicación",
-        sortable: false,
         filterable: false,
         disableColumnMenu: true,
         width: 140,
+        valueGetter: (_value, row: ExplanationRow) => row.name,
         renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
           <Button
             size="small"
