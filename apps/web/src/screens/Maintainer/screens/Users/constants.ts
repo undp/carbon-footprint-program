@@ -32,6 +32,7 @@ export const COLUMN_HEADERS = {
   jobPosition: "Cargo",
   organizationsAndRoles: `${capitalize(VOCAB.organization.noun.plural)} y rol`,
   role: "Rol",
+  lastAccessAt: "Último acceso",
   createdAt: "Fecha de registro",
   actions: "Acciones",
 };

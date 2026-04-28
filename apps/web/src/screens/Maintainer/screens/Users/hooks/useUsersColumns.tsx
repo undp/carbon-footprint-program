@@ -93,6 +93,16 @@ export const useUsersColumns = ({
                 );
               },
             } satisfies GridColDef<UserRow>,
+            {
+              field: "lastAccessAt",
+              headerName: COLUMN_HEADERS.lastAccessAt,
+              cellClassName,
+              flex: 0.9,
+              valueFormatter: (value: string | null) => {
+                if (!value) return "Nunca";
+                return format(new Date(value), "d MMM yyyy", { locale: es });
+              },
+            } satisfies GridColDef<UserRow>,
           ]
         : []),
       ...(!isUsuariosTab
