@@ -6,6 +6,7 @@ import {
 import type {
   CreateMeasurementUnitBody,
   CreateMeasurementUnitResponse,
+  User,
 } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import {
@@ -44,7 +45,8 @@ const mapToResponse = (
 
 export const createMeasurementUnitService = async (
   prismaClient: PrismaClient,
-  body: CreateMeasurementUnitBody
+  body: CreateMeasurementUnitBody,
+  _user: User | null
 ): Promise<CreateMeasurementUnitResponse> => {
   try {
     return await prismaClient.$transaction(async (tx) => {

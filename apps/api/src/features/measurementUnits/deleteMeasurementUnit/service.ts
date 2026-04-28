@@ -1,5 +1,5 @@
 import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
-import type { DeleteMeasurementUnitResponse } from "@repo/types";
+import type { User } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import {
   resolveKgMeasurementUnit,
@@ -10,8 +10,9 @@ import { MeasurementUnitNotFoundError } from "../errors.js";
 
 export const deleteMeasurementUnitService = async (
   prismaClient: PrismaClient,
-  id: string
-): Promise<DeleteMeasurementUnitResponse> => {
+  id: string,
+  _user: User | null
+): Promise<void> => {
   return await prismaClient.$transaction(async (tx) => {
     const target = await tx.measurementUnit.findUnique({
       where: { id: BigInt(id) },
@@ -46,14 +47,9 @@ export const deleteMeasurementUnitService = async (
       });
     }
 
-    const deletedMu = await tx.measurementUnit.update({
+    await tx.measurementUnit.update({
       where: { id: target.id },
       data: { status: MeasurementUnitStatus.DELETED },
     });
-
-    return {
-      id: deletedMu.id.toString(),
-      status: deletedMu.status,
-    };
   });
 };

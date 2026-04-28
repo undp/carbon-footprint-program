@@ -8,7 +8,6 @@ import type {
   CreateMeasurementUnitResponse,
   UpdateMeasurementUnitBody,
   UpdateMeasurementUnitResponse,
-  DeleteMeasurementUnitResponse,
 } from "@repo/types";
 
 export const useMaintainerMeasurementUnits = () =>
@@ -61,8 +60,9 @@ export const useUpdateMeasurementUnit = () => {
 
 export const useDeleteMeasurementUnit = () => {
   const queryClient = useQueryClient();
-  return useMutation<DeleteMeasurementUnitResponse, Error, string>({
-    mutationFn: (id) => apiClient.delete(`measurement-units/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: (id) =>
+      apiClient.delete(`measurement-units/${id}`).then(() => undefined),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.measurementUnits.all,
