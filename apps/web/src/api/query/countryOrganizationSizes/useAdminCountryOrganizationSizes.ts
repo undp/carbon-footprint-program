@@ -10,7 +10,7 @@ export const useAdminCountryOrganizationSizes = (
   status: AdminListStatusFilter
 ) => {
   return useQuery<GetAllAdminCountryOrganizationSizesResponse>({
-    queryKey: countryOrganizationSizeKeys.admin.list(status),
+    queryKey: countryOrganizationSizeKeys.admin(status),
     queryFn: () =>
       apiClient
         .get("admin/country-organization-sizes", { searchParams: { status } })

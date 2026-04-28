@@ -3,7 +3,7 @@ import type {
   UpdateCountryOrganizationSizeRequest,
   UpdateCountryOrganizationSizeResponse,
 } from "@repo/types";
-import { countryOrganizationSizeKeys } from "./keys";
+import { CountryOrganizationSizeQueryKey } from "./keys";
 import { apiClient } from "@/api/http";
 
 export const useUpdateCountryOrganizationSize = () => {
@@ -17,13 +17,15 @@ export const useUpdateCountryOrganizationSize = () => {
       apiClient
         .patch(`admin/country-organization-sizes/${id}`, { json: body })
         .json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: countryOrganizationSizeKeys.admin.all,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: countryOrganizationSizeKeys.app.all,
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountryOrganizationSizeQueryKey.CatalogUpdateDependency
+            ),
+        }),
+      ]);
     },
   });
 };

@@ -10,7 +10,7 @@ export const useAdminOrganizationMainActivities = (
   status: AdminListStatusFilter
 ) => {
   return useQuery<GetAllAdminOrganizationMainActivitiesResponse>({
-    queryKey: organizationMainActivityKeys.admin.list(status),
+    queryKey: organizationMainActivityKeys.admin(status),
     queryFn: () =>
       apiClient
         .get("admin/organization-main-activities", { searchParams: { status } })

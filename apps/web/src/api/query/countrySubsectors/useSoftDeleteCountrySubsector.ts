@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DeleteCountrySubsectorResponse } from "@repo/types";
-import { countrySubsectorKeys } from "./keys";
-import { countrySectorKeys } from "../countrySectors/keys";
-import { organizationMainActivityKeys } from "../organizationMainActivities/keys";
+import { CountrySubsectorQueryKey } from "./keys";
+import { CountrySectorQueryKey } from "../countrySectors/keys";
+import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
@@ -10,17 +10,29 @@ export const useSoftDeleteCountrySubsector = () => {
   return useMutation<DeleteCountrySubsectorResponse, Error, string>({
     mutationFn: (id) =>
       apiClient.delete(`admin/country-subsectors/${id}`).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: countrySubsectorKeys.admin.all,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.app.all,
-      });
-      // Cascade soft-delete also affects main activities.
-      void queryClient.invalidateQueries({
-        queryKey: organizationMainActivityKeys.all,
-      });
+    onSuccess: async () => {
+      // Cascade soft-delete also affects main activities; sector list refreshes
+      // because its impactedChildren counts shift.
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySubsectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              OrganizationMainActivityQueryKey.CatalogUpdateDependency
+            ),
+        }),
+      ]);
     },
   });
 };

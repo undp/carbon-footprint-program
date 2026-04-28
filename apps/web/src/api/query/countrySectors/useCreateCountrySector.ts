@@ -3,7 +3,7 @@ import type {
   CreateCountrySectorRequest,
   CreateCountrySectorResponse,
 } from "@repo/types";
-import { countrySectorKeys } from "./keys";
+import { CountrySectorQueryKey } from "./keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCountrySector = () => {
@@ -15,13 +15,15 @@ export const useCreateCountrySector = () => {
   >({
     mutationFn: (body) =>
       apiClient.post("admin/country-sectors", { json: body }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.admin.all,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.app.all,
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+      ]);
     },
   });
 };

@@ -1,28 +1,36 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DeleteCountrySectorResponse } from "@repo/types";
-import { countrySectorKeys } from "./keys";
-import { countrySubsectorKeys } from "../countrySubsectors/keys";
-import { organizationMainActivityKeys } from "../organizationMainActivities/keys";
+import { CountrySectorQueryKey } from "./keys";
+import { CountrySubsectorQueryKey } from "../countrySubsectors/keys";
+import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySector = () => {
   const queryClient = useQueryClient();
   return useMutation<DeleteCountrySectorResponse, Error, string>({
     mutationFn: (id) => apiClient.delete(`admin/country-sectors/${id}`).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.admin.all,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.app.all,
-      });
+    onSuccess: async () => {
       // Cascade soft-delete also affects subsectors and main activities.
-      void queryClient.invalidateQueries({
-        queryKey: countrySubsectorKeys.all,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: organizationMainActivityKeys.all,
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySubsectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              OrganizationMainActivityQueryKey.CatalogUpdateDependency
+            ),
+        }),
+      ]);
     },
   });
 };

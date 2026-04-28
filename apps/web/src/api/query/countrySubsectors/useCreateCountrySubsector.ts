@@ -3,8 +3,8 @@ import type {
   CreateCountrySubsectorRequest,
   CreateCountrySubsectorResponse,
 } from "@repo/types";
-import { countrySubsectorKeys } from "./keys";
-import { countrySectorKeys } from "../countrySectors/keys";
+import { CountrySubsectorQueryKey } from "./keys";
+import { CountrySectorQueryKey } from "../countrySectors/keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCountrySubsector = () => {
@@ -16,14 +16,22 @@ export const useCreateCountrySubsector = () => {
   >({
     mutationFn: (body) =>
       apiClient.post("admin/country-subsectors", { json: body }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: countrySubsectorKeys.admin.all,
-      });
-      // The public sector list embeds subsectors, so invalidate it too.
-      void queryClient.invalidateQueries({
-        queryKey: countrySectorKeys.app.all,
-      });
+    onSuccess: async () => {
+      // Sector list also refreshes because its impactedChildren counts shift.
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySubsectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountrySectorQueryKey.CatalogUpdateDependency
+            ),
+        }),
+      ]);
     },
   });
 };

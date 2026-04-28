@@ -11,7 +11,7 @@ type Filters = GetAllOrganizationMainActivitiesQuery;
 
 export const useOrganizationMainActivities = (filters?: Filters) => {
   return useQuery<GetAllOrganizationMainActivitiesResponse>({
-    queryKey: organizationMainActivityKeys.list(filters),
+    queryKey: organizationMainActivityKeys.app(filters),
     queryFn: () => {
       const searchParams = new URLSearchParams();
       if (filters?.sectorId) {

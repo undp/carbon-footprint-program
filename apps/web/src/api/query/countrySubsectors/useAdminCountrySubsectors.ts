@@ -8,7 +8,7 @@ import { apiClient } from "@/api/http";
 
 export const useAdminCountrySubsectors = (status: AdminListStatusFilter) => {
   return useQuery<GetAllAdminCountrySubsectorsResponse>({
-    queryKey: countrySubsectorKeys.admin.list(status),
+    queryKey: countrySubsectorKeys.admin(status),
     queryFn: () =>
       apiClient
         .get("admin/country-subsectors", { searchParams: { status } })

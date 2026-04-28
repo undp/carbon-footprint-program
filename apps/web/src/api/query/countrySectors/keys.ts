@@ -1,24 +1,25 @@
 import type { AdminListStatusFilter } from "@repo/types";
 
-/**
- * Query-key factory for country sectors. Segregated into:
- *   - `app`: public read endpoint (filtered to ACTIVE)
- *   - `admin`: full admin view with `status` filter
- *
- * Admin mutations should invalidate BOTH namespaces so consumer screens reflect catalog
- * changes immediately.
- *
- * `all` is preserved as a backward-compat alias for the public list (consumers that have
- * not yet migrated to `app.all`).
- */
+export enum CountrySectorQueryKey {
+  Root = "countrySectors",
+  App = "app",
+  Admin = "admin",
+  // Dependency tag included in every cache key. Mutations invalidate by
+  // `predicate` matching this tag so app + admin queries refresh together.
+  CatalogUpdateDependency = "country-sector-catalog-update-dependency",
+}
+
 export const countrySectorKeys = {
-  all: ["countrySectors", "app"] as const,
-  app: {
-    all: ["countrySectors", "app"] as const,
-  },
-  admin: {
-    all: ["countrySectors", "admin"] as const,
-    list: (status: AdminListStatusFilter) =>
-      ["countrySectors", "admin", "list", status] as const,
-  },
+  app: [
+    CountrySectorQueryKey.Root,
+    CountrySectorQueryKey.App,
+    CountrySectorQueryKey.CatalogUpdateDependency,
+  ] as const,
+  admin: (status: AdminListStatusFilter) =>
+    [
+      CountrySectorQueryKey.Root,
+      CountrySectorQueryKey.Admin,
+      status,
+      CountrySectorQueryKey.CatalogUpdateDependency,
+    ] as const,
 };

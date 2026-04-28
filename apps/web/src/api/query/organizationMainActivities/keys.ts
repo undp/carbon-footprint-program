@@ -3,25 +3,27 @@ import {
   GetAllOrganizationMainActivitiesQuery,
 } from "@repo/types";
 
-/**
- * Query-key factory for organization main activities. The legacy `all`/`list` keys are
- * kept for backward compatibility with the public read consumers; the `admin` subtree
- * adds the admin list with `status` filter.
- */
+export enum OrganizationMainActivityQueryKey {
+  Root = "organizationMainActivities",
+  App = "app",
+  Admin = "admin",
+  CatalogUpdateDependency = "organization-main-activity-catalog-update-dependency",
+}
+
 export const organizationMainActivityKeys = {
-  all: ["organizationMainActivities"] as const,
-  list: (filters?: GetAllOrganizationMainActivitiesQuery) =>
+  app: (filters?: GetAllOrganizationMainActivitiesQuery) =>
     [
-      "organizationMainActivities",
+      OrganizationMainActivityQueryKey.Root,
+      OrganizationMainActivityQueryKey.App,
       filters?.sectorId ?? null,
       filters?.subsectorId ?? null,
+      OrganizationMainActivityQueryKey.CatalogUpdateDependency,
     ] as const,
-  app: {
-    all: ["organizationMainActivities"] as const,
-  },
-  admin: {
-    all: ["organizationMainActivities", "admin"] as const,
-    list: (status: AdminListStatusFilter) =>
-      ["organizationMainActivities", "admin", "list", status] as const,
-  },
+  admin: (status: AdminListStatusFilter) =>
+    [
+      OrganizationMainActivityQueryKey.Root,
+      OrganizationMainActivityQueryKey.Admin,
+      status,
+      OrganizationMainActivityQueryKey.CatalogUpdateDependency,
+    ] as const,
 };
