@@ -4,15 +4,6 @@ CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' 
 -- CreateEnum
 CREATE TYPE "system_role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
 
--- CreateEnum
-CREATE TYPE "country_sector_status" AS ENUM ('ACTIVE', 'DELETED');
-
--- CreateEnum
-CREATE TYPE "country_subsector_status" AS ENUM ('ACTIVE', 'DELETED');
-
--- CreateEnum
-CREATE TYPE "country_organization_size_status" AS ENUM ('ACTIVE', 'DELETED');
-
 -- CreateTable
 CREATE TABLE "country" (
     "id" BIGSERIAL NOT NULL,
@@ -56,6 +47,9 @@ CREATE TABLE "system_parameter" (
     CONSTRAINT "system_parameter_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateEnum
+CREATE TYPE "country_organization_size_status" AS ENUM ('ACTIVE', 'DELETED');
+
 -- CreateTable
 CREATE TABLE "country_organization_size" (
     "id" BIGSERIAL NOT NULL,
@@ -73,6 +67,9 @@ CREATE TABLE "country_organization_size" (
     CONSTRAINT "country_organization_size_position_check" CHECK ("position" > 0)
 );
 
+-- CreateEnum
+CREATE TYPE "country_sector_status" AS ENUM ('ACTIVE', 'DELETED');
+
 -- CreateTable
 CREATE TABLE "country_sector" (
     "id" BIGSERIAL NOT NULL,
@@ -87,6 +84,9 @@ CREATE TABLE "country_sector" (
 
     CONSTRAINT "country_sector_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateEnum
+CREATE TYPE "country_subsector_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateTable
 CREATE TABLE "country_subsector" (
