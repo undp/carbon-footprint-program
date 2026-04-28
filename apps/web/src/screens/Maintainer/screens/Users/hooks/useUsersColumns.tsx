@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { IconButton, Stack, Tooltip } from "@mui/material";
+import { Box, Chip, IconButton, Stack, Tooltip } from "@mui/material";
 import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { UserRoleChip } from "../components/UserRoleChip";
 import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
+import { ORGANIZATION_ROLE_LABELS } from "@/labels";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -20,7 +21,7 @@ interface UseUsersColumnsProps {
 }
 
 export const useUsersColumns = ({
-  activeTab: _activeTab,
+  activeTab,
   viewerRole,
   viewerId,
   onViewHistory,
@@ -29,17 +30,10 @@ export const useUsersColumns = ({
   const cellClassName = "content-center";
   const isSuperadmin = viewerRole === SystemRole.SUPERADMIN;
   const showChangeRole = isSuperadmin;
+  const isUsuariosTab = activeTab === "usuarios";
 
   return useMemo<GridColDef<UserRow>[]>(
     () => [
-      {
-        field: "name",
-        headerName: COLUMN_HEADERS.name,
-        cellClassName,
-        flex: 1.2,
-        valueGetter: (_value, row) =>
-          [row.firstName, row.lastName].filter(Boolean).join(" ") || "-",
-      },
       {
         field: "email",
         headerName: COLUMN_HEADERS.email,
@@ -47,13 +41,67 @@ export const useUsersColumns = ({
         flex: 1.5,
         valueFormatter: (value: string | null) => value ?? "-",
       },
-      {
-        field: "jobPositionName",
-        headerName: COLUMN_HEADERS.jobPosition,
-        cellClassName,
-        flex: 1,
-        valueFormatter: (value: string | null) => value ?? "-",
-      },
+      ...(isUsuariosTab
+        ? [
+            {
+              field: "organizations",
+              headerName: COLUMN_HEADERS.organizations,
+              cellClassName,
+              flex: 1.2,
+              sortable: false,
+              renderCell: (params: { row: UserRow }) => {
+                const orgs = params.row.organizations;
+                if (orgs.length === 0) return "-";
+                return (
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    {orgs.map((org) => (
+                      <Chip
+                        key={org.organizationId}
+                        label={org.organizationName}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Stack>
+                );
+              },
+            } satisfies GridColDef<UserRow>,
+            {
+              field: "organizationRoles",
+              headerName: COLUMN_HEADERS.organizationRoles,
+              cellClassName,
+              flex: 1.2,
+              sortable: false,
+              renderCell: (params: { row: UserRow }) => {
+                const orgs = params.row.organizations;
+                if (orgs.length === 0) return "-";
+                const uniqueRoles = [...new Set(orgs.map((o) => o.role))];
+                return (
+                  <Stack
+                    direction="row"
+                    spacing={0.5}
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    {uniqueRoles.map((role) => (
+                      <Chip
+                        key={role}
+                        label={ORGANIZATION_ROLE_LABELS[role]}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Stack>
+                );
+              },
+            } satisfies GridColDef<UserRow>,
+          ]
+        : []),
       {
         field: "role",
         headerName: COLUMN_HEADERS.role,
@@ -81,6 +129,7 @@ export const useUsersColumns = ({
         disableColumnMenu: true,
         renderCell: (params) => {
           const isOwnRow = params.row.id === viewerId;
+          const showChangeRoleButton = showChangeRole && !isOwnRow;
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
               <Tooltip title={ACTION_LABELS.viewHistory}>
@@ -92,22 +141,28 @@ export const useUsersColumns = ({
                   <HistoryOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
-              {showChangeRole && !isOwnRow && (
-                <Tooltip title={ACTION_LABELS.changeRole}>
-                  <IconButton
-                    size="small"
-                    aria-label={ACTION_LABELS.changeRole}
-                    onClick={() => onChangeRole(params.row.id)}
-                  >
-                    <ManageAccountsOutlined fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+              {showChangeRole && (
+                <Box
+                  sx={{
+                    visibility: showChangeRoleButton ? "visible" : "hidden",
+                  }}
+                >
+                  <Tooltip title={ACTION_LABELS.changeRole}>
+                    <IconButton
+                      size="small"
+                      aria-label={ACTION_LABELS.changeRole}
+                      onClick={() => onChangeRole(params.row.id)}
+                    >
+                      <ManageAccountsOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               )}
             </Stack>
           );
         },
       },
     ],
-    [viewerId, onViewHistory, onChangeRole, showChangeRole]
+    [viewerId, onViewHistory, onChangeRole, showChangeRole, isUsuariosTab]
   );
 };

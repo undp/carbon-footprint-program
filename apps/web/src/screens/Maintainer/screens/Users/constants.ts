@@ -1,4 +1,6 @@
 import { SystemRole } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
+import capitalize from "lodash-es/capitalize";
 
 export const USERS_SCREEN_TITLE = "Usuarios";
 export const USERS_SCREEN_SUBTITLE =
@@ -26,6 +28,8 @@ export const COLUMN_HEADERS = {
   name: "Nombre",
   email: "Correo",
   jobPosition: "Cargo",
+  organizations: capitalize(VOCAB.organization.noun.singular),
+  organizationRoles: `Rol en ${VOCAB.organization.noun.singular}`,
   role: "Rol",
   createdAt: "Fecha de registro",
   actions: "Acciones",
