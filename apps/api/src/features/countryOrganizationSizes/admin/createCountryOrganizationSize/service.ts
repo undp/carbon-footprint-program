@@ -34,11 +34,18 @@ export const createCountryOrganizationSizeService = async (
         throw new NoCountryFoundError();
       }
 
+      const aggregate = await tx.countryOrganizationSize.aggregate({
+        where: { countryId: country.id },
+        _max: { position: true },
+      });
+      const nextPosition = (aggregate._max.position ?? 0) + 1;
+
       const created = await tx.countryOrganizationSize.create({
         data: {
           countryId: country.id,
           name: data.name,
           description: data.description ?? null,
+          position: nextPosition,
           createdById: BigInt(user.id),
           updatedAt: null,
         },

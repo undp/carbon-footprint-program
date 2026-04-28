@@ -9,3 +9,5 @@ export * from "./restoreCountryOrganizationSize/schemas.js";
 export * from "./restoreCountryOrganizationSize/types.js";
 export * from "./getAllAdminCountryOrganizationSizes/schemas.js";
 export * from "./getAllAdminCountryOrganizationSizes/types.js";
+export * from "./swapCountryOrganizationSizePositions/schemas.js";
+export * from "./swapCountryOrganizationSizePositions/types.js";

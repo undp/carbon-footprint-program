@@ -66,6 +66,8 @@ model CountryOrganizationSize {
   countryId        BigInt                        @map("country_id")
   name             String
   description      String?
+  // Position must be > 0 (enforced by DB CHECK constraint: country_organization_size_position_check)
+  position         Int
   status           CountryOrganizationSizeStatus @default(ACTIVE)
   createdAt        DateTime                      @default(now()) @map("created_at")
   updatedAt        DateTime?                     @updatedAt @map("updated_at")
@@ -77,8 +79,8 @@ model CountryOrganizationSize {
   organizationData OrganizationData[]
 
   // NOTE: Partial unique index (countryId, name) WHERE status = 'ACTIVE'.
-  // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
-  // Preserve the WHERE clause manually when touching this table.
+  // NOTE: Partial unique index (countryId, position) WHERE status <> 'DELETED' enforces unique manual ordering.
+  // Both declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
   @@map("country_organization_size")
 }
 

@@ -6,6 +6,7 @@ type SizeRow = {
   countryId: bigint;
   name: string;
   description: string | null;
+  position: number;
   status: CountryOrganizationSizeStatus;
   createdAt: Date;
   updatedAt: Date | null;
@@ -23,12 +24,16 @@ export const mapCountryOrganizationSizeToAdmin = (
     countryId: row.countryId.toString(),
     name: row.name,
     description: row.description,
+    position: row.position,
     status: row.status,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
     createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
     isInUse: counts.organizationData > 0,
+    impactedChildren: {
+      organizationData: counts.organizationData,
+    },
   };
 };
 
@@ -37,6 +42,7 @@ export const adminCountryOrganizationSizeSelect = {
   countryId: true,
   name: true,
   description: true,
+  position: true,
   status: true,
   createdAt: true,
   updatedAt: true,

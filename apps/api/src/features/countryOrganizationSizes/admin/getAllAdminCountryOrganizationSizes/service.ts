@@ -26,7 +26,7 @@ export const getAllAdminCountryOrganizationSizesService = async (
 
   const rows = await prismaClient.countryOrganizationSize.findMany({
     where,
-    orderBy: { name: "asc" },
+    orderBy: { position: "asc" },
     select: adminCountryOrganizationSizeSelect,
   });
 

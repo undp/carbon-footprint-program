@@ -5,6 +5,7 @@ import { getAllAdminCountryOrganizationSizesRoute } from "@/features/countryOrga
 import { updateCountryOrganizationSizeRoute } from "@/features/countryOrganizationSizes/admin/updateCountryOrganizationSize/route.js";
 import { deleteCountryOrganizationSizeRoute } from "@/features/countryOrganizationSizes/admin/deleteCountryOrganizationSize/route.js";
 import { restoreCountryOrganizationSizeRoute } from "@/features/countryOrganizationSizes/admin/restoreCountryOrganizationSize/route.js";
+import { swapCountryOrganizationSizePositionsRoute } from "@/features/countryOrganizationSizes/admin/swapCountryOrganizationSizePositions/route.js";
 
 export default function adminCountryOrganizationSizesRoutes(
   fastify: FastifyZodInstance
@@ -20,4 +21,5 @@ export default function adminCountryOrganizationSizesRoutes(
   updateCountryOrganizationSizeRoute(fastify);
   deleteCountryOrganizationSizeRoute(fastify);
   restoreCountryOrganizationSizeRoute(fastify);
+  swapCountryOrganizationSizePositionsRoute(fastify);
 }

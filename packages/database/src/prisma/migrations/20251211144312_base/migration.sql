@@ -62,13 +62,15 @@ CREATE TABLE "country_organization_size" (
     "country_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "position" INTEGER NOT NULL,
     "status" "country_organization_size_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
-    CONSTRAINT "country_organization_size_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "country_organization_size_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "country_organization_size_position_check" CHECK ("position" > 0)
 );
 
 -- CreateTable
@@ -168,6 +170,11 @@ CREATE UNIQUE INDEX "system_parameter_key_key" ON "system_parameter"("key");
 -- CreateIndex
 -- NOTE: Partial unique index (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.
 CREATE UNIQUE INDEX "country_organization_size_country_id_name_key" ON "country_organization_size"("country_id", "name") WHERE "status" = 'ACTIVE';
+
+-- Partial unique index — only non-DELETED rows must have unique positions per country.
+CREATE UNIQUE INDEX "country_organization_size_country_id_position_active_unique"
+  ON "country_organization_size"("country_id", "position")
+  WHERE "status" <> 'DELETED';
 
 -- CreateIndex
 -- NOTE: Partial unique index (… WHERE status = 'ACTIVE'). Prisma does not track partial indexes on schema diffs. Preserve the WHERE clause manually when touching these tables.

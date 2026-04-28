@@ -52,14 +52,19 @@ export async function seedCountryOrganizationSizes(
 
   checkForDuplicates(organizationSizesData, ["countryIsoCode", "name"]);
 
-  // Prepare organization sizes data with countryId
+  // Prepare organization sizes data with countryId. `position` is assigned per-country
+  // in the order the seed file declares them, so the JSON authors control the default
+  // ordering presented in the admin maintainer.
+  const positionByCountry = new Map<bigint, number>();
   const organizationSizesToCreate = organizationSizesData.map((os) => {
     const country = countryByIso.get(os.countryIsoCode);
     if (!country)
       throw new Error(
         `Country '${os.countryIsoCode}' not found in dataset ${dataset}`
       );
-    return { name: os.name, countryId: country.id };
+    const nextPosition = (positionByCountry.get(country.id) ?? 0) + 1;
+    positionByCountry.set(country.id, nextPosition);
+    return { name: os.name, countryId: country.id, position: nextPosition };
   });
 
   // Batch create organization sizes (skips duplicates)

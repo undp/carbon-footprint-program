@@ -14,6 +14,7 @@ export interface CreateTestCountryOrganizationSizeOverrides {
   countryId?: bigint;
   name?: string;
   description?: string | null;
+  position?: number;
   status?: CountryOrganizationSizeStatus;
   createdById?: bigint | null;
   updatedById?: bigint | null;
@@ -29,11 +30,21 @@ export async function createTestCountryOrganizationSize(
   const countryId = overrides?.countryId ?? (await getTestCountryId(prisma));
   const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
+  let position = overrides?.position;
+  if (position === undefined) {
+    const aggregate = await prisma.countryOrganizationSize.aggregate({
+      where: { countryId },
+      _max: { position: true },
+    });
+    position = (aggregate._max.position ?? 0) + 1;
+  }
+
   return await prisma.countryOrganizationSize.create({
     data: {
       countryId,
       name: overrides?.name ?? `Test - Size ${randomSuffix}`,
       description: overrides?.description ?? null,
+      position,
       status: overrides?.status ?? CountryOrganizationSizeStatus.ACTIVE,
       createdById: overrides?.createdById ?? null,
       updatedById: overrides?.updatedById ?? null,
