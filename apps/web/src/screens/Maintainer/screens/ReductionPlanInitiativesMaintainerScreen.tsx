@@ -1,6 +1,6 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, MenuItem, Select, Typography } from "@mui/material";
+import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -332,15 +332,13 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   );
 
   const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
+    <FormControl sx={{ minHeight: 40, minWidth: 280 }} size="small">
+      <InputLabel id="methodology-select-label">Metodología</InputLabel>
       <Select
-        size="small"
+        labelId="methodology-select-label"
+        label="Metodología"
         value={selectedMethodologyVersionId ?? ""}
         onChange={(e) => handleMethodologyChange(e.target.value)}
-        sx={{ minWidth: 280 }}
         renderValue={() =>
           selectedMethodology ? (
             <Box className="flex items-center gap-2">
@@ -359,7 +357,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
           </MenuItem>
         ))}
       </Select>
-    </Box>
+    </FormControl>
   );
 
   return (
