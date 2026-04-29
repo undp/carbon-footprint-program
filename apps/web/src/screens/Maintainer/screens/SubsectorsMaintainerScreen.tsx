@@ -32,6 +32,7 @@ import {
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
+import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -243,6 +244,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
   return (
     <ProfilingMaintainerScreenLayout
       title="Subrubros"
+      subtitle={`Gestiona los subrubros que ${VOCAB.organization.article.plural} pueden seleccionar.`}
       addLabel="Agregar subrubro"
       onAddRow={handleAddRow}
       addDisabled={noSectors || editingRowId !== null}

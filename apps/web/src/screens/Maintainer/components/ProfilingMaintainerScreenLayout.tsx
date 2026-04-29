@@ -6,6 +6,7 @@ import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 
 interface ProfilingMaintainerScreenLayoutProps {
   title: string;
+  subtitle?: string;
   addLabel?: string;
   addDisabled?: boolean;
   onAddRow?: () => void;
@@ -35,6 +36,7 @@ interface ProfilingMaintainerScreenLayoutProps {
  */
 export const ProfilingMaintainerScreenLayout = ({
   title,
+  subtitle,
   addLabel = "Agregar",
   addDisabled,
   onAddRow,
@@ -49,6 +51,7 @@ export const ProfilingMaintainerScreenLayout = ({
   <FormProvider {...form}>
     <MaintainerPageHeader
       title={title}
+      subtitle={subtitle}
       addLabel={addLabel}
       addDisabled={addDisabled}
       onAddRow={onAddRow}

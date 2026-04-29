@@ -273,6 +273,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
   return (
     <ProfilingMaintainerScreenLayout
       title={`Tamaño de ${VOCAB.organization.article.singular}`}
+      subtitle={`Gestiona los tamaños que ${VOCAB.organization.article.plural} pueden seleccionar. El ordén de las filas se respetará al mostrar las opciones en el perfil de ${VOCAB.organization.article.singular}.`}
       addLabel="Agregar tamaño"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}

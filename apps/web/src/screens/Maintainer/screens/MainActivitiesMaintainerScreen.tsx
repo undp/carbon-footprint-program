@@ -34,6 +34,7 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
+import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -289,6 +290,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
   return (
     <ProfilingMaintainerScreenLayout
       title="Actividades Principales"
+      subtitle={`Gestiona las actividades principales que ${VOCAB.organization.article.plural} pueden seleccionar.`}
       addLabel="Agregar actividad"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}

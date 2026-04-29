@@ -30,6 +30,7 @@ import {
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
+import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
   id: z.string(),
@@ -216,6 +217,7 @@ export const SectorsMaintainerScreen: FC = () => {
   return (
     <ProfilingMaintainerScreenLayout
       title="Rubros"
+      subtitle={`Gestiona los rubros que ${VOCAB.organization.article.plural} pueden seleccionar.`}
       addLabel="Agregar rubro"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
