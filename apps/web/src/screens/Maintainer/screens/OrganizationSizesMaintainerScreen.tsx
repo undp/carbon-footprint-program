@@ -33,7 +33,6 @@ import {
 import { sortByStatusThenPosition } from "../utils/profilingSort";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
@@ -273,7 +272,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
 
   return (
     <ProfilingMaintainerScreenLayout
-      title={`Tamaño de ${capitalize(VOCAB.organization.article.singular)}`}
+      title={`Tamaño de ${VOCAB.organization.article.singular}`}
       addLabel="Agregar tamaño"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
