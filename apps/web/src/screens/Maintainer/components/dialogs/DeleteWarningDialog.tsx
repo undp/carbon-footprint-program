@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import type { ProfilingEntityLabel } from "./InUseWarningDialog";
+import { VOCAB } from "@/config/vocab";
 
 interface ImpactedChildren {
   activeSubsectors?: number;
@@ -59,7 +60,7 @@ export const DeleteWarningDialog: FC<Props> = ({
   }
   if (impactedChildren.organizationData > 0) {
     items.push(
-      `${impactedChildren.organizationData} organizaciones tienen este ${entityLabel} asignado.`
+      `${impactedChildren.organizationData} ${VOCAB.organization.article.plural} tienen este ${entityLabel} asignado.`
     );
   }
   if (
@@ -75,11 +76,14 @@ export const DeleteWarningDialog: FC<Props> = ({
     <Dialog open={open} onClose={onCancel}>
       <DialogTitle>{`Eliminar ${entityLabel}`}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
+        <DialogContentText color="textPrimary">
           {`¿Estás seguro de que deseas eliminar este ${entityLabel}?`}
         </DialogContentText>
         {items.length > 0 && (
-          <Box component="ul" sx={{ mt: 1.5, mb: 0, pl: 3 }}>
+          <Box
+            component="ul"
+            sx={{ mt: 1.5, mb: 0, pl: 3, listStyleType: "disc" }}
+          >
             {items.map((item) => (
               <li key={item}>{item}</li>
             ))}
