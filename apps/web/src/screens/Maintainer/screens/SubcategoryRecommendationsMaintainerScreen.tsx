@@ -46,16 +46,10 @@ import {
   buildRowId,
   findSectorAndSubsectorNames,
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
+import { arraysEqualUnordered } from "@repo/utils";
 
 type EditedRowEntry = {
   subcategoryIds: string[];
-};
-
-const arraysEqualUnordered = (a: string[], b: string[]): boolean => {
-  if (a.length !== b.length) return false;
-  const sortedA = [...a].sort();
-  const sortedB = [...b].sort();
-  return sortedA.every((v, i) => v === sortedB[i]);
 };
 
 export const SubcategoryRecommendationsMaintainerScreen: FC = () => {

@@ -14,3 +14,4 @@ export {
   canRequestReductionProjectVerification,
 } from "./reductionProject.js";
 export { formatDateToDDMMYYYY } from "./date.js";
+export { arraysEqualUnordered } from "./arrays.js";
