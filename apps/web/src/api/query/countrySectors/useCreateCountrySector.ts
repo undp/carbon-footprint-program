@@ -4,6 +4,7 @@ import type {
   CreateCountrySectorResponse,
 } from "@repo/types";
 import { CountrySectorQueryKey } from "./keys";
+import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCountrySector = () => {
@@ -22,6 +23,14 @@ export const useCreateCountrySector = () => {
             query.queryKey.includes(
               CountrySectorQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
       ]);
     },

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { RestoreOrganizationMainActivityResponse } from "@repo/types";
 import { OrganizationMainActivityQueryKey } from "./keys";
+import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useRestoreOrganizationMainActivity = () => {
@@ -15,6 +16,14 @@ export const useRestoreOrganizationMainActivity = () => {
             query.queryKey.includes(
               OrganizationMainActivityQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
       ]);
     },

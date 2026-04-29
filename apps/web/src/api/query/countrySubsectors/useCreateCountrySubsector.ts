@@ -5,6 +5,7 @@ import type {
 } from "@repo/types";
 import { CountrySubsectorQueryKey } from "./keys";
 import { CountrySectorQueryKey } from "../countrySectors/keys";
+import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCountrySubsector = () => {
@@ -30,6 +31,14 @@ export const useCreateCountrySubsector = () => {
             query.queryKey.includes(
               CountrySectorQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
       ]);
     },

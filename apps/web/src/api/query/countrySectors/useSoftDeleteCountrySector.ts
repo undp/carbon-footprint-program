@@ -3,6 +3,7 @@ import type { DeleteCountrySectorResponse } from "@repo/types";
 import { CountrySectorQueryKey } from "./keys";
 import { CountrySubsectorQueryKey } from "../countrySubsectors/keys";
 import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
+import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySector = () => {
@@ -29,6 +30,14 @@ export const useSoftDeleteCountrySector = () => {
             query.queryKey.includes(
               OrganizationMainActivityQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
       ]);
     },

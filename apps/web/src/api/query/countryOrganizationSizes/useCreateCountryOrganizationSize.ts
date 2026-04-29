@@ -4,6 +4,7 @@ import type {
   CreateCountryOrganizationSizeResponse,
 } from "@repo/types";
 import { CountryOrganizationSizeQueryKey } from "./keys";
+import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCountryOrganizationSize = () => {
@@ -22,6 +23,14 @@ export const useCreateCountryOrganizationSize = () => {
             query.queryKey.includes(
               CountryOrganizationSizeQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
       ]);
     },
