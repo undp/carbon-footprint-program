@@ -107,14 +107,25 @@ const SubcategoryTransferListDialogContent: FC<
   const saveDisabled = isNew && selectedIds.length === 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      slotProps={{
+        paper: { sx: { height: "80vh" } },
+      }}
+    >
       <DialogTitle sx={{ pb: 0.5 }}>
         {SUBCATEGORY_RECOMMENDATIONS_LABELS.editSubcategoriesTitle}
         <Typography variant="body2" color="text.secondary">
           {sectorName} / {subsectorName ?? nullSubsectorLabel}
         </Typography>
       </DialogTitle>
-      <DialogContent dividers>
+      <DialogContent
+        dividers
+        sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}
+      >
         <TextField
           size="small"
           fullWidth
@@ -146,6 +157,8 @@ const SubcategoryTransferListDialogContent: FC<
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             gap: 2,
+            flex: 1,
+            minHeight: 0,
           }}
         >
           <SubcategoryTransferColumn

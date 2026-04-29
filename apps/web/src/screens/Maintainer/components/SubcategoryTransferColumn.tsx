@@ -32,7 +32,7 @@ export const SubcategoryTransferColumn: FC<SubcategoryTransferColumnProps> = ({
   onToggle,
 }) => {
   return (
-    <Box>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
       <Typography variant="subtitle2" sx={{ mb: 1 }}>
         {title}
       </Typography>
@@ -41,7 +41,8 @@ export const SubcategoryTransferColumn: FC<SubcategoryTransferColumnProps> = ({
           border: 1,
           borderColor: "divider",
           borderRadius: 1,
-          maxHeight: 420,
+          flex: 1,
+          minHeight: 0,
           overflow: "auto",
         }}
       >
