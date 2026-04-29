@@ -16,7 +16,7 @@ export const getAllCountryOrganizationSizesService = async (
       name: true,
     },
     orderBy: {
-      id: "asc",
+      position: "asc",
     },
   });
 
