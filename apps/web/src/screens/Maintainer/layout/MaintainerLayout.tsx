@@ -95,7 +95,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
       {
-        text: `Tamaño de la ${capitalize(VOCAB.organization.noun.singular)}`,
+        text: `Tamaño ${capitalize(VOCAB.organization.noun.singular)}`,
         icon: <StraightenOutlined fontSize="small" />,
         path: Routes.ADMIN_ORGANIZATION_SIZES,
       },
