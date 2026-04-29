@@ -1,6 +1,5 @@
-import type { Prisma, PrismaClient } from "@repo/database";
+import type { Prisma } from "@repo/database";
 import type { SubcategoryRecommendationGroup } from "@repo/types";
-import { ApplicationConfigError } from "@/errors/ApplicationConfigError.js";
 
 export const methodologyVersionFilter = (
   methodologyId: string
@@ -45,23 +44,4 @@ export const buildGroupedResponse = (
   }
 
   return [...groups.values()];
-};
-
-// TODO: replace with DEFAULT_COUNTRY_ID system parameter once available.
-// Mirrors the precedent in createMethodology and createOrganization.
-export const resolveDefaultCountryId = async (
-  prismaClient: Pick<PrismaClient, "country">
-): Promise<bigint> => {
-  const country = await prismaClient.country.findFirst({
-    orderBy: { id: "asc" },
-    select: { id: true },
-  });
-
-  if (!country) {
-    throw new ApplicationConfigError(
-      "No country found; at least one country must be seeded"
-    );
-  }
-
-  return country.id;
 };

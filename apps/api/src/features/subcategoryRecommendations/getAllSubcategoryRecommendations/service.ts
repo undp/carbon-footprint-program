@@ -9,8 +9,9 @@ import {
   activeRecommendationRowSelect,
   buildGroupedResponse,
   methodologyVersionFilter,
-  resolveDefaultCountryId,
 } from "../helpers.js";
+
+import { resolveDefaultCountryId } from "@/helpers/resolveDefaultCountryId.js";
 
 export const getAllSubcategoryRecommendationsService = async (
   prismaClient: PrismaClient,
