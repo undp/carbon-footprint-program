@@ -17,6 +17,7 @@ import {
   CarbonInventoryNotEditableError,
   MethodologyNotFoundError,
 } from "./errors.js";
+import { DataIntegrityError } from "@/errors/index.js";
 import { kgToTon } from "@/utils/number.js";
 import {
   CarbonInventoryDisplayStatus,
@@ -350,7 +351,12 @@ export const resolveInventoryOrganizationDataReferences = async (
   rawOrganizationData: unknown
 ): Promise<InventoryOrganizationDataReferences> => {
   const parsed = OrganizationDataFieldSchema.safeParse(rawOrganizationData);
-  if (!parsed.success || !parsed.data) {
+  if (!parsed.success) {
+    throw new DataIntegrityError(
+      `Invalid organizationData JSON structure: ${parsed.error.message}`
+    );
+  }
+  if (!parsed.data) {
     return {
       sector: null,
       subsector: null,
