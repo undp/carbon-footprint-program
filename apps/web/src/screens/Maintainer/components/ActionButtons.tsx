@@ -82,7 +82,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
 
   return (
     <>
-      <Box className="flex justify-end gap-1 pr-4">
+      <Box className="flex justify-end gap-1">
         {isEditing && onStopEditCells && (
           <Tooltip title="Guardar cambios">
             <IconButton size="small" onClick={onStopEditCells}>

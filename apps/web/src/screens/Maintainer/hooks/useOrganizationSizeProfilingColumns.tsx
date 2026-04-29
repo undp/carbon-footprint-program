@@ -150,8 +150,9 @@ export const useOrganizationSizeProfilingColumns = ({
         width: 140,
         sortable: false,
         filterable: false,
-        headerAlign: "center" as const,
-        align: "center" as const,
+        headerAlign: "center",
+        align: "center",
+        disableColumnMenu: true,
         renderCell: (params: GridRenderCellParams<OrganizationSizeFormRow>) => {
           const rowId = params.row.id;
           const editing = isEditing(rowId);
@@ -187,26 +188,28 @@ export const useOrganizationSizeProfilingColumns = ({
             activeIdx >= activeRowsSorted.length - 1;
 
           return (
-            <ActionButtons
-              isActiveRow={anyEditing && !editing}
-              isEditing={editing}
-              onStopEditCells={onStopEditRow}
-              onCancelEdit={onCancelEditRow}
-              onDelete={() => onDelete(params.row)}
-              onMoveUp={() => onMoveUp(params.row)}
-              onMoveDown={() => onMoveDown(params.row)}
-              moveUpDisabled={moveUpDisabled}
-              moveDownDisabled={moveDownDisabled}
-              renderDeleteDialog={({ open, onCancel, onConfirm }) => (
-                <DeleteWarningDialog
-                  open={open}
-                  entityLabel="tamaño"
-                  impactedChildren={params.row.impactedChildren}
-                  onCancel={onCancel}
-                  onConfirm={onConfirm}
-                />
-              )}
-            />
+            <>
+              <ActionButtons
+                isActiveRow={anyEditing && !editing}
+                isEditing={editing}
+                onStopEditCells={onStopEditRow}
+                onCancelEdit={onCancelEditRow}
+                onDelete={() => onDelete(params.row)}
+                onMoveUp={() => onMoveUp(params.row)}
+                onMoveDown={() => onMoveDown(params.row)}
+                moveUpDisabled={moveUpDisabled}
+                moveDownDisabled={moveDownDisabled}
+                renderDeleteDialog={({ open, onCancel, onConfirm }) => (
+                  <DeleteWarningDialog
+                    open={open}
+                    entityLabel="tamaño"
+                    impactedChildren={params.row.impactedChildren}
+                    onCancel={onCancel}
+                    onConfirm={onConfirm}
+                  />
+                )}
+              />
+            </>
           );
         },
       },

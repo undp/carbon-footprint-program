@@ -224,8 +224,9 @@ export const useMainActivityProfilingColumns = ({
         width: 140,
         sortable: false,
         filterable: false,
-        headerAlign: "center" as const,
-        align: "center" as const,
+        headerAlign: "center",
+        align: "center",
+        disableColumnMenu: true,
         renderCell: (params: GridRenderCellParams<MainActivityFormRow>) => {
           const rowId = params.row.id;
           const editing = isEditing(rowId);
