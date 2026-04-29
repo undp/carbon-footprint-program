@@ -10,13 +10,13 @@ import type { ReductionProjectFormValues } from "../formSchema";
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  reportedElsewhereExplanationId?: string | null;
+  reportedElsewhereExplanationSlug?: string | null;
 }
 
 export const ReportedElsewhereSection: FC<Props> = ({
   control,
   disabled,
-  reportedElsewhereExplanationId,
+  reportedElsewhereExplanationSlug,
 }) => {
   const reportedElsewhere = useWatch({ control, name: "reportedElsewhere" });
   const { openExplanationBySlug } = useExplanationDialog();
@@ -30,7 +30,7 @@ export const ReportedElsewhereSection: FC<Props> = ({
         <InfoButton
           label="Más información"
           onClick={() =>
-            openExplanationBySlug(reportedElsewhereExplanationId ?? null)
+            openExplanationBySlug(reportedElsewhereExplanationSlug ?? null)
           }
         />
       </Box>

@@ -408,6 +408,7 @@ export const CategoriesMaintainerScreen: FC = () => {
             message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
           });
+          throw error;
         }
       }
     },

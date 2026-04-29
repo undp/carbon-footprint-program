@@ -14,6 +14,7 @@ import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/met
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import { InfoButton, ScreenEmptyState } from "@/components";
 import { useExplanationDialog } from "@/contexts";
+import { REDUCTION_PROJECT_EXPLANATION_SLUGS } from "./constants";
 import {
   ReductionProjectLayout,
   type FooterButton,
@@ -221,7 +222,9 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
             </Typography>
             <InfoButton
               label="Más información"
-              onClick={() => openExplanationBySlug(null)}
+              onClick={() =>
+                openExplanationBySlug(REDUCTION_PROJECT_EXPLANATION_SLUGS.BASIS)
+              }
             />
           </Box>
           {(isEditMode || isViewMode) && status && (
@@ -241,7 +244,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
           subcategories={subcategories}
           isLoadingSubcategories={isLoadingSubcategories}
           hasInventorySelected={hasInventorySelected}
-          gwpExplanationId={null}
+          gwpExplanationSlug={REDUCTION_PROJECT_EXPLANATION_SLUGS.GWP}
         />
 
         {/* GEI + Reported elsewhere */}
@@ -249,12 +252,16 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
           <GeiConsideredSection
             control={control}
             disabled={isFormDisabled}
-            geiExplanationId={null}
+            geiExplanationSlug={
+              REDUCTION_PROJECT_EXPLANATION_SLUGS.GEI_CONSIDERED
+            }
           />
           <ReportedElsewhereSection
             control={control}
             disabled={isFormDisabled}
-            reportedElsewhereExplanationId={null}
+            reportedElsewhereExplanationSlug={
+              REDUCTION_PROJECT_EXPLANATION_SLUGS.REPORTED_ELSEWHERE
+            }
           />
         </Box>
 

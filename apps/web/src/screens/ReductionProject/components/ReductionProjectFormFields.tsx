@@ -30,7 +30,7 @@ interface Props {
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
   hasInventorySelected: boolean;
-  gwpExplanationId?: string | null;
+  gwpExplanationSlug?: string | null;
 }
 
 export const ReductionProjectFormFields: FC<Props> = ({
@@ -44,7 +44,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   subcategories,
   isLoadingSubcategories,
   hasInventorySelected,
-  gwpExplanationId,
+  gwpExplanationSlug,
 }) => {
   const { openExplanationBySlug } = useExplanationDialog();
   const organizationOptions = useSelectorOptions(organizations, "name", "id");
@@ -196,7 +196,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Box className="mt-4">
             <InfoButton
               label="Más información"
-              onClick={() => openExplanationBySlug(gwpExplanationId ?? null)}
+              onClick={() => openExplanationBySlug(gwpExplanationSlug ?? null)}
             />
           </Box>
         </Box>

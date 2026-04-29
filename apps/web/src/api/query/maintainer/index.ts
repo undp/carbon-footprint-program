@@ -38,3 +38,4 @@ export {
   useUpdateReductionPlanInitiative,
   useDeleteReductionPlanInitiative,
 } from "./useReductionPlanInitiatives";
+export { useExplanations, useUpdateExplanation } from "./useExplanations";

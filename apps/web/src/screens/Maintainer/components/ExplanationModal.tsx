@@ -1,10 +1,11 @@
-import { FC, useState } from "react";
+import { FC, ReactNode, useCallback, useState } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
+  CircularProgress,
   TextField,
 } from "@mui/material";
 
@@ -12,29 +13,38 @@ interface ExplanationModalProps {
   open: boolean;
   value: string;
   title?: string;
+  subtitle?: ReactNode;
   readOnly?: boolean;
-  onSave: (value: string) => void;
+  loading?: boolean;
+  onSave: (value: string) => void | Promise<void>;
   onClose: () => void;
 }
 
 const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
   title = "Editar Explicación",
+  subtitle,
   readOnly = false,
+  loading = false,
   onSave,
   onClose,
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
-  const handleSave = () => {
-    onSave(localValue);
-    onClose();
-  };
+  const handleSave = useCallback(async () => {
+    try {
+      await onSave(localValue);
+      onClose();
+    } catch {
+      // The parent surfaces the error; keep the modal open so edits are not lost.
+    }
+  }, [localValue, onClose, onSave]);
 
   return (
     <>
       <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
       <DialogContent>
+        {subtitle}
         <TextField
           fullWidth
           multiline
@@ -43,7 +53,7 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
           value={localValue}
           onChange={(e) => setLocalValue(e.target.value)}
           placeholder="Escribe la explicación aquí..."
-          slotProps={{ input: { readOnly } }}
+          slotProps={{ input: { readOnly: readOnly || loading } }}
           sx={{ mt: 1 }}
         />
       </DialogContent>
@@ -54,8 +64,19 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
           </Button>
         ) : (
           <>
-            <Button onClick={onClose}>Cancelar</Button>
-            <Button variant="contained" onClick={handleSave}>
+            <Button onClick={onClose} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={loading}
+              startIcon={
+                loading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : undefined
+              }
+            >
               Guardar cambios
             </Button>
           </>
@@ -71,7 +92,7 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
 }) => (
   <Dialog
     open={open}
-    onClose={contentProps.onClose}
+    onClose={contentProps.loading ? undefined : contentProps.onClose}
     maxWidth="md"
     fullWidth
     PaperProps={{ sx: { maxHeight: "90vh" } }}

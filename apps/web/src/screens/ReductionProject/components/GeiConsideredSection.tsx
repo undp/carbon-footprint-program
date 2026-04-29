@@ -20,13 +20,13 @@ import { GEI_ITEMS } from "../constants";
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
-  geiExplanationId?: string | null;
+  geiExplanationSlug?: string | null;
 }
 
 export const GeiConsideredSection: FC<Props> = ({
   control,
   disabled,
-  geiExplanationId,
+  geiExplanationSlug,
 }) => {
   const consideredGei = useWatch({ control, name: "consideredGei" });
   const { openExplanationBySlug } = useExplanationDialog();
@@ -39,7 +39,7 @@ export const GeiConsideredSection: FC<Props> = ({
         </Typography>
         <InfoButton
           label="Más información"
-          onClick={() => openExplanationBySlug(geiExplanationId ?? null)}
+          onClick={() => openExplanationBySlug(geiExplanationSlug ?? null)}
         />
       </Box>
       <TableContainer
