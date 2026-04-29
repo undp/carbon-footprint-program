@@ -36,6 +36,7 @@ export const useExplanationColumns = ({
         headerName: "Explicación",
         filterable: false,
         disableColumnMenu: true,
+        sortable: false,
         width: 140,
         valueGetter: (_value, row: ExplanationRow) => row.name,
         renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
