@@ -6,6 +6,7 @@ export {
   useDeleteMethodology,
   useDuplicateMethodology,
 } from "./useMethodologies";
+export { useGetMethodologyById } from "./useGetMethodologyById";
 export {
   useCategories,
   useAddCategory,

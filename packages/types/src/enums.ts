@@ -21,4 +21,5 @@ export {
   SubcategoryStatus,
   ReductionPlanInitiativeStatus,
   ReductionProjectStatus,
+  SubcategoryRecommendationStatus,
 } from "@repo/database/enums";

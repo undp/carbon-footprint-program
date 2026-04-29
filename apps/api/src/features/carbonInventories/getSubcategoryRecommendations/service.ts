@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   type GetSubcategoryRecommendationsResponse,
   SubcategoryRecommendationModeEnum,
@@ -7,6 +7,7 @@ import {
 import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
+import { findRecommendations } from "./helpers.js";
 
 export const getSubcategoryRecommendationsService = async (
   prismaClient: PrismaClient,
@@ -33,31 +34,32 @@ export const getSubcategoryRecommendationsService = async (
   }
 
   const subsectorId = orgData?.subsectorId ?? null;
+  const sectorIdBig = BigInt(sectorId);
+  const subsectorIdBig = subsectorId ? BigInt(subsectorId) : null;
 
   const mode = await getSystemParameterValue(
     prismaClient,
     SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE
   );
 
-  const isSpecific = mode === SubcategoryRecommendationModeEnum.SPECIFIC;
+  if (mode === SubcategoryRecommendationModeEnum.UNION) {
+    // Union of subsector-specific and general (null subsector) recommendations.
+    return findRecommendations(prismaClient, {
+      sectorId: sectorIdBig,
+      OR: [{ subsectorId: subsectorIdBig }, { subsectorId: null }],
+    });
+  }
 
-  const recommendations = await prismaClient.subcategoryRecommendation.findMany(
-    {
-      where: isSpecific
-        ? {
-            sectorId: BigInt(sectorId),
-            subsectorId: subsectorId ? BigInt(subsectorId) : null,
-          }
-        : {
-            sectorId: BigInt(sectorId),
-            OR: [
-              { subsectorId: subsectorId ? BigInt(subsectorId) : null },
-              { subsectorId: null },
-            ],
-          },
-      select: { subcategoryId: true },
-    }
-  );
-
-  return [...new Set(recommendations.map((r) => r.subcategoryId.toString()))];
+  // SPECIFIC: prefer subsector-specific recommendations; fall back to general.
+  const specific = await findRecommendations(prismaClient, {
+    sectorId: sectorIdBig,
+    subsectorId: subsectorIdBig,
+  });
+  if (specific.length > 0) {
+    return specific;
+  }
+  return findRecommendations(prismaClient, {
+    sectorId: sectorIdBig,
+    subsectorId: null,
+  });
 };

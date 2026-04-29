@@ -15,6 +15,7 @@ import {
   BusinessOutlined,
   ViewColumnOutlined,
   WorkspacePremiumOutlined,
+  RecommendOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -76,6 +77,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
     ],
+  },
+  {
+    text: "Recomendaciones de Subcategorías",
+    icon: <RecommendOutlined />,
+    path: Routes.ADMIN_SUBCATEGORY_RECOMMENDATIONS,
+    requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
   },
   {
     text: "Parámetros",
