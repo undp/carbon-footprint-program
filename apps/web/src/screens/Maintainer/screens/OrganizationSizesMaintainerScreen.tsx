@@ -1,9 +1,11 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
+import type { IFuseOptions } from "fuse.js";
+import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountryOrganizationSizeStatus,
   type AdminCountryOrganizationSize,
@@ -31,6 +33,7 @@ import {
   type OrganizationSizeFormRow,
 } from "../hooks/useOrganizationSizeProfilingColumns";
 import { sortByStatusThenPosition } from "../utils/profilingSort";
+import { PROFILING_STATUS_LABELS } from "../constants";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { VOCAB } from "@/config/vocab";
@@ -77,6 +80,25 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
   const restoreMutation = useRestoreCountryOrganizationSize();
   const swapMutation = useSwapCountryOrganizationSizePositions();
   const { enqueueSnackbar } = useSnackbar();
+
+  const fuseOptions = useMemo<IFuseOptions<OrganizationSizeFormRow>>(
+    () => ({
+      keys: ["name", "description", "statusLabel"],
+      threshold: 0.3,
+      ignoreLocation: true,
+      getFn: (row, path) => {
+        const key = Array.isArray(path) ? path[0] : path;
+        if (key === "statusLabel") {
+          return row.status === CountryOrganizationSizeStatus.ACTIVE
+            ? PROFILING_STATUS_LABELS.ACTIVE
+            : PROFILING_STATUS_LABELS.DELETED;
+        }
+        const value = (row as Record<string, unknown>)[key];
+        return typeof value === "string" ? value : "";
+      },
+    }),
+    []
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -315,6 +337,10 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             showToolbar
+            searchable={{
+              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              placeholder: "Buscar tamaños...",
+            }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}

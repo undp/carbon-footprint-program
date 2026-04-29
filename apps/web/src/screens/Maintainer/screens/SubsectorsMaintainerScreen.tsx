@@ -4,6 +4,8 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
+import type { IFuseOptions } from "fuse.js";
+import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
@@ -32,6 +34,7 @@ import {
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
+import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
@@ -87,6 +90,30 @@ export const SubsectorsMaintainerScreen: FC = () => {
   );
   const hasActiveSector = sectorOptions.some((o) => !o.disabled);
   const noSectors = !hasActiveSector;
+
+  const fuseOptions = useMemo<IFuseOptions<SubsectorFormRow>>(
+    () => ({
+      keys: ["name", "description", "sectorName", "statusLabel"],
+      threshold: 0.3,
+      ignoreLocation: true,
+      getFn: (row, path) => {
+        const key = Array.isArray(path) ? path[0] : path;
+        if (key === "sectorName") {
+          return (
+            sectorOptions.find((o) => o.id === row.countrySectorId)?.name ?? ""
+          );
+        }
+        if (key === "statusLabel") {
+          return row.status === CountrySubsectorStatus.ACTIVE
+            ? PROFILING_STATUS_LABELS.ACTIVE
+            : PROFILING_STATUS_LABELS.DELETED;
+        }
+        const value = (row as Record<string, unknown>)[key];
+        return typeof value === "string" ? value : "";
+      },
+    }),
+    [sectorOptions]
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -291,6 +318,10 @@ export const SubsectorsMaintainerScreen: FC = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             showToolbar
+            searchable={{
+              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              placeholder: "Buscar subrubros...",
+            }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}

@@ -1,5 +1,6 @@
 import { FC } from "react";
 import {
+  IconButton,
   InputAdornment,
   SxProps,
   TextField,
@@ -7,6 +8,7 @@ import {
   type TextFieldProps,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface SearchBarProps
   extends Omit<TextFieldProps, "value" | "onChange" | "size" | "sx"> {
@@ -14,6 +16,8 @@ interface SearchBarProps
   onChange: (value: string) => void;
   /** Custom styles merged with the base styles. */
   sx?: SxProps<Theme>;
+  /** Show a clear button at the end when the input has a value. Defaults to true. */
+  showClearButton?: boolean;
 }
 
 export const SearchBar: FC<SearchBarProps> = ({
@@ -22,6 +26,7 @@ export const SearchBar: FC<SearchBarProps> = ({
   placeholder = "Buscar...",
   sx,
   slotProps,
+  showClearButton = true,
   ...rest
 }) => {
   const baseStyles: SxProps<Theme> = {
@@ -49,6 +54,19 @@ export const SearchBar: FC<SearchBarProps> = ({
               <SearchIcon fontSize="small" />
             </InputAdornment>
           ),
+          endAdornment:
+            showClearButton && value ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  edge="end"
+                  aria-label="Borrar"
+                  onClick={() => onChange("")}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
           ...slotProps?.input,
         },
       }}

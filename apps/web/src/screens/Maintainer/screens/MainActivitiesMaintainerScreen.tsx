@@ -4,6 +4,8 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
+import type { IFuseOptions } from "fuse.js";
+import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
@@ -34,6 +36,7 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
+import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
 const RowSchema = z.object({
@@ -99,6 +102,43 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         disabled: s.status !== CountrySubsectorStatus.ACTIVE,
       })),
     [allSubsectors]
+  );
+
+  const fuseOptions = useMemo<IFuseOptions<MainActivityFormRow>>(
+    () => ({
+      keys: [
+        "name",
+        "description",
+        "sectorName",
+        "subsectorName",
+        "statusLabel",
+      ],
+      threshold: 0.3,
+      ignoreLocation: true,
+      getFn: (row, path) => {
+        const key = Array.isArray(path) ? path[0] : path;
+        if (key === "sectorName") {
+          return row.countrySectorId
+            ? (sectorOptions.find((o) => o.id === row.countrySectorId)?.name ??
+                "")
+            : "";
+        }
+        if (key === "subsectorName") {
+          return row.countrySubsectorId
+            ? (subsectorOptions.find((o) => o.id === row.countrySubsectorId)
+                ?.name ?? "")
+            : "";
+        }
+        if (key === "statusLabel") {
+          return row.status === OrganizationMainActivityStatus.ACTIVE
+            ? PROFILING_STATUS_LABELS.ACTIVE
+            : PROFILING_STATUS_LABELS.DELETED;
+        }
+        const value = (row as Record<string, unknown>)[key];
+        return typeof value === "string" ? value : "";
+      },
+    }),
+    [sectorOptions, subsectorOptions]
   );
 
   const form = useForm<FormValues>({
@@ -332,6 +372,10 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}
             showToolbar
+            searchable={{
+              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              placeholder: "Buscar actividades...",
+            }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}

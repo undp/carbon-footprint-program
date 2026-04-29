@@ -10,6 +10,11 @@ export const METHODOLOGY_STATUS_LABELS: Record<
   [MethodologyVersionStatus.DELETED]: "Eliminada",
 };
 
+export const PROFILING_STATUS_LABELS = {
+  ACTIVE: "Activo",
+  DELETED: "Eliminado",
+} as const;
+
 export const NORMATIVA_OPTIONS: SelectOption[] = [
   { label: "GHG Protocol", value: "GHG Protocol" },
   { label: "ISO 14064", value: "ISO 14064" },

@@ -1,9 +1,24 @@
+import { useMemo, useState } from "react";
 import { SxProps, Theme } from "@mui/material";
+import type { IFuseOptions } from "fuse.js";
+import type {
+  GridSlotProps,
+  GridSlotsComponent,
+  GridValidRowModel,
+} from "@mui/x-data-grid";
 import { StylizedDataGrid, type StylizedDataGridProps } from "@components";
+import { useFuzzySearch } from "@/hooks";
+import { MaintainerToolbar } from "./MaintainerToolbar";
+
+export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
+  fuseOptions: IFuseOptions<T>;
+  placeholder?: string;
+}
 
 interface MaintainerDataGridProps extends StylizedDataGridProps {
   editingRowId: string | null;
   cellMaxHeight?: number;
+  searchable?: MaintainerDataGridSearchable<GridValidRowModel>;
 }
 
 type SxArrayItem = Extract<SxProps<Theme>, readonly unknown[]>[number];
@@ -17,8 +32,63 @@ export const MaintainerDataGrid = ({
   cellMaxHeight = 100,
   sx,
   getRowClassName,
+  rows,
+  searchable,
+  slots,
+  slotProps,
   ...props
 }: MaintainerDataGridProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const rowsArray = useMemo<GridValidRowModel[]>(
+    () => (rows ? Array.from(rows as readonly GridValidRowModel[]) : []),
+    [rows]
+  );
+
+  const { results } = useFuzzySearch(rowsArray, {
+    query: searchable ? searchQuery : undefined,
+    fuseOptions: searchable?.fuseOptions,
+  });
+
+  const displayRows = useMemo<GridValidRowModel[]>(() => {
+    if (!searchable || searchQuery.trim() === "") return rowsArray;
+    if (editingRowId === null) return results;
+
+    const editingRowInResults = results.some(
+      (row) => String((row as { id: unknown }).id) === editingRowId
+    );
+    if (editingRowInResults) return results;
+
+    const editingRow = rowsArray.find(
+      (row) => String((row as { id: unknown }).id) === editingRowId
+    );
+    return editingRow ? [editingRow, ...results] : results;
+  }, [searchable, searchQuery, rowsArray, results, editingRowId]);
+
+  const mergedSlots: Partial<GridSlotsComponent> | undefined = useMemo(
+    () =>
+      searchable
+        ? {
+            ...slots,
+            toolbar:
+              MaintainerToolbar as unknown as GridSlotsComponent["toolbar"],
+          }
+        : slots,
+    [searchable, slots]
+  );
+
+  const mergedSlotProps = useMemo(() => {
+    if (!searchable) return slotProps;
+    return {
+      ...slotProps,
+      toolbar: {
+        searchValue: searchQuery,
+        onSearchChange: setSearchQuery,
+        searchPlaceholder: searchable.placeholder,
+      } as unknown as GridSlotProps["toolbar"],
+    };
+  }, [slotProps, searchable, searchQuery]);
+
   const sxArray: SxArrayItem[] = isSxArray(sx)
     ? [...sx]
     : sx
@@ -53,6 +123,9 @@ export const MaintainerDataGrid = ({
         getRowClassName ??
         (({ id }) => (String(id) === editingRowId ? "row--editing" : ""))
       }
+      rows={displayRows}
+      slots={mergedSlots}
+      slotProps={mergedSlotProps}
       {...props}
     />
   );
