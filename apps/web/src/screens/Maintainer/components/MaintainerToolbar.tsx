@@ -2,7 +2,6 @@ import { FC, useState } from "react";
 import { Badge, Box, Menu, MenuItem, Tooltip } from "@mui/material";
 import {
   ExportCsv,
-  ExportPrint,
   FilterPanelTrigger,
   Toolbar,
   ToolbarButton,
@@ -75,9 +74,6 @@ export const MaintainerToolbar: FC<MaintainerToolbarProps> = ({
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <ExportPrint render={<MenuItem onClick={closeExportMenu} />}>
-          Imprimir
-        </ExportPrint>
         <ExportCsv render={<MenuItem onClick={closeExportMenu} />}>
           Descargar como CSV
         </ExportCsv>
