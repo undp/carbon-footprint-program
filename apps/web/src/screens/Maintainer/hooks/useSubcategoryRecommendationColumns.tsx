@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { FC, useMemo } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
+import { useOverflowTooltip } from "@/hooks";
 import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
 import {
   isNewRow,
@@ -25,6 +26,45 @@ interface SubcategoryOption {
   id: string;
   name: string;
 }
+
+const SubcategoryChip: FC<{ name: string }> = ({ name }) => {
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLSpanElement>([
+    name,
+  ]);
+  return (
+    <Tooltip
+      title={isOverflowed ? name : ""}
+      arrow
+      placement="top"
+      enterDelay={500}
+    >
+      <Chip
+        size="small"
+        label={
+          <Box
+            component="span"
+            ref={overflowRef}
+            sx={{
+              display: "block",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {name}
+          </Box>
+        }
+        sx={{
+          maxWidth: 200,
+          "& .MuiChip-label": {
+            display: "block",
+            minWidth: 0,
+          },
+        }}
+      />
+    </Tooltip>
+  );
+};
 
 interface UseSubcategoryRecommendationColumnsParams {
   sectors: GetAllCountrySectorsResponse;
@@ -67,7 +107,7 @@ export const useSubcategoryRecommendationColumns = ({
     () => [
       {
         field: "sectorName",
-        headerName: "Sector",
+        headerName: "Rubro",
         flex: 1,
         minWidth: 180,
         sortable: false,
@@ -87,7 +127,7 @@ export const useSubcategoryRecommendationColumns = ({
                 onChange={(e) => onChangeSector(rowIndex, e.target.value)}
               >
                 <MenuItem value="" disabled>
-                  Seleccionar sector
+                  Seleccionar rubro
                 </MenuItem>
                 {sectors.map((sector) => (
                   <MenuItem key={sector.id} value={sector.id}>
@@ -106,7 +146,7 @@ export const useSubcategoryRecommendationColumns = ({
       },
       {
         field: "subsectorName",
-        headerName: "Subsector",
+        headerName: "Subrubro",
         flex: 1,
         minWidth: 200,
         sortable: false,
@@ -166,7 +206,8 @@ export const useSubcategoryRecommendationColumns = ({
             .map((id) => subcategoriesById.get(id))
             .filter((sc): sc is SubcategoryOption => sc !== undefined);
           const preview = selectedSubcategories.slice(0, 3);
-          const remaining = selectedSubcategories.length - preview.length;
+          const hidden = selectedSubcategories.slice(preview.length);
+          const remaining = hidden.length;
 
           const editDisabled = isNewRow(params.row.id) && !params.row.sectorId;
 
@@ -196,17 +237,27 @@ export const useSubcategoryRecommendationColumns = ({
                   </Typography>
                 ) : (
                   preview.map((sub) => (
-                    <Tooltip key={sub.id} title={sub.name} arrow>
-                      <Chip
-                        label={sub.name}
-                        size="small"
-                        sx={{ maxWidth: 200 }}
-                      />
-                    </Tooltip>
+                    <SubcategoryChip key={sub.id} name={sub.name} />
                   ))
                 )}
                 {remaining > 0 && (
-                  <Chip label={`+${remaining}`} size="small" color="default" />
+                  <Tooltip
+                    arrow
+                    placement="top"
+                    title={
+                      <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                        {hidden.map((sub) => (
+                          <li key={sub.id}>{sub.name}</li>
+                        ))}
+                      </Box>
+                    }
+                  >
+                    <Chip
+                      label={`+${remaining}`}
+                      size="small"
+                      color="default"
+                    />
+                  </Tooltip>
                 )}
               </Box>
               <Button
