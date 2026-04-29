@@ -25,7 +25,7 @@ export const SUBCATEGORY_RECOMMENDATIONS_LABELS = {
   clearSearchAriaLabel: "Limpiar búsqueda",
   saveRowAriaLabel: "Guardar cambios",
   cancelRowAriaLabel: "Descartar cambios",
-  methodologyLabel: "Metodología:",
+  methodologyLabel: "Metodología",
   nullSubsectorLabel: "Todos los subrubros",
   editSubcategoriesTitle: "Editar subcategorías",
   emptyConfirmTitle: "¿Eliminar todas las recomendaciones de este grupo?",

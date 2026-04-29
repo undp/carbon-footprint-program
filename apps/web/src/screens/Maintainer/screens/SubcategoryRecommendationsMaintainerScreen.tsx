@@ -8,6 +8,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
   MenuItem,
   Select,
   Typography,
@@ -473,15 +475,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           {SUBCATEGORY_RECOMMENDATIONS_LABELS.title}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box className="flex items-center gap-1">
-            <Typography variant="body2" color="text.secondary" noWrap>
+          <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
+            <InputLabel id="methodology-select-label">
               {SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
-            </Typography>
+            </InputLabel>
             <Select
-              size="small"
+              labelId="methodology-select-label"
+              label={SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
               value={selectedMethodologyId ?? ""}
               onChange={(e) => handleMethodologyChange(e.target.value)}
-              sx={{ minWidth: 220 }}
               disabled={!methodologies || methodologies.length === 0}
             >
               {(methodologies ?? []).map((m) => (
@@ -500,7 +502,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
                 </MenuItem>
               ))}
             </Select>
-          </Box>
+          </FormControl>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
