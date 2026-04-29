@@ -9,19 +9,14 @@ import {
   DatabaseUniqueConstraintViolationError,
   ParentNotActiveError,
   ResourceNotFoundError,
+  RestoreOnActiveError,
+  attachDetails,
 } from "@/errors/index.js";
-import createError from "@fastify/error";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountrySubsectorSelect,
   mapCountrySubsectorToAdmin,
 } from "../helpers.js";
-
-const RestoreOnActiveError = createError(
-  "RESTORE_ON_ACTIVE",
-  "The row is already ACTIVE",
-  400
-);
 
 export const restoreCountrySubsectorService = async (
   prismaClient: PrismaClient,
@@ -50,9 +45,9 @@ export const restoreCountrySubsectorService = async (
       }
 
       if (existing.status === CountrySubsectorStatus.ACTIVE) {
-        const err = new RestoreOnActiveError();
-        err.message = "El subrubro ya se encuentra activo.";
-        throw err;
+        throw attachDetails(new RestoreOnActiveError(), {
+          resourceType: "CountrySubsector",
+        });
       }
 
       // Block restore when the parent sector has been soft-deleted so the
@@ -70,9 +65,12 @@ export const restoreCountrySubsectorService = async (
         );
       }
       if (parentSector.status !== CountrySectorStatus.ACTIVE) {
-        const err = new ParentNotActiveError("CountrySector");
-        err.message = `No se puede restaurar el subrubro "${existing.name}" porque el rubro "${parentSector.name}" está eliminado. Restáuralo primero.`;
-        throw err;
+        throw attachDetails(new ParentNotActiveError("CountrySector"), {
+          resourceType: "CountrySubsector",
+          resourceName: existing.name,
+          parentType: "CountrySector",
+          parentName: parentSector.name,
+        });
       }
 
       const collision = await tx.countrySubsector.findFirst({
@@ -85,10 +83,10 @@ export const restoreCountrySubsectorService = async (
         select: { id: true },
       });
       if (collision) {
-        const err = new DatabaseUniqueConstraintViolationError();
-        err.message =
-          "Ya existe un subrubro activo con el mismo nombre dentro del rubro. Renombra o elimina el subrubro activo antes de restaurar.";
-        throw err;
+        throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+          resourceType: "CountrySubsector",
+          context: "RESTORE",
+        });
       }
 
       const updated = await tx.countrySubsector.update({
@@ -106,10 +104,10 @@ export const restoreCountrySubsectorService = async (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const err = new DatabaseUniqueConstraintViolationError();
-      err.message =
-        "Ya existe un subrubro activo con el mismo nombre dentro del rubro. Renombra o elimina el subrubro activo antes de restaurar.";
-      throw err;
+      throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+        resourceType: "CountrySubsector",
+        context: "RESTORE",
+      });
     }
     throw error;
   }

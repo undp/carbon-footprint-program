@@ -13,22 +13,12 @@ import {
   DatabaseUniqueConstraintViolationError,
   ParentNotActiveError,
   ResourceNotFoundError,
+  RestoreOnActiveError,
+  attachDetails,
 } from "@/errors/index.js";
-import createError from "@fastify/error";
-
-const SectorSubsectorMismatchError = createError(
-  "SECTOR_SUBSECTOR_MISMATCH",
-  "The provided subsector does not belong to the provided sector",
-  400
-);
+import { SectorSubsectorMismatchError } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import { adminMainActivitySelect, mapMainActivityToAdmin } from "../helpers.js";
-
-const RestoreOnActiveError = createError(
-  "RESTORE_ON_ACTIVE",
-  "The row is already ACTIVE",
-  400
-);
 
 export const restoreOrganizationMainActivityService = async (
   prismaClient: PrismaClient,
@@ -58,9 +48,9 @@ export const restoreOrganizationMainActivityService = async (
       }
 
       if (existing.status === OrganizationMainActivityStatus.ACTIVE) {
-        const err = new RestoreOnActiveError();
-        err.message = "La actividad principal ya se encuentra activa.";
-        throw err;
+        throw attachDetails(new RestoreOnActiveError(), {
+          resourceType: "OrganizationMainActivity",
+        });
       }
 
       // Block restore when the linked rubro/subrubro is no longer ACTIVE so
@@ -79,9 +69,12 @@ export const restoreOrganizationMainActivityService = async (
           );
         }
         if (parentSector.status !== CountrySectorStatus.ACTIVE) {
-          const err = new ParentNotActiveError("CountrySector");
-          err.message = `No se puede restaurar la actividad principal "${existing.name}" porque el rubro "${parentSector.name}" está eliminado. Restáuralo primero.`;
-          throw err;
+          throw attachDetails(new ParentNotActiveError("CountrySector"), {
+            resourceType: "OrganizationMainActivity",
+            resourceName: existing.name,
+            parentType: "CountrySector",
+            parentName: parentSector.name,
+          });
         }
       }
 
@@ -102,19 +95,19 @@ export const restoreOrganizationMainActivityService = async (
           );
         }
         if (parentSubsector.status !== CountrySubsectorStatus.ACTIVE) {
-          const err = new ParentNotActiveError("CountrySubsector");
-          err.message = `No se puede restaurar la actividad principal "${existing.name}" porque el subrubro "${parentSubsector.name}" está eliminado. Restáuralo primero.`;
-          throw err;
+          throw attachDetails(new ParentNotActiveError("CountrySubsector"), {
+            resourceType: "OrganizationMainActivity",
+            resourceName: existing.name,
+            parentType: "CountrySubsector",
+            parentName: parentSubsector.name,
+          });
         }
 
         if (
           existing.countrySectorId !== null &&
           parentSubsector.countrySectorId !== existing.countrySectorId
         ) {
-          const err = new SectorSubsectorMismatchError();
-          err.message =
-            "El subrubro asociado ya no pertenece al rubro indicado.";
-          throw err;
+          throw new SectorSubsectorMismatchError();
         }
       }
 
@@ -129,10 +122,10 @@ export const restoreOrganizationMainActivityService = async (
         select: { id: true },
       });
       if (collision) {
-        const err = new DatabaseUniqueConstraintViolationError();
-        err.message =
-          "Ya existe una actividad principal activa con el mismo nombre y rubro/subrubro. Renombra o elimina la activa antes de restaurar.";
-        throw err;
+        throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+          resourceType: "OrganizationMainActivity",
+          context: "RESTORE",
+        });
       }
 
       const updated = await tx.organizationMainActivity.update({
@@ -150,10 +143,10 @@ export const restoreOrganizationMainActivityService = async (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const err = new DatabaseUniqueConstraintViolationError();
-      err.message =
-        "Ya existe una actividad principal activa con el mismo nombre y rubro/subrubro. Renombra o elimina la activa antes de restaurar.";
-      throw err;
+      throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+        resourceType: "OrganizationMainActivity",
+        context: "RESTORE",
+      });
     }
     throw error;
   }

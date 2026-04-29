@@ -6,6 +6,7 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
+  attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
 import { NoCountryFoundError } from "../../../methodologies/errors.js";
@@ -52,9 +53,10 @@ export const createCountrySectorService = async (
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
-          const err = new DatabaseUniqueConstraintViolationError();
-          err.message = "Ya existe un rubro activo con ese nombre.";
-          throw err;
+          throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+            resourceType: "CountrySector",
+            context: "CREATE",
+          });
         }
       }
     }

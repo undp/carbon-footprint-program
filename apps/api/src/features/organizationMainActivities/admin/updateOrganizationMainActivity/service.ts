@@ -12,17 +12,12 @@ import {
 import {
   DatabaseUniqueConstraintViolationError,
   ResourceNotFoundError,
+  attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
-import createError from "@fastify/error";
+import { SectorSubsectorMismatchError } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import { adminMainActivitySelect, mapMainActivityToAdmin } from "../helpers.js";
-
-const SectorSubsectorMismatchError = createError(
-  "SECTOR_SUBSECTOR_MISMATCH",
-  "The provided subsector does not belong to the provided sector",
-  400
-);
 
 export const updateOrganizationMainActivityService = async (
   prismaClient: PrismaClient,
@@ -113,10 +108,7 @@ export const updateOrganizationMainActivityService = async (
             select: { countrySectorId: true },
           }));
         if (!subsector || subsector.countrySectorId !== effectiveSectorId) {
-          const err = new SectorSubsectorMismatchError();
-          err.message =
-            "El subrubro seleccionado no pertenece al rubro indicado.";
-          throw err;
+          throw new SectorSubsectorMismatchError();
         }
       }
 
@@ -155,10 +147,10 @@ export const updateOrganizationMainActivityService = async (
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
-          const err = new DatabaseUniqueConstraintViolationError();
-          err.message =
-            "Ya existe una actividad principal activa con ese nombre y la misma combinación de rubro/subrubro.";
-          throw err;
+          throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+            resourceType: "OrganizationMainActivity",
+            context: "UPDATE",
+          });
         }
       }
     }

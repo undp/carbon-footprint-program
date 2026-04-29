@@ -7,6 +7,7 @@ import {
 import {
   DatabaseUniqueConstraintViolationError,
   ResourceNotFoundError,
+  attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
@@ -53,10 +54,10 @@ export const createCountrySubsectorService = async (
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
-          const err = new DatabaseUniqueConstraintViolationError();
-          err.message =
-            "Ya existe un subrubro activo con ese nombre dentro del rubro indicado.";
-          throw err;
+          throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+            resourceType: "CountrySubsector",
+            context: "CREATE",
+          });
         }
       }
     }

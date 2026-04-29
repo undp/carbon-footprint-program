@@ -5,20 +5,28 @@ export type AppError =
 
 /**
  * Mirrors the API's `ApiErrorResponse` shape returned by the error handler.
- * Every API error response contains at least `{ code, message }`. Services should set the
- * thrown error's `message` to a Spanish, end-user-friendly sentence so the frontend can
- * surface it directly via `getApiErrorMessage`.
+ * Every API error response contains `{ code, message }` and may include a `details`
+ * record with structured context. The API's `message` is a developer-facing
+ * sentence; user-facing copy is composed on the frontend by `getApiErrorMessage`
+ * using `code + details`.
  */
 export interface ApiErrorBody {
   code: string;
   message: string;
+  details?: Record<string, unknown>;
 }
 
-export const isApiErrorBody = (value: unknown): value is ApiErrorBody =>
-  typeof value === "object" &&
-  value !== null &&
-  typeof (value as Record<string, unknown>).code === "string" &&
-  typeof (value as Record<string, unknown>).message === "string";
+export const isApiErrorBody = (value: unknown): value is ApiErrorBody => {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  if (typeof v.code !== "string" || typeof v.message !== "string") return false;
+  if (
+    v.details !== undefined &&
+    (typeof v.details !== "object" || v.details === null)
+  )
+    return false;
+  return true;
+};
 
 export type NormalizedError = AppError & {
   request: { url: string; method: string };
@@ -36,10 +44,17 @@ export class AppHttpError extends Error {
     return isApiErrorBody(this.detail.body) ? this.detail.body.code : undefined;
   }
 
-  /** Returns the Spanish, end-user-friendly message attached on the API response, if present. */
+  /** Returns the developer-facing message from the API response, if present. */
   get apiMessage(): string | undefined {
     return isApiErrorBody(this.detail.body)
       ? this.detail.body.message
+      : undefined;
+  }
+
+  /** Returns the structured `details` payload from the API response, if present. */
+  get apiDetails(): Record<string, unknown> | undefined {
+    return isApiErrorBody(this.detail.body)
+      ? this.detail.body.details
       : undefined;
   }
 }

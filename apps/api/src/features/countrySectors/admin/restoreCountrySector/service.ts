@@ -3,19 +3,14 @@ import { type RestoreCountrySectorResponse, type User } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
   ResourceNotFoundError,
+  RestoreOnActiveError,
+  attachDetails,
 } from "@/errors/index.js";
-import createError from "@fastify/error";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountrySectorSelect,
   mapCountrySectorToAdmin,
 } from "../helpers.js";
-
-const RestoreOnActiveError = createError(
-  "RESTORE_ON_ACTIVE",
-  "The row is already ACTIVE",
-  400
-);
 
 export const restoreCountrySectorService = async (
   prismaClient: PrismaClient,
@@ -39,9 +34,9 @@ export const restoreCountrySectorService = async (
       }
 
       if (existing.status === CountrySectorStatus.ACTIVE) {
-        const err = new RestoreOnActiveError();
-        err.message = "El rubro ya se encuentra activo.";
-        throw err;
+        throw attachDetails(new RestoreOnActiveError(), {
+          resourceType: "CountrySector",
+        });
       }
 
       const collision = await tx.countrySector.findFirst({
@@ -54,10 +49,10 @@ export const restoreCountrySectorService = async (
         select: { id: true },
       });
       if (collision) {
-        const err = new DatabaseUniqueConstraintViolationError();
-        err.message =
-          "Ya existe un rubro activo con el mismo nombre. Renombra o elimina el rubro activo antes de restaurar.";
-        throw err;
+        throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+          resourceType: "CountrySector",
+          context: "RESTORE",
+        });
       }
 
       const updated = await tx.countrySector.update({
@@ -76,10 +71,10 @@ export const restoreCountrySectorService = async (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const err = new DatabaseUniqueConstraintViolationError();
-      err.message =
-        "Ya existe un rubro activo con el mismo nombre. Renombra o elimina el rubro activo antes de restaurar.";
-      throw err;
+      throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+        resourceType: "CountrySector",
+        context: "RESTORE",
+      });
     }
     throw error;
   }

@@ -46,9 +46,7 @@ export const swapCountryOrganizationSizePositionsService = async (
   const idB = BigInt(data.sizeIdB);
 
   if (idA === idB) {
-    const err = new SameSizeError();
-    err.message = "No se puede reordenar un tamaño con sigo mismo.";
-    throw err;
+    throw new SameSizeError();
   }
 
   return await prismaClient.$transaction(async (tx) => {
@@ -63,18 +61,13 @@ export const swapCountryOrganizationSizePositionsService = async (
       throw new ResourceNotFoundError("CountryOrganizationSize", data.sizeIdB);
 
     if (sizeA.countryId !== sizeB.countryId) {
-      const err = new DifferentCountryError();
-      err.message =
-        "No se pueden reordenar tamaños de organizaciones de diferentes países.";
-      throw err;
+      throw new DifferentCountryError();
     }
     if (
       sizeA.status !== CountryOrganizationSizeStatus.ACTIVE ||
       sizeB.status !== CountryOrganizationSizeStatus.ACTIVE
     ) {
-      const err = new InactiveSizeError();
-      err.message = "Solo se pueden reordenar tamaños activos.";
-      throw err;
+      throw new InactiveSizeError();
     }
 
     const positionA = sizeA.position;

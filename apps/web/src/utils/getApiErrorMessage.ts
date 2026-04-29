@@ -1,6 +1,25 @@
 import { AppHttpError } from "@/api/http/errors";
 
-const ERROR_MESSAGES: Record<string, string> = {
+type ErrorDetails = Record<string, unknown> | undefined;
+type DetailsAwareMessage = (details: ErrorDetails) => string;
+
+const RESOURCE_LABELS: Record<
+  string,
+  { article: string; sentenceArticle: string }
+> = {
+  CountrySector: { article: "el rubro", sentenceArticle: "El rubro" },
+  CountrySubsector: { article: "el subrubro", sentenceArticle: "El subrubro" },
+  OrganizationMainActivity: {
+    article: "la actividad principal",
+    sentenceArticle: "La actividad principal",
+  },
+  CountryOrganizationSize: {
+    article: "el tamaño de organización",
+    sentenceArticle: "El tamaño de organización",
+  },
+};
+
+const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // Categories
   CATEGORY_NAME_ALREADY_EXISTS:
     "Ya existe una categoría con este nombre en esta metodología.",
@@ -65,13 +84,47 @@ const ERROR_MESSAGES: Record<string, string> = {
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   METHODOLOGY_IS_DELETED: "La metodología ya fue eliminada.",
 
-  // Profiling catalogs (sectors / subsectors / main activities / sizes). Services set a
-  // Spanish, context-specific sentence on the thrown error's `message` (surfaced via
-  // `error.apiMessage`) so the FE doesn't need a fallback per code; these entries are
-  // here only for codes whose API messages remain in English.
-  RESTORE_ON_ACTIVE: "El registro ya se encuentra activo.",
+  // Profiling catalogs (sectors / subsectors / main activities / sizes).
+  // The API attaches structured `details` (e.g. resourceType, parentType, parentName)
+  // and we compose the user-facing Spanish copy here.
+  DATABASE_UNIQUE_CONSTRAINT_VIOLATION: (details) => {
+    const resourceType = details?.resourceType;
+    if (resourceType === "CountrySector")
+      return "Ya existe un rubro activo con ese nombre.";
+    if (resourceType === "CountrySubsector")
+      return "Ya existe un subrubro activo con ese nombre dentro del rubro indicado.";
+    if (resourceType === "OrganizationMainActivity")
+      return "Ya existe una actividad principal activa con ese nombre y la misma combinación de rubro/subrubro.";
+    if (resourceType === "CountryOrganizationSize")
+      return "Ya existe un tamaño de organización activo con ese nombre.";
+    return "Ya existe un registro con este valor.";
+  },
+  RESTORE_ON_ACTIVE: (details) => {
+    const label =
+      RESOURCE_LABELS[details?.resourceType as string]?.sentenceArticle;
+    if (label) return `${label} ya se encuentra activo.`;
+    return "El registro ya se encuentra activo.";
+  },
+  PARENT_NOT_ACTIVE: (details) => {
+    const resource = RESOURCE_LABELS[details?.resourceType as string];
+    const parent = RESOURCE_LABELS[details?.parentType as string];
+    const resourceName =
+      typeof details?.resourceName === "string"
+        ? details.resourceName
+        : undefined;
+    const parentName =
+      typeof details?.parentName === "string" ? details.parentName : undefined;
+    if (resource && parent && resourceName && parentName) {
+      return `No se puede restaurar ${resource.article} "${resourceName}" porque ${parent.article} "${parentName}" está eliminado. Restáuralo primero.`;
+    }
+    return "No se puede restaurar este registro porque su entidad padre está eliminada. Restáurala primero.";
+  },
   SECTOR_SUBSECTOR_MISMATCH:
     "El subrubro seleccionado no pertenece al rubro indicado.",
+  SAME_ORGANIZATION_SIZE: "No se puede reordenar un tamaño consigo mismo.",
+  ORGANIZATION_SIZES_DIFFERENT_COUNTRY:
+    "No se pueden reordenar tamaños de organizaciones de diferentes países.",
+  INACTIVE_ORGANIZATION_SIZE: "Solo se pueden reordenar tamaños activos.",
 };
 
 /**
@@ -93,16 +146,8 @@ export const getApiErrorMessage = (
   if (error instanceof AppHttpError) {
     const code = error.errorCode;
     if (code && code in ERROR_MESSAGES) {
-      // Prefer the per-code static fallback for legacy error codes whose API messages
-      // remain in English (the static map carries the Spanish copy).
-      return ERROR_MESSAGES[code];
-    }
-    // For new error codes (e.g., profiling maintainers), services set the thrown
-    // error's `message` to a Spanish sentence — surface it directly so the FE doesn't
-    // need a code-by-code fallback.
-    const apiMessage = error.apiMessage;
-    if (apiMessage) {
-      return apiMessage;
+      const entry = ERROR_MESSAGES[code];
+      return typeof entry === "function" ? entry(error.apiDetails) : entry;
     }
   }
   return fallback;

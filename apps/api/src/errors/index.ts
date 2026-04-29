@@ -5,4 +5,6 @@ export * from "./ResourceNotFoundError.js";
 export * from "./DatabaseUniqueConstraintViolationError.js";
 export * from "./DeleteBlockedByReferencesError.js";
 export * from "./ParentNotActiveError.js";
+export * from "./RestoreOnActiveError.js";
+export * from "./attachDetails.js";
 export * from "./prisma.js";

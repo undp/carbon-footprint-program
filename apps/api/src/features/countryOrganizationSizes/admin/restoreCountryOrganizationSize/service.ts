@@ -10,19 +10,14 @@ import {
 import {
   DatabaseUniqueConstraintViolationError,
   ResourceNotFoundError,
+  RestoreOnActiveError,
+  attachDetails,
 } from "@/errors/index.js";
-import createError from "@fastify/error";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountryOrganizationSizeSelect,
   mapCountryOrganizationSizeToAdmin,
 } from "../helpers.js";
-
-const RestoreOnActiveError = createError(
-  "RESTORE_ON_ACTIVE",
-  "The row is already ACTIVE",
-  400
-);
 
 export const restoreCountryOrganizationSizeService = async (
   prismaClient: PrismaClient,
@@ -51,9 +46,9 @@ export const restoreCountryOrganizationSizeService = async (
       }
 
       if (existing.status === CountryOrganizationSizeStatus.ACTIVE) {
-        const err = new RestoreOnActiveError();
-        err.message = "El tamaño de organización ya se encuentra activo.";
-        throw err;
+        throw attachDetails(new RestoreOnActiveError(), {
+          resourceType: "CountryOrganizationSize",
+        });
       }
 
       const collision = await tx.countryOrganizationSize.findFirst({
@@ -66,10 +61,10 @@ export const restoreCountryOrganizationSizeService = async (
         select: { id: true },
       });
       if (collision) {
-        const err = new DatabaseUniqueConstraintViolationError();
-        err.message =
-          "Ya existe un tamaño de organización activo con el mismo nombre. Renombra o elimina el activo antes de restaurar.";
-        throw err;
+        throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+          resourceType: "CountryOrganizationSize",
+          context: "RESTORE",
+        });
       }
 
       const updated = await tx.countryOrganizationSize.update({
@@ -87,10 +82,10 @@ export const restoreCountryOrganizationSizeService = async (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const err = new DatabaseUniqueConstraintViolationError();
-      err.message =
-        "Ya existe un tamaño de organización activo con el mismo nombre. Renombra o elimina el activo antes de restaurar.";
-      throw err;
+      throw attachDetails(new DatabaseUniqueConstraintViolationError(), {
+        resourceType: "CountryOrganizationSize",
+        context: "RESTORE",
+      });
     }
     throw error;
   }
