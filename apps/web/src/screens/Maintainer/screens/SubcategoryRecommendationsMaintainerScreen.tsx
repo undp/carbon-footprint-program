@@ -340,7 +340,9 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           return next;
         });
         void enqueueSnackbar({
-          message: "Recomendación actualizada",
+          message: selectedIds.length
+            ? "Recomendación actualizada"
+            : "Recomendación eliminada",
           variant: "success",
         });
       } catch (error) {
@@ -356,6 +358,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       }
     },
     [updateMutation, enqueueSnackbar, selectedMethodologyId]
+  );
+
+  const handleDeleteRow = useCallback(
+    (rowIndex: number) => {
+      const row = rows[rowIndex];
+      if (!row) return;
+      setConfirmEmpty({ rowId: row.id });
+    },
+    [setConfirmEmpty, rows]
   );
 
   const handleSaveRow = useCallback(
@@ -429,6 +440,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     onChangeSector: handleChangeSector,
     onChangeSubsector: handleChangeSubsector,
     onOpenEdit: handleOpenEdit,
+    onDeleteRow: handleDeleteRow,
     onSaveRow: handleSaveRow,
     onCancelRow: handleCancelRow,
     isRowDirty,
@@ -547,7 +559,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           rows={rows}
           getRowId={(row: SubcategoryRecommendationRow) => row.id}
           disableRowSelectionOnClick
-          rowHeight={72}
+          getRowHeight={() => 48}
         />
       </Box>
       <SubcategoryTransferListDialog

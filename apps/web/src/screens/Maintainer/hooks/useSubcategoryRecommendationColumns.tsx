@@ -1,7 +1,6 @@
 import { FC, useMemo } from "react";
 import {
   Box,
-  Button,
   Chip,
   IconButton,
   MenuItem,
@@ -10,9 +9,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
 import { useOverflowTooltip } from "@/hooks";
@@ -27,7 +26,12 @@ interface SubcategoryOption {
   name: string;
 }
 
-const SubcategoryChip: FC<{ name: string }> = ({ name }) => {
+interface SubcategoryChipProps {
+  name: string;
+  onClick: () => void;
+}
+
+const SubcategoryChip: FC<SubcategoryChipProps> = ({ name, onClick }) => {
   const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLSpanElement>([
     name,
   ]);
@@ -61,6 +65,7 @@ const SubcategoryChip: FC<{ name: string }> = ({ name }) => {
             minWidth: 0,
           },
         }}
+        onClick={onClick}
       />
     </Tooltip>
   );
@@ -73,6 +78,7 @@ interface UseSubcategoryRecommendationColumnsParams {
   onChangeSector: (rowIndex: number, sectorId: string) => void;
   onChangeSubsector: (rowIndex: number, subsectorId: string | null) => void;
   onOpenEdit: (rowIndex: number) => void;
+  onDeleteRow: (rowIndex: number) => void;
   onSaveRow: (rowIndex: number) => void;
   onCancelRow: (rowIndex: number) => void;
   isRowDirty: (rowId: string) => boolean;
@@ -90,6 +96,7 @@ export const useSubcategoryRecommendationColumns = ({
   onOpenEdit,
   onSaveRow,
   onCancelRow,
+  onDeleteRow,
   isRowDirty,
   savingRowId,
   rows,
@@ -209,7 +216,8 @@ export const useSubcategoryRecommendationColumns = ({
 
           const selectedSubcategories = params.row.subcategoryIds
             .map((id) => subcategoriesById.get(id))
-            .filter((sc): sc is SubcategoryOption => sc !== undefined);
+            .filter((sc): sc is SubcategoryOption => sc !== undefined)
+            .sort((a, b) => a.name.localeCompare(b.name));
           const preview = selectedSubcategories.slice(0, 3);
           const hidden = selectedSubcategories.slice(preview.length);
           const remaining = hidden.length;
@@ -233,18 +241,25 @@ export const useSubcategoryRecommendationColumns = ({
                   overflow: "hidden",
                   flex: 1,
                 }}
+                //
               >
                 {preview.length === 0 ? (
                   <Typography
                     variant="body2"
                     color={showSubcategoriesError ? "error" : "text.secondary"}
                     fontStyle="italic"
+                    onClick={() => onOpenEdit(rowIndex)}
+                    sx={{ cursor: "pointer" }}
                   >
-                    Sin subcategorías seleccionadas
+                    Seleccione subcategorías aqui
                   </Typography>
                 ) : (
                   preview.map((sub) => (
-                    <SubcategoryChip key={sub.id} name={sub.name} />
+                    <SubcategoryChip
+                      key={sub.id}
+                      name={sub.name}
+                      onClick={() => onOpenEdit(rowIndex)}
+                    />
                   ))
                 )}
                 {remaining > 0 && (
@@ -263,27 +278,19 @@ export const useSubcategoryRecommendationColumns = ({
                       label={`+${remaining}`}
                       size="small"
                       color="default"
+                      onClick={() => onOpenEdit(rowIndex)}
                     />
                   </Tooltip>
                 )}
               </Box>
-              <Button
-                size="small"
-                variant="outlined"
-                color={showSubcategoriesError ? "error" : "primary"}
-                startIcon={<EditIcon />}
-                onClick={() => onOpenEdit(rowIndex)}
-              >
-                Editar subcategorías
-              </Button>
             </Stack>
           );
         },
       },
       {
         field: "_actions",
-        headerName: "",
-        width: 100,
+        headerName: "Acciones",
+        width: 120,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
@@ -291,31 +298,48 @@ export const useSubcategoryRecommendationColumns = ({
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
           const rowIndex = rowIndexById.get(params.row.id) ?? -1;
-          if (rowIndex < 0) return null;
-          if (!isRowDirty(params.row.id)) return null;
+          const isNew = isNewRow(params.row.id);
+
           const isSaving = savingRowId === params.row.id;
+          const isDirty = isRowDirty(params.row.id);
 
           return (
             <Stack direction="row" spacing={0.5}>
-              <IconButton
-                size="small"
-                color="primary"
-                disabled={isSaving}
-                onClick={() => onSaveRow(rowIndex)}
-                aria-label={SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel}
-              >
-                <SaveOutlinedIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                disabled={isSaving}
-                onClick={() => onCancelRow(rowIndex)}
-                aria-label={
-                  SUBCATEGORY_RECOMMENDATIONS_LABELS.cancelRowAriaLabel
-                }
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
+              {isDirty && (
+                <>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    disabled={isSaving}
+                    onClick={() => onSaveRow(rowIndex)}
+                    aria-label={
+                      SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel
+                    }
+                  >
+                    <SaveOutlinedIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    disabled={isSaving}
+                    onClick={() => onCancelRow(rowIndex)}
+                    aria-label={
+                      SUBCATEGORY_RECOMMENDATIONS_LABELS.cancelRowAriaLabel
+                    }
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </>
+              )}
+              {!isNew && !isDirty && (
+                <IconButton
+                  size="small"
+                  disabled={isSaving}
+                  onClick={() => onDeleteRow(rowIndex)}
+                  aria-label={SUBCATEGORY_RECOMMENDATIONS_LABELS.deleteRow}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              )}
             </Stack>
           );
         },
@@ -329,6 +353,7 @@ export const useSubcategoryRecommendationColumns = ({
       onChangeSector,
       onChangeSubsector,
       onOpenEdit,
+      onDeleteRow,
       onSaveRow,
       onCancelRow,
       isRowDirty,

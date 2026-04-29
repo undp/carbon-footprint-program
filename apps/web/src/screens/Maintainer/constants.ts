@@ -27,8 +27,8 @@ export const SUBCATEGORY_RECOMMENDATIONS_LABELS = {
   cancelRowAriaLabel: "Descartar cambios",
   methodologyLabel: "Metodología",
   nullSubsectorLabel: "Todos los subrubros",
-  editSubcategoriesTitle: "Editar subcategorías",
-  emptyConfirmTitle: "¿Eliminar todas las recomendaciones de este grupo?",
-  emptyConfirmBody:
-    "Al guardar sin subcategorías, todas las recomendaciones de este grupo serán eliminadas.",
+  editSubcategoriesTitle: "Seleccionar subcategorías",
+  deleteRow: "Borrar recomendación",
+  emptyConfirmTitle: "¿Estás seguro?",
+  emptyConfirmBody: "Todas las recomendaciones de este grupo serán eliminadas.",
 } as const;

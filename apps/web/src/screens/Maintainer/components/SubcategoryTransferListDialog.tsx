@@ -104,7 +104,16 @@ const SubcategoryTransferListDialogContent: FC<
     });
   };
 
-  const saveDisabled = isNew && selectedIds.length === 0;
+  const isDirty = useMemo(() => {
+    const initialSet = new Set(initialSelectedIds);
+    if (initialSet.size !== selectedIds.length) return true;
+    for (const id of selectedIds) {
+      if (!initialSet.has(id)) return true;
+    }
+    return false;
+  }, [initialSelectedIds, selectedIds]);
+
+  const saveDisabled = isNew ? selectedIds.length === 0 : !isDirty;
 
   return (
     <Dialog
@@ -201,7 +210,7 @@ const SubcategoryTransferListDialogContent: FC<
           disabled={saveDisabled}
           onClick={() => onSave(selectedIds)}
         >
-          Guardar
+          Seleccionar
         </Button>
       </DialogActions>
     </Dialog>
