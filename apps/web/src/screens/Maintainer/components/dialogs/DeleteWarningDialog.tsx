@@ -46,38 +46,66 @@ export const DeleteWarningDialog: FC<Props> = ({
     impactedChildren.activeSubsectors !== undefined &&
     impactedChildren.activeSubsectors > 0
   ) {
-    items.push(
-      `Se eliminarán ${impactedChildren.activeSubsectors} subrubros activos.`
-    );
+    const entity =
+      impactedChildren.activeSubsectors > 1
+        ? "subrubros asociados"
+        : "subrubro asociado";
+    const verb =
+      impactedChildren.activeSubsectors > 1 ? "eliminarán" : "eliminará";
+    items.push(`Se ${verb} ${impactedChildren.activeSubsectors} ${entity}.`);
   }
   if (
     impactedChildren.activeMainActivities !== undefined &&
     impactedChildren.activeMainActivities > 0
   ) {
+    const entity =
+      impactedChildren.activeMainActivities > 1
+        ? "actividades principales asociadas"
+        : "actividad principal asociada";
+    const verb =
+      impactedChildren.activeMainActivities > 1 ? "eliminarán" : "eliminará";
     items.push(
-      `Se eliminarán ${impactedChildren.activeMainActivities} actividades activas.`
+      `Se ${verb} ${impactedChildren.activeMainActivities} ${entity}.`
     );
   }
   if (impactedChildren.organizationData > 0) {
+    const entity =
+      impactedChildren.organizationData > 1
+        ? VOCAB.organization.noun.plural
+        : VOCAB.organization.noun.singular;
+    const verb = impactedChildren.organizationData > 1 ? "tienen" : "tiene";
+    const disclaimer =
+      impactedChildren.organizationData > 1
+        ? "Estas no se verán afectadas"
+        : "Esta no se verá afectada";
     items.push(
-      `${impactedChildren.organizationData} ${VOCAB.organization.article.plural} tienen este ${entityLabel} asignado.`
+      `${impactedChildren.organizationData} ${entity} ${verb} este ${entityLabel} asignado. ${disclaimer}.`
     );
   }
   if (
     impactedChildren.subcategoryRecommendations !== undefined &&
     impactedChildren.subcategoryRecommendations > 0
   ) {
+    const entity =
+      impactedChildren.subcategoryRecommendations > 1
+        ? "recomendaciones"
+        : "recomendación";
+    const verb =
+      impactedChildren.subcategoryRecommendations > 1 ? "apuntan" : "apunta";
     items.push(
-      `${impactedChildren.subcategoryRecommendations} recomendaciones apuntan a este ${entityLabel}.`
+      `${impactedChildren.subcategoryRecommendations} ${entity} ${verb} a este ${entityLabel}.`
     );
   }
 
   return (
-    <Dialog open={open} onClose={onCancel}>
+    <Dialog open={open} onClose={onCancel} fullWidth maxWidth="sm">
       <DialogTitle>{`Eliminar ${entityLabel}`}</DialogTitle>
       <DialogContent>
         <DialogContentText color="textPrimary">
-          {`¿Estás seguro de que deseas eliminar este ${entityLabel}?`}
+          {items.length > 0
+            ? `Este ${entityLabel} tiene dependencias activas. `
+            : ""}
+          ¿Estás seguro de que deseas eliminarlo?
         </DialogContentText>
         {items.length > 0 && (
           <Box
