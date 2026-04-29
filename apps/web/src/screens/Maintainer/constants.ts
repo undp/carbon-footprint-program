@@ -1,4 +1,14 @@
+import { MethodologyVersionStatus } from "@repo/types";
 import type { SelectOption } from "./types";
+
+export const METHODOLOGY_STATUS_LABELS: Record<
+  MethodologyVersionStatus,
+  string
+> = {
+  [MethodologyVersionStatus.PUBLISHED]: "Activa",
+  [MethodologyVersionStatus.UNPUBLISHED]: "Inactiva",
+  [MethodologyVersionStatus.DELETED]: "Eliminada",
+};
 
 export const NORMATIVA_OPTIONS: SelectOption[] = [
   { label: "GHG Protocol", value: "GHG Protocol" },

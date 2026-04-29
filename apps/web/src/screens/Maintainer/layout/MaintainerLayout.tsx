@@ -16,6 +16,7 @@ import {
   ViewColumnOutlined,
   WorkspacePremiumOutlined,
   RecommendOutlined,
+  ListAltOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -105,6 +106,11 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     icon: <WorkspacePremiumOutlined />,
     path: Routes.ADMIN_BADGES,
     requiredRoles: [SystemRole.SUPERADMIN],
+  },
+  {
+    text: "Iniciativas de Planes de Reducción",
+    icon: <ListAltOutlined />,
+    path: Routes.ADMIN_REDUCTION_PLAN_INITIATIVES,
   },
   {
     text: "Historial de cambios",

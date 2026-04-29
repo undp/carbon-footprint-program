@@ -18,4 +18,9 @@ export const maintainerKeys = {
     all: (methodologyVersionId: string) =>
       ["maintainer", "emissionFactorDimensions", methodologyVersionId] as const,
   },
+  reductionPlanInitiatives: {
+    all: ["maintainer", "reductionPlanInitiatives"] as const,
+    byMethodology: (methodologyVersionId: string) =>
+      ["maintainer", "reductionPlanInitiatives", methodologyVersionId] as const,
+  },
 };
