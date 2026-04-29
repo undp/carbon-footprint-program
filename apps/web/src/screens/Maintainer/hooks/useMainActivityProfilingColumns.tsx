@@ -76,33 +76,6 @@ export const useMainActivityProfilingColumns = ({
   return useMemo<GridColDef<MainActivityFormRow>[]>(
     () => [
       {
-        field: "name",
-        headerName: "Nombre",
-        flex: 1,
-        minWidth: 220,
-        renderCell: (params: GridRenderCellParams<MainActivityFormRow>) => {
-          const rowId = params.row.id;
-          const rowIndex = getRowIndex(rowId);
-          const editing = isEditing(rowId);
-          const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
-          return (
-            <EditableTextCell
-              formArrayName="mainActivities"
-              rowIndex={rowIndex}
-              fieldName="name"
-              isEditing={editing}
-              onChange={(value) => onCellChange(rowIndex, "name", value)}
-              onClick={
-                !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
-              }
-              truncateLines={1}
-              maxLength={255}
-            />
-          );
-        },
-      },
-      {
         field: "countrySectorId",
         headerName: "Rubro",
         flex: 1,
@@ -169,6 +142,33 @@ export const useMainActivityProfilingColumns = ({
               onClick={
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
               }
+            />
+          );
+        },
+      },
+      {
+        field: "name",
+        headerName: "Nombre",
+        flex: 1,
+        minWidth: 220,
+        renderCell: (params: GridRenderCellParams<MainActivityFormRow>) => {
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
+          const isDeleted =
+            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+          return (
+            <EditableTextCell
+              formArrayName="mainActivities"
+              rowIndex={rowIndex}
+              fieldName="name"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "name", value)}
+              onClick={
+                !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
+              }
+              truncateLines={1}
+              maxLength={255}
             />
           );
         },

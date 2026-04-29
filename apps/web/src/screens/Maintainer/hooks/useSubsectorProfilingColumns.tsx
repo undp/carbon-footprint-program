@@ -62,32 +62,6 @@ export const useSubsectorProfilingColumns = ({
   return useMemo<GridColDef<SubsectorFormRow>[]>(
     () => [
       {
-        field: "name",
-        headerName: "Nombre",
-        flex: 1,
-        minWidth: 200,
-        renderCell: (params: GridRenderCellParams<SubsectorFormRow>) => {
-          const rowId = params.row.id;
-          const rowIndex = getRowIndex(rowId);
-          const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
-          return (
-            <EditableTextCell
-              formArrayName="subsectors"
-              rowIndex={rowIndex}
-              fieldName="name"
-              isEditing={editing}
-              onChange={(value) => onCellChange(rowIndex, "name", value)}
-              onClick={
-                !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
-              }
-              truncateLines={1}
-              maxLength={255}
-            />
-          );
-        },
-      },
-      {
         field: "countrySectorId",
         headerName: "Rubro",
         flex: 1,
@@ -112,6 +86,32 @@ export const useSubsectorProfilingColumns = ({
               onClick={
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
               }
+            />
+          );
+        },
+      },
+      {
+        field: "name",
+        headerName: "Nombre",
+        flex: 1,
+        minWidth: 200,
+        renderCell: (params: GridRenderCellParams<SubsectorFormRow>) => {
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
+          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
+          return (
+            <EditableTextCell
+              formArrayName="subsectors"
+              rowIndex={rowIndex}
+              fieldName="name"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "name", value)}
+              onClick={
+                !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
+              }
+              truncateLines={1}
+              maxLength={255}
             />
           );
         },
