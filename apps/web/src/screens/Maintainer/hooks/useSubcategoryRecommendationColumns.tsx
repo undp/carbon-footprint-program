@@ -78,6 +78,7 @@ interface UseSubcategoryRecommendationColumnsParams {
   isRowDirty: (rowId: string) => boolean;
   savingRowId: string | null;
   rows: SubcategoryRecommendationRow[];
+  invalidRowIds: ReadonlySet<string>;
 }
 
 export const useSubcategoryRecommendationColumns = ({
@@ -92,6 +93,7 @@ export const useSubcategoryRecommendationColumns = ({
   isRowDirty,
   savingRowId,
   rows,
+  invalidRowIds,
 }: UseSubcategoryRecommendationColumnsParams): GridColDef<SubcategoryRecommendationRow>[] => {
   const subcategoriesById = useMemo(
     () => new Map(subcategories.map((sc) => [sc.id, sc])),
@@ -118,12 +120,15 @@ export const useSubcategoryRecommendationColumns = ({
           if (rowIndex < 0) return null;
 
           if (isNewRow(params.row.id)) {
+            const showSectorError =
+              invalidRowIds.has(params.row.id) && !params.row.sectorId;
             return (
               <Select
                 fullWidth
                 size="small"
                 value={params.row.sectorId}
                 displayEmpty
+                error={showSectorError}
                 onChange={(e) => onChangeSector(rowIndex, e.target.value)}
               >
                 <MenuItem value="" disabled>
@@ -210,6 +215,9 @@ export const useSubcategoryRecommendationColumns = ({
           const remaining = hidden.length;
 
           const editDisabled = isNewRow(params.row.id) && !params.row.sectorId;
+          const showSubcategoriesError =
+            invalidRowIds.has(params.row.id) &&
+            params.row.subcategoryIds.length === 0;
 
           return (
             <Stack
@@ -230,7 +238,7 @@ export const useSubcategoryRecommendationColumns = ({
                 {preview.length === 0 ? (
                   <Typography
                     variant="body2"
-                    color="text.secondary"
+                    color={showSubcategoriesError ? "error" : "text.secondary"}
                     fontStyle="italic"
                   >
                     Sin subcategorías seleccionadas
@@ -263,6 +271,7 @@ export const useSubcategoryRecommendationColumns = ({
               <Button
                 size="small"
                 variant="outlined"
+                color={showSubcategoriesError ? "error" : "primary"}
                 startIcon={<EditIcon />}
                 disabled={editDisabled}
                 onClick={() => onOpenEdit(rowIndex)}
@@ -287,17 +296,13 @@ export const useSubcategoryRecommendationColumns = ({
           if (rowIndex < 0) return null;
           if (!isRowDirty(params.row.id)) return null;
           const isSaving = savingRowId === params.row.id;
-          const saveDisabled =
-            isSaving ||
-            (isNewRow(params.row.id) &&
-              (!params.row.sectorId || params.row.subcategoryIds.length === 0));
 
           return (
             <Stack direction="row" spacing={0.5}>
               <IconButton
                 size="small"
                 color="primary"
-                disabled={saveDisabled}
+                disabled={isSaving}
                 onClick={() => onSaveRow(rowIndex)}
                 aria-label={SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel}
               >
@@ -330,6 +335,7 @@ export const useSubcategoryRecommendationColumns = ({
       onCancelRow,
       isRowDirty,
       savingRowId,
+      invalidRowIds,
     ]
   );
 };
