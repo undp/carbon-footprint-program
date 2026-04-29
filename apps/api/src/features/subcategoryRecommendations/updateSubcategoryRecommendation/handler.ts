@@ -1,13 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type {
-  UpdateSubcategoryRecommendationQuery,
-  UpdateSubcategoryRecommendationRequest,
-} from "@repo/types";
+import type { UpdateSubcategoryRecommendationRequest } from "@repo/types";
 import { updateSubcategoryRecommendationService } from "./service.js";
 
 export const updateSubcategoryRecommendationHandler = async (
   request: FastifyRequest<{
-    Querystring: UpdateSubcategoryRecommendationQuery;
     Body: UpdateSubcategoryRecommendationRequest;
   }>,
   reply: FastifyReply
@@ -17,7 +13,6 @@ export const updateSubcategoryRecommendationHandler = async (
 
   const data = await updateSubcategoryRecommendationService(
     request.server.prisma,
-    request.query,
     request.body,
     request.currentUser ?? null
   );

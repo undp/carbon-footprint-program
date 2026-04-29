@@ -319,13 +319,10 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       try {
         setSavingRowId(row.id);
         await updateMutation.mutateAsync({
-          query: {
-            methodologyId: selectedMethodologyId,
-            sectorId: Number(row.sectorId),
-            subsectorId:
-              row.subsectorId !== null ? Number(row.subsectorId) : null,
-          },
-          body: { subcategoryIds: selectedIds },
+          methodologyId: selectedMethodologyId,
+          sectorId: row.sectorId,
+          subsectorId: row.subsectorId,
+          subcategoryIds: selectedIds,
         });
         setEditedRows((prev) => {
           const next = new Map(prev);

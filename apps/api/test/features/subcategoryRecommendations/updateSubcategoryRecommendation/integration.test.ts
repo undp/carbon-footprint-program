@@ -26,6 +26,8 @@ type SeededRefs = {
   otherSubcategoryId: bigint;
 };
 
+const URL = "/api/subcategory-recommendations";
+
 const seed = async (prisma: PrismaClient): Promise<SeededRefs> => {
   const country = await prisma.country.findFirstOrThrow({
     orderBy: { id: "asc" },
@@ -141,19 +143,17 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     });
   };
 
-  const urlFor = (
+  const groupPayload = (
     methodologyId: bigint,
     sectorId: bigint,
-    subsectorId: bigint | null
-  ) => {
-    const params = new URLSearchParams();
-    params.set("methodologyId", methodologyId.toString());
-    params.set("sectorId", sectorId.toString());
-    if (subsectorId !== null) {
-      params.set("subsectorId", subsectorId.toString());
-    }
-    return `/api/subcategory-recommendations?${params.toString()}`;
-  };
+    subsectorId: bigint | null,
+    subcategoryIds: string[]
+  ) => ({
+    methodologyId: methodologyId.toString(),
+    sectorId: sectorId.toString(),
+    subsectorId: subsectorId !== null ? subsectorId.toString() : null,
+    subcategoryIds,
+  });
 
   it("add-only diff creates new ACTIVE rows without touching existing", async () => {
     refs = await seed(prisma);
@@ -161,13 +161,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: {
-        subcategoryIds: [
-          refs.subcategoryIds[0].toString(),
-          refs.subcategoryIds[1].toString(),
-        ],
-      },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [refs.subcategoryIds[0].toString(), refs.subcategoryIds[1].toString()]
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -188,10 +188,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: {
-        subcategoryIds: [refs.subcategoryIds[0].toString()],
-      },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [refs.subcategoryIds[0].toString()]
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -221,13 +224,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: {
-        subcategoryIds: [
-          refs.subcategoryIds[0].toString(),
-          refs.subcategoryIds[2].toString(),
-        ],
-      },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [refs.subcategoryIds[0].toString(), refs.subcategoryIds[2].toString()]
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -257,8 +260,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: { subcategoryIds: [] },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        []
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -278,10 +286,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: {
-        subcategoryIds: [refs.otherSubcategoryId.toString()],
-      },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [refs.otherSubcategoryId.toString()]
+      ),
     });
     expect(response.statusCode).toBe(500);
   });
@@ -292,8 +303,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     let response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: { subcategoryIds: [] },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        []
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -308,8 +324,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     // Second idempotent call on already-empty group
     response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: { subcategoryIds: [] },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        []
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -335,10 +356,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
 
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: {
-        subcategoryIds: [refs.subcategoryIds[0].toString()],
-      },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [refs.subcategoryIds[0].toString()]
+      ),
     });
     expect(response.statusCode).toBe(200);
 
@@ -364,8 +388,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     const dup = refs.subcategoryIds[0].toString();
     const response = await app.inject({
       method: "PUT",
-      url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-      payload: { subcategoryIds: [dup, dup] },
+      url: URL,
+      payload: groupPayload(
+        refs.methodologyId,
+        refs.sectorId,
+        refs.subsectorId,
+        [dup, dup]
+      ),
     });
     expect(response.statusCode).toBe(400);
   });
@@ -380,8 +409,13 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     try {
       const response = await app.inject({
         method: "PUT",
-        url: urlFor(refs.methodologyId, refs.sectorId, refs.subsectorId),
-        payload: { subcategoryIds: [refs.subcategoryIds[0].toString()] },
+        url: URL,
+        payload: groupPayload(
+          refs.methodologyId,
+          refs.sectorId,
+          refs.subsectorId,
+          [refs.subcategoryIds[0].toString()]
+        ),
       });
       expect(response.statusCode).toBe(403);
     } finally {
@@ -392,18 +426,15 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     }
   });
 
-  it("accepts omitted subsectorId as null (no-subsector group)", async () => {
+  it("accepts subsectorId as null (no-subsector group)", async () => {
     refs = await seed(prisma);
 
-    const params = new URLSearchParams();
-    params.set("methodologyId", refs.methodologyId.toString());
-    params.set("sectorId", refs.sectorId.toString());
     const response = await app.inject({
       method: "PUT",
-      url: `/api/subcategory-recommendations?${params.toString()}`,
-      payload: {
-        subcategoryIds: [refs.subcategoryIds[0].toString()],
-      },
+      url: URL,
+      payload: groupPayload(refs.methodologyId, refs.sectorId, null, [
+        refs.subcategoryIds[0].toString(),
+      ]),
     });
     expect(response.statusCode).toBe(200);
 
@@ -417,12 +448,15 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
     expect(rows).toHaveLength(1);
   });
 
-  it("rejects the literal string 'null' as subsectorId with 400", async () => {
+  it("rejects non-numeric subsectorId with 400", async () => {
     refs = await seed(prisma);
     const response = await app.inject({
       method: "PUT",
-      url: `/api/subcategory-recommendations?methodologyId=${refs.methodologyId.toString()}&sectorId=${refs.sectorId.toString()}&subsectorId=null`,
+      url: URL,
       payload: {
+        methodologyId: refs.methodologyId.toString(),
+        sectorId: refs.sectorId.toString(),
+        subsectorId: "not-a-number",
         subcategoryIds: [refs.subcategoryIds[0].toString()],
       },
     });

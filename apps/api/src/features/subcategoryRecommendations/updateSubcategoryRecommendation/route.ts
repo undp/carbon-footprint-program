@@ -1,6 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import {
-  UpdateSubcategoryRecommendationQuerySchema,
   UpdateSubcategoryRecommendationRequestSchema,
   UpdateSubcategoryRecommendationResponseSchema,
 } from "@repo/types";
@@ -18,7 +17,6 @@ export const updateSubcategoryRecommendationRoute = (
         summary: "Bulk-replace a subcategory recommendation group",
         description:
           "Idempotent diff-based replace for a (sectorId, subsectorId) group. An empty `subcategoryIds` array soft-deletes the group.",
-        querystring: UpdateSubcategoryRecommendationQuerySchema,
         body: UpdateSubcategoryRecommendationRequestSchema,
         response: {
           200: UpdateSubcategoryRecommendationResponseSchema,

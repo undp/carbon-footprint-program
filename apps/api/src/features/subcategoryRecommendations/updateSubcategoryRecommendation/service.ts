@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
   SubcategoryRecommendationStatus,
-  type UpdateSubcategoryRecommendationQuery,
   type UpdateSubcategoryRecommendationRequest,
   type UpdateSubcategoryRecommendationResponse,
   type User,
@@ -13,7 +12,6 @@ import { methodologyVersionFilter } from "../helpers.js";
 
 export const updateSubcategoryRecommendationService = async (
   prismaClient: PrismaClient,
-  query: UpdateSubcategoryRecommendationQuery,
   data: UpdateSubcategoryRecommendationRequest,
   user: User | null
 ): Promise<UpdateSubcategoryRecommendationResponse> => {
@@ -21,10 +19,10 @@ export const updateSubcategoryRecommendationService = async (
     throw new UserNotFoundError();
   }
 
-  const methodologyVersionId = BigInt(query.methodologyId);
-  const sectorId = BigInt(query.sectorId);
+  const methodologyVersionId = BigInt(data.methodologyId);
+  const sectorId = BigInt(data.sectorId);
   const subsectorId =
-    query.subsectorId !== null ? BigInt(query.subsectorId) : null;
+    data.subsectorId !== null ? BigInt(data.subsectorId) : null;
   const userId = BigInt(user.id);
 
   return prismaClient.$transaction(async (tx) => {
@@ -33,7 +31,7 @@ export const updateSubcategoryRecommendationService = async (
         sectorId,
         subsectorId,
         status: SubcategoryRecommendationStatus.ACTIVE,
-        ...methodologyVersionFilter(query.methodologyId),
+        ...methodologyVersionFilter(data.methodologyId),
       },
       select: { id: true, subcategoryId: true },
     });

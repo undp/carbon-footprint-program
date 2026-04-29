@@ -1,26 +1,14 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
 
-export const UpdateSubcategoryRecommendationQuerySchema = z.object({
+export const UpdateSubcategoryRecommendationRequestSchema = z.object({
   methodologyId: IdSchema.describe(
     "The ID of the methodology version this group belongs to"
   ),
-  sectorId: z.coerce
-    .number()
-    .int()
-    .positive()
-    .describe("The ID of the sector (required)"),
-  subsectorId: z
-    .preprocess(
-      (v) => (v === "" || v == null ? null : v),
-      z.coerce.number().int().positive().nullable()
-    )
-    .describe(
-      "The ID of the subsector; omit or send empty value to target the no-subsector group"
-    ),
-});
-
-export const UpdateSubcategoryRecommendationRequestSchema = z.object({
+  sectorId: IdSchema.describe("The ID of the sector"),
+  subsectorId: IdSchema.nullable().describe(
+    "The ID of the subsector, or null to target the no-subsector group"
+  ),
   subcategoryIds: z
     .array(IdSchema)
     .refine((arr) => new Set(arr).size === arr.length, {
