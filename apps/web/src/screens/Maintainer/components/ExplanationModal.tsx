@@ -42,14 +42,20 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
     setTab(next);
   };
 
+  const isDirty = content !== value;
+
   const handleSave = useCallback(async () => {
+    if (!isDirty) {
+      onClose();
+      return;
+    }
     try {
       await onSave(content);
       onClose();
     } catch {
       // Parent surfaces the error; keep the modal open so edits are not lost.
     }
-  }, [content, onClose, onSave]);
+  }, [content, isDirty, onClose, onSave]);
 
   return (
     <>
@@ -80,7 +86,15 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
           {!readOnly && <Tab value="edit" label="Editar" />}
           <Tab value="preview" label="Vista Previa" />
         </Tabs>
-        <Box sx={{ mt: 1 }}>
+        <Box
+          sx={{
+            mt: 1,
+            height: "60vh",
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
           {tab === "edit" && !readOnly ? (
             <ExplanationEditorTab
               value={content}

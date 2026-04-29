@@ -11,11 +11,12 @@ export const ExplanationPreviewTab: FC<ExplanationPreviewTabProps> = ({
 }) => (
   <Box
     sx={(theme) => ({
+      flex: 1,
+      minHeight: 0,
       border: `1px solid ${theme.palette.divider}`,
       borderRadius: 1,
       px: 2,
       py: 1.5,
-      maxHeight: "60vh",
       overflowY: "auto",
       backgroundColor: theme.palette.background.paper,
     })}

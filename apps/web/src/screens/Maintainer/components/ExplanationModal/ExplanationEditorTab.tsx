@@ -28,18 +28,21 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
   disabled = false,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const pendingSelectionRef = useRef<{ start: number; end: number } | null>(
-    null
-  );
+  const pendingSelectionRef = useRef<{
+    start: number;
+    end: number;
+    scrollTop: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     const pending = pendingSelectionRef.current;
     if (!pending) return;
     const textarea = textareaRef.current;
     if (!textarea) return;
+    pendingSelectionRef.current = null;
     textarea.focus();
     textarea.setSelectionRange(pending.start, pending.end);
-    pendingSelectionRef.current = null;
+    textarea.scrollTop = pending.scrollTop;
   });
 
   const applyInsert = useCallback(
@@ -56,6 +59,7 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
       pendingSelectionRef.current = {
         start: result.selectionStart,
         end: result.selectionEnd,
+        scrollTop: textarea?.scrollTop ?? 0,
       };
       onChange(result.value);
     },
@@ -76,6 +80,8 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
       sx={(theme) => ({
         display: "flex",
         flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 1,
         overflow: "hidden",
@@ -86,8 +92,6 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
         inputRef={textareaRef}
         fullWidth
         multiline
-        minRows={12}
-        maxRows={24}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleKeyDown}
@@ -98,10 +102,21 @@ export const ExplanationEditorTab: FC<ExplanationEditorTabProps> = ({
         }}
         variant="standard"
         sx={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
           "& .MuiInputBase-root": {
+            flex: 1,
+            minHeight: 0,
+            alignItems: "stretch",
+            overflowY: "auto",
             px: 1.5,
             py: 1,
             "&:before, &:after": { display: "none" },
+          },
+          "& .MuiInputBase-input": {
+            height: "100% !important",
+            overflow: "auto !important",
           },
         }}
       />
