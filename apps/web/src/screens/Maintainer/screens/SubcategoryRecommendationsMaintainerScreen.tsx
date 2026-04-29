@@ -257,7 +257,6 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     (rowIndex: number) => {
       const row = rows[rowIndex];
       if (!row) return;
-      if (isNewRow(row.id) && !row.sectorId) return;
       setEditingRowId(row.id);
     },
     [rows]

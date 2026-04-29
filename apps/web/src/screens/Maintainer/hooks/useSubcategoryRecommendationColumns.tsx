@@ -214,7 +214,6 @@ export const useSubcategoryRecommendationColumns = ({
           const hidden = selectedSubcategories.slice(preview.length);
           const remaining = hidden.length;
 
-          const editDisabled = isNewRow(params.row.id) && !params.row.sectorId;
           const showSubcategoriesError =
             invalidRowIds.has(params.row.id) &&
             params.row.subcategoryIds.length === 0;
@@ -273,7 +272,6 @@ export const useSubcategoryRecommendationColumns = ({
                 variant="outlined"
                 color={showSubcategoriesError ? "error" : "primary"}
                 startIcon={<EditIcon />}
-                disabled={editDisabled}
                 onClick={() => onOpenEdit(rowIndex)}
               >
                 Editar subcategorías
