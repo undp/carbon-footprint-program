@@ -118,9 +118,26 @@ const SubcategoryTransferListDialogContent: FC<
     >
       <DialogTitle sx={{ pb: 0.5 }}>
         {SUBCATEGORY_RECOMMENDATIONS_LABELS.editSubcategoriesTitle}
-        <Typography variant="body2" color="text.secondary">
-          {sectorName} / {subsectorName ?? nullSubsectorLabel}
-        </Typography>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            columnGap: 1,
+            rowGap: 1,
+            my: 1,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Sector
+          </Typography>
+          <Typography variant="body2">{sectorName}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Subsector
+          </Typography>
+          <Typography variant="body2">
+            {subsectorName ?? nullSubsectorLabel}
+          </Typography>
+        </Box>
       </DialogTitle>
       <DialogContent
         dividers
