@@ -8,6 +8,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
   MenuItem,
   Select,
   Typography,
@@ -108,6 +110,18 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const [pendingMethodologyId, setPendingMethodologyId] = useState<
     string | null
   >(null);
+  const [invalidRowIds, setInvalidRowIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+
+  const clearInvalidRow = useCallback((rowId: string) => {
+    setInvalidRowIds((prev) => {
+      if (!prev.has(rowId)) return prev;
+      const next = new Set(prev);
+      next.delete(rowId);
+      return next;
+    });
+  }, []);
 
   // Reset transient state when methodology changes
   useEffect(() => {
@@ -115,6 +129,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     setEditedRows(new Map());
     setEditingRowId(null);
     setConfirmEmpty(null);
+    setInvalidRowIds(new Set());
   }, [selectedMethodologyId]);
 
   const persistedRows = useMemo<SubcategoryRecommendationRow[]>(
@@ -216,8 +231,9 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           };
         })
       );
+      if (sectorId) clearInvalidRow(row.id);
     },
-    [rows, sectors]
+    [rows, sectors, clearInvalidRow]
   );
 
   const handleChangeSubsector = useCallback(
@@ -275,9 +291,10 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           return next;
         });
       }
+      if (selectedIds.length > 0) clearInvalidRow(editingRowId);
       setEditingRowId(null);
     },
-    [editingRowId, currentEditingRow]
+    [editingRowId, currentEditingRow, clearInvalidRow]
   );
 
   const runCreate = useCallback(
@@ -354,7 +371,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       if (!row) return;
 
       if (isNewRow(row.id)) {
-        if (!row.sectorId || row.subcategoryIds.length === 0) return;
+        if (!row.sectorId || row.subcategoryIds.length === 0) {
+          setInvalidRowIds((prev) => {
+            const next = new Set(prev);
+            next.add(row.id);
+            return next;
+          });
+          return;
+        }
+        clearInvalidRow(row.id);
         await runCreate(row);
         return;
       }
@@ -367,13 +392,14 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
       }
       await runUpdate(row, ids);
     },
-    [rows, editedRows, runCreate, runUpdate]
+    [rows, editedRows, runCreate, runUpdate, clearInvalidRow]
   );
 
   const handleCancelRow = useCallback(
     (rowIndex: number) => {
       const row = rows[rowIndex];
       if (!row) return;
+      clearInvalidRow(row.id);
       if (isNewRow(row.id)) {
         setTempRows((prev) => prev.filter((r) => r.id !== row.id));
         return;
@@ -384,7 +410,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         return next;
       });
     },
-    [rows]
+    [rows, clearInvalidRow]
   );
 
   const handleConfirmEmptyDelete = useCallback(async () => {
@@ -415,6 +441,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
     isRowDirty,
     savingRowId,
     rows,
+    invalidRowIds,
   });
 
   const { proceed, reset, status } = useBlocker({
@@ -473,15 +500,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           {SUBCATEGORY_RECOMMENDATIONS_LABELS.title}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box className="flex items-center gap-1">
-            <Typography variant="body2" color="text.secondary" noWrap>
+          <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
+            <InputLabel id="methodology-select-label">
               {SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
-            </Typography>
+            </InputLabel>
             <Select
-              size="small"
+              labelId="methodology-select-label"
+              label={SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
               value={selectedMethodologyId ?? ""}
               onChange={(e) => handleMethodologyChange(e.target.value)}
-              sx={{ minWidth: 220 }}
               disabled={!methodologies || methodologies.length === 0}
             >
               {(methodologies ?? []).map((m) => (
@@ -500,7 +527,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
                 </MenuItem>
               ))}
             </Select>
-          </Box>
+          </FormControl>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
