@@ -77,6 +77,9 @@ export const useOrganizationSizeProfilingColumns = ({
         headerName: "Nombre",
         flex: 1,
         minWidth: 200,
+        disableColumnMenu: true,
+        sortable: false,
+        filterable: false,
         renderCell: (params: GridRenderCellParams<OrganizationSizeFormRow>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -104,6 +107,9 @@ export const useOrganizationSizeProfilingColumns = ({
         headerName: "Descripción",
         flex: 2,
         minWidth: 250,
+        disableColumnMenu: true,
+        sortable: false,
+        filterable: false,
         renderCell: (params: GridRenderCellParams<OrganizationSizeFormRow>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -133,6 +139,9 @@ export const useOrganizationSizeProfilingColumns = ({
         field: "status",
         headerName: "Estado",
         width: 130,
+        disableColumnMenu: true,
+        sortable: false,
+        filterable: false,
         valueGetter: (_value, row: OrganizationSizeFormRow) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE
             ? "Activo"
