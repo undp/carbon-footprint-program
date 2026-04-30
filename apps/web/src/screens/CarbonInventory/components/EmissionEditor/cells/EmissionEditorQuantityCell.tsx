@@ -5,7 +5,7 @@ import { NumericInput } from "@/components";
 interface EmissionEditorQuantityCellProps {
   subcategoryId: string;
   lineId: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: number | null) => void;
   disabled?: boolean;
 }
 
@@ -18,7 +18,7 @@ export const EmissionEditorQuantityCell: FC<
 
   return (
     <NumericInput
-      value={value ?? null}
+      value={value}
       onChange={onChange}
       disabled={disabled}
       min={0}

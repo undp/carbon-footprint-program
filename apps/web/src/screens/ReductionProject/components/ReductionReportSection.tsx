@@ -80,7 +80,9 @@ export const ReductionReportSection: FC<Props> = ({
               render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
-                  onChange={field.onChange}
+                  onChange={(value) =>
+                    field.onChange(value == null ? "" : String(value))
+                  }
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
@@ -116,7 +118,9 @@ export const ReductionReportSection: FC<Props> = ({
               render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
-                  onChange={field.onChange}
+                  onChange={(value) =>
+                    field.onChange(value == null ? "" : String(value))
+                  }
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}

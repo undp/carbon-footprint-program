@@ -25,7 +25,8 @@ interface EmissionEditorHeaderProps
   categoryColor: string;
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
-  setTotalEmission: (value: number) => void;
+  manualTotalEmissionValue: number | null;
+  setTotalEmission: (value: number | null) => void;
   isTotalManualEmissionsModeActive: boolean;
   setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
   isManualModeLoading?: boolean;
@@ -44,6 +45,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   categoryColor,
   isTotalManualEmissionsModeAvailable,
   totalEmission,
+  manualTotalEmissionValue,
   setTotalEmission,
   isTotalManualEmissionsModeActive,
   setIsTotalManualEmissionsMode,
@@ -61,8 +63,8 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
     [categoryColor]
   );
   const onChangeTotalEmission = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setTotalEmission(Number(e.target.value));
+    (value: number | null) => {
+      setTotalEmission(value);
     },
     [setTotalEmission]
   );
@@ -129,8 +131,9 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           <>
             <NumericInput
               label="Emisiones"
-              value={totalEmission ?? 0}
+              value={manualTotalEmissionValue}
               onChange={onChangeTotalEmission}
+              min={0}
               sx={{
                 minHeight: 40,
                 height: 40,

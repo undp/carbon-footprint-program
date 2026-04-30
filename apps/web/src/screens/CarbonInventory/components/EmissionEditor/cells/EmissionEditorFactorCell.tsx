@@ -15,7 +15,7 @@ interface EmissionEditorFactorCellProps {
   lineId: string;
   dimensions: MethodologyEmissionFactorDimension[];
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: number | null) => void;
   disabled?: boolean;
 }
 
@@ -29,7 +29,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-  }) as number | null | undefined;
+  }) as number | null;
 
   const factorSource = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
@@ -49,7 +49,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 
   const inputElement = isEditableBySource ? (
     <NumericInput
-      value={value ?? null}
+      value={value}
       suffix={unit?.abbreviation ?? ""}
       onChange={onChange}
       disabled={disabled || !validation.canEditFactorValue}

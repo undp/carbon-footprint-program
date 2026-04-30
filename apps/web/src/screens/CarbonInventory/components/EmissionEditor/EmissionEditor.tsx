@@ -101,6 +101,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
+        manualTotalEmissionValue={manualModeLine?.manualTotalEmissions ?? null}
         setTotalEmission={handleSetTotalEmission}
         hasManualModeLine={!!manualModeLine}
         manualModeLineHasComment={!!manualModeLine?.comment}
