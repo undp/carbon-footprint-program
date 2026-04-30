@@ -88,12 +88,14 @@ export const DeleteWarningDialog: FC<Props> = ({
   ) {
     const entity =
       impactedChildren.subcategoryRecommendations > 1
-        ? "recomendaciones"
-        : "recomendación";
+        ? "recomendaciones de subcategorías asociadas"
+        : "recomendación de subcategorías asociada";
     const verb =
-      impactedChildren.subcategoryRecommendations > 1 ? "apuntan" : "apunta";
+      impactedChildren.subcategoryRecommendations > 1
+        ? "eliminarán"
+        : "eliminará";
     items.push(
-      `${impactedChildren.subcategoryRecommendations} ${entity} ${verb} a este ${entityLabel}.`
+      `Se ${verb} ${impactedChildren.subcategoryRecommendations} ${entity}.`
     );
   }
 
