@@ -150,7 +150,7 @@ describe("GET /api/users/:id/role-history - Integration Tests", () => {
     // plugin's own unit tests.
   });
 
-  it("4b.6 404 when target user id does not exist", async () => {
+  it("4b.6 empty array when target user id does not exist", async () => {
     await prisma.user.update({
       where: { id: loggedUser.id },
       data: { role: SystemRole.ADMIN },
@@ -166,9 +166,9 @@ describe("GET /api/users/:id/role-history - Integration Tests", () => {
       data: { role: loggedUser.role },
     });
 
-    expect(response.statusCode).toBe(404);
-    const body = JSON.parse(response.body) as { code: string };
-    expect(body.code).toBe("USER_NOT_FOUND");
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as GetUserRoleHistoryResponse;
+    expect(body).toHaveLength(0);
   });
 
   it("4b.7 empty array when target user has no recorded transitions", async () => {
