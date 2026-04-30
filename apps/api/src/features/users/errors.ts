@@ -36,12 +36,6 @@ export const LastSuperadminError = createError(
   409
 );
 
-export const InsufficientPermissionsError = createError(
-  "INSUFFICIENT_PERMISSIONS",
-  "You do not have permission to perform this action",
-  403
-);
-
 export const InvalidRoleTransitionError = createError(
   "INVALID_ROLE_TRANSITION",
   "The requested role transition is not allowed",

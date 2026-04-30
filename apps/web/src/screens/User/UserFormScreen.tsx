@@ -14,7 +14,7 @@ import {
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AuthenticationLayout } from "@/components/layout";
 import { Controller, useForm } from "react-hook-form";
-import { useUpdateUser } from "../../api/query/users/useUpdateUser";
+import { useUpdateMyProfile } from "../../api/query/users/useUpdateMyProfile";
 import { useUserStore } from "../../stores/userStore";
 import { useJobPositions } from "../../api/query/jobPositions";
 import { enqueueSnackbar } from "notistack";
@@ -33,7 +33,7 @@ export const UserFormScreen: FC = () => {
   const { user } = useUserStore();
 
   const { refetchUser } = useAuth();
-  const { mutateAsync: updateUser, isPending } = useUpdateUser();
+  const { mutateAsync: updateMyProfile, isPending } = useUpdateMyProfile();
 
   const { data: jobPositions } = useJobPositions();
 
@@ -55,14 +55,11 @@ export const UserFormScreen: FC = () => {
       try {
         if (!user?.id) throw new Error("User not found");
 
-        await updateUser({
-          id: user.id,
-          data: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            countryJobPositionId: data.countryJobPositionId,
-            termsAccepted: data.termsAccepted,
-          },
+        await updateMyProfile({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          countryJobPositionId: data.countryJobPositionId,
+          termsAccepted: data.termsAccepted,
         });
 
         void refetchUser();
@@ -78,7 +75,7 @@ export const UserFormScreen: FC = () => {
         });
       }
     },
-    [user, updateUser, refetchUser, navigate]
+    [user, updateMyProfile, refetchUser, navigate]
   );
 
   return (
