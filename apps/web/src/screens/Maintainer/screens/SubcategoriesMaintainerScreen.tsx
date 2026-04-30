@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useMemo } from "react";
+import { Typography } from "@mui/material";
 import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import {
@@ -371,6 +372,11 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         ) ?? "")
       : "";
 
+  const explanationRow =
+    explanationModal.rowIndex >= 0
+      ? form.getValues(`subcategories.${explanationModal.rowIndex}`)
+      : undefined;
+
   const isDataReady =
     !isLoadingSubcategories &&
     !!subcategories &&
@@ -409,6 +415,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         <ExplanationModal
           open={explanationModal.open}
           value={explanationValue}
+          title={explanationRow?.name || undefined}
+          subtitle={
+            explanationRow?.description ? (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {explanationRow.description}
+              </Typography>
+            ) : undefined
+          }
           readOnly={scope.isViewOnly}
           onSave={handleSaveExplanation}
           onClose={() => setExplanationModal({ open: false, rowIndex: -1 })}

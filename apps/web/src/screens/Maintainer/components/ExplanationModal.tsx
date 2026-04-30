@@ -28,13 +28,15 @@ type TabValue = "edit" | "preview";
 
 const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
-  title = "Editar Explicación",
+  title,
   subtitle,
   readOnly = false,
   loading = false,
   onSave,
   onClose,
 }) => {
+  const dialogTitle =
+    title ?? (readOnly ? "Ver Explicación" : "Editar Explicación");
   const [content, setContent] = useState(value);
   const [tab, setTab] = useState<TabValue>(readOnly ? "preview" : "edit");
 
@@ -59,9 +61,16 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
 
   return (
     <>
-      <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
+      <DialogTitle>{dialogTitle}</DialogTitle>
       <DialogContent
-        sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+        }}
       >
         {subtitle}
         <Tabs
@@ -89,7 +98,7 @@ const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
         <Box
           sx={{
             mt: 1,
-            height: "60vh",
+            flex: 1,
             display: "flex",
             flexDirection: "column",
             minHeight: 0,
@@ -144,7 +153,9 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
     onClose={contentProps.loading ? undefined : contentProps.onClose}
     maxWidth="lg"
     fullWidth
-    slotProps={{ paper: { sx: { maxHeight: "90vh" } } }}
+    slotProps={{
+      paper: { sx: { height: "90vh", overflow: "hidden" } },
+    }}
   >
     {open && <ExplanationModalContent {...contentProps} />}
   </Dialog>

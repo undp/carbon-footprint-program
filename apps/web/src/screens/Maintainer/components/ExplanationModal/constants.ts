@@ -6,6 +6,7 @@ import {
   FormatListBulleted,
   FormatListNumbered,
   FormatQuote,
+  FormatUnderlined,
   Functions,
   HorizontalRule,
   Link as LinkIcon,
@@ -25,6 +26,7 @@ export type ToolbarActionId =
   | "heading"
   | "bold"
   | "italic"
+  | "underline"
   | "strikethrough"
   | "list"
   | "numberedList"
@@ -40,7 +42,7 @@ export interface ToolbarAction {
   tooltip: string;
   icon: ComponentType<SvgIconProps>;
   spec?: ToolbarInsertSpec;
-  shortcut?: { key: "b" | "i" };
+  shortcut?: { key: "b" | "i" | "u" };
   cheatsheetSyntax?: string;
 }
 
@@ -69,6 +71,15 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
     spec: { before: "*", after: "*", placeholder: "texto" },
     shortcut: { key: "i" },
     cheatsheetSyntax: "*texto*",
+  },
+  {
+    id: "underline",
+    label: "Subrayar",
+    tooltip: "Subrayar (Ctrl+U)",
+    icon: FormatUnderlined,
+    spec: { before: "<u>", after: "</u>", placeholder: "texto" },
+    shortcut: { key: "u" },
+    cheatsheetSyntax: "<u>texto</u>",
   },
   {
     id: "strikethrough",
