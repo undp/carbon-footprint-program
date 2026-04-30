@@ -10,25 +10,39 @@ import {
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { BaseHeader } from "@/components/layout";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 
 interface ReductionProjectHeaderProps {
   title?: string;
   subtitle?: string;
   action?: ReactNode;
+  explanationSlug?: string;
 }
 
 const ReductionProjectHeader: FC<ReductionProjectHeaderProps> = ({
   title = "Proyecto de Reducción",
   subtitle,
   action,
+  explanationSlug,
 }) => {
+  const { openExplanationBySlug } = useExplanationDialog();
+
   return (
     <BaseHeader
       position="sticky"
       showLogo
       titleComponent={
         <Box className="flex flex-row items-center gap-2">
-          <Typography variant="h6">{title}</Typography>
+          <Box className="flex items-center gap-1">
+            <Typography variant="h6">{title}</Typography>
+            {explanationSlug && (
+              <InfoButton
+                label="Más información"
+                onClick={() => openExplanationBySlug(explanationSlug)}
+              />
+            )}
+          </Box>
           {subtitle && (
             <>
               <Typography color="textSecondary" variant="h6">

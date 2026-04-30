@@ -31,6 +31,7 @@ interface MaintainerScreenLayoutProps {
   editDescription: string;
   children: ReactNode;
   extraModals?: ReactNode;
+  explanationSlug?: string;
 }
 
 export const MaintainerScreenLayout = ({
@@ -53,6 +54,7 @@ export const MaintainerScreenLayout = ({
   editDescription,
   children,
   extraModals,
+  explanationSlug,
 }: MaintainerScreenLayoutProps) => {
   const {
     isViewOnly,
@@ -69,6 +71,7 @@ export const MaintainerScreenLayout = ({
           addLabel={addLabel}
           addDisabled
           extra={methodologySelector}
+          explanationSlug={explanationSlug}
         />
         <Box className="rounded-sm bg-white p-3">
           <Typography variant="body2" color="text.secondary">
@@ -87,6 +90,7 @@ export const MaintainerScreenLayout = ({
         addDisabled={addDisabled}
         addLabel={addLabel}
         extra={methodologySelector}
+        explanationSlug={explanationSlug}
       />
       <Box
         className="rounded-sm bg-white p-3"

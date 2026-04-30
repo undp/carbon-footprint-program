@@ -11,6 +11,10 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 type ExplanationRow = GetAllExplanationsResponse[number];
 
+const EXPLANATIONS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "explanations-maintainer",
+} as const;
+
 export const ExplanationsMaintainerScreen: FC = () => {
   const { data, isLoading, isError } = useExplanations();
   const updateMutation = useUpdateExplanation();
@@ -57,7 +61,11 @@ export const ExplanationsMaintainerScreen: FC = () => {
 
   return (
     <>
-      <MaintainerPageHeader title="Explicaciones" showDownload={false} />
+      <MaintainerPageHeader
+        title="Explicaciones"
+        showDownload={false}
+        explanationSlug={EXPLANATIONS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
+      />
       <Box className="rounded-sm bg-white p-3">
         {isError ? (
           <Typography variant="body2" color="error" sx={{ p: 2 }}>

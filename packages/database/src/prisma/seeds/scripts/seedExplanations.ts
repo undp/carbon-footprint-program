@@ -16,9 +16,31 @@ const StandaloneExplanationsSchema = z.array(
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     name: z.string().min(1),
     description: z.string().nullable().optional(),
-    content: z.string(),
+    content: z.string().optional(),
   })
 );
+
+function readStandaloneContentMarkdown(
+  dataset: SeedsDataset,
+  slug: string
+): string | null {
+  const filePath = join(
+    __dirname,
+    `../data/${dataset}/explanations/standalone/${slug}.md`
+  );
+  try {
+    return readFileSync(filePath, "utf-8");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT"
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -213,17 +235,33 @@ async function seedStandaloneExplanations(
 
   const entries = StandaloneExplanationsSchema.parse(JSON.parse(raw));
 
-  await prisma.explanation.createMany({
-    data: entries.map((entry) => ({
-      slug: entry.slug,
-      name: entry.name,
-      description: entry.description ?? null,
-      content: entry.content,
-    })),
-    skipDuplicates: true,
-  });
+  let mdOverrideCount = 0;
 
-  console.log(`   ✓ Seeded ${entries.length} standalone explanation rows`);
+  for (const entry of entries) {
+    const markdownContent = readStandaloneContentMarkdown(dataset, entry.slug);
+    const content = markdownContent ?? entry.content ?? "";
+    if (markdownContent !== null) mdOverrideCount++;
+
+    await prisma.explanation.upsert({
+      where: { slug: entry.slug },
+      create: {
+        slug: entry.slug,
+        name: entry.name,
+        description: entry.description ?? null,
+        content,
+      },
+      update: {
+        name: entry.name,
+        description: entry.description ?? null,
+        content,
+      },
+    });
+  }
+
+  console.log(
+    `   ✓ Seeded ${entries.length} standalone explanation rows ` +
+      `(${mdOverrideCount} with markdown content from .md files)`
+  );
 }
 
 export async function seedExplanations(

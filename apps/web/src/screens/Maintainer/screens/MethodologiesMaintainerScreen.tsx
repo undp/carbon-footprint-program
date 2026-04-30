@@ -22,6 +22,10 @@ import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 
+const METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "methodologies-maintainer",
+} as const;
+
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -376,6 +380,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
+        explanationSlug={METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

@@ -21,6 +21,10 @@ const APPROVED_STATUSES = [
   CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
 ];
 
+const RECOGNITIONS_EXPLANATION_SLUGS = {
+  MAIN: "recognitions",
+} as const;
+
 export const RecognitionsScreen: FC = () => {
   const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -95,7 +99,11 @@ export const RecognitionsScreen: FC = () => {
 
       <RecognitionsKpis recognitions={recognitions} />
 
-      <RecognitionsTable loading={isLoadingRecognitions} rows={recognitions} />
+      <RecognitionsTable
+        loading={isLoadingRecognitions}
+        rows={recognitions}
+        explanationSlug={RECOGNITIONS_EXPLANATION_SLUGS.MAIN}
+      />
     </Box>
   );
 };

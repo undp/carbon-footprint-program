@@ -25,6 +25,10 @@ import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
 
+const SUBCATEGORIES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "subcategories-maintainer",
+} as const;
+
 export const SubcategoriesMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -396,6 +400,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   return (
     <MaintainerScreenLayout
       title="Sub-categorías"
+      explanationSlug={SUBCATEGORIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       scope={scope}
       editingRowId={editingRowId}
       form={form}

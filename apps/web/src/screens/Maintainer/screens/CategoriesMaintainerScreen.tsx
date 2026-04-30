@@ -42,6 +42,10 @@ import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 
+const CATEGORIES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "categories-maintainer",
+} as const;
+
 export const CategoriesMaintainerScreen: FC = () => {
   const {
     isViewOnly,
@@ -481,6 +485,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           addLabel="Agregar fila"
           addDisabled
           extra={methodologySelector}
+          explanationSlug={CATEGORIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
         />
         <Box className="rounded-sm bg-white p-3">
           <Typography variant="body2" color="text.secondary">
@@ -499,6 +504,7 @@ export const CategoriesMaintainerScreen: FC = () => {
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
         extra={methodologySelector}
+        explanationSlug={CATEGORIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box
         className="rounded-sm bg-white p-3"

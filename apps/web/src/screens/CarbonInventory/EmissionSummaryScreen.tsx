@@ -29,6 +29,10 @@ import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChi
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
+const EMISSION_SUMMARY_EXPLANATION_SLUGS = {
+  MAIN: "emission-summary",
+} as const;
+
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
@@ -130,6 +134,7 @@ export const EmissionSummaryScreen: FC = () => {
           <StepHeader
             title="Paso 4: Resumen"
             description="Verifica tus datos antes de calcular"
+            explanationSlug={EMISSION_SUMMARY_EXPLANATION_SLUGS.MAIN}
           />
           {metadataData?.status && (
             <CarbonInventoryStatusChip

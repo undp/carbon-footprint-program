@@ -165,7 +165,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
 
   const layoutProps = {
-    headerProps: { subtitle: projectName || undefined },
+    headerProps: {
+      subtitle: projectName || undefined,
+      explanationSlug: REDUCTION_PROJECT_EXPLANATION_SLUGS.MAIN,
+    },
     footerProps: { buttons: footerButtons },
     isLoading,
     hasError,

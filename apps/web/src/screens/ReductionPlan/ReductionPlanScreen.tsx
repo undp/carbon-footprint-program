@@ -6,6 +6,8 @@ import { useCarbonInventoriesMinimalData, useReductionPlan } from "@/api/query";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { exportReductionPlanToExcel } from "@/utils/exportReductionPlanToExcel";
 import { ExplanationProvider } from "@/contexts/ExplanationContext";
+import { useExplanationDialog } from "@/contexts";
+import { InfoButton } from "@/components";
 import { CategoryCarousel } from "@/screens/CarbonInventory/components/CategoryCarousel";
 import { LoadingErrorStateMessage } from "@/components/EmissionResults/LoadingErrorStateMessage";
 import { EmptyStateMessage } from "@/components/EmissionResults/EmptyStateMessage";
@@ -17,8 +19,13 @@ import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
 import { getRouteApi } from "@tanstack/react-router";
 
+const REDUCTION_PLAN_EXPLANATION_SLUGS = {
+  MAIN: "reduction-plan",
+} as const;
+
 export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   const Route = getRouteApi(Routes.REDUCTION_PLAN);
 
@@ -216,9 +223,17 @@ export const ReductionPlanScreen: FC = () => {
 
         <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
           <Box className="flex items-center justify-between">
-            <Typography variant="h6">
-              Plan de reducción por categoría
-            </Typography>
+            <Box className="flex items-center gap-1">
+              <Typography variant="h6">
+                Plan de reducción por categoría
+              </Typography>
+              <InfoButton
+                label="Más información"
+                onClick={() =>
+                  openExplanationBySlug(REDUCTION_PLAN_EXPLANATION_SLUGS.MAIN)
+                }
+              />
+            </Box>
 
             <Button
               variant="outlined"
