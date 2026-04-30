@@ -29,35 +29,14 @@ import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
 import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
 import {
   useSectorProfilingColumns,
+  SectorRowSchema,
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
 import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
-const RowSchema = z.object({
-  id: z.string(),
-  name: z
-    .string()
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z
-    .string()
-    .trim()
-    .max(2000, "La descripción no puede superar los 2000 caracteres")
-    .nullable(),
-  status: z.enum(CountrySectorStatus),
-  isInUse: z.boolean(),
-  impactedChildren: z.object({
-    activeSubsectors: z.number().int().nonnegative(),
-    activeMainActivities: z.number().int().nonnegative(),
-    organizationData: z.number().int().nonnegative(),
-    subcategoryRecommendations: z.number().int().nonnegative(),
-  }),
-});
-
-const FormSchema = z.object({ sectors: z.array(RowSchema) });
+const FormSchema = z.object({ sectors: z.array(SectorRowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
 const toFormSector = (s: AdminCountrySector): SectorFormRow => ({

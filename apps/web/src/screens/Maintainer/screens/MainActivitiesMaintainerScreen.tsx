@@ -33,33 +33,16 @@ import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
 import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
 import {
   useMainActivityProfilingColumns,
+  MainActivityRowSchema,
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
 import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
-const RowSchema = z.object({
-  id: z.string(),
-  name: z
-    .string()
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z
-    .string()
-    .trim()
-    .max(2000, "La descripción no puede superar los 2000 caracteres")
-    .nullable(),
-  countrySectorId: z.string().nullable(),
-  countrySubsectorId: z.string().nullable(),
-  status: z.enum(OrganizationMainActivityStatus),
-  isInUse: z.boolean(),
-  impactedChildren: z.object({
-    organizationData: z.number().int().nonnegative(),
-  }),
+const FormSchema = z.object({
+  mainActivities: z.array(MainActivityRowSchema),
 });
-const FormSchema = z.object({ mainActivities: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
 const toFormMainActivity = (
@@ -215,8 +198,22 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         subsectorId,
         { shouldDirty: true }
       );
+      if (!subsectorId) return;
+      const currentSectorId = form.getValues(
+        `mainActivities.${rowIndex}.countrySectorId`
+      );
+      if (currentSectorId) return;
+      const parentSectorId = subsectorOptions.find(
+        (s) => s.id === subsectorId
+      )?.countrySectorId;
+      if (!parentSectorId) return;
+      form.setValue(
+        `mainActivities.${rowIndex}.countrySectorId`,
+        parentSectorId,
+        { shouldDirty: true }
+      );
     },
-    [form]
+    [form, subsectorOptions]
   );
 
   const actions = useProfilingRowActions<

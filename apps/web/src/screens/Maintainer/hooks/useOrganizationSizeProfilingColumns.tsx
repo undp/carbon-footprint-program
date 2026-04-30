@@ -2,20 +2,33 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import {
-  CountryOrganizationSizeStatus,
-  type GetAllAdminCountryOrganizationSizesResponse,
-} from "@repo/types";
+import { z } from "zod";
+import { CountryOrganizationSizeStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export type OrganizationSizeFormRow = Pick<
-  GetAllAdminCountryOrganizationSizesResponse[number],
-  "id" | "name" | "description" | "position" | "isInUse" | "impactedChildren"
-> & {
-  status: CountryOrganizationSizeStatus | null;
-};
+export const OrganizationSizeRowSchema = z.object({
+  id: z.string(),
+  name: z
+    .string()
+    .trim()
+    .min(1, "El nombre es obligatorio")
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
+  position: z.number().int().positive(),
+  status: z.enum(CountryOrganizationSizeStatus).nullable(),
+  isInUse: z.boolean(),
+  impactedChildren: z.object({
+    organizationData: z.number().int().nonnegative(),
+  }),
+});
+
+export type OrganizationSizeFormRow = z.infer<typeof OrganizationSizeRowSchema>;
 
 interface UseOrganizationSizeProfilingColumnsParams {
   editingRowId: string | null;

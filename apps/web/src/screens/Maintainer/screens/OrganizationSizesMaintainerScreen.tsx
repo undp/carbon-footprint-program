@@ -30,6 +30,7 @@ import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
 import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
 import {
   useOrganizationSizeProfilingColumns,
+  OrganizationSizeRowSchema,
   type OrganizationSizeFormRow,
 } from "../hooks/useOrganizationSizeProfilingColumns";
 import { sortByStatusThenPosition } from "../utils/profilingSort";
@@ -38,26 +39,9 @@ import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { VOCAB } from "@/config/vocab";
 
-const RowSchema = z.object({
-  id: z.string(),
-  name: z
-    .string()
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z
-    .string()
-    .trim()
-    .max(2000, "La descripción no puede superar los 2000 caracteres")
-    .nullable(),
-  position: z.number().int().positive(),
-  status: z.enum(CountryOrganizationSizeStatus),
-  isInUse: z.boolean(),
-  impactedChildren: z.object({
-    organizationData: z.number().int().nonnegative(),
-  }),
+const FormSchema = z.object({
+  organizationSizes: z.array(OrganizationSizeRowSchema),
 });
-const FormSchema = z.object({ organizationSizes: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
 const toFormSize = (

@@ -31,34 +31,16 @@ import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
 import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
 import {
   useSubsectorProfilingColumns,
+  SubsectorRowSchema,
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
 import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
-const RowSchema = z.object({
-  id: z.string(),
-  name: z
-    .string()
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(255, "El nombre no puede superar los 255 caracteres"),
-  description: z
-    .string()
-    .trim()
-    .max(2000, "La descripción no puede superar los 2000 caracteres")
-    .nullable(),
-  countrySectorId: z.string().min(1, "El rubro es obligatorio"),
-  status: z.enum(CountrySubsectorStatus),
-  isInUse: z.boolean(),
-  impactedChildren: z.object({
-    activeMainActivities: z.number().int().nonnegative(),
-    organizationData: z.number().int().nonnegative(),
-    subcategoryRecommendations: z.number().int().nonnegative(),
-  }),
+const FormSchema = z.object({
+  subsectors: z.array(SubsectorRowSchema),
 });
-const FormSchema = z.object({ subsectors: z.array(RowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
 const toFormSubsector = (s: AdminCountrySubsector): SubsectorFormRow => ({

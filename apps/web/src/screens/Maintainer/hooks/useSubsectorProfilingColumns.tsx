@@ -2,25 +2,35 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import {
-  CountrySubsectorStatus,
-  type GetAllAdminCountrySubsectorsResponse,
-} from "@repo/types";
+import { z } from "zod";
+import { CountrySubsectorStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export type SubsectorFormRow = Pick<
-  GetAllAdminCountrySubsectorsResponse[number],
-  | "id"
-  | "name"
-  | "description"
-  | "countrySectorId"
-  | "isInUse"
-  | "impactedChildren"
-> & {
-  status: CountrySubsectorStatus | null;
-};
+export const SubsectorRowSchema = z.object({
+  id: z.string(),
+  name: z
+    .string()
+    .trim()
+    .min(1, "El nombre es obligatorio")
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
+  countrySectorId: z.string().min(1, "El rubro es obligatorio"),
+  status: z.enum(CountrySubsectorStatus).nullable(),
+  isInUse: z.boolean(),
+  impactedChildren: z.object({
+    activeMainActivities: z.number().int().nonnegative(),
+    organizationData: z.number().int().nonnegative(),
+    subcategoryRecommendations: z.number().int().nonnegative(),
+  }),
+});
+
+export type SubsectorFormRow = z.infer<typeof SubsectorRowSchema>;
 
 interface UseSubsectorProfilingColumnsParams {
   editingRowId: string | null;

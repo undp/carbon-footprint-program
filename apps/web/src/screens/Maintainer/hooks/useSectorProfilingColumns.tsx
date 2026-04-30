@@ -2,20 +2,35 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import {
-  CountrySectorStatus,
-  type GetAllAdminCountrySectorsResponse,
-} from "@repo/types";
+import { z } from "zod";
+import { CountrySectorStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export type SectorFormRow = Pick<
-  GetAllAdminCountrySectorsResponse[number],
-  "id" | "name" | "description" | "isInUse" | "impactedChildren"
-> & {
-  status: CountrySectorStatus | null;
-};
+export const SectorRowSchema = z.object({
+  id: z.string(),
+  name: z
+    .string()
+    .trim()
+    .min(1, "El nombre es obligatorio")
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
+  status: z.enum(CountrySectorStatus).nullable(),
+  isInUse: z.boolean(),
+  impactedChildren: z.object({
+    activeSubsectors: z.number().int().nonnegative(),
+    activeMainActivities: z.number().int().nonnegative(),
+    organizationData: z.number().int().nonnegative(),
+    subcategoryRecommendations: z.number().int().nonnegative(),
+  }),
+});
+
+export type SectorFormRow = z.infer<typeof SectorRowSchema>;
 
 interface UseSectorProfilingColumnsParams {
   editingRowId: string | null;

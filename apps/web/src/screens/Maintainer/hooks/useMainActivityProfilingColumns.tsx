@@ -2,26 +2,34 @@ import { useCallback, useMemo } from "react";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import {
-  OrganizationMainActivityStatus,
-  type GetAllAdminOrganizationMainActivitiesResponse,
-} from "@repo/types";
+import { z } from "zod";
+import { OrganizationMainActivityStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
-export type MainActivityFormRow = Pick<
-  GetAllAdminOrganizationMainActivitiesResponse[number],
-  | "id"
-  | "name"
-  | "description"
-  | "countrySectorId"
-  | "countrySubsectorId"
-  | "isInUse"
-  | "impactedChildren"
-> & {
-  status: OrganizationMainActivityStatus | null;
-};
+export const MainActivityRowSchema = z.object({
+  id: z.string(),
+  name: z
+    .string()
+    .trim()
+    .min(1, "El nombre es obligatorio")
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "La descripción no puede superar los 2000 caracteres")
+    .nullable(),
+  countrySectorId: z.string().nullable(),
+  countrySubsectorId: z.string().nullable(),
+  status: z.enum(OrganizationMainActivityStatus).nullable(),
+  isInUse: z.boolean(),
+  impactedChildren: z.object({
+    organizationData: z.number().int().nonnegative(),
+  }),
+});
+
+export type MainActivityFormRow = z.infer<typeof MainActivityRowSchema>;
 
 interface SubsectorOption {
   id: string;
