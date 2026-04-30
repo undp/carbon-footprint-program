@@ -15,10 +15,10 @@ export const deleteMeasurementUnitService = async (
 ): Promise<void> => {
   return await prismaClient.$transaction(async (tx) => {
     const target = await tx.measurementUnit.findUnique({
-      where: { id: BigInt(id) },
+      where: { id: BigInt(id), status: MeasurementUnitStatus.ACTIVE },
     });
 
-    if (!target || target.status === MeasurementUnitStatus.DELETED) {
+    if (!target) {
       throw new MeasurementUnitNotFoundError(id);
     }
 
