@@ -134,7 +134,11 @@ const errorHandler = (
       message: IS_PROD ? prismaResult.message : error.message,
     };
     const details = extractErrorDetails(error);
-    if (details) response.details = details;
+    // Suppress structured `details` on production 5xx responses to avoid leaking
+    // internal diagnostics (e.g., raw Prisma metadata) to API consumers.
+    if (details && (!IS_PROD || prismaResult.statusCode < 500)) {
+      response.details = details;
+    }
     return reply.status(prismaResult.statusCode).send(response);
   }
 
@@ -170,7 +174,11 @@ const errorHandler = (
         : error.message,
   };
   const details = extractErrorDetails(error);
-  if (details) response.details = details;
+  // Suppress structured `details` on production 5xx responses to avoid leaking
+  // internal diagnostics to API consumers.
+  if (details && (!IS_PROD || statusCode < 500)) {
+    response.details = details;
+  }
 
   return reply.status(statusCode).send(response);
 };
