@@ -165,7 +165,7 @@ export const SectorsMaintainerScreen: FC = () => {
       id: `temp_${Date.now()}`,
       name: "",
       description: null,
-      status: CountrySectorStatus.ACTIVE,
+      status: null,
       isInUse: false,
       impactedChildren: {
         activeSubsectors: 0,

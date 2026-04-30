@@ -12,8 +12,10 @@ import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export type SectorFormRow = Pick<
   GetAllAdminCountrySectorsResponse[number],
-  "id" | "name" | "description" | "status" | "isInUse" | "impactedChildren"
->;
+  "id" | "name" | "description" | "isInUse" | "impactedChildren"
+> & {
+  status: CountrySectorStatus | null;
+};
 
 interface UseSectorProfilingColumnsParams {
   editingRowId: string | null;
@@ -62,7 +64,7 @@ export const useSectorProfilingColumns = ({
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySectorStatus.ACTIVE;
+          const isDeleted = params.row.status === CountrySectorStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="sectors"
@@ -88,7 +90,7 @@ export const useSectorProfilingColumns = ({
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySectorStatus.ACTIVE;
+          const isDeleted = params.row.status === CountrySectorStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="sectors"
@@ -113,12 +115,18 @@ export const useSectorProfilingColumns = ({
         headerName: "Estado",
         width: 130,
         valueGetter: (_value, row: SectorFormRow) =>
-          row.status === CountrySectorStatus.ACTIVE ? "Activo" : "Eliminado",
+          row.status === CountrySectorStatus.ACTIVE
+            ? "Activo"
+            : row.status === CountrySectorStatus.DELETED
+              ? "Eliminado"
+              : "Nuevo",
         renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) =>
           row.status === CountrySectorStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
-          ) : (
+          ) : row.status === CountrySectorStatus.DELETED ? (
             <Chip label="Eliminado" size="small" color="default" />
+          ) : (
+            <Chip label="Nuevo" size="small" color="info" />
           ),
       },
       {
@@ -134,7 +142,7 @@ export const useSectorProfilingColumns = ({
           const rowId = params.row.id;
           const editing = isEditing(rowId);
           const anyEditing = editingRowId !== null;
-          const isDeleted = params.row.status !== CountrySectorStatus.ACTIVE;
+          const isDeleted = params.row.status === CountrySectorStatus.DELETED;
 
           if (isDeleted) {
             return (

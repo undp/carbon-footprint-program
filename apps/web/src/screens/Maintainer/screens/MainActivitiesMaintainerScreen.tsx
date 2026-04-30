@@ -258,7 +258,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       description: null,
       countrySectorId: null,
       countrySubsectorId: null,
-      status: OrganizationMainActivityStatus.ACTIVE,
+      status: null,
       isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),

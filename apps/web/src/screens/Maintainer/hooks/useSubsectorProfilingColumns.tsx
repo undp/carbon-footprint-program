@@ -16,10 +16,11 @@ export type SubsectorFormRow = Pick<
   | "name"
   | "description"
   | "countrySectorId"
-  | "status"
   | "isInUse"
   | "impactedChildren"
->;
+> & {
+  status: CountrySubsectorStatus | null;
+};
 
 interface UseSubsectorProfilingColumnsParams {
   editingRowId: string | null;
@@ -76,7 +77,8 @@ export const useSubsectorProfilingColumns = ({
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
+          const isDeleted =
+            params.row.status === CountrySubsectorStatus.DELETED;
           return (
             <EditableSelectCell
               formArrayName="subsectors"
@@ -103,7 +105,8 @@ export const useSubsectorProfilingColumns = ({
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
+          const isDeleted =
+            params.row.status === CountrySubsectorStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="subsectors"
@@ -129,7 +132,8 @@ export const useSubsectorProfilingColumns = ({
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
-          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
+          const isDeleted =
+            params.row.status === CountrySubsectorStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="subsectors"
@@ -154,12 +158,18 @@ export const useSubsectorProfilingColumns = ({
         headerName: "Estado",
         width: 130,
         valueGetter: (_value, row: SubsectorFormRow) =>
-          row.status === CountrySubsectorStatus.ACTIVE ? "Activo" : "Eliminado",
+          row.status === CountrySubsectorStatus.ACTIVE
+            ? "Activo"
+            : row.status === CountrySubsectorStatus.DELETED
+              ? "Eliminado"
+              : "Nuevo",
         renderCell: ({ row }: GridRenderCellParams<SubsectorFormRow>) =>
           row.status === CountrySubsectorStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
-          ) : (
+          ) : row.status === CountrySubsectorStatus.DELETED ? (
             <Chip label="Eliminado" size="small" color="default" />
+          ) : (
+            <Chip label="Nuevo" size="small" color="info" />
           ),
       },
       {
@@ -175,7 +185,8 @@ export const useSubsectorProfilingColumns = ({
           const rowId = params.row.id;
           const editing = isEditing(rowId);
           const anyEditing = editingRowId !== null;
-          const isDeleted = params.row.status !== CountrySubsectorStatus.ACTIVE;
+          const isDeleted =
+            params.row.status === CountrySubsectorStatus.DELETED;
 
           if (isDeleted) {
             return (

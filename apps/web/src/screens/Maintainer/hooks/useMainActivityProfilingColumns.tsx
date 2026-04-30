@@ -17,10 +17,11 @@ export type MainActivityFormRow = Pick<
   | "description"
   | "countrySectorId"
   | "countrySubsectorId"
-  | "status"
   | "isInUse"
   | "impactedChildren"
->;
+> & {
+  status: OrganizationMainActivityStatus | null;
+};
 
 interface SubsectorOption {
   id: string;
@@ -90,7 +91,7 @@ export const useMainActivityProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+            params.row.status === OrganizationMainActivityStatus.DELETED;
           return (
             <EditableSelectCell
               formArrayName="mainActivities"
@@ -123,7 +124,7 @@ export const useMainActivityProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+            params.row.status === OrganizationMainActivityStatus.DELETED;
           const formRow = rows[rowIndex];
           const sectorId = formRow?.countrySectorId ?? null;
           const filteredOptions = sectorId
@@ -156,7 +157,7 @@ export const useMainActivityProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+            params.row.status === OrganizationMainActivityStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="mainActivities"
@@ -183,7 +184,7 @@ export const useMainActivityProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+            params.row.status === OrganizationMainActivityStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="mainActivities"
@@ -210,12 +211,16 @@ export const useMainActivityProfilingColumns = ({
         valueGetter: (_value, row: MainActivityFormRow) =>
           row.status === OrganizationMainActivityStatus.ACTIVE
             ? "Activo"
-            : "Eliminado",
+            : row.status === OrganizationMainActivityStatus.DELETED
+              ? "Eliminado"
+              : "Nueva",
         renderCell: ({ row }: GridRenderCellParams<MainActivityFormRow>) =>
           row.status === OrganizationMainActivityStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
-          ) : (
+          ) : row.status === OrganizationMainActivityStatus.DELETED ? (
             <Chip label="Eliminado" size="small" color="default" />
+          ) : (
+            <Chip label="Nueva" size="small" color="info" />
           ),
       },
       {
@@ -232,7 +237,7 @@ export const useMainActivityProfilingColumns = ({
           const editing = isEditing(rowId);
           const anyEditing = editingRowId !== null;
           const isDeleted =
-            params.row.status !== OrganizationMainActivityStatus.ACTIVE;
+            params.row.status === OrganizationMainActivityStatus.DELETED;
 
           if (isDeleted) {
             return (

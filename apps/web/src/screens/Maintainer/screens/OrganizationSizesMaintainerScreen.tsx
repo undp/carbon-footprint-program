@@ -177,7 +177,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       description: null,
       // Server assigns the real position on create; this temp value is replaced after persist.
       position: Number.MAX_SAFE_INTEGER,
-      status: CountryOrganizationSizeStatus.ACTIVE,
+      status: null,
       isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),

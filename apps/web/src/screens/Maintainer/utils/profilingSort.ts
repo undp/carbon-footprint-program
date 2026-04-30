@@ -8,23 +8,23 @@ const STATUS_RANK: Record<string, number> = {
 const statusRank = (status: string): number => STATUS_RANK[status] ?? 99;
 
 export const sortByStatusThenName = <
-  T extends { status: string; name: string },
+  T extends { status: string | null; name: string },
 >(
   rows: T[]
 ): T[] =>
   orderBy(
     rows,
-    [(r) => statusRank(r.status), (r) => r.name.toLocaleLowerCase()],
+    [(r) => statusRank(r.status ?? ""), (r) => r.name.toLocaleLowerCase()],
     ["asc", "asc"]
   );
 
 export const sortByStatusThenPosition = <
-  T extends { status: string; position: number },
+  T extends { status: string | null; position: number },
 >(
   rows: T[]
 ): T[] =>
   orderBy(
     rows,
-    [(r) => statusRank(r.status), (r) => r.position],
+    [(r) => statusRank(r.status ?? ""), (r) => r.position],
     ["asc", "asc"]
   );

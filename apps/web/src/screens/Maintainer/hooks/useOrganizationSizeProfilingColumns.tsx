@@ -12,14 +12,10 @@ import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export type OrganizationSizeFormRow = Pick<
   GetAllAdminCountryOrganizationSizesResponse[number],
-  | "id"
-  | "name"
-  | "description"
-  | "position"
-  | "status"
-  | "isInUse"
-  | "impactedChildren"
->;
+  "id" | "name" | "description" | "position" | "isInUse" | "impactedChildren"
+> & {
+  status: CountryOrganizationSizeStatus | null;
+};
 
 interface UseOrganizationSizeProfilingColumnsParams {
   editingRowId: string | null;
@@ -85,7 +81,7 @@ export const useOrganizationSizeProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== CountryOrganizationSizeStatus.ACTIVE;
+            params.row.status === CountryOrganizationSizeStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="organizationSizes"
@@ -115,7 +111,7 @@ export const useOrganizationSizeProfilingColumns = ({
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
           const isDeleted =
-            params.row.status !== CountryOrganizationSizeStatus.ACTIVE;
+            params.row.status === CountryOrganizationSizeStatus.DELETED;
           return (
             <EditableTextCell
               formArrayName="organizationSizes"
@@ -145,12 +141,16 @@ export const useOrganizationSizeProfilingColumns = ({
         valueGetter: (_value, row: OrganizationSizeFormRow) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE
             ? "Activo"
-            : "Eliminado",
+            : row.status === CountryOrganizationSizeStatus.DELETED
+              ? "Eliminado"
+              : "Nuevo",
         renderCell: ({ row }: GridRenderCellParams<OrganizationSizeFormRow>) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE ? (
             <Chip label="Activo" size="small" color="success" />
-          ) : (
+          ) : row.status === CountryOrganizationSizeStatus.DELETED ? (
             <Chip label="Eliminado" size="small" color="default" />
+          ) : (
+            <Chip label="Nuevo" size="small" color="info" />
           ),
       },
       {
@@ -167,7 +167,7 @@ export const useOrganizationSizeProfilingColumns = ({
           const editing = isEditing(rowId);
           const anyEditing = editingRowId !== null;
           const isDeleted =
-            params.row.status !== CountryOrganizationSizeStatus.ACTIVE;
+            params.row.status === CountryOrganizationSizeStatus.DELETED;
 
           if (isDeleted) {
             return (

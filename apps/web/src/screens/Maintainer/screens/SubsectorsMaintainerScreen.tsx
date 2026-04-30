@@ -206,7 +206,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
         organizationData: 0,
         subcategoryRecommendations: 0,
       },
-      status: CountrySubsectorStatus.ACTIVE,
+      status: null,
       isInUse: false,
     }),
     createMutation,
