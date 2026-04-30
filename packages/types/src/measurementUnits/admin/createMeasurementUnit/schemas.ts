@@ -7,7 +7,7 @@ import {
 import { MeasurementUnitBaseSchema } from "../../../baseSchemas/measurementUnit.js";
 
 /* eslint-disable no-control-regex */
-const ABBREVIATION_REGEX = /^[^\s/\x00-\x1F\x7F]+$/;
+const ABBREVIATION_REGEX = /^[^/\x00-\x1F\x7F]+$/;
 /* eslint-enable no-control-regex */
 
 export const CreateMeasurementUnitBodySchema = z.object({
@@ -27,7 +27,7 @@ export const CreateMeasurementUnitBodySchema = z.object({
     })
     .regex(ABBREVIATION_REGEX, {
       message:
-        "La abreviatura no puede contener espacios, barras (/) ni caracteres de control.",
+        "La abreviatura no puede contener barras (/) ni caracteres de control.",
     }),
   magnitude: z.enum(Magnitude, {
     message: "La magnitud seleccionada no es válida.",
