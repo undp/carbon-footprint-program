@@ -10,7 +10,10 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountryOrganizationSize } from "@test/factories/countryOrganizationSizeFactory.js";
 import type { FastifyInstance } from "fastify";
-import { type PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  CountryOrganizationSizeStatus,
+} from "@repo/database";
 import type { UpdateCountryOrganizationSizeResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminSizeUpd ";
@@ -107,5 +110,23 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
       payload: { name: taken },
     });
     expect(response.statusCode).toBe(409);
+  });
+
+  it("does not block renaming into a name only used by a DELETED size", async () => {
+    const ghost = uniqueName("Ghost");
+    await createTestCountryOrganizationSize(prisma, {
+      name: ghost,
+      status: CountryOrganizationSizeStatus.DELETED,
+    });
+    const size = await createTestCountryOrganizationSize(prisma, {
+      name: uniqueName("Live"),
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+      payload: { name: ghost },
+    });
+    expect(response.statusCode).toBe(200);
   });
 });

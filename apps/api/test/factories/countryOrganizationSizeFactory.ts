@@ -32,8 +32,10 @@ export async function createTestCountryOrganizationSize(
 
   let position = overrides?.position;
   if (position === undefined) {
+    // Compute the next position from ACTIVE rows only so DELETED leftovers from
+    // earlier tests don't push new test rows into surprising slot numbers.
     const aggregate = await prisma.countryOrganizationSize.aggregate({
-      where: { countryId },
+      where: { countryId, status: CountryOrganizationSizeStatus.ACTIVE },
       _max: { position: true },
     });
     position = (aggregate._max.position ?? 0) + 1;
