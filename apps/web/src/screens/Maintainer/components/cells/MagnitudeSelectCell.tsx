@@ -61,11 +61,13 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
       onKeyDown={(e) => e.stopPropagation()}
       sx={{ backgroundColor: "white" }}
     >
-      {Object.values(Magnitude).map((mag) => (
-        <MenuItem key={mag} value={mag}>
-          {MAGNITUDE_LABELS[mag]}
-        </MenuItem>
-      ))}
+      {Object.values(Magnitude)
+        .sort((a, b) => a.localeCompare(b))
+        .map((mag) => (
+          <MenuItem key={mag} value={mag}>
+            {MAGNITUDE_LABELS[mag]}
+          </MenuItem>
+        ))}
     </Select>
   );
 };

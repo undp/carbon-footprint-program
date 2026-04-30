@@ -24,7 +24,7 @@ import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
 import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
 import type { MeasurementUnitForm } from "./types";
-import { MeasurementUnitCreationResultEnum } from "@repo/types";
+import { Magnitude, MeasurementUnitCreationResultEnum } from "@repo/types";
 
 export const MeasurementUnitsScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -217,7 +217,7 @@ export const MeasurementUnitsScreen: FC = () => {
       id: tempId,
       name: "",
       abbreviation: "",
-      magnitude: "MASS",
+      magnitude: Magnitude.ANIMALS,
       baseFactor: 1,
       isBase: false,
       referenceCount: 0,
