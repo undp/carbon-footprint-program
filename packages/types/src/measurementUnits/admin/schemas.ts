@@ -3,37 +3,34 @@ import { Magnitude } from "@repo/database/enums";
 import {
   MEASUREMENT_UNIT_NAME_MAX_LENGTH,
   MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH,
+  ABBREVIATION_REGEX,
 } from "@repo/constants";
-
-/* eslint-disable no-control-regex */
-const ABBREVIATION_REGEX = /^[^/\x00-\x1F\x7F]+$/;
-/* eslint-enable no-control-regex */
 
 export const MeasurementUnitMutationSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, { message: "El nombre es obligatorio." })
+    .min(1, { message: "Name is required." })
     .max(MEASUREMENT_UNIT_NAME_MAX_LENGTH, {
-      message: `El nombre no puede superar ${MEASUREMENT_UNIT_NAME_MAX_LENGTH} caracteres.`,
+      message: `Name must not exceed ${MEASUREMENT_UNIT_NAME_MAX_LENGTH} characters.`,
     }),
   abbreviation: z
     .string()
     .trim()
-    .min(1, { message: "La abreviatura es obligatoria." })
+    .min(1, { message: "Abbreviation is required." })
     .max(MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH, {
-      message: `La abreviatura no puede superar ${MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH} caracteres.`,
+      message: `Abbreviation must not exceed ${MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH} characters.`,
     })
     .regex(ABBREVIATION_REGEX, {
       message:
-        "La abreviatura no puede contener barras (/) ni caracteres de control.",
+        "Abbreviation must not contain slashes (/) or control characters.",
     }),
   magnitude: z.enum(Magnitude, {
-    message: "La magnitud seleccionada no es válida.",
+    message: "The selected magnitude is not valid.",
   }),
   baseFactor: z
     .number()
-    .positive({ message: "El factor base debe ser mayor que cero." }),
+    .positive({ message: "Base factor must be greater than zero." }),
   isBase: z.boolean(),
 });
 
