@@ -80,7 +80,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   {
     text: "Perfilamiento",
     icon: <BusinessCenterOutlined />,
-    path: Routes.ADMIN_SECTORS,
     children: [
       {
         text: "Rubros",
