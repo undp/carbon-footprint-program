@@ -270,6 +270,13 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
+          const isLocked = params.row.referenceCount > 0;
+          const disableDelete = protected_ || isLocked || editing;
+          const deleteTooltipTitle = protected_
+            ? "No se puede eliminar esta unidad de medida porque es una unidad base de esta magnitud."
+            : isLocked
+              ? "No se puede eliminar esta unidad de medida porque tiene datos asociados."
+              : "Eliminar";
 
           return (
             <ActionButtons
@@ -280,9 +287,9 @@ export const useMeasurementUnitColumns = ({
               onEdit={
                 !editing ? () => onStartEditRow(params.row.id) : undefined
               }
-              onDelete={
-                !editing && !protected_ ? () => onDelete(params.row) : undefined
-              }
+              onDelete={!editing ? () => onDelete(params.row) : undefined}
+              deleteDisabled={disableDelete}
+              deleteTooltipTitle={deleteTooltipTitle}
               deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta unidad de medida?"
             />
           );
