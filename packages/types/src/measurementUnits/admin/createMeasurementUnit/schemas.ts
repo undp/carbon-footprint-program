@@ -29,7 +29,7 @@ export const CreateMeasurementUnitBodySchema = z.object({
       message:
         "La abreviatura no puede contener espacios, barras (/) ni caracteres de control.",
     }),
-  magnitude: z.nativeEnum(Magnitude, {
+  magnitude: z.enum(Magnitude, {
     message: "La magnitud seleccionada no es válida.",
   }),
   baseFactor: z
