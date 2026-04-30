@@ -26,10 +26,17 @@ export const UsersScreenKpiSection: FC<UsersScreenKpiSectionProps> = ({
   const theme = useTheme();
 
   const thresholdDays = useMemo(() => {
-    const param = systemParameters?.find(
+    if (!systemParameters) return null;
+    const param = systemParameters.find(
       (p) => p.key === SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS
     );
-    return parseInt(param?.value ?? "90", 10) || 90;
+    const parsed = parseInt(param?.value ?? "", 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      throw new Error(
+        `${SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS} no está configurado`
+      );
+    }
+    return parsed;
   }, [systemParameters]);
 
   const counts = useMemo(() => {
@@ -63,7 +70,11 @@ export const UsersScreenKpiSection: FC<UsersScreenKpiSectionProps> = ({
           hasError={isError}
         />
         <Tooltip
-          title={`Usuarios activos: accedieron en los últimos ${thresholdDays} días`}
+          title={
+            thresholdDays !== null
+              ? `Usuarios activos: accedieron en los últimos ${thresholdDays} días`
+              : ""
+          }
           arrow
         >
           <span>

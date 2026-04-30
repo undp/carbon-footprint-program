@@ -2,10 +2,9 @@ import type { PrismaClient } from "@repo/database";
 import { MembershipStatus } from "@repo/database/enums";
 import type { GetAllUsersResponse } from "@repo/types";
 import { SystemParameterKeyEnum } from "@repo/types";
+import { ApplicationConfigError } from "@/errors/index.js";
 import { getSystemParameterValue } from "../../../helpers/getSystemParameterValue.js";
 import { mapUserToResponse } from "../mappers.js";
-
-const DEFAULT_INACTIVE_THRESHOLD_DAYS = 90;
 
 export const getAllUsersService = async (
   prismaClient: PrismaClient
@@ -39,8 +38,12 @@ export const getAllUsersService = async (
     ),
   ]);
 
-  const thresholdDays =
-    parseInt(thresholdValue ?? "", 10) || DEFAULT_INACTIVE_THRESHOLD_DAYS;
+  const thresholdDays = parseInt(thresholdValue ?? "", 10);
+  if (!Number.isFinite(thresholdDays) || thresholdDays <= 0) {
+    throw new ApplicationConfigError(
+      `${SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS} is not set or is invalid`
+    );
+  }
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - thresholdDays);
 
