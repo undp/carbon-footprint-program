@@ -27,6 +27,8 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
+  SubcategoryRecommendationStatus,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -677,6 +679,307 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     // Ensure IDs are different from originals
     expect(dupAmerica.id).not.toBe(parentVal.id);
     expect(dupChile.id).not.toBe(childVal.id);
+  });
+
+  describe("Reduction plan initiatives duplication", () => {
+    it("should duplicate active initiatives and remap dimension value references", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate With Initiatives",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Initiative Category",
+        position: 1,
+      });
+
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Initiative Sub",
+      });
+
+      const dim = await createTestEmissionFactorDimension(prisma, sub.id, {
+        code: "fuel_type",
+        name: "Tipo de combustible",
+        position: 1,
+      });
+
+      const val1 = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim.id,
+        { value: "Diésel" }
+      );
+      const val2 = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim.id,
+        { value: "Gasolina" }
+      );
+
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          dimensionValue1Id: val1.id,
+          dimensionValue2Id: null,
+          title: "Test - Initiative With Dim",
+          description: "Switch to electric",
+          status: ReductionPlanInitiativeStatus.ACTIVE,
+        },
+      });
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          dimensionValue1Id: val2.id,
+          dimensionValue2Id: null,
+          title: "Test - Initiative Plain",
+          description: "Reduce trips",
+          status: ReductionPlanInitiativeStatus.ACTIVE,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupValues = await prisma.emissionFactorDimensionValue.findMany({
+        where: { dimension: { subcategoryId: dupSubs[0].id } },
+      });
+      const dupValByText = new Map(dupValues.map((v) => [v.value, v.id]));
+
+      const dupInitiatives = await prisma.reductionPlanInitiative.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+        orderBy: { title: "asc" },
+      });
+
+      expect(dupInitiatives).toHaveLength(2);
+      expect(dupInitiatives[0].title).toBe("Test - Initiative Plain");
+      expect(dupInitiatives[0].dimensionValue1Id).toBe(
+        dupValByText.get("Gasolina")
+      );
+      expect(dupInitiatives[0].dimensionValue2Id).toBeNull();
+      expect(dupInitiatives[1].title).toBe("Test - Initiative With Dim");
+      expect(dupInitiatives[1].dimensionValue1Id).toBe(
+        dupValByText.get("Diésel")
+      );
+      expect(dupInitiatives[1].dimensionValue2Id).toBeNull();
+
+      // IDs differ from originals
+      const originalIds = (
+        await prisma.reductionPlanInitiative.findMany({
+          where: { subcategoryId: sub.id },
+          select: { id: true },
+        })
+      ).map((i) => i.id);
+      for (const dup of dupInitiatives) {
+        expect(originalIds).not.toContain(dup.id);
+      }
+    });
+
+    it("should not duplicate deleted initiatives", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate Skip Deleted Initiatives",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Initiative Skip Cat",
+        position: 1,
+      });
+
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Initiative Skip Sub",
+      });
+
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          title: "Test - Active Initiative",
+          description: "Keep",
+          status: ReductionPlanInitiativeStatus.ACTIVE,
+        },
+      });
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          title: "Test - Deleted Initiative",
+          description: "Drop",
+          status: ReductionPlanInitiativeStatus.DELETED,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupInitiatives = await prisma.reductionPlanInitiative.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+
+      expect(dupInitiatives).toHaveLength(1);
+      expect(dupInitiatives[0].title).toBe("Test - Active Initiative");
+      expect(dupInitiatives[0].status).toBe(
+        ReductionPlanInitiativeStatus.ACTIVE
+      );
+    });
+  });
+
+  describe("Subcategory recommendations duplication", () => {
+    it("should duplicate active recommendations preserving sector and subsector", async () => {
+      const sectors = await prisma.countrySector.findMany({
+        take: 2,
+        include: { subsectors: { take: 1 } },
+      });
+      if (sectors.length < 2) {
+        throw new Error("Expected at least 2 seeded CountrySector records");
+      }
+      const sectorA = sectors[0];
+      const sectorB = sectors[1];
+      const subsectorA = sectorA.subsectors[0];
+      if (!subsectorA) {
+        throw new Error("Expected at least 1 CountrySubsector for sector 0");
+      }
+
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate With Recommendations",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Recommendation Cat",
+        position: 1,
+      });
+
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Recommendation Sub",
+      });
+
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: sub.id,
+          sectorId: sectorA.id,
+          subsectorId: subsectorA.id,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+      });
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: sub.id,
+          sectorId: sectorB.id,
+          subsectorId: null,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+
+      const dupRecs = await prisma.subcategoryRecommendation.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+        orderBy: { sectorId: "asc" },
+      });
+
+      const expected = [
+        { sectorId: sectorA.id, subsectorId: subsectorA.id },
+        { sectorId: sectorB.id, subsectorId: null },
+      ].sort((a, b) => (a.sectorId < b.sectorId ? -1 : 1));
+
+      expect(dupRecs).toHaveLength(2);
+      expect(dupRecs[0].sectorId).toBe(expected[0].sectorId);
+      expect(dupRecs[0].subsectorId).toBe(expected[0].subsectorId);
+      expect(dupRecs[0].status).toBe(SubcategoryRecommendationStatus.ACTIVE);
+      expect(dupRecs[1].sectorId).toBe(expected[1].sectorId);
+      expect(dupRecs[1].subsectorId).toBe(expected[1].subsectorId);
+    });
+
+    it("should not duplicate deleted recommendations", async () => {
+      const sectors = await prisma.countrySector.findMany({ take: 1 });
+      if (sectors.length < 1) {
+        throw new Error("Expected at least 1 seeded CountrySector record");
+      }
+      const sector = sectors[0];
+
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Skip Deleted Recommendations",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Recommendation Skip Cat",
+        position: 1,
+      });
+
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Recommendation Skip Sub",
+      });
+
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: sub.id,
+          sectorId: sector.id,
+          subsectorId: null,
+          status: SubcategoryRecommendationStatus.ACTIVE,
+        },
+      });
+      await prisma.subcategoryRecommendation.create({
+        data: {
+          subcategoryId: sub.id,
+          sectorId: sector.id,
+          subsectorId: null,
+          status: SubcategoryRecommendationStatus.DELETED,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupRecs = await prisma.subcategoryRecommendation.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+
+      expect(dupRecs).toHaveLength(1);
+      expect(dupRecs[0].status).toBe(SubcategoryRecommendationStatus.ACTIVE);
+    });
   });
 
   describe("Error handling", () => {

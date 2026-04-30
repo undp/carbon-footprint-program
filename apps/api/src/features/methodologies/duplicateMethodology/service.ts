@@ -11,6 +11,8 @@ import {
   EmissionFactorDimensionValueStatus,
   SubcategoryStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
+  SubcategoryRecommendationStatus,
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
@@ -279,6 +281,89 @@ export const duplicateMethodologyService = async (
               createdById: userId,
               updatedAt: null,
             },
+          });
+        }
+
+        // 4. Duplicate active reduction plan initiatives
+        const originalInitiatives = await tx.reductionPlanInitiative.findMany({
+          where: {
+            subcategoryId: { in: oldSubcategoryIds },
+            status: ReductionPlanInitiativeStatus.ACTIVE,
+            AND: [
+              {
+                OR: [
+                  { dimensionValue1Id: null },
+                  {
+                    dimensionValue1: {
+                      is: {
+                        status: EmissionFactorDimensionValueStatus.ACTIVE,
+                        dimension: {
+                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                OR: [
+                  { dimensionValue2Id: null },
+                  {
+                    dimensionValue2: {
+                      is: {
+                        status: EmissionFactorDimensionValueStatus.ACTIVE,
+                        dimension: {
+                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        });
+
+        for (const initiative of originalInitiatives) {
+          await tx.reductionPlanInitiative.create({
+            data: {
+              subcategoryId: subcategoryIdMap.get(initiative.subcategoryId)!,
+              dimensionValue1Id: initiative.dimensionValue1Id
+                ? (dimensionValueIdMap.get(initiative.dimensionValue1Id) ??
+                  null)
+                : null,
+              dimensionValue2Id: initiative.dimensionValue2Id
+                ? (dimensionValueIdMap.get(initiative.dimensionValue2Id) ??
+                  null)
+                : null,
+              title: initiative.title,
+              description: initiative.description,
+              status: ReductionPlanInitiativeStatus.ACTIVE,
+              createdById: userId,
+              updatedAt: null,
+            },
+          });
+        }
+
+        // 5. Duplicate active subcategory recommendations
+        const originalRecommendations =
+          await tx.subcategoryRecommendation.findMany({
+            where: {
+              subcategoryId: { in: oldSubcategoryIds },
+              status: SubcategoryRecommendationStatus.ACTIVE,
+            },
+          });
+
+        if (originalRecommendations.length > 0) {
+          await tx.subcategoryRecommendation.createMany({
+            data: originalRecommendations.map((rec) => ({
+              subcategoryId: subcategoryIdMap.get(rec.subcategoryId)!,
+              sectorId: rec.sectorId,
+              subsectorId: rec.subsectorId,
+              status: SubcategoryRecommendationStatus.ACTIVE,
+              createdById: userId,
+              updatedAt: null,
+            })),
           });
         }
       }
