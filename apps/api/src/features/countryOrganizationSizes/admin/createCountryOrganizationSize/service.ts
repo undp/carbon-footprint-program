@@ -9,6 +9,7 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { NoCountryFoundError } from "../../../methodologies/errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -45,7 +46,7 @@ export const createCountryOrganizationSizeService = async (
         data: {
           countryId: country.id,
           name: data.name,
-          description: data.description ?? null,
+          description: normalizeDescriptionInput(data.description),
           position: nextPosition,
           createdById: BigInt(user.id),
           updatedAt: null,

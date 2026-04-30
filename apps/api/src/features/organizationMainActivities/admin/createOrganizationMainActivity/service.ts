@@ -15,6 +15,7 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { SectorSubsectorMismatchError } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import { adminMainActivitySelect, mapMainActivityToAdmin } from "../helpers.js";
@@ -76,7 +77,7 @@ export const createOrganizationMainActivityService = async (
       const created = await tx.organizationMainActivity.create({
         data: {
           name: data.name,
-          description: data.description ?? null,
+          description: normalizeDescriptionInput(data.description),
           countrySectorId: sectorId,
           countrySubsectorId: subsectorId,
           createdById: BigInt(user.id),

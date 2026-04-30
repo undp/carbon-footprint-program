@@ -10,6 +10,7 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
   adminCountrySubsectorSelect,
@@ -37,10 +38,7 @@ export const updateCountrySubsectorService = async (
         updateData.name = data.name;
       }
       if (data.description !== undefined) {
-        updateData.description =
-          data.description === null || data.description === ""
-            ? null
-            : data.description;
+        updateData.description = normalizeDescriptionInput(data.description);
       }
       if (data.countrySectorId !== undefined) {
         const newSectorId = BigInt(data.countrySectorId);

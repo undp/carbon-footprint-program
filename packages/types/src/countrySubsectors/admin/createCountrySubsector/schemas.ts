@@ -15,7 +15,7 @@ export const CreateCountrySubsectorRequestSchema = z.strictObject({
     .trim()
     .max(2000, { message: "Description cannot exceed 2000 characters" })
     .nullable()
-    .describe("Optional description of the country subsector"),
+    .describe("Description of the country subsector (string or null)"),
 });
 
 export const CreateCountrySubsectorResponseSchema = AdminCountrySubsectorSchema;

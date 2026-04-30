@@ -20,7 +20,7 @@ export const CreateOrganizationMainActivityRequestSchema = z.strictObject({
     .trim()
     .max(2000, { message: "Description cannot exceed 2000 characters" })
     .nullable()
-    .describe("Optional description of the organization main activity"),
+    .describe("Description of the organization main activity (string or null)"),
 });
 
 export const CreateOrganizationMainActivityResponseSchema =
