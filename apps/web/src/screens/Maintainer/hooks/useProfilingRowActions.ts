@@ -227,6 +227,20 @@ export const useProfilingRowActions = <
 
     const body = diffUpdateBody(row, serverRow);
     if (!body) {
+      // No effective change once normalized (e.g. `description: "" -> null`,
+      // trimmed-only renames). Reset the row to canonical server values so the
+      // form is no longer dirty and `useBlocker` stops firing on navigation.
+      const rowIndex = getFormRows().findIndex((r) => r.id === editingRowId);
+      if (rowIndex !== -1) {
+        fieldArray.update(
+          rowIndex,
+          toFormRow(serverRow) as unknown as FieldArray<
+            TFormValues,
+            FieldArrayPath<TFormValues>
+          >
+        );
+        resetFormToCurrent();
+      }
       setEditingRowId(null);
       return true;
     }
