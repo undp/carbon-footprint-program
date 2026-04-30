@@ -50,9 +50,13 @@ export const useSubsectorProfilingColumns = ({
   onRestore,
   restoreDisabled,
 }: UseSubsectorProfilingColumnsParams): GridColDef<SubsectorFormRow>[] => {
-  const getRowIndex = useCallback(
-    (rowId: string) => rows.findIndex((r) => r.id === rowId),
+  const rowIndexById = useMemo(
+    () => new Map(rows.map((row, index) => [row.id, index])),
     [rows]
+  );
+  const getRowIndex = useCallback(
+    (rowId: string) => rowIndexById.get(rowId) ?? -1,
+    [rowIndexById]
   );
   const isEditing = useCallback(
     (rowId: string) => editingRowId === rowId,
@@ -179,6 +183,7 @@ export const useSubsectorProfilingColumns = ({
                 <span>
                   <IconButton
                     size="small"
+                    aria-label="Restaurar subrubro"
                     onClick={() => onRestore(params.row)}
                     disabled={restoreDisabled || anyEditing}
                   >
