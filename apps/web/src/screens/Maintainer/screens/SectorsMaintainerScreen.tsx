@@ -231,9 +231,12 @@ export const SectorsMaintainerScreen: FC = () => {
     withResolver: true,
   });
 
+  // Read from `currentRows` (not the server-backed `rows`) so the empty state
+  // disappears as soon as the admin adds the first temp row, rather than
+  // waiting for the POST to succeed.
   const isEmpty = useMemo(
-    () => !isLoading && (!rows || rows.length === 0),
-    [isLoading, rows]
+    () => !isLoading && currentRows.length === 0,
+    [isLoading, currentRows.length]
   );
 
   return (

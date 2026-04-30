@@ -325,7 +325,10 @@ export const MainActivitiesMaintainerScreen: FC = () => {
     withResolver: true,
   });
 
-  const isEmpty = !isLoading && (!rows || rows.length === 0);
+  // Read from `currentRows` (not the server-backed `rows`) so the empty state
+  // disappears as soon as the admin adds the first temp row, rather than
+  // waiting for the POST to succeed.
+  const isEmpty = !isLoading && currentRows.length === 0;
 
   return (
     <ProfilingMaintainerScreenLayout
