@@ -7,12 +7,7 @@ import {
   MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH,
   ABBREVIATION_REGEX,
 } from "@repo/constants";
-import type { MeasurementUnitForm } from "../types";
 import { Magnitude } from "@repo/types";
-
-export interface MeasurementUnitsFormValues {
-  measurementUnits: MeasurementUnitForm[];
-}
 
 const measurementUnitFormRowSchema = z.object({
   id: z.string(),
@@ -38,8 +33,14 @@ const measurementUnitFormRowSchema = z.object({
     message: "La magnitud seleccionada no es válida.",
   }),
   baseFactor: z
-    .number()
-    .positive({ message: "El factor base debe ser mayor que cero." }),
+    .number({
+      error: "El factor base debe ser un número válido.",
+    })
+    .positive({ message: "El factor base debe ser mayor que cero." })
+    .nullable()
+    .refine((v) => v !== null, {
+      message: "El factor base es obligatorio.",
+    }),
   isBase: z.boolean(),
   referenceCount: z.number(),
 });
@@ -47,6 +48,13 @@ const measurementUnitFormRowSchema = z.object({
 const measurementUnitsFormSchema = z.object({
   measurementUnits: z.array(measurementUnitFormRowSchema),
 });
+
+export type MeasurementUnitsFormValues = z.input<
+  typeof measurementUnitsFormSchema
+>;
+
+export type MeasurementUnitsFormRow =
+  MeasurementUnitsFormValues["measurementUnits"][number];
 
 export const useMeasurementUnitsForm = () => {
   const form = useForm<MeasurementUnitsFormValues>({
@@ -61,10 +69,10 @@ export const useMeasurementUnitsForm = () => {
   });
 
   const handleCellChange = useCallback(
-    <K extends keyof MeasurementUnitForm>(
+    <K extends keyof MeasurementUnitsFormRow>(
       rowIndex: number,
       field: K,
-      value: MeasurementUnitForm[K]
+      value: MeasurementUnitsFormRow[K]
     ) => {
       const currentRow = form.getValues(`measurementUnits.${rowIndex}`);
       if (!currentRow) return;
