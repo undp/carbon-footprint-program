@@ -145,9 +145,14 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   ]);
 
   if (!isEditing) {
+    // For single-line we override display to `block`: text-overflow: ellipsis
+    // does not apply on a flex container, so the base sx's `display: flex`
+    // would otherwise clip the text without rendering an ellipsis. The
+    // surrounding DataGrid cell handles vertical centering.
     const truncateSx: SxProps<Theme> =
       truncateLines === 1
         ? {
+            display: "block",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
