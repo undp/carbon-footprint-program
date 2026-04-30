@@ -145,7 +145,7 @@ export const getApiErrorMessage = (
 ): string => {
   if (error instanceof AppHttpError) {
     const code = error.errorCode;
-    if (code && code in ERROR_MESSAGES) {
+    if (code && Object.prototype.hasOwnProperty.call(ERROR_MESSAGES, code)) {
       const entry = ERROR_MESSAGES[code];
       return typeof entry === "function" ? entry(error.apiDetails) : entry;
     }
