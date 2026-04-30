@@ -830,11 +830,13 @@ model CarbonInventoryLineResult {
 }
 
 view CarbonInventorySubtotalsView {
-  carbonInventoryId BigInt          @map("carbon_inventory_id")
-  categoryId        BigInt          @map("category_id")
-  subcategoryId     BigInt          @map("subcategory_id")
-  value             Decimal         @db.Decimal(28, 10)
-  carbonInventory   CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
+  carbonInventoryId         BigInt          @map("carbon_inventory_id")
+  categoryId                BigInt          @map("category_id")
+  subcategoryId             BigInt          @map("subcategory_id")
+  value                     Decimal         @db.Decimal(28, 10)
+  activeLinesCount          BigInt          @map("active_lines_count")
+  activeCompletedLinesCount BigInt          @map("active_completed_lines_count")
+  carbonInventory           CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
 
   @@map("carbon_inventory_subtotals_view")
 }

@@ -3,7 +3,6 @@ import {
   type Prisma,
   type PrismaClient,
   MembershipStatus,
-  CarbonInventoryLineStatus,
 } from "@repo/database";
 import {
   type GetAllCarbonInventoriesResponse,
@@ -88,85 +87,58 @@ export const getAllCarbonInventoriesService = async (
     ],
   };
 
-  const [data, incompleteLineCounts] = await Promise.all([
-    prismaClient.carbonInventory.findMany({
-      where: {
-        AND: [baseFilters, accessControlFilter, submissionFilter],
-      },
-      include: {
-        subtotals: true,
-        organization: {
-          include: {
-            summary: {
-              select: {
-                name: true,
-                displayStatus: true,
-              },
+  const data = await prismaClient.carbonInventory.findMany({
+    where: {
+      AND: [baseFilters, accessControlFilter, submissionFilter],
+    },
+    include: {
+      subtotals: true,
+      organization: {
+        include: {
+          summary: {
+            select: {
+              name: true,
+              displayStatus: true,
             },
           },
         },
-        submission: {
-          include: {
-            subject: {
-              include: {
-                submissions: {
-                  select: {
-                    id: true,
-                    status: true,
-                    type: true,
-                  },
+      },
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true,
+                  status: true,
+                  type: true,
                 },
               },
             },
           },
         },
-        _count: {
-          select: {
-            lines: {
-              where: { status: CarbonInventoryLineStatus.ACTIVE },
-            },
-          },
-        },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    }),
-    prismaClient.carbonInventoryLine.groupBy({
-      by: ["carbonInventoryId"],
-      where: {
-        status: CarbonInventoryLineStatus.ACTIVE,
-        inputs: { none: { isActive: true, result: { isNot: null } } },
-        carbonInventory: {
-          AND: [baseFilters, accessControlFilter, submissionFilter],
-        },
-      },
-      _count: { _all: true },
-    }),
-  ]);
-
-  const incompleteCountByInventoryId = new Map(
-    incompleteLineCounts.map((g) => [
-      g.carbonInventoryId.toString(),
-      g._count._all,
-    ])
-  );
-
-  return data.map((inventory) => {
-    const activeLineCount = inventory._count.lines;
-    const incompleteCount =
-      incompleteCountByInventoryId.get(inventory.id.toString()) ?? 0;
-    return {
-      ...mapCarbonInventoryToResponse(inventory),
-      status: calculateDisplayStatus(inventory),
-      totalEmissions: kgToTon(
-        sumBy(inventory.subtotals, ({ value }) => toNumberOrNull(value) ?? 0)
-      ),
-      organizationName: inventory.organization?.summary?.name ?? null,
-      organizationDisplayStatus:
-        inventory.organization?.summary?.displayStatus ?? null,
-      recognitions: calculateEarnedRecognitions(inventory),
-      hasCompletedLines: activeLineCount > 0 && incompleteCount === 0,
-    };
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
+
+  return data.map((inventory) => ({
+    ...mapCarbonInventoryToResponse(inventory),
+    status: calculateDisplayStatus(inventory),
+    totalEmissions: kgToTon(
+      sumBy(inventory.subtotals, ({ value }) => toNumberOrNull(value) ?? 0)
+    ),
+    organizationName: inventory.organization?.summary?.name ?? null,
+    organizationDisplayStatus:
+      inventory.organization?.summary?.displayStatus ?? null,
+    recognitions: calculateEarnedRecognitions(inventory),
+    hasCompletedLines:
+      inventory.subtotals.length > 0 &&
+      inventory.subtotals.every(
+        ({ activeLinesCount, activeCompletedLinesCount }) =>
+          activeLinesCount === activeCompletedLinesCount
+      ),
+  }));
 };
