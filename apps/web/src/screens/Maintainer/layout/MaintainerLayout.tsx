@@ -4,7 +4,6 @@ import { SIDEBAR_WIDTH } from "@/config/constants";
 import {
   DashboardOutlined,
   MenuBookOutlined,
-  CategoryOutlined,
   TuneOutlined,
   HistoryOutlined,
   ScienceOutlined,
@@ -22,6 +21,10 @@ import {
   AutoAwesomeMotionOutlined,
   StraightenOutlined,
 } from "@mui/icons-material";
+import AutoAwesomeMotionOutlinedIcon from "@mui/icons-material/AutoAwesomeMotionOutlined";
+import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
+import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
+import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
 import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
@@ -81,17 +84,17 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     children: [
       {
         text: "Rubros",
-        icon: <CategoryOutlined fontSize="small" />,
+        icon: <FactoryOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_SECTORS,
       },
       {
         text: "Subrubros",
-        icon: <AccountTreeOutlined fontSize="small" />,
+        icon: <PrecisionManufacturingOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_SUBSECTORS,
       },
       {
         text: "Actividades Principales",
-        icon: <CategoryOutlined fontSize="small" />,
+        icon: <EngineeringOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
       {
