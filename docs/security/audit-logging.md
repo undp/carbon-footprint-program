@@ -144,7 +144,7 @@ Foreign keys use `onDelete: Restrict` on both relations, so the database blocks 
 
 ### User access log (`UserAccessLog`)
 
-Session-level access events are recorded in the `UserAccessLog` table. Every time a user starts a session (via `GET /users/me`), a timestamped row is inserted. This provides a complete history of when each user accessed the platform.
+-Access events are recorded in the `UserAccessLog` table. Every `GET /users/me` request inserts a timestamped row. This provides a request-level history of user access events over time.
 
 For full details on the data model, configuration, and admin UI integration, see [User Activity Tracking](../development/user-activity-tracking.md).
 
