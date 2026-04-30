@@ -18,7 +18,7 @@
   - `baseFactor`: `z.number().finite().positive()` (rejects `Infinity`/`-Infinity`/`NaN`/`<= 0`).
   - `magnitude`: `z.nativeEnum(Magnitude)`.
   - `isBase`: `z.boolean()`.
-  - Response: full MU including `status`, `referenceCount`, and a discriminator (`"created" | "restored-full" | "restored-labels"`).
+  - Response: full MU including `status`, `referenceCount`, and a discriminator (`"created" | "fullyRestored" | "restoredLabelsOnly"`).
 - [ ] 2.4 Create `packages/types/src/measurementUnits/admin/updateMeasurementUnit/schemas.ts` and `types.ts`. Request shape: derive from the create body schema via `.partial()` so the same per-field rules from 2.3 fire whenever a field is present (do NOT redefine validations — reuse the create schema as the source of truth). Path param: `id` as string-coerced bigint.
 - [ ] 2.5 Create `packages/types/src/measurementUnits/admin/deleteMeasurementUnit/schemas.ts` and `types.ts`. Path param: `id`. Response: `{ id, status }`.
 - [ ] 2.6 Update `packages/types/src/measurementUnits/getAllMeasurementUnits/schemas.ts` so each item includes `status` and `referenceCount`.
@@ -55,8 +55,8 @@
     - **Not found**: `tx.measurementUnit.create(...)`. Cascade-create the canonical RMU with `numeratorMeasurementUnitId = kg.id`, `denominatorMeasurementUnitId = newMu.id`, status `ACTIVE`. Return `{ ...mapped, action: "created" }`.
     - **Found, status DELETED**:
       - Compute `referenceCount` via `getReferenceCount(tx, found.id)`.
-      - If `referenceCount > 0`: update only `name`, `abbreviation`, set `status = ACTIVE`. Action = `"restored-labels"`.
-      - Else: full overwrite of `{ name, abbreviation, magnitude, baseFactor, isBase }`, set `status = ACTIVE`. Action = `"restored-full"`.
+      - If `referenceCount > 0`: update only `name`, `abbreviation`, set `status = ACTIVE`. Action = `"restoredLabelsOnly"`.
+      - Else: full overwrite of `{ name, abbreviation, magnitude, baseFactor, isBase }`, set `status = ACTIVE`. Action = `"fullyRestored"`.
       - Cascade-restore the RMU: locate the canonical RMU via the FK pair `tx.rateMeasurementUnit.findFirst({ where: { numeratorMeasurementUnitId: kg.id, denominatorMeasurementUnitId: found.id } })` (do NOT match on `denominatorMeasurementUnitId` alone — multiple RMUs can share a denominator). Rebuild `abbreviation`/`name` via `buildCanonicalRmuFields(updatedMu)`; set `status = ACTIVE`. Throw `MeasurementUnitAbbreviationAlreadyExistsError` if a separate ACTIVE RMU already holds the new RMU abbreviation (P2002 trap).
     - **Found, status ACTIVE**: throw `MeasurementUnitAbbreviationAlreadyExistsError`.
 - [ ] 5.4 Catch `Prisma.PrismaClientKnownRequestError` with `code === "P2002"` and translate into `MeasurementUnitAbbreviationAlreadyExistsError`.
@@ -126,7 +126,7 @@
 - [ ] 13.4 Disable cell editing for `magnitude`, `baseFactor`, `isBase` when `row.referenceCount > 0`. Render a tooltip explaining why on hover.
 - [ ] 13.5 Hide the edit and delete actions for the row where `abbreviation === "kg"` and for any row where `isBase === true`. Render an info icon with a tooltip explaining the protection.
 - [ ] 13.6 Wire mutations to `useAddMeasurementUnit` / `useUpdateMeasurementUnit` / `useDeleteMeasurementUnit`. Show a snackbar on success/error using `getApiErrorMessage` for the API error codes added in step 3.
-- [ ] 13.7 When the create response action is `"restored-labels"` or `"restored-full"`, show a contextual confirmation snackbar (e.g., "Unidad restaurada").
+- [ ] 13.7 When the create response action is `"restoredLabelsOnly"` or `"fullyRestored"`, show a contextual confirmation snackbar (e.g., "Unidad restaurada").
 - [ ] 13.8 Use Spanish for all UI text: column headers, button labels, tooltips, error messages, snackbar messages.
 
 ## 14. Frontend — Route Wiring

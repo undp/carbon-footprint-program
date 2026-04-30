@@ -104,11 +104,11 @@ If a new value is added to the `Magnitude` enum in the future, `MAGNITUDE_LABELS
 
 ### Requirement: Restored-unit confirmation surfaces in the UI
 
-When the create endpoint returns an action discriminator of `"restored-full"` or `"restored-labels"`, the screen SHALL show a contextual snackbar message indicating that an existing soft-deleted unit was restored rather than newly inserted. When the action is `"created"`, the snackbar SHALL show the standard creation confirmation.
+When the create endpoint returns an action discriminator of `"fullyRestored"` or `"restoredLabelsOnly"`, the screen SHALL show a contextual snackbar message indicating that an existing soft-deleted unit was restored rather than newly inserted. When the action is `"created"`, the snackbar SHALL show the standard creation confirmation.
 
 #### Scenario: Restoring a previously deleted abbreviation
 
-- **WHEN** the admin creates a row whose abbreviation matches a soft-deleted unit, and the API returns action `"restored-full"` or `"restored-labels"`
+- **WHEN** the admin creates a row whose abbreviation matches a soft-deleted unit, and the API returns action `"fullyRestored"` or `"restoredLabelsOnly"`
 - **THEN** the screen SHALL show a snackbar message in Spanish indicating that the unit was restored
 
 #### Scenario: Creating a brand-new abbreviation

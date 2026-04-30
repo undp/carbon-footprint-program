@@ -24,6 +24,7 @@ import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
 import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
 import type { MeasurementUnitForm } from "./types";
+import { MeasurementUnitCreationResultEnum } from "@repo/types";
 
 export const MeasurementUnitsScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -106,7 +107,7 @@ export const MeasurementUnitsScreen: FC = () => {
         form.reset({ measurementUnits: form.getValues("measurementUnits") });
 
         const msg =
-          result.action === "created"
+          result.action === MeasurementUnitCreationResultEnum.created
             ? "Unidad creada exitosamente"
             : "Unidad restaurada exitosamente";
         void enqueueSnackbar({ message: msg, variant: "success" });

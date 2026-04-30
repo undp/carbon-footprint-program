@@ -1,8 +1,9 @@
 import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
-import type {
-  CreateMeasurementUnitBody,
-  CreateMeasurementUnitResponse,
-  User,
+import {
+  type CreateMeasurementUnitBody,
+  type CreateMeasurementUnitResponse,
+  type User,
+  MeasurementUnitCreationResultEnum,
 } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import {
@@ -61,7 +62,7 @@ export const createMeasurementUnitService = async (
 
       return {
         ...mapMeasurementUnitToResponse(newMu, 0),
-        action: "created" as const,
+        action: MeasurementUnitCreationResultEnum.created,
       };
     }
 
@@ -71,7 +72,10 @@ export const createMeasurementUnitService = async (
 
     // Restore a soft-deleted unit
     const refCount = await getReferenceCount(tx, existing.id);
-    const action = refCount > 0 ? "restored-labels" : "restored-full";
+    const action =
+      refCount > 0
+        ? MeasurementUnitCreationResultEnum.restoredLabelsOnly
+        : MeasurementUnitCreationResultEnum.fullyRestored;
 
     const updateData =
       refCount > 0

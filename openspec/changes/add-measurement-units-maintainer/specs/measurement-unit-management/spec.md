@@ -93,12 +93,12 @@ The create endpoint SHALL look up an existing row by abbreviation including `DEL
 #### Scenario: Restore with no references — full overwrite
 
 - **WHEN** an admin creates an MU with abbreviation `X` while a `DELETED` MU with abbreviation `X` exists and has zero references in `CarbonInventoryLineInput`, `CarbonInventoryLineFactor`, `EmissionFactor` (via its RMU), `CarbonInventoryLineInput.manualFactorRateUnitId`, or `SubcategoryMeasurementUnit`
-- **THEN** the system SHALL overwrite all fields (`name`, `abbreviation`, `magnitude`, `baseFactor`, `isBase`) of the deleted row with the new payload, set `status = ACTIVE`, cascade-restore the RMU, and respond with HTTP 200, action discriminator `"restored-full"`
+- **THEN** the system SHALL overwrite all fields (`name`, `abbreviation`, `magnitude`, `baseFactor`, `isBase`) of the deleted row with the new payload, set `status = ACTIVE`, cascade-restore the RMU, and respond with HTTP 200, action discriminator `"fullyRestored"`
 
 #### Scenario: Restore with references — label-only overwrite
 
 - **WHEN** an admin creates an MU with abbreviation `X` while a `DELETED` MU with abbreviation `X` exists and has at least one reference
-- **THEN** the system SHALL overwrite only `name` and `abbreviation`, preserve the soft-deleted row's existing `magnitude`, `baseFactor`, and `isBase`, set `status = ACTIVE`, cascade-restore the RMU, and respond with HTTP 200, action discriminator `"restored-labels"`
+- **THEN** the system SHALL overwrite only `name` and `abbreviation`, preserve the soft-deleted row's existing `magnitude`, `baseFactor`, and `isBase`, set `status = ACTIVE`, cascade-restore the RMU, and respond with HTTP 200, action discriminator `"restoredLabelsOnly"`
 
 #### Scenario: Active abbreviation collision on create
 

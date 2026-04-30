@@ -37,8 +37,8 @@ Deleting a measurement unit soft-deletes both the unit and its canonical rate un
 
 Restore behavior:
 
-- **`referenceCount = 0`** → full restore: all fields (name, magnitude, baseFactor, isBase) overwritten from the new request (`action: "restored-full"`).
-- **`referenceCount > 0`** → labels-only restore: only `name` and `abbreviation` are updated; physical fields are locked to protect data integrity (`action: "restored-labels"`).
+- **`referenceCount = 0`** → full restore: all fields (name, magnitude, baseFactor, isBase) overwritten from the new request (`action: "fullyRestored"`).
+- **`referenceCount > 0`** → labels-only restore: only `name` and `abbreviation` are updated; physical fields are locked to protect data integrity (`action: "restoredLabelsOnly"`).
 
 ## Field Locking
 
