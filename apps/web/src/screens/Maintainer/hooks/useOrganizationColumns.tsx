@@ -3,7 +3,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { IconButton, Stack } from "@mui/material";
 import {
   VisibilityOutlined,
-  DeleteOutlined,
+  LockOutlined,
   RestoreOutlined,
   HistoryOutlined,
 } from "@mui/icons-material";
@@ -159,10 +159,10 @@ export const useOrganizationColumns = ({
               ) : (
                 <IconButton
                   size="small"
-                  aria-label={`Eliminar ${VOCAB.organization.noun.singular}`}
+                  aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onBlock(params.row.id)}
                 >
-                  <DeleteOutlined fontSize="small" />
+                  <LockOutlined fontSize="small" />
                 </IconButton>
               )}
             </Stack>
