@@ -61,13 +61,16 @@ export const MaintainerToolbar: FC<MaintainerToolbarProps> = ({
               prev ? null : (event.currentTarget as HTMLButtonElement)
             )
           }
+          aria-label="Exportar"
           aria-haspopup="true"
+          aria-controls={exportOpen ? "maintainer-export-menu" : undefined}
           aria-expanded={exportOpen}
         >
           <SaveAltIcon fontSize="small" />
         </ToolbarButton>
       </Tooltip>
       <Menu
+        id="maintainer-export-menu"
         anchorEl={exportAnchorEl}
         open={exportOpen}
         onClose={closeExportMenu}
