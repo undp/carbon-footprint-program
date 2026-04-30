@@ -3,9 +3,9 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { IconButton, Stack } from "@mui/material";
 import {
   VisibilityOutlined,
-  EditOutlined,
   DeleteOutlined,
   RestoreOutlined,
+  HistoryOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
@@ -16,11 +16,15 @@ import { VOCAB } from "@/config/vocab";
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
 interface UseOrganizationColumnsProps {
+  onView: (id: string) => void;
+  onViewHistory: (id: string) => void;
   onBlock: (id: string) => void;
   onUnblock: (id: string) => void;
 }
 
 export const useOrganizationColumns = ({
+  onView,
+  onViewHistory,
   onBlock,
   onUnblock,
 }: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
@@ -130,19 +134,19 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              {/* TODO: implement callback for this button */}
               <IconButton
                 size="small"
                 aria-label={`Ver ${VOCAB.organization.noun.singular}`}
+                onClick={() => onView(params.row.id)}
               >
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
-              {/* TODO: implement callback for this button */}
               <IconButton
                 size="small"
-                aria-label={`Editar ${VOCAB.organization.noun.singular}`}
+                aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                onClick={() => onViewHistory(params.row.id)}
               >
-                <EditOutlined fontSize="small" />
+                <HistoryOutlined fontSize="small" />
               </IconButton>
               {isBlocked ? (
                 <IconButton
@@ -171,6 +175,8 @@ export const useOrganizationColumns = ({
       getColor,
       STATUS_LABEL,
       STATUS_SORT_ORDER,
+      onView,
+      onViewHistory,
       onBlock,
       onUnblock,
     ]

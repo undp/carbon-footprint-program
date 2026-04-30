@@ -8,6 +8,10 @@ import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganiza
 import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrganization";
 import { BlockOrganizationDialog } from "./BlockOrganizationDialog";
 import { UnblockOrganizationDialog } from "./UnblockOrganizationDialog";
+import {
+  OrganizationProfileDialog,
+  ViewSubmissionDialog,
+} from "@/components/dialogs";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
@@ -44,9 +48,27 @@ export const OrganizationScreenTable: FC = () => {
   const unblockMutation = useUnblockOrganization();
   const [blockOrgId, setBlockOrgId] = useState<string | null>(null);
   const [unblockOrgId, setUnblockOrgId] = useState<string | null>(null);
+  const [viewOrgId, setViewOrgId] = useState<string | null>(null);
+  const [historyOrgId, setHistoryOrgId] = useState<string | null>(null);
   const organizations = data?.data ?? [];
   const blockOrg = organizations.find((org) => org.id === blockOrgId);
   const unblockOrg = organizations.find((org) => org.id === unblockOrgId);
+
+  const handleViewClick = useCallback((id: string) => {
+    setViewOrgId(id);
+  }, []);
+
+  const handleViewHistoryClick = useCallback((id: string) => {
+    setHistoryOrgId(id);
+  }, []);
+
+  const handleCloseView = useCallback(() => {
+    setViewOrgId(null);
+  }, []);
+
+  const handleCloseHistory = useCallback(() => {
+    setHistoryOrgId(null);
+  }, []);
 
   const handleBlockClick = useCallback((id: string) => {
     setBlockOrgId(id);
@@ -109,6 +131,8 @@ export const OrganizationScreenTable: FC = () => {
   }, [unblockOrgId, unblockMutation]);
 
   const columns = useOrganizationColumns({
+    onView: handleViewClick,
+    onViewHistory: handleViewHistoryClick,
     onBlock: handleBlockClick,
     onUnblock: handleUnblockClick,
   });
@@ -163,6 +187,16 @@ export const OrganizationScreenTable: FC = () => {
         onClose={handleCloseUnblockDialog}
         onConfirm={handleConfirmUnblock}
         isLoading={unblockMutation.isPending}
+      />
+      <OrganizationProfileDialog
+        open={viewOrgId !== null}
+        organizationId={viewOrgId}
+        onClose={handleCloseView}
+      />
+      <ViewSubmissionDialog
+        open={historyOrgId !== null}
+        organizationId={historyOrgId ?? undefined}
+        onClose={handleCloseHistory}
       />
     </Box>
   );
