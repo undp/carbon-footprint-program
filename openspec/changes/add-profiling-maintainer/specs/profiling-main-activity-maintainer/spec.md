@@ -31,7 +31,11 @@ The system SHALL expose the following admin endpoints under `/admin/organization
 - `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, parent `countrySectorId`, `countrySectorName`, `countrySubsectorId`, `countrySubsectorName`, auditors, `isInUse`). Default `status=active`. Sort by main-activity `name` ASC.
 - `PATCH /:id` — partial update. Any of `name`, `description`, `countrySectorId`, `countrySubsectorId` MAY be provided. Empty body → `400`. Parent FKs validated inside transaction as in create, including the subsector→sector consistency check: after resolving the effective `(countrySectorId, countrySubsectorId)` pair (merging the patch with the persisted values), the subsector's `countrySectorId` MUST match the effective `countrySectorId`. A mismatched pair MUST be rejected with `400` and a Spanish sentence on `error.message`; the row MUST NOT be persisted. Stamps `updatedById`.
 - `DELETE /:id` — soft-delete. Not blocked by any catalog reference (no catalog table references main activity). Response: `200` with an empty body (the frontend invalidates and refetches; no consumer reads the deleted row).
-- `POST /:id/restore` — restore; rejects `409` on unique-scope name collision with another ACTIVE main activity under the same `(countrySectorId, countrySubsectorId)`.
+- `POST /:id/restore` — restore. Inside the same `prisma.$transaction`:
+  - Any persisted `countrySectorId` / `countrySubsectorId` MUST resolve to an ACTIVE parent. A missing parent MUST reject with `404` via `ResourceNotFoundError`; a DELETED parent MUST reject with `409` via `ParentNotActiveError` (with `details: { resourceType, resourceName, parentType, parentName }`) so the frontend can prompt to restore the parent first.
+  - When BOTH `countrySectorId` and `countrySubsectorId` are persisted, the subsector's `countrySectorId` MUST still match the activity's `countrySectorId`. A mismatch MUST reject with `400` via `SectorSubsectorMismatchError`.
+  - A unique-scope name collision with another ACTIVE main activity under the same `(countrySectorId, countrySubsectorId)` MUST reject with `409` via `DatabaseUniqueConstraintViolationError`.
+  - On any rejection the row stays `DELETED`.
 
 Validation and auditor stamping rules match the sector endpoints: `name` trimmed min(1) max(255); `description` tri-state (`undefined` = no-op, `null` = clear, `""` = null); PATCH body refined to require ≥ 1 field.
 
