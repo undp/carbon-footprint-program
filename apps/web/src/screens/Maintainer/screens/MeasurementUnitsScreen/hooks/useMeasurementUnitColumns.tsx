@@ -52,6 +52,55 @@ export const useMeasurementUnitColumns = ({
   return useMemo<GridColDef<MeasurementUnitForm>[]>(
     () => [
       {
+        field: "magnitude",
+        headerName: "Magnitud",
+        width: 180,
+        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const protected_ = isProtectedRow(params.row);
+          const isLocked = protected_ || params.row.referenceCount > 0;
+
+          if (editing && isLocked) {
+            const label =
+              MAGNITUDE_LABELS[params.row.magnitude as Magnitude] ??
+              params.row.magnitude;
+            return (
+              <Tooltip title="No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    color: "text.disabled",
+                    cursor: "default",
+                  }}
+                >
+                  <LockOutlined sx={{ fontSize: 14 }} />
+                  <Typography variant="body2">{label}</Typography>
+                </Box>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <MagnitudeSelectCell
+              formArrayName="measurementUnits"
+              rowIndex={rowIndex}
+              isEditing={editing}
+              onChange={(value: Magnitude) =>
+                onCellChange(rowIndex, "magnitude", value)
+              }
+              onClick={
+                !editing && !protected_
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+            />
+          );
+        },
+      },
+      {
         field: "name",
         headerName: "Nombre",
         flex: 1,
@@ -115,55 +164,6 @@ export const useMeasurementUnitColumns = ({
               }
               onClick={
                 !editing ? () => onStartEditRow(params.row.id) : undefined
-              }
-            />
-          );
-        },
-      },
-      {
-        field: "magnitude",
-        headerName: "Magnitud",
-        width: 180,
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
-          const protected_ = isProtectedRow(params.row);
-          const isLocked = protected_ || params.row.referenceCount > 0;
-
-          if (editing && isLocked) {
-            const label =
-              MAGNITUDE_LABELS[params.row.magnitude as Magnitude] ??
-              params.row.magnitude;
-            return (
-              <Tooltip title="No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    color: "text.disabled",
-                    cursor: "default",
-                  }}
-                >
-                  <LockOutlined sx={{ fontSize: 14 }} />
-                  <Typography variant="body2">{label}</Typography>
-                </Box>
-              </Tooltip>
-            );
-          }
-
-          return (
-            <MagnitudeSelectCell
-              formArrayName="measurementUnits"
-              rowIndex={rowIndex}
-              isEditing={editing}
-              onChange={(value: Magnitude) =>
-                onCellChange(rowIndex, "magnitude", value)
-              }
-              onClick={
-                !editing && !protected_
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
               }
             />
           );
