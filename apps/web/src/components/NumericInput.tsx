@@ -24,6 +24,9 @@ export const NumericInput: FC<Props> = ({
   fieldError,
   error,
   helperText,
+  size = "small",
+  fullWidth = true,
+  placeholder = "0",
   ...props
 }) => {
   const handleValueChange = (values: NumberFormatValues): void => {
@@ -49,9 +52,9 @@ export const NumericInput: FC<Props> = ({
       decimalScale={decimalScale}
       allowNegative={min === undefined || min < 0}
       onValueChange={handleValueChange}
-      size="small"
-      fullWidth
-      placeholder="0"
+      size={size}
+      fullWidth={fullWidth}
+      placeholder={placeholder}
       error={error || !!fieldError}
       helperText={helperText ?? fieldError?.message}
       slotProps={{

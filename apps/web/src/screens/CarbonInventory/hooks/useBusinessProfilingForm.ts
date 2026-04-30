@@ -13,7 +13,7 @@ export type BusinessProfilingFormValues = {
   companySize: string;
   activity: string;
   usageMode: UsageMode;
-  quantity: string;
+  quantity: number | null;
 };
 
 type Params = {
@@ -29,7 +29,7 @@ const defaultValues: BusinessProfilingFormValues = {
   companySize: "",
   activity: "",
   usageMode: "EXPERT",
-  quantity: "",
+  quantity: null,
 };
 
 export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
@@ -55,7 +55,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     () => {
       setValue("subSector", "");
       setValue("activity", "");
-      setValue("quantity", "");
+      setValue("quantity", null);
       clearErrors("quantity");
     }
   );
@@ -66,7 +66,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     prevSubsectorIdRef,
     () => {
       setValue("activity", "");
-      setValue("quantity", "");
+      setValue("quantity", null);
       clearErrors("quantity");
     }
   );
@@ -76,7 +76,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     selectedActivityId,
     prevActivityIdRef,
     () => {
-      setValue("quantity", "");
+      setValue("quantity", null);
       clearErrors("quantity");
     }
   );

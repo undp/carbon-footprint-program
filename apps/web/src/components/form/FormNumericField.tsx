@@ -1,5 +1,6 @@
-import { TextField, TextFieldProps } from "@mui/material";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { TextFieldProps } from "@mui/material";
+import { NumericInput } from "../NumericInput";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -35,7 +36,6 @@ export const FormNumericField = <T extends FieldValues>({
   maxMessage = "El valor es demasiado alto",
   fullWidth = true,
   sx,
-  slotProps,
   ...props
 }: Props<T>) => {
   return (
@@ -43,59 +43,38 @@ export const FormNumericField = <T extends FieldValues>({
       name={name}
       control={control}
       rules={{
-        required: required ? requiredMessage : false,
         validate: {
+          required: (value) => {
+            if (!required) return true;
+            return value == null ? requiredMessage : true;
+          },
           min: (value) => {
-            if (min === undefined || value === "" || value == null) {
-              return true;
-            }
-            const valueNum = Number(value);
-            if (isNaN(valueNum) || valueNum < min) {
-              return minMessage;
-            }
-            return true;
+            if (min === undefined || value == null) return true;
+            return Number(value) < min ? minMessage : true;
           },
           max: (value) => {
-            if (max === undefined || value === "" || value == null) {
-              return true;
-            }
-            const valueNum = Number(value);
-            if (isNaN(valueNum) || valueNum > max) {
-              return maxMessage;
-            }
-            return true;
+            if (max === undefined || value == null) return true;
+            return Number(value) > max ? maxMessage : true;
           },
         },
       }}
       render={({ field, fieldState }) => (
-        <TextField
-          {...field}
+        <NumericInput
+          size="medium"
+          placeholder=""
           {...props}
-          type="number"
-          slotProps={{
-            ...slotProps,
-            htmlInput: {
-              min,
-              max,
-              ...slotProps?.htmlInput,
-            },
-          }}
-          sx={{
-            minHeight: "5rem",
-            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-              {
-                WebkitAppearance: "none",
-                margin: 0,
-              },
-            "& input[type=number]": {
-              MozAppearance: "textfield",
-            },
-            ...sx,
-          }}
+          value={field.value == null ? null : Number(field.value)}
+          onChange={(value) => field.onChange(value)}
+          min={min}
           required={required}
           error={!!fieldState.error && !props.disabled}
           helperText={fieldState.error?.message ?? helperText}
           fullWidth={fullWidth}
+          sx={{
+            minHeight: "5rem",
+            "& input": { textAlign: "left" },
+            ...sx,
+          }}
         />
       )}
     />
