@@ -26,9 +26,11 @@ export const OrganizationProfileDialog: FC<Props> = ({
   onClose,
 }) => {
   const theme = useTheme();
-  const { data: profile, isLoading } = useOrganization(
-    organizationId ?? undefined
-  );
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useOrganization(organizationId ?? undefined);
 
   return (
     <Dialog
@@ -56,11 +58,17 @@ export const OrganizationProfileDialog: FC<Props> = ({
       </DialogTitle>
 
       <DialogContent dividers sx={{ p: 2 }}>
-        {isLoading || !profile ? (
+        {isLoading && (
           <Stack alignItems="center" justifyContent="center" sx={{ py: 4 }}>
             <CircularProgress />
           </Stack>
-        ) : (
+        )}
+        {!isLoading && (isError || !profile) && (
+          <Typography color="error.main">
+            No se pudo cargar el perfil de la organización.
+          </Typography>
+        )}
+        {!isLoading && !isError && profile && (
           <Stack spacing={2}>
             <OrganizationProfileView profile={profile} />
           </Stack>
