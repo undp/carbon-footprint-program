@@ -7,8 +7,7 @@ export const mapMeasurementUnitToResponse = (
 ): GetAllMeasurementUnitsResponse[number] => ({
   id: mu.id.toString(),
   name: mu.name,
-  magnitude:
-    mu.magnitude as GetAllMeasurementUnitsResponse[number]["magnitude"],
+  magnitude: mu.magnitude,
   abbreviation: mu.abbreviation,
   baseFactor: mu.baseFactor,
   isBase: mu.isBase,
