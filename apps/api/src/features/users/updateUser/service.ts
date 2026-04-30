@@ -15,7 +15,6 @@ import {
   DatabaseUniqueConstraintViolationError,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
-import { withSerializableRetry } from "@/utils/prismaRetry.js";
 
 const ALLOWED_TRANSITIONS: Record<SystemRole, SystemRole[]> = {
   [SystemRole.USER]: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
@@ -127,7 +126,7 @@ async function handleAdminRoleUpdate(
     throw new SelfRoleChangeError();
   }
 
-  const updatedUser = await withSerializableRetry(prismaClient, async (tx) => {
+  const updatedUser = await prismaClient.$transaction(async (tx) => {
     const target = await tx.user.findUnique({
       where: { id: BigInt(id) },
       select: { id: true, role: true },
