@@ -8,10 +8,25 @@ import {
   Button,
 } from "@mui/material";
 
+export const IncompleteInventoryField = {
+  NAME: "name",
+  YEAR: "year",
+  COMPLETED_LINES: "completed-lines",
+} as const;
+
+export type IncompleteInventoryField =
+  (typeof IncompleteInventoryField)[keyof typeof IncompleteInventoryField];
+
+const FIELD_LABELS: Record<IncompleteInventoryField, string> = {
+  [IncompleteInventoryField.NAME]: "nombre",
+  [IncompleteInventoryField.YEAR]: "año",
+  [IncompleteInventoryField.COMPLETED_LINES]: "registros de emisión",
+};
+
 interface IncompleteInventoryDialogProps {
   open: boolean;
   onClose: () => void;
-  missingFields: string[];
+  missingFields: IncompleteInventoryField[];
 }
 
 export const IncompleteInventoryDialog: FC<IncompleteInventoryDialogProps> = ({
@@ -32,8 +47,12 @@ export const IncompleteInventoryDialog: FC<IncompleteInventoryDialogProps> = ({
       <DialogContent>
         <DialogContentText id="incomplete-inventory-dialog-description">
           No es posible enviar esta huella porque le faltan los siguientes
-          datos: <strong>{missingFields.join(", ")}</strong>. Por favor, edite
-          la huella para completar esta información antes de continuar.
+          datos:{" "}
+          <strong>
+            {missingFields.map((field) => FIELD_LABELS[field]).join(", ")}
+          </strong>
+          . Por favor, edite la huella para completar esta información antes de
+          continuar.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
