@@ -27,25 +27,19 @@ export const deleteMeasurementUnitService = async (
 
     const kg = await resolveKgMeasurementUnit(tx);
 
-    const canonicalRmu = await tx.rateMeasurementUnit.findFirst({
+    const { count: updatedRows } = await tx.rateMeasurementUnit.updateMany({
       where: {
         denominatorMeasurementUnitId: target.id,
         numeratorMeasurementUnitId: kg.id,
+        status: MeasurementUnitStatus.ACTIVE,
       },
+      data: { status: MeasurementUnitStatus.DELETED },
     });
 
-    if (!canonicalRmu) {
+    if (!updatedRows)
       throw new DataIntegrityError(
-        `No canonical RMU found for MeasurementUnit id=${target.id} abbreviation="${target.abbreviation}" during soft-delete`
+        `Failed to soft-delete canonical RMU for MeasurementUnit id=${target.id} abbreviation="${target.abbreviation}". Expected to update 1 row, but updated ${updatedRows}.`
       );
-    }
-
-    if (canonicalRmu.status === MeasurementUnitStatus.ACTIVE) {
-      await tx.rateMeasurementUnit.update({
-        where: { id: canonicalRmu.id },
-        data: { status: MeasurementUnitStatus.DELETED },
-      });
-    }
 
     await tx.measurementUnit.update({
       where: { id: target.id },
