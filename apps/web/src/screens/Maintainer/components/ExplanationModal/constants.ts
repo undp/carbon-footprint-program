@@ -20,6 +20,7 @@ export interface ToolbarInsertSpec {
   after: string;
   placeholder: string;
   block?: boolean;
+  multiline?: boolean;
 }
 
 export type ToolbarActionId =
@@ -94,7 +95,13 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
     label: "Lista",
     tooltip: "Lista",
     icon: FormatListBulleted,
-    spec: { before: "- ", after: "", placeholder: "item", block: true },
+    spec: {
+      before: "- ",
+      after: "",
+      placeholder: "item",
+      block: true,
+      multiline: true,
+    },
     cheatsheetSyntax: "- item",
   },
   {
@@ -102,7 +109,13 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
     label: "Lista numerada",
     tooltip: "Lista numerada",
     icon: FormatListNumbered,
-    spec: { before: "1. ", after: "", placeholder: "item", block: true },
+    spec: {
+      before: "1. ",
+      after: "",
+      placeholder: "item",
+      block: true,
+      multiline: true,
+    },
     cheatsheetSyntax: "1. item",
   },
   {
