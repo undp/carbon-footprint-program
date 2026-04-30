@@ -9,5 +9,4 @@ import { z } from "zod";
  */
 export const AdminListStatusFilterSchema = z
   .enum(["active", "deleted", "all"])
-  .default("active")
   .describe("Filtro por estado para la lista de admin");
