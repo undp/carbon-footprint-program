@@ -27,6 +27,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
 }) => {
   const cardBaseSx = {
     flex: 1,
+    minWidth: 0,
     p: 2,
     borderRadius: "12px",
     boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
