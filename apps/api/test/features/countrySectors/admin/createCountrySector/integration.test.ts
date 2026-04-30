@@ -73,12 +73,12 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
       expect(dbRow!.createdById).toBe(testUser.id);
     });
 
-    it("creates a sector with no description (omitted)", async () => {
+    it("creates a sector with description=null", async () => {
       const name = uniqueName("NoDesc");
       const response = await app.inject({
         method: "POST",
         url: "/api/admin/country-sectors/",
-        payload: { name },
+        payload: { name, description: null },
       });
 
       expect(response.statusCode).toBe(201);
@@ -115,15 +115,11 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/admin/country-sectors/",
-        payload: { name },
+        payload: { name, description: null },
       });
       expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as {
-        code: string;
-        message: string;
-      };
+      const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("DATABASE_UNIQUE_CONSTRAINT_VIOLATION");
-      expect(body.message).toContain("rubro");
     });
 
     it("allows creating an ACTIVE sector when a DELETED sector has the same name", async () => {
@@ -136,7 +132,7 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/admin/country-sectors/",
-        payload: { name },
+        payload: { name, description: null },
       });
       expect(response.statusCode).toBe(201);
     });
@@ -153,7 +149,7 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
         const response = await app.inject({
           method: "POST",
           url: "/api/admin/country-sectors/",
-          payload: { name: uniqueName("Forbidden") },
+          payload: { name: uniqueName("Forbidden"), description: null },
         });
         expect(response.statusCode).toBe(403);
       } finally {

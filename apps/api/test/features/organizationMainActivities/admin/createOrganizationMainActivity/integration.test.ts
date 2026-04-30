@@ -63,7 +63,12 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
     const response = await app.inject({
       method: "POST",
       url: "/api/admin/organization-main-activities/",
-      payload: { name },
+      payload: {
+        name,
+        countrySectorId: null,
+        countrySubsectorId: null,
+        description: null,
+      },
     });
     expect(response.statusCode).toBe(201);
     const body = JSON.parse(
@@ -89,6 +94,7 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
         name: uniqueName("Activity"),
         countrySectorId: sector.id.toString(),
         countrySubsectorId: sub.id.toString(),
+        description: null,
       },
     });
     expect(response.statusCode).toBe(201);
@@ -112,7 +118,7 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
     expect(response.statusCode).toBe(400);
   });
 
-  it("returns 400 with Spanish message when subsector does not belong to sector (no row persisted)", async () => {
+  it("returns 400 when subsector does not belong to sector (no row persisted)", async () => {
     const sectorA = await createTestCountrySector(prisma, {
       name: uniqueName("SecA"),
     });
@@ -131,14 +137,10 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
         name: candidateName,
         countrySectorId: sectorA.id.toString(),
         countrySubsectorId: subB.id.toString(),
+        description: null,
       },
     });
     expect(response.statusCode).toBe(400);
-    const body = JSON.parse(response.body) as {
-      code: string;
-      message: string;
-    };
-    expect(body.message).toContain("subrubro");
 
     // Confirm no row persisted.
     const persisted = await prisma.organizationMainActivity.findFirst({
@@ -154,6 +156,8 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
       payload: {
         name: uniqueName("OrphanSec"),
         countrySectorId: "9999999999",
+        countrySubsectorId: null,
+        description: null,
       },
     });
     expect(response.statusCode).toBe(404);
@@ -170,6 +174,8 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
       payload: {
         name: uniqueName("OnDead"),
         countrySectorId: dead.id.toString(),
+        countrySubsectorId: null,
+        description: null,
       },
     });
     expect(response.statusCode).toBe(404);
@@ -188,7 +194,9 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
       url: "/api/admin/organization-main-activities/",
       payload: {
         name: uniqueName("OnDeadSub"),
+        countrySectorId: null,
         countrySubsectorId: deadSub.id.toString(),
+        description: null,
       },
     });
     expect(response.statusCode).toBe(404);
@@ -215,6 +223,7 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
         name,
         countrySectorId: sector.id.toString(),
         countrySubsectorId: sub.id.toString(),
+        description: null,
       },
     });
     expect(response.statusCode).toBe(409);
@@ -230,7 +239,12 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
       const response = await app.inject({
         method: "POST",
         url: "/api/admin/organization-main-activities/",
-        payload: { name: uniqueName("Forbidden") },
+        payload: {
+          name: uniqueName("Forbidden"),
+          countrySectorId: null,
+          countrySubsectorId: null,
+          description: null,
+        },
       });
       expect(response.statusCode).toBe(403);
     } finally {

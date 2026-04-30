@@ -63,7 +63,11 @@ describe("POST /api/admin/country-subsectors - Integration Tests", () => {
     const response = await app.inject({
       method: "POST",
       url: "/api/admin/country-subsectors/",
-      payload: { name, countrySectorId: parent.id.toString() },
+      payload: {
+        name,
+        countrySectorId: parent.id.toString(),
+        description: null,
+      },
     });
     expect(response.statusCode).toBe(201);
     const body = JSON.parse(response.body) as CreateCountrySubsectorResponse;
@@ -106,7 +110,11 @@ describe("POST /api/admin/country-subsectors - Integration Tests", () => {
     const response = await app.inject({
       method: "POST",
       url: "/api/admin/country-subsectors/",
-      payload: { name, countrySectorId: parent.id.toString() },
+      payload: {
+        name,
+        countrySectorId: parent.id.toString(),
+        description: null,
+      },
     });
     expect(response.statusCode).toBe(409);
   });
@@ -118,6 +126,7 @@ describe("POST /api/admin/country-subsectors - Integration Tests", () => {
       payload: {
         name: uniqueName(TEST_PREFIX, "Orphan"),
         countrySectorId: "9999999999",
+        description: null,
       },
     });
     expect(response.statusCode).toBe(404);
@@ -134,6 +143,7 @@ describe("POST /api/admin/country-subsectors - Integration Tests", () => {
       payload: {
         name: uniqueName(TEST_PREFIX, "OnDead"),
         countrySectorId: parent.id.toString(),
+        description: null,
       },
     });
     expect(response.statusCode).toBe(404);
@@ -155,6 +165,7 @@ describe("POST /api/admin/country-subsectors - Integration Tests", () => {
         payload: {
           name: uniqueName(TEST_PREFIX, "Forbidden"),
           countrySectorId: parent.id.toString(),
+          description: null,
         },
       });
       expect(response.statusCode).toBe(403);

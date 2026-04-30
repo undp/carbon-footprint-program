@@ -92,7 +92,7 @@ describe("POST /api/admin/country-organization-sizes - Integration Tests", () =>
     const response = await app.inject({
       method: "POST",
       url: "/api/admin/country-organization-sizes/",
-      payload: { name },
+      payload: { name, description: null },
     });
     expect(response.statusCode).toBe(409);
   });
@@ -107,7 +107,7 @@ describe("POST /api/admin/country-organization-sizes - Integration Tests", () =>
       const response = await app.inject({
         method: "POST",
         url: "/api/admin/country-organization-sizes/",
-        payload: { name: uniqueName("Forbidden") },
+        payload: { name: uniqueName("Forbidden"), description: null },
       });
       expect(response.statusCode).toBe(403);
     } finally {
