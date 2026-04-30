@@ -1,12 +1,16 @@
-import { Logout } from "@mui/icons-material";
 import {
-  Menu,
-  MenuItem,
+  AdminPanelSettingsOutlined,
+  HomeOutlined,
+  Logout,
+} from "@mui/icons-material";
+import {
   Avatar,
-  Divider,
-  ListItemIcon,
   Box,
+  Button,
   Card,
+  Divider,
+  IconButton,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +18,7 @@ import { useCallback, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 import { SystemRole } from "@repo/types";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const UserMenu = () => {
   const { signOut, user: me, isLoading } = useAuth();
@@ -24,102 +29,121 @@ export const UserMenu = () => {
   const imAdmin =
     me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
-  const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleToggleArea = useCallback(() => {
+    void navigate({
+      to: isAdminRoute ? Routes.HOME : Routes.ADMIN_DASHBOARD,
+    });
+  }, [navigate, isAdminRoute]);
+
+  const openLogoutDialog = useCallback(() => {
+    setLogoutDialogOpen(true);
   }, []);
 
-  const handleClose = useCallback(() => {
-    setAnchorEl(null);
+  const closeLogoutDialog = useCallback(() => {
+    setLogoutDialogOpen(false);
   }, []);
 
-  const navigateToHome = useCallback(() => {
-    void navigate({
-      to: Routes.HOME,
-    });
-  }, [navigate]);
-
-  const navigateToAdmin = useCallback(() => {
-    void navigate({
-      to: Routes.ADMIN_DASHBOARD,
-    });
-  }, [navigate]);
-
-  const name = me?.firstName ? `${me.firstName} ${me.lastName}` : null;
+  const confirmLogout = useCallback(() => {
+    setLogoutDialogOpen(false);
+    void signOut();
+  }, [signOut]);
 
   if (isLoading || !me) {
     return null;
   }
 
+  const name = me.firstName ? `${me.firstName} ${me.lastName}` : null;
+  const toggleLabel = isAdminRoute
+    ? "Volver a la aplicación"
+    : "Ir al panel de administración";
+  const ToggleIcon = isAdminRoute ? HomeOutlined : AdminPanelSettingsOutlined;
+
   return (
-    <Box className="mb-4 flex flex-col-reverse gap-4">
+    <Box className="mb-4 flex flex-col gap-3">
+      <Divider />
+
       <Card
         elevation={0}
-        className="flex items-center gap-2"
-        onClick={handleClick}
-        sx={{ cursor: "pointer" }}
+        sx={(theme) => ({
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          p: 1,
+          backgroundColor: theme.palette.grey[50],
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 1,
+        })}
       >
         <Avatar
           sx={(theme) => ({
-            backgroundColor: theme.palette.grey[200],
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            width: 40,
+            height: 40,
           })}
         >
           {me.firstName?.charAt(0).toUpperCase()}
         </Avatar>
-        <Box className="flex flex-col">
+        <Box className="flex min-w-0 flex-1 flex-col">
           {name && (
-            <Typography variant="body1" lineHeight="normal">
+            <Typography
+              variant="body2"
+              fontWeight={600}
+              lineHeight={1.2}
+              noWrap
+            >
               {name}
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary">
-            {me.email}
-          </Typography>
+          <Tooltip title={me.email} placement="top">
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {me.email}
+            </Typography>
+          </Tooltip>
         </Box>
-      </Card>
-      <Menu
-        anchorEl={anchorEl}
-        id="account-menu"
-        open={open}
-        onClose={handleClose}
-        onClick={handleClose}
-        slotProps={{
-          paper: {
-            elevation: 0,
-            sx: {
-              overflow: "visible",
-              filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-              mt: 1.5,
-              "& .MuiAvatar-root": {
-                width: 32,
-                height: 32,
-                ml: -0.5,
-                mr: 1,
+        <Tooltip title="Cerrar sesión" placement="top">
+          <IconButton
+            size="small"
+            onClick={openLogoutDialog}
+            aria-label="Cerrar sesión"
+            sx={(theme) => ({
+              color: theme.palette.error.main,
+              "&:hover": {
+                backgroundColor: theme.palette.error.light,
+                color: theme.palette.error.contrastText,
               },
-            },
-          },
-        }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      >
-        {imAdmin && !isAdminRoute && (
-          <MenuItem onClick={navigateToAdmin}>Ir a admin</MenuItem>
-        )}
-        {imAdmin && isAdminRoute && (
-          <MenuItem onClick={navigateToHome}>Ir a home</MenuItem>
-        )}
-
-        <MenuItem onClick={signOut}>
-          <ListItemIcon>
+            })}
+          >
             <Logout fontSize="small" />
-          </ListItemIcon>
-          Salir
-        </MenuItem>
-      </Menu>
+          </IconButton>
+        </Tooltip>
+      </Card>
 
-      <Divider />
+      {imAdmin && (
+        <Button
+          variant="outlined"
+          size="small"
+          fullWidth
+          onClick={handleToggleArea}
+          startIcon={<ToggleIcon />}
+          aria-label={toggleLabel}
+        >
+          {toggleLabel}
+        </Button>
+      )}
+
+      <ConfirmDialog
+        open={logoutDialogOpen}
+        onClose={closeLogoutDialog}
+        onConfirm={confirmLogout}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que quieres cerrar sesión?"
+        variant="error"
+        confirmLabel="Cerrar sesión"
+        cancelLabel="Cancelar"
+      />
     </Box>
   );
 };
