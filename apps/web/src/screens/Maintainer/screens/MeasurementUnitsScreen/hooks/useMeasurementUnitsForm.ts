@@ -2,20 +2,50 @@ import { useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CreateMeasurementUnitBodySchema } from "@repo/types";
+import {
+  MEASUREMENT_UNIT_NAME_MAX_LENGTH,
+  MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH,
+  ABBREVIATION_REGEX,
+} from "@repo/constants";
 import type { MeasurementUnitForm } from "../types";
+import { Magnitude } from "@repo/types";
 
 export interface MeasurementUnitsFormValues {
   measurementUnits: MeasurementUnitForm[];
 }
 
-const measurementUnitRowSchema = CreateMeasurementUnitBodySchema.extend({
+const measurementUnitFormRowSchema = z.object({
   id: z.string(),
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "El nombre es obligatorio." })
+    .max(MEASUREMENT_UNIT_NAME_MAX_LENGTH, {
+      message: `El nombre no puede superar ${MEASUREMENT_UNIT_NAME_MAX_LENGTH} caracteres.`,
+    }),
+  abbreviation: z
+    .string()
+    .trim()
+    .min(1, { message: "La abreviatura es obligatoria." })
+    .max(MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH, {
+      message: `La abreviatura no puede superar ${MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH} caracteres.`,
+    })
+    .regex(ABBREVIATION_REGEX, {
+      message:
+        "La abreviatura no puede contener barras (/) ni caracteres de control.",
+    }),
+  magnitude: z.enum(Magnitude, {
+    message: "La magnitud seleccionada no es válida.",
+  }),
+  baseFactor: z
+    .number()
+    .positive({ message: "El factor base debe ser mayor que cero." }),
+  isBase: z.boolean(),
   referenceCount: z.number(),
 });
 
 const measurementUnitsFormSchema = z.object({
-  measurementUnits: z.array(measurementUnitRowSchema),
+  measurementUnits: z.array(measurementUnitFormRowSchema),
 });
 
 export const useMeasurementUnitsForm = () => {
