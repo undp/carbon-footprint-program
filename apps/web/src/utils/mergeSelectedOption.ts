@@ -1,3 +1,5 @@
+import { unionBy } from "lodash-es";
+
 /**
  * Merges a single "currently selected" entity into a list of options, ensuring it is
  * present even when the upstream list filters it out (e.g., the public list endpoint
@@ -6,14 +8,7 @@
  *
  * The result is sorted alphabetically by name, with locale-aware comparison.
  *
- * Returns `options` unchanged when:
- * - `selected` is null or undefined
- * - `selected.id` is already present in the options list
- *
- * Otherwise prepends `selected` and re-sorts.
- *
- * Identity-stable when no merge is needed: returns the same array reference, so
- * downstream `useMemo`/`React.memo` callers do not re-render unnecessarily.
+ * Returns `options` unchanged when `selected` is null or undefined.
  */
 export const mergeSelectedOption = <
   T extends { id: string | number; name: string },
@@ -22,8 +17,8 @@ export const mergeSelectedOption = <
   selected: T | null | undefined
 ): T[] => {
   if (!selected) return options;
-  if (options.some((option) => option.id === selected.id)) return options;
-  return [...options, selected].sort((a, b) =>
+
+  return unionBy(options, [selected], "id").sort((a, b) =>
     a.name.localeCompare(b.name, "es", { sensitivity: "base" })
   );
 };
