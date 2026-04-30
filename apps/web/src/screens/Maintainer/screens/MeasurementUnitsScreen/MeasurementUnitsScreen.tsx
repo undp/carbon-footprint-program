@@ -21,9 +21,11 @@ import { MaintainerPageHeader } from "../../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../../components/MaintainerDataGrid";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
-import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
+import {
+  MeasurementUnitsFormRow,
+  useMeasurementUnitsForm,
+} from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
-import type { MeasurementUnitForm } from "./types";
 import { Magnitude, MeasurementUnitCreationResultEnum } from "@repo/types";
 
 export const MeasurementUnitsScreen: FC = () => {
@@ -91,7 +93,7 @@ export const MeasurementUnitsScreen: FC = () => {
           name: row.name,
           abbreviation: row.abbreviation,
           magnitude: row.magnitude,
-          baseFactor: row.baseFactor,
+          baseFactor: row.baseFactor!,
           isBase: row.isBase,
         });
 
@@ -130,7 +132,7 @@ export const MeasurementUnitsScreen: FC = () => {
         const updateData: {
           name?: string;
           abbreviation?: string;
-          magnitude?: MeasurementUnitForm["magnitude"];
+          magnitude?: MeasurementUnitsFormRow["magnitude"];
           baseFactor?: number;
           isBase?: boolean;
         } = {};
@@ -142,7 +144,7 @@ export const MeasurementUnitsScreen: FC = () => {
         if (dirtyFields.measurementUnits?.[rowIndex]?.magnitude)
           updateData.magnitude = row.magnitude;
         if (dirtyFields.measurementUnits?.[rowIndex]?.baseFactor)
-          updateData.baseFactor = row.baseFactor;
+          updateData.baseFactor = row.baseFactor!;
         if (dirtyFields.measurementUnits?.[rowIndex]?.isBase)
           updateData.isBase = row.isBase;
 
@@ -213,12 +215,12 @@ export const MeasurementUnitsScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    const newRow: MeasurementUnitForm = {
+    const newRow: MeasurementUnitsFormRow = {
       id: tempId,
       name: "",
       abbreviation: "",
       magnitude: Magnitude.ANIMALS,
-      baseFactor: 1,
+      baseFactor: null,
       isBase: false,
       referenceCount: 0,
     };
@@ -227,7 +229,7 @@ export const MeasurementUnitsScreen: FC = () => {
   }, [fieldArray]);
 
   const handleDelete = useCallback(
-    async (row: MeasurementUnitForm) => {
+    async (row: MeasurementUnitsFormRow) => {
       try {
         const rows = form.getValues("measurementUnits");
         const index = rows.findIndex((r) => r.id === row.id);
@@ -316,7 +318,7 @@ export const MeasurementUnitsScreen: FC = () => {
             loading={isLoading}
             columns={columns}
             rows={currentRows}
-            getRowId={(row: MeasurementUnitForm) => row.id}
+            getRowId={(row: MeasurementUnitsFormRow) => row.id}
             disableColumnSorting={false}
             hideFooter={false}
             pagination

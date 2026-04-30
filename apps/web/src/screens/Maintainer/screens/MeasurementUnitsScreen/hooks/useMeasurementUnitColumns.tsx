@@ -11,23 +11,23 @@ import {
 } from "../../../components/cells";
 import { ActionButtons } from "../../../components/ActionButtons";
 import { ToggleCell } from "../../../components/ToggleCell";
-import type { MeasurementUnitForm } from "../types";
+import { MeasurementUnitsFormRow } from "./useMeasurementUnitsForm.js";
 
 interface UseMeasurementUnitColumnsParams {
   editingRowId: string | null;
-  onCellChange: <K extends keyof MeasurementUnitForm>(
+  onCellChange: <K extends keyof MeasurementUnitsFormRow>(
     rowIndex: number,
     field: K,
-    value: MeasurementUnitForm[K]
+    value: MeasurementUnitsFormRow[K]
   ) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => Promise<boolean>;
   onCancelEditRow: () => void;
-  onDelete: (row: MeasurementUnitForm) => void;
-  rows: MeasurementUnitForm[];
+  onDelete: (row: MeasurementUnitsFormRow) => void;
+  rows: MeasurementUnitsFormRow[];
 }
 
-const isProtectedRow = (row: MeasurementUnitForm): boolean =>
+const isProtectedRow = (row: MeasurementUnitsFormRow): boolean =>
   row.abbreviation === "kg" || row.isBase;
 
 export const useMeasurementUnitColumns = ({
@@ -38,7 +38,7 @@ export const useMeasurementUnitColumns = ({
   onCancelEditRow,
   onDelete,
   rows,
-}: UseMeasurementUnitColumnsParams): GridColDef<MeasurementUnitForm>[] => {
+}: UseMeasurementUnitColumnsParams): GridColDef<MeasurementUnitsFormRow>[] => {
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
     [rows]
@@ -49,13 +49,13 @@ export const useMeasurementUnitColumns = ({
     [editingRowId]
   );
 
-  return useMemo<GridColDef<MeasurementUnitForm>[]>(
+  return useMemo<GridColDef<MeasurementUnitsFormRow>[]>(
     () => [
       {
         field: "magnitude",
         headerName: "Magnitud",
         width: 180,
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
@@ -105,7 +105,7 @@ export const useMeasurementUnitColumns = ({
         headerName: "Nombre",
         flex: 1,
         minWidth: 160,
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           return (
@@ -126,7 +126,7 @@ export const useMeasurementUnitColumns = ({
         field: "abbreviation",
         headerName: "Abreviatura",
         width: 140,
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
@@ -176,7 +176,7 @@ export const useMeasurementUnitColumns = ({
         type: "number",
         headerAlign: "right",
         align: "right",
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
@@ -225,7 +225,7 @@ export const useMeasurementUnitColumns = ({
         width: 130,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
@@ -267,7 +267,7 @@ export const useMeasurementUnitColumns = ({
         width: 140,
         sortable: false,
         filterable: false,
-        renderCell: (params: GridRenderCellParams<MeasurementUnitForm>) => {
+        renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
           const isLocked = params.row.referenceCount > 0;
