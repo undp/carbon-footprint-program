@@ -38,7 +38,7 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
       showToolbar
       columns={columns}
       rows={rows}
-      rowHeight={65}
+      getRowHeight={() => "auto"}
       getRowId={(row: GetAllUsersResponse[number]) => row.id}
       disableColumnSorting={false}
       hideFooter={false}

@@ -1,6 +1,13 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { Box, Chip, IconButton, Stack, Tooltip } from "@mui/material";
+import {
+  Box,
+  Chip,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
@@ -44,57 +51,43 @@ export const useUsersColumns = ({
       ...(isUsuariosTab
         ? [
             {
-              field: "organizations",
-              headerName: COLUMN_HEADERS.organizations,
+              field: "organizationsAndRoles",
+              headerName: COLUMN_HEADERS.organizationsAndRoles,
               cellClassName,
-              flex: 1.2,
+              flex: 2.4,
               sortable: false,
               renderCell: (params: { row: UserRow }) => {
                 const orgs = params.row.organizations;
                 if (orgs.length === 0) return "-";
                 return (
-                  <Stack
-                    direction="row"
-                    spacing={0.5}
-                    flexWrap="wrap"
-                    useFlexGap
-                  >
+                  <Stack spacing={0.5} sx={{ py: 0.5 }} alignItems="flex-start">
                     {orgs.map((org) => (
-                      <Chip
+                      <Stack
                         key={org.organizationId}
-                        label={org.organizationName}
-                        size="small"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Stack>
-                );
-              },
-            } satisfies GridColDef<UserRow>,
-            {
-              field: "organizationRoles",
-              headerName: COLUMN_HEADERS.organizationRoles,
-              cellClassName,
-              flex: 1.2,
-              sortable: false,
-              renderCell: (params: { row: UserRow }) => {
-                const orgs = params.row.organizations;
-                if (orgs.length === 0) return "-";
-                const uniqueRoles = [...new Set(orgs.map((o) => o.role))];
-                return (
-                  <Stack
-                    direction="row"
-                    spacing={0.5}
-                    flexWrap="wrap"
-                    useFlexGap
-                  >
-                    {uniqueRoles.map((role) => (
-                      <Chip
-                        key={role}
-                        label={ORGANIZATION_ROLE_LABELS[role]}
-                        size="small"
-                        variant="outlined"
-                      />
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                        sx={{ maxWidth: "100%" }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            minWidth: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                          title={org.organizationName}
+                        >
+                          {org.organizationName}
+                        </Typography>
+                        <Chip
+                          label={ORGANIZATION_ROLE_LABELS[org.role]}
+                          size="small"
+                          variant="outlined"
+                          sx={{ flexShrink: 0 }}
+                        />
+                      </Stack>
                     ))}
                   </Stack>
                 );
