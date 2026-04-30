@@ -1,16 +1,18 @@
 import {
   AdminPanelSettingsOutlined,
   HomeOutlined,
-  Logout,
+  KeyboardArrowDown,
+  LogoutOutlined,
 } from "@mui/icons-material";
 import {
   Avatar,
   Box,
-  Button,
-  Card,
+  Chip,
   Divider,
-  IconButton,
-  Tooltip,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,15 +31,27 @@ export const UserMenu = () => {
   const imAdmin =
     me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const open = Boolean(anchorEl);
+
+  const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
 
   const handleToggleArea = useCallback(() => {
+    setAnchorEl(null);
     void navigate({
       to: isAdminRoute ? Routes.HOME : Routes.ADMIN_DASHBOARD,
     });
   }, [navigate, isAdminRoute]);
 
   const openLogoutDialog = useCallback(() => {
+    setAnchorEl(null);
     setLogoutDialogOpen(true);
   }, []);
 
@@ -59,80 +73,163 @@ export const UserMenu = () => {
     ? "Volver a la aplicación"
     : "Ir al panel de administración";
   const ToggleIcon = isAdminRoute ? HomeOutlined : AdminPanelSettingsOutlined;
+  const areaBadgeLabel = isAdminRoute ? "Admin" : "App";
 
   return (
-    <Box className="mb-4 flex flex-col gap-3">
+    <Box className="mb-4 flex flex-col gap-2">
       <Divider />
 
-      <Card
-        elevation={0}
+      <Box
+        component="button"
+        type="button"
+        onClick={handleOpen}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? "user-menu" : undefined}
         sx={(theme) => ({
+          all: "unset",
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: 1.25,
           p: 1,
-          backgroundColor: theme.palette.grey[50],
-          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 1,
+          cursor: "pointer",
+          border: `1px solid ${open ? theme.palette.primary.main : "transparent"}`,
+          backgroundColor: open
+            ? theme.palette.action.selected
+            : "transparent",
+          transition: theme.transitions.create([
+            "background-color",
+            "border-color",
+          ]),
+          "&:hover": {
+            backgroundColor: theme.palette.action.hover,
+          },
+          "&:focus-visible": {
+            outline: `2px solid ${theme.palette.primary.main}`,
+            outlineOffset: 2,
+          },
         })}
       >
         <Avatar
           sx={(theme) => ({
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.primary.contrastText,
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
+            fontSize: 14,
+            fontWeight: 600,
           })}
         >
           {me.firstName?.charAt(0).toUpperCase()}
         </Avatar>
-        <Box className="flex min-w-0 flex-1 flex-col">
+        <Box className="flex min-w-0 flex-1 flex-col items-start">
+          <Box className="flex w-full items-center gap-1">
+            {name && (
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                lineHeight={1.2}
+                noWrap
+                sx={{ flex: 1, textAlign: "left" }}
+              >
+                {name}
+              </Typography>
+            )}
+            {imAdmin && (
+              <Chip
+                label={areaBadgeLabel}
+                size="small"
+                color={isAdminRoute ? "primary" : "default"}
+                sx={{ height: 18, fontSize: 10, fontWeight: 600 }}
+              />
+            )}
+          </Box>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            noWrap
+            sx={{ width: "100%", textAlign: "left" }}
+          >
+            {me.email}
+          </Typography>
+        </Box>
+        <KeyboardArrowDown
+          fontSize="small"
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
+            transition: theme.transitions.create("transform"),
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          })}
+        />
+      </Box>
+
+      <Menu
+        id="user-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{ horizontal: "left", vertical: "top" }}
+        transformOrigin={{ horizontal: "left", vertical: "bottom" }}
+        slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              minWidth: 240,
+              mt: -1,
+              borderRadius: 1,
+              overflow: "hidden",
+            },
+          },
+          list: { sx: { py: 0.5 } },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.25 }}>
+          <Typography variant="caption" color="text.secondary">
+            Sesión iniciada como
+          </Typography>
           {name && (
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              lineHeight={1.2}
-              noWrap
-            >
+            <Typography variant="body2" fontWeight={600} noWrap>
               {name}
             </Typography>
           )}
-          <Tooltip title={me.email} placement="top">
-            <Typography variant="caption" color="text.secondary" noWrap>
-              {me.email}
-            </Typography>
-          </Tooltip>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {me.email}
+          </Typography>
         </Box>
-        <Tooltip title="Cerrar sesión" placement="top">
-          <IconButton
-            size="small"
-            onClick={openLogoutDialog}
-            aria-label="Cerrar sesión"
-            sx={(theme) => ({
-              color: theme.palette.error.main,
-              "&:hover": {
-                backgroundColor: theme.palette.error.light,
+
+        <Divider />
+
+        {imAdmin && [
+          <MenuItem key="toggle-area" onClick={handleToggleArea}>
+            <ListItemIcon>
+              <ToggleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={toggleLabel} />
+          </MenuItem>,
+          <Divider key="toggle-divider" />,
+        ]}
+
+        <MenuItem
+          onClick={openLogoutDialog}
+          sx={(theme) => ({
+            color: theme.palette.error.main,
+            "& .MuiListItemIcon-root": { color: theme.palette.error.main },
+            "&:hover": {
+              backgroundColor: theme.palette.error.light,
+              color: theme.palette.error.contrastText,
+              "& .MuiListItemIcon-root": {
                 color: theme.palette.error.contrastText,
               },
-            })}
-          >
-            <Logout fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Card>
-
-      {imAdmin && (
-        <Button
-          variant="outlined"
-          size="small"
-          fullWidth
-          onClick={handleToggleArea}
-          startIcon={<ToggleIcon />}
-          aria-label={toggleLabel}
+            },
+          })}
         >
-          {toggleLabel}
-        </Button>
-      )}
+          <ListItemIcon>
+            <LogoutOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Cerrar sesión" />
+        </MenuItem>
+      </Menu>
 
       <ConfirmDialog
         open={logoutDialogOpen}
