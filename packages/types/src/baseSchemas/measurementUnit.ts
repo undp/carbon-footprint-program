@@ -3,7 +3,7 @@ import { IdSchema } from "../zod.js";
 import { Magnitude, MeasurementUnitStatus } from "@repo/database/enums";
 
 export const MagnitudeSchema = z.enum(Magnitude);
-export const MeasurementUnitStatusSchema = z.nativeEnum(MeasurementUnitStatus);
+export const MeasurementUnitStatusSchema = z.enum(MeasurementUnitStatus);
 
 export const MeasurementUnitBaseSchema = z.object({
   id: IdSchema.describe("The unique identifier for the measurement unit."),
