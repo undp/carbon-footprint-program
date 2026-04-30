@@ -54,7 +54,8 @@ export const useMeasurementUnitColumns = ({
       {
         field: "magnitude",
         headerName: "Magnitud",
-        width: 180,
+        minWidth: 180,
+        flex: 0.5,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -125,7 +126,8 @@ export const useMeasurementUnitColumns = ({
       {
         field: "abbreviation",
         headerName: "Abreviatura",
-        width: 140,
+        minWidth: 140,
+        flex: 0.5,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -172,7 +174,8 @@ export const useMeasurementUnitColumns = ({
       {
         field: "baseFactor",
         headerName: "Factor base",
-        width: 130,
+        minWidth: 130,
+        flex: 0.5,
         type: "number",
         headerAlign: "right",
         align: "right",
@@ -222,7 +225,7 @@ export const useMeasurementUnitColumns = ({
       {
         field: "isBase",
         headerName: "¿Unidad base?",
-        width: 130,
+        minWidth: 130,
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
@@ -264,7 +267,9 @@ export const useMeasurementUnitColumns = ({
       {
         field: "actions",
         headerName: "Acciones",
-        width: 140,
+        align: "center",
+        headerAlign: "center",
+        minWidth: 130,
         sortable: false,
         filterable: false,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
