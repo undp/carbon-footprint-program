@@ -8,7 +8,10 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { CreateMeasurementUnitResponse } from "@repo/types";
+import {
+  MeasurementUnitCreationResultEnum,
+  type CreateMeasurementUnitResponse,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MeasurementUnitStatus } from "@repo/database";
@@ -68,7 +71,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.isBase).toBe(false);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
       expect(body.referenceCount).toBe(0);
-      expect(body.action).toBe("created");
+      expect(body.action).toBe(MeasurementUnitCreationResultEnum.created);
     });
 
     it("should persist the unit and create a canonical RMU", async () => {
@@ -140,7 +143,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
   });
 
   describe("Restore behavior", () => {
-    it("should restore a soft-deleted unit (action=restored-full) when referenceCount=0", async () => {
+    it("should restore a soft-deleted unit (action=fullyRestored) when referenceCount=0", async () => {
       const payload = buildPayload();
 
       // Create then delete the unit directly via DB
@@ -174,7 +177,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
-      expect(body.action).toBe("restored-full");
+      expect(body.action).toBe(MeasurementUnitCreationResultEnum.fullyRestored);
       expect(body.id).toBe(created.id); // same row, restored
       expect(body.name).toBe(restorePayload.name);
       expect(body.magnitude).toBe("VOLUME");
