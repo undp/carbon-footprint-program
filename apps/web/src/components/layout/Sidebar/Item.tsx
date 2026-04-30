@@ -12,7 +12,7 @@ import { Link } from "@tanstack/react-router";
 export interface SidebarItemProps {
   icon: React.ReactNode;
   text: string;
-  path: string;
+  path?: string;
   selected: boolean;
   disabled?: boolean;
   isChild?: boolean;

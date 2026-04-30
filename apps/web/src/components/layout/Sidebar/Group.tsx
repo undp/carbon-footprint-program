@@ -18,7 +18,7 @@ import { Item } from "./Item";
 export interface SidebarGroupItem {
   icon: React.ReactNode;
   text: string;
-  path: string;
+  path?: string;
   disabled?: boolean;
   requiredRoles?: SystemRole[];
 }
@@ -51,9 +51,10 @@ export const Group: FC<SidebarGroupProps> = ({
     (event: React.MouseEvent) => {
       event.stopPropagation();
       event.preventDefault();
-      if (!isChildActive && !isActive) setIsOpen(!isOpen);
+      if (isActive || isChildActive) return;
+      setIsOpen((prev) => !prev);
     },
-    [isChildActive, isActive, isOpen]
+    [isChildActive, isActive]
   );
 
   return (
@@ -63,7 +64,7 @@ export const Group: FC<SidebarGroupProps> = ({
           component={Link}
           to={path}
           disabled={disabled}
-          onClick={() => setIsOpen(true)}
+          onClick={handleToggleGroup}
           selected={isActive}
           sx={{
             mx: 1,
@@ -80,7 +81,6 @@ export const Group: FC<SidebarGroupProps> = ({
             "& .MuiListItemText-primary": {
               mt: 0,
               mb: 0,
-              ...(isGroupOpen ? { fontWeight: 500 } : {}),
             },
             "&.Mui-selected": {
               borderRadius: 34,
@@ -103,12 +103,7 @@ export const Group: FC<SidebarGroupProps> = ({
         >
           <ListItemIcon>{icon}</ListItemIcon>
           <ListItemText primary={text} />
-          <IconButton
-            onClick={handleToggleGroup}
-            disableRipple
-            size="small"
-            sx={{ p: 0 }}
-          >
+          <IconButton disableRipple size="small" sx={{ p: 0 }}>
             {isGroupOpen ? (
               <ExpandLess sx={{ fontSize: 16 }} />
             ) : (

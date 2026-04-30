@@ -18,6 +18,7 @@ import {
   RecommendOutlined,
   ListAltOutlined,
   InfoOutlined,
+  AutoAwesomeMotionOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -37,9 +38,13 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   {
     text: "Metodologías",
     icon: <MenuBookOutlined />,
-    path: Routes.ADMIN_METHODOLOGIES,
     requiredRoles: [SystemRole.SUPERADMIN],
     children: [
+      {
+        text: "Versiones",
+        icon: <AutoAwesomeMotionOutlined fontSize="small" />,
+        path: Routes.ADMIN_METHODOLOGIES,
+      },
       {
         text: "Categorías/Alcances",
         icon: <ScienceOutlined fontSize="small" />,
