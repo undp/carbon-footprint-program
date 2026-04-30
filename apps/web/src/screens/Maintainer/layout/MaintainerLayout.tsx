@@ -21,7 +21,6 @@ import {
   AutoAwesomeMotionOutlined,
   StraightenOutlined,
 } from "@mui/icons-material";
-import AutoAwesomeMotionOutlinedIcon from "@mui/icons-material/AutoAwesomeMotionOutlined";
 import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
 import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
 import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
@@ -166,6 +165,8 @@ export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
     <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_WIDTH }}>
       <Sidebar
         items={visibleItems}
+        areaLabel="Admin"
+        areaVariant="admin"
         footer={
           <>
             <Typography

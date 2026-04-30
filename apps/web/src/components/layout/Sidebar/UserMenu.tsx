@@ -5,9 +5,7 @@ import {
   LogoutOutlined,
 } from "@mui/icons-material";
 import {
-  Avatar,
   Box,
-  Chip,
   Divider,
   ListItemIcon,
   ListItemText,
@@ -73,7 +71,6 @@ export const UserMenu = () => {
     ? "Volver a la aplicación"
     : "Ir al panel de administración";
   const ToggleIcon = isAdminRoute ? HomeOutlined : AdminPanelSettingsOutlined;
-  const areaBadgeLabel = isAdminRoute ? "Admin" : "App";
 
   return (
     <Box className="mb-4 flex flex-col gap-2">
@@ -90,8 +87,9 @@ export const UserMenu = () => {
           all: "unset",
           display: "flex",
           alignItems: "center",
-          gap: 1.25,
-          p: 1,
+          gap: 1,
+          px: 1.25,
+          py: 1,
           borderRadius: 1,
           cursor: "pointer",
           border: `1px solid ${open ? theme.palette.primary.main : "transparent"}`,
@@ -111,40 +109,18 @@ export const UserMenu = () => {
           },
         })}
       >
-        <Avatar
-          sx={(theme) => ({
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
-            width: 36,
-            height: 36,
-            fontSize: 14,
-            fontWeight: 600,
-          })}
-        >
-          {me.firstName?.charAt(0).toUpperCase()}
-        </Avatar>
         <Box className="flex min-w-0 flex-1 flex-col items-start">
-          <Box className="flex w-full items-center gap-1">
-            {name && (
-              <Typography
-                variant="body2"
-                fontWeight={600}
-                lineHeight={1.2}
-                noWrap
-                sx={{ flex: 1, textAlign: "left" }}
-              >
-                {name}
-              </Typography>
-            )}
-            {imAdmin && (
-              <Chip
-                label={areaBadgeLabel}
-                size="small"
-                color={isAdminRoute ? "primary" : "default"}
-                sx={{ height: 18, fontSize: 10, fontWeight: 600 }}
-              />
-            )}
-          </Box>
+          {name && (
+            <Typography
+              variant="body2"
+              fontWeight={600}
+              lineHeight={1.2}
+              noWrap
+              sx={{ width: "100%", textAlign: "left" }}
+            >
+              {name}
+            </Typography>
+          )}
           <Typography
             variant="caption"
             color="text.secondary"
@@ -184,22 +160,6 @@ export const UserMenu = () => {
           list: { sx: { py: 0.5 } },
         }}
       >
-        <Box sx={{ px: 2, py: 1.25 }}>
-          <Typography variant="caption" color="text.secondary">
-            Sesión iniciada como
-          </Typography>
-          {name && (
-            <Typography variant="body2" fontWeight={600} noWrap>
-              {name}
-            </Typography>
-          )}
-          <Typography variant="caption" color="text.secondary" noWrap>
-            {me.email}
-          </Typography>
-        </Box>
-
-        <Divider />
-
         {imAdmin && [
           <MenuItem key="toggle-area" onClick={handleToggleArea}>
             <ListItemIcon>
