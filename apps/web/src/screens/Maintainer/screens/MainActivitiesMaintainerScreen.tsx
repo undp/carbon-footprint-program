@@ -30,7 +30,7 @@ import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
 import { useProfilingRowActions } from "../hooks/useProfilingRowActions";
-import { useJumpToLastPageOnAdd } from "../hooks/useJumpToLastPageOnAdd";
+import { useJumpToFirstPageOnAdd } from "../hooks/useJumpToFirstPageOnAdd";
 import {
   useMainActivityProfilingColumns,
   MainActivityRowSchema,
@@ -301,18 +301,18 @@ export const MainActivitiesMaintainerScreen: FC = () => {
     restoreDisabled: restoreMutation.isPending,
   });
 
-  const { paginationModel, setPaginationModel, jumpToLastPage } =
-    useJumpToLastPageOnAdd();
+  const { paginationModel, setPaginationModel, jumpToFirstPage } =
+    useJumpToFirstPageOnAdd();
 
   const handleAddRow = useCallback(() => {
     actions.handleAddRow();
-    jumpToLastPage(currentRows.length + 1);
-  }, [actions, jumpToLastPage, currentRows.length]);
+    jumpToFirstPage();
+  }, [actions, jumpToFirstPage]);
 
   useEffect(() => {
     if (!editingRowId?.startsWith("temp_")) return;
     requestAnimationFrame(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [editingRowId]);
 

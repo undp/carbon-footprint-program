@@ -2,12 +2,14 @@ import { useMemo, useState } from "react";
 import { SxProps, Theme } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
 import type {
+  GridColDef,
   GridSlotProps,
   GridSlotsComponent,
   GridValidRowModel,
 } from "@mui/x-data-grid";
 import { StylizedDataGrid, type StylizedDataGridProps } from "@components";
 import { useFuzzySearch } from "@/hooks";
+import { wrapColumnToPinEditingRow } from "@/utils/dataGridPinEditingRow";
 import { MaintainerToolbar } from "./MaintainerToolbar";
 
 export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
@@ -33,6 +35,7 @@ export const MaintainerDataGrid = ({
   sx,
   getRowClassName,
   rows,
+  columns,
   searchable,
   slots,
   slotProps,
@@ -64,6 +67,13 @@ export const MaintainerDataGrid = ({
     );
     return editingRow ? [editingRow, ...results] : results;
   }, [searchable, searchQuery, rowsArray, results, editingRowId]);
+
+  const wrappedColumns = useMemo(() => {
+    if (editingRowId === null || !columns) return columns;
+    return (columns as readonly GridColDef<GridValidRowModel>[]).map((col) =>
+      wrapColumnToPinEditingRow(col, editingRowId)
+    );
+  }, [columns, editingRowId]);
 
   const mergedSlots: Partial<GridSlotsComponent> | undefined = useMemo(
     () =>
@@ -124,6 +134,7 @@ export const MaintainerDataGrid = ({
         (({ id }) => (String(id) === editingRowId ? "row--editing" : ""))
       }
       rows={displayRows}
+      columns={wrappedColumns ?? columns}
       slots={mergedSlots}
       slotProps={mergedSlotProps}
       {...props}

@@ -301,7 +301,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
       version: "",
       status: MethodologyVersionStatus.UNPUBLISHED,
     };
-    fieldArray.append(newRow);
+    fieldArray.prepend(newRow);
     setEditingRowId(tempId);
   }, [fieldArray]);
 
