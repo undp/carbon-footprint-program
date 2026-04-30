@@ -1,6 +1,5 @@
 import { FC } from "react";
 import { Box, Card, Stack, Typography } from "@mui/material";
-import { WorkspacePremiumOutlined } from "@mui/icons-material";
 
 export const BadgesScreenHeader: FC = () => (
   <Card
@@ -11,7 +10,6 @@ export const BadgesScreenHeader: FC = () => (
     }}
   >
     <Stack direction="row" alignItems="center" spacing={1.5}>
-      <WorkspacePremiumOutlined color="primary" />
       <Box>
         <Typography variant="h5" fontWeight={700}>
           Sellos

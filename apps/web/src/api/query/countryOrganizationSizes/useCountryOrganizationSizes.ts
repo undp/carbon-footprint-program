@@ -6,7 +6,7 @@ import { STALE_TIME_MS } from "@/config/constants";
 
 export const useCountryOrganizationSizes = () => {
   return useQuery<GetAllCountryOrganizationSizesResponse>({
-    queryKey: countryOrganizationSizeKeys.all,
+    queryKey: countryOrganizationSizeKeys.app,
     queryFn: () => apiClient.get("country-organization-sizes").json(),
     staleTime: STALE_TIME_MS,
   });

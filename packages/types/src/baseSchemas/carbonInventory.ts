@@ -2,6 +2,20 @@ import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { InventoryStatus, UsageMode } from "../enums.js";
 
+/**
+ * Resolved `{ id, name }` reference for a catalog entity already persisted on the
+ * inventory's organization snapshot. Populated by the API even when the underlying
+ * catalog row is now DELETED, so the frontend can render the previous selection by name
+ * via `mergeSelectedOption`.
+ */
+const ResolvedCatalogReferenceSchema = z
+  .object({
+    id: IdSchema,
+    name: z.string(),
+  })
+  .strict()
+  .nullable();
+
 export const OrganizationDataFieldSchema = z
   .object({
     name: z.string().nullable().describe("The name of the organization"),
@@ -13,6 +27,22 @@ export const OrganizationDataFieldSchema = z
       .int()
       .nullable()
       .describe("The quantity of the main activity"),
+    // Resolved {id, name} pairs for the catalog entities referenced above. Optional on
+    // the request side — clients (FE) only send the *Id fields. Always populated on the
+    // response side by the API, including for rows whose status is now DELETED so the FE
+    // selector union helper can render the persisted selection.
+    sector: ResolvedCatalogReferenceSchema.optional().describe(
+      "Resolved {id, name} for the persisted sector — included even when the row is DELETED so the FE selector can render it"
+    ),
+    subsector: ResolvedCatalogReferenceSchema.optional().describe(
+      "Resolved {id, name} for the persisted subsector — included even when the row is DELETED"
+    ),
+    size: ResolvedCatalogReferenceSchema.optional().describe(
+      "Resolved {id, name} for the persisted organization size — included even when the row is DELETED"
+    ),
+    mainActivity: ResolvedCatalogReferenceSchema.optional().describe(
+      "Resolved {id, name} for the persisted main activity — included even when the row is DELETED"
+    ),
   })
   .strict()
   .nullable();

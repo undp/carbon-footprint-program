@@ -9,9 +9,15 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
+import { createTestCountrySubsector } from "@test/factories/countrySubsectorFactory.js";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+} from "@repo/database";
 
 describe("GET /api/country-sectors - Integration Tests", () => {
   let app: FastifyInstance;
@@ -277,6 +283,78 @@ describe("GET /api/country-sectors - Integration Tests", () => {
         const sortedNames = [...names].sort();
         expect(names).toEqual(sortedNames);
       });
+    });
+  });
+
+  describe("Soft-delete filter (smoke)", () => {
+    const PUBLIC_PREFIX = "Test - PublicSec ";
+
+    afterEach(async () => {
+      await prisma.countrySubsector.deleteMany({
+        where: { name: { startsWith: PUBLIC_PREFIX } },
+      });
+      await prisma.countrySector.deleteMany({
+        where: { name: { startsWith: PUBLIC_PREFIX } },
+      });
+    });
+
+    it("excludes DELETED sectors and DELETED nested subsectors from the public response", async () => {
+      const random = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const deletedSector = await createTestCountrySector(prisma, {
+        name: `${PUBLIC_PREFIX}DeletedSector ${random}`,
+        status: CountrySectorStatus.DELETED,
+      });
+      // Attach an ACTIVE subsector under the DELETED sector to ensure the
+      // assertion below isn't a false positive — the public endpoint must
+      // skip the parent sector even when it has live children.
+      const activeSubsectorOfDeletedSector = await createTestCountrySubsector(
+        prisma,
+        deletedSector.id,
+        {
+          name: `${PUBLIC_PREFIX}ActiveSubOfDeleted ${random}`,
+        }
+      );
+      const activeSector = await createTestCountrySector(prisma, {
+        name: `${PUBLIC_PREFIX}ActiveSector ${random}`,
+      });
+      const deletedSubsector = await createTestCountrySubsector(
+        prisma,
+        activeSector.id,
+        {
+          name: `${PUBLIC_PREFIX}DeletedSub ${random}`,
+          status: CountrySubsectorStatus.DELETED,
+        }
+      );
+      const activeSubsector = await createTestCountrySubsector(
+        prisma,
+        activeSector.id,
+        {
+          name: `${PUBLIC_PREFIX}ActiveSub ${random}`,
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+      const ids = body.map((s) => s.id);
+      expect(ids).toContain(activeSector.id.toString());
+      expect(ids).not.toContain(deletedSector.id.toString());
+      // The DELETED sector must not surface even though it owns an ACTIVE
+      // subsector — the response should never include its subsector either.
+      const allSubsectorIds = body.flatMap((s) =>
+        s.subsectors.map((sub) => sub.id)
+      );
+      expect(allSubsectorIds).not.toContain(
+        activeSubsectorOfDeletedSector.id.toString()
+      );
+
+      const found = body.find((s) => s.id === activeSector.id.toString())!;
+      const subIds = found.subsectors.map((sub) => sub.id);
+      expect(subIds).toContain(activeSubsector.id.toString());
+      expect(subIds).not.toContain(deletedSubsector.id.toString());
     });
   });
 

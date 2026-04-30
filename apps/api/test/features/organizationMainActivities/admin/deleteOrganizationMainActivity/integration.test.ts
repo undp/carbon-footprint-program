@@ -1,0 +1,94 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  inject,
+} from "vitest";
+import { createTestApp } from "@test/factories/appFactory.js";
+import { createTestOrganizationMainActivity } from "@test/factories/organizationMainActivityFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import type { FastifyInstance } from "fastify";
+import {
+  type PrismaClient,
+  OrganizationMainActivityStatus,
+} from "@repo/database";
+
+const TEST_PREFIX = "Test - AdminMADel ";
+
+describe("DELETE /api/admin/organization-main-activities/:id - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    app = await createTestApp(inject("databaseUrl"));
+    prisma = app.prisma;
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  afterEach(async () => {
+    await cleanupTestOrganization(prisma);
+    await prisma.organizationMainActivity.deleteMany({
+      where: { name: { startsWith: TEST_PREFIX } },
+    });
+  });
+
+  function uniqueName(suffix: string): string {
+    const random = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    return `${TEST_PREFIX}${suffix} ${random}`;
+  }
+
+  it("soft-deletes a clean main activity", async () => {
+    const ma = await createTestOrganizationMainActivity(prisma, {
+      name: uniqueName("Clean"),
+    });
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+    });
+    expect(response.statusCode).toBe(200);
+
+    const reloaded = await prisma.organizationMainActivity.findUnique({
+      where: { id: ma.id },
+    });
+    expect(reloaded!.status).toBe(OrganizationMainActivityStatus.DELETED);
+  });
+
+  it("does NOT block when only user data references the main activity", async () => {
+    const ma = await createTestOrganizationMainActivity(prisma, {
+      name: uniqueName("UserData"),
+    });
+    const organization = await createTestOrganization(prisma);
+    await prisma.organizationData.create({
+      data: {
+        organizationId: organization.id,
+        legalName: "Test Org",
+        mainActivityId: ma.id,
+        updatedAt: null,
+      },
+    });
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+    });
+    expect(response.statusCode).toBe(200);
+  });
+
+  it("returns 404 when main activity id does not exist", async () => {
+    const response = await app.inject({
+      method: "DELETE",
+      url: "/api/admin/organization-main-activities/9999999999",
+    });
+    expect(response.statusCode).toBe(404);
+  });
+});

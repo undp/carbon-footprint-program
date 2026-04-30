@@ -1,12 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
-import { requireRole } from "@/utils/requireRole";
-import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
+import { MainActivitiesMaintainerScreen } from "@/screens/Maintainer/screens/MainActivitiesMaintainerScreen";
 
 export const Route = createFileRoute(Routes.ADMIN_MAIN_ACTIVITIES)({
-  beforeLoad: requireRole([SystemRole.SUPERADMIN], {
-    redirectTo: Routes.ADMIN_DASHBOARD,
-  }),
-  component: () => <UnderConstructionScreen />,
+  component: () => <MainActivitiesMaintainerScreen />,
 });

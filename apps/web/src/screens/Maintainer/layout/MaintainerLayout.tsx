@@ -4,7 +4,6 @@ import { SIDEBAR_WIDTH } from "@/config/constants";
 import {
   DashboardOutlined,
   MenuBookOutlined,
-  CategoryOutlined,
   TuneOutlined,
   HistoryOutlined,
   ScienceOutlined,
@@ -13,13 +12,19 @@ import {
   SquareFootOutlined,
   TaskOutlined,
   BusinessOutlined,
+  BusinessCenterOutlined,
   ViewColumnOutlined,
   WorkspacePremiumOutlined,
   RecommendOutlined,
   ListAltOutlined,
   InfoOutlined,
   AutoAwesomeMotionOutlined,
+  StraightenOutlined,
 } from "@mui/icons-material";
+import AutoAwesomeMotionOutlinedIcon from "@mui/icons-material/AutoAwesomeMotionOutlined";
+import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
+import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
+import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
 import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
@@ -73,15 +78,28 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
-    text: "Rubros",
-    icon: <CategoryOutlined />,
-    path: Routes.ADMIN_ITEMS,
-    requiredRoles: [SystemRole.SUPERADMIN],
+    text: "Perfilamiento",
+    icon: <BusinessCenterOutlined />,
     children: [
       {
+        text: "Rubros",
+        icon: <FactoryOutlinedIcon fontSize="small" />,
+        path: Routes.ADMIN_SECTORS,
+      },
+      {
+        text: "Subrubros",
+        icon: <PrecisionManufacturingOutlinedIcon fontSize="small" />,
+        path: Routes.ADMIN_SUBSECTORS,
+      },
+      {
         text: "Actividades Principales",
-        icon: <CategoryOutlined />,
+        icon: <EngineeringOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_MAIN_ACTIVITIES,
+      },
+      {
+        text: `Tamaño ${capitalize(VOCAB.organization.noun.singular)}`,
+        icon: <StraightenOutlined fontSize="small" />,
+        path: Routes.ADMIN_ORGANIZATION_SIZES,
       },
     ],
   },

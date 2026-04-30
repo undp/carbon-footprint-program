@@ -1,0 +1,40 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type {
+  SwapCountryOrganizationSizePositionsRequest,
+  SwapCountryOrganizationSizePositionsResponse,
+} from "@repo/types";
+import { CountryOrganizationSizeQueryKey } from "./keys";
+import { organizationKeys } from "../organizations/keys";
+import { apiClient } from "@/api/http";
+
+export const useSwapCountryOrganizationSizePositions = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SwapCountryOrganizationSizePositionsResponse,
+    Error,
+    SwapCountryOrganizationSizePositionsRequest
+  >({
+    mutationFn: (body) =>
+      apiClient
+        .post("admin/country-organization-sizes/swap-positions", { json: body })
+        .json(),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CountryOrganizationSizeQueryKey.CatalogUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminAll(),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
+          exact: true,
+        }),
+      ]);
+    },
+  });
+};

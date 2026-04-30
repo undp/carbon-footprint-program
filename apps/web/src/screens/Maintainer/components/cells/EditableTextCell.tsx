@@ -33,6 +33,10 @@ interface EditableTextCellProps {
   displayPaddingY?: number;
   /** Auto-focus the input when entering edit mode (useful for new rows). */
   autoFocus?: boolean;
+  /** Text shown in read mode when the cell value is empty / null. */
+  placeholder?: string;
+  /** HTML maxLength applied to the underlying input — caps user input on the client. */
+  maxLength?: number;
 }
 
 interface EditingTextFieldProps {
@@ -42,6 +46,7 @@ interface EditingTextFieldProps {
   multiline: boolean;
   maxRows: number;
   autoFocus: boolean;
+  maxLength?: number;
 }
 
 /** Mounts fresh each time the cell enters edit mode, so useState always picks up the latest formValue. */
@@ -52,6 +57,7 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
   multiline,
   maxRows,
   autoFocus,
+  maxLength,
 }) => {
   const [localValue, setLocalValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -90,6 +96,9 @@ const EditingTextField: FC<EditingTextFieldProps> = ({
       multiline={multiline}
       maxRows={maxRows}
       inputRef={inputRef}
+      slotProps={
+        maxLength !== undefined ? { htmlInput: { maxLength } } : undefined
+      }
       sx={{
         "& .MuiOutlinedInput-root": {
           backgroundColor: "white",
@@ -113,10 +122,15 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   displayPaddingX = 1,
   displayPaddingY = 0.5,
   autoFocus = false,
+  placeholder,
+  maxLength,
 }) => {
   const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
   const { control } = useFormContext();
-  const formValue = useWatch({ name: formPath }) as string;
+  const rawValue = useWatch({ name: formPath }) as string | null | undefined;
+  const formValue = rawValue ?? "";
+  const isEmpty = formValue === "";
+  const displayValue = isEmpty && placeholder ? placeholder : formValue;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
     errors as unknown as Record<string, unknown>,
@@ -126,14 +140,19 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   );
 
   const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
-    formValue,
+    displayValue,
     truncateLines,
   ]);
 
   if (!isEditing) {
+    // For single-line we override display to `block`: text-overflow: ellipsis
+    // does not apply on a flex container, so the base sx's `display: flex`
+    // would otherwise clip the text without rendering an ellipsis. The
+    // surrounding DataGrid cell handles vertical centering.
     const truncateSx: SxProps<Theme> =
       truncateLines === 1
         ? {
+            display: "block",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -152,7 +171,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
     return (
       <Tooltip
-        title={isOverflowed ? formValue : ""}
+        title={isOverflowed ? displayValue : ""}
         arrow
         placement="top"
         enterDelay={500}
@@ -169,6 +188,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             borderRadius: 1,
             cursor: onClick ? "pointer" : "default",
             transition: "background-color 0.15s ease",
+            color: isEmpty && placeholder ? "text.disabled" : undefined,
             "&:hover": onClick
               ? {
                   backgroundColor: "grey.100",
@@ -177,7 +197,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             ...truncateSx,
           }}
         >
-          {formValue}
+          {displayValue}
         </Typography>
       </Tooltip>
     );
@@ -185,12 +205,13 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
   return (
     <EditingTextField
-      initialValue={formValue}
+      initialValue={rawValue ?? ""}
       onChange={onChange}
       fieldError={fieldError}
       multiline={multiline}
       maxRows={maxRows}
       autoFocus={autoFocus}
+      maxLength={maxLength}
     />
   );
 };

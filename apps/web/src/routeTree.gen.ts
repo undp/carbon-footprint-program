@@ -26,15 +26,17 @@ import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organizat
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
+import { Route as AdminSubsectorsRouteImport } from './routes/admin/subsectors'
 import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
+import { Route as AdminSectorsRouteImport } from './routes/admin/sectors'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
 import { Route as AdminReductionPlanInitiativesRouteImport } from './routes/admin/reduction-plan-initiatives'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
+import { Route as AdminOrganizationSizesRouteImport } from './routes/admin/organization-sizes'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
 import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
-import { Route as AdminItemsRouteImport } from './routes/admin/items'
 import { Route as AdminExplanationsRouteImport } from './routes/admin/explanations'
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
@@ -138,6 +140,11 @@ const AdminUnitsRoute = AdminUnitsRouteImport.update({
   path: '/units',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSubsectorsRoute = AdminSubsectorsRouteImport.update({
+  id: '/subsectors',
+  path: '/subsectors',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSubcategoryRecommendationsRoute =
   AdminSubcategoryRecommendationsRouteImport.update({
     id: '/subcategory-recommendations',
@@ -147,6 +154,11 @@ const AdminSubcategoryRecommendationsRoute =
 const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
   id: '/subcategories',
   path: '/subcategories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSectorsRoute = AdminSectorsRouteImport.update({
+  id: '/sectors',
+  path: '/sectors',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminRequestsRoute = AdminRequestsRouteImport.update({
@@ -170,6 +182,11 @@ const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
   path: '/organizations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOrganizationSizesRoute = AdminOrganizationSizesRouteImport.update({
+  id: '/organization-sizes',
+  path: '/organization-sizes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
   id: '/methodologies',
   path: '/methodologies',
@@ -178,11 +195,6 @@ const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
 const AdminMainActivitiesRoute = AdminMainActivitiesRouteImport.update({
   id: '/main-activities',
   path: '/main-activities',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminItemsRoute = AdminItemsRouteImport.update({
-  id: '/items',
-  path: '/items',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminExplanationsRoute = AdminExplanationsRouteImport.update({
@@ -293,15 +305,17 @@ export interface FileRoutesByFullPath {
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/explanations': typeof AdminExplanationsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
+  '/admin/sectors': typeof AdminSectorsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
+  '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
@@ -335,15 +349,17 @@ export interface FileRoutesByTo {
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/explanations': typeof AdminExplanationsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
+  '/admin/sectors': typeof AdminSectorsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
+  '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
@@ -380,15 +396,17 @@ export interface FileRoutesById {
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/explanations': typeof AdminExplanationsRoute
-  '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
+  '/admin/sectors': typeof AdminSectorsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
+  '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
@@ -427,15 +445,17 @@ export interface FileRouteTypes {
     | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/explanations'
-    | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
+    | '/admin/sectors'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
+    | '/admin/subsectors'
     | '/admin/units'
     | '/app/carbon-inventories'
     | '/app/home'
@@ -469,15 +489,17 @@ export interface FileRouteTypes {
     | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/explanations'
-    | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
+    | '/admin/sectors'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
+    | '/admin/subsectors'
     | '/admin/units'
     | '/app/carbon-inventories'
     | '/app/home'
@@ -513,15 +535,17 @@ export interface FileRouteTypes {
     | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/explanations'
-    | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
+    | '/admin/sectors'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
+    | '/admin/subsectors'
     | '/admin/units'
     | '/app/carbon-inventories'
     | '/app/home'
@@ -676,6 +700,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUnitsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/subsectors': {
+      id: '/admin/subsectors'
+      path: '/subsectors'
+      fullPath: '/admin/subsectors'
+      preLoaderRoute: typeof AdminSubsectorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/subcategory-recommendations': {
       id: '/admin/subcategory-recommendations'
       path: '/subcategory-recommendations'
@@ -688,6 +719,13 @@ declare module '@tanstack/react-router' {
       path: '/subcategories'
       fullPath: '/admin/subcategories'
       preLoaderRoute: typeof AdminSubcategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sectors': {
+      id: '/admin/sectors'
+      path: '/sectors'
+      fullPath: '/admin/sectors'
+      preLoaderRoute: typeof AdminSectorsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/requests': {
@@ -718,6 +756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrganizationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/organization-sizes': {
+      id: '/admin/organization-sizes'
+      path: '/organization-sizes'
+      fullPath: '/admin/organization-sizes'
+      preLoaderRoute: typeof AdminOrganizationSizesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/methodologies': {
       id: '/admin/methodologies'
       path: '/methodologies'
@@ -730,13 +775,6 @@ declare module '@tanstack/react-router' {
       path: '/main-activities'
       fullPath: '/admin/main-activities'
       preLoaderRoute: typeof AdminMainActivitiesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/items': {
-      id: '/admin/items'
-      path: '/items'
-      fullPath: '/admin/items'
-      preLoaderRoute: typeof AdminItemsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/explanations': {
@@ -868,15 +906,17 @@ interface AdminRouteChildren {
   AdminDimensionsRoute: typeof AdminDimensionsRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
   AdminExplanationsRoute: typeof AdminExplanationsRoute
-  AdminItemsRoute: typeof AdminItemsRoute
   AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
+  AdminOrganizationSizesRoute: typeof AdminOrganizationSizesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminParametersRoute: typeof AdminParametersRoute
   AdminReductionPlanInitiativesRoute: typeof AdminReductionPlanInitiativesRoute
   AdminRequestsRoute: typeof AdminRequestsRoute
+  AdminSectorsRoute: typeof AdminSectorsRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminSubcategoryRecommendationsRoute: typeof AdminSubcategoryRecommendationsRoute
+  AdminSubsectorsRoute: typeof AdminSubsectorsRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -888,15 +928,17 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDimensionsRoute: AdminDimensionsRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
   AdminExplanationsRoute: AdminExplanationsRoute,
-  AdminItemsRoute: AdminItemsRoute,
   AdminMainActivitiesRoute: AdminMainActivitiesRoute,
   AdminMethodologiesRoute: AdminMethodologiesRoute,
+  AdminOrganizationSizesRoute: AdminOrganizationSizesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminParametersRoute: AdminParametersRoute,
   AdminReductionPlanInitiativesRoute: AdminReductionPlanInitiativesRoute,
   AdminRequestsRoute: AdminRequestsRoute,
+  AdminSectorsRoute: AdminSectorsRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminSubcategoryRecommendationsRoute: AdminSubcategoryRecommendationsRoute,
+  AdminSubsectorsRoute: AdminSubsectorsRoute,
   AdminUnitsRoute: AdminUnitsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

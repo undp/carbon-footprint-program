@@ -1,4 +1,7 @@
-import type { PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  OrganizationMainActivityStatus,
+} from "@repo/database";
 import type {
   GetAllOrganizationMainActivitiesResponse,
   GetAllOrganizationMainActivitiesQuery,
@@ -38,6 +41,7 @@ export const getAllOrganizationMainActivitiesService = async (
 
   const data = await prismaClient.organizationMainActivity.findMany({
     where: {
+      status: OrganizationMainActivityStatus.ACTIVE,
       OR: orConditions,
     },
     orderBy: {

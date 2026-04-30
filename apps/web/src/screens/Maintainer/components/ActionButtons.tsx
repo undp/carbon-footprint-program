@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, ReactNode, useState } from "react";
 import {
   Box,
   IconButton,
@@ -39,6 +39,17 @@ interface ActionButtonProps {
   deleteDisabled?: boolean;
   deleteTooltipTitle?: string;
   deleteConfirmMessage?: string;
+  /**
+   * Optional override for the delete confirmation dialog. When provided, the default
+   * `<Dialog>` rendered by `ActionButtons` is suppressed and the consumer renders its
+   * own dialog (e.g., `DeleteWarningDialog`). The consumer receives `open` + the two
+   * handlers — calling `onConfirm` triggers the actual delete and closes the dialog.
+   */
+  renderDeleteDialog?: (props: {
+    open: boolean;
+    onCancel: () => void;
+    onConfirm: () => void;
+  }) => ReactNode;
 }
 
 export const ActionButtons: FC<ActionButtonProps> = ({
@@ -58,6 +69,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   deleteDisabled = false,
   deleteTooltipTitle,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
+  renderDeleteDialog,
 }) => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const isDeleteDisabled = isActiveRow || deleteDisabled;
@@ -70,7 +82,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
 
   return (
     <>
-      <Box className="flex justify-end gap-1 pr-4">
+      <Box className="flex justify-end gap-1">
         {isEditing && onStopEditCells && (
           <Tooltip title="Guardar cambios">
             <IconButton size="small" onClick={onStopEditCells}>
@@ -165,25 +177,36 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         )}
       </Box>
 
-      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-        <DialogTitle>Confirmar eliminación</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{deleteConfirmMessage}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteOpen(false)}>Cancelar</Button>
-          <Button
-            onClick={() => {
-              setDeleteOpen(false);
-              onDelete?.();
-            }}
-            color="primary"
-            variant="contained"
-          >
-            Eliminar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {renderDeleteDialog ? (
+        renderDeleteDialog({
+          open: deleteOpen,
+          onCancel: () => setDeleteOpen(false),
+          onConfirm: () => {
+            setDeleteOpen(false);
+            onDelete?.();
+          },
+        })
+      ) : (
+        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+          <DialogTitle>Confirmar eliminación</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{deleteConfirmMessage}</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                setDeleteOpen(false);
+                onDelete?.();
+              }}
+              color="primary"
+              variant="contained"
+            >
+              Eliminar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </>
   );
 };

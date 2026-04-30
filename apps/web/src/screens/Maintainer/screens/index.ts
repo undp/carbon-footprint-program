@@ -4,3 +4,7 @@ export { BadgesScreen } from "./Badges/BadgesScreen";
 export { SubcategoryRecommendationsMaintainerScreen } from "./SubcategoryRecommendationsMaintainerScreen";
 export { ReductionPlanInitiativesMaintainerScreen } from "./ReductionPlanInitiativesMaintainerScreen";
 export { ExplanationsMaintainerScreen } from "./ExplanationsMaintainerScreen";
+export { SectorsMaintainerScreen } from "./SectorsMaintainerScreen";
+export { SubsectorsMaintainerScreen } from "./SubsectorsMaintainerScreen";
+export { MainActivitiesMaintainerScreen } from "./MainActivitiesMaintainerScreen";
+export { OrganizationSizesMaintainerScreen } from "./OrganizationSizesMaintainerScreen";

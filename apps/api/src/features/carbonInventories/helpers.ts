@@ -9,12 +9,15 @@ import {
   IconName,
   IconNameSchema,
   type CarbonInventoryRecognitionsType,
+  OrganizationDataFieldSchema,
 } from "@repo/types";
+import type { InventoryOrganizationDataReferences } from "./mappers.js";
 import {
   CarbonInventoryNotFoundError,
   CarbonInventoryNotEditableError,
   MethodologyNotFoundError,
 } from "./errors.js";
+import { DataIntegrityError } from "@/errors/index.js";
 import { kgToTon } from "@/utils/number.js";
 import {
   CarbonInventoryDisplayStatus,
@@ -335,4 +338,73 @@ export const calculateDisplayStatus = (
   return carbonInventory.isSelfDeclared
     ? CarbonInventoryDisplayStatusEnum.SELF_DECLARED
     : CarbonInventoryDisplayStatusEnum.DRAFT;
+};
+
+/**
+ * Fetches `{ id, name }` for the catalog entities referenced by the inventory's
+ * `organizationData` snapshot. Looks up by id WITHOUT filtering on `status`, so DELETED
+ * rows are still returned — the FE selector union helper relies on this to keep showing
+ * the persisted selection even after admin soft-delete.
+ */
+export const resolveInventoryOrganizationDataReferences = async (
+  prismaClient: PrismaClient,
+  rawOrganizationData: unknown
+): Promise<InventoryOrganizationDataReferences> => {
+  const parsed = OrganizationDataFieldSchema.safeParse(rawOrganizationData);
+  if (!parsed.success) {
+    throw new DataIntegrityError(
+      `Invalid organizationData JSON structure: ${parsed.error.message}`
+    );
+  }
+  if (!parsed.data) {
+    return {
+      sector: null,
+      subsector: null,
+      size: null,
+      mainActivity: null,
+    };
+  }
+
+  const data = parsed.data;
+  const [sectorRow, subsectorRow, sizeRow, mainActivityRow] = await Promise.all(
+    [
+      data.sectorId
+        ? prismaClient.countrySector.findUnique({
+            where: { id: BigInt(data.sectorId) },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve(null),
+      data.subsectorId
+        ? prismaClient.countrySubsector.findUnique({
+            where: { id: BigInt(data.subsectorId) },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve(null),
+      data.sizeId
+        ? prismaClient.countryOrganizationSize.findUnique({
+            where: { id: BigInt(data.sizeId) },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve(null),
+      data.mainActivityId
+        ? prismaClient.organizationMainActivity.findUnique({
+            where: { id: BigInt(data.mainActivityId) },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve(null),
+    ]
+  );
+
+  return {
+    sector: sectorRow
+      ? { id: sectorRow.id.toString(), name: sectorRow.name }
+      : null,
+    subsector: subsectorRow
+      ? { id: subsectorRow.id.toString(), name: subsectorRow.name }
+      : null,
+    size: sizeRow ? { id: sizeRow.id.toString(), name: sizeRow.name } : null,
+    mainActivity: mainActivityRow
+      ? { id: mainActivityRow.id.toString(), name: mainActivityRow.name }
+      : null,
+  };
 };

@@ -22,4 +22,8 @@ export {
   ReductionPlanInitiativeStatus,
   ReductionProjectStatus,
   SubcategoryRecommendationStatus,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+  OrganizationMainActivityStatus,
+  CountryOrganizationSizeStatus,
 } from "@repo/database/enums";

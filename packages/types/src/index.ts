@@ -1,6 +1,7 @@
 export * from "./carbonInventories/index.js";
 export * from "./countryOrganizationSizes/index.js";
 export * from "./countrySectors/index.js";
+export * from "./countrySubsectors/index.js";
 export * from "./jobPositions/index.js";
 export * from "./measurementUnits/index.js";
 export * from "./organizationMainActivities/index.js";
@@ -20,6 +21,7 @@ export * from "./emissionFactors/index.js";
 export * from "./emissionFactorDimensions/index.js";
 export * from "./reductionProjects/index.js";
 export * from "./reductionPlanInitiatives/index.js";
+export * from "./admin/index.js";
 export * from "./baseSchemas/index.js";
 export * from "./common/index.js";
 export * from "./badges/index.js";

@@ -9,12 +9,16 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { createTestOrganizationMainActivity } from "@test/factories/organizationMainActivityFactory.js";
 import {
   type GetAllOrganizationMainActivitiesResponse,
   type GetAllCountrySectorsResponse,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  OrganizationMainActivityStatus,
+} from "@repo/database";
 import {
   VALIDATION_ERROR_CODE,
   type ApiErrorResponse,
@@ -301,6 +305,39 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       // Verify it includes generic activities
       const activityNames = body.map((a) => a.name);
       expect(activityNames).toContain("empleados"); // generic
+    });
+  });
+
+  describe("Soft-delete filter (smoke)", () => {
+    const PUBLIC_PREFIX = "Test - PublicMA ";
+
+    afterEach(async () => {
+      await prisma.organizationMainActivity.deleteMany({
+        where: { name: { startsWith: PUBLIC_PREFIX } },
+      });
+    });
+
+    it("excludes DELETED main activities from the public response", async () => {
+      const random = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const active = await createTestOrganizationMainActivity(prisma, {
+        name: `${PUBLIC_PREFIX}Active ${random}`,
+      });
+      const deleted = await createTestOrganizationMainActivity(prisma, {
+        name: `${PUBLIC_PREFIX}Deleted ${random}`,
+        status: OrganizationMainActivityStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/organization-main-activities",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllOrganizationMainActivitiesResponse;
+      const ids = body.map((a) => a.id);
+      expect(ids).toContain(active.id.toString());
+      expect(ids).not.toContain(deleted.id.toString());
     });
   });
 

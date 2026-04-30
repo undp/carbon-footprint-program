@@ -88,6 +88,21 @@ function handlePrismaError(error: unknown): {
   return null;
 }
 
+const extractErrorDetails = (
+  error: unknown
+): Record<string, unknown> | undefined => {
+  if (typeof error !== "object" || error === null) return undefined;
+  const candidate = (error as { details?: unknown }).details;
+  if (
+    typeof candidate === "object" &&
+    candidate !== null &&
+    !Array.isArray(candidate)
+  ) {
+    return candidate as Record<string, unknown>;
+  }
+  return undefined;
+};
+
 const errorHandler = (
   error: FastifyError,
   request: FastifyRequest,
@@ -118,6 +133,12 @@ const errorHandler = (
       code: prismaResult.code,
       message: IS_PROD ? prismaResult.message : error.message,
     };
+    const details = extractErrorDetails(error);
+    // Suppress structured `details` on production 5xx responses to avoid leaking
+    // internal diagnostics (e.g., raw Prisma metadata) to API consumers.
+    if (details && (!IS_PROD || prismaResult.statusCode < 500)) {
+      response.details = details;
+    }
     return reply.status(prismaResult.statusCode).send(response);
   }
 
@@ -152,6 +173,12 @@ const errorHandler = (
         ? "An unexpected error occurred"
         : error.message,
   };
+  const details = extractErrorDetails(error);
+  // Suppress structured `details` on production 5xx responses to avoid leaking
+  // internal diagnostics to API consumers.
+  if (details && (!IS_PROD || statusCode < 500)) {
+    response.details = details;
+  }
 
   return reply.status(statusCode).send(response);
 };

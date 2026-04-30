@@ -9,6 +9,7 @@ export { MethodologyRegulationCell } from "./MethodologyRegulationCell";
 export { EmissionFactorSourceCell } from "./EmissionFactorSourceCell";
 export { IconPickerCell } from "./IconPickerCell";
 export { CategorySelectCell } from "./CategorySelectCell";
+export { EditableSelectCell } from "./EditableSelectCell";
 export { MeasurementUnitsCell } from "./MeasurementUnitsCell";
 export {
   SubcategoryGroupedSelectCell,

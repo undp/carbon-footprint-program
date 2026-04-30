@@ -11,6 +11,7 @@ import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
   calculateDisplayStatus,
   calculateEarnedRecognitions,
+  resolveInventoryOrganizationDataReferences,
 } from "../helpers.js";
 
 export const getCarbonInventoryByIdService = async (
@@ -69,27 +70,37 @@ export const getCarbonInventoryByIdService = async (
 
   if (!inventory) throw new CarbonInventoryNotFoundError(id);
 
-  const subcategories = await prismaClient.subcategory.findMany({
-    where: {
-      id: {
-        in: uniq(map(inventory.lines, "subcategoryId")),
-      },
-    },
-    select: {
-      id: true,
-      dimensions: {
-        where: {
-          status: EmissionFactorDimensionStatus.ACTIVE,
-        },
-        select: {
-          id: true,
+  const [subcategories, references] = await Promise.all([
+    prismaClient.subcategory.findMany({
+      where: {
+        id: {
+          in: uniq(map(inventory.lines, "subcategoryId")),
         },
       },
-    },
-  });
+      select: {
+        id: true,
+        dimensions: {
+          where: {
+            status: EmissionFactorDimensionStatus.ACTIVE,
+          },
+          select: {
+            id: true,
+          },
+        },
+      },
+    }),
+    resolveInventoryOrganizationDataReferences(
+      prismaClient,
+      inventory.organizationData
+    ),
+  ]);
 
   return {
-    ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
+    ...mapCarbonInventoryWithLinesToResponse(
+      inventory,
+      subcategories,
+      references
+    ),
     organizationName: inventory.organization?.summary?.name ?? null,
     status: calculateDisplayStatus(inventory),
     recognitions: calculateEarnedRecognitions(inventory),
