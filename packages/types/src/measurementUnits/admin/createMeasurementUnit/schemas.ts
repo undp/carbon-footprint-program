@@ -34,7 +34,6 @@ export const CreateMeasurementUnitBodySchema = z.object({
   }),
   baseFactor: z
     .number()
-    .finite({ message: "El factor base debe ser un número finito." })
     .positive({ message: "El factor base debe ser mayor que cero." }),
   isBase: z.boolean(),
 });
