@@ -3,7 +3,7 @@ import { Box, Tooltip, Typography } from "@mui/material";
 import { LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Magnitude } from "@repo/types";
-import { MAGNITUDE_LABELS } from "@/config/vocab";
+import { MAGNITUDE_LABELS } from "../constants.js";
 import {
   EditableTextCell,
   EditableNumberCell,

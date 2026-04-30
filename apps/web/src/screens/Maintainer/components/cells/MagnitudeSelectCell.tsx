@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { MenuItem, Select, Typography } from "@mui/material";
 import { Magnitude } from "@repo/types";
-import { MAGNITUDE_LABELS } from "@/config/vocab";
+import { MAGNITUDE_LABELS } from "../../screens/MeasurementUnitsScreen/constants.js";
 import { getNestedError } from "./cellUtils";
 
 interface MagnitudeSelectCellProps {
