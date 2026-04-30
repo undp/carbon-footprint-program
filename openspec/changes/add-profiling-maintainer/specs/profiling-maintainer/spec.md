@@ -43,7 +43,7 @@ The system SHALL expose the following admin endpoints under `/admin/country-sect
 - `POST /admin/country-sectors` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000) }`. Server resolves `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`. Stamps `createdById` from `request.currentUser`. Response: `201` with the admin sector record.
 - `GET /admin/country-sectors?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `isInUse`) and nested subsectors filtered by the same `status` parameter. Default `status=active`. Sort by sector name ASC, nested subsectors by name ASC.
 - `PATCH /admin/country-sectors/:id` — partial update. Any of `name`, `description` MAY be provided; the body MUST contain at least one field (empty `{}` → `400`). Stamps `updatedById`. Response: `200`.
-- `DELETE /admin/country-sectors/:id` — **soft-delete** (transitions `status: ACTIVE → DELETED`). Subject to the catalog-reference blocking rules below. Response: `200` with the updated record.
+- `DELETE /admin/country-sectors/:id` — **soft-delete** (transitions `status: ACTIVE → DELETED`). Subject to the catalog-reference blocking rules below. Response: `200` with an empty body (the frontend invalidates and refetches; no consumer reads the deleted row).
 - `POST /admin/country-sectors/:id/restore` — restore (transitions `status: DELETED → ACTIVE`). Rejected `409` via `DatabaseUniqueConstraintViolationError` if the `name` collides with a currently-ACTIVE sector in the same country. Response: `200` with the updated record.
 
 All endpoints MUST return `401` for unauthenticated requests and `403` for `SystemRole.USER`.

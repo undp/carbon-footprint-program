@@ -21,7 +21,6 @@ import {
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
 } from "@repo/database";
-import type { DeleteCountrySubsectorResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminSubDel ";
 
@@ -70,8 +69,11 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
       url: `/api/admin/country-subsectors/${sub.id.toString()}`,
     });
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body) as DeleteCountrySubsectorResponse;
-    expect(body.status).toBe(CountrySubsectorStatus.DELETED);
+
+    const reloaded = await prisma.countrySubsector.findUnique({
+      where: { id: sub.id },
+    });
+    expect(reloaded!.status).toBe(CountrySubsectorStatus.DELETED);
   });
 
   it("allows soft-delete when referenced only by DELETED main activities", async () => {
@@ -137,11 +139,13 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
       url: `/api/admin/country-subsectors/${sub.id.toString()}`,
     });
     expect(response.statusCode).toBe(409);
-    const body = JSON.parse(response.body) as {
-      code: string;
-      message: string;
-    };
+    const body = JSON.parse(response.body) as { code: string };
     expect(body.code).toBe("DELETE_BLOCKED_BY_REFERENCES");
+
+    const reloaded = await prisma.countrySubsector.findUnique({
+      where: { id: sub.id },
+    });
+    expect(reloaded!.status).toBe(CountrySubsectorStatus.ACTIVE);
   });
 
   it("returns 404 when subsector id does not exist", async () => {

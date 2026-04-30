@@ -3,19 +3,15 @@ import {
   OrganizationMainActivityStatus,
   Prisma,
 } from "@repo/database";
-import {
-  type DeleteOrganizationMainActivityResponse,
-  type User,
-} from "@repo/types";
+import { type User } from "@repo/types";
 import { ResourceNotFoundError } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
-import { adminMainActivitySelect, mapMainActivityToAdmin } from "../helpers.js";
 
 export const deleteOrganizationMainActivityService = async (
   prismaClient: PrismaClient,
   id: string,
   user: User | null
-): Promise<DeleteOrganizationMainActivityResponse> => {
+): Promise<void> => {
   if (!user) {
     throw new UserNotFoundError();
   }
@@ -26,15 +22,14 @@ export const deleteOrganizationMainActivityService = async (
   // references organization_main_activity. User-data references on
   // organization_data.mainActivityId do NOT block.
   try {
-    const updated = await prismaClient.organizationMainActivity.update({
+    await prismaClient.organizationMainActivity.update({
       where: { id: activityId },
       data: {
         status: OrganizationMainActivityStatus.DELETED,
         updatedById: BigInt(user.id),
       },
-      select: adminMainActivitySelect,
+      select: { id: true },
     });
-    return mapMainActivityToAdmin(updated);
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

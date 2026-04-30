@@ -29,7 +29,7 @@ This change introduces a new **"Perfilamiento"** grouping in the admin panel tha
 
 ### Soft-delete semantics
 
-- `DELETE /admin/…/:id` transitions the row to `status = DELETED` (and touches `updatedAt`) instead of removing it. Responds `200` with the updated record.
+- `DELETE /admin/…/:id` transitions the row to `status = DELETED` (and touches `updatedAt`) instead of removing it. Responds `200` with an empty body — the frontend invalidates and refetches; no consumer reads the deleted row.
 - **Catalog-level reference blocking** (throws `DeleteBlockedByReferencesError`, HTTP 409) applies to soft-delete when another _catalog_ record still points at the target:
   - Soft-deleting a sector is blocked by: ACTIVE `country_subsector`, ACTIVE `organization_main_activity`, ACTIVE `subcategory_recommendation` that reference it.
   - Soft-deleting a subsector is blocked by: ACTIVE `organization_main_activity`, ACTIVE `subcategory_recommendation` that reference it.

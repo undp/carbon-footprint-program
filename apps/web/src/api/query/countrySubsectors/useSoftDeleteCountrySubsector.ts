@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { DeleteCountrySubsectorResponse } from "@repo/types";
 import { CountrySubsectorQueryKey } from "./keys";
 import { CountrySectorQueryKey } from "../countrySectors/keys";
 import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
@@ -8,7 +7,7 @@ import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
   const queryClient = useQueryClient();
-  return useMutation<DeleteCountrySubsectorResponse, Error, string>({
+  return useMutation<null, Error, string>({
     mutationFn: (id) =>
       apiClient.delete(`admin/country-subsectors/${id}`).json(),
     onSuccess: async () => {

@@ -1,8 +1,6 @@
+import { z } from "zod";
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import {
-  DeleteCountrySubsectorParamsSchema,
-  DeleteCountrySubsectorResponseSchema,
-} from "@repo/types";
+import { DeleteCountrySubsectorParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { deleteCountrySubsectorHandler } from "./handler.js";
 
@@ -17,7 +15,7 @@ export const deleteCountrySubsectorRoute = (fastify: FastifyZodInstance) => {
           "Transitions the row to status=DELETED. Blocked when ACTIVE catalog references (main activities, subcategory recommendations) point at it.",
         params: DeleteCountrySubsectorParamsSchema,
         response: {
-          200: DeleteCountrySubsectorResponseSchema,
+          200: z.null().describe("Successfully soft-deleted"),
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },

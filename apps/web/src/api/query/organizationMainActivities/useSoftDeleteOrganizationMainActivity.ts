@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { DeleteOrganizationMainActivityResponse } from "@repo/types";
 import { OrganizationMainActivityQueryKey } from "./keys";
 import { organizationKeys } from "../organizations/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteOrganizationMainActivity = () => {
   const queryClient = useQueryClient();
-  return useMutation<DeleteOrganizationMainActivityResponse, Error, string>({
+  return useMutation<null, Error, string>({
     mutationFn: (id) =>
       apiClient.delete(`admin/organization-main-activities/${id}`).json(),
     onSuccess: async () => {

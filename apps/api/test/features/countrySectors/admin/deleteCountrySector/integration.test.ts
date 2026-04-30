@@ -18,7 +18,6 @@ import {
   CountrySectorStatus,
   CountrySubsectorStatus,
 } from "@repo/database";
-import type { DeleteCountrySectorResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminSecDel ";
 
@@ -52,7 +51,7 @@ describe("DELETE /api/admin/country-sectors/:id - Integration Tests", () => {
   }
 
   describe("Successful soft-delete", () => {
-    it("soft-deletes a clean sector and returns the updated row with status=DELETED", async () => {
+    it("soft-deletes a clean sector and persists status=DELETED", async () => {
       const sector = await createTestCountrySector(prisma, {
         name: uniqueName("Clean"),
       });
@@ -62,8 +61,6 @@ describe("DELETE /api/admin/country-sectors/:id - Integration Tests", () => {
         url: `/api/admin/country-sectors/${sector.id.toString()}`,
       });
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as DeleteCountrySectorResponse;
-      expect(body.status).toBe(CountrySectorStatus.DELETED);
 
       const reloaded = await prisma.countrySector.findUnique({
         where: { id: sector.id },
@@ -107,12 +104,13 @@ describe("DELETE /api/admin/country-sectors/:id - Integration Tests", () => {
         url: `/api/admin/country-sectors/${sector.id.toString()}`,
       });
       expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as {
-        code: string;
-        message: string;
-      };
+      const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("DELETE_BLOCKED_BY_REFERENCES");
-      expect(body.message).toContain("subrubros");
+
+      const reloaded = await prisma.countrySector.findUnique({
+        where: { id: sector.id },
+      });
+      expect(reloaded!.status).toBe(CountrySectorStatus.ACTIVE);
     });
 
     it("does NOT block when the only subsectors are DELETED", async () => {

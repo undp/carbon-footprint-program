@@ -18,7 +18,6 @@ import {
   type PrismaClient,
   OrganizationMainActivityStatus,
 } from "@repo/database";
-import type { DeleteOrganizationMainActivityResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminMADel ";
 
@@ -57,10 +56,11 @@ describe("DELETE /api/admin/organization-main-activities/:id - Integration Tests
       url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
     });
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(
-      response.body
-    ) as DeleteOrganizationMainActivityResponse;
-    expect(body.status).toBe(OrganizationMainActivityStatus.DELETED);
+
+    const reloaded = await prisma.organizationMainActivity.findUnique({
+      where: { id: ma.id },
+    });
+    expect(reloaded!.status).toBe(OrganizationMainActivityStatus.DELETED);
   });
 
   it("does NOT block when only user data references the main activity", async () => {
