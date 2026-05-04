@@ -3,9 +3,9 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { IconButton, Stack } from "@mui/material";
 import {
   VisibilityOutlined,
-  LockOutlined,
-  RestoreOutlined,
   HistoryOutlined,
+  BlockOutlined,
+  LockOpenOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
@@ -154,7 +154,7 @@ export const useOrganizationColumns = ({
                   aria-label={`Restaurar ${VOCAB.organization.noun.singular}`}
                   onClick={() => onUnblock(params.row.id)}
                 >
-                  <RestoreOutlined fontSize="small" />
+                  <LockOpenOutlined fontSize="small" />
                 </IconButton>
               ) : (
                 <IconButton
@@ -162,7 +162,7 @@ export const useOrganizationColumns = ({
                   aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onBlock(params.row.id)}
                 >
-                  <LockOutlined fontSize="small" />
+                  <BlockOutlined fontSize="small" />
                 </IconButton>
               )}
             </Stack>
