@@ -1,0 +1,224 @@
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { ChatMessageRole } from "@repo/database/enums";
+import type { SendMessageRequestBody } from "@repo/types";
+import { CHATBOT_MAX_OUTPUT_TOKENS } from "@/config/constants.js";
+import { ExternalServiceError } from "@/errors/ExternalServiceError.js";
+import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
+import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
+import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
+import {
+  acquireIdentityAdvisoryLock,
+  enforceHistoryCap,
+  enforceTurnCap,
+  enforceUserInputCap,
+  loadConversationHistory,
+  resolveOrCreateConversation,
+} from "./service.js";
+import { writeSseEvent, writeSseHeaders } from "./helpers.js";
+
+type SendMessageRequest = FastifyRequest<{ Body: SendMessageRequestBody }>;
+
+const buildLlmMessages = (
+  history: { role: ChatMessageRole; content: string }[],
+  userContent: string
+): LlmMessage[] => [
+  ...history.map((m) => ({ role: m.role, content: m.content })),
+  { role: ChatMessageRole.USER, content: userContent },
+];
+
+export const sendMessageHandler = async (
+  request: SendMessageRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  const identity = request.chatbotIdentity;
+  if (!identity) {
+    throw new Error(
+      "chatbotIdentity is missing — preHandler must run before handler."
+    );
+  }
+
+  const { content } = request.body;
+  enforceUserInputCap(content);
+
+  const prisma = request.server.prisma;
+
+  // Pre-transaction: history cap is checked against the CURRENT active
+  // conversation (if any). Tolerable because the user message and assistant
+  // row will be inserted under the advisory lock below; if a brand-new
+  // conversation is created mid-transaction, history is empty.
+  const existing = await prisma.chatbotChatConversation.findFirst({
+    where: {
+      ...(identity.kind === "user"
+        ? { userId: identity.userId }
+        : { sessionId: identity.sessionId }),
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
+  let history: { role: ChatMessageRole; content: string }[] = [];
+  if (existing) {
+    history = await loadConversationHistory(prisma, existing.id);
+    enforceHistoryCap(history);
+    await enforceTurnCap(prisma, existing.id);
+  }
+
+  // The transaction holds the advisory lock for the duration of lazy-create +
+  // user message insert + empty assistant insert. The lock serializes
+  // concurrent first-message turns for the same identity.
+  const { assistantRowId, conversationId } = await prisma.$transaction(
+    async (tx) => {
+      await acquireIdentityAdvisoryLock(tx, identity);
+      const conversation = await resolveOrCreateConversation(tx, identity);
+
+      await tx.chatbotChatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          role: ChatMessageRole.USER,
+          content,
+          tokensUsed: null,
+          latencyMs: null,
+        },
+      });
+
+      const assistantRow = await tx.chatbotChatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          role: ChatMessageRole.ASSISTANT,
+          content: "",
+          tokensUsed: null,
+          latencyMs: null,
+        },
+        select: { id: true },
+      });
+
+      return {
+        assistantRowId: assistantRow.id,
+        conversationId: conversation.id,
+      };
+    }
+  );
+
+  // If the conversation was newly created in the transaction, history was
+  // empty so the cap was already satisfied. If it existed before, we already
+  // checked above. Reload history under the new conversation (covers the
+  // brand-new case where it's still empty).
+  if (!existing) {
+    history = [];
+  }
+
+  const provider = getLlmProvider();
+  const llmMessages = buildLlmMessages(history, content);
+
+  const startedAt = Date.now();
+  const abortController = new AbortController();
+
+  reply.raw.on("close", () => {
+    if (!reply.raw.writableEnded) {
+      abortController.abort();
+    }
+  });
+
+  // Mid-stream disconnect finalizer — conditional on `latency_ms IS NULL`,
+  // making it idempotent against the success path which sets latency_ms.
+  let assistantBuffer = "";
+  const onClose = () => {
+    if (reply.raw.writableEnded) return;
+    void prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId} AND latency_ms IS NULL`;
+  };
+  reply.raw.on("close", onClose);
+
+  let stream: AsyncIterable<
+    | { type: "delta"; content: string }
+    | { type: "usage"; inputTokens: number; outputTokens: number }
+  >;
+  try {
+    stream = provider.streamCompletion(llmMessages, {
+      maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
+      signal: abortController.signal,
+    });
+  } catch {
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+  }
+
+  // Hijack the response so we own the raw stream and Fastify won't try to
+  // serialize a JSON body for the 200 response schema.
+  reply.hijack();
+  writeSseHeaders(reply);
+
+  let usage: { inputTokens: number; outputTokens: number } | null = null;
+  let firstChunkSeen = false;
+
+  try {
+    for await (const event of stream) {
+      if (event.type === "delta") {
+        if (!firstChunkSeen) firstChunkSeen = true;
+        assistantBuffer += event.content;
+        writeSseEvent(
+          reply,
+          undefined,
+          { content: event.content },
+          {
+            id: assistantRowId.toString(),
+          }
+        );
+      } else if (event.type === "usage") {
+        usage = {
+          inputTokens: event.inputTokens,
+          outputTokens: event.outputTokens,
+        };
+      }
+    }
+  } catch {
+    if (firstChunkSeen) {
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      // The disconnect finalizer also marks this row truncated via the
+      // close handler.
+      return;
+    }
+    // Pre-stream provider error: emit terminal error event since headers
+    // are already written, then end. The conditional UPDATE makes this safe.
+    writeSseEvent(reply, "error", {
+      code: "EXTERNAL_SERVICE_ERROR",
+      message: CHATBOT_GENERIC_ERROR_MESSAGE,
+    });
+    reply.raw.end();
+    return;
+  }
+
+  const latencyMs = Date.now() - startedAt;
+  const tokensUsed = usage ? usage.inputTokens + usage.outputTokens : 0;
+
+  // Finalize the assistant row OUTSIDE the transaction. Setting `latency_ms`
+  // is what makes the disconnect finalizer's conditional UPDATE a no-op.
+  await prisma.chatbotChatMessage.update({
+    where: { id: assistantRowId },
+    data: {
+      content: assistantBuffer,
+      tokensUsed,
+      latencyMs,
+      truncated: false,
+    },
+  });
+
+  await prisma.chatbotChatConversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date() },
+  });
+
+  writeSseEvent(
+    reply,
+    "done",
+    {
+      inputTokens: usage?.inputTokens ?? 0,
+      outputTokens: usage?.outputTokens ?? 0,
+    },
+    { id: assistantRowId.toString() }
+  );
+  reply.raw.end();
+};

@@ -228,6 +228,57 @@ export const LOCAL_BYPASS_REQUIRED_FIELDS =
 export const APP_VERSION = process.env.APP_VERSION || "unknown";
 
 // ============================================================================
+// Chatbot Configuration
+// ============================================================================
+
+// LLM_PROVIDER: "mock" | "azure-openai"
+// - mock: Deterministic eco template provider for local dev and tests.
+// - azure-openai: Production Azure OpenAI client (managed identity).
+// `mock` is rejected at boot when NODE_ENV=production to prevent the mock
+// from leaking into user traffic.
+export type LlmProviderType = "mock" | "azure-openai";
+
+export const LLM_PROVIDER: LlmProviderType = (() => {
+  const raw = process.env.LLM_PROVIDER ?? "mock";
+  const valid: LlmProviderType[] = ["mock", "azure-openai"];
+  if (!valid.includes(raw as LlmProviderType)) {
+    throw new Error(
+      `Invalid LLM_PROVIDER value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+    );
+  }
+  if (raw === "mock" && IS_PROD) {
+    throw new Error(
+      'LLM_PROVIDER="mock" is not allowed when NODE_ENV=production. ' +
+        'Set LLM_PROVIDER="azure-openai" and provision the Azure OpenAI infra.'
+    );
+  }
+  return raw as LlmProviderType;
+})();
+
+/**
+ * Secret used by @fastify/cookie to sign the `chatbot_session_id` cookie.
+ * Required in production. Local fallback is a documented dev literal.
+ */
+export const COOKIE_SECRET: string = (() => {
+  const raw = process.env.COOKIE_SECRET;
+  if (raw) return raw;
+  if (IS_PROD) {
+    throw new Error(
+      "COOKIE_SECRET is required when NODE_ENV=production. " +
+        "Set it to a sufficiently long random string."
+    );
+  }
+  return "dev-only-cookie-secret-change-me";
+})();
+
+/** Azure OpenAI endpoint URL — required when LLM_PROVIDER=azure-openai. */
+export const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
+
+/** Azure OpenAI deployment name — required when LLM_PROVIDER=azure-openai. */
+export const AZURE_OPENAI_DEPLOYMENT_NAME =
+  process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+
+// ============================================================================
 // Azure Blob Storage Configuration
 // ============================================================================
 // Used for file uploads (organization documents, carbon inventory certifications).
