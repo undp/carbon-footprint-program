@@ -143,14 +143,18 @@ export async function buildExpectedOrganizationData(
 
   return {
     ...input,
-    sector: sector ? { id: sector.id.toString(), name: sector.name } : null,
+    sector: sector
+      ? { id: sector.id.toString(), name: sector.name }
+      : (input.sector ?? null),
     subsector: subsector
       ? { id: subsector.id.toString(), name: subsector.name }
-      : null,
-    size: size ? { id: size.id.toString(), name: size.name } : null,
+      : (input.subsector ?? null),
+    size: size
+      ? { id: size.id.toString(), name: size.name }
+      : (input.size ?? null),
     mainActivity: mainActivity
       ? { id: mainActivity.id.toString(), name: mainActivity.name }
-      : null,
+      : (input.mainActivity ?? null),
   };
 }
 
