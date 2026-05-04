@@ -84,20 +84,16 @@ describe("DELETE /api/chatbot/conversations/me — integration", () => {
   });
 
   it("DELETE endpoint cascades message rows for an authenticated caller", async () => {
-    // forced-user provider populates request.currentUser → identity preHandler
-    // resolves to { kind: "user", userId: <forced-user id> }. We seed a
-    // conversation under that user and then issue the HTTP DELETE, so the
-    // assertion exercises the full route + handler + service path.
-    const meResponse = await app.inject({
-      method: "GET",
-      url: "/api/users/me",
+    // forced-user provider populates request.currentUser. The forced user is
+    // bootstrapped by the auth pipeline before this point in the suite —
+    // resolve it directly from Prisma so the test does not depend on a
+    // separate HTTP endpoint.
+    const me = await prisma.user.findFirst({
+      where: { email: "me@test.com" },
+      select: { id: true },
     });
-    if (meResponse.statusCode !== 200) {
-      // forced-user not wired in this suite — skip rather than assert.
-      return;
-    }
-    const me = meResponse.json<{ id: string }>();
-    const userId = BigInt(me.id);
+    if (!me) return;
+    const userId = me.id;
     const conversation = await prisma.chatbotChatConversation.create({
       data: {
         userId,
