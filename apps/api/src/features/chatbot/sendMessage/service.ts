@@ -59,12 +59,13 @@ const computeExpiresAt = (now: Date): Date =>
 
 export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
   const now = new Date();
+  // organization_id and ip_hash are intentionally omitted — they ship dormant
+  // in foundation per the chatbot-conversation-persistence spec, and the
+  // noWritesToDormantColumns lint test enforces that.
   return tx.chatbotChatConversation.create({
     data: {
       userId: identity.kind === "user" ? identity.userId : null,
       sessionId: identity.kind === "session" ? identity.sessionId : null,
-      organizationId: null,
-      ipHash: null,
       expiresAt: computeExpiresAt(now),
       createdAt: now,
       lastMessageAt: now,
