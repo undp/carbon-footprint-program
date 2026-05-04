@@ -65,9 +65,10 @@ export const updateMeasurementUnitService = async (
       body.baseFactor === 1 &&
       !target.isBase
     ) {
+      const effectiveMagnitude = body.magnitude ?? target.magnitude;
       const existingBase = await tx.measurementUnit.findFirst({
         where: {
-          magnitude: target.magnitude,
+          magnitude: effectiveMagnitude,
           isBase: true,
           status: MeasurementUnitStatus.ACTIVE,
           id: { not: target.id },
