@@ -31,6 +31,9 @@ describe("POST /api/measurement-units - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    await prisma.subcategoryMeasurementUnit.deleteMany({
+      where: { measurementUnit: { abbreviation: { startsWith: "test-" } } },
+    });
     await prisma.rateMeasurementUnit.deleteMany({
       where: { abbreviation: { startsWith: "kg/test-" } },
     });
@@ -164,6 +167,12 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         where: { id: BigInt(created.id) },
         data: { status: MeasurementUnitStatus.DELETED },
       });
+      // Mirror the real cascade from deleteMeasurementUnitService: soft-delete
+      // the canonical RMU as well, so the restore path flips it back to ACTIVE.
+      await prisma.rateMeasurementUnit.updateMany({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
 
       // Re-create with same abbreviation but different name and magnitude
       const restorePayload = {
@@ -187,6 +196,77 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.magnitude).toBe("VOLUME");
       expect(body.baseFactor).toBe(999);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
+
+      const canonicalRmu = await prisma.rateMeasurementUnit.findFirst({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+      });
+      expect(canonicalRmu).not.toBeNull();
+      expect(canonicalRmu!.status).toBe(MeasurementUnitStatus.ACTIVE);
+      expect(canonicalRmu!.abbreviation).toBe(`kg/${payload.abbreviation}`);
+    });
+
+    it("should restore only labels (action=restoredLabelsOnly) when referenceCount>0", async () => {
+      const payload = buildPayload();
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+      const created = JSON.parse(
+        createResponse.body
+      ) as CreateMeasurementUnitResponse;
+
+      // Create a reference so the restore path takes the labels-only branch.
+      const subcategory = await prisma.subcategory.findFirst({
+        select: { id: true },
+      });
+      if (!subcategory) {
+        return;
+      }
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(created.id),
+        },
+      });
+
+      await prisma.measurementUnit.update({
+        where: { id: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+      await prisma.rateMeasurementUnit.updateMany({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+
+      const restorePayload = {
+        ...payload,
+        name: `Restored ${payload.name}`,
+        magnitude: "VOLUME",
+        baseFactor: 999,
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: restorePayload,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
+      expect(body.action).toBe(
+        MeasurementUnitCreationResultEnum.restoredLabelsOnly
+      );
+      expect(body.id).toBe(created.id);
+      expect(body.name).toBe(restorePayload.name);
+      expect(body.abbreviation).toBe(payload.abbreviation);
+      // Structural fields must remain unchanged in the labels-only branch.
+      expect(body.magnitude).toBe(payload.magnitude);
+      expect(body.baseFactor).toBe(payload.baseFactor);
+      expect(body.isBase).toBe(payload.isBase);
+      expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
+      expect(body.referenceCount).toBeGreaterThan(0);
     });
   });
 
