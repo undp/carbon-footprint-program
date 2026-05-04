@@ -36,7 +36,7 @@ export const acquireIdentityAdvisoryLock = async (
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))`;
 };
 
-const conversationIdentityFilter = (identity: ChatbotIdentity) =>
+export const conversationIdentityFilter = (identity: ChatbotIdentity) =>
   identity.kind === "user"
     ? { userId: identity.userId, sessionId: null }
     : { userId: null, sessionId: identity.sessionId };
