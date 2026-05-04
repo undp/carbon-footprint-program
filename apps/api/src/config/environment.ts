@@ -278,6 +278,23 @@ export const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
 export const AZURE_OPENAI_DEPLOYMENT_NAME =
   process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
 
+// Boot-time validation: if the operator selected the Azure provider, both
+// endpoint and deployment name MUST be set. Failing fast at boot surfaces
+// misconfiguration in CI / health checks instead of in user traffic.
+(() => {
+  if (LLM_PROVIDER !== "azure-openai") return;
+  const missing: string[] = [];
+  if (!AZURE_OPENAI_ENDPOINT) missing.push("AZURE_OPENAI_ENDPOINT");
+  if (!AZURE_OPENAI_DEPLOYMENT_NAME)
+    missing.push("AZURE_OPENAI_DEPLOYMENT_NAME");
+  if (missing.length > 0) {
+    throw new Error(
+      `LLM_PROVIDER="azure-openai" requires: ${missing.join(", ")}. ` +
+        "Set the missing variables or change LLM_PROVIDER."
+    );
+  }
+})();
+
 // ============================================================================
 // Azure Blob Storage Configuration
 // ============================================================================
