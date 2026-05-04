@@ -140,8 +140,12 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   MEASUREMENT_UNIT_ABBREVIATION_ALREADY_EXISTS:
     "Ya existe una unidad de medida con esta abreviatura.",
   MEASUREMENT_UNIT_FIELDS_LOCKED:
-    "Los campos magnitud, factor base e indicador de base no pueden modificarse porque la unidad ya tiene datos asociados.",
+    "Los campos magnitud, abreviatura, factor base e indicador de base no pueden modificarse porque la unidad es base o ya tiene datos asociados.",
   MEASUREMENT_UNIT_NOT_FOUND: "Unidad de medida no encontrada.",
+  BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE:
+    "Una unidad base debe tener un factor base igual a 1.",
+  BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT:
+    "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
 };
 
 /**

@@ -28,7 +28,7 @@ interface UseMeasurementUnitColumnsParams {
 }
 
 const isProtectedRow = (row: MeasurementUnitsFormRow): boolean =>
-  row.abbreviation === "kg" || row.isBase;
+  row.abbreviation === "kg" || (row.isBase && !row.id.startsWith("temp_"));
 
 export const useMeasurementUnitColumns = ({
   editingRowId,
@@ -66,8 +66,11 @@ export const useMeasurementUnitColumns = ({
             const label =
               MAGNITUDE_LABELS[params.row.magnitude as Magnitude] ??
               params.row.magnitude;
+            const tooltip = params.row.isBase
+              ? "No se puede cambiar la magnitud porque es una unidad base."
+              : "No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.";
             return (
-              <Tooltip title="No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.">
+              <Tooltip title={tooltip}>
                 <Box
                   sx={{
                     display: "flex",
@@ -93,9 +96,7 @@ export const useMeasurementUnitColumns = ({
                 onCellChange(rowIndex, "magnitude", value)
               }
               onClick={
-                !editing && !protected_
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !editing ? () => onStartEditRow(params.row.id) : undefined
               }
             />
           );
@@ -135,8 +136,11 @@ export const useMeasurementUnitColumns = ({
           const isLocked = protected_ || params.row.referenceCount > 0;
 
           if (editing && isLocked) {
+            const tooltip = params.row.isBase
+              ? "No se puede cambiar la abreviatura porque es una unidad base."
+              : "No se puede cambiar la abreviatura porque la unidad ya tiene datos asociados.";
             return (
-              <Tooltip title="No se puede cambiar la abreviatura porque la unidad ya tiene datos asociados.">
+              <Tooltip title={tooltip}>
                 <Box
                   sx={{
                     display: "flex",
@@ -183,11 +187,15 @@ export const useMeasurementUnitColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
-          const isLocked = protected_ || params.row.referenceCount > 0;
+          const isLocked =
+            protected_ || params.row.referenceCount > 0 || params.row.isBase;
 
           if (editing && isLocked) {
+            const tooltip = params.row.isBase
+              ? "El factor base de una unidad base siempre es 1."
+              : "No se puede cambiar el factor base porque la unidad ya tiene datos asociados.";
             return (
-              <Tooltip title="No se puede cambiar el factor base porque la unidad ya tiene datos asociados.">
+              <Tooltip title={tooltip}>
                 <Box
                   sx={{
                     display: "flex",
@@ -214,9 +222,7 @@ export const useMeasurementUnitColumns = ({
               isEditing={editing && !isLocked}
               onChange={(value) => onCellChange(rowIndex, "baseFactor", value)}
               onClick={
-                !editing && !protected_
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !editing ? () => onStartEditRow(params.row.id) : undefined
               }
             />
           );
@@ -235,8 +241,11 @@ export const useMeasurementUnitColumns = ({
           const isLocked = protected_ || params.row.referenceCount > 0;
 
           if (editing && isLocked) {
+            const tooltip = params.row.isBase
+              ? "No se puede cambiar el indicador de unidad base porque es una unidad base."
+              : "No se puede cambiar el indicador de unidad base porque la unidad ya tiene datos asociados.";
             return (
-              <Tooltip title="No se puede cambiar el indicador de unidad base porque la unidad ya tiene datos asociados.">
+              <Tooltip title={tooltip}>
                 <Box
                   sx={{
                     display: "flex",
@@ -258,7 +267,12 @@ export const useMeasurementUnitColumns = ({
           return (
             <ToggleCell
               value={params.row.isBase}
-              onChange={(checked) => onCellChange(rowIndex, "isBase", checked)}
+              onChange={(checked) => {
+                onCellChange(rowIndex, "isBase", checked);
+                if (checked) {
+                  onCellChange(rowIndex, "baseFactor", 1);
+                }
+              }}
               disabled={!editing || isLocked}
             />
           );
@@ -289,9 +303,9 @@ export const useMeasurementUnitColumns = ({
               isEditing={editing}
               onStopEditCells={() => void onStopEditRow()}
               onCancelEdit={onCancelEditRow}
-              onEdit={
-                !editing ? () => onStartEditRow(params.row.id) : undefined
-              }
+              // onEdit={
+              //   !editing ? () => onStartEditRow(params.row.id) : undefined
+              // }
               onDelete={!editing ? () => onDelete(params.row) : undefined}
               deleteDisabled={disableDelete}
               deleteTooltipTitle={deleteTooltipTitle}

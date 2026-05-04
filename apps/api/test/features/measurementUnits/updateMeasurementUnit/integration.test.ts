@@ -120,7 +120,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
       expect(body.code).toBe("KG_MEASUREMENT_UNIT_IMMUTABLE");
     });
 
-    it("should return 422 for a base unit", async () => {
+    it("should allow name-only update on a base unit", async () => {
       const baseUnit = await prisma.measurementUnit.findFirst({
         where: { isBase: true, abbreviation: { not: "kg" } },
       });
@@ -132,9 +132,37 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         payload: { name: "New name" },
       });
 
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMeasurementUnitResponse;
+      expect(body.name).toBe("New name");
+
+      // Restore original name
+      await app.inject({
+        method: "PATCH",
+        url: `/api/measurement-units/${baseUnit!.id}`,
+        payload: { name: baseUnit!.name },
+      });
+    });
+
+    it("should return 422 when trying to change structural fields on a base unit", async () => {
+      const baseUnit = await prisma.measurementUnit.findFirst({
+        where: { isBase: true, abbreviation: { not: "kg" } },
+      });
+      expect(baseUnit).not.toBeNull();
+
+      // Pick a magnitude different from the base unit's current one
+      const differentMagnitude =
+        baseUnit!.magnitude === "VOLUME" ? "DISTANCE" : "VOLUME";
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/measurement-units/${baseUnit!.id}`,
+        payload: { magnitude: differentMagnitude },
+      });
+
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("BASE_UNIT_IMMUTABLE");
+      expect(body.code).toBe("MEASUREMENT_UNIT_FIELDS_LOCKED");
     });
   });
 

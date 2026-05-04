@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -45,22 +45,47 @@ const measurementUnitFormRowSchema = z.object({
   referenceCount: z.number(),
 });
 
-const measurementUnitsFormSchema = z.object({
-  measurementUnits: z.array(measurementUnitFormRowSchema),
-});
-
-export type MeasurementUnitsFormValues = z.input<
-  typeof measurementUnitsFormSchema
->;
+export type MeasurementUnitsFormValues = {
+  measurementUnits: z.input<typeof measurementUnitFormRowSchema>[];
+};
 
 export type MeasurementUnitsFormRow =
   MeasurementUnitsFormValues["measurementUnits"][number];
 
-export const useMeasurementUnitsForm = () => {
+export const useMeasurementUnitsForm = (
+  magnitudesWithBaseUnit: Set<string>
+) => {
+  const schema = useMemo(() => {
+    const rowSchema = measurementUnitFormRowSchema.superRefine((row, ctx) => {
+      if (row.isBase && row.baseFactor !== null && row.baseFactor !== 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Una unidad base debe tener factor base igual a 1.",
+          path: ["baseFactor"],
+        });
+      }
+
+      if (
+        !row.isBase &&
+        row.baseFactor === 1 &&
+        magnitudesWithBaseUnit.has(row.magnitude)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "No se puede asignar factor base 1 cuando ya existe una unidad base para esta magnitud.",
+          path: ["baseFactor"],
+        });
+      }
+    });
+
+    return z.object({ measurementUnits: z.array(rowSchema) });
+  }, [magnitudesWithBaseUnit]);
+
   const form = useForm<MeasurementUnitsFormValues>({
     defaultValues: { measurementUnits: [] },
     mode: "onBlur",
-    resolver: zodResolver(measurementUnitsFormSchema),
+    resolver: zodResolver(schema),
   });
 
   const fieldArray = useFieldArray({

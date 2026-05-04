@@ -43,7 +43,19 @@ export const MeasurementUnitsScreen: FC = () => {
   const updateMutation = useUpdateMeasurementUnit();
   const deleteMutation = useDeleteMeasurementUnit();
 
-  const { form, fieldArray, handleCellChange } = useMeasurementUnitsForm();
+  const magnitudesWithBaseUnit = useMemo(() => {
+    const set = new Set<string>();
+    if (measurementUnits) {
+      for (const mu of measurementUnits) {
+        if (mu.isBase) set.add(mu.magnitude);
+      }
+    }
+    return set;
+  }, [measurementUnits]);
+
+  const { form, fieldArray, handleCellChange } = useMeasurementUnitsForm(
+    magnitudesWithBaseUnit
+  );
   const currentRows = form.watch("measurementUnits");
 
   const editingRowIdRef = useRef(editingRowId);

@@ -38,7 +38,19 @@ export const MeasurementUnitAbbreviationAlreadyExistsError = createError(
 
 export const MeasurementUnitFieldsLockedError = createError(
   "MEASUREMENT_UNIT_FIELDS_LOCKED",
-  "The fields magnitude, baseFactor, and isBase cannot be changed because this unit is referenced by existing data.",
+  "The fields magnitude, abbreviation, baseFactor, and isBase cannot be changed because this unit is a base unit or is referenced by existing data.",
+  422
+);
+
+export const BaseUnitMustHaveBaseFactorOneError = createError(
+  "BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE",
+  "A base measurement unit must have a base factor of 1.",
+  422
+);
+
+export const BaseFactorOneReservedForBaseUnitError = createError(
+  "BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT",
+  "A non-base unit cannot have baseFactor=1 when the magnitude already has a base unit.",
   422
 );
 

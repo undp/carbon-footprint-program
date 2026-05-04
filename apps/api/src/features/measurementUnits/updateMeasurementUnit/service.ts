@@ -13,12 +13,12 @@ import {
   getReferenceCount,
   buildCanonicalRmuFields,
   assertNotKgMu,
-  assertNotBaseUnit,
 } from "../helpers.js";
 import {
   MeasurementUnitNotFoundError,
   BaseUnitToggleNotAllowedError,
   MeasurementUnitFieldsLockedError,
+  BaseFactorOneReservedForBaseUnitError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 
@@ -38,21 +38,43 @@ export const updateMeasurementUnitService = async (
 
     assertNotKgMu(target);
 
-    if (target.isBase) {
-      assertNotBaseUnit(target);
-    }
-
     if (body.isBase !== undefined && body.isBase !== target.isBase) {
       throw new BaseUnitToggleNotAllowedError();
     }
 
+    const hasStructuralChange =
+      (body.magnitude !== undefined && body.magnitude !== target.magnitude) ||
+      (body.abbreviation !== undefined &&
+        body.abbreviation !== target.abbreviation) ||
+      (body.baseFactor !== undefined && body.baseFactor !== target.baseFactor);
+
+    if (target.isBase && hasStructuralChange) {
+      throw new MeasurementUnitFieldsLockedError();
+    }
+
     const refCount = await getReferenceCount(tx, target.id);
 
-    if (
-      refCount > 0 &&
-      (body.magnitude !== undefined || body.baseFactor !== undefined)
-    ) {
+    if (refCount > 0 && hasStructuralChange) {
       throw new MeasurementUnitFieldsLockedError();
+    }
+
+    if (
+      body.baseFactor !== undefined &&
+      body.baseFactor === 1 &&
+      !target.isBase
+    ) {
+      const existingBase = await tx.measurementUnit.findFirst({
+        where: {
+          magnitude: target.magnitude,
+          isBase: true,
+          status: MeasurementUnitStatus.ACTIVE,
+          id: { not: target.id },
+        },
+        select: { id: true },
+      });
+      if (existingBase) {
+        throw new BaseFactorOneReservedForBaseUnitError();
+      }
     }
 
     const updateData: Prisma.MeasurementUnitUncheckedUpdateInput = {};

@@ -14,6 +14,8 @@ import {
 import {
   MagnitudeAlreadyHasBaseUnitError,
   MeasurementUnitAbbreviationAlreadyExistsError,
+  BaseUnitMustHaveBaseFactorOneError,
+  BaseFactorOneReservedForBaseUnitError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 
@@ -26,6 +28,10 @@ export const createMeasurementUnitService = async (
     const kg = await resolveKgMeasurementUnit(tx);
 
     if (body.isBase) {
+      if (body.baseFactor !== 1) {
+        throw new BaseUnitMustHaveBaseFactorOneError();
+      }
+
       const existingBase = await tx.measurementUnit.findFirst({
         where: {
           magnitude: body.magnitude,
@@ -35,6 +41,20 @@ export const createMeasurementUnitService = async (
         select: { id: true },
       });
       if (existingBase) throw new MagnitudeAlreadyHasBaseUnitError();
+    }
+
+    if (!body.isBase && body.baseFactor === 1) {
+      const existingBase = await tx.measurementUnit.findFirst({
+        where: {
+          magnitude: body.magnitude,
+          isBase: true,
+          status: MeasurementUnitStatus.ACTIVE,
+        },
+        select: { id: true },
+      });
+      if (existingBase) {
+        throw new BaseFactorOneReservedForBaseUnitError();
+      }
     }
 
     const existing = await tx.measurementUnit.findUnique({

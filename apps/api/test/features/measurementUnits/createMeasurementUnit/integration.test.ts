@@ -127,7 +127,11 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     });
 
     it("should return 409 when isBase=true but magnitude already has a base unit", async () => {
-      const payload = buildPayload({ isBase: true, magnitude: "MASS" });
+      const payload = buildPayload({
+        isBase: true,
+        baseFactor: 1,
+        magnitude: "MASS",
+      });
 
       const response = await app.inject({
         method: "POST",
