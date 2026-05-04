@@ -99,17 +99,13 @@ export const useMeasurementUnitsForm = (
       field: K,
       value: MeasurementUnitsFormRow[K]
     ) => {
-      const currentRow = form.getValues(`measurementUnits.${rowIndex}`);
-      if (!currentRow) return;
-      const updatedRow = { ...structuredClone(currentRow), [field]: value };
-      fieldArray.update(rowIndex, updatedRow);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       form.setValue(`measurementUnits.${rowIndex}.${field}` as any, value, {
         shouldDirty: true,
       });
       void form.trigger(`measurementUnits.${rowIndex}.${field}`);
     },
-    [form, fieldArray]
+    [form]
   );
 
   return { form, fieldArray, handleCellChange };
