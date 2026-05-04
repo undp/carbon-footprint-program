@@ -5,7 +5,6 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
-import rehypeSanitize from "rehype-sanitize";
 import "katex/dist/katex.min.css";
 
 interface ExplanationContentProps {
@@ -36,7 +35,7 @@ export function ExplanationContent({ content }: ExplanationContentProps) {
     <div className="prose prose-sm max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[rehypeRaw, rehypeKatex, rehypeSanitize]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
       >
         {content}
       </ReactMarkdown>
