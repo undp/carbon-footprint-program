@@ -58,7 +58,7 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
   {
     id: "bold",
     label: "Negrita",
-    tooltip: "Negrita (Ctrl+B)",
+    tooltip: "Negrita (Ctrl/Cmd+B)",
     icon: FormatBold,
     spec: { before: "**", after: "**", placeholder: "texto" },
     shortcut: { key: "b" },
@@ -67,7 +67,7 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
   {
     id: "italic",
     label: "Cursiva",
-    tooltip: "Cursiva (Ctrl+I)",
+    tooltip: "Cursiva (Ctrl/Cmd+I)",
     icon: FormatItalic,
     spec: { before: "*", after: "*", placeholder: "texto" },
     shortcut: { key: "i" },
@@ -76,7 +76,7 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
   {
     id: "underline",
     label: "Subrayar",
-    tooltip: "Subrayar (Ctrl+U)",
+    tooltip: "Subrayar (Ctrl/Cmd+U)",
     icon: FormatUnderlined,
     spec: { before: "<u>", after: "</u>", placeholder: "texto" },
     shortcut: { key: "u" },
