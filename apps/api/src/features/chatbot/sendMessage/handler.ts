@@ -122,7 +122,17 @@ export const sendMessageHandler = async (
   reply.raw.on("close", () => {
     if (reply.raw.writableEnded) return;
     abortController.abort();
-    void prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId} AND latency_ms IS NULL`;
+    // Fire-and-forget — but log failures so a dropped DB connection
+    // during cleanup is visible in production observability instead of
+    // disappearing into an unhandled rejection.
+    prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId} AND latency_ms IS NULL`.catch(
+      (err: unknown) => {
+        request.log.error(
+          { err, assistantRowId: assistantRowId.toString() },
+          "chatbot disconnect-finalizer UPDATE failed"
+        );
+      }
+    );
   });
 
   let stream: AsyncIterable<

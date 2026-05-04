@@ -44,13 +44,18 @@ export function ChatbotWidget() {
     const content = draft.trim();
     if (!content) return;
     setDraft("");
-    await sendMessage(content);
+    // Schedule the scroll for the next frame so it runs after React has
+    // committed the user message + assistant placeholder appended by
+    // sendMessage. Done BEFORE awaiting the SSE stream because the turn
+    // may take many seconds — we want the active bubble in view from
+    // the first delta, not after the stream completes.
     requestAnimationFrame(() => {
       listRef.current?.scrollTo({
         top: listRef.current.scrollHeight,
         behavior: "smooth",
       });
     });
+    await sendMessage(content);
   };
 
   return (
