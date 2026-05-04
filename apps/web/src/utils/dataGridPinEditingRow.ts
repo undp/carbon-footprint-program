@@ -47,7 +47,7 @@
  *
  *   const wrapped = useMemo(() => {
  *     if (editingRowId === null || !columns) return columns;
- *     return columns.map((col) => wrapColumnToPinEditingRow(col, editingRowId));
+ *     return columns.map((col) => pinEditingRowColumn(col, editingRowId));
  *   }, [columns, editingRowId]);
  *   return <DataGrid columns={wrapped} ... />;
  */
@@ -181,7 +181,7 @@ const allowEditingRow = (
  * input. Wrap inside `useMemo` keyed on `[columns, editingRowId]` to keep
  * referential stability across renders.
  */
-export const wrapColumnToPinEditingRow = <R extends GridValidRowModel>(
+export const pinEditingRowColumn = <R extends GridValidRowModel>(
   col: GridColDef<R>,
   editingRowId: string
 ): GridColDef<R> => {
@@ -202,9 +202,7 @@ export const wrapColumnToPinEditingRow = <R extends GridValidRowModel>(
     ...(col.filterable !== false && {
       filterOperators: (
         (col.filterOperators as GridFilterOperator[] | undefined) ?? fb.ops()
-      ).map((op) =>
-        allowEditingRow(op, editingRowId)
-      ) as typeof col.filterOperators,
+      ).map((op) => allowEditingRow(op, editingRowId)),
     }),
   };
 };

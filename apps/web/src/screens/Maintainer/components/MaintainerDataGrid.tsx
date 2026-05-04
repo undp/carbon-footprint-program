@@ -9,7 +9,7 @@ import type {
 } from "@mui/x-data-grid";
 import { StylizedDataGrid, type StylizedDataGridProps } from "@components";
 import { useFuzzySearch } from "@/hooks";
-import { wrapColumnToPinEditingRow } from "@/utils/dataGridPinEditingRow";
+import { pinEditingRowColumn } from "@/utils/dataGridPinEditingRow";
 import { MaintainerToolbar } from "./MaintainerToolbar";
 
 export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
@@ -71,7 +71,7 @@ export const MaintainerDataGrid = ({
   const wrappedColumns = useMemo(() => {
     if (editingRowId === null || !columns) return columns;
     return (columns as readonly GridColDef<GridValidRowModel>[]).map((col) =>
-      wrapColumnToPinEditingRow(col, editingRowId)
+      pinEditingRowColumn(col, editingRowId)
     );
   }, [columns, editingRowId]);
 
