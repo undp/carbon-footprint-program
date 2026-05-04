@@ -16,15 +16,19 @@ type SsePayload = {
   data: string;
 };
 
+// Match either a `\n\n` (LF-only) or `\r\n\r\n` (CRLF) blank-line terminator
+// — spec-compliant SSE allows both, and a server / proxy may emit either.
+const SSE_FRAME_SEPARATOR = /\r?\n\r?\n/;
+
 const parseEvents = (
   buffer: string
 ): { events: SsePayload[]; rest: string } => {
   const events: SsePayload[] = [];
   let rest = buffer;
-  let separator = rest.indexOf("\n\n");
-  while (separator !== -1) {
-    const block = rest.slice(0, separator);
-    rest = rest.slice(separator + 2);
+  let match = SSE_FRAME_SEPARATOR.exec(rest);
+  while (match) {
+    const block = rest.slice(0, match.index);
+    rest = rest.slice(match.index + match[0].length);
     const lines = block.split(/\r?\n/);
     let id: string | undefined;
     let event: string | undefined;
@@ -37,7 +41,7 @@ const parseEvents = (
     if (dataLines.length > 0) {
       events.push({ id, event, data: dataLines.join("\n") });
     }
-    separator = rest.indexOf("\n\n");
+    match = SSE_FRAME_SEPARATOR.exec(rest);
   }
   return { events, rest };
 };
@@ -127,8 +131,14 @@ export const useChatStream = () => {
       } finally {
         reader.releaseLock();
       }
+      // Reaching here means the stream ended cleanly without ever observing
+      // a terminal `done` event. That is NOT a successful turn — the server
+      // contract guarantees `event: done` on success, so a clean EOF before
+      // it implies the connection was cut by an intermediate proxy or the
+      // server closed early. Treat this as a truncated turn so the UI
+      // reflects the partial content honestly.
       return firstChunkSeen
-        ? { kind: "completed" }
+        ? { kind: "truncated" }
         : { kind: "error", message: GENERIC_ERROR_MESSAGE };
     },
     [updateLastAssistant]
@@ -137,6 +147,10 @@ export const useChatStream = () => {
   const sendMessage = useCallback(
     async (content: string): Promise<void> => {
       if (!content.trim()) return;
+      // Reset per-turn scoped state — Last-Event-ID must only carry IDs
+      // observed during the CURRENT turn's stream, never a stale one from
+      // an earlier turn that completed or errored.
+      lastEventIdRef.current = undefined;
       const userMessage: ChatbotMessage = {
         id: `user-${Date.now()}`,
         role: "user",
