@@ -118,7 +118,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
         title: "Categorías sin subcategorías seleccionadas",
         message:
           "Hay categorías donde no seleccionaste ninguna subcategoría. Si continúas, no se incluirán en el inventario.",
-        variant: "warning",
+        variant: "success",
         confirmLabel: "Continuar",
         cancelLabel: "Revisar",
       });

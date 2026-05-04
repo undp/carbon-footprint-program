@@ -217,7 +217,7 @@ export const EmissionCaptureScreen: FC = () => {
             title: "Subcategorías sin completar",
             message:
               "Hay subcategorías que no tienen datos cargados. Si continúas, quedarán sin emisiones calculadas.",
-            variant: "warning",
+            variant: "error",
             confirmLabel: "Continuar",
             cancelLabel: "Revisar",
           });
