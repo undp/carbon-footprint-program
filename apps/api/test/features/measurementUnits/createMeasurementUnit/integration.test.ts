@@ -222,7 +222,10 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         select: { id: true },
       });
       if (!subcategory) {
-        return;
+        throw new Error(
+          "Test precondition failed: no Subcategory found in the seeded test database. " +
+            "The restoredLabelsOnly branch requires at least one subcategory to create a SubcategoryMeasurementUnit reference."
+        );
       }
       await prisma.subcategoryMeasurementUnit.create({
         data: {
