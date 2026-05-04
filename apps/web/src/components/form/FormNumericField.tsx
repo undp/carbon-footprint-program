@@ -13,6 +13,9 @@ type Props<T extends FieldValues> = {
   maxMessage?: string;
   helperText?: string;
   fullWidth?: boolean;
+  onlyInteger?: boolean;
+  onlyIntegerMessage?: string;
+  decimalScale?: number;
 } & Omit<
   TextFieldProps,
   | "name"
@@ -35,9 +38,13 @@ export const FormNumericField = <T extends FieldValues>({
   max,
   maxMessage = "El valor es demasiado alto",
   fullWidth = true,
+  onlyInteger = false,
+  onlyIntegerMessage = "Debe ser un número entero",
+  decimalScale,
   sx,
   ...props
 }: Props<T>) => {
+  const effectiveDecimalScale = onlyInteger ? 0 : decimalScale;
   return (
     <Controller
       name={name}
@@ -56,6 +63,10 @@ export const FormNumericField = <T extends FieldValues>({
             if (max === undefined || value == null) return true;
             return Number(value) > max ? maxMessage : true;
           },
+          onlyInteger: (value) => {
+            if (!onlyInteger || value == null) return true;
+            return Number.isInteger(Number(value)) ? true : onlyIntegerMessage;
+          },
         },
       }}
       render={({ field, fieldState }) => (
@@ -63,6 +74,7 @@ export const FormNumericField = <T extends FieldValues>({
           size="medium"
           placeholder=""
           {...props}
+          decimalScale={effectiveDecimalScale}
           value={field.value == null ? null : Number(field.value)}
           onChange={(value) => field.onChange(value)}
           min={min}

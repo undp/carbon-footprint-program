@@ -238,6 +238,8 @@ export const OrganizationFormDialog: FC<Props> = ({
                   disabled={organizationSizesLoading}
                   min={0}
                   minMessage="La cantidad no puede ser negativa"
+                  onlyInteger
+                  onlyIntegerMessage="La cantidad debe ser un número entero"
                 />
                 <FormTextField
                   name="address"

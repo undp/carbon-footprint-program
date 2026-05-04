@@ -308,6 +308,8 @@ export const BusinessProfilingScreen: FC = () => {
                     requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
                     min={0}
                     minMessage="La cantidad no puede ser negativa"
+                    onlyInteger
+                    onlyIntegerMessage="La cantidad debe ser un número entero"
                   />
                 </Box>
               </Box>
