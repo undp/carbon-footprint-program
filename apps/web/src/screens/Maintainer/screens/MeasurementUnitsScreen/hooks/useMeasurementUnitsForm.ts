@@ -79,7 +79,28 @@ export const useMeasurementUnitsForm = (
       }
     });
 
-    return z.object({ measurementUnits: z.array(rowSchema) });
+    return z.object({
+      measurementUnits: z.array(rowSchema).superRefine((rows, ctx) => {
+        rows.forEach((row, index) => {
+          if (!row.isBase) return;
+
+          const conflictsWithAnotherRow = rows.some(
+            (other, otherIndex) =>
+              otherIndex !== index &&
+              other.isBase &&
+              other.magnitude === row.magnitude
+          );
+
+          if (conflictsWithAnotherRow) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Solo puede existir una unidad base por magnitud.",
+              path: [index, "isBase"],
+            });
+          }
+        });
+      }),
+    });
   }, [magnitudesWithBaseUnit]);
 
   const form = useForm<MeasurementUnitsFormValues>({
