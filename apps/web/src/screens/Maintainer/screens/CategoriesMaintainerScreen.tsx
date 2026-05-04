@@ -459,6 +459,11 @@ export const CategoriesMaintainerScreen: FC = () => {
         ) ?? "")
       : "";
 
+  const explanationRow =
+    explanationModal.rowIndex >= 0
+      ? form.getValues(`categories.${explanationModal.rowIndex}`)
+      : undefined;
+
   if (
     !isLoadingMethodologies &&
     (isMethodologiesError || isErrorCategories || !targetMethodology)
@@ -616,6 +621,14 @@ export const CategoriesMaintainerScreen: FC = () => {
       <ExplanationModal
         open={explanationModal.open}
         value={explanationValue}
+        title={explanationRow?.name || undefined}
+        subtitle={
+          explanationRow?.description ? (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {explanationRow.description}
+            </Typography>
+          ) : undefined
+        }
         readOnly={isViewOnly}
         onSave={handleSaveExplanation}
         onClose={() => setExplanationModal({ open: false, rowIndex: -1 })}

@@ -1,13 +1,17 @@
-import { FC, ReactNode, useCallback, useState } from "react";
+import { FC, ReactNode, SyntheticEvent, useCallback, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   Button,
   CircularProgress,
-  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Tab,
+  Tabs,
 } from "@mui/material";
+import { ExplanationEditorTab } from "./ExplanationModal/ExplanationEditorTab";
+import { ExplanationPreviewTab } from "./ExplanationModal/ExplanationPreviewTab";
 
 interface ExplanationModalProps {
   open: boolean;
@@ -20,42 +24,96 @@ interface ExplanationModalProps {
   onClose: () => void;
 }
 
+type TabValue = "edit" | "preview";
+
 const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
-  title = "Editar Explicación",
+  title,
   subtitle,
   readOnly = false,
   loading = false,
   onSave,
   onClose,
 }) => {
-  const [localValue, setLocalValue] = useState(value);
+  const dialogTitle =
+    title ?? (readOnly ? "Ver Explicación" : "Editar Explicación");
+  const [content, setContent] = useState(value);
+  const [tab, setTab] = useState<TabValue>(readOnly ? "preview" : "edit");
+
+  const handleTabChange = (_event: SyntheticEvent, next: TabValue) => {
+    setTab(next);
+  };
+
+  const isDirty = content !== value;
 
   const handleSave = useCallback(async () => {
+    if (!isDirty) {
+      onClose();
+      return;
+    }
     try {
-      await onSave(localValue);
+      await onSave(content);
       onClose();
     } catch {
-      // The parent surfaces the error; keep the modal open so edits are not lost.
+      // Parent surfaces the error; keep the modal open so edits are not lost.
     }
-  }, [localValue, onClose, onSave]);
+  }, [content, isDirty, onClose, onSave]);
 
   return (
     <>
-      <DialogTitle>{readOnly ? "Ver Explicación" : title}</DialogTitle>
-      <DialogContent>
+      <DialogTitle>{dialogTitle}</DialogTitle>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+        }}
+      >
         {subtitle}
-        <TextField
-          fullWidth
-          multiline
-          minRows={8}
-          maxRows={20}
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          placeholder="Escribe la explicación aquí..."
-          slotProps={{ input: { readOnly: readOnly || loading } }}
-          sx={{ mt: 1 }}
-        />
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          sx={(theme) => ({
+            minHeight: 0,
+            "& .MuiTabs-indicator": {
+              backgroundColor: theme.palette.primary.main,
+              height: 2,
+            },
+            "& .MuiTab-root": {
+              textTransform: "none",
+              minHeight: 40,
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              color: theme.palette.text.secondary,
+              "&.Mui-selected": { color: theme.palette.primary.dark },
+            },
+          })}
+        >
+          {!readOnly && <Tab value="edit" label="Editar" />}
+          <Tab value="preview" label="Vista Previa" />
+        </Tabs>
+        <Box
+          sx={{
+            mt: 1,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
+          {tab === "edit" && !readOnly ? (
+            <ExplanationEditorTab
+              value={content}
+              onChange={setContent}
+              disabled={loading}
+            />
+          ) : (
+            <ExplanationPreviewTab content={content} />
+          )}
+        </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         {readOnly ? (
@@ -93,9 +151,11 @@ export const ExplanationModal: FC<ExplanationModalProps> = ({
   <Dialog
     open={open}
     onClose={contentProps.loading ? undefined : contentProps.onClose}
-    maxWidth="md"
+    maxWidth="lg"
     fullWidth
-    PaperProps={{ sx: { maxHeight: "90vh" } }}
+    slotProps={{
+      paper: { sx: { height: "90vh", overflow: "hidden" } },
+    }}
   >
     {open && <ExplanationModalContent {...contentProps} />}
   </Dialog>

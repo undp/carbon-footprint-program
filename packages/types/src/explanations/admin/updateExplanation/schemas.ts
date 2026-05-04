@@ -9,6 +9,9 @@ export const UpdateExplanationParamsSchema = z
 
 export const UpdateExplanationRequestSchema = z
   .object({
-    content: z.string().max(EXPLANATION_CONTENT_MAX_LENGTH),
+    content: z
+      .string()
+      .max(EXPLANATION_CONTENT_MAX_LENGTH)
+      .describe("The updated content of the explanation"),
   })
   .strict();

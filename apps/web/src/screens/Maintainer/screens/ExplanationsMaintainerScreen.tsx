@@ -37,7 +37,10 @@ export const ExplanationsMaintainerScreen: FC = () => {
     async (content: string) => {
       if (!editingSlug) return;
       try {
-        await updateMutation.mutateAsync({ slug: editingSlug, content });
+        await updateMutation.mutateAsync({
+          slug: editingSlug,
+          content,
+        });
         enqueueSnackbar("Explicación guardada", { variant: "success" });
       } catch (error) {
         enqueueSnackbar(
