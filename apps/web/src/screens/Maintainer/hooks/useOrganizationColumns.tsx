@@ -157,17 +157,6 @@ export const useOrganizationColumns = ({
                   <HistoryOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip
-                title={`Ver historial de ${VOCAB.organization.noun.singular}`}
-              >
-                <IconButton
-                  size="small"
-                  aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onViewHistory(params.row.id)}
-                >
-                  <HistoryOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
               {isBlocked ? (
                 <Tooltip
                   title={`Desbloquear ${VOCAB.organization.noun.singular}`}
