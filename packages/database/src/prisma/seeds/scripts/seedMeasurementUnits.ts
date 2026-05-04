@@ -154,5 +154,34 @@ export async function seedMeasurementUnits(
     `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
+  // Assert canonical RMU coverage: every MU must have a canonical kg/<MU.abbreviation> RMU
+  const kgMu = await prisma.measurementUnit.findUnique({
+    where: { abbreviation: "kg" },
+  });
+  if (!kgMu) {
+    throw new Error(
+      `Canonical RMU coverage check failed for dataset ${dataset}: no MeasurementUnit with abbreviation "kg" found. The "kg" unit is required as the numerator for all canonical RMUs.`
+    );
+  }
+
+  const allMus = await prisma.measurementUnit.findMany({
+    select: { id: true, abbreviation: true },
+  });
+  const canonicalRmus = await prisma.rateMeasurementUnit.findMany({
+    where: { numeratorMeasurementUnitId: kgMu.id },
+    select: { denominatorMeasurementUnitId: true },
+  });
+  const coveredDenominatorIds = new Set(
+    canonicalRmus.map((r) => r.denominatorMeasurementUnitId.toString())
+  );
+  const missingMus = allMus.filter(
+    (mu) => !coveredDenominatorIds.has(mu.id.toString())
+  );
+  if (missingMus.length > 0) {
+    throw new Error(
+      `Canonical RMU coverage check failed for dataset ${dataset}: the following MeasurementUnits are missing their canonical "kg/<abbreviation>" RateMeasurementUnit: ${missingMus.map((mu) => `${mu.abbreviation} (id=${mu.id})`).join(", ")}`
+    );
+  }
+
   console.log("✓ Measurement units seeded successfully!");
 }
