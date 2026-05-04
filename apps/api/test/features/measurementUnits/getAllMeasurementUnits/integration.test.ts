@@ -143,7 +143,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
   });
 
   describe("Ordering", () => {
-    it("should return units ordered by name", async () => {
+    it("should return units ordered by magnitude & name", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/measurement-units",
@@ -151,9 +151,13 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
-      const names = body.map((u) => u.name);
-      const sortedNames = [...names].sort();
-      expect(names).toEqual(sortedNames);
+      const sorted = [...body].sort((a, b) => {
+        const magnitudeOrder =
+          MAGNITUDES.indexOf(a.magnitude) - MAGNITUDES.indexOf(b.magnitude);
+        if (magnitudeOrder !== 0) return magnitudeOrder;
+        return a.name.localeCompare(b.name);
+      });
+      expect(body).toEqual(sorted);
     });
   });
 

@@ -341,6 +341,28 @@ model User {
   @@map("user")
 }
 
+enum Magnitude {
+  MASS
+  VOLUME
+  DISTANCE
+  TIME
+  ANIMALS
+  AREA
+  POWER
+  ENERGY
+  DISTANCE_MASS
+  ROOMS
+
+  @@map("Magnitude")
+}
+
+enum MeasurementUnitStatus {
+  ACTIVE
+  DELETED
+
+  @@map("measurement_unit_status")
+}
+
 model MeasurementUnit {
   id                          BigInt                       @id @default(autoincrement())
   name                        String
@@ -348,6 +370,7 @@ model MeasurementUnit {
   abbreviation                String                       @unique
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
+  status                      MeasurementUnitStatus        @default(ACTIVE)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
   lineInputs                  CarbonInventoryLineInput[]
@@ -362,6 +385,7 @@ model RateMeasurementUnit {
   abbreviation                 String                      @unique
   numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
   denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
+  status                       MeasurementUnitStatus       @default(ACTIVE)
   denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
   numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
   emissionFactors              EmissionFactor[]
@@ -369,21 +393,6 @@ model RateMeasurementUnit {
   lineFactorsAsApplied         CarbonInventoryLineFactor[] @relation("applied_factor_rate_unit")
 
   @@map("rate_measurement_unit")
-}
-
-enum Magnitude {
-  MASS
-  VOLUME
-  DISTANCE
-  TIME
-  ANIMALS
-  AREA
-  POWER
-  ENERGY
-  DISTANCE_MASS
-  ROOMS
-
-  @@map("Magnitude")
 }
 
 enum MethodologyVersionStatus {

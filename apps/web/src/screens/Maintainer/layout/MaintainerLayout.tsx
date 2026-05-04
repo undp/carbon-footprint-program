@@ -69,12 +69,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         icon: <Co2Outlined fontSize="small" />,
         path: Routes.ADMIN_EMISSION_FACTORS,
       },
-      {
-        text: "Unidades",
-        icon: <SquareFootOutlined fontSize="small" />,
-        path: Routes.ADMIN_UNITS,
-      },
     ],
+  },
+  {
+    text: "Unidades",
+    icon: <SquareFootOutlined fontSize="small" />,
+    path: Routes.ADMIN_UNITS,
   },
   {
     text: "Perfilamiento",
