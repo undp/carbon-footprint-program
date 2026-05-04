@@ -8,3 +8,5 @@ export * from "./ParentNotActiveError.js";
 export * from "./RestoreOnActiveError.js";
 export * from "./attachDetails.js";
 export * from "./prisma.js";
+export * from "./ExternalServiceError.js";
+export * from "./RequestTooLargeError.js";
