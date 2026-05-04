@@ -27,7 +27,7 @@ Defined in `packages/database/src/prisma/schema.prisma`, mapped to the `user_rol
 
 Both foreign keys use `onDelete: Restrict`, so audit history survives even if related users are removed at the database level. The composite index `@@index([userId, createdAt])` keeps the per-user history query (DESC by `createdAt`) cheap as the table grows.
 
-Audit rows are inserted in the same Serializable transaction as the `User.role` update, so they cannot drift out of sync with the user's persisted role.
+Audit rows are inserted in the same transaction as the `User.role` update, so they cannot drift out of sync with the user's persisted role.
 
 ---
 
@@ -73,7 +73,7 @@ The list response now includes a `jobPositionName` (string | null) for each user
 
 ## Service Invariants
 
-Implemented in `apps/api/src/features/users/updateUser/service.ts`. The role-change branch runs inside a Serializable interactive transaction wrapped by `withSerializableRetry` (`apps/api/src/utils/prismaRetry.ts`), which retries exactly once on a Prisma `P2034` (PostgreSQL `SQLSTATE 40001`).
+Implemented in `apps/api/src/features/users/updateUserRole/service.ts`. The role-change branch runs inside an interactive transaction so the count and update commit together.
 
 ### INV-1 — No self role changes
 
@@ -81,7 +81,7 @@ A `SUPERADMIN` cannot change their own role. Enforced before the transaction ope
 
 ### INV-2 — At least one `SUPERADMIN`
 
-When the request demotes a `SUPERADMIN` (i.e. `previousRole === SUPERADMIN && newRole !== SUPERADMIN`), the service counts active `SUPERADMIN`s inside the same transaction. If the count is 1, the transaction throws `LastSuperadminError` (409). The Serializable isolation level guarantees that two concurrent demotions cannot both observe `count > 1` and both commit.
+When the request demotes a `SUPERADMIN` (i.e. `previousRole === SUPERADMIN && newRole !== SUPERADMIN`), the service counts active `SUPERADMIN`s inside the same transaction. If the count is 1, the transaction throws `LastSuperadminError` (409).
 
 ### INV-3 — Country-agnostic
 

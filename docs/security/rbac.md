@@ -30,7 +30,7 @@ Defined in `packages/database/src/prisma/schema.prisma` as the `SystemRole` enum
 **Role assignment:**
 
 - New users are always created with `USER` role.
-- Role changes are performed via the admin users screen (`/admin/users`), backed by `PATCH /users/:id` with a discriminated body. Only `SUPERADMIN`s can change roles, and they cannot change their own (INV-1). The system enforces "at least one `SUPERADMIN` must exist" (INV-2) at the database isolation level.
+- Role changes are performed via the admin users screen (`/admin/users`), backed by `PATCH /users/:id` with a discriminated body. Only `SUPERADMIN`s can change roles, and they cannot change their own (INV-1). The system enforces "at least one `SUPERADMIN` must exist" (INV-2) inside the role-update transaction.
 - Every successful role change is recorded in the `UserRoleAudit` table and is queryable via `GET /users/:id/role-history` (visible to `ADMIN` and `SUPERADMIN`).
 
 **Role transition matrix** (enforced by `apps/api/src/features/users/updateUserRole/service.ts`):
@@ -46,7 +46,7 @@ Same-role updates are no-ops: the service short-circuits without touching `updat
 **Invariants:**
 
 - **INV-1 — No self role changes.** A `SUPERADMIN` cannot change their own role. Returns 403 `SelfRoleChangeError`.
-- **INV-2 — At least one `SUPERADMIN`.** Demoting the last `SUPERADMIN` is rejected. Returns 409 `LastSuperadminError`. The check runs inside a Serializable interactive transaction so concurrent demotions cannot both succeed.
+- **INV-2 — At least one `SUPERADMIN`.** Demoting the last `SUPERADMIN` is rejected. Returns 409 `LastSuperadminError`. The check runs inside the role-update interactive transaction.
 - **INV-3 — Country-agnostic.** No role labels or thresholds are hard-coded; role labels live in the web `screens/Users/constants.ts`.
 
 ### Organization Roles

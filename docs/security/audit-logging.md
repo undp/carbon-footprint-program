@@ -129,7 +129,7 @@ These fields record _who_ made a change and _when_, providing a lightweight audi
 
 ### User role transitions (`UserRoleAudit`)
 
-System role changes (`USER`/`ADMIN`/`SUPERADMIN`) are an exception to the "last writer wins" pattern: every role transition is recorded in the dedicated `UserRoleAudit` table. The insert is performed inside the same Serializable transaction that updates `User.role`, so the audit row is guaranteed to match the persisted role.
+System role changes (`USER`/`ADMIN`/`SUPERADMIN`) are an exception to the "last writer wins" pattern: every role transition is recorded in the dedicated `UserRoleAudit` table. The insert is performed inside the same transaction that updates `User.role`, so the audit row is guaranteed to match the persisted role.
 
 | Field          | Type      | Description                           |
 | -------------- | --------- | ------------------------------------- |
