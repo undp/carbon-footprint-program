@@ -1,12 +1,16 @@
-import { Logout } from "@mui/icons-material";
 import {
-  Menu,
-  MenuItem,
-  Avatar,
+  HomeOutlined,
+  KeyboardArrowDown,
+  LogoutOutlined,
+  SettingsOutlined,
+} from "@mui/icons-material";
+import {
+  Box,
   Divider,
   ListItemIcon,
-  Box,
-  Card,
+  ListItemText,
+  Menu,
+  MenuItem,
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +18,7 @@ import { useCallback, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 import { SystemRole } from "@repo/types";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const UserMenu = () => {
   const { signOut, user: me, isLoading } = useAuth();
@@ -25,9 +30,10 @@ export const UserMenu = () => {
     me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const open = Boolean(anchorEl);
 
-  const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+  const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   }, []);
 
@@ -35,91 +41,158 @@ export const UserMenu = () => {
     setAnchorEl(null);
   }, []);
 
-  const navigateToHome = useCallback(() => {
+  const handleToggleArea = useCallback(() => {
+    setAnchorEl(null);
     void navigate({
-      to: Routes.HOME,
+      to: isAdminRoute ? Routes.HOME : Routes.ADMIN_DASHBOARD,
     });
-  }, [navigate]);
+  }, [navigate, isAdminRoute]);
 
-  const navigateToAdmin = useCallback(() => {
-    void navigate({
-      to: Routes.ADMIN_DASHBOARD,
-    });
-  }, [navigate]);
+  const openLogoutDialog = useCallback(() => {
+    setAnchorEl(null);
+    setLogoutDialogOpen(true);
+  }, []);
 
-  const name = me?.firstName ? `${me.firstName} ${me.lastName}` : null;
+  const closeLogoutDialog = useCallback(() => {
+    setLogoutDialogOpen(false);
+  }, []);
+
+  const confirmLogout = useCallback(() => {
+    setLogoutDialogOpen(false);
+    void signOut();
+  }, [signOut]);
 
   if (isLoading || !me) {
     return null;
   }
 
+  const name = me.firstName ? `${me.firstName} ${me.lastName}` : null;
+  const toggleLabel = isAdminRoute
+    ? "Ir a la aplicación"
+    : "Ir a administración";
+  const ToggleIcon = isAdminRoute ? HomeOutlined : SettingsOutlined;
+
   return (
-    <Box className="mb-4 flex flex-col-reverse gap-4">
-      <Card
-        elevation={0}
-        className="flex items-center gap-2"
-        onClick={handleClick}
-        sx={{ cursor: "pointer" }}
+    <>
+      <Box
+        component="button"
+        type="button"
+        onClick={handleOpen}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? "user-menu" : undefined}
+        sx={(theme) => ({
+          all: "unset",
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          px: 1.25,
+          py: 1,
+          borderRadius: 1,
+          cursor: "pointer",
+          backgroundColor: open ? theme.palette.action.selected : "transparent",
+          transition: theme.transitions.create("background-color"),
+          "&:hover": {
+            backgroundColor: theme.palette.action.hover,
+          },
+          "&:focus-visible": {
+            outline: `2px solid ${theme.palette.primary.main}`,
+            outlineOffset: 2,
+          },
+        })}
       >
-        <Avatar
-          sx={(theme) => ({
-            backgroundColor: theme.palette.grey[200],
-          })}
-        >
-          {me.firstName?.charAt(0).toUpperCase()}
-        </Avatar>
-        <Box className="flex flex-col">
+        <Box className="flex min-w-0 flex-1 flex-col items-start">
           {name && (
-            <Typography variant="body1" lineHeight="normal">
+            <Typography
+              variant="body2"
+              fontWeight={600}
+              lineHeight={1.2}
+              noWrap
+              sx={{ width: "100%", textAlign: "left" }}
+            >
               {name}
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            noWrap
+            sx={{ width: "100%", textAlign: "left" }}
+          >
             {me.email}
           </Typography>
         </Box>
-      </Card>
+        <KeyboardArrowDown
+          fontSize="small"
+          sx={(theme) => ({
+            color: theme.palette.text.secondary,
+            transition: theme.transitions.create("transform"),
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          })}
+        />
+      </Box>
+
       <Menu
+        id="user-menu"
         anchorEl={anchorEl}
-        id="account-menu"
         open={open}
         onClose={handleClose}
-        onClick={handleClose}
+        anchorOrigin={{ horizontal: "left", vertical: "top" }}
+        transformOrigin={{ horizontal: "left", vertical: "bottom" }}
         slotProps={{
           paper: {
-            elevation: 0,
+            elevation: 3,
             sx: {
-              overflow: "visible",
-              filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-              mt: 1.5,
-              "& .MuiAvatar-root": {
-                width: 32,
-                height: 32,
-                ml: -0.5,
-                mr: 1,
-              },
+              minWidth: 240,
+              mt: -1,
+              borderRadius: 1,
+              overflow: "hidden",
             },
           },
+          list: { sx: { py: 0.5 } },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {imAdmin && !isAdminRoute && (
-          <MenuItem onClick={navigateToAdmin}>Ir a admin</MenuItem>
-        )}
-        {imAdmin && isAdminRoute && (
-          <MenuItem onClick={navigateToHome}>Ir a home</MenuItem>
-        )}
+        {imAdmin && [
+          <MenuItem key="toggle-area" onClick={handleToggleArea}>
+            <ListItemIcon>
+              <ToggleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={toggleLabel} />
+          </MenuItem>,
+          <Divider key="toggle-divider" />,
+        ]}
 
-        <MenuItem onClick={signOut}>
+        <MenuItem
+          onClick={openLogoutDialog}
+          sx={(theme) => ({
+            color: theme.palette.error.main,
+            "& .MuiListItemIcon-root": { color: theme.palette.error.main },
+            "&:hover": {
+              backgroundColor: theme.palette.error.light,
+              color: theme.palette.error.contrastText,
+              "& .MuiListItemIcon-root": {
+                color: theme.palette.error.contrastText,
+              },
+            },
+          })}
+        >
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <LogoutOutlined fontSize="small" />
           </ListItemIcon>
-          Salir
+          <ListItemText primary="Cerrar sesión" />
         </MenuItem>
       </Menu>
 
-      <Divider />
-    </Box>
+      <ConfirmDialog
+        open={logoutDialogOpen}
+        onClose={closeLogoutDialog}
+        onConfirm={confirmLogout}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que quieres cerrar sesión?"
+        variant="error"
+        confirmLabel="Cerrar sesión"
+        cancelLabel="Cancelar"
+      />
+    </>
   );
 };

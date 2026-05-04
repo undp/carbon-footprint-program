@@ -27,9 +27,8 @@ import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionMan
 import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
-import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
+import { Sidebar } from "@/components/layout/Sidebar";
 import type { SidebarDef } from "@/components/layout/Sidebar";
-import { APP_VERSION } from "@/config/environment";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { useMe } from "@/api/query/users/useMe";
@@ -169,21 +168,7 @@ export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_WIDTH }}>
-      <Sidebar
-        items={visibleItems}
-        footer={
-          <>
-            <Typography
-              variant="caption"
-              color="text.disabled"
-              sx={{ mt: "auto", px: 1, textAlign: "center" }}
-            >
-              {APP_VERSION}
-            </Typography>
-            <UserMenu />
-          </>
-        }
-      />
+      <Sidebar items={visibleItems} areaLabel="Admin" areaVariant="admin" />
       <Box className="flex min-h-screen flex-col gap-3 bg-gray-50 px-6 py-6">
         {children}
       </Box>

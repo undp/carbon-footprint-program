@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   HomeOutlined,
   Business,
@@ -11,9 +11,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar/Sidebar";
 import type { SidebarDef } from "./Sidebar/Sidebar";
-import { UserMenu } from "./Sidebar/UserMenu";
 import { SIDEBAR_WIDTH } from "@/config/constants";
-import { APP_VERSION } from "@/config/environment";
 import {
   Routes,
   SidebarRoute,
@@ -47,18 +45,6 @@ export const MainLayout: FC<PropsWithChildren> = ({ children }) => {
         <Sidebar
           items={SIDEBAR_ITEMS}
           onLogoClick={() => navigate({ to: Routes.HOME })}
-          footer={
-            <>
-              <Typography
-                variant="caption"
-                color="text.disabled"
-                sx={{ mt: "auto", px: 1, textAlign: "center" }}
-              >
-                {APP_VERSION}
-              </Typography>
-              <UserMenu />
-            </>
-          }
         />
       </Box>
       <Box className="flex min-h-0 flex-1 overflow-y-auto px-6 py-6">
