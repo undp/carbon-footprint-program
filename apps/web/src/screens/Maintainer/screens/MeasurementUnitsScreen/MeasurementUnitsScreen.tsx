@@ -120,11 +120,18 @@ export const MeasurementUnitsScreen: FC = () => {
         });
         form.reset({ measurementUnits: form.getValues("measurementUnits") });
 
-        const msg =
-          result.action === MeasurementUnitCreationResultEnum.created
-            ? "Unidad creada exitosamente"
-            : "Unidad restaurada exitosamente";
-        void enqueueSnackbar({ message: msg, variant: "success" });
+        const messagesByAction = {
+          [MeasurementUnitCreationResultEnum.created]:
+            "Unidad creada exitosamente",
+          [MeasurementUnitCreationResultEnum.fullyRestored]:
+            "Unidad restaurada exitosamente",
+          [MeasurementUnitCreationResultEnum.restoredLabelsOnly]:
+            "Unidad restaurada: solo etiquetas aplicadas, otros campos no modificados",
+        };
+        void enqueueSnackbar({
+          message: messagesByAction[result.action],
+          variant: "success",
+        });
       } catch (error) {
         void enqueueSnackbar({
           message: getApiErrorMessage(error, "Error al crear unidad"),
