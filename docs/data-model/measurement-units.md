@@ -11,10 +11,10 @@ Measurement units represent physical quantities (mass, volume, distance, etc.) u
 | Column         | Type                      | Notes                                        |
 | -------------- | ------------------------- | -------------------------------------------- |
 | `id`           | `bigint`                  | Primary key                                  |
-| `name`         | `varchar(100)`            | Human-readable name, unique                  |
-| `abbreviation` | `varchar(30)`             | Symbol (e.g. `kg`, `m³`), unique             |
+| `name`         | `text`                    | Human-readable name                          |
+| `abbreviation` | `text`                    | Symbol (e.g. `kg`, `m³`), unique             |
 | `magnitude`    | `Magnitude` enum          | Physical dimension (MASS, VOLUME, etc.)      |
-| `base_factor`  | `decimal`                 | Conversion factor to the base unit           |
+| `base_factor`  | `double precision`        | Conversion factor to the base unit           |
 | `is_base`      | `boolean`                 | True for the SI-like base unit per magnitude |
 | `status`       | `measurement_unit_status` | `ACTIVE` or `DELETED` (soft-delete)          |
 
