@@ -142,3 +142,16 @@ For production (App Service), all variables come from:
 1. Bicep template (auto-injected into App Service environment)
 2. Azure Key Vault references (sensitive values)
 3. Manual App Service configuration (authentication variables)
+
+---
+
+## Chatbot Variables
+
+| Variable                       | Required            | Default        | Description                                                                                                            |
+| ------------------------------ | ------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `LLM_PROVIDER`                 | No                  | `mock`         | Selects the LLM backend. Allowed values: `mock`, `azure-openai`. The API refuses to boot with `mock` in production.    |
+| `COOKIE_SECRET`                | Yes (in prod)       | Local fallback | Secret used by `@fastify/cookie` to sign the `chatbot_session_id` cookie. Required when `NODE_ENV=production`.         |
+| `AZURE_OPENAI_ENDPOINT`        | When `azure-openai` | —              | Azure OpenAI endpoint URL.                                                                                             |
+| `AZURE_OPENAI_DEPLOYMENT_NAME` | When `azure-openai` | —              | Azure OpenAI deployment name. The chat client authenticates with `DefaultAzureCredential` (managed identity, no keys). |
+
+The chatbot widget makes its requests to the relative URL `/api/chatbot/...` so the `chatbot_session_id` cookie (`SameSite=Lax`) is sent. The Vite proxy added in `apps/web/vite.config.ts` forwards `/api/*` to `VITE_API_BASE_URL` in dev, keeping the widget same-origin with the API.
