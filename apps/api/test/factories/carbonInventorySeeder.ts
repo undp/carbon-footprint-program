@@ -1,5 +1,8 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import { CarbonInventoryLineStatus } from "@repo/types";
+import {
+  CarbonInventoryLineStatus,
+  type OrganizationDataField,
+} from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { getTestLoggedUser } from "./userFactory.js";
 import { getTestMethodologyVersionId } from "./methodologyFactory.js";
@@ -83,6 +86,73 @@ export const carbonInventoryPatterns = {
     isEditable: true,
   }),
 };
+
+/**
+ * Builds the expected `organizationData` response shape, including the
+ * `sector`/`subsector`/`size`/`mainActivity` reference fields the API always
+ * emits.
+ *
+ * - With `resolveReferences: true` (default): looks up the catalog rows by the
+ *   *Id fields and includes the `{id, name}` snapshots — for endpoints that
+ *   resolve references (getById, update).
+ * - With `resolveReferences: false`: leaves the reference fields as `null` —
+ *   for endpoints that don't resolve them (getAll currently does not, and the
+ *   FE list views don't consume those fields).
+ */
+export async function buildExpectedOrganizationData(
+  prisma: PrismaClient,
+  input: NonNullable<OrganizationDataField>,
+  { resolveReferences = true }: { resolveReferences?: boolean } = {}
+): Promise<NonNullable<OrganizationDataField>> {
+  if (!resolveReferences) {
+    return {
+      ...input,
+      sector: null,
+      subsector: null,
+      size: null,
+      mainActivity: null,
+    };
+  }
+
+  const [sector, subsector, size, mainActivity] = await Promise.all([
+    input.sectorId
+      ? prisma.countrySector.findUnique({
+          where: { id: BigInt(input.sectorId) },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve(null),
+    input.subsectorId
+      ? prisma.countrySubsector.findUnique({
+          where: { id: BigInt(input.subsectorId) },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve(null),
+    input.sizeId
+      ? prisma.countryOrganizationSize.findUnique({
+          where: { id: BigInt(input.sizeId) },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve(null),
+    input.mainActivityId
+      ? prisma.organizationMainActivity.findUnique({
+          where: { id: BigInt(input.mainActivityId) },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  return {
+    ...input,
+    sector: sector ? { id: sector.id.toString(), name: sector.name } : null,
+    subsector: subsector
+      ? { id: subsector.id.toString(), name: subsector.name }
+      : null,
+    size: size ? { id: size.id.toString(), name: size.name } : null,
+    mainActivity: mainActivity
+      ? { id: mainActivity.id.toString(), name: mainActivity.name }
+      : null,
+  };
+}
 
 /**
  * Creates a carbon inventory with the given data
