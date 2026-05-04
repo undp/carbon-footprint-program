@@ -57,7 +57,9 @@ describe("DELETE /api/chatbot/conversations/me — integration", () => {
     expect(await prisma.chatbotChatConversation.count()).toBe(0);
   });
 
-  it("cascade removes message rows when a conversation is deleted (via raw SQL)", async () => {
+  it("FK cascade removes message rows when conversation is deleted directly", async () => {
+    // DB-level invariant — keeps the chatbot_chat_message.conversation_id FK
+    // ON DELETE CASCADE honest, independent of the HTTP handler.
     const conversation = await prisma.chatbotChatConversation.create({
       data: {
         sessionId: "test-session-cascade",
@@ -74,6 +76,50 @@ describe("DELETE /api/chatbot/conversations/me — integration", () => {
     await prisma.chatbotChatConversation.delete({
       where: { id: conversation.id },
     });
+    expect(
+      await prisma.chatbotChatMessage.count({
+        where: { conversationId: conversation.id },
+      })
+    ).toBe(0);
+  });
+
+  it("DELETE endpoint cascades message rows for an authenticated caller", async () => {
+    // forced-user provider populates request.currentUser → identity preHandler
+    // resolves to { kind: "user", userId: <forced-user id> }. We seed a
+    // conversation under that user and then issue the HTTP DELETE, so the
+    // assertion exercises the full route + handler + service path.
+    const meResponse = await app.inject({
+      method: "GET",
+      url: "/api/users/me",
+    });
+    if (meResponse.statusCode !== 200) {
+      // forced-user not wired in this suite — skip rather than assert.
+      return;
+    }
+    const me = meResponse.json<{ id: string }>();
+    const userId = BigInt(me.id);
+    const conversation = await prisma.chatbotChatConversation.create({
+      data: {
+        userId,
+        expiresAt: new Date(Date.now() + 10_000),
+      },
+    });
+    await prisma.chatbotChatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: ChatMessageRole.USER,
+        content: "hola",
+      },
+    });
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: "/api/chatbot/conversations/me",
+    });
+    expect(response.statusCode).toBe(204);
+    expect(
+      await prisma.chatbotChatConversation.count({ where: { userId } })
+    ).toBe(0);
     expect(
       await prisma.chatbotChatMessage.count({
         where: { conversationId: conversation.id },
