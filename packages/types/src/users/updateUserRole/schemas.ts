@@ -9,9 +9,6 @@ export const UpdateUserRoleBodySchema = z
   .object({
     role: SystemRoleSchema,
   })
-  .strict()
-  .refine((data) => Object.keys(data).length >= 1, {
-    message: "At least one field must be provided",
-  });
+  .strict();
 
 export const UpdateUserRoleResponseSchema = UserBaseSchema;
