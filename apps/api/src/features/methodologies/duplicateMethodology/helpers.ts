@@ -187,20 +187,30 @@ export const cloneEmissionFactorDimensionValues = async (
   );
 
   // Pass 2: backfill parentValueId now that every original id has a remap.
-  const valuesWithParent = originalValues.filter(
-    (v) => v.parentValueId !== null
-  );
-  for (const val of valuesWithParent) {
-    const newParentId = val.parentValueId
-      ? valueIdMap.get(val.parentValueId)
-      : null;
-    if (newParentId) {
-      await tx.emissionFactorDimensionValue.update({
-        where: { id: valueIdMap.get(val.id)! },
-        data: { parentValueId: newParentId },
-      });
+  // Group child ids by their new parent id so we can issue one updateMany per
+  // parent instead of one update per row.
+  const childIdsByNewParentId = new Map<bigint, bigint[]>();
+  for (const val of originalValues) {
+    if (val.parentValueId === null) continue;
+    const newParentId = valueIdMap.get(val.parentValueId);
+    const newChildId = valueIdMap.get(val.id);
+    if (!newParentId || !newChildId) continue;
+    const group = childIdsByNewParentId.get(newParentId);
+    if (group) {
+      group.push(newChildId);
+    } else {
+      childIdsByNewParentId.set(newParentId, [newChildId]);
     }
   }
+
+  await Promise.all(
+    [...childIdsByNewParentId.entries()].map(([newParentId, childIds]) =>
+      tx.emissionFactorDimensionValue.updateMany({
+        where: { id: { in: childIds } },
+        data: { parentValueId: newParentId },
+      })
+    )
+  );
 
   return valueIdMap;
 };
