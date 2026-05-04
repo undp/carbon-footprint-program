@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { FC, PropsWithChildren, useMemo } from "react";
 import { SIDEBAR_WIDTH } from "@/config/constants";
 import {
