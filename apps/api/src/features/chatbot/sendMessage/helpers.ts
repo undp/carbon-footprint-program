@@ -19,10 +19,21 @@ export const writeSseEvent = (
 };
 
 export const writeSseHeaders = (reply: FastifyReply): void => {
-  reply.raw.writeHead(200, {
+  // The chatbot identity preHandler writes the anonymous session cookie
+  // directly into Fastify's header store via reply.header("Set-Cookie", ...)
+  // (see refreshSessionCookie in features/chatbot/helpers/identity.ts).
+  // Forward it onto reply.raw.writeHead() — once we hijack, Fastify no
+  // longer serializes its accumulated headers itself, so omitting this would
+  // make every anonymous turn mint a brand-new sessionId.
+  const setCookie = reply.getHeader("set-cookie");
+  const headers: Record<string, string | string[] | number> = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
     "X-Accel-Buffering": "no",
     Connection: "keep-alive",
-  });
+  };
+  if (setCookie !== undefined) {
+    headers["Set-Cookie"] = setCookie as string | string[];
+  }
+  reply.raw.writeHead(200, headers);
 };
