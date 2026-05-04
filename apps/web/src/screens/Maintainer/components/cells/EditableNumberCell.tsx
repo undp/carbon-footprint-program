@@ -14,13 +14,13 @@ interface EditableNumberCellProps {
   rowIndex: number;
   fieldName: string;
   isEditing: boolean;
-  onChange: (value: number | null) => void;
+  onChange: (value: number) => void;
   onClick?: () => void;
 }
 
 interface EditingNumberFieldProps {
-  initialValue: number | null;
-  onChange: (value: number | null) => void;
+  initialValue: number;
+  onChange: (value: number) => void;
   fieldError?: FieldError;
 }
 
@@ -30,9 +30,7 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
   onChange,
   fieldError,
 }) => {
-  const [localValue, setLocalValue] = useState<string>(
-    initialValue === null ? "" : String(initialValue)
-  );
+  const [localValue, setLocalValue] = useState<string>(String(initialValue));
 
   return (
     <TextField
@@ -41,7 +39,7 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
       type="text"
       value={localValue}
       onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={() => onChange(localValue === "" ? null : Number(localValue))}
+      onBlur={() => onChange(localValue === "" ? 0 : Number(localValue))}
       onKeyDown={(e) => e.stopPropagation()}
       error={!!fieldError}
       label={fieldError?.message ?? ""}
@@ -63,7 +61,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
 }) => {
   const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
   const { control } = useFormContext();
-  const formValue = useWatch({ name: formPath }) as number | null;
+  const formValue = useWatch({ name: formPath }) as number;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
     errors as unknown as Record<string, unknown>,
@@ -87,7 +85,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
           "&:hover": onClick ? { backgroundColor: "grey.100" } : {},
         }}
       >
-        {formValue ?? ""}
+        {formValue}
       </Typography>
     );
   }

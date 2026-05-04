@@ -299,24 +299,3 @@ Never wrap successful responses in `{ data: ... }`. The response schema in `@rep
 - Route handlers should be thin (≤ 15 lines typical). Complex logic belongs in services.
 
 These rules are partially enforced by ESLint; where they are not, reviewers enforce them during PR review.
-
----
-
-## Picker vs. Display Rule for Reference Data
-
-When a feature uses a soft-delete status pattern (e.g. `MeasurementUnitStatus.ACTIVE / DELETED`), read queries must be classified as either **picker** or **display**:
-
-| Context     | Description                                                         | Filter                        |
-| ----------- | ------------------------------------------------------------------- | ----------------------------- |
-| **Picker**  | User is selecting a value for a new record (dropdown, autocomplete) | `WHERE status = 'ACTIVE'`     |
-| **Display** | Showing an existing record's stored value (even if deleted)         | No status filter — show as-is |
-
-**Why this matters**: if a unit was active when data was recorded and later deleted, display contexts must still show the original label. Picker contexts must never offer deleted units for new assignments.
-
-**Current picker endpoints** (filter to `ACTIVE`):
-
-- `GET /api/measurement-units` (`getAllMeasurementUnits`)
-- `GET /api/measurement-units/rates` (`getAllRateMeasurementUnits`)
-- The `buildRateUnitsByMagnitudeMap` helper in `getCarbonInventoryMethodology`
-
-When adding new read paths that touch `measurement_unit` or `rate_measurement_unit`, always classify the call site and apply the rule accordingly. Document the audit results in `apps/api/src/features/measurementUnits/README.md`.

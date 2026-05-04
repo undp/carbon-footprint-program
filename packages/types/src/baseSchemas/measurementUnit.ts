@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { Magnitude, MeasurementUnitStatus } from "@repo/database/enums";
+import { Magnitude } from "@repo/database/enums";
 
 export const MagnitudeSchema = z.enum(Magnitude);
-export const MeasurementUnitStatusSchema = z.enum(MeasurementUnitStatus);
 
 export const MeasurementUnitBaseSchema = z.object({
   id: IdSchema.describe("The unique identifier for the measurement unit."),
@@ -16,14 +15,4 @@ export const MeasurementUnitBaseSchema = z.object({
   isBase: z
     .boolean()
     .describe("Indicates if the measurement unit is a base unit."),
-  status: MeasurementUnitStatusSchema.describe(
-    "The status of the measurement unit."
-  ),
-  referenceCount: z
-    .number()
-    .int()
-    .nonnegative()
-    .describe(
-      "Number of active references across line inputs, factors, and subcategory assignments."
-    ),
 });

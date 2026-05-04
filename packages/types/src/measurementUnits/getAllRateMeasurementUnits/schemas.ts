@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import {
-  MeasurementUnitBaseSchema,
-  MeasurementUnitStatusSchema,
-} from "../../baseSchemas/index.js";
+import { MeasurementUnitBaseSchema } from "../../baseSchemas/index.js";
 
 const NestedMeasurementUnitSchema = MeasurementUnitBaseSchema.pick({
   id: true,
@@ -19,9 +16,6 @@ const RateMeasurementUnitItemSchema = z.object({
     .string()
     .min(1)
     .describe("The abbreviation of the rate measurement unit"),
-  status: MeasurementUnitStatusSchema.describe(
-    "The status of the rate measurement unit."
-  ),
   numeratorUnit: NestedMeasurementUnitSchema.describe(
     "The numerator measurement unit of the rate measurement unit"
   ),

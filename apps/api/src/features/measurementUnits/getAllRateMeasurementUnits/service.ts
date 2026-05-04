@@ -1,11 +1,10 @@
-import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
+import type { PrismaClient } from "@repo/database";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllRateMeasurementUnitsResponse> => {
   const data = await prismaClient.rateMeasurementUnit.findMany({
-    where: { status: MeasurementUnitStatus.ACTIVE },
     include: {
       numeratorMeasurementUnit: true,
       denominatorMeasurementUnit: true,
@@ -19,7 +18,6 @@ export const getAllRateMeasurementUnitsService = async (
     id: item.id.toString(),
     name: item.name,
     abbreviation: item.abbreviation,
-    status: item.status,
     numeratorUnit: {
       id: item.numeratorMeasurementUnit.id.toString(),
       name: item.numeratorMeasurementUnit.name,

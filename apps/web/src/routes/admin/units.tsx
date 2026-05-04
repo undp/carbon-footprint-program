@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
-import { MeasurementUnitsScreen } from "@/screens/Maintainer/screens/MeasurementUnitsScreen";
+import { requireRole } from "@/utils/requireRole";
+import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
 
-// Role validation is handled by the parent `admin.tsx` route
-// (requires ADMIN or SUPERADMIN), so no additional `beforeLoad` is needed here.
 export const Route = createFileRoute(Routes.ADMIN_UNITS)({
-  component: () => <MeasurementUnitsScreen />,
+  beforeLoad: requireRole([SystemRole.SUPERADMIN], {
+    redirectTo: Routes.ADMIN_DASHBOARD,
+  }),
+  component: () => <UnderConstructionScreen />,
 });

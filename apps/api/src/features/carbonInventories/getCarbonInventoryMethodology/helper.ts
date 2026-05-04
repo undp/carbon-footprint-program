@@ -1,8 +1,4 @@
-import {
-  Prisma,
-  type PrismaClient,
-  MeasurementUnitStatus,
-} from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import { DataIntegrityError } from "@/errors/index.js";
 
 type RateMeasurementUnitWithMagnitudes = Prisma.RateMeasurementUnitGetPayload<{
@@ -243,7 +239,6 @@ export const buildRateUnitsByMagnitudeMap = async (
 ): Promise<Map<string, RateMeasurementUnitWithMagnitudes[]>> => {
   const allRateMeasurementUnits =
     await prismaClient.rateMeasurementUnit.findMany({
-      where: { status: MeasurementUnitStatus.ACTIVE },
       select: {
         id: true,
         numeratorMeasurementUnit: {

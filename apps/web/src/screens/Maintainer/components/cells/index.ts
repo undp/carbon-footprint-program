@@ -10,7 +10,6 @@ export { EmissionFactorSourceCell } from "./EmissionFactorSourceCell";
 export { IconPickerCell } from "./IconPickerCell";
 export { CategorySelectCell } from "./CategorySelectCell";
 export { EditableSelectCell } from "./EditableSelectCell";
-export { MagnitudeSelectCell } from "./MagnitudeSelectCell";
 export { MeasurementUnitsCell } from "./MeasurementUnitsCell";
 export {
   SubcategoryGroupedSelectCell,
