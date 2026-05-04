@@ -6,6 +6,7 @@ import {
 import type {
   UpdateMeasurementUnitBody,
   UpdateMeasurementUnitResponse,
+  User,
 } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import {
@@ -25,7 +26,8 @@ import { mapMeasurementUnitToResponse } from "../mappers.js";
 export const updateMeasurementUnitService = async (
   prismaClient: PrismaClient,
   id: string,
-  body: UpdateMeasurementUnitBody
+  body: UpdateMeasurementUnitBody,
+  _user: User | null
 ): Promise<UpdateMeasurementUnitResponse> => {
   return await prismaClient.$transaction(async (tx) => {
     const target = await tx.measurementUnit.findUnique({
