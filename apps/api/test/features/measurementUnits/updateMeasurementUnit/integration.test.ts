@@ -174,14 +174,11 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
       const subcategory = await prisma.subcategory.findFirst({
         select: { id: true },
       });
-      if (!subcategory) {
-        // Skip if no subcategory exists in this test DB
-        return;
-      }
+      expect(subcategory).not.toBeNull();
 
       await prisma.subcategoryMeasurementUnit.create({
         data: {
-          subcategoryId: subcategory.id,
+          subcategoryId: subcategory!.id,
           measurementUnitId: BigInt(created.id),
         },
       });

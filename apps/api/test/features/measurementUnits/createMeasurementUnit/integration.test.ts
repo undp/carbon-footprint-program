@@ -292,5 +292,86 @@ describe("POST /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it("should return 400 for negative baseFactor", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ baseFactor: -1 }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when baseFactor is null", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ baseFactor: null }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when baseFactor is a string", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ baseFactor: "500" }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for an invalid magnitude enum value", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ magnitude: "NOT_A_MAGNITUDE" }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when abbreviation contains a slash", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ abbreviation: "test-with/slash" }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when abbreviation contains a control character", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ abbreviation: "test--ctrl" }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when abbreviation is empty after trim", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ abbreviation: "   " }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when abbreviation exceeds the max length", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ abbreviation: `test-${"x".repeat(40)}` }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when name exceeds the max length", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: buildPayload({ name: "x".repeat(101) }),
+      });
+      expect(response.statusCode).toBe(400);
+    });
   });
 });
