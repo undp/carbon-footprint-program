@@ -37,6 +37,7 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
             OrganizationRole.CONTRIBUTOR,
             OrganizationRole.VIEWER,
           ],
+          canAdminsBypass: true,
         }),
       ],
     },
