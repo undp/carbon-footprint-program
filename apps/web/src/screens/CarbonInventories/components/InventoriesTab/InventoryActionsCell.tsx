@@ -139,13 +139,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     if (!carbonInventory.name) fields.push(IncompleteInventoryField.NAME);
     if (carbonInventory.year == null)
       fields.push(IncompleteInventoryField.YEAR);
-    if (!carbonInventory.hasCompletedLines)
+    if (!carbonInventory.areAllActiveLinesCompleted)
       fields.push(IncompleteInventoryField.COMPLETED_LINES);
     return fields;
   }, [
     carbonInventory.name,
     carbonInventory.year,
-    carbonInventory.hasCompletedLines,
+    carbonInventory.areAllActiveLinesCompleted,
   ]);
 
   const validateOrganization = useCallback(() => {

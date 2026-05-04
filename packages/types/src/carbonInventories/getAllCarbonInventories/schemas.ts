@@ -54,7 +54,7 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
       SubmissionTypeSchema.exclude([SubmissionType.ORGANIZATION_ACCREDITATION])
     )
     .describe("List of recognition types earned by this carbon inventory."),
-  hasCompletedLines: z
+  areAllActiveLinesCompleted: z
     .boolean()
     .describe(
       "True when the inventory has at least one ACTIVE line and every ACTIVE line has a calculated result."

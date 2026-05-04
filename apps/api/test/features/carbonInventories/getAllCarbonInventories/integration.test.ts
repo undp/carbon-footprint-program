@@ -351,7 +351,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     });
   });
 
-  describe("hasCompletedLines flag", () => {
+  describe("areAllActiveLinesCompleted flag", () => {
     it("should be false when the inventory has no lines", async () => {
       await createInventoryFromPattern(
         prisma,
@@ -365,7 +365,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
     it("should be false when an ACTIVE line has no input", async () => {
@@ -388,7 +388,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
     it("should be false when an ACTIVE line has an input but no result", async () => {
@@ -419,7 +419,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
     it("should be true when every ACTIVE line has a calculated result", async () => {
@@ -454,7 +454,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
 
     it("should be false when at least one ACTIVE line is missing a result", async () => {
@@ -503,7 +503,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
     it("should ignore non-ACTIVE lines", async () => {
@@ -546,7 +546,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].hasCompletedLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
   });
 });

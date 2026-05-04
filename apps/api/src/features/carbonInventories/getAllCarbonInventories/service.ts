@@ -134,7 +134,7 @@ export const getAllCarbonInventoriesService = async (
     organizationDisplayStatus:
       inventory.organization?.summary?.displayStatus ?? null,
     recognitions: calculateEarnedRecognitions(inventory),
-    hasCompletedLines:
+    areAllActiveLinesCompleted:
       inventory.subtotals.length > 0 &&
       inventory.subtotals.every(
         ({ activeLinesCount, activeCompletedLinesCount }) =>
