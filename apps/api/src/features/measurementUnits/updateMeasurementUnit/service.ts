@@ -8,7 +8,10 @@ import type {
   UpdateMeasurementUnitResponse,
   User,
 } from "@repo/types";
-import { DataIntegrityError } from "@/errors/index.js";
+import {
+  DataIntegrityError,
+  getDuplicatedFieldsFromP2002Error,
+} from "@/errors/index.js";
 import {
   resolveKgMeasurementUnit,
   getReferenceCount,
@@ -20,6 +23,7 @@ import {
   BaseUnitToggleNotAllowedError,
   MeasurementUnitFieldsLockedError,
   BaseFactorOneReservedForBaseUnitError,
+  MeasurementUnitAbbreviationAlreadyExistsError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 
@@ -88,10 +92,24 @@ export const updateMeasurementUnitService = async (
     if (body.baseFactor !== undefined) updateData.baseFactor = body.baseFactor;
     if (body.isBase !== undefined) updateData.isBase = body.isBase;
 
-    const updatedMu = await tx.measurementUnit.update({
-      where: { id: target.id },
-      data: updateData,
-    });
+    let updatedMu;
+    try {
+      updatedMu = await tx.measurementUnit.update({
+        where: { id: target.id },
+        data: updateData,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+        if (duplicatedFields.includes("abbreviation")) {
+          throw new MeasurementUnitAbbreviationAlreadyExistsError();
+        }
+      }
+      throw error;
+    }
 
     const nameChanged = body.name !== undefined && body.name !== target.name;
     const abbreviationChanged =
