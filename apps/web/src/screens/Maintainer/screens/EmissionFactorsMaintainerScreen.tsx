@@ -339,7 +339,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       value: 0,
       gasDetails: EMPTY_GAS_DETAILS,
     });
-    setPaginationModel((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
+    setPaginationModel((prev) =>
+      prev.page === 0 ? prev : { ...prev, page: 0 }
+    );
     setEditingRowId(tempId);
   }, [fieldArray, setEditingRowId]);
 

@@ -234,7 +234,9 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       subcategoryId: "",
     };
     fieldArray.prepend(newRow);
-    setPaginationModel((prev) => (prev.page === 0 ? prev : { ...prev, page: 0 }));
+    setPaginationModel((prev) =>
+      prev.page === 0 ? prev : { ...prev, page: 0 }
+    );
     setEditingRowId(tempId);
     setNewRowId(tempId);
     requestAnimationFrame(() => {

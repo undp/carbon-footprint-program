@@ -139,12 +139,14 @@ const directional = (
  */
 const pinByEditing =
   (cmp: GridComparatorFn, editingRowId: string): GridComparatorFn =>
-  (v1, v2, p1, p2) =>
-    String(p1.id) === editingRowId
-      ? -1
-      : String(p2.id) === editingRowId
-        ? 1
-        : cmp(v1, v2, p1, p2);
+  (v1, v2, p1, p2) => {
+    const p1IsEditing = String(p1.id) === editingRowId;
+    const p2IsEditing = String(p2.id) === editingRowId;
+    if (p1IsEditing && p2IsEditing) return 0;
+    if (p1IsEditing) return -1;
+    if (p2IsEditing) return 1;
+    return cmp(v1, v2, p1, p2);
+  };
 
 /**
  * Wrap a single filter operator so its `apply` predicate returns `true` for
