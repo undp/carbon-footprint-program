@@ -161,7 +161,8 @@ export const TOOLBAR_ACTIONS: ToolbarAction[] = [
       placeholder: "col1",
       block: true,
     },
-    cheatsheetSyntax: "| a | b |\n| --- | --- |\n| 1 | 2 |",
+    cheatsheetSyntax:
+      "| col1 | col2 | col3 |\n| --- | --- | --- |\n| a | b | c |",
   },
 ];
 
