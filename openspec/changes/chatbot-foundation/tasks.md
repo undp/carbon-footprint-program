@@ -10,10 +10,10 @@
 
 ## 2. Types & Schemas (Block B)
 
-- [ ] 2.1 Create `packages/types/src/chatbot/sendMessage/schemas.ts` with Zod schemas for: request body (`content` string, max length aligned to `CHATBOT_MAX_USER_INPUT_TOKENS * 4` characters), the SSE event payloads (`delta` and `error` shapes), and the error response schema reused for 400/413/500/503.
-- [ ] 2.2 Create `packages/types/src/chatbot/deleteMyConversation/schemas.ts` with Zod schemas for the (empty) request and the (empty) 204 response. Reuse `ApiErrorResponseSchema` for 500.
-- [ ] 2.3 Create `packages/types/src/chatbot/sendMessage/types.ts` and `packages/types/src/chatbot/deleteMyConversation/types.ts` exporting inferred types from the schemas.
-- [ ] 2.4 Create `packages/types/src/chatbot/index.ts` re-exporting both endpoint folders, and add `export * from "./chatbot/index.js"` to `packages/types/src/index.ts`.
+- [x] 2.1 Create `packages/types/src/chatbot/sendMessage/schemas.ts` with Zod schemas for: request body (`content` string, max length aligned to `CHATBOT_MAX_USER_INPUT_TOKENS * 4` characters), the SSE event payloads (`delta` and `error` shapes), and the error response schema reused for 400/413/500/503.
+- [x] 2.2 Create `packages/types/src/chatbot/deleteMyConversation/schemas.ts` with Zod schemas for the (empty) request and the (empty) 204 response. Reuse `ApiErrorResponseSchema` for 500.
+- [x] 2.3 Create `packages/types/src/chatbot/sendMessage/types.ts` and `packages/types/src/chatbot/deleteMyConversation/types.ts` exporting inferred types from the schemas.
+- [x] 2.4 Create `packages/types/src/chatbot/index.ts` re-exporting both endpoint folders, and add `export * from "./chatbot/index.js"` to `packages/types/src/index.ts`.
 
 ## 3. API — Configuration & Constants (Block B)
 
