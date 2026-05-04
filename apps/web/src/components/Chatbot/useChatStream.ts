@@ -88,6 +88,47 @@ export const useChatStream = () => {
       const decoder = new TextDecoder();
       let buffer = "";
       let firstChunkSeen = false;
+      // Single classifier so the post-EOF buffer flush below dispatches
+      // events the same way as the main loop. Returns a terminal result for
+      // `done` / `error`, or `null` for content deltas (mutations are
+      // applied as side effects).
+      const processEvent = (ev: SsePayload): SendMessageResult | null => {
+        if (ev.id) lastEventIdRef.current = ev.id;
+        if (ev.event === "done") {
+          return { kind: "completed" };
+        }
+        if (ev.event === "error") {
+          try {
+            const parsed = JSON.parse(ev.data) as {
+              code?: string;
+              message?: string;
+            };
+            return {
+              kind: "error",
+              code: parsed.code,
+              message: parsed.message ?? GENERIC_ERROR_MESSAGE,
+            };
+          } catch {
+            return { kind: "error", message: GENERIC_ERROR_MESSAGE };
+          }
+        }
+        try {
+          const parsed = JSON.parse(ev.data) as { content?: string };
+          if (typeof parsed.content === "string") {
+            if (!firstChunkSeen) {
+              firstChunkSeen = true;
+              setState("streaming");
+            }
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: msg.content + parsed.content,
+            }));
+          }
+        } catch {
+          // skip malformed event
+        }
+        return null;
+      };
       try {
         while (true) {
           const { value, done } = await reader.read();
@@ -96,41 +137,8 @@ export const useChatStream = () => {
           const { events, rest } = parseEvents(buffer);
           buffer = rest;
           for (const ev of events) {
-            if (ev.id) lastEventIdRef.current = ev.id;
-            if (ev.event === "done") {
-              return { kind: "completed" };
-            }
-            if (ev.event === "error") {
-              try {
-                const parsed = JSON.parse(ev.data) as {
-                  code?: string;
-                  message?: string;
-                };
-                return {
-                  kind: "error",
-                  code: parsed.code,
-                  message: parsed.message ?? GENERIC_ERROR_MESSAGE,
-                };
-              } catch {
-                return { kind: "error", message: GENERIC_ERROR_MESSAGE };
-              }
-            }
-            // Default: a content delta.
-            try {
-              const parsed = JSON.parse(ev.data) as { content?: string };
-              if (typeof parsed.content === "string") {
-                if (!firstChunkSeen) {
-                  firstChunkSeen = true;
-                  setState("streaming");
-                }
-                updateLastAssistant((msg) => ({
-                  ...msg,
-                  content: msg.content + parsed.content,
-                }));
-              }
-            } catch {
-              // skip malformed event
-            }
+            const terminal = processEvent(ev);
+            if (terminal) return terminal;
           }
         }
       } catch {
@@ -139,6 +147,17 @@ export const useChatStream = () => {
           : { kind: "error", message: GENERIC_ERROR_MESSAGE };
       } finally {
         reader.releaseLock();
+      }
+      // EOF flush: if the server closed the connection with one final frame
+      // still in `buffer` (no trailing blank line), recover it before
+      // classifying the turn. Append a synthetic blank line so parseEvents'
+      // separator regex picks the residual frame up.
+      if (buffer.trim().length > 0) {
+        const { events: trailing } = parseEvents(`${buffer}\n\n`);
+        for (const ev of trailing) {
+          const terminal = processEvent(ev);
+          if (terminal) return terminal;
+        }
       }
       // Reaching here means the stream ended cleanly without ever observing
       // a terminal `done` event. That is NOT a successful turn — the server

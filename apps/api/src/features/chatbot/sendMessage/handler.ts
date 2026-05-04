@@ -8,7 +8,6 @@ import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
 import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
 import {
   acquireIdentityAdvisoryLock,
-  conversationIdentityFilter,
   enforceHistoryCap,
   enforceTurnCap,
   enforceUserInputCap,
@@ -43,33 +42,20 @@ export const sendMessageHandler = async (
 
   const prisma = request.server.prisma;
 
-  // Pre-transaction: history cap is checked against the CURRENT active
-  // conversation (if any). Tolerable because the user message and assistant
-  // row will be inserted under the advisory lock below; if a brand-new
-  // conversation is created mid-transaction, history is empty.
-  const existing = await prisma.chatbotChatConversation.findFirst({
-    where: {
-      ...conversationIdentityFilter(identity),
-      expiresAt: { gt: new Date() },
-    },
-    orderBy: { createdAt: "desc" },
-    select: { id: true },
-  });
-
-  let history: { role: ChatMessageRole; content: string }[] = [];
-  if (existing) {
-    history = await loadConversationHistory(prisma, existing.id);
-    enforceHistoryCap(history);
-    await enforceTurnCap(prisma, existing.id);
-  }
-
-  // The transaction holds the advisory lock for the duration of lazy-create +
-  // user message insert + empty assistant insert. The lock serializes
-  // concurrent first-message turns for the same identity.
-  const { assistantRowId, conversationId } = await prisma.$transaction(
+  // History snapshot, turn cap, and message inserts ALL run inside the
+  // identity-scoped advisory lock. Doing the cap checks pre-lock would let two
+  // concurrent first-message turns each pass on the same stale snapshot, and
+  // the prompt sent to the model could miss the immediately preceding turn.
+  // The transaction is closed before invoking the LLM provider so the lock is
+  // not held for the duration of the stream.
+  const { assistantRowId, conversationId, history } = await prisma.$transaction(
     async (tx) => {
       await acquireIdentityAdvisoryLock(tx, identity);
       const conversation = await resolveOrCreateConversation(tx, identity);
+
+      const lockedHistory = await loadConversationHistory(tx, conversation.id);
+      enforceHistoryCap(lockedHistory);
+      await enforceTurnCap(tx, conversation.id);
 
       await tx.chatbotChatMessage.create({
         data: {
@@ -95,17 +81,13 @@ export const sendMessageHandler = async (
       return {
         assistantRowId: assistantRow.id,
         conversationId: conversation.id,
+        history: lockedHistory.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       };
     }
   );
-
-  // If the conversation was newly created in the transaction, history was
-  // empty so the cap was already satisfied. If it existed before, we already
-  // checked above. Reload history under the new conversation (covers the
-  // brand-new case where it's still empty).
-  if (!existing) {
-    history = [];
-  }
 
   const provider = getLlmProvider();
   const llmMessages = buildLlmMessages(history, content);
@@ -119,8 +101,10 @@ export const sendMessageHandler = async (
   //      (`latency_ms IS NULL`) makes the UPDATE a no-op when the success
   //      path has already finalized the row, so this is idempotent.
   let assistantBuffer = "";
+  let clientDisconnected = false;
   reply.raw.on("close", () => {
     if (reply.raw.writableEnded) return;
+    clientDisconnected = true;
     abortController.abort();
     // Fire-and-forget — but log failures so a dropped DB connection
     // during cleanup is visible in production observability instead of
@@ -189,6 +173,15 @@ export const sendMessageHandler = async (
     // The reply.raw.on("close") handler marks the assistant row truncated
     // via the conditional UPDATE — same path for both pre-stream and
     // mid-stream errors, since headers are already on the wire either way.
+    return;
+  }
+
+  // Provider implementations honor `options.signal` and may return without
+  // throwing when the abort fires (the client disconnected mid-stream).
+  // Bail out before the success finalizer would overwrite the truncated
+  // state set by the disconnect handler — otherwise an aborted turn could
+  // be persisted as a successful completion.
+  if (clientDisconnected || abortController.signal.aborted) {
     return;
   }
 
