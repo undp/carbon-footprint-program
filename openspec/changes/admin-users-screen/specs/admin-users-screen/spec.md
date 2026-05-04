@@ -130,21 +130,21 @@ The screen SHALL render a "Promover a admin" header action visible only to SUPER
 
 ### Requirement: Self-row protection in UI (INV-1)
 
-The screen SHALL hide or disable any role-changing action targeting the current viewer's own row. This includes "Cambiar rol" and "Revocar admin" on the viewer's own row in the Administradores tab.
+The screen SHALL hide or disable any role-changing action targeting the current viewer's own row. This includes the "Cambiar rol" action on the viewer's own row in the Administradores tab.
 
 #### Scenario: SUPERADMIN viewing their own row
 
 - **WHEN** the row's `id` equals the current user's `id`
-- **THEN** the "Cambiar rol" and "Revocar admin" actions are hidden or disabled for that row
+- **THEN** the "Cambiar rol" action is hidden or disabled for that row
 
 ### Requirement: Last-SUPERADMIN protection in UI (INV-2)
 
-When the loaded user list contains exactly one user with `role = SUPERADMIN`, the screen SHALL disable any UI control that would demote that user (i.e., "Revocar admin" and the "Cambiar rol" demote-to-ADMIN option for the last SUPERADMIN's row). A tooltip in Spanish SHALL explain why the action is disabled.
+When the loaded user list contains exactly one user with `role = SUPERADMIN`, the screen SHALL disable, within the unified "Cambiar rol" dialog for that row, any option whose selection would demote the last SUPERADMIN (i.e., the `ADMIN` and `USER` options). A tooltip in Spanish SHALL explain why the option is disabled.
 
 #### Scenario: Only one SUPERADMIN exists
 
 - **WHEN** the loaded user list contains exactly one SUPERADMIN
-- **THEN** "Revocar admin" and the demote-to-ADMIN action on that SUPERADMIN's row are disabled
+- **THEN** the `ADMIN` and `USER` options inside the "Cambiar rol" dialog for that SUPERADMIN's row are disabled
 - **AND** a tooltip explains the restriction
 
 #### Scenario: Multiple SUPERADMINs exist
