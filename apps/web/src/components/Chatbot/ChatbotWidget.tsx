@@ -80,7 +80,12 @@ export function ChatbotWidget() {
         <Box>
           <IconButton
             size="small"
-            onClick={() => void deleteHistory()}
+            onClick={() => {
+              if (isBusy) return;
+              void deleteHistory();
+            }}
+            disabled={isBusy}
+            aria-disabled={isBusy}
             aria-label="Borrar historial"
             sx={{ color: "inherit" }}
           >
