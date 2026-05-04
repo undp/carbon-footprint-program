@@ -32,7 +32,7 @@ The widget SHALL consume `POST /api/chatbot/message` using the browser's native 
 
 ### Requirement: Widget exposes the canonical UI states
 
-The widget SHALL render exactly one of the following six canonical states at any time, and the state SHALL be observable via a stable test handle (`data-testid` or equivalent):
+The widget SHALL render exactly one of the following six canonical states at any time:
 
 - **empty** — no conversation visible
 - **loading** — request initiated but no chunk yet received
@@ -41,22 +41,24 @@ The widget SHALL render exactly one of the following six canonical states at any
 - **truncated** — stream was interrupted mid-turn; the partial content is visible and labeled as incomplete
 - **degraded** — two consecutive failed connection attempts when initiating a new turn; streaming path disabled, user sees an explicit error message and SHALL NOT receive automatic retries
 
+The widget's root element SHALL carry `data-testid="chatbot-widget"` plus a `data-state="<state>"` attribute whose value is one of the six canonical state names above. Tests SHALL reach the widget via the `data-testid` selector and assert the entered state via `data-state`.
+
 Final visual treatment, copy, and animation are NOT defined here — that is the design review's scope. This requirement covers presence, naming, and observability only.
 
 #### Scenario: Each state is reachable
 
 - **WHEN** the widget transitions through a normal turn (idle → request → first chunk → completion → idle)
-- **THEN** the widget SHALL pass through `empty`, `loading`, `streaming`, and back to a state where the prior turn is visible, in that order, and each state SHALL be observable via the stable test handle
+- **THEN** the widget SHALL pass through `empty`, `loading`, `streaming`, and back to a state where the prior turn is visible, in that order, and each state SHALL be observable on the root element via `data-state` reachable through `data-testid="chatbot-widget"`
 
 #### Scenario: Truncated state surfaces partial content
 
 - **WHEN** the SSE stream is interrupted after at least one chunk has been received
-- **THEN** the widget SHALL display the partial assistant content, mark the message as truncated in the UI, and the state SHALL be observable as `truncated`
+- **THEN** the widget SHALL display the partial assistant content, mark the message as truncated in the UI, and the root element's `data-state` SHALL equal `truncated`
 
 #### Scenario: Error and degraded states observable via the same handle
 
 - **WHEN** the widget enters the `error` or `degraded` state
-- **THEN** the state SHALL be observable via the same stable test handle (`data-testid` or equivalent) as the other canonical states, with the value reflecting the entered state
+- **THEN** the root element's `data-state` attribute SHALL reflect the entered state and SHALL be reachable through the same `data-testid="chatbot-widget"` selector as the other canonical states
 
 ### Requirement: Widget surfaces server-side error responses with state-appropriate messaging
 
@@ -67,10 +69,10 @@ When `POST /api/chatbot/message` responds with a non-streaming HTTP error (4xx o
 - **WHEN** the API responds with HTTP 413 and body `{ code: "REQUEST_TOO_LARGE", ... }`
 - **THEN** the widget SHALL transition to the `error` state and display a user-facing Spanish message indicating that the input was too large (e.g., "Tu mensaje es demasiado largo")
 
-#### Scenario: HTTP 503 surfaces a temporarily-unavailable message
+#### Scenario: HTTP 503 surfaces the message returned by the API
 
-- **WHEN** the API responds with HTTP 503 and body `{ code: "EXTERNAL_SERVICE_ERROR", ... }`
-- **THEN** the widget SHALL transition to the `error` state and display a user-facing Spanish message indicating that the assistant is temporarily unavailable (e.g., "El asistente no está disponible en este momento")
+- **WHEN** the API responds with HTTP 503 and body `{ code: "EXTERNAL_SERVICE_ERROR", message: <string> }`
+- **THEN** the widget SHALL transition to the `error` state and display the `message` field from the response body as the user-facing text, rather than hardcoding a parallel string. The API populates `message` from the `CHATBOT_GENERIC_ERROR_MESSAGE` constant defined in `chatbot-message-streaming`, so the user-facing copy stays in sync with the server-side source of truth without the widget needing to know the literal Spanish phrase
 
 #### Scenario: Other 4xx/5xx surface a generic error message
 
@@ -147,7 +149,7 @@ The widget SHALL render assistant message content as Markdown, reusing the exist
 
 ### Requirement: Widget UI strings are in Spanish
 
-All user-facing strings rendered by the widget — placeholders, button labels, error messages, state copy — SHALL be in Spanish, consistent with the rest of the web app (which has no i18n library installed and ships hardcoded Spanish per the planning document's D9). Strings MAY live inline in the component for foundation; centralization for future i18n is out of scope.
+All user-facing strings rendered by the widget — placeholders, button labels, error messages, state copy — SHALL be in Spanish, consistent with the rest of the web app (which has no i18n library installed and ships hardcoded Spanish, matching the Spanish-with-i18n-ready-architecture decision; see `design.md` §Background Context, D9). Strings MAY live inline in the component for foundation; centralization for future i18n is out of scope.
 
 #### Scenario: All visible strings are Spanish
 

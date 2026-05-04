@@ -18,10 +18,10 @@ The system SHALL provide a shared `estimateTokens(text: string): number` helper 
 - **WHEN** `estimateTokens("hola mundo")` is called
 - **THEN** it SHALL return `3` (= `Math.ceil(10 / 4)`)
 
-#### Scenario: Helper is the only token-estimation implementation
+#### Scenario: ESLint rule enforces single source for estimateTokens formula
 
-- **WHEN** the application source under `apps/api/src/features/chatbot/` is reviewed for inline token-estimation formulas (any expression of the shape `Math.ceil(<text>.length / 4)` or equivalent)
-- **THEN** the only such expression SHALL appear inside `estimateTokens.ts`; every other consumer SHALL reach the formula through `estimateTokens(...)`
+- **WHEN** ESLint runs on `apps/api/src/features/chatbot/`
+- **THEN** the custom rule `chatbot/single-source-estimate-tokens` (declared inline in `apps/api/eslint.config.ts`) SHALL fail with severity `error` if any file other than `apps/api/src/features/chatbot/llmProvider/estimateTokens.ts` contains the AST pattern equivalent to `Math.ceil(<expression>.length / 4)`
 
 #### Scenario: Empty string returns zero
 
@@ -42,10 +42,10 @@ The system SHALL provide a `mock` implementation of `LLMProvider` that yields a 
 - **WHEN** the mock provider is invoked
 - **THEN** the final `usage.inputTokens` SHALL equal `estimateTokens(joined_input_text)` and `usage.outputTokens` SHALL equal `estimateTokens(output_text)`, where `estimateTokens` is the shared helper defined in this capability
 
-#### Scenario: Mock makes no external calls
+#### Scenario: ESLint rule enforces no network imports in mock provider
 
-- **WHEN** the mock provider runs in any environment
-- **THEN** it SHALL NOT issue HTTP requests, DNS lookups, or any other network I/O — verified by inspecting its module imports (no `openai`, no `fetch`, no `https`)
+- **WHEN** ESLint runs on `apps/api/src/features/chatbot/llmProvider/mock.ts`
+- **THEN** the custom rule `chatbot/no-network-imports-in-mock` (declared inline in `apps/api/eslint.config.ts`) SHALL fail with severity `error` if any of the modules `openai`, `node:https`, `node:fetch`, `https`, `node-fetch`, or `axios` is imported, directly or transitively via re-exports inside the file
 
 ### Requirement: System provides an `azureOpenAI` implementation
 

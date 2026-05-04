@@ -2,7 +2,17 @@
 
 ### Requirement: Conversation table stores anonymous and authenticated sessions
 
-The system SHALL persist chat conversations in the `chatbot_chat_conversation` table. Each row SHALL be scoped to exactly one of: an authenticated `user_id` (BIGINT, foreign key to `user.id`) or an anonymous `session_id` (TEXT). Both columns SHALL be nullable, and a CHECK constraint SHALL enforce that exactly one of the two is set per row.
+The system SHALL persist chat conversations in the `chatbot_chat_conversation` table. Each row SHALL be scoped to one of: an authenticated `user_id` (BIGINT, foreign key to `user.id`) or an anonymous `session_id` (TEXT). Both columns SHALL be nullable. The CHECK constraint SHALL be declared as:
+
+```sql
+CHECK (
+  (user_id IS NOT NULL AND session_id IS NULL)
+  OR (user_id IS NULL AND session_id IS NOT NULL)
+  OR (user_id IS NULL AND session_id IS NULL)
+)
+```
+
+The `(NULL, NULL)` case is permitted by the database **only as the result of `ON DELETE SET NULL` on the `user_id` foreign key** (anonymization upon user deletion). Application-level invariant: on INSERT, application code SHALL guarantee exactly one of `user_id` / `session_id` is set; the relaxed CHECK exists solely to tolerate the post-deletion anonymized state, not to broaden insertion semantics.
 
 #### Scenario: Authenticated conversation
 
@@ -19,14 +29,16 @@ The system SHALL persist chat conversations in the `chatbot_chat_conversation` t
 - **WHEN** an attempt is made to insert a row with both `user_id` and `session_id` populated
 - **THEN** the database SHALL reject the insert with a CHECK constraint violation
 
-#### Scenario: Neither column set rejected
+#### Scenario: Neither column set is allowed only as a post-deletion state
 
-- **WHEN** an attempt is made to insert a row with both `user_id` and `session_id` NULL
-- **THEN** the database SHALL reject the insert with a CHECK constraint violation
+- **WHEN** both `user_id` and `session_id` are NULL on a row
+- **THEN** the row SHALL be accepted by the database CHECK constraint, AND application code SHALL NOT produce this state on INSERT — it arises only as the result of `ON DELETE SET NULL` on the `user_id` foreign key
 
 ### Requirement: Conversation foreign keys preserve history on referenced entity deletion
 
-The `chatbot_chat_conversation.user_id` foreign key to `user.id` and the `chatbot_chat_conversation.organization_id` foreign key to `organization.id` SHALL both have `ON DELETE SET NULL` semantics. Deleting a referenced user or organization SHALL preserve the conversation row with the corresponding column set to NULL, anonymizing the historical record for audit and analytics purposes. This aligns with the repo's existing pattern for nullable user/organization foreign keys (e.g., `country_parameter.created_by_id`, `carbon_inventory.organization_id` when nullable), which rely on Prisma 7's default `SetNull` behavior for nullable relations.
+The `chatbot_chat_conversation.user_id` foreign key to `user.id` and the `chatbot_chat_conversation.organization_id` foreign key to `organization.id` SHALL both have `ON DELETE SET NULL` semantics. Deleting a referenced user or organization SHALL preserve the conversation row with the corresponding column set to NULL, anonymizing the historical record for audit and analytics purposes. This aligns with the repo's existing pattern for nullable user/organization foreign keys (e.g., `country_parameter.created_by_id`, `carbon_inventory.organization_id` when nullable).
+
+The referential action SHALL be declared **explicitly at both layers** — the Prisma `@relation` annotation SHALL include `onDelete: SetNull`, and the generated migration SQL SHALL include `ON DELETE SET NULL` on the foreign-key constraint. The spec SHALL NOT rely on the ORM's default referential-action behavior for nullable relations: Prisma's default for optional relations has shifted across major versions (Cascade in 2.x, SetNull from 3.x onward), and a country-agnostic spec must be self-contained against that drift.
 
 #### Scenario: User deletion anonymizes existing conversations
 
@@ -37,6 +49,11 @@ The `chatbot_chat_conversation.user_id` foreign key to `user.id` and the `chatbo
 
 - **WHEN** an `organization` row referenced by `chatbot_chat_conversation.organization_id` is deleted
 - **THEN** the conversation row SHALL persist and its `organization_id` SHALL be set to NULL
+
+#### Scenario: Prisma schema declares onDelete: SetNull explicitly
+
+- **WHEN** the Prisma schema definition for `ChatbotChatConversation` is inspected
+- **THEN** the `@relation` annotation on the `user` field AND the `@relation` annotation on the `organization` field SHALL each include the literal `onDelete: SetNull` argument — neither relation SHALL omit `onDelete` and rely on the ORM default
 
 #### Scenario: Migration declares SET NULL constraints
 
@@ -57,10 +74,10 @@ Each `chatbot_chat_conversation` row SHALL include nullable `organization_id` (B
 - **WHEN** a future change updates a conversation row to set `organization_id` to a valid `organization.id` value
 - **THEN** the database SHALL accept the update
 
-#### Scenario: API source contains no writes to organization_id or ip_hash
+#### Scenario: Grep test enforces no writes to dormant columns
 
-- **WHEN** the application source under `apps/api/src/` is reviewed for writes that set `organization_id` or `ip_hash` on `chatbot_chat_conversation` (whether via Prisma model accessors or raw SQL)
-- **THEN** there SHALL be no service, handler, or helper in this change that writes either column
+- **WHEN** the test `apps/api/test/features/chatbot/lint/noWritesToDormantColumns.test.ts` runs
+- **THEN** it SHALL execute `grep -rE '(organization_id|ip_hash|organizationId|ipHash)\s*[:=]' apps/api/src/features/chatbot/` from the repo root and SHALL fail if any match is returned, enforcing that no foundation handler, service, or helper writes to the dormant `organization_id` / `ip_hash` columns of `chatbot_chat_conversation`. The grep SHALL cover both the raw SQL column names (snake_case) AND the Prisma Client field names (camelCase) so writes via either path — `prisma.chatbotChatConversation.create({ data: { organizationId, ipHash } })` and raw SQL — are caught
 
 ### Requirement: Message table records role, content, and per-turn metrics
 
@@ -87,6 +104,25 @@ The system SHALL persist chat messages in the `chatbot_chat_message` table. Each
 
 - **WHEN** a `chatbot_chat_conversation` row is deleted
 - **THEN** all `chatbot_chat_message` rows referencing it via `conversation_id` SHALL also be deleted
+
+### Requirement: Assistant message finalization is idempotent via conditional UPDATE
+
+The system SHALL guarantee that the success-path finalization of the assistant message and the mid-stream disconnect finalization are mutually exclusive at the database level via the invariant: `latency_ms IS NOT NULL` ⟺ the row was finalized successfully. The success path SHALL always set `latency_ms` to a non-negative integer in the same UPDATE that writes the final content and `tokens_used`. The disconnect handler SHALL emit a conditional UPDATE whose WHERE clause filters on `latency_ms IS NULL`, so it becomes a no-op if the success path has already finalized the row. No other code path SHALL set `latency_ms`.
+
+#### Scenario: Success-path finalization sets latency_ms
+
+- **WHEN** the LLM stream completes and the success path UPDATEs the assistant row
+- **THEN** `latency_ms` SHALL be set to a non-negative integer in the same UPDATE that writes the final `content` and `tokens_used`
+
+#### Scenario: Disconnect finalization is conditional
+
+- **WHEN** the `reply.raw.on('close')` handler fires
+- **THEN** it SHALL emit `UPDATE chatbot_chat_message SET truncated = true, content = $partial WHERE id = $assistantRowId AND latency_ms IS NULL`, which is a no-op if the success path already finalized the row
+
+#### Scenario: No race condition produces inconsistent state
+
+- **WHEN** the success path and the disconnect handler both fire concurrently for the same row
+- **THEN** the final database state SHALL be deterministic: either `truncated = false` with full content (success won the race) or `truncated = true` with partial content (disconnect won), but never partial content with `latency_ms` set
 
 ### Requirement: ChatMessageRole enum encodes the four canonical roles
 
@@ -169,19 +205,44 @@ The system SHALL create a `chatbot_chat_conversation` row only on `POST /api/cha
 - **WHEN** a turn begins on a conversation whose `expires_at > NOW()` at turn start, and the LLM stream completes after that conversation's `expires_at` has elapsed
 - **THEN** the turn's user and assistant messages SHALL persist on that same conversation row, and the system SHALL NOT create a new conversation mid-turn — "active" is evaluated at turn start, not at completion
 
-### Requirement: Lazy creation, user message insert, and empty assistant insert execute in a single transaction
+### Requirement: Lazy creation, user message insert, and empty assistant insert execute in a single transaction guarded by an identity-scoped advisory lock
 
-To avoid a TOCTOU race where two concurrent first-message requests for the same identity each see "no active conversation" and each create one, the handler SHALL execute the lazy-create lookup, the conversation INSERT (when needed), the user message INSERT, and the empty assistant message INSERT inside a single Prisma interactive transaction (`prisma.$transaction(async (tx) => { ... })`). The LLM provider invocation and the assistant row finalization (with content, tokens, latency) SHALL execute **outside** that transaction — keeping a transaction open for the duration of an LLM stream is unacceptable.
+A TOCTOU race exists where two concurrent first-message requests for the same identity could each see "no active conversation" and each insert one. Wrapping the lookup-then-insert in a single Prisma interactive transaction at PostgreSQL's default `READ COMMITTED` isolation level is **not sufficient on its own** to close this race: each transaction's snapshot is independent, both see zero rows on the lookup, and both inserts succeed. To guarantee a single-row outcome at the database level, the handler SHALL combine the interactive transaction with a Postgres transaction-scoped advisory lock keyed to the caller identity:
+
+1. Open a Prisma interactive transaction: `prisma.$transaction(async (tx) => { ... })`.
+2. As the FIRST statement inside the transaction (BEFORE any read or write touches `chatbot_chat_conversation`), acquire the advisory lock: `SELECT pg_advisory_xact_lock(hashtextextended($key, 0))` where `$key` is the literal string `'chatbot:user:' || userId::text` for authenticated callers and `'chatbot:session:' || sessionId` for anonymous callers. The lock auto-releases on commit or rollback.
+3. Under the held lock, execute the lazy-create lookup, the conversation INSERT (when needed), the user message INSERT, and the empty assistant message INSERT.
+4. Commit the transaction.
+
+Concurrent transactions for the same identity serialize on this lock — the second waiter blocks on `pg_advisory_xact_lock` until the first commits, then proceeds, observes the conversation row inserted by the first, and reuses it. Different identities never block each other because the lock key is identity-scoped. The interactive transaction provides atomicity (all four writes succeed together or none do); the advisory lock provides serialization (concurrent first-message turns for the same identity become deterministic).
+
+The LLM provider invocation and the assistant row finalization (with content, tokens, latency) SHALL execute **outside** the transaction — keeping the transaction (and its advisory lock) open for the duration of an LLM stream is unacceptable.
 
 #### Scenario: Concurrent first-message requests do not create duplicate conversations
 
 - **WHEN** two `POST /api/chatbot/message` requests arrive concurrently for the same caller identity, neither of which has an active conversation
-- **THEN** the database SHALL end up with exactly one new `chatbot_chat_conversation` row for that identity (the second request reuses the row created by the first or serializes behind it via the transaction)
+- **THEN** the database SHALL end up with exactly one new `chatbot_chat_conversation` row for that identity — the second request blocks on the advisory lock until the first commits, then observes and reuses the row created by the first
+
+#### Scenario: Concurrent first-message requests do not produce duplicate conversations under load
+
+- **WHEN** N=10 `POST /api/chatbot/message` requests are issued concurrently via `Promise.allSettled` for **a freshly-minted caller identity** — a test-generated `userId` or `sessionId` UUID for which `SELECT COUNT(*) FROM chatbot_chat_conversation WHERE [identity column] = [identity value]` returns 0 immediately before the requests fire (this guards the post-condition against historical / expired rows from earlier test runs or other identities that share the column)
+- **THEN** after all settle, the same `SELECT COUNT(*)` for that identity SHALL return exactly 1 — the deduplication invariant is the load-bearing assertion of this scenario
+- **AND** under stable test infrastructure (no DB connection drops, no client cancellations, no timeouts), every request SHALL terminate with HTTP 200 plus a complete SSE stream — the advisory-lock serialization queues concurrent first-message turns for the same identity at the database level, so no transaction needs to retry. Transient infrastructure failures MAY produce non-200 outcomes for individual requests; in that case the deduplication invariant SHALL still hold (the only acceptable failure shapes are zero-or-one new conversation row, never two)
+
+#### Scenario: Different identities do not serialize on each other
+
+- **WHEN** two concurrent `POST /api/chatbot/message` requests arrive for two distinct caller identities, neither of which has an active conversation
+- **THEN** the two transactions SHALL acquire distinct advisory locks (computed from distinct keys) and SHALL NOT block each other — both inserts SHALL be observable in the database with overlapping wall-clock execution windows
+
+#### Scenario: Advisory lock is acquired before the lookup
+
+- **WHEN** the streaming handler enters the interactive transaction
+- **THEN** the first statement issued on the transaction client SHALL be `SELECT pg_advisory_xact_lock(hashtextextended($key, 0))` with the identity-scoped key; the conversation lookup, conversation insert, user-message insert, and empty-assistant-message insert SHALL all execute strictly after this statement completes
 
 #### Scenario: Provider invocation runs outside the transaction
 
 - **WHEN** the streaming handler invokes `LLMProvider.streamCompletion` for a turn
-- **THEN** the surrounding Prisma interactive transaction SHALL have already committed (covering lazy-create + user message + empty assistant message), so the streaming portion does not hold a long-lived transaction
+- **THEN** the surrounding Prisma interactive transaction SHALL have already committed (covering advisory lock acquisition + lazy-create + user message + empty assistant message), so the streaming portion does not hold a long-lived transaction or advisory lock
 
 #### Scenario: Assistant finalization runs outside the transaction
 
@@ -237,7 +298,7 @@ The signed session cookie used to identify anonymous chatbot callers SHALL be se
 
 ### Requirement: Identity preHandler resolves caller without 401-ing
 
-A feature-local preHandler SHALL run on chatbot endpoints to resolve caller identity into `request.chatbotIdentity` as either `{ kind: "user", userId }` or `{ kind: "session", sessionId }`. The preHandler SHALL prefer `request.currentUser.id` when set (populated by the existing global authentication and user-resolve plugins), fall back to a valid signed `session_id` cookie, and otherwise — only on identity-creating endpoints (`POST /api/chatbot/message`) — generate a new `session_id` and set the cookie. The preHandler SHALL NOT respond with HTTP 401 when no auth is present, on any chatbot endpoint.
+A feature-local preHandler SHALL run on chatbot endpoints to resolve caller identity into `request.chatbotIdentity` as either `{ kind: "user", userId }` or `{ kind: "session", sessionId }`. The preHandler SHALL prefer `request.currentUser.id` when set (populated by the existing global authentication and user-resolve plugins), fall back to a valid signed `chatbot_session_id` cookie, and otherwise — only on identity-creating endpoints (`POST /api/chatbot/message`) — generate a new session id and set the `chatbot_session_id` cookie. The preHandler SHALL NOT respond with HTTP 401 when no auth is present, on any chatbot endpoint.
 
 #### Scenario: Authenticated caller resolved by user_id
 
