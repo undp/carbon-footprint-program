@@ -50,7 +50,11 @@ describe("mockProvider", () => {
     }
     const usage = events.find((e) => e.type === "usage");
     expect(usage).toBeDefined();
-    if (usage?.type !== "usage") return;
+    if (!usage || usage.type !== "usage") {
+      throw new Error(
+        "expected mockProvider to yield exactly one terminal usage event"
+      );
+    }
     const expectedOutput = "Recibí: hola. Esta es una respuesta de mock.";
     const joinedInput = messages.map((m) => m.content).join("\n");
     expect(usage.inputTokens).toBe(estimateTokens(joinedInput));
