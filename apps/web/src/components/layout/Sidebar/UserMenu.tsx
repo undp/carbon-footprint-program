@@ -73,9 +73,7 @@ export const UserMenu = () => {
   const ToggleIcon = isAdminRoute ? HomeOutlined : SettingsOutlined;
 
   return (
-    <Box className="mb-4 flex flex-col gap-2">
-      <Divider />
-
+    <>
       <Box
         component="button"
         type="button"
@@ -195,6 +193,6 @@ export const UserMenu = () => {
         confirmLabel="Cerrar sesión"
         cancelLabel="Cancelar"
       />
-    </Box>
+    </>
   );
 };
