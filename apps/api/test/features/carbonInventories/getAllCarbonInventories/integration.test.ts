@@ -351,8 +351,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     });
   });
 
-  describe("areAllActiveLinesCompleted flag", () => {
-    it("should be false when the inventory has no lines", async () => {
+  describe("hasActiveLines and areAllActiveLinesCompleted flags", () => {
+    it("should report hasActiveLines=false and areAllActiveLinesCompleted=true (vacuously) when the inventory has no lines", async () => {
       await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft
@@ -365,7 +365,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
-      expect(body[0].areAllActiveLinesCompleted).toBe(false);
+      expect(body[0].hasActiveLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
 
     it("should be false when an ACTIVE line has no input", async () => {

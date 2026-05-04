@@ -11,6 +11,7 @@ import {
 export const IncompleteInventoryField = {
   NAME: "name",
   YEAR: "year",
+  LINES: "lines",
   COMPLETED_LINES: "completed-lines",
 } as const;
 
@@ -20,7 +21,8 @@ export type IncompleteInventoryField =
 const FIELD_LABELS: Record<IncompleteInventoryField, string> = {
   [IncompleteInventoryField.NAME]: "nombre",
   [IncompleteInventoryField.YEAR]: "año",
-  [IncompleteInventoryField.COMPLETED_LINES]: "registros de emisión",
+  [IncompleteInventoryField.LINES]: "registros de emisión",
+  [IncompleteInventoryField.COMPLETED_LINES]: "registros de emisión completos",
 };
 
 interface IncompleteInventoryDialogProps {

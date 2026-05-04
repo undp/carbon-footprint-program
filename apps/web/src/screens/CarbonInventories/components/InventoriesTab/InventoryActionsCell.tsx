@@ -139,12 +139,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     if (!carbonInventory.name) fields.push(IncompleteInventoryField.NAME);
     if (carbonInventory.year == null)
       fields.push(IncompleteInventoryField.YEAR);
-    if (!carbonInventory.areAllActiveLinesCompleted)
+    if (!carbonInventory.hasActiveLines) {
+      fields.push(IncompleteInventoryField.LINES);
+    } else if (!carbonInventory.areAllActiveLinesCompleted) {
       fields.push(IncompleteInventoryField.COMPLETED_LINES);
+    }
     return fields;
   }, [
     carbonInventory.name,
     carbonInventory.year,
+    carbonInventory.hasActiveLines,
     carbonInventory.areAllActiveLinesCompleted,
   ]);
 
