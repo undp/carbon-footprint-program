@@ -8,6 +8,7 @@ import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
 import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
 import {
   acquireIdentityAdvisoryLock,
+  conversationIdentityFilter,
   enforceHistoryCap,
   enforceTurnCap,
   enforceUserInputCap,
@@ -48,9 +49,7 @@ export const sendMessageHandler = async (
   // conversation is created mid-transaction, history is empty.
   const existing = await prisma.chatbotChatConversation.findFirst({
     where: {
-      ...(identity.kind === "user"
-        ? { userId: identity.userId }
-        : { sessionId: identity.sessionId }),
+      ...conversationIdentityFilter(identity),
       expiresAt: { gt: new Date() },
     },
     orderBy: { createdAt: "desc" },
