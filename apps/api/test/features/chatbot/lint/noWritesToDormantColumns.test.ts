@@ -9,11 +9,15 @@ describe("Lint — no writes to dormant chatbot columns", () => {
     let stdout = "";
     let exitCode = 0;
     try {
+      // Catches:
+      //   - unquoted keys / direct assignments: organizationId: ..., ip_hash =
+      //   - quoted object keys: "organization_id":, 'ipHash':
+      //   - bracket access: obj["ip_hash"] =, obj['organizationId'] =
       stdout = execFileSync(
         "grep",
         [
           "-rE",
-          "(organization_id|ip_hash|organizationId|ipHash)\\s*[:=]",
+          "([\"'\\[]?(organization_id|ip_hash|organizationId|ipHash)[\"'\\]]?\\s*[:=])",
           targetPath,
         ],
         { cwd: repoRoot, encoding: "utf8" }
