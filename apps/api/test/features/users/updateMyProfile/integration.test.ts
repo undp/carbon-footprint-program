@@ -25,11 +25,11 @@ describe("PATCH /api/users/me - Integration Tests", () => {
     prisma = app.prisma;
     loggedUser = await getTestLoggedUser(prisma);
 
-    const jobPositions = await prisma.countryJobPosition.findMany({ take: 2 });
-    if (jobPositions.length < 2) {
-      throw new Error("Need at least 2 job positions in database for testing");
+    const jobPosition = await prisma.countryJobPosition.findFirst();
+    if (!jobPosition) {
+      throw new Error("Need at least 1 job position in database for testing");
     }
-    testJobPositionId = jobPositions[0].id;
+    testJobPositionId = jobPosition.id;
   });
 
   afterAll(async () => {
