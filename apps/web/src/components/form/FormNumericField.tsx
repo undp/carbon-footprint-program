@@ -1,6 +1,7 @@
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { TextFieldProps } from "@mui/material";
 import { NumericInput } from "../NumericInput";
+import { toNullableNumber } from "@/utils/number";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -53,19 +54,22 @@ export const FormNumericField = <T extends FieldValues>({
         validate: {
           required: (value) => {
             if (!required) return true;
-            return value == null ? requiredMessage : true;
+            return toNullableNumber(value) == null ? requiredMessage : true;
           },
           min: (value) => {
-            if (min === undefined || value == null) return true;
-            return Number(value) < min ? minMessage : true;
+            const parsed = toNullableNumber(value);
+            if (min === undefined || parsed == null) return true;
+            return parsed < min ? minMessage : true;
           },
           max: (value) => {
-            if (max === undefined || value == null) return true;
-            return Number(value) > max ? maxMessage : true;
+            const parsed = toNullableNumber(value);
+            if (max === undefined || parsed == null) return true;
+            return parsed > max ? maxMessage : true;
           },
           onlyInteger: (value) => {
-            if (!onlyInteger || value == null) return true;
-            return Number.isInteger(Number(value)) ? true : onlyIntegerMessage;
+            const parsed = toNullableNumber(value);
+            if (!onlyInteger || parsed == null) return true;
+            return Number.isInteger(parsed) ? true : onlyIntegerMessage;
           },
         },
       }}
@@ -75,7 +79,7 @@ export const FormNumericField = <T extends FieldValues>({
           placeholder=""
           {...props}
           decimalScale={effectiveDecimalScale}
-          value={field.value == null ? null : Number(field.value)}
+          value={toNullableNumber(field.value)}
           onChange={(value) => field.onChange(value)}
           min={min}
           required={required}
