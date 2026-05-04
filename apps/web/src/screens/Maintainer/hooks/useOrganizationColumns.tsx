@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { IconButton, Stack } from "@mui/material";
+import { IconButton, Stack, Tooltip } from "@mui/material";
 import {
   VisibilityOutlined,
   HistoryOutlined,
@@ -134,40 +134,62 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <IconButton
-                size="small"
-                aria-label={`Ver detalles de ${VOCAB.organization.noun.singular}`}
+              <Tooltip
                 title={`Ver detalles de ${VOCAB.organization.noun.singular}`}
-                onClick={() => onView(params.row.id)}
               >
-                <VisibilityOutlined fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                <IconButton
+                  size="small"
+                  aria-label={`Ver detalles de ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onView(params.row.id)}
+                >
+                  <VisibilityOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip
                 title={`Ver historial de ${VOCAB.organization.noun.singular}`}
-                onClick={() => onViewHistory(params.row.id)}
               >
-                <HistoryOutlined fontSize="small" />
-              </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onViewHistory(params.row.id)}
+                >
+                  <HistoryOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip
+                title={`Ver historial de ${VOCAB.organization.noun.singular}`}
+              >
+                <IconButton
+                  size="small"
+                  aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onViewHistory(params.row.id)}
+                >
+                  <HistoryOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
               {isBlocked ? (
-                <IconButton
-                  size="small"
-                  aria-label={`Desbloquear ${VOCAB.organization.noun.singular}`}
+                <Tooltip
                   title={`Desbloquear ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onUnblock(params.row.id)}
                 >
-                  <LockOpenOutlined fontSize="small" />
-                </IconButton>
+                  <IconButton
+                    size="small"
+                    aria-label={`Desbloquear ${VOCAB.organization.noun.singular}`}
+                    onClick={() => onUnblock(params.row.id)}
+                  >
+                    <LockOpenOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               ) : (
-                <IconButton
-                  size="small"
-                  aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
-                  title={`Bloquear ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onBlock(params.row.id)}
-                >
-                  <BlockOutlined fontSize="small" />
-                </IconButton>
+                <Tooltip title={`Bloquear ${VOCAB.organization.noun.singular}`}>
+                  <IconButton
+                    size="small"
+                    aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
+                    onClick={() => onBlock(params.row.id)}
+                  >
+                    <BlockOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               )}
             </Stack>
           );
