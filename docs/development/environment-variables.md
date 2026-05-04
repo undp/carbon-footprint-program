@@ -155,3 +155,5 @@ For production (App Service), all variables come from:
 | `AZURE_OPENAI_DEPLOYMENT_NAME` | When `azure-openai` | —              | Azure OpenAI deployment name. The chat client authenticates with `DefaultAzureCredential` (managed identity, no keys). |
 
 The chatbot widget makes its requests to the relative URL `/api/chatbot/...` so the `chatbot_session_id` cookie (`SameSite=Lax`) is sent. The Vite proxy added in `apps/web/vite.config.ts` forwards `/api/*` to `VITE_API_BASE_URL` in dev, keeping the widget same-origin with the API.
+
+> **`VITE_API_BASE_URL` convention.** The repo expects `VITE_API_BASE_URL` to end in `/api` (the shared `apiClient` / `ky` instance uses it as `prefixUrl` and call sites use bare paths like `apiClient.get("badges")`). The chatbot's Vite dev proxy therefore strips the leading `/api` from the incoming browser path before forwarding (`rewrite: (path) => path.replace(/^\/api/, "")`), so `/api/chatbot/message` → `${VITE_API_BASE_URL}/chatbot/message` and not the duplicated `${VITE_API_BASE_URL}/api/chatbot/message`.
