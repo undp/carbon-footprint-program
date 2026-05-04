@@ -14,7 +14,7 @@
 - [ ] 2.2 Update the existing `packages/types/src/baseSchemas/category.ts` (or wherever `MeasurementUnitBaseSchema` lives) to include `status: z.nativeEnum(MeasurementUnitStatus)` and `referenceCount: z.number().int().nonnegative()` on the response shape.
 - [ ] 2.3 Create `packages/types/src/measurementUnits/admin/createMeasurementUnit/schemas.ts` and `types.ts`. Request shape: `{ name, abbreviation, magnitude, baseFactor, isBase }`. Validations:
   - `name`: `z.string().trim().min(1, ...).max(MEASUREMENT_UNIT_NAME_MAX_LENGTH, ...)` with Spanish error messages.
-  - `abbreviation`: `z.string().trim().min(1, ...).max(MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH, ...).regex(/^[^\s\/\x00-\x1F\x7F]+$/, ...)` to reject whitespace, ASCII control chars, and `/`.
+  - `abbreviation`: `z.string().trim().min(1, ...).max(MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH, ...).regex(/^[^\/\x00-\x1F\x7F]+$/, ...)` to reject ASCII control chars (incl. tab/newline) and `/`. Regular spaces are allowed.
   - `baseFactor`: `z.number().finite().positive()` (rejects `Infinity`/`-Infinity`/`NaN`/`<= 0`).
   - `magnitude`: `z.nativeEnum(Magnitude)`.
   - `isBase`: `z.boolean()`.

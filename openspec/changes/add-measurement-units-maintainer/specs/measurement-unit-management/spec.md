@@ -178,7 +178,7 @@ The create endpoint and the update endpoint SHALL validate inputs via the same Z
 The rules are:
 
 - `name`: non-empty string, trimmed of leading/trailing whitespace, length ≤ `MEASUREMENT_UNIT_NAME_MAX_LENGTH`.
-- `abbreviation`: non-empty string, trimmed, length ≤ `MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH`, MUST NOT contain whitespace characters, control characters, or the `/` character (because `/` collides with the canonical RMU derivation `kg/<abbreviation>`).
+- `abbreviation`: non-empty string, trimmed, length ≤ `MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH`, MUST NOT contain ASCII control characters (which includes tab and newline) or the `/` character (because `/` collides with the canonical RMU derivation `kg/<abbreviation>`). Regular spaces are allowed (e.g. `"t CO₂e"`).
 - `baseFactor`: a finite number strictly greater than zero (`Infinity`, `-Infinity`, `NaN`, and `0` are rejected).
 - `magnitude`: a member of the `Magnitude` enum.
 - `isBase`: a boolean.
@@ -207,8 +207,8 @@ The two `MEASUREMENT_UNIT_*_MAX_LENGTH` constants SHALL live in `packages/consta
 
 #### Scenario: Abbreviation contains invalid characters
 
-- **WHEN** an admin creates or updates an MU with an `abbreviation` that contains any whitespace character (space, tab, newline), any ASCII control character, or the `/` character (e.g., `"m s"`, `"kg\n"`, `"m/s"`)
-- **THEN** the system SHALL respond with HTTP 400. The `/` rule exists specifically to prevent corrupting the canonical RMU abbreviation `kg/<MU.abbreviation>`
+- **WHEN** an admin creates or updates an MU with an `abbreviation` that contains any ASCII control character (e.g., tab `"kg\t"`, newline `"kg\n"`) or the `/` character (e.g., `"m/s"`)
+- **THEN** the system SHALL respond with HTTP 400. The `/` rule exists specifically to prevent corrupting the canonical RMU abbreviation `kg/<MU.abbreviation>`. Regular spaces (e.g., `"t CO₂e"`) are permitted.
 
 #### Scenario: Name or abbreviation exceeds maximum length
 
