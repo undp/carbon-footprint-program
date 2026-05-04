@@ -178,6 +178,11 @@ export const useChatStream = () => {
           "content-type": "application/json",
         };
         if (withLastEventId && lastEventIdRef.current) {
+          // Forward-compatibility plumbing only: the foundation backend
+          // does not consume Last-Event-ID (it always streams from the
+          // beginning) — see chatbot-message-streaming spec. Wired now so
+          // V1 can add a server-side replay buffer without a client
+          // contract change.
           headers["Last-Event-ID"] = lastEventIdRef.current;
         }
         try {

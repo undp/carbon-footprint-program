@@ -33,7 +33,14 @@ export function ChatbotWidget() {
     );
   }
 
+  const isBusy = state === "loading" || state === "streaming";
+
   const handleSend = async () => {
+    // Guard against double-sends when the user mashes Enter or the send
+    // button: the IconButton is disabled while busy, but the keyboard
+    // path can still re-enter handleSend before React applies the
+    // disabled prop on the next render.
+    if (isBusy || state === "degraded") return;
     const content = draft.trim();
     if (!content) return;
     setDraft("");
@@ -45,8 +52,6 @@ export function ChatbotWidget() {
       });
     });
   };
-
-  const isBusy = state === "loading" || state === "streaming";
 
   return (
     <Paper
