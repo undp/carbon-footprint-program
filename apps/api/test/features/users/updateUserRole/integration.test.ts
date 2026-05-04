@@ -240,6 +240,43 @@ describe("PATCH /api/users/:id/role - Integration Tests", () => {
       });
       expect(updated.updatedById?.toString()).toBe(loggedUser.id.toString());
     });
+
+    it("rolls back the role update when the audit insert fails", async () => {
+      await promoteLoggedUserToSuperadmin();
+      const target = await createTestUser(prisma, { role: SystemRole.USER });
+
+      // Force every insert into user_role_audit to fail at the database
+      // level. NOT VALID skips validation of existing rows so this guard can
+      // be attached regardless of prior table state.
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE user_role_audit ADD CONSTRAINT integration_test_force_audit_failure CHECK (id IS NULL) NOT VALID`
+      );
+
+      try {
+        const response = await app.inject({
+          method: "PATCH",
+          url: `/api/users/${target.id}/role`,
+          payload: { role: SystemRole.ADMIN },
+        });
+
+        expect(response.statusCode).not.toBe(200);
+      } finally {
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE user_role_audit DROP CONSTRAINT IF EXISTS integration_test_force_audit_failure`
+        );
+      }
+
+      const after = await prisma.user.findUniqueOrThrow({
+        where: { id: target.id },
+      });
+      expect(after.role).toBe(SystemRole.USER);
+      expect(after.updatedById).toBeNull();
+
+      const auditCount = await prisma.userRoleAudit.count({
+        where: { userId: target.id },
+      });
+      expect(auditCount).toBe(0);
+    });
   });
 
   describe("Schema validation", () => {
