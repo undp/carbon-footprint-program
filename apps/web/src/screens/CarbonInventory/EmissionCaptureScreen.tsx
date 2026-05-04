@@ -168,8 +168,12 @@ export const EmissionCaptureScreen: FC = () => {
   );
   const isLastCategory =
     selectedCategoryIndex === (data?.categories.length ?? 0) - 1;
+  const isFirstCategory = selectedCategoryIndex === 0;
   const nextCategoryId = !isLastCategory
     ? (data?.categories[selectedCategoryIndex + 1]?.id ?? null)
+    : null;
+  const previousCategoryId = !isFirstCategory
+    ? (data?.categories[selectedCategoryIndex - 1]?.id ?? null)
     : null;
 
   const checkAllSubcategoriesFilled = useCallback(
@@ -185,6 +189,20 @@ export const EmissionCaptureScreen: FC = () => {
     confirmDialog.closeConfirm();
     goNext();
   }, [confirmDialog, goNext]);
+
+  const handleBackClick = useCallback(() => {
+    if (!isFirstCategory && previousCategoryId) {
+      handleCategoryChangeWithSave(previousCategoryId);
+    } else {
+      void handleSubmit(submitAndGoBack)();
+    }
+  }, [
+    isFirstCategory,
+    previousCategoryId,
+    handleCategoryChangeWithSave,
+    handleSubmit,
+    submitAndGoBack,
+  ]);
 
   const handleNextClick = useCallback(() => {
     if (!isLastCategory && nextCategoryId) {
@@ -238,7 +256,7 @@ export const EmissionCaptureScreen: FC = () => {
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: handleSubmit(submitAndGoBack),
+      onClick: handleBackClick,
       loading: isSubmittingAndGoingBack,
       disabled: globalSubmitting || isBusy,
     },
