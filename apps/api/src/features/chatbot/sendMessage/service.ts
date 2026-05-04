@@ -112,7 +112,7 @@ export const enforceHistoryCap = (history: { content: string }[]): void => {
 };
 
 export const enforceTurnCap = async (
-  prisma: PrismaClient,
+  prisma: Tx | PrismaClient,
   conversationId: bigint
 ): Promise<void> => {
   const userTurns = await prisma.chatbotChatMessage.count({
