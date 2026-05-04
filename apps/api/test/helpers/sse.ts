@@ -43,6 +43,13 @@ export const collectSseEvents = async (
     cookies?: string;
     timeoutMs?: number;
     method?: string;
+    /**
+     * When true (default), the helper calls `app.listen({ port: 0 })` and
+     * tears it down with `app.close()` in the `finally`. Set to `false` when
+     * passing a suite-level app whose lifecycle is managed by the caller —
+     * the helper will then assume `app.listen` has already been called.
+     */
+    ownsApp?: boolean;
   }
 ): Promise<{
   status: number;
@@ -50,10 +57,13 @@ export const collectSseEvents = async (
   setCookie: string[];
 }> => {
   const timeoutMs = options?.timeoutMs ?? 5000;
-  await app.listen({ port: 0, host: "127.0.0.1" });
+  const ownsApp = options?.ownsApp ?? true;
+  if (ownsApp) {
+    await app.listen({ port: 0, host: "127.0.0.1" });
+  }
   const address = app.server.address();
   if (!address || typeof address === "string") {
-    await app.close();
+    if (ownsApp) await app.close();
     throw new Error("Failed to acquire test server address");
   }
   const fullUrl = `http://127.0.0.1:${address.port}${url}`;
@@ -76,7 +86,7 @@ export const collectSseEvents = async (
     });
   } catch (err) {
     clearTimeout(timer);
-    await app.close();
+    if (ownsApp) await app.close();
     if (controller.signal.aborted) {
       throw new SseTimeoutError(`SSE request timed out after ${timeoutMs}ms`);
     }
@@ -96,7 +106,7 @@ export const collectSseEvents = async (
 
   if (!response.body) {
     clearTimeout(timer);
-    await app.close();
+    if (ownsApp) await app.close();
     return { status: response.status, events, setCookie };
   }
 
@@ -121,7 +131,7 @@ export const collectSseEvents = async (
   } finally {
     reader.releaseLock();
     clearTimeout(timer);
-    await app.close();
+    if (ownsApp) await app.close();
   }
 
   return { status: response.status, events, setCookie };
