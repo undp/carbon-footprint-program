@@ -31,18 +31,8 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           `La descripción no puede superar los ${REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH} caracteres`
         ),
       year: z.union([z.number().int(), z.literal("")]),
-      baselineScenario: z
-        .string()
-        .min(1, "El escenario de línea base es requerido")
-        .refine((val) => !isNaN(Number(val)), {
-          message: "Debe ser un número válido",
-        }),
-      projectScenario: z
-        .string()
-        .min(1, "El escenario del proyecto es requerido")
-        .refine((val) => !isNaN(Number(val)), {
-          message: "Debe ser un número válido",
-        }),
+      baselineScenario: z.number().nullable(),
+      projectScenario: z.number().nullable(),
       sworn: z.boolean(),
       files: showFileUpload
         ? z
@@ -72,7 +62,23 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           path: ["year"],
           message: "El año es requerido",
         });
-      } else if (
+      }
+      if (data.baselineScenario === null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["baselineScenario"],
+          message: "El escenario de línea base es requerido",
+        });
+      }
+      if (data.projectScenario === null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["projectScenario"],
+          message: "El escenario del proyecto es requerido",
+        });
+      }
+      if (
+        data.year !== "" &&
         data.implementationDate &&
         new Date(data.implementationDate).getFullYear() > data.year
       ) {
@@ -82,7 +88,11 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           message: `El año no puede ser posterior al año de la huella (${data.year})`,
         });
       }
-      if (Number(data.baselineScenario) < Number(data.projectScenario)) {
+      if (
+        data.baselineScenario !== null &&
+        data.projectScenario !== null &&
+        data.baselineScenario < data.projectScenario
+      ) {
         ctx.addIssue({
           code: "custom",
           path: ["baselineScenario"],
@@ -107,8 +117,8 @@ export const defaultFormValues: ReductionProjectFormValues = {
   reportedElsewhere: false,
   reportedElsewhereDescription: "",
   year: "",
-  baselineScenario: "",
-  projectScenario: "",
+  baselineScenario: null,
+  projectScenario: null,
   sworn: false,
   files: [],
 };

@@ -28,11 +28,10 @@ export const ReductionReportSection: FC<Props> = ({
   const year = useWatch({ control, name: "year" });
 
   const reduction = useMemo(() => {
-    const base = Number(baselineScenario);
-    const project = Number(projectScenario);
-    if (isNaN(base) || isNaN(project) || !baselineScenario || !projectScenario)
+    if (baselineScenario == null || projectScenario == null) {
       return 0;
-    return base - project;
+    }
+    return baselineScenario - projectScenario;
   }, [baselineScenario, projectScenario]);
 
   const columns: GridColDef<ReportRow>[] = useMemo(
@@ -79,10 +78,8 @@ export const ReductionReportSection: FC<Props> = ({
               control={control}
               render={({ field, fieldState }) => (
                 <NumericInput
-                  value={field.value === "" ? null : Number(field.value)}
-                  onChange={(value) =>
-                    field.onChange(value == null ? "" : String(value))
-                  }
+                  value={field.value}
+                  onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
@@ -117,10 +114,8 @@ export const ReductionReportSection: FC<Props> = ({
               control={control}
               render={({ field, fieldState }) => (
                 <NumericInput
-                  value={field.value === "" ? null : Number(field.value)}
-                  onChange={(value) =>
-                    field.onChange(value == null ? "" : String(value))
-                  }
+                  value={field.value}
+                  onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
@@ -150,10 +145,7 @@ export const ReductionReportSection: FC<Props> = ({
         ),
         renderCell: () => (
           <Box className="flex items-center justify-end px-10 py-4">
-            <Typography fontWeight={500}>
-              {reduction !== null && reduction !== undefined ? reduction : 0}{" "}
-              tCO₂e
-            </Typography>
+            <Typography fontWeight={500}>{reduction} tCO₂e</Typography>
           </Box>
         ),
       },
