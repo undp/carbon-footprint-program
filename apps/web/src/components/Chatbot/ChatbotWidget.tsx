@@ -158,7 +158,16 @@ export function ChatbotWidget() {
           placeholder="Escribe tu pregunta…"
           disabled={isBusy || state === "degraded"}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            // Skip Enter when an IME composition is in progress — otherwise
+            // confirming a kana / pinyin candidate with Enter would also
+            // submit the message. nativeEvent.isComposing covers older
+            // browsers; keyCode 229 is the legacy in-composition signal.
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.nativeEvent.isComposing &&
+              e.keyCode !== 229
+            ) {
               e.preventDefault();
               void handleSend();
             }
