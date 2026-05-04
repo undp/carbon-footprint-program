@@ -11,7 +11,7 @@ import {
 } from "../../../components/cells";
 import { ActionButtons } from "../../../components/ActionButtons";
 import { ToggleCell } from "../../../components/ToggleCell";
-import { MeasurementUnitsFormRow } from "./useMeasurementUnitsForm.js";
+import type { MeasurementUnitsFormRow } from "./useMeasurementUnitsForm.js";
 
 interface UseMeasurementUnitColumnsParams {
   editingRowId: string | null;
