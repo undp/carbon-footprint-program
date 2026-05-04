@@ -114,18 +114,22 @@ export const collectSseEvents = async (
   const decoder = new TextDecoder();
   let buffer = "";
 
+  // Per the SSE spec, frames may be terminated by either `\n\n` or
+  // `\r\n\r\n`. Match both so a CRLF-emitting server / proxy doesn't make
+  // collectSseEvents buffer forever.
+  const FRAME_SEPARATOR = /\r?\n\r?\n/;
   try {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      let separatorIndex = buffer.indexOf("\n\n");
-      while (separatorIndex !== -1) {
-        const block = buffer.slice(0, separatorIndex);
-        buffer = buffer.slice(separatorIndex + 2);
+      let match = FRAME_SEPARATOR.exec(buffer);
+      while (match) {
+        const block = buffer.slice(0, match.index);
+        buffer = buffer.slice(match.index + match[0].length);
         const event = parseEventBlock(block);
         if (event) events.push(event);
-        separatorIndex = buffer.indexOf("\n\n");
+        match = FRAME_SEPARATOR.exec(buffer);
       }
     }
     // Flush any trailing bytes the server emitted without a closing blank
