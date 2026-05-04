@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { IconButton, Stack } from "@mui/material";
+import { IconButton, Stack, Tooltip } from "@mui/material";
 import {
   VisibilityOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  RestoreOutlined,
+  HistoryOutlined,
+  BlockOutlined,
+  LockOpenOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
@@ -16,11 +16,15 @@ import { VOCAB } from "@/config/vocab";
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
 interface UseOrganizationColumnsProps {
+  onView: (id: string) => void;
+  onViewHistory: (id: string) => void;
   onBlock: (id: string) => void;
   onUnblock: (id: string) => void;
 }
 
 export const useOrganizationColumns = ({
+  onView,
+  onViewHistory,
   onBlock,
   onUnblock,
 }: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
@@ -130,36 +134,51 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              {/* TODO: implement callback for this button */}
-              <IconButton
-                size="small"
-                aria-label={`Ver ${VOCAB.organization.noun.singular}`}
+              <Tooltip
+                title={`Ver detalles de ${VOCAB.organization.noun.singular}`}
               >
-                <VisibilityOutlined fontSize="small" />
-              </IconButton>
-              {/* TODO: implement callback for this button */}
-              <IconButton
-                size="small"
-                aria-label={`Editar ${VOCAB.organization.noun.singular}`}
+                <IconButton
+                  size="small"
+                  aria-label={`Ver detalles de ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onView(params.row.id)}
+                >
+                  <VisibilityOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip
+                title={`Ver historial de ${VOCAB.organization.noun.singular}`}
               >
-                <EditOutlined fontSize="small" />
-              </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onViewHistory(params.row.id)}
+                >
+                  <HistoryOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
               {isBlocked ? (
-                <IconButton
-                  size="small"
-                  aria-label={`Restaurar ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onUnblock(params.row.id)}
+                <Tooltip
+                  title={`Desbloquear ${VOCAB.organization.noun.singular}`}
                 >
-                  <RestoreOutlined fontSize="small" />
-                </IconButton>
+                  <IconButton
+                    size="small"
+                    aria-label={`Desbloquear ${VOCAB.organization.noun.singular}`}
+                    onClick={() => onUnblock(params.row.id)}
+                  >
+                    <LockOpenOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               ) : (
-                <IconButton
-                  size="small"
-                  aria-label={`Eliminar ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onBlock(params.row.id)}
-                >
-                  <DeleteOutlined fontSize="small" />
-                </IconButton>
+                <Tooltip title={`Bloquear ${VOCAB.organization.noun.singular}`}>
+                  <IconButton
+                    size="small"
+                    aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
+                    onClick={() => onBlock(params.row.id)}
+                  >
+                    <BlockOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               )}
             </Stack>
           );
@@ -171,6 +190,8 @@ export const useOrganizationColumns = ({
       getColor,
       STATUS_LABEL,
       STATUS_SORT_ORDER,
+      onView,
+      onViewHistory,
       onBlock,
       onUnblock,
     ]

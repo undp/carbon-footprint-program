@@ -14,7 +14,11 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { CloseOutlined, OpenInNewOutlined } from "@mui/icons-material";
+import {
+  CloseOutlined,
+  HistoryOutlined,
+  OpenInNewOutlined,
+} from "@mui/icons-material";
 import { formatDateTime } from "@/utils/formatting";
 import { getReviewTitle } from "@/utils/submissions";
 import { FilesSection } from "./FilesSection";
@@ -251,7 +255,49 @@ export const ViewSubmissionDialog: FC<Props> = ({
             </Stack>
           </DialogContent>
         </>
-      ) : null}
+      ) : (
+        <>
+          <DialogTitle component="div" sx={{ pb: 0.5, pr: 6, minHeight: 46 }}>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              sx={{ color: theme.palette.text.primary, fontSize: 18 }}
+            >
+              Historial de postulaciones
+            </Typography>
+            <IconButton
+              onClick={onClose}
+              size="small"
+              sx={{ position: "absolute", right: 12, top: 12, opacity: 0.7 }}
+            >
+              <CloseOutlined fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 4 }}>
+            <Stack alignItems="center" spacing={1.5} sx={{ py: 4 }}>
+              <HistoryOutlined
+                sx={{ fontSize: 40, color: theme.palette.text.disabled }}
+              />
+              <Typography
+                variant="body1"
+                fontWeight={500}
+                sx={{ color: theme.palette.text.primary }}
+              >
+                Sin historial disponible
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  textAlign: "center",
+                }}
+              >
+                Esta organización aún no registra postulaciones.
+              </Typography>
+            </Stack>
+          </DialogContent>
+        </>
+      )}
     </Dialog>
   );
 };

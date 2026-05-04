@@ -33,11 +33,11 @@ export const UnblockOrganizationDialog: FC<UnblockOrganizationDialogProps> = ({
       aria-describedby="unblock-org-dialog-description"
     >
       <DialogTitle id="unblock-org-dialog-title">
-        Restaurar {VOCAB.organization.article.singular}
+        Desbloquear {VOCAB.organization.article.singular}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="unblock-org-dialog-description">
-          ¿Estás seguro de que deseas restaurar{" "}
+          ¿Estás seguro de que deseas desbloquear{" "}
           {VOCAB.organization.article.singular}{" "}
           <strong>{organizationName}</strong>?{" "}
           {capitalize(VOCAB.organization.article.singular)} será desbloqueada y
@@ -49,7 +49,7 @@ export const UnblockOrganizationDialog: FC<UnblockOrganizationDialogProps> = ({
           Cancelar
         </Button>
         <Button onClick={onConfirm} color="primary" disabled={isLoading}>
-          {isLoading ? "Restaurando..." : "Restaurar"}
+          {isLoading ? "Desbloqueando..." : "Desbloquear"}
         </Button>
       </DialogActions>
     </Dialog>
