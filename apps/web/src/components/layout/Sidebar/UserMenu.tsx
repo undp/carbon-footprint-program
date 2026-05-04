@@ -1,8 +1,8 @@
 import {
-  AdminPanelSettingsOutlined,
   HomeOutlined,
   KeyboardArrowDown,
   LogoutOutlined,
+  SettingsOutlined,
 } from "@mui/icons-material";
 import {
   Box,
@@ -68,9 +68,9 @@ export const UserMenu = () => {
 
   const name = me.firstName ? `${me.firstName} ${me.lastName}` : null;
   const toggleLabel = isAdminRoute
-    ? "Volver a la aplicación"
-    : "Ir al panel de administración";
-  const ToggleIcon = isAdminRoute ? HomeOutlined : AdminPanelSettingsOutlined;
+    ? "Ir a la aplicación"
+    : "Ir a administración";
+  const ToggleIcon = isAdminRoute ? HomeOutlined : SettingsOutlined;
 
   return (
     <Box className="mb-4 flex flex-col gap-2">
@@ -92,14 +92,8 @@ export const UserMenu = () => {
           py: 1,
           borderRadius: 1,
           cursor: "pointer",
-          border: `1px solid ${open ? theme.palette.primary.main : "transparent"}`,
-          backgroundColor: open
-            ? theme.palette.action.selected
-            : "transparent",
-          transition: theme.transitions.create([
-            "background-color",
-            "border-color",
-          ]),
+          backgroundColor: open ? theme.palette.action.selected : "transparent",
+          transition: theme.transitions.create("background-color"),
           "&:hover": {
             backgroundColor: theme.palette.action.hover,
           },

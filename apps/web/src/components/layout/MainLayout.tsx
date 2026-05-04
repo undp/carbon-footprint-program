@@ -47,8 +47,6 @@ export const MainLayout: FC<PropsWithChildren> = ({ children }) => {
         <Sidebar
           items={SIDEBAR_ITEMS}
           onLogoClick={() => navigate({ to: Routes.HOME })}
-          areaLabel="App"
-          areaVariant="default"
           footer={
             <>
               <Typography

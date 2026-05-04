@@ -46,10 +46,7 @@ export const Sidebar: FC<Props> = ({
       variant="permanent"
       anchor="left"
     >
-      <Toolbar
-        sx={{ px: "8px", py: "16px", gap: 1.5 }}
-        disableGutters
-      >
+      <Toolbar sx={{ px: "8px", py: "16px", gap: 1.5 }} disableGutters>
         <HuellaLatamLogo
           sx={{
             width: 116,
