@@ -19,6 +19,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
+import { ChatbotWidget } from "@/components/Chatbot/ChatbotWidget";
 
 function RootComponent() {
   useEffect(() => {
@@ -37,6 +38,8 @@ function RootComponent() {
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
+                  {/* Minimum-viable placement — design review may relocate. */}
+                  <ChatbotWidget />
                 </ExplanationProvider>
               </AuthProvider>
             </QueryClientProvider>
