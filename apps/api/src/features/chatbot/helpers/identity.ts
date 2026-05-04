@@ -15,7 +15,6 @@ export const CHATBOT_SESSION_COOKIE_PATH = "/api/chatbot";
 export const CHATBOT_SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 const baseCookieOptions = () => ({
-  signed: true as const,
   httpOnly: true as const,
   sameSite: "lax" as const,
   secure: IS_PROD,
@@ -31,8 +30,26 @@ const readSignedSessionCookie = (request: FastifyRequest): string | null => {
   return unsigned.value;
 };
 
+// `reply.setCookie()` from @fastify/cookie buffers cookies in an internal
+// per-reply Map and only flushes them to the Set-Cookie header during the
+// onSend hook. The /api/chatbot/message handler calls `reply.hijack()`, which
+// skips onSend entirely — so a cookie set via reply.setCookie() never reaches
+// the client and every anonymous turn mints a fresh sessionId. To avoid that,
+// we sign + serialize manually and write the header directly into Fastify's
+// reply store, where reply.getHeader("set-cookie") (called from
+// writeSseHeaders before reply.raw.writeHead) can read it back. This also
+// works on non-hijacked paths: onSend's plugin handler sees an empty Map and
+// is a no-op, leaving our header intact for normal serialization.
 const refreshSessionCookie = (reply: FastifyReply, sessionId: string) => {
-  reply.setCookie(CHATBOT_SESSION_COOKIE_NAME, sessionId, baseCookieOptions());
+  const signedValue = reply.signCookie(sessionId);
+  reply.header(
+    "Set-Cookie",
+    reply.server.serializeCookie(
+      CHATBOT_SESSION_COOKIE_NAME,
+      signedValue,
+      baseCookieOptions()
+    )
+  );
 };
 
 /**
