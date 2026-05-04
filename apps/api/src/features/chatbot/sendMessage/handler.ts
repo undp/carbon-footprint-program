@@ -114,20 +114,17 @@ export const sendMessageHandler = async (
   const startedAt = Date.now();
   const abortController = new AbortController();
 
-  reply.raw.on("close", () => {
-    if (!reply.raw.writableEnded) {
-      abortController.abort();
-    }
-  });
-
-  // Mid-stream disconnect finalizer — conditional on `latency_ms IS NULL`,
-  // making it idempotent against the success path which sets latency_ms.
+  // Single close handler covers both responsibilities:
+  //   1. Abort the upstream LLM stream so the provider releases resources.
+  //   2. Mark the in-flight assistant row truncated. The conditional WHERE
+  //      (`latency_ms IS NULL`) makes the UPDATE a no-op when the success
+  //      path has already finalized the row, so this is idempotent.
   let assistantBuffer = "";
-  const onClose = () => {
+  reply.raw.on("close", () => {
     if (reply.raw.writableEnded) return;
+    abortController.abort();
     void prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId} AND latency_ms IS NULL`;
-  };
-  reply.raw.on("close", onClose);
+  });
 
   let stream: AsyncIterable<
     | { type: "delta"; content: string }
