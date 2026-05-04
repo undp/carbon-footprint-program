@@ -55,6 +55,15 @@ export const useChatStream = () => {
   // updateLastAssistant can target it directly instead of scanning backward
   // on every delta. Reset to -1 between turns and after deleteHistory.
   const inFlightAssistantIndexRef = useRef<number>(-1);
+  // Monotonic counter used to mint locally unique React keys for each
+  // message bubble. `Date.now()` collisions (mocked timers, two turns
+  // started in the same millisecond) would otherwise let React reconcile
+  // a freshly-mounted bubble onto the wrong DOM node.
+  const messageIdCounterRef = useRef<number>(0);
+  const nextMessageId = useCallback((role: "user" | "assistant"): string => {
+    messageIdCounterRef.current += 1;
+    return `${role}-${messageIdCounterRef.current}`;
+  }, []);
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
@@ -152,12 +161,12 @@ export const useChatStream = () => {
       // an earlier turn that completed or errored.
       lastEventIdRef.current = undefined;
       const userMessage: ChatbotMessage = {
-        id: `user-${Date.now()}`,
+        id: nextMessageId("user"),
         role: "user",
         content,
       };
       const assistantMessage: ChatbotMessage = {
-        id: `assistant-${Date.now()}`,
+        id: nextMessageId("assistant"),
         role: "assistant",
         content: "",
       };
@@ -283,7 +292,7 @@ export const useChatStream = () => {
       // clean and stale indices can't leak across turns.
       inFlightAssistantIndexRef.current = -1;
     },
-    [consumeStream, updateLastAssistant]
+    [consumeStream, nextMessageId, updateLastAssistant]
   );
 
   const deleteHistory = useCallback(async (): Promise<void> => {
