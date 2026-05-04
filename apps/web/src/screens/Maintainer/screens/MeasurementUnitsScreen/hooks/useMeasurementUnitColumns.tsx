@@ -289,13 +289,10 @@ export const useMeasurementUnitColumns = ({
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);
-          const isLocked = params.row.referenceCount > 0;
-          const disableDelete = protected_ || isLocked || editing;
+          const disableDelete = protected_ || editing;
           const deleteTooltipTitle = protected_
             ? "No se puede eliminar esta unidad de medida porque es una unidad base de esta magnitud."
-            : isLocked
-              ? "No se puede eliminar esta unidad de medida porque tiene datos asociados."
-              : "Eliminar";
+            : "Eliminar";
 
           return (
             <ActionButtons
