@@ -30,7 +30,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 
 Las emisiones se calculan en base a la **cantidad total de electricidad consumida**, multiplicada por el **factor de emisión del sistema eléctrico correspondiente**.
 
-> $CO₂eq$ = $Electricidad\ consumida \times Factor\ de\ emisión\ del\ sistema$
+> $CO₂e$ = $Electricidad\ consumida \times Factor\ de\ emisión\ del\ sistema$
 
 El factor depende del sistema eléctrico nacional o región donde opera tu instalación.
 
@@ -145,18 +145,18 @@ Supongamos que durante el año tu empresa consumió:
 
 Y el factor de emisión del sistema eléctrico es (ejemplo referencial):
 
-- **0,35 kg CO₂eq por kWh**
+- **0,35 kg CO₂e por kWh**
 
 Entonces:
 
-> $CO₂eq$ = $600.000\ kWh \times 0,35\ kg\ CO₂eq/kWh$ = $210.000\ kg\ CO₂eq$
+> $CO₂e$ = $600.000\ kWh \times 0,35\ kg\ CO₂e/kWh$ = $210.000\ kg\ CO₂e$
 
 Es decir:
 
-- **Tu empresa generó 210 toneladas de CO₂eq en el año**
+- **Tu empresa generó 210 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **kg CO₂eq por kWh**, el consumo debe estar en **kWh**.
+Si el factor está en **kg CO₂e por kWh**, el consumo debe estar en **kWh**.
 
 ---
 

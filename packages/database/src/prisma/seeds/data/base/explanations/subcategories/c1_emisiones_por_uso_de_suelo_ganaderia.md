@@ -27,7 +27,7 @@ El **factor de ganadería ya incluye** tanto:
 - Las emisiones por la **digestión de los animales**
 - Las emisiones por el **manejo del estiércol**
 
-> $CO₂eq$ = $Cantidad\ de\ animales \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ animales \times Factor\ de\ emisión$
 
 ⚠️ El factor varía según el **tipo de animal**, ya que cada especie genera emisiones distintas.
 
@@ -104,18 +104,18 @@ Supongamos que durante el año tu empresa tuvo en promedio:
 
 Y el factor de emisión para Vacas de pastoreo (ejemplo referencial) es:
 
-- **Por cada vaca de pastoreo que tienes en tu campo, se generan 1.500 kg CO₂eq al año**
+- **Por cada vaca de pastoreo que tienes en tu campo, se generan 1.500 kg CO₂e al año**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $120\ Vacas\ de\ pastoreo \times 1.500\ kg\ CO₂eq/animal$ = $180.000\ kg\ CO₂eq$
+> $CO₂e$ = $120\ Vacas\ de\ pastoreo \times 1.500\ kg\ CO₂e/animal$ = $180.000\ kg\ CO₂e$
 
 Es decir, la actividad ganadera habría generado:
 
-- **180.000 kg CO₂eq en el año**
-- O lo mismo que **180 toneladas de CO₂eq**
+- **180.000 kg CO₂e en el año**
+- O lo mismo que **180 toneladas de CO₂e**
 
-⚠️ Es importante que el factor de emisión esté expresado en **kg CO₂eq por animal por año**, y que la cantidad declarada corresponda al **promedio anual de animales**.
+⚠️ Es importante que el factor de emisión esté expresado en **kg CO₂e por animal por año**, y que la cantidad declarada corresponda al **promedio anual de animales**.
 
 ---
 

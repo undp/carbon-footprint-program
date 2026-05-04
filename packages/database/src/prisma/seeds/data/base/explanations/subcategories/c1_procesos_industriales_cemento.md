@@ -33,7 +33,7 @@ Las emisiones del cemento provienen principalmente de la **descomposición quím
 
 El cálculo se basa en la **cantidad de clinker utilizado** multiplicado por un **factor de emisión específico**.
 
-> $CO₂eq$ = $Cantidad\ de\ clinker \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ clinker \times Factor\ de\ emisión$
 
 💡 Para calcular correctamente, solo necesitas saber la **cantidad total anual de clinker producido o utilizado**.
 
@@ -142,18 +142,18 @@ Supongamos que durante el año tu empresa utilizó:
 
 Y el factor de emisión del clinker es (ejemplo referencial):
 
-- **0,52 t CO₂eq por tonelada de clinker**
+- **0,52 t CO₂e por tonelada de clinker**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $900.000\ t \times 0,52\ t\ CO₂eq/t$ = $468.000\ t\ CO₂eq$
+> $CO₂e$ = $900.000\ t \times 0,52\ t\ CO₂e/t$ = $468.000\ t\ CO₂e$
 
 Es decir, el proceso productivo habría generado:
 
-- **468.000 toneladas de CO₂eq en el año**
+- **468.000 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **t CO₂eq por tonelada**, la cantidad debe estar en **toneladas**.
+Si el factor está en **t CO₂e por tonelada**, la cantidad debe estar en **toneladas**.
 
 ---
 

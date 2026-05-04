@@ -25,7 +25,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la superficie cultivada**.  
 El factor depende del **tipo de cultivo y zona climática**.
 
-> $CO₂eq$ = $Superficie\ cultivada \times Factor\ de\ emisión$
+> $CO₂e$ = $Superficie\ cultivada \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -116,19 +116,19 @@ Supongamos que durante el año tu empresa cultivó:
 
 Y el factor de emisión es (ejemplo referencial):
 
-- **Por cada hectárea cultivada en clima templado, se generan 2.000 kg CO₂eq al año**
+- **Por cada hectárea cultivada en clima templado, se generan 2.000 kg CO₂e al año**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $40\ ha \times 2.000\ kg\ CO₂eq/ha$ = $80.000\ kg\ CO₂eq$
+> $CO₂e$ = $40\ ha \times 2.000\ kg\ CO₂e/ha$ = $80.000\ kg\ CO₂e$
 
 Es decir, la actividad agrícola habría generado:
 
-- **80.000 kg CO₂eq en el año**
-- O lo mismo que **80,00 toneladas de CO₂eq**
+- **80.000 kg CO₂e en el año**
+- O lo mismo que **80,00 toneladas de CO₂e**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **kg CO₂eq por hectárea**, la cantidad debe estar en **hectáreas (ha)**.
+Si el factor está en **kg CO₂e por hectárea**, la cantidad debe estar en **hectáreas (ha)**.
 
 ---
 

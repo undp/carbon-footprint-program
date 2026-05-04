@@ -27,7 +27,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la cantidad de gas liberado**.  
 Cada gas tiene un **potencial de calentamiento global (GWP)** distinto, por lo que el impacto varía según el tipo de gas.
 
-> $CO₂eq$ = $Cantidad\ de\ gas\ liberado \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ gas\ liberado \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -129,19 +129,19 @@ Supongamos que durante el año tu empresa recargó:
 
 Y el potencial de calentamiento global (GWP) del HFC-32 es (ejemplo referencial):
 
-- **Por cada kg utilizado de HFC-32, se generan 677 kg CO₂eq**
+- **Por cada kg utilizado de HFC-32, se generan 677 kg CO₂e**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $5\ kg \times 677\ kg\ CO₂eq/kg$ = $3.385\ kg\ CO₂eq$
+> $CO₂e$ = $5\ kg \times 677\ kg\ CO₂e/kg$ = $3.385\ kg\ CO₂e$
 
 Es decir, la recarga habría generado:
 
-- **3.385 kg CO₂eq en el año**
-- O lo mismo que **3,385 toneladas de CO₂eq**
+- **3.385 kg CO₂e en el año**
+- O lo mismo que **3,385 toneladas de CO₂e**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **kg CO₂eq por kg de gas**, la cantidad debe estar en **kg**.
+Si el factor está en **kg CO₂e por kg de gas**, la cantidad debe estar en **kg**.
 
 ---
 

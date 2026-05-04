@@ -36,7 +36,7 @@ El cálculo de emisiones se basa en la multiplicación de un **factor de emisió
 
 - El cálculo para el agua consumida y desechada es mediante la siguiente fórmula:
 
-> $CO₂eq$ = $Cantidad\ de\ agua \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ agua \times Factor\ de\ emisión$
 
 ---
 
@@ -159,21 +159,21 @@ Si no existen registros de tratamiento o pérdidas, se asume que:
 
 ### Cálculo emisiones consumo de agua
 
-> $CO₂eq$ = $6.000\ m³ \times 0,1913\ kg\ CO₂eq/m³$
+> $CO₂e$ = $6.000\ m³ \times 0,1913\ kg\ CO₂e/m³$
 
-$CO₂eq = 1.147,8\ kg\ CO₂eq$
+$CO₂e = 1.147,8\ kg\ CO₂e$
 
-_(Factor 0,1913 kg CO₂eq/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según la fuente de suministro seleccionada)_
+_(Factor 0,1913 kg CO₂e/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según la fuente de suministro seleccionada)_
 
 ---
 
 ### Cálculo emisiones aguas residuales
 
-> $CO₂eq$ = $6.000\ m³ \times 0,1708\ kg\ CO₂eq/m³$
+> $CO₂e$ = $6.000\ m³ \times 0,1708\ kg\ CO₂e/m³$
 
-$CO₂eq = 1.024,8\ kg\ CO₂eq$
+$CO₂e = 1.024,8\ kg\ CO₂e$
 
-_(Factor 0,1708 kg CO₂eq/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según el tipo de descarga seleccionado)_
+_(Factor 0,1708 kg CO₂e/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según el tipo de descarga seleccionado)_
 
 ---
 

@@ -39,7 +39,7 @@ Si tu empresa **genera cualquier tipo de residuo sólido**, debes declararlo en 
 
 Las emisiones se estiman multiplicando la **cantidad de residuos generados** por un **factor de emisión asociado al material y al tipo de disposición final**.
 
-> $CO₂eq$ = $Cantidad\ de\ residuos \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ residuos \times Factor\ de\ emisión$
 
 💡 Para calcular correctamente solo necesitas conocer:
 
@@ -201,7 +201,7 @@ Supongamos que una empresa genera en el año:
 
 El cálculo sería:
 
-> $CO₂eq$ = $5.200\ kg \times Factor\ de\ emisión$
+> $CO₂e$ = $5.200\ kg \times Factor\ de\ emisión$
 
 La plataforma calculará automáticamente las emisiones utilizando el factor correspondiente.
 

@@ -22,7 +22,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la cantidad consumida**.  
 El valor del factor depende del **tipo de combustible** y las **unidades en que se declara el consumo**.
 
-> $CO₂eq$ = $Cantidad\ consumida \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ consumida \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -128,19 +128,19 @@ Supongamos que durante el año tu empresa consumió:
 
 Y el factor de emisión del diésel es (ejemplo referencial):
 
-- **Por cada litro consumido de diésel, tu empresa emite 2,68 kg CO₂eq**
+- **Por cada litro consumido de diésel, tu empresa emite 2,68 kg CO₂e**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $12.000\ L \times 2,68\ kg\ CO₂eq/L$ = $32.160\ kg\ CO₂eq$
+> $CO₂e$ = $12.000\ L \times 2,68\ kg\ CO₂e/L$ = $32.160\ kg\ CO₂e$
 
 Es decir, tu flota habría generado:
 
-- **32.160 kg CO₂eq en el año**
-- O lo mismo que **32,16 toneladas de CO₂eq**
+- **32.160 kg CO₂e en el año**
+- O lo mismo que **32,16 toneladas de CO₂e**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **kg CO₂eq por litro**, la cantidad debe estar en **litros**.
+Si el factor está en **kg CO₂e por litro**, la cantidad debe estar en **litros**.
 
 ---
 

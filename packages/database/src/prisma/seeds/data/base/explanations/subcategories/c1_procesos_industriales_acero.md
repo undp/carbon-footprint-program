@@ -38,7 +38,7 @@ Si tu empresa **transforma hierro, arrabio o chatarra en acero mediante procesos
 
 Las emisiones se calculan en base a la **cantidad total de acero producido**, multiplicado por un **factor de emisión específico según el método de fabricación**.
 
-> $CO₂eq$ = $Acero\ producido \times Factor\ de\ emisión$
+> $CO₂e$ = $Acero\ producido \times Factor\ de\ emisión$
 
 💡 El método de fabricación es clave, ya que los factores de emisión varían significativamente entre tecnologías.
 
@@ -137,8 +137,8 @@ Debes rellenar los siguientes campos:
 
 3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
 
-⚠️ **Importante:** El campo espera el factor en **kgCO₂/unidad**. Si tu fuente expresa el factor en toneladas de CO₂eq, debes convertirlo multiplicando por 1.000.
-_Ejemplo:_ 1,8 t CO₂eq/tonelada = **1.800 kgCO₂/tonelada**.
+⚠️ **Importante:** El campo espera el factor en **kgCO₂/unidad**. Si tu fuente expresa el factor en toneladas de CO₂e, debes convertirlo multiplicando por 1.000.
+_Ejemplo:_ 1,8 t CO₂e/tonelada = **1.800 kgCO₂/tonelada**.
 
 ---
 
@@ -158,17 +158,17 @@ Supongamos que durante el año tu planta produjo:
 
 Y el factor de emisión es (ejemplo referencial):
 
-- **1.800 kgCO₂eq por tonelada de acero** (equivalente a 1,8 t CO₂eq/tonelada)
+- **1.800 kgCO₂e por tonelada de acero** (equivalente a 1,8 t CO₂e/tonelada)
 
 En la plataforma ingresarías **1800** en el campo **"Factor kgCO₂/unidad"**.
 
 Entonces:
 
-> $CO₂eq$ = $600.000\ t \times 1.800\ kgCO₂eq/t$ = $1.080.000.000\ kgCO₂eq$ = $1.080.000\ t\ CO₂eq$
+> $CO₂e$ = $600.000\ t \times 1.800\ kgCO₂e/t$ = $1.080.000.000\ kgCO₂e$ = $1.080.000\ t\ CO₂e$
 
 Es decir, el proceso productivo habría generado:
 
-- **1.080.000 toneladas de CO₂eq en el año**
+- **1.080.000 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.
 Recuerda que el campo **"Factor kgCO₂/unidad"** espera el valor en **kilogramos**, no en toneladas. Si tu fuente indica el factor en toneladas, multiplica por 1.000 antes de ingresarlo.
