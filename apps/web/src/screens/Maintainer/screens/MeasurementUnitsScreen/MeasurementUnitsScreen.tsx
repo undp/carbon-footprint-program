@@ -21,10 +21,8 @@ import { MaintainerPageHeader } from "../../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../../components/MaintainerDataGrid";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
-import {
-  MeasurementUnitsFormRow,
-  useMeasurementUnitsForm,
-} from "./hooks/useMeasurementUnitsForm";
+import type { MeasurementUnitsFormRow } from "./hooks/useMeasurementUnitsForm";
+import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
 import { Magnitude, MeasurementUnitCreationResultEnum } from "@repo/types";
 
