@@ -41,7 +41,14 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
       type="text"
       value={localValue}
       onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={() => onChange(localValue === "" ? null : Number(localValue))}
+      onBlur={() => {
+        if (localValue === "") {
+          onChange(null);
+          return;
+        }
+        const parsed = Number(localValue);
+        onChange(Number.isNaN(parsed) ? null : parsed);
+      }}
       onKeyDown={(e) => e.stopPropagation()}
       error={!!fieldError}
       label={fieldError?.message ?? ""}
