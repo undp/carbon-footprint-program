@@ -102,12 +102,13 @@ Location: `apps/api/src/plugins/app/userResolvePlugin.ts`
 ### What is NOT explicitly logged
 
 - Successful data access (reads/writes to individual records)
-- Role changes or permission escalations
 - Organization membership changes
 - File uploads and downloads
 - Submission status transitions
 
 These events are traceable via the `createdById`/`updatedById` database fields (see [Database Audit Trail](#database-audit-trail) below), but they do not produce explicit security log entries.
+
+System role changes are exempt: they are persisted in the dedicated `UserRoleAudit` table (see [User role transitions](#user-role-transitions-userroleaudit)), which records every transition with its actor and timestamp.
 
 ---
 
@@ -125,6 +126,21 @@ Most domain models carry implicit audit fields:
 These fields record _who_ made a change and _when_, providing a lightweight audit trail for data modifications. They are set automatically by the application at write time.
 
 **Limitation:** This is a "last writer wins" record — it captures the current creator/modifier but does not retain the full history of changes (previous values, all intermediate states). A complete audit log would require an event sourcing or change data capture (CDC) pattern.
+
+### User role transitions (`UserRoleAudit`)
+
+System role changes (`USER`/`ADMIN`/`SUPERADMIN`) are an exception to the "last writer wins" pattern: every role transition is recorded in the dedicated `UserRoleAudit` table. The insert is performed inside the same transaction that updates `User.role`, so the audit row is guaranteed to match the persisted role.
+
+| Field          | Type      | Description                           |
+| -------------- | --------- | ------------------------------------- |
+| `id`           | BigInt PK | Audit row id                          |
+| `userId`       | BigInt FK | User whose role changed               |
+| `previousRole` | enum      | Role before the change                |
+| `newRole`      | enum      | Role after the change                 |
+| `changedById`  | BigInt FK | `SUPERADMIN` who performed the change |
+| `createdAt`    | DateTime  | When the change happened              |
+
+Foreign keys use `onDelete: Restrict` on both relations, so the database blocks deletion of any referenced user record (target or actor) while audit rows still point to it — preserving the audit trail by preventing the upstream delete rather than orphaning rows. No-op transitions (target role already equals new role) do not insert a row. The full history for a user is queryable via `GET /users/:id/role-history`.
 
 ---
 
@@ -197,7 +213,6 @@ Retention is configured at the Log Analytics Workspace level via Bicep. After th
 | Gap                                            | Risk                                                    | Recommendation                                                                                  |
 | ---------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | No explicit log for data access events         | Difficult to audit who accessed specific records        | Log read operations on sensitive resources (user PII, submission data) at `info` level          |
-| No explicit log for role/permission changes    | Privilege escalation goes undetected                    | Add `info` log on role change and SUPERADMIN promotion                                          |
 | No explicit log for file upload/download       | No audit trail for document access                      | Log file access events with userId, fileId, and action                                          |
 | Application Insights not instrumented          | No distributed tracing or APM                           | Instrument SDK before Production launch                                                         |
 | No security alert rules configured             | Anomalies in auth failures or error rates go unnoticed  | Configure Azure Monitor alerts for sustained 401/403 spikes and 5xx error rate thresholds       |

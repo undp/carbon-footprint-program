@@ -15,5 +15,6 @@ Database schema reference for the Huella Latam platform. Covers domain concepts,
 | [Organization Model](./organization.md)                     | Organization entity deep-dive: fields, statuses, relations                                |
 | [Organization Summary View](./organization-summary-view.md) | `OrganizationSummaryView` — fields, SQL, and queries that use it                          |
 | [Submission Summary View](./submission-summary-view.md)     | `SubmissionSummaryView` — fields, UNION ALL SQL, admin queue queries, and KPI aggregation |
+| [User Role Management](./user-role-management.md)           | `UserRoleAudit` model, role-change API contract, invariants, and admin users screen       |
 
 The ER diagram source is also available in Mermaid format at [`er-diagram.mmd`](./er-diagram.mmd) for editing.

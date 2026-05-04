@@ -137,4 +137,9 @@ export const palette: PaletteOptions = {
   divider: alpha("#000000", 0.12),
   requestTypeColors,
   recognitionTypeColors,
+  roleColors: {
+    USER: "#0288D1",
+    ADMIN: "#2E7D32",
+    SUPERADMIN: "#B8860B",
+  },
 } as const;
