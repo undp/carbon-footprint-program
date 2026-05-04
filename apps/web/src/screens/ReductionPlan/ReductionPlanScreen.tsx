@@ -5,7 +5,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCarbonInventoriesMinimalData, useReductionPlan } from "@/api/query";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { exportReductionPlanToExcel } from "@/utils/exportReductionPlanToExcel";
-import { ExplanationProvider } from "@/contexts/ExplanationContext";
 import { useExplanationDialog } from "@/contexts";
 import { InfoButton } from "@/components";
 import { CategoryCarousel } from "@/screens/CarbonInventory/components/CategoryCarousel";
@@ -210,101 +209,99 @@ export const ReductionPlanScreen: FC = () => {
     )?.name ?? "";
 
   return (
-    <ExplanationProvider>
-      <Box className="flex flex-1 flex-col gap-6">
-        <ReductionPlanHeader
-          organizations={organizations ?? []}
-          inventories={inventoriesForSelectedOrg ?? []}
-          selectedOrganizationId={selectedOrganizationId}
-          selectedCarbonInventory={selectedCarbonInventoryId}
-          onOrganizationChange={onOrganizationChange}
-          onCarbonInventoryChange={onCarbonInventoryChange}
-        />
+    <Box className="flex flex-1 flex-col gap-6">
+      <ReductionPlanHeader
+        organizations={organizations ?? []}
+        inventories={inventoriesForSelectedOrg ?? []}
+        selectedOrganizationId={selectedOrganizationId}
+        selectedCarbonInventory={selectedCarbonInventoryId}
+        onOrganizationChange={onOrganizationChange}
+        onCarbonInventoryChange={onCarbonInventoryChange}
+      />
 
-        <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
-          <Box className="flex items-center justify-between">
-            <Box className="flex items-center gap-1">
-              <Typography variant="h6">
-                Plan de reducción por categoría
-              </Typography>
-              <InfoButton
-                label="Más información"
-                onClick={() =>
-                  openExplanationBySlug(REDUCTION_PLAN_EXPLANATION_SLUGS.MAIN)
-                }
-              />
-            </Box>
-
-            <Button
-              variant="outlined"
-              startIcon={<Download />}
-              disabled={!reductionPlan}
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
+        <Box className="flex items-center justify-between">
+          <Box className="flex items-center gap-1">
+            <Typography variant="h6">
+              Plan de reducción por categoría
+            </Typography>
+            <InfoButton
+              label="Más información"
               onClick={() =>
-                reductionPlan &&
-                exportReductionPlanToExcel(activeInventoryName, reductionPlan)
-              }
-            >
-              Descargar
-            </Button>
-          </Box>
-
-          {isLoadingPlan && (
-            <Box className="flex flex-1 items-center justify-center py-8">
-              <CircularProgress />
-            </Box>
-          )}
-
-          {!isLoadingPlan && isErrorPlan && (
-            <LoadingErrorStateMessage message="Ocurrió un error al cargar el plan de reducción." />
-          )}
-
-          {!isLoadingPlan && !isErrorPlan && reductionPlan && (
-            <>
-              {reductionPlan.categories.length === 0 ? (
-                <EmptyStateMessage message="No hay iniciativas de reducción para esta huella." />
-              ) : (
-                <>
-                  <CategoryCarousel
-                    categories={reductionPlan.categories}
-                    selectedCategoryId={effectiveCategoryId ?? ""}
-                    onCategorySelect={setSelectedCategoryId}
-                  />
-
-                  {effectiveCategory &&
-                  effectiveCategory.subcategories.length > 0 ? (
-                    <Box className="flex flex-col gap-6">
-                      {effectiveCategory.subcategories.map((subcategory) => (
-                        <SubcategoryInitiativeGroup
-                          key={subcategory.id}
-                          name={subcategory.name}
-                          icon={subcategory.icon}
-                          description={subcategory.description}
-                          initiatives={subcategory.initiatives}
-                          categoryColor={effectiveCategory.color}
-                        />
-                      ))}
-                    </Box>
-                  ) : (
-                    <EmptyStateMessage message="No hay iniciativas de reducción disponibles para esta categoría." />
-                  )}
-                </>
-              )}
-            </>
-          )}
-
-          {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
-            <EmptyStateMessage
-              message={
-                inventoriesForSelectedOrg?.length === 0
-                  ? selectedOrganizationId === "none"
-                    ? `No hay huellas sin ${VOCAB.organization.noun.singular}.`
-                    : `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
-                  : "Selecciona una huella para ver el plan de reducción."
+                openExplanationBySlug(REDUCTION_PLAN_EXPLANATION_SLUGS.MAIN)
               }
             />
-          )}
+          </Box>
+
+          <Button
+            variant="outlined"
+            startIcon={<Download />}
+            disabled={!reductionPlan}
+            onClick={() =>
+              reductionPlan &&
+              exportReductionPlanToExcel(activeInventoryName, reductionPlan)
+            }
+          >
+            Descargar
+          </Button>
         </Box>
+
+        {isLoadingPlan && (
+          <Box className="flex flex-1 items-center justify-center py-8">
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!isLoadingPlan && isErrorPlan && (
+          <LoadingErrorStateMessage message="Ocurrió un error al cargar el plan de reducción." />
+        )}
+
+        {!isLoadingPlan && !isErrorPlan && reductionPlan && (
+          <>
+            {reductionPlan.categories.length === 0 ? (
+              <EmptyStateMessage message="No hay iniciativas de reducción para esta huella." />
+            ) : (
+              <>
+                <CategoryCarousel
+                  categories={reductionPlan.categories}
+                  selectedCategoryId={effectiveCategoryId ?? ""}
+                  onCategorySelect={setSelectedCategoryId}
+                />
+
+                {effectiveCategory &&
+                effectiveCategory.subcategories.length > 0 ? (
+                  <Box className="flex flex-col gap-6">
+                    {effectiveCategory.subcategories.map((subcategory) => (
+                      <SubcategoryInitiativeGroup
+                        key={subcategory.id}
+                        name={subcategory.name}
+                        icon={subcategory.icon}
+                        description={subcategory.description}
+                        initiatives={subcategory.initiatives}
+                        categoryColor={effectiveCategory.color}
+                      />
+                    ))}
+                  </Box>
+                ) : (
+                  <EmptyStateMessage message="No hay iniciativas de reducción disponibles para esta categoría." />
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
+          <EmptyStateMessage
+            message={
+              inventoriesForSelectedOrg?.length === 0
+                ? selectedOrganizationId === "none"
+                  ? `No hay huellas sin ${VOCAB.organization.noun.singular}.`
+                  : `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
+                : "Selecciona una huella para ver el plan de reducción."
+            }
+          />
+        )}
       </Box>
-    </ExplanationProvider>
+    </Box>
   );
 };
