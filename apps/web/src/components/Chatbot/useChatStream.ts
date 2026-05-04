@@ -47,18 +47,19 @@ export const useChatStream = () => {
   const [messages, setMessages] = useState<ChatbotMessage[]>([]);
   const consecutiveFailuresRef = useRef(0);
   const lastEventIdRef = useRef<string | undefined>(undefined);
+  // Tracks the index of the in-flight assistant message inside `messages` so
+  // updateLastAssistant can target it directly instead of scanning backward
+  // on every delta. Reset to -1 between turns and after deleteHistory.
+  const inFlightAssistantIndexRef = useRef<number>(-1);
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
+      const idx = inFlightAssistantIndexRef.current;
+      if (idx < 0) return;
       setMessages((prev) => {
-        if (prev.length === 0) return prev;
+        if (idx >= prev.length || prev[idx]?.role !== "assistant") return prev;
         const next = [...prev];
-        for (let i = next.length - 1; i >= 0; i--) {
-          if (next[i].role === "assistant") {
-            next[i] = mutator(next[i]);
-            break;
-          }
-        }
+        next[idx] = mutator(next[idx]);
         return next;
       });
     },
@@ -146,7 +147,14 @@ export const useChatStream = () => {
         role: "assistant",
         content: "",
       };
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setMessages((prev) => {
+        const next = [...prev, userMessage, assistantMessage];
+        // The assistant message is the last element of `next`. Capture its
+        // index in the ref so subsequent delta dispatches can target it
+        // directly without iterating.
+        inFlightAssistantIndexRef.current = next.length - 1;
+        return next;
+      });
       setState("loading");
 
       const attempt = async (
@@ -252,6 +260,9 @@ export const useChatStream = () => {
           setState("degraded");
           break;
       }
+      // Turn finished — clear the in-flight pointer so the next turn starts
+      // clean and stale indices can't leak across turns.
+      inFlightAssistantIndexRef.current = -1;
     },
     [consumeStream, updateLastAssistant]
   );
@@ -267,6 +278,7 @@ export const useChatStream = () => {
         setState("empty");
         lastEventIdRef.current = undefined;
         consecutiveFailuresRef.current = 0;
+        inFlightAssistantIndexRef.current = -1;
       } else {
         setState("error");
       }
