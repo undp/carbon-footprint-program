@@ -136,7 +136,8 @@ export const useOrganizationColumns = ({
             <Stack direction="row" spacing={0.5} alignItems="center">
               <IconButton
                 size="small"
-                aria-label={`Ver ${VOCAB.organization.noun.singular}`}
+                aria-label={`Ver detalles de ${VOCAB.organization.noun.singular}`}
+                title={`Ver detalles de ${VOCAB.organization.noun.singular}`}
                 onClick={() => onView(params.row.id)}
               >
                 <VisibilityOutlined fontSize="small" />
@@ -144,6 +145,7 @@ export const useOrganizationColumns = ({
               <IconButton
                 size="small"
                 aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                title={`Ver historial de ${VOCAB.organization.noun.singular}`}
                 onClick={() => onViewHistory(params.row.id)}
               >
                 <HistoryOutlined fontSize="small" />
@@ -151,7 +153,8 @@ export const useOrganizationColumns = ({
               {isBlocked ? (
                 <IconButton
                   size="small"
-                  aria-label={`Restaurar ${VOCAB.organization.noun.singular}`}
+                  aria-label={`Desbloquear ${VOCAB.organization.noun.singular}`}
+                  title={`Desbloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onUnblock(params.row.id)}
                 >
                   <LockOpenOutlined fontSize="small" />
@@ -160,6 +163,7 @@ export const useOrganizationColumns = ({
                 <IconButton
                   size="small"
                   aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
+                  title={`Bloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onBlock(params.row.id)}
                 >
                   <BlockOutlined fontSize="small" />
