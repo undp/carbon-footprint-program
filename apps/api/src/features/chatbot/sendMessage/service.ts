@@ -83,7 +83,7 @@ export const resolveOrCreateConversation = async (
 };
 
 export const loadConversationHistory = async (
-  prisma: PrismaClient,
+  prisma: Tx | PrismaClient,
   conversationId: bigint,
   limit = 50
 ) => {
