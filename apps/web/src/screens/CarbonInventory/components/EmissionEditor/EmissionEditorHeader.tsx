@@ -133,6 +133,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               label="Emisiones"
               value={manualTotalEmissionValue}
               onChange={onChangeTotalEmission}
+              placeholder=""
               min={0}
               sx={{
                 minHeight: 40,
