@@ -11,13 +11,19 @@ export const SelfProfileUpdateSchema = UserBaseSchema.pick({
   termsAccepted: true,
 })
   .partial()
-  .strict();
+  .strict()
+  .refine((data) => Object.keys(data).length >= 1, {
+    message: "At least one field must be provided",
+  });
 
 export const AdminRoleUpdateSchema = z
   .object({
     role: SystemRoleSchema,
   })
-  .strict();
+  .strict()
+  .refine((data) => Object.keys(data).length >= 1, {
+    message: "At least one field must be provided",
+  });
 
 export const UpdateUserBodySchema = z.union([
   SelfProfileUpdateSchema,
