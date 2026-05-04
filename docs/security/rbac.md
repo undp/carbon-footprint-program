@@ -33,7 +33,7 @@ Defined in `packages/database/src/prisma/schema.prisma` as the `SystemRole` enum
 - Role changes are performed via the admin users screen (`/admin/users`), backed by `PATCH /users/:id` with a discriminated body. Only `SUPERADMIN`s can change roles, and they cannot change their own (INV-1). The system enforces "at least one `SUPERADMIN` must exist" (INV-2) at the database isolation level.
 - Every successful role change is recorded in the `UserRoleAudit` table and is queryable via `GET /users/:id/role-history` (visible to `ADMIN` and `SUPERADMIN`).
 
-**Role transition matrix** (enforced by `apps/api/src/features/users/updateUser/service.ts`):
+**Role transition matrix** (enforced by `apps/api/src/features/users/updateUserRole/service.ts`):
 
 | Current role | Allowed next roles    |
 | ------------ | --------------------- |
