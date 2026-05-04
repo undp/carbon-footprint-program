@@ -75,9 +75,9 @@ The screen SHALL hide the edit and delete actions on the row whose `abbreviation
 - **WHEN** the grid renders any row with `isBase = true`
 - **THEN** the row SHALL not display edit or delete actions; an info indicator SHALL communicate that the unit is the base for its magnitude
 
-### Requirement: Magnitude column displays Spanish labels via vocab
+### Requirement: Magnitude column displays Spanish labels
 
-The `magnitude` column SHALL render values via the `MAGNITUDE_LABELS: Record<Magnitude, string>` constant defined in `apps/web/src/config/vocab.ts`. `MAGNITUDE_LABELS` SHALL include a Spanish label for every member of the `Magnitude` enum as defined in `packages/database/src/prisma/schema.prisma` (and re-exported from `@repo/types`); the keys of `MAGNITUDE_LABELS` SHALL exactly match the enum members so that TypeScript's `Record<Magnitude, string>` type prevents omissions at compile time. The mapping SHALL be:
+The `magnitude` column SHALL render values via the `MAGNITUDE_LABELS: Record<Magnitude, string>` constant defined in `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/constants.ts`. `MAGNITUDE_LABELS` SHALL include a Spanish label for every member of the `Magnitude` enum as defined in `packages/database/src/prisma/schema.prisma` (and re-exported from `@repo/types`); the keys of `MAGNITUDE_LABELS` SHALL exactly match the enum members so that TypeScript's `Record<Magnitude, string>` type prevents omissions at compile time. The mapping SHALL be:
 
 - `MASS` → "Masa"
 - `VOLUME` → "Volumen"
