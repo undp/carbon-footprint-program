@@ -38,8 +38,8 @@ export const getAllUsersService = async (
     ),
   ]);
 
-  const thresholdDays = parseInt(thresholdValue ?? "", 10);
-  if (!Number.isFinite(thresholdDays) || thresholdDays <= 0) {
+  const thresholdDays = Number(thresholdValue);
+  if (!Number.isInteger(thresholdDays) || thresholdDays <= 0) {
     throw new ApplicationConfigError(
       `${SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS} is not set or is invalid`
     );
