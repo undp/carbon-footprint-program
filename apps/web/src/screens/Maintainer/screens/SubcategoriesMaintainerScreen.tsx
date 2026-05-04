@@ -229,7 +229,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       explanation: null,
       measurementUnitIds: [],
     };
-    fieldArray.append(newRow);
+    fieldArray.prepend(newRow);
     setEditingRowId(tempId);
   }, [fieldArray, setEditingRowId]);
 
@@ -335,11 +335,11 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     ]
   );
 
-  // --- Scroll to bottom when a new row is added ---
+  // --- Scroll to top when a new row is added (the new row is prepended). ---
   useEffect(() => {
     if (!editingRowId?.startsWith("temp_")) return;
     requestAnimationFrame(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [editingRowId]);
 

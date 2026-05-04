@@ -233,20 +233,16 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       description: "",
       subcategoryId: "",
     };
-    const currentCount = form.getValues("reductionPlanInitiatives").length;
-    const newRowIndex = currentCount;
-    const lastPage = Math.max(
-      0,
-      Math.ceil((currentCount + 1) / paginationModel.pageSize) - 1
+    fieldArray.prepend(newRow);
+    setPaginationModel((prev) =>
+      prev.page === 0 ? prev : { ...prev, page: 0 }
     );
-    fieldArray.append(newRow);
-    setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
     setNewRowId(tempId);
     requestAnimationFrame(() => {
-      apiRef.current?.scrollToIndexes({ rowIndex: newRowIndex });
+      apiRef.current?.scrollToIndexes({ rowIndex: 0 });
     });
-  }, [fieldArray, form, paginationModel.pageSize, apiRef]);
+  }, [fieldArray, apiRef]);
 
   const handleDelete = useCallback(
     async (row: ReductionPlanInitiativeFormRow) => {

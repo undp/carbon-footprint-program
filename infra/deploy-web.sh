@@ -204,7 +204,7 @@ log "${YELLOW}[1c/5] Validating required VITE_ environment variables for Azure a
 log "Using values from infra/.envrc:"
 
 if [ -z "$AZURE_FRONT_CLIENT_ID" ] || [ -z "$AZURE_API_CLIENT_ID" ] || [ -z "$AZURE_AUTH_AUTHORITY" ] || [ -z "$AZURE_TENANT_ID" ]; then
-  log "${RED}Error: Missing required VITE_ environment variables for Azure authentication.${NC}"
+  log "${RED}Error: Missing required AZURE_ environment variables for Azure authentication.${NC}"
   log "Please ensure the following are set in infra/.envrc:"
   log "  - AZURE_FRONT_CLIENT_ID=${AZURE_FRONT_CLIENT_ID:0:8}"
   log "  - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:0:8}"

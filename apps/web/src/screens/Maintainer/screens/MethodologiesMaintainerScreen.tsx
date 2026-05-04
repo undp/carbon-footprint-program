@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -301,9 +301,18 @@ export const MethodologiesMaintainerScreen: FC = () => {
       version: "",
       status: MethodologyVersionStatus.UNPUBLISHED,
     };
-    fieldArray.append(newRow);
+    fieldArray.prepend(newRow);
     setEditingRowId(tempId);
   }, [fieldArray]);
+
+  // Scroll to top when a new row is added — the new row is prepended to the top
+  // of the grid so it remains visible regardless of viewport scroll position.
+  useEffect(() => {
+    if (!editingRowId?.startsWith("temp_")) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }, [editingRowId]);
 
   const handleDelete = useCallback(
     async (row: MethodologyVersionForm) => {

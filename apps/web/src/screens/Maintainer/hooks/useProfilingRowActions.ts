@@ -324,7 +324,11 @@ export const useProfilingRowActions = <
 
   const handleAddRow = useCallback(() => {
     const newRow = newRowDefaults();
-    fieldArray.append(
+    // Prepend so the new row is at index 0 of the form array. Combined with
+    // the editing-row sort/filter wrappers in MaintainerDataGrid and the
+    // jumpToFirstPage call site, this guarantees the new row is always
+    // visible at the top of the grid regardless of any active sort or filter.
+    fieldArray.prepend(
       newRow as unknown as FieldArray<TFormValues, FieldArrayPath<TFormValues>>
     );
     setEditingRowId(newRow.id);
