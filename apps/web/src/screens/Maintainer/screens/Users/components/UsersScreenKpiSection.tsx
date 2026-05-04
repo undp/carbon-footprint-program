@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Stack, Tooltip, useTheme } from "@mui/material";
+import { Stack, useTheme } from "@mui/material";
 import {
   PeopleOutlined,
   AdminPanelSettingsOutlined,
@@ -69,28 +69,17 @@ export const UsersScreenKpiSection: FC<UsersScreenKpiSectionProps> = ({
           isLoading={isLoading}
           hasError={isError}
         />
-        <Tooltip
-          title={
-            thresholdDays !== null
-              ? `Usuarios activos: accedieron en los últimos ${thresholdDays} días`
-              : ""
-          }
-          arrow
-        >
-          <span>
-            <KpiSummaryCard
-              title={KPI_LABELS.actividad}
-              color={theme.palette.success.main}
-              Icon={TrendingUpOutlined}
-              primaryValue={counts.active}
-              primaryLabel="Activos"
-              secondaryValue={counts.inactive}
-              secondaryLabel="Inactivos"
-              isLoading={isLoading}
-              hasError={isError}
-            />
-          </span>
-        </Tooltip>
+        <KpiSummaryCard
+          title={KPI_LABELS.actividad}
+          color={theme.palette.success.main}
+          Icon={TrendingUpOutlined}
+          primaryValue={counts.active}
+          primaryLabel={`Activos (últimos ${thresholdDays} días)`}
+          secondaryValue={counts.inactive}
+          secondaryLabel="Inactivos"
+          isLoading={isLoading}
+          hasError={isError}
+        />
       </Stack>
     );
   }
