@@ -14,11 +14,11 @@ export const EmissionEditorQuantityCell: FC<
 > = ({ subcategoryId, lineId, onChange, disabled = false }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.quantity`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   return (
     <NumericInput
-      value={value}
+      value={value ?? null}
       onChange={onChange}
       disabled={disabled}
       min={0}

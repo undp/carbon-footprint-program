@@ -14,11 +14,11 @@ export const EmissionEditorEmissionsCell: FC<
 > = ({ subcategoryId, lineId }) => {
   const quantity = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.quantity`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   const factorValue = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   const totalEmissions = kgToTon((quantity || 0) * (factorValue || 0));
 

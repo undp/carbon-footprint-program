@@ -29,7 +29,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   const factorSource = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
@@ -49,7 +49,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 
   const inputElement = isEditableBySource ? (
     <NumericInput
-      value={value}
+      value={value ?? null}
       suffix={unit?.abbreviation ?? ""}
       onChange={onChange}
       disabled={disabled || !validation.canEditFactorValue}
