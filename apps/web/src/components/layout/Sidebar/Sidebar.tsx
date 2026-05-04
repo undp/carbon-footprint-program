@@ -15,7 +15,7 @@ import { Group } from "./Group";
 import type { SidebarGroupItem } from "./Group";
 import { SIDEBAR_WIDTH } from "@/config/constants";
 import { UserMenu } from "./UserMenu";
-import { APP_VERSION } from "../../../config/environment";
+import { APP_VERSION } from "@/config/environment";
 
 export interface SidebarDef extends SidebarGroupItem {
   children?: SidebarGroupItem[];
