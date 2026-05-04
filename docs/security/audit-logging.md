@@ -140,7 +140,7 @@ System role changes (`USER`/`ADMIN`/`SUPERADMIN`) are an exception to the "last 
 | `changedById`  | BigInt FK | `SUPERADMIN` who performed the change |
 | `createdAt`    | DateTime  | When the change happened              |
 
-Foreign keys use `onDelete: Restrict` on both relations so audit rows survive even if downstream user records are removed. No-op transitions (target role already equals new role) do not insert a row. The full history for a user is queryable via `GET /users/:id/role-history`.
+Foreign keys use `onDelete: Restrict` on both relations, so the database blocks deletion of any referenced user record (target or actor) while audit rows still point to it — preserving the audit trail by preventing the upstream delete rather than orphaning rows. No-op transitions (target role already equals new role) do not insert a row. The full history for a user is queryable via `GET /users/:id/role-history`.
 
 ---
 
