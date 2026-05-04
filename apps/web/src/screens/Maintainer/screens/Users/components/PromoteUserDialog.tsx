@@ -86,6 +86,7 @@ export const PromoteUserDialog: FC<PromoteUserDialogProps> = ({
                 size="small"
               />
             )}
+            noOptionsText="Sin opciones"
           />
           <TextField
             select
