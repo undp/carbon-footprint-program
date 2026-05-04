@@ -256,11 +256,22 @@ export const LLM_PROVIDER: LlmProviderType = (() => {
 })();
 
 /**
+ * Trim env input and treat empty / whitespace-only strings as unset. Used by
+ * the chatbot config block so a value like `"   "` cannot bypass the
+ * required-field guards below.
+ */
+const trimEnv = (value: string | undefined): string | undefined => {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+};
+
+/**
  * Secret used by @fastify/cookie to sign the `chatbot_session_id` cookie.
  * Required in production. Local fallback is a documented dev literal.
  */
 export const COOKIE_SECRET: string = (() => {
-  const raw = process.env.COOKIE_SECRET;
+  const raw = trimEnv(process.env.COOKIE_SECRET);
   if (raw) return raw;
   if (IS_PROD) {
     throw new Error(
@@ -272,11 +283,12 @@ export const COOKIE_SECRET: string = (() => {
 })();
 
 /** Azure OpenAI endpoint URL — required when LLM_PROVIDER=azure-openai. */
-export const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
+export const AZURE_OPENAI_ENDPOINT = trimEnv(process.env.AZURE_OPENAI_ENDPOINT);
 
 /** Azure OpenAI deployment name — required when LLM_PROVIDER=azure-openai. */
-export const AZURE_OPENAI_DEPLOYMENT_NAME =
-  process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+export const AZURE_OPENAI_DEPLOYMENT_NAME = trimEnv(
+  process.env.AZURE_OPENAI_DEPLOYMENT_NAME
+);
 
 // Boot-time validation: if the operator selected the Azure provider, both
 // endpoint and deployment name MUST be set. Failing fast at boot surfaces
