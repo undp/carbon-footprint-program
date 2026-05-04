@@ -63,5 +63,20 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
+    server: {
+      // The chatbot widget posts to /api/chatbot/... with a relative URL so
+      // the SameSite=Lax cookie rides along. The Vite dev proxy forwards
+      // /api/* to the API at VITE_API_BASE_URL, keeping it same-origin from
+      // the browser's perspective. The shared `apiClient` (ky) uses the
+      // absolute prefixUrl with bearer auth and is unaffected.
+      proxy: env.VITE_API_BASE_URL
+        ? {
+            "/api": {
+              target: env.VITE_API_BASE_URL,
+              changeOrigin: true,
+            },
+          }
+        : undefined,
+    },
   };
 });
