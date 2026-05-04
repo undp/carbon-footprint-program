@@ -338,38 +338,25 @@ model User {
   reductionPlanInitiativesCreated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_created_by")
   reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
   chatbotConversations                 ChatbotChatConversation[]      @relation("chatbot_conversation_user")
+  roleAuditAsTarget                    UserRoleAudit[]                @relation("user_role_audit_target")
+  roleAuditAsActor                     UserRoleAudit[]                @relation("user_role_audit_actor")
 
   @@map("user")
 }
 
-model MeasurementUnit {
-  id                          BigInt                       @id @default(autoincrement())
-  name                        String
-  magnitude                   Magnitude
-  abbreviation                String                       @unique
-  baseFactor                  Float                        @map("base_factor")
-  isBase                      Boolean                      @map("is_base")
-  rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
-  rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
-  lineInputs                  CarbonInventoryLineInput[]
-  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
+model UserRoleAudit {
+  id           BigInt     @id @default(autoincrement())
+  userId       BigInt     @map("user_id")
+  previousRole SystemRole @map("previous_role")
+  newRole      SystemRole @map("new_role")
+  changedById  BigInt     @map("changed_by_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
 
-  @@map("measurement_unit")
-}
+  user      User @relation("user_role_audit_target", fields: [userId], references: [id], onDelete: Restrict)
+  changedBy User @relation("user_role_audit_actor", fields: [changedById], references: [id], onDelete: Restrict)
 
-model RateMeasurementUnit {
-  id                           BigInt                      @id @default(autoincrement())
-  name                         String
-  abbreviation                 String                      @unique
-  numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
-  denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
-  denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
-  numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
-  emissionFactors              EmissionFactor[]
-  lineInputsAsManualFactor     CarbonInventoryLineInput[]  @relation("manual_factor_rate_unit")
-  lineFactorsAsApplied         CarbonInventoryLineFactor[] @relation("applied_factor_rate_unit")
-
-  @@map("rate_measurement_unit")
+  @@index([userId, createdAt])
+  @@map("user_role_audit")
 }
 
 enum Magnitude {
@@ -385,6 +372,45 @@ enum Magnitude {
   ROOMS
 
   @@map("Magnitude")
+}
+
+enum MeasurementUnitStatus {
+  ACTIVE
+  DELETED
+
+  @@map("measurement_unit_status")
+}
+
+model MeasurementUnit {
+  id                          BigInt                       @id @default(autoincrement())
+  name                        String
+  magnitude                   Magnitude
+  abbreviation                String                       @unique
+  baseFactor                  Float                        @map("base_factor")
+  isBase                      Boolean                      @map("is_base")
+  status                      MeasurementUnitStatus        @default(ACTIVE)
+  rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
+  rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
+  lineInputs                  CarbonInventoryLineInput[]
+  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
+
+  @@map("measurement_unit")
+}
+
+model RateMeasurementUnit {
+  id                           BigInt                      @id @default(autoincrement())
+  name                         String
+  abbreviation                 String                      @unique
+  numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
+  denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
+  status                       MeasurementUnitStatus       @default(ACTIVE)
+  denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
+  numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
+  emissionFactors              EmissionFactor[]
+  lineInputsAsManualFactor     CarbonInventoryLineInput[]  @relation("manual_factor_rate_unit")
+  lineFactorsAsApplied         CarbonInventoryLineFactor[] @relation("applied_factor_rate_unit")
+
+  @@map("rate_measurement_unit")
 }
 
 enum MethodologyVersionStatus {

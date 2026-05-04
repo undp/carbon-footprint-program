@@ -4,7 +4,7 @@ import { Add } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
 import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
-import { ROLE_LABELS } from "../constants";
+import { ORGANIZATION_ROLE_LABELS } from "@/labels";
 import { OrganizationRole } from "@repo/types";
 
 type User = {
@@ -56,7 +56,8 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
         minWidth: 150,
         flex: 0.5,
         cellClassName: "content-center",
-        valueFormatter: (value: OrganizationRole) => ROLE_LABELS[value],
+        valueFormatter: (value: OrganizationRole) =>
+          ORGANIZATION_ROLE_LABELS[value],
       },
       ...(canManageUsers
         ? [

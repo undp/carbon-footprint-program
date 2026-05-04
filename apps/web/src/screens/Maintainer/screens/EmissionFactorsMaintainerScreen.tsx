@@ -329,14 +329,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    const currentCount = form.getValues("emissionFactors").length;
-    const totalAfterAppend = currentCount + 1;
-    const lastPage = Math.max(
-      0,
-      Math.ceil(totalAfterAppend / paginationModel.pageSize) - 1
-    );
-
-    fieldArray.append({
+    fieldArray.prepend({
       id: tempId,
       subcategoryId: "",
       dimensionValue1Name: null,
@@ -346,9 +339,11 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       value: 0,
       gasDetails: EMPTY_GAS_DETAILS,
     });
-    setPaginationModel((prev) => ({ ...prev, page: lastPage }));
+    setPaginationModel((prev) =>
+      prev.page === 0 ? prev : { ...prev, page: 0 }
+    );
     setEditingRowId(tempId);
-  }, [fieldArray, form, paginationModel.pageSize, setEditingRowId]);
+  }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: EmissionFactorForm) => {

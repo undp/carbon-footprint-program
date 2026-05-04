@@ -1,0 +1,183 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  inject,
+} from "vitest";
+import { createTestApp } from "@test/factories/appFactory.js";
+import type { CreateMeasurementUnitResponse } from "@repo/types";
+import type { FastifyInstance } from "fastify";
+import type { PrismaClient } from "@repo/database";
+import { MeasurementUnitStatus } from "@repo/database";
+
+describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    app = await createTestApp(inject("databaseUrl"));
+    prisma = app.prisma;
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  afterEach(async () => {
+    // Re-activate any soft-deleted test units so other tests don't fail
+    await prisma.rateMeasurementUnit.updateMany({
+      where: { abbreviation: { startsWith: "kg/test-" } },
+      data: { status: MeasurementUnitStatus.ACTIVE },
+    });
+    await prisma.measurementUnit.updateMany({
+      where: { abbreviation: { startsWith: "test-" } },
+      data: { status: MeasurementUnitStatus.ACTIVE },
+    });
+    await prisma.rateMeasurementUnit.deleteMany({
+      where: { abbreviation: { startsWith: "kg/test-" } },
+    });
+    await prisma.measurementUnit.deleteMany({
+      where: { abbreviation: { startsWith: "test-" } },
+    });
+  });
+
+  async function createUnit(): Promise<CreateMeasurementUnitResponse> {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const payload = {
+      name: `Test Unit ${suffix}`,
+      abbreviation: `test-${suffix}`,
+      magnitude: "MASS",
+      baseFactor: 500,
+      isBase: false,
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/measurement-units",
+      payload,
+    });
+    expect(response.statusCode).toBe(201);
+    return JSON.parse(response.body) as CreateMeasurementUnitResponse;
+  }
+
+  describe("Happy path", () => {
+    it("should soft-delete a unit and return 200", async () => {
+      const created = await createUnit();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should soft-delete the canonical RMU as well", async () => {
+      const created = await createUnit();
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      const mu = await prisma.measurementUnit.findUnique({
+        where: { id: BigInt(created.id) },
+      });
+      expect(mu!.status).toBe(MeasurementUnitStatus.DELETED);
+
+      const canonicalRmu = await prisma.rateMeasurementUnit.findFirst({
+        where: {
+          abbreviation: `kg/${created.abbreviation}`,
+          denominatorMeasurementUnitId: BigInt(created.id),
+        },
+      });
+      expect(canonicalRmu).not.toBeNull();
+      expect(canonicalRmu!.status).toBe(MeasurementUnitStatus.DELETED);
+    });
+
+    it("should no longer appear in GET /api/measurement-units after deletion", async () => {
+      const created = await createUnit();
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      const listResponse = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units",
+      });
+
+      expect(listResponse.statusCode).toBe(200);
+      const units = JSON.parse(listResponse.body) as Array<{ id: string }>;
+      const found = units.find((u) => u.id === created.id);
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe("Protected rows", () => {
+    it("should return 422 for the kg unit", async () => {
+      const kgUnit = await prisma.measurementUnit.findUnique({
+        where: { abbreviation: "kg" },
+      });
+      expect(kgUnit).not.toBeNull();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${kgUnit!.id}`,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("KG_MEASUREMENT_UNIT_IMMUTABLE");
+    });
+
+    it("should return 422 for a base unit", async () => {
+      const baseUnit = await prisma.measurementUnit.findFirst({
+        where: { isBase: true, abbreviation: { not: "kg" } },
+      });
+      expect(baseUnit).not.toBeNull();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${baseUnit!.id}`,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("BASE_UNIT_IMMUTABLE");
+    });
+  });
+
+  describe("Not found", () => {
+    it("should return 404 for an unknown id", async () => {
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/api/measurement-units/999999999",
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it("should return 404 when trying to delete an already soft-deleted unit", async () => {
+      const created = await createUnit();
+
+      // First delete
+      await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      // Second delete should 404 (idempotent-not-found)
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});

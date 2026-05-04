@@ -20,6 +20,7 @@ import {
   InfoOutlined,
   AutoAwesomeMotionOutlined,
   StraightenOutlined,
+  PeopleOutlined,
 } from "@mui/icons-material";
 import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
 import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
@@ -69,12 +70,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         icon: <Co2Outlined fontSize="small" />,
         path: Routes.ADMIN_EMISSION_FACTORS,
       },
-      {
-        text: "Unidades",
-        icon: <SquareFootOutlined fontSize="small" />,
-        path: Routes.ADMIN_UNITS,
-      },
     ],
+  },
+  {
+    text: "Unidades",
+    icon: <SquareFootOutlined fontSize="small" />,
+    path: Routes.ADMIN_UNITS,
   },
   {
     text: "Perfilamiento",
@@ -123,6 +124,11 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     text: "Solicitudes",
     icon: <TaskOutlined />,
     path: Routes.ADMIN_REQUESTS,
+  },
+  {
+    text: "Usuarios",
+    icon: <PeopleOutlined />,
+    path: Routes.ADMIN_USERS,
   },
   {
     text: "Sellos",

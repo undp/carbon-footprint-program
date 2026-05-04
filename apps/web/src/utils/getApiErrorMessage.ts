@@ -125,6 +125,33 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   ORGANIZATION_SIZES_DIFFERENT_COUNTRY:
     "No se pueden reordenar tamaños de organizaciones de diferentes países.",
   INACTIVE_ORGANIZATION_SIZE: "Solo se pueden reordenar tamaños activos.",
+
+  // Measurement units
+  KG_MEASUREMENT_UNIT_NOT_FOUND:
+    'La unidad "kg" no fue encontrada en la base de datos.',
+  KG_MEASUREMENT_UNIT_IMMUTABLE:
+    'La unidad "kg" es de sistema y no puede modificarse ni eliminarse.',
+  BASE_UNIT_IMMUTABLE:
+    "Las unidades base de magnitud no pueden modificarse ni eliminarse.",
+  BASE_UNIT_TOGGLE_NOT_ALLOWED:
+    "No se puede cambiar el campo 'unidad base' en una unidad existente.",
+  MAGNITUDE_ALREADY_HAS_BASE_UNIT:
+    "Ya existe una unidad base para esta magnitud.",
+  MEASUREMENT_UNIT_ABBREVIATION_ALREADY_EXISTS:
+    "Ya existe una unidad de medida con esta abreviatura.",
+  MEASUREMENT_UNIT_FIELDS_LOCKED:
+    "Los campos magnitud, abreviatura, factor base e indicador de base no pueden modificarse porque la unidad es base o ya tiene datos asociados.",
+  MEASUREMENT_UNIT_NOT_FOUND: "Unidad de medida no encontrada.",
+  BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE:
+    "Una unidad base debe tener un factor base igual a 1.",
+  BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT:
+    "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
+
+  // User role management
+  SELF_ROLE_CHANGE: "No puedes cambiar tu propio rol.",
+  LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",
+  INSUFFICIENT_PERMISSIONS: "No tienes permisos para realizar esta acción.",
+  INVALID_ROLE_TRANSITION: "La transición de rol solicitada no es válida.",
 };
 
 /**

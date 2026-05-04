@@ -25,6 +25,7 @@ import { Route as AppRecognitionsRouteImport } from './routes/app/recognitions'
 import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubsectorsRouteImport } from './routes/admin/subsectors'
 import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
@@ -134,6 +135,11 @@ const AppCarbonInventoriesRoute = AppCarbonInventoriesRouteImport.update({
   id: '/carbon-inventories',
   path: '/carbon-inventories',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminUnitsRoute = AdminUnitsRouteImport.update({
   id: '/units',
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -361,6 +368,7 @@ export interface FileRoutesByTo {
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
     | '/admin/subcategory-recommendations'
     | '/admin/subsectors'
     | '/admin/units'
+    | '/admin/users'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/admin/subcategory-recommendations'
     | '/admin/subsectors'
     | '/admin/units'
+    | '/admin/users'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/admin/subcategory-recommendations'
     | '/admin/subsectors'
     | '/admin/units'
+    | '/admin/users'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -692,6 +704,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/carbon-inventories'
       preLoaderRoute: typeof AppCarbonInventoriesRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/units': {
       id: '/admin/units'
@@ -918,6 +937,7 @@ interface AdminRouteChildren {
   AdminSubcategoryRecommendationsRoute: typeof AdminSubcategoryRecommendationsRoute
   AdminSubsectorsRoute: typeof AdminSubsectorsRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -940,6 +960,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSubcategoryRecommendationsRoute: AdminSubcategoryRecommendationsRoute,
   AdminSubsectorsRoute: AdminSubsectorsRoute,
   AdminUnitsRoute: AdminUnitsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

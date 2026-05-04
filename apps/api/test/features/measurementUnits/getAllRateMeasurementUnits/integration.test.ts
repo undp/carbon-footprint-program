@@ -97,10 +97,8 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         "kg por pieza arrendada",
       ];
 
-      expectedNames.forEach((expectedName) => {
-        const found = body.find((ru) => ru.name === expectedName);
-        expect(found).toBeDefined();
-      });
+      const actualNames = body.map((ru) => ru.name);
+      expect(actualNames).toEqual(expect.arrayContaining(expectedNames));
     });
   });
 

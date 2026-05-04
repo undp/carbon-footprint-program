@@ -9,6 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
+  buildExpectedOrganizationData,
   cleanupCarbonInventoryTestData,
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
@@ -231,7 +232,11 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
-      expect(body.organizationData).toEqual(organizationData);
+      const expectedOrganizationData = await buildExpectedOrganizationData(
+        prisma,
+        organizationData
+      );
+      expect(body.organizationData).toEqual(expectedOrganizationData);
     });
 
     it("should update preselectedNodesId", async () => {
@@ -349,11 +354,15 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
+      const expectedOrganizationData = await buildExpectedOrganizationData(
+        prisma,
+        organizationData
+      );
       expect(body.year).toBe(2024);
       expect(body.name).toBe("Full Inventory");
       expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("789");
-      expect(body.organizationData).toEqual(organizationData);
+      expect(body.organizationData).toEqual(expectedOrganizationData);
       expect(body.usageMode).toBe("EXPERT");
       expect(body.isEditable).toBe(false);
       expect(body.preselectedNodesId).toBe("999");

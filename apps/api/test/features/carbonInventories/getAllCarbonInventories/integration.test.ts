@@ -10,6 +10,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
+  buildExpectedOrganizationData,
   carbonInventoryPatterns,
   createInventoryFromPattern,
   createCarbonInventories,
@@ -187,17 +188,22 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(body.length).toBe(1);
 
       const inventory = body[0];
+      const expectedOrganizationData = await buildExpectedOrganizationData(
+        prisma,
+        {
+          name: "Test Org",
+          sectorId: "1",
+          subsectorId: "2",
+          sizeId: "3",
+          mainActivityId: "4",
+          mainActivityQuantity: 100,
+        },
+        { resolveReferences: false }
+      );
       expect(inventory.id).toBe(testInventory.id.toString());
       expect(inventory.organizationId).toBe(organizationId.toString());
       expect(inventory.organizationBranchId).toBe("456");
-      expect(inventory.organizationData).toEqual({
-        name: "Test Org",
-        sectorId: "1",
-        subsectorId: "2",
-        sizeId: "3",
-        mainActivityId: "4",
-        mainActivityQuantity: 100,
-      });
+      expect(inventory.organizationData).toEqual(expectedOrganizationData);
       expect(inventory.year).toBe(2024);
       expect(inventory.status).toBe("DRAFT");
       expect(inventory.usageMode).toBe("EXPERT");
