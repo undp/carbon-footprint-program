@@ -48,12 +48,17 @@ describe("DELETE /api/chatbot/conversations/me — integration", () => {
     }
   });
 
-  it("idempotent — returns 204 with no rows", async () => {
-    const response = await app.inject({
+  it("idempotent — two consecutive DELETEs both return 204", async () => {
+    const first = await app.inject({
       method: "DELETE",
       url: "/api/chatbot/conversations/me",
     });
-    expect(response.statusCode).toBe(204);
+    expect(first.statusCode).toBe(204);
+    const second = await app.inject({
+      method: "DELETE",
+      url: "/api/chatbot/conversations/me",
+    });
+    expect(second.statusCode).toBe(204);
     expect(await prisma.chatbotChatConversation.count()).toBe(0);
   });
 

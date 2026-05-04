@@ -115,7 +115,13 @@ describe("POST /api/chatbot/message — integration", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("503 error message uses CHATBOT_GENERIC_ERROR_MESSAGE constant", () => {
+  it("CHATBOT_GENERIC_ERROR_MESSAGE has the expected Spanish text", () => {
+    // Pinned constant value test — the streaming handler imports this
+    // constant by name and tests assert against it instead of duplicating
+    // the literal string. End-to-end coverage of the 503 / mid-stream error
+    // wire (which actually round-trips this message) requires triggering
+    // the configured LLMProvider to fail; that scenario is covered by V1
+    // when a non-deterministic provider is wired in.
     expect(CHATBOT_GENERIC_ERROR_MESSAGE).toBe(
       "El asistente no está disponible en este momento. Por favor intenta nuevamente."
     );

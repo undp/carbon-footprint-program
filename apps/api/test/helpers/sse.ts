@@ -128,6 +128,14 @@ export const collectSseEvents = async (
         separatorIndex = buffer.indexOf("\n\n");
       }
     }
+    // Flush any trailing bytes the server emitted without a closing blank
+    // line (defensive — well-behaved SSE always terminates events with one,
+    // but a flaky server / proxy could close the stream mid-frame).
+    buffer += decoder.decode();
+    if (buffer.trim().length > 0) {
+      const event = parseEventBlock(buffer);
+      if (event) events.push(event);
+    }
   } finally {
     reader.releaseLock();
     clearTimeout(timer);
