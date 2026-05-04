@@ -3,15 +3,7 @@ import {
   MethodologyVersionStatus,
   Prisma,
 } from "@repo/database";
-import {
-  type DuplicateMethodologyResponse,
-  type User,
-  CategoryStatus,
-  EmissionFactorDimensionStatus,
-  EmissionFactorDimensionValueStatus,
-  SubcategoryStatus,
-  EmissionFactorStatus,
-} from "@repo/types";
+import { type DuplicateMethodologyResponse, type User } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNotFoundError,
@@ -20,6 +12,15 @@ import {
 import { generateUniqueCopyName } from "@/helpers/generateUniqueCopyName.js";
 import map from "lodash-es/map.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import {
+  cloneCategories,
+  cloneEmissionFactorDimensions,
+  cloneEmissionFactorDimensionValues,
+  cloneEmissionFactors,
+  cloneReductionPlanInitiatives,
+  cloneSubcategories,
+  cloneSubcategoryRecommendations,
+} from "./helpers.js";
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,
@@ -29,9 +30,8 @@ export const duplicateMethodologyService = async (
   try {
     const userId = user ? BigInt(user.id) : null;
 
-    // Use transaction to duplicate methodology AND its active categories
     const duplicated = await prismaClient.$transaction(async (tx) => {
-      // Find the original methodology
+      // 1. Methodology version — clone the parent record under a unique name.
       const original = await tx.methodologyVersion.findUnique({
         where: { id: BigInt(id) },
       });
@@ -40,7 +40,7 @@ export const duplicateMethodologyService = async (
         throw new MethodologyNotFoundError();
       }
 
-      // Generate unique copy name inside the transaction to minimize race window
+      // Generate the copy name inside the transaction to minimize the race window.
       const existingNames = await tx.methodologyVersion.findMany({
         where: {
           countryId: original.countryId,
@@ -54,7 +54,6 @@ export const duplicateMethodologyService = async (
         map(existingNames, "name")
       );
 
-      // Create a new methodology based on the original
       const newMethodology = await tx.methodologyVersion.create({
         data: {
           countryId: original.countryId,
@@ -68,220 +67,58 @@ export const duplicateMethodologyService = async (
         },
       });
 
-      // Duplicate all active categories from the original methodology
-      const activeCategories = await tx.category.findMany({
-        where: {
-          methodologyVersionId: original.id,
-          status: CategoryStatus.ACTIVE,
-        },
-      });
+      // 2. Categories
+      const categoryIdMap = await cloneCategories(
+        tx,
+        original.id,
+        newMethodology.id,
+        userId
+      );
 
-      // Create categories individually to capture old → new ID mapping
-      const categoryIdMap = new Map<bigint, bigint>();
-      for (const cat of activeCategories) {
-        const newCat = await tx.category.create({
-          data: {
-            methodologyVersionId: newMethodology.id,
-            name: cat.name,
-            icon: cat.icon,
-            color: cat.color,
-            synonyms: cat.synonyms,
-            description: cat.description,
-            explanation: cat.explanation,
-            position: cat.position,
-            status: cat.status,
-            createdById: userId,
-            updatedAt: null,
-          },
-        });
-        categoryIdMap.set(cat.id, newCat.id);
+      // 3. Subcategories (+ measurement unit links)
+      const subcategoryIdMap = await cloneSubcategories(
+        tx,
+        categoryIdMap,
+        userId
+      );
+
+      // Nothing below depends on data outside the subcategory subtree.
+      if (subcategoryIdMap.size === 0) {
+        return newMethodology;
       }
 
-      // Duplicate all active subcategories from the original categories
-      const subcategoryIdMap = new Map<bigint, bigint>();
+      // 4. Emission factor dimensions
+      const dimensionIdMap = await cloneEmissionFactorDimensions(
+        tx,
+        subcategoryIdMap,
+        userId
+      );
 
-      if (activeCategories.length > 0) {
-        const activeSubcategories = await tx.subcategory.findMany({
-          where: {
-            categoryId: { in: activeCategories.map((cat) => cat.id) },
-            status: SubcategoryStatus.ACTIVE,
-          },
-          include: {
-            subcategoryMeasurementUnits: {
-              select: { measurementUnitId: true },
-            },
-          },
-        });
+      // 5. Emission factor dimension values (two-pass for self-referential parentValueId)
+      const dimensionValueIdMap = await cloneEmissionFactorDimensionValues(
+        tx,
+        dimensionIdMap,
+        userId
+      );
 
-        const measurementUnitLinks: {
-          subcategoryId: bigint;
-          measurementUnitId: bigint;
-        }[] = [];
+      // 6. Emission factors
+      await cloneEmissionFactors(
+        tx,
+        subcategoryIdMap,
+        dimensionValueIdMap,
+        userId
+      );
 
-        for (const sub of activeSubcategories) {
-          const newSub = await tx.subcategory.create({
-            data: {
-              categoryId: categoryIdMap.get(sub.categoryId)!,
-              name: sub.name,
-              icon: sub.icon,
-              description: sub.description,
-              explanation: sub.explanation,
-              status: sub.status,
-              createdById: userId,
-              updatedAt: null,
-            },
-          });
-          subcategoryIdMap.set(sub.id, newSub.id);
+      // 7. Reduction plan initiatives
+      await cloneReductionPlanInitiatives(
+        tx,
+        subcategoryIdMap,
+        dimensionValueIdMap,
+        userId
+      );
 
-          for (const link of sub.subcategoryMeasurementUnits) {
-            measurementUnitLinks.push({
-              subcategoryId: newSub.id,
-              measurementUnitId: link.measurementUnitId,
-            });
-          }
-        }
-
-        await tx.subcategoryMeasurementUnit.createMany({
-          data: measurementUnitLinks,
-        });
-      }
-
-      // Duplicate emission factor dimensions, dimension values, and emission factors
-      if (subcategoryIdMap.size > 0) {
-        const oldSubcategoryIds = [...subcategoryIdMap.keys()];
-
-        // 1. Duplicate dimensions
-        const dimensionIdMap = new Map<bigint, bigint>();
-        const originalDimensions = await tx.emissionFactorDimension.findMany({
-          where: {
-            subcategoryId: { in: oldSubcategoryIds },
-            status: EmissionFactorDimensionStatus.ACTIVE,
-          },
-        });
-
-        for (const dim of originalDimensions) {
-          const newDim = await tx.emissionFactorDimension.create({
-            data: {
-              subcategoryId: subcategoryIdMap.get(dim.subcategoryId)!,
-              code: dim.code,
-              name: dim.name,
-              position: dim.position,
-              isRequired: dim.isRequired,
-              status: EmissionFactorDimensionStatus.ACTIVE,
-              createdById: userId,
-              updatedAt: null,
-            },
-          });
-          dimensionIdMap.set(dim.id, newDim.id);
-        }
-
-        // 2. Duplicate dimension values (two passes to handle parentValueId)
-        const dimensionValueIdMap = new Map<bigint, bigint>();
-
-        if (dimensionIdMap.size > 0) {
-          const originalValues = await tx.emissionFactorDimensionValue.findMany(
-            {
-              where: {
-                dimensionId: { in: [...dimensionIdMap.keys()] },
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-              },
-            }
-          );
-
-          // Pass 1: create all values without parentValueId
-          for (const val of originalValues) {
-            const newVal = await tx.emissionFactorDimensionValue.create({
-              data: {
-                dimensionId: dimensionIdMap.get(val.dimensionId)!,
-                value: val.value,
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-                parentValueId: null,
-                createdById: userId,
-                updatedAt: null,
-              },
-            });
-            dimensionValueIdMap.set(val.id, newVal.id);
-          }
-
-          // Pass 2: set parentValueId for values that had one
-          const valuesWithParent = originalValues.filter(
-            (v) => v.parentValueId !== null
-          );
-          for (const val of valuesWithParent) {
-            const newValId = dimensionValueIdMap.get(val.id)!;
-            const newParentId = val.parentValueId
-              ? dimensionValueIdMap.get(val.parentValueId)
-              : null;
-            if (newParentId) {
-              await tx.emissionFactorDimensionValue.update({
-                where: { id: newValId },
-                data: { parentValueId: newParentId },
-              });
-            }
-          }
-        }
-
-        // 3. Duplicate active emission factors
-        const originalFactors = await tx.emissionFactor.findMany({
-          where: {
-            subcategoryId: { in: oldSubcategoryIds },
-            status: EmissionFactorStatus.ACTIVE,
-            AND: [
-              {
-                OR: [
-                  { dimensionValue1Id: null },
-                  {
-                    dimensionValue1: {
-                      is: {
-                        status: EmissionFactorDimensionValueStatus.ACTIVE,
-                        dimension: {
-                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-              {
-                OR: [
-                  { dimensionValue2Id: null },
-                  {
-                    dimensionValue2: {
-                      is: {
-                        status: EmissionFactorDimensionValueStatus.ACTIVE,
-                        dimension: {
-                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        });
-
-        for (const ef of originalFactors) {
-          await tx.emissionFactor.create({
-            data: {
-              subcategoryId: subcategoryIdMap.get(ef.subcategoryId)!,
-              dimensionValue1Id: ef.dimensionValue1Id
-                ? (dimensionValueIdMap.get(ef.dimensionValue1Id) ?? null)
-                : null,
-              dimensionValue2Id: ef.dimensionValue2Id
-                ? (dimensionValueIdMap.get(ef.dimensionValue2Id) ?? null)
-                : null,
-              rateMeasurementUnitId: ef.rateMeasurementUnitId,
-              source: ef.source,
-              gasDetails: ef.gasDetails ?? Prisma.JsonNull,
-              value: ef.value,
-              status: EmissionFactorStatus.ACTIVE,
-              createdById: userId,
-              updatedAt: null,
-            },
-          });
-        }
-      }
+      // 8. Subcategory recommendations
+      await cloneSubcategoryRecommendations(tx, subcategoryIdMap, userId);
 
       return newMethodology;
     });
