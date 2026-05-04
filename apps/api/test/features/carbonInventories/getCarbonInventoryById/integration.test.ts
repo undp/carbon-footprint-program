@@ -9,6 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
+  buildExpectedOrganizationData,
   carbonInventoryPatterns,
   createInventoryFromPattern,
   cleanupCarbonInventoryTestData,
@@ -104,17 +105,21 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
 
+      const expectedOrganizationData = await buildExpectedOrganizationData(
+        prisma,
+        {
+          name: "Test Organization",
+          sectorId: "10",
+          subsectorId: "20",
+          sizeId: "5",
+          mainActivityId: "15",
+          mainActivityQuantity: 250,
+        }
+      );
       expect(body.id).toBe(testInventory.id.toString());
       expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("456");
-      expect(body.organizationData).toEqual({
-        name: "Test Organization",
-        sectorId: "10",
-        subsectorId: "20",
-        sizeId: "5",
-        mainActivityId: "15",
-        mainActivityQuantity: 250,
-      });
+      expect(body.organizationData).toEqual(expectedOrganizationData);
       expect(body.year).toBe(2023);
       expect(body.usageMode).toBe("EXPERT");
       expect(body.methodologyVersionId).toBe(methodologyVersionId.toString());
@@ -243,14 +248,18 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.organizationData).toEqual({
-        name: "Acme Corp",
-        sectorId: "5",
-        subsectorId: "12",
-        sizeId: "3",
-        mainActivityId: "8",
-        mainActivityQuantity: 500,
-      });
+      const expectedOrganizationData = await buildExpectedOrganizationData(
+        prisma,
+        {
+          name: "Acme Corp",
+          sectorId: "5",
+          subsectorId: "12",
+          sizeId: "3",
+          mainActivityId: "8",
+          mainActivityQuantity: 500,
+        }
+      );
+      expect(body.organizationData).toEqual(expectedOrganizationData);
     });
   });
 
