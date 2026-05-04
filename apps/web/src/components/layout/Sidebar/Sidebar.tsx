@@ -82,11 +82,11 @@ export const Sidebar: FC<Props> = ({
             color="primary"
             variant="filled"
             sx={{
-              height: 22,
-              fontSize: 11,
+              height: 26,
+              fontSize: 12,
               fontWeight: 600,
               width: 80,
-              letterSpacing: 0.3,
+              letterSpacing: 0.5,
               textTransform: "uppercase",
               visibility: areaVariant === "admin" ? "visible" : "hidden",
             }}
