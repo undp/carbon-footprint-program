@@ -167,24 +167,19 @@ export const sendMessageHandler = async (
         };
       }
     }
-  } catch {
-    if (firstChunkSeen) {
-      writeSseEvent(reply, "error", {
-        code: "EXTERNAL_SERVICE_ERROR",
-        message: CHATBOT_GENERIC_ERROR_MESSAGE,
-      });
-      reply.raw.end();
-      // The disconnect finalizer also marks this row truncated via the
-      // close handler.
-      return;
-    }
-    // Pre-stream provider error: emit terminal error event since headers
-    // are already written, then end. The conditional UPDATE makes this safe.
+  } catch (err) {
+    request.log.error(
+      { err, assistantRowId: assistantRowId.toString(), firstChunkSeen },
+      "chatbot LLM provider stream errored"
+    );
     writeSseEvent(reply, "error", {
       code: "EXTERNAL_SERVICE_ERROR",
       message: CHATBOT_GENERIC_ERROR_MESSAGE,
     });
     reply.raw.end();
+    // The reply.raw.on("close") handler marks the assistant row truncated
+    // via the conditional UPDATE — same path for both pre-stream and
+    // mid-stream errors, since headers are already on the wire either way.
     return;
   }
 
@@ -193,20 +188,38 @@ export const sendMessageHandler = async (
 
   // Finalize the assistant row OUTSIDE the transaction. Setting `latency_ms`
   // is what makes the disconnect finalizer's conditional UPDATE a no-op.
-  await prisma.chatbotChatMessage.update({
-    where: { id: assistantRowId },
-    data: {
-      content: assistantBuffer,
-      tokensUsed,
-      latencyMs,
-      truncated: false,
-    },
-  });
+  // Wrap the writes in try/catch so a finalization failure (e.g., dropped
+  // DB connection right after the stream ended) is logged and surfaced as a
+  // terminal SSE error event rather than an unhandled rejection — the
+  // response head was sent on `hijack`, so we cannot fall through to the
+  // global error handler.
+  try {
+    await prisma.chatbotChatMessage.update({
+      where: { id: assistantRowId },
+      data: {
+        content: assistantBuffer,
+        tokensUsed,
+        latencyMs,
+        truncated: false,
+      },
+    });
 
-  await prisma.chatbotChatConversation.update({
-    where: { id: conversationId },
-    data: { lastMessageAt: new Date() },
-  });
+    await prisma.chatbotChatConversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: new Date() },
+    });
+  } catch (err) {
+    request.log.error(
+      { err, assistantRowId: assistantRowId.toString() },
+      "chatbot finalization writes failed after successful stream"
+    );
+    writeSseEvent(reply, "error", {
+      code: "EXTERNAL_SERVICE_ERROR",
+      message: CHATBOT_GENERIC_ERROR_MESSAGE,
+    });
+    reply.raw.end();
+    return;
+  }
 
   writeSseEvent(
     reply,
