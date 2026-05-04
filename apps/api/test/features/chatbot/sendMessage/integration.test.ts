@@ -23,6 +23,8 @@ describe("POST /api/chatbot/message — integration", () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
+    // SSE helper requires the server to be listening on a real port.
+    await app.listen({ port: 0, host: "127.0.0.1" });
   });
 
   afterAll(async () => {
@@ -45,11 +47,9 @@ describe("POST /api/chatbot/message — integration", () => {
       "/api/chatbot/message",
       { content: "hola" },
       {
-        headers: {
-          // Override forced-user behaviour by dropping the env-injected idp.
-          // (forced-user needs the request to opt in via test factory; we
-          // just ensure no Authorization header is sent.)
-        },
+        // The suite owns the Fastify lifecycle (listen/close in
+        // beforeAll/afterAll) — the helper must not close it under us.
+        ownsApp: false,
       }
     );
 
