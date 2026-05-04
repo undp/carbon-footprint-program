@@ -53,8 +53,6 @@ export const UserFormScreen: FC = () => {
   const onSubmit = useCallback(
     async (data: UserFields) => {
       try {
-        if (!user?.id) throw new Error("User not found");
-
         await updateMyProfile({
           firstName: data.firstName,
           lastName: data.lastName,
@@ -75,7 +73,7 @@ export const UserFormScreen: FC = () => {
         });
       }
     },
-    [user, updateMyProfile, refetchUser, navigate]
+    [updateMyProfile, refetchUser, navigate]
   );
 
   return (
