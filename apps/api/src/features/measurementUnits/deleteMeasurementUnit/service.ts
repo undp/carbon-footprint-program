@@ -36,7 +36,7 @@ export const deleteMeasurementUnitService = async (
       data: { status: MeasurementUnitStatus.DELETED },
     });
 
-    if (!updatedRows)
+    if (updatedRows !== 1)
       throw new DataIntegrityError(
         `Failed to soft-delete canonical RMU for MeasurementUnit id=${target.id} abbreviation="${target.abbreviation}". Expected to update 1 row, but updated ${updatedRows}.`
       );
