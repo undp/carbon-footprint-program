@@ -39,8 +39,6 @@
 - [x] 3.8 Ensure `updatedById` is set to the actor's id on every successful non-noop update
 - [x] 3.9 Move the existing `email` / `idpUserId` unique-constraint and `countryJobPositionId` FK error handling into the self-profile branch unchanged
 - [x] 3.10 Inside the same transaction, when `previousRole !== newRole`, insert a `UserRoleAudit` row with `(userId, previousRole, newRole, changedById, createdAt)`. Skip the insert for no-op transitions.
-- [x] 3.11 Create a shared `withSerializableRetry` helper in `apps/api/src/utils/` (e.g., `apps/api/src/utils/prismaRetry.ts`, exported via `apps/api/src/utils/index.ts`) that accepts a `PrismaClient` and an interactive transaction callback `(tx) => Promise<T>`, runs `prismaClient.$transaction(callback, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })`, and retries the call exactly once when the failure is a Prisma retryable serialization error (`Prisma.PrismaClientKnownRequestError` with code `P2034`, i.e. PostgreSQL `SQLSTATE 40001`); a second failure rethrows so the caller can surface it as a transient error. Other Prisma/runtime errors must not be retried. Co-locate a unit test alongside the helper.
-- [x] 3.12 Run the role-update transaction through the shared `withSerializableRetry` helper from task 3.11 in `apps/api/src/features/users/updateUser/service.ts` so the retry logic is centralized, discoverable, and reusable by other services that later need Serializable isolation
 - [x] 3.13 No-op role change: when `target.role === body.role`, short-circuit the service to return the existing user record without performing any write (no audit row, no `updatedAt` bump)
 
 ## 3a. API — getAllUsers extension

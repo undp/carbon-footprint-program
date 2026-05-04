@@ -168,7 +168,7 @@ describe("GET /api/users/:id/role-history - Integration Tests", () => {
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetUserRoleHistoryResponse;
-    expect(body).toHaveLength(0);
+    expect(body).toStrictEqual([]);
   });
 
   it("4b.7 empty array when target user has no recorded transitions", async () => {
@@ -191,6 +191,6 @@ describe("GET /api/users/:id/role-history - Integration Tests", () => {
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetUserRoleHistoryResponse;
-    expect(body).toHaveLength(0);
+    expect(body).toStrictEqual([]);
   });
 });

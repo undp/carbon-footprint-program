@@ -12,5 +12,11 @@
     "description": "Defines how subcategory recommendations are retrieved. UNION: returns sector-level recommendations combined with subsector-specific recommendations. SPECIFIC: returns only subsector-specific recommendations.",
     "type": "selector",
     "options": ["UNION", "SPECIFIC"]
+  },
+  {
+    "key": "USER_INACTIVE_THRESHOLD_DAYS",
+    "value": "90",
+    "description": "Number of days of inactivity after which a user is considered inactive. Used to classify users as active or inactive in the admin users screen.",
+    "type": "number"
   }
 ]
