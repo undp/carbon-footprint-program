@@ -54,7 +54,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
           startIcon={<AddIcon />}
           onClick={onCreateOrganization}
         >
-          {`Crear Nueva ${capitalize(VOCAB.organization.noun.singular)}`}
+          {`Nueva ${capitalize(VOCAB.organization.noun.singular)}`}
         </Button>
         <OrganizationSelector
           organizations={organizations}
