@@ -363,6 +363,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(false);
@@ -387,6 +388,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
@@ -419,6 +421,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
@@ -455,6 +458,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
@@ -505,6 +509,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
@@ -549,6 +554,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
       });
 
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
