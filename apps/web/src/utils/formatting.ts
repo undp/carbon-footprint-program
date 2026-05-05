@@ -2,7 +2,10 @@ import {
   APP_LOCALE,
   DEFAULT_EMPTY_VALUE,
   INPUT_DECIMAL_SCALE,
+  MAX_DISPLAY_DECIMALS,
 } from "@/config/constants";
+
+const DEFAULT_MAX_FRACTION_DIGITS = 2;
 
 export class Formatter {
   readonly locale: string;
@@ -12,6 +15,8 @@ export class Formatter {
   readonly defaultEmptyValue: string;
 
   private readonly numberFmt: Intl.NumberFormat;
+  private readonly adaptiveFmt: Intl.NumberFormat;
+  private readonly labelFmt: Intl.NumberFormat;
   private readonly percentFmt: Intl.NumberFormat;
   private readonly dateFmt: Intl.DateTimeFormat;
   private readonly dateNumericFmt: Intl.DateTimeFormat;
@@ -37,8 +42,18 @@ export class Formatter {
 
     this.numberFmt = new Intl.NumberFormat(locale, {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      maximumFractionDigits: DEFAULT_MAX_FRACTION_DIGITS,
       useGrouping: true,
+    });
+    this.adaptiveFmt = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: MAX_DISPLAY_DECIMALS,
+      useGrouping: true,
+    });
+    this.labelFmt = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: MAX_DISPLAY_DECIMALS,
+      maximumFractionDigits: MAX_DISPLAY_DECIMALS,
+      useGrouping: false,
     });
     this.percentFmt = new Intl.NumberFormat(locale, {
       style: "percent",
@@ -101,6 +116,25 @@ export class Formatter {
     return this.dateTimeFmt.format(date);
   }
 
+  private formatNumeric(value: number): string {
+    if (value === 0) return this.numberFmt.format(0);
+
+    const minDisplayable = Math.pow(10, -MAX_DISPLAY_DECIMALS);
+    const defaultLow = Math.pow(10, -DEFAULT_MAX_FRACTION_DIGITS);
+    const abs = Math.abs(value);
+
+    if (abs < minDisplayable) {
+      const threshold = this.labelFmt.format(minDisplayable);
+      return value > 0 ? `<${threshold}` : `>-${threshold}`;
+    }
+
+    if (abs < defaultLow) {
+      return this.adaptiveFmt.format(value);
+    }
+
+    return this.numberFmt.format(value);
+  }
+
   emissions(
     value: number | null | undefined,
     options?: { withSuffix?: boolean; ifEmpty?: string }
@@ -109,7 +143,7 @@ export class Formatter {
       return options?.ifEmpty ?? this.defaultEmptyValue;
     }
     const withSuffix = options?.withSuffix ?? true;
-    return `${this.numberFmt.format(value)}${withSuffix ? " tCO₂e" : ""}`;
+    return `${this.formatNumeric(value)}${withSuffix ? " tCO₂e" : ""}`;
   }
 
   quantity(
@@ -119,7 +153,7 @@ export class Formatter {
     if (value == null || Number.isNaN(value)) {
       return options?.ifEmpty ?? this.defaultEmptyValue;
     }
-    return this.numberFmt.format(value);
+    return this.formatNumeric(value);
   }
 
   rate(
@@ -129,7 +163,7 @@ export class Formatter {
     if (value == null || Number.isNaN(value)) {
       return options?.ifEmpty ?? this.defaultEmptyValue;
     }
-    return this.numberFmt.format(value);
+    return this.formatNumeric(value);
   }
 
   emissionFactor(
@@ -139,7 +173,7 @@ export class Formatter {
     if (value == null || Number.isNaN(value)) {
       return options?.ifEmpty ?? this.defaultEmptyValue;
     }
-    return this.numberFmt.format(value);
+    return this.formatNumeric(value);
   }
 
   percentage(

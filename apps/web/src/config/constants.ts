@@ -31,5 +31,12 @@ export const INPUT_DECIMAL_SCALE = 4;
 
 export const DEFAULT_EMPTY_VALUE = "—";
 
+/**
+ * Cap used by the Formatter for adaptive precision on small numeric values.
+ * Below `10^(-MAX_DISPLAY_DECIMALS)`, the formatter falls back to a `<X` /
+ * `>-X` label so a tiny non-zero value isn't shown as `0`.
+ */
+export const MAX_DISPLAY_DECIMALS = 6;
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";
