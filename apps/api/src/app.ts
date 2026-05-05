@@ -54,7 +54,8 @@ function getLoggerOptions() {
 }
 
 export async function createApp(
-  withPrisma: boolean = true
+  withPrisma: boolean = true,
+  opts?: { skipUnderPressure?: boolean }
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: getLoggerOptions(),
@@ -67,9 +68,13 @@ export async function createApp(
 
   const baseDir = import.meta.dirname;
 
-  // Load external plugins (cors, helmet, etc.)
+  // Tests can opt out of @fastify/under-pressure via skipUnderPressure;
+  // it otherwise returns 503 under serialized test load. Prod loads it normally.
   await app.register(autoload, {
     dir: path.join(baseDir, "plugins/external"),
+    ignoreFilter: opts?.skipUnderPressure
+      ? (filePath) => filePath.includes("under-pressure")
+      : undefined,
   });
 
   // Load app plugins (prisma, error handler, etc.)
