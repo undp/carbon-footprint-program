@@ -3,8 +3,10 @@ import { sendMessageRoute } from "@/features/chatbot/sendMessage/route.js";
 import { deleteMyConversationRoute } from "@/features/chatbot/deleteMyConversation/route.js";
 
 export default function chatbotRoutes(fastify: FastifyZodInstance) {
-  // Both endpoints handle their own identity resolution via the feature-local
-  // preHandler. No group-level auth hook — anonymous callers must be allowed.
+  // requireAuth is permissive here (each route is public:true): it populates
+  // request.currentUser for authenticated callers, and anonymous ones fall
+  // through to the chatbotIdentity preHandler that mints a session cookie.
+  fastify.addHook("onRequest", fastify.requireAuth);
   sendMessageRoute(fastify, { public: true });
   deleteMyConversationRoute(fastify, { public: true });
 }
