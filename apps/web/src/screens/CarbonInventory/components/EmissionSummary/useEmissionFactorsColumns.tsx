@@ -3,6 +3,12 @@ import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { CategoryChip } from "@/components/EmissionResults";
+import { formatter } from "@/utils/formatting";
+
+const extractDenominator = (rateUnit: string): string => {
+  const parts = rateUnit.split("/");
+  return parts.length > 1 ? parts.slice(1).join("/") : rateUnit;
+};
 
 export const useEmissionFactorsColumns = (): GridColDef<
   GetEmissionFactorsResponse[number]
@@ -65,29 +71,33 @@ export const useEmissionFactorsColumns = (): GridColDef<
         ),
       },
       {
-        field: "factorLabel",
+        field: "factorValue",
         headerName: "Factor (Kg CO₂e/unidad)",
         minWidth: 180,
         headerClassName,
         cellClassName,
         flex: 1.2,
-        renderCell: ({ row }) => (
-          <Box className="flex flex-col gap-0.5">
-            <Typography variant="body2" fontWeight="fontWeightRegular">
-              {row.factorLabel}
-            </Typography>
-            {row.gasBreakdownLines.map((line, idx) => (
-              <Typography
-                key={idx}
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontSize: "0.65rem" }}
-              >
-                {line}
+        renderCell: ({ row }) => {
+          const denominator = extractDenominator(row.rateUnit);
+          return (
+            <Box className="flex flex-col gap-0.5">
+              <Typography variant="body2" fontWeight="fontWeightRegular">
+                {formatter.emissionFactor(row.factorValue)} {row.rateUnit}
               </Typography>
-            ))}
-          </Box>
-        ),
+              {row.gasBreakdownLines.map((line, idx) => (
+                <Typography
+                  key={idx}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: "0.65rem" }}
+                >
+                  {formatter.emissionFactor(line.value)} kg CO₂e of {line.gas}/
+                  {denominator}
+                </Typography>
+              ))}
+            </Box>
+          );
+        },
       },
       {
         field: "factorSource",
