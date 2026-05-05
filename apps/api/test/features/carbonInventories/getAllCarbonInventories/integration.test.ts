@@ -389,6 +389,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
@@ -420,6 +421,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
@@ -455,6 +457,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
 
@@ -504,6 +507,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(false);
     });
 
@@ -547,6 +551,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
   });
