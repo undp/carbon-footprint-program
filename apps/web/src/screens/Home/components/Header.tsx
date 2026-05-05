@@ -41,19 +41,28 @@ export const Header: FC<Props> = ({
     [onCarbonInventoryChange]
   );
 
-  const selectedInventoryName = useMemo(
-    () =>
-      inventories.find((inv) => inv.id === selectedCarbonInventory)?.name ?? "",
+  const selectedInventory = useMemo(
+    () => inventories.find((inv) => inv.id === selectedCarbonInventory),
     [inventories, selectedCarbonInventory]
   );
 
+  const selectedInventoryName = selectedInventory?.name ?? "";
+  const selectedOrganizationName = selectedInventory?.organizationName ?? "";
+
   return (
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
-      <Typography variant="h5" fontWeight={600}>
-        {selectedCarbonInventory
-          ? `Emisiones ${selectedInventoryName}`
-          : "Emisiones"}
-      </Typography>
+      <Box className="flex flex-col">
+        <Typography variant="h5" fontWeight={600}>
+          {selectedCarbonInventory
+            ? `Emisiones ${selectedInventoryName}`
+            : "Emisiones"}
+        </Typography>
+        {selectedOrganizationName && (
+          <Typography variant="body2" color="text.secondary">
+            {selectedOrganizationName}
+          </Typography>
+        )}
+      </Box>
       <Box className="flex flex-row gap-4">
         <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
           <InputLabel id="year-select-label">Año</InputLabel>
