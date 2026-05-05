@@ -24,7 +24,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la cantidad de combustible consumido**.  
 El factor depende del **tipo de combustible** y la **unidad declarada**.
 
-> $CO₂eq$ = $Cantidad\ consumida \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ consumida \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -109,7 +109,7 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
+3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 
 ---
 
@@ -128,19 +128,19 @@ Supongamos que durante el año tu empresa consumió:
 
 Y el factor de emisión del gas natural es (ejemplo referencial):
 
-- **Por cada m³ consumido de gas natural, se generan 1,90 kg CO₂eq**
+- **Por cada m³ consumido de gas natural, se generan 1,90 kg CO₂e**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $25.000\ m³ \times 1,90\ kg\ CO₂eq/m³$ = $47.500\ kg\ CO₂eq$
+> $CO₂e$ = $25.000\ m³ \times 1,90\ kg\ CO₂e/m³$ = $47.500\ kg\ CO₂e$
 
 Es decir, las combustiones estacionarias habrían generado:
 
-- **47.500 kg CO₂eq en el año**
-- O lo mismo que **47,50 toneladas de CO₂eq**
+- **47.500 kg CO₂e en el año**
+- O lo mismo que **47,50 toneladas de CO₂e**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **kg CO₂eq por m³**, la cantidad debe estar en **m³**.
+Si el factor está en **kg CO₂e por m³**, la cantidad debe estar en **m³**.
 
 ---
 

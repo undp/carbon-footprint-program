@@ -29,7 +29,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 
 El cálculo se basa en la **cantidad de cinc producido** multiplicado por un **factor de emisión específico del proceso industrial**.
 
-> **CO₂eq** = $Cantidad\ producida \times Factor\ de\ emisión\ del\ proceso$
+> **CO₂e** = $Cantidad\ producida \times Factor\ de\ emisión\ del\ proceso$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -116,7 +116,7 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
+3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 
 ---
 
@@ -135,18 +135,18 @@ Supongamos que durante el año tu planta produjo:
 
 Y el factor de emisión del proceso es (ejemplo referencial):
 
-- **0,25 t CO₂eq por tonelada de Zn producida**
+- **0,25 t CO₂e por tonelada de Zn producida**
 
 Entonces el cálculo sería:
 
-> **CO₂eq** = $30.000\ t \times 0,25\ t\ CO₂eq/t$ = **7.500 t CO₂eq**
+> **CO₂e** = $30.000\ t \times 0,25\ t\ CO₂e/t$ = **7.500 t CO₂e**
 
 Es decir, tu proceso industrial habría generado:
 
-- **7.500 toneladas de CO₂eq en el año**
+- **7.500 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **t CO₂eq por tonelada**, la producción debe estar en **toneladas**.
+Si el factor está en **t CO₂e por tonelada**, la producción debe estar en **toneladas**.
 
 ---
 

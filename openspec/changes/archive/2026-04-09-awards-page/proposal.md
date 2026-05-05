@@ -7,7 +7,7 @@ Organizations have no consolidated view of the recognition seals they've earned 
 - New `/app/awards` route and screen showing earned seals per organization
 - Header with year selector (showing the latest <CALCULATOR_YEARS_RANGE_FROM_CURRENT constant> years) and organization selector for filtering (options fetched from the current getMyOrganizationsSelectorOptions endpoint)
 - Summary section with count cards per badge type (Reconocimiento de Medición, Reconocimiento de Verificación, Reconocimiento de Reducción, Reconocimiento de Neutralización), each card showing a preview of the seal image
-- Data table listing each earned seal with columns: Fecha otorgado, Año medición, Reconocimiento, Huella tCO₂eq, Estado, Acciones
+- Data table listing each earned seal with columns: Fecha otorgado, Año medición, Reconocimiento, Huella tCO₂e, Estado, Acciones
 - Action button per row opens a modal previewing the recognition diploma (uploaded by admin during approval, stored as `SubmissionFile` with type `RECOGNITION`)
 - Table sorted by Año medición then badge type; uses existing `StylizedDatagrid` with sorting enabled
 - Three new API endpoints:

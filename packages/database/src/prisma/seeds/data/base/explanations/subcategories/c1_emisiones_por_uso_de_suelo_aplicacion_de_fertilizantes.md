@@ -25,7 +25,7 @@ Si **no aplicas fertilizantes que contengan N, P u otros nutrientes relevantes**
 
 El cálculo se basa en la multiplicación de un **factor de emisión por la cantidad del componente aplicado**.
 
-> $CO₂eq$ = $Cantidad\ de\ componente \times Factor\ de\ emisión$
+> $CO₂e$ = $Cantidad\ de\ componente \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -106,16 +106,16 @@ $1.000 \times 0,46$ = **460 kg de N aplicado**
 
 Y el factor de emisión es (ejemplo referencial):
 
-- **Por cada kg de N aplicado, se generan 5,50 kg CO₂eq**
+- **Por cada kg de N aplicado, se generan 5,50 kg CO₂e**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $460\ kg \times 5,50\ kg\ CO₂eq/kg$ = $2.530\ kg\ CO₂eq$
+> $CO₂e$ = $460\ kg \times 5,50\ kg\ CO₂e/kg$ = $2.530\ kg\ CO₂e$
 
 Es decir, la aplicación de fertilizante habría generado:
 
-- **2.530 kg CO₂eq en el año**
-- O lo mismo que **2,53 toneladas de CO₂eq**
+- **2.530 kg CO₂e en el año**
+- O lo mismo que **2,53 toneladas de CO₂e**
 
 ⚠️ Es fundamental que la cantidad esté expresada en **kg del componente (N o P)**.
 
