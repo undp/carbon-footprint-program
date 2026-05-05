@@ -12,7 +12,7 @@ export async function createTestApp(
   databaseUrl: string,
   options?: CreateTestAppOptions
 ): Promise<FastifyInstance> {
-  const app = await createApp(false);
+  const app = await createApp(false, { skipUnderPressure: true });
   app.log.level = "debug";
 
   await app.register(prismaPlugin, { databaseUrl });
