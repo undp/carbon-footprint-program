@@ -11,7 +11,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar/Sidebar";
 import type { SidebarDef } from "./Sidebar/Sidebar";
-import { SIDEBAR_WIDTH } from "@/config/constants";
+import { SIDEBAR_MINI_WIDTH } from "@/config/constants";
 import {
   Routes,
   SidebarRoute,
@@ -41,7 +41,7 @@ export const MainLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <Box className="flex h-screen flex-1">
-      <Box sx={{ width: SIDEBAR_WIDTH }}>
+      <Box sx={{ width: SIDEBAR_MINI_WIDTH, flexShrink: 0 }}>
         <Sidebar
           items={SIDEBAR_ITEMS}
           onLogoClick={() => navigate({ to: Routes.HOME })}

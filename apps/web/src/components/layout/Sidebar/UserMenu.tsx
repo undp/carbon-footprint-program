@@ -5,6 +5,7 @@ import {
   SettingsOutlined,
 } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
   Divider,
   ListItemIcon,
@@ -14,13 +15,31 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCallback, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 import { SystemRole } from "@repo/types";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { sidebarTransition } from "@/theme";
 
-export const UserMenu = () => {
+interface UserMenuProps {
+  isExpanded?: boolean;
+}
+
+const getInitials = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null
+): string => {
+  const first = firstName?.trim()?.[0];
+  const last = lastName?.trim()?.[0];
+  if (first && last) return `${first}${last}`.toUpperCase();
+  if (first) return first.toUpperCase();
+  if (email?.[0]) return email[0].toUpperCase();
+  return "?";
+};
+
+export const UserMenu: FC<UserMenuProps> = ({ isExpanded = true }) => {
   const { signOut, user: me, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,6 +86,7 @@ export const UserMenu = () => {
   }
 
   const name = me.firstName ? `${me.firstName} ${me.lastName}` : null;
+  const initials = getInitials(me.firstName, me.lastName, me.email);
   const toggleLabel = isAdminRoute
     ? "Ir a la aplicación"
     : "Ir a administración";
@@ -83,11 +103,10 @@ export const UserMenu = () => {
         aria-controls={open ? "user-menu" : undefined}
         sx={(theme) => ({
           all: "unset",
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          px: 1.25,
-          py: 1,
+          position: "relative",
+          display: "block",
+          width: "100%",
+          height: 56,
           borderRadius: 1,
           cursor: "pointer",
           backgroundColor: open ? theme.palette.action.selected : "transparent",
@@ -101,35 +120,75 @@ export const UserMenu = () => {
           },
         })}
       >
-        <Box className="flex min-w-0 flex-1 flex-col items-start">
-          {name && (
+        <Box
+          sx={(theme) => ({
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: isExpanded ? 0 : 1,
+            pointerEvents: isExpanded ? "none" : "auto",
+            transition: sidebarTransition(theme, "opacity"),
+          })}
+        >
+          <Avatar
+            sx={(theme) => ({
+              width: 36,
+              height: 36,
+              fontSize: 14,
+              fontWeight: 600,
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+            })}
+          >
+            {initials}
+          </Avatar>
+        </Box>
+        <Box
+          sx={(theme) => ({
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1.25,
+            py: 1,
+            opacity: isExpanded ? 1 : 0,
+            pointerEvents: isExpanded ? "auto" : "none",
+            transition: sidebarTransition(theme, "opacity"),
+          })}
+        >
+          <Box className="flex min-w-0 flex-1 flex-col items-start">
+            {name && (
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                lineHeight={1.2}
+                noWrap
+                sx={{ width: "100%", textAlign: "left" }}
+              >
+                {name}
+              </Typography>
+            )}
             <Typography
-              variant="body2"
-              fontWeight={600}
-              lineHeight={1.2}
+              variant="caption"
+              color="text.secondary"
               noWrap
               sx={{ width: "100%", textAlign: "left" }}
             >
-              {name}
+              {me.email}
             </Typography>
-          )}
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            noWrap
-            sx={{ width: "100%", textAlign: "left" }}
-          >
-            {me.email}
-          </Typography>
+          </Box>
+          <KeyboardArrowDown
+            fontSize="small"
+            sx={(theme) => ({
+              color: theme.palette.text.secondary,
+              transition: theme.transitions.create("transform"),
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            })}
+          />
         </Box>
-        <KeyboardArrowDown
-          fontSize="small"
-          sx={(theme) => ({
-            color: theme.palette.text.secondary,
-            transition: theme.transitions.create("transform"),
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-          })}
-        />
       </Box>
 
       <Menu

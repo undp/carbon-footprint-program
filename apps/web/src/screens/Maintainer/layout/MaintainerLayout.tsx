@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { FC, PropsWithChildren, useMemo } from "react";
-import { SIDEBAR_WIDTH } from "@/config/constants";
+import { SIDEBAR_MINI_WIDTH } from "@/config/constants";
 import {
   DashboardOutlined,
   MenuBookOutlined,
@@ -73,7 +73,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   },
   {
     text: "Unidades",
-    icon: <SquareFootOutlined fontSize="small" />,
+    icon: <SquareFootOutlined />,
     path: Routes.ADMIN_UNITS,
   },
   {
@@ -167,7 +167,7 @@ export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
   );
 
   return (
-    <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_WIDTH }}>
+    <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_MINI_WIDTH }}>
       <Sidebar items={visibleItems} areaLabel="Admin" areaVariant="admin" />
       <Box className="flex min-h-screen flex-col gap-3 bg-gray-50 px-6 py-6">
         {children}
