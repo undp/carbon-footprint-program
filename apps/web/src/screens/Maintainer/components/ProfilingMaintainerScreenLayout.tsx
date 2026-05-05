@@ -24,6 +24,7 @@ interface ProfilingMaintainerScreenLayoutProps {
    * provider's children to make ownership explicit.
    */
   extraDialogs?: ReactNode;
+  explanationSlug?: string;
   children: ReactNode;
 }
 
@@ -46,6 +47,7 @@ export const ProfilingMaintainerScreenLayout = ({
   onBlockerProceed,
   onBlockerReset,
   extraDialogs,
+  explanationSlug,
   children,
 }: ProfilingMaintainerScreenLayoutProps) => (
   <FormProvider {...form}>
@@ -57,6 +59,7 @@ export const ProfilingMaintainerScreenLayout = ({
       onAddRow={onAddRow}
       extra={statusFilter}
       showDownload={false}
+      explanationSlug={explanationSlug}
     />
     <Box className="rounded-sm bg-white p-3">
       <Box className="flex w-full">{children}</Box>

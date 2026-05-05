@@ -26,6 +26,10 @@ import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
 import { Magnitude, MeasurementUnitCreationResultEnum } from "@repo/types";
 
+const MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "measurement-units-maintainer",
+} as const;
+
 export const MeasurementUnitsScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -306,7 +310,11 @@ export const MeasurementUnitsScreen: FC = () => {
   if (isError) {
     return (
       <>
-        <MaintainerPageHeader title="Unidades de medida" addDisabled />
+        <MaintainerPageHeader
+          title="Unidades de medida"
+          addDisabled
+          explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
+        />
         <Box className="rounded-sm bg-white p-3">
           <Typography variant="body2" color="text.secondary">
             No fue posible cargar las unidades de medida.
@@ -323,6 +331,7 @@ export const MeasurementUnitsScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar unidad"
+        explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>

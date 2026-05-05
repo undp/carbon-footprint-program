@@ -133,5 +133,35 @@
     "slug": "badges",
     "name": "Sellos",
     "description": "Texto de ayuda mostrado en la pantalla de gestión de sellos por tipo de reconocimiento."
+  },
+  {
+    "slug": "sectors-maintainer",
+    "name": "Mantenedor de rubros",
+    "description": "Texto de ayuda mostrado en el mantenedor de rubros."
+  },
+  {
+    "slug": "subsectors-maintainer",
+    "name": "Mantenedor de subrubros",
+    "description": "Texto de ayuda mostrado en el mantenedor de subrubros."
+  },
+  {
+    "slug": "main-activities-maintainer",
+    "name": "Mantenedor de actividades principales",
+    "description": "Texto de ayuda mostrado en el mantenedor de actividades principales."
+  },
+  {
+    "slug": "organization-sizes-maintainer",
+    "name": "Mantenedor de tamaños de organización",
+    "description": "Texto de ayuda mostrado en el mantenedor de tamaños de organización."
+  },
+  {
+    "slug": "measurement-units-maintainer",
+    "name": "Mantenedor de unidades de medida",
+    "description": "Texto de ayuda mostrado en el mantenedor de unidades de medida."
+  },
+  {
+    "slug": "users-maintainer",
+    "name": "Mantenedor de usuarios",
+    "description": "Texto de ayuda mostrado en el mantenedor de usuarios."
   }
 ]
