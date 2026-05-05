@@ -1,6 +1,6 @@
 [
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": null,
     "mainActivities": [
       "millones de CLP de ingresos",
@@ -37,7 +37,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Manufactura / Industria Manufacturera",
     "mainActivities": [
       "toneladas producidas",
@@ -49,7 +49,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Energía",
     "mainActivities": [
       "MWh generados",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
     "mainActivities": [
       "toneladas producidas",
@@ -73,12 +73,12 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Construcción",
     "mainActivities": ["viviendas", "obras ejecutadas", "UF construidas"]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Transporte y Logística",
     "mainActivities": [
       "km recorridos",
@@ -89,7 +89,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Comercio",
     "mainActivities": [
       "unidades vendidas",
@@ -101,12 +101,12 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Servicios Financieros",
     "mainActivities": ["cuentas gestionadas", "millones de CLP administrados"]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Turismo, Hotelería y Restaurantes",
     "mainActivities": [
       "noches de alojamiento",
@@ -118,7 +118,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Salud",
     "mainActivities": [
       "pacientes atendidos",
@@ -128,7 +128,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Educación",
     "mainActivities": [
       "estudiantes",
@@ -139,7 +139,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Servicios Profesionales y Empresariales",
     "mainActivities": [
       "horas facturables",
@@ -152,7 +152,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Administración Pública",
     "mainActivities": [
       "funcionarios",
@@ -164,7 +164,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Minería",
     "mainActivities": [
       "toneladas extraídas",
@@ -175,7 +175,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Telecomunicaciones",
     "mainActivities": [
       "líneas activas",
@@ -185,7 +185,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Bienes Raíces",
     "mainActivities": [
       "m² administrados",
@@ -196,7 +196,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Gestión de Residuos",
     "mainActivities": [
       "toneladas de residuos tratados",
@@ -207,7 +207,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Agua y Saneamiento",
     "mainActivities": [
       "m3 de agua producidos",
