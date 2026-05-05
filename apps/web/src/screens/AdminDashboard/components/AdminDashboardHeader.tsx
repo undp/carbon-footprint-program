@@ -1,16 +1,21 @@
 import { FC, useCallback } from "react";
 import { Box, Card, Stack, Typography } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { YearSelector } from "./YearSelector";
 
 interface AdminDashboardHeaderProps {
   year?: number;
+  explanationSlug?: string;
 }
 
 export const AdminDashboardHeader: FC<AdminDashboardHeaderProps> = ({
   year,
+  explanationSlug,
 }) => {
   const navigate = useNavigate({ from: "/admin/dashboard" });
+  const { openExplanationBySlug } = useExplanationDialog();
 
   const handleYearChange = useCallback(
     (selectedYear?: number) => {
@@ -32,9 +37,17 @@ export const AdminDashboardHeader: FC<AdminDashboardHeaderProps> = ({
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Box>
-          <Typography variant="h5" fontWeight={700}>
-            Dashboard General
-          </Typography>
+          <Box className="flex items-center gap-1">
+            <Typography variant="h5" fontWeight={700}>
+              Dashboard General
+            </Typography>
+            {explanationSlug && (
+              <InfoButton
+                label="Más información"
+                onClick={() => openExplanationBySlug(explanationSlug)}
+              />
+            )}
+          </Box>
           <Typography variant="body2" color="text.secondary">
             Resumen general de la plataforma
           </Typography>

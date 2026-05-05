@@ -36,6 +36,10 @@ import { sortByStatusThenName } from "../utils/profilingSort";
 import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
+const SECTORS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "sectors-maintainer",
+} as const;
+
 const FormSchema = z.object({ sectors: z.array(SectorRowSchema) });
 type FormValues = z.infer<typeof FormSchema>;
 
@@ -230,6 +234,7 @@ export const SectorsMaintainerScreen: FC = () => {
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
+      explanationSlug={SECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
           <InUseWarningDialog

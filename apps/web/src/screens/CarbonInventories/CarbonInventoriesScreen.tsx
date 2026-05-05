@@ -12,8 +12,9 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import { OrganizationSelector } from "@/components";
+import { InfoButton, OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
+import { useExplanationDialog } from "@/contexts";
 import {
   useCarbonInventories,
   useCarbonInventoriesMinimalData,
@@ -25,7 +26,12 @@ import { InventoryTabs } from "./components/InventoryTabs";
 import { DraftsTab } from "./components/DraftsTab";
 import { InventoriesTab } from "./components/InventoriesTab";
 
+const CARBON_INVENTORIES_EXPLANATION_SLUGS = {
+  MAIN: "carbon-inventories",
+} as const;
+
 export const CarbonInventoriesScreen: FC = () => {
+  const { openExplanationBySlug } = useExplanationDialog();
   const { activeTab, setActiveTab } = useCarbonInventoriesStore();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedOrganizationId, setSelectedOrganizationId] =
@@ -90,9 +96,19 @@ export const CarbonInventoriesScreen: FC = () => {
           {/* Header */}
           <Box className="flex flex-col">
             <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
-              <Typography variant="h5" fontWeight={600}>
-                Huella Organizacional
-              </Typography>
+              <Box className="flex items-center gap-1">
+                <Typography variant="h5" fontWeight={600}>
+                  Huella Organizacional
+                </Typography>
+                <InfoButton
+                  label="Más información"
+                  onClick={() =>
+                    openExplanationBySlug(
+                      CARBON_INVENTORIES_EXPLANATION_SLUGS.MAIN
+                    )
+                  }
+                />
+              </Box>
 
               {/* Container for selectors */}
               <Box className="flex gap-3">

@@ -6,13 +6,19 @@ import { YearFilter } from "./components/YearFilter";
 import { useTransparencyData } from "@/api/query";
 import { useBadgePreviews } from "@/api/query/badges";
 import { useFuzzySearch } from "@/hooks";
-import { SearchBar } from "@/components";
+import { InfoButton, SearchBar } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { TRANSPARENCY_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { VOCAB } from "@/config/vocab";
 import { GetTransparencyDataResponse } from "@repo/types";
 
+const TRANSPARENCY_EXPLANATION_SLUGS = {
+  MAIN: "transparency",
+} as const;
+
 export const TransparencyScreen: FC = () => {
   const theme = useTheme();
+  const { openExplanationBySlug } = useExplanationDialog();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState<number | undefined>();
 
@@ -62,14 +68,22 @@ export const TransparencyScreen: FC = () => {
       <Box className="flex flex-1 flex-col p-6">
         <Paper className="border p-6" elevation={0}>
           <Box className="mb-4 flex items-center justify-between gap-2">
-            <Typography
-              variant="h5"
-              fontWeight={600}
-              color="text.primary"
-              className="shrink-0"
-            >
-              Transparencia
-            </Typography>
+            <Box className="flex items-center gap-1">
+              <Typography
+                variant="h5"
+                fontWeight={600}
+                color="text.primary"
+                className="shrink-0"
+              >
+                Transparencia
+              </Typography>
+              <InfoButton
+                label="Más información"
+                onClick={() =>
+                  openExplanationBySlug(TRANSPARENCY_EXPLANATION_SLUGS.MAIN)
+                }
+              />
+            </Box>
             <Box className="center flex w-full max-w-[500px] gap-4">
               <SearchBar
                 value={searchQuery}

@@ -25,6 +25,10 @@ import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { GEIBreakdownModal } from "../components/GEIBreakdownModal";
 
+const EMISSION_FACTORS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "emission-factors-maintainer",
+} as const;
+
 const EMPTY_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
   CO2_FOSSIL: 0,
   CH4: 0,
@@ -517,6 +521,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   return (
     <MaintainerScreenLayout
       title="Factores de emisión"
+      explanationSlug={EMISSION_FACTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       scope={scope}
       editingRowId={editingRowId}
       form={form}

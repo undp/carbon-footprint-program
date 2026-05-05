@@ -51,6 +51,10 @@ const ERROR_MESSAGE = {
   retryButtonText: "Recargar Página",
 } as const;
 
+const BUSINESS_PROFILING_EXPLANATION_SLUGS = {
+  MAIN: "business-profiling",
+} as const;
+
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
@@ -222,6 +226,7 @@ export const BusinessProfilingScreen: FC = () => {
               <StepHeader
                 title="Paso 1: Perfilamiento"
                 description={`La información de tu ${VOCAB.organization.noun.singular} nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro.`}
+                explanationSlug={BUSINESS_PROFILING_EXPLANATION_SLUGS.MAIN}
               />
               <Box className="flex flex-col gap-3">
                 <Box className="flex flex-1 flex-row gap-6">

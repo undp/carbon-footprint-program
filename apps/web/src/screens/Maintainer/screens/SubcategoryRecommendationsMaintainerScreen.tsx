@@ -30,6 +30,8 @@ import {
 } from "@/api/query/maintainer";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { AppHttpError } from "@/api/http/errors";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
 import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
@@ -48,12 +50,17 @@ import {
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 import { arraysEqualUnordered } from "@repo/utils";
 
+const SUBCATEGORY_RECOMMENDATIONS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "subcategory-recommendations-maintainer",
+} as const;
+
 type EditedRowEntry = {
   subcategoryIds: string[];
 };
 
 export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
+  const { openExplanationBySlug } = useExplanationDialog();
 
   const {
     data: methodologies,
@@ -501,9 +508,19 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <Typography variant="h5" fontWeight={600}>
-          {SUBCATEGORY_RECOMMENDATIONS_LABELS.title}
-        </Typography>
+        <Box className="flex items-center gap-1">
+          <Typography variant="h5" fontWeight={600}>
+            {SUBCATEGORY_RECOMMENDATIONS_LABELS.title}
+          </Typography>
+          <InfoButton
+            label="Más información"
+            onClick={() =>
+              openExplanationBySlug(
+                SUBCATEGORY_RECOMMENDATIONS_MAINTAINER_EXPLANATION_SLUGS.MAIN
+              )
+            }
+          />
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
             <InputLabel id="methodology-select-label">

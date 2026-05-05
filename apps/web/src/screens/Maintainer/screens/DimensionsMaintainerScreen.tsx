@@ -23,6 +23,10 @@ import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { DimensionVariablesModal } from "../components/DimensionVariablesModal";
 
+const DIMENSIONS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "dimensions-maintainer",
+} as const;
+
 export const DimensionsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -505,6 +509,7 @@ export const DimensionsMaintainerScreen: FC = () => {
   return (
     <MaintainerScreenLayout
       title="Dimensiones / Variables"
+      explanationSlug={DIMENSIONS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       scope={scope}
       editingRowId={editingRowId}
       form={form}

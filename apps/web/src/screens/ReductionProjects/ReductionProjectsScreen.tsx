@@ -20,7 +20,6 @@ import {
   ScreenEmptyState,
 } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import { REDUCTION_PROJECT_EXPLANATION_SLUGS } from "../ReductionProject/constants";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import {
@@ -40,6 +39,10 @@ import { StylizedDataGrid } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 import { formatDateToDDMMYYYY } from "@repo/utils";
+
+const REDUCTION_PROJECTS_EXPLANATION_SLUGS = {
+  MAIN: "reduction-projects-list",
+} as const;
 
 export const ReductionProjectsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
@@ -338,7 +341,7 @@ export const ReductionProjectsScreen: FC = () => {
             <InfoButton
               label="Más información"
               onClick={() =>
-                openExplanationBySlug(REDUCTION_PROJECT_EXPLANATION_SLUGS.LIST)
+                openExplanationBySlug(REDUCTION_PROJECTS_EXPLANATION_SLUGS.MAIN)
               }
             />
           </Box>

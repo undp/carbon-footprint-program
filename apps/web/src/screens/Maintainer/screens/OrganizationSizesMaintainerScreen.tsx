@@ -39,6 +39,10 @@ import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { VOCAB } from "@/config/vocab";
 
+const ORGANIZATION_SIZES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "organization-sizes-maintainer",
+} as const;
+
 const FormSchema = z.object({
   organizationSizes: z.array(OrganizationSizeRowSchema),
 });
@@ -290,6 +294,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
+      explanationSlug={ORGANIZATION_SIZES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
           <InUseWarningDialog
