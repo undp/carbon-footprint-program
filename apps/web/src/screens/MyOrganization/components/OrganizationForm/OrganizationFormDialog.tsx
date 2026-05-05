@@ -41,6 +41,7 @@ interface Props {
   onClose: () => void;
   organization?: GetOrganizationByIdResponse;
   mode?: DialogMode;
+  onCreated?: (organizationId: string) => void;
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
@@ -60,6 +61,7 @@ export const OrganizationFormDialog: FC<Props> = ({
   onClose,
   organization,
   mode = DialogMode.create,
+  onCreated,
 }) => {
   const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
@@ -68,6 +70,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     mode,
     organizationId: organization?.id,
     onSuccess: onClose,
+    onCreated,
   });
 
   const {

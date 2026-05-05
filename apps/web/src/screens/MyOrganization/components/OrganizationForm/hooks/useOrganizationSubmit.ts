@@ -14,12 +14,14 @@ interface UseOrganizationSubmitProps {
   mode: DialogMode;
   organizationId?: string;
   onSuccess?: () => void;
+  onCreated?: (organizationId: string) => void;
 }
 
 export const useOrganizationSubmit = ({
   mode,
   organizationId,
   onSuccess,
+  onCreated,
 }: UseOrganizationSubmitProps) => {
   const { enqueueSnackbar } = useSnackbar();
   const createMutation = useCreateOrganization();
@@ -35,10 +37,11 @@ export const useOrganizationSubmit = ({
         if (mode === DialogMode.accredited) {
           const fileUuids = await preUploadFiles(files);
           await updateMutation.mutateAsync({ ...requestData, fileUuids });
+        } else if (mode === DialogMode.create) {
+          const created = await createMutation.mutateAsync(requestData);
+          onCreated?.(created.id);
         } else {
-          await (mode === DialogMode.create
-            ? createMutation.mutateAsync(requestData)
-            : updateMutation.mutateAsync(requestData));
+          await updateMutation.mutateAsync(requestData);
         }
 
         enqueueSnackbar(
@@ -63,6 +66,7 @@ export const useOrganizationSubmit = ({
       updateMutation,
       enqueueSnackbar,
       onSuccess,
+      onCreated,
     ]
   );
 

@@ -150,6 +150,7 @@ export const MyOrganizationScreen: FC = () => {
           open={formDialogOpen}
           onClose={closeFormDialog}
           mode={DialogMode.create}
+          onCreated={setSelectedOrganizationId}
         />
       </MainLayout>
     );
@@ -197,6 +198,7 @@ export const MyOrganizationScreen: FC = () => {
                 formDialogMode === DialogMode.create ? undefined : organization
               }
               mode={formDialogMode}
+              onCreated={setSelectedOrganizationId}
             />
 
             <AddUserDialog
