@@ -15,10 +15,18 @@ import {
   createInventoryFromPattern,
   createCarbonInventories,
   cleanupCarbonInventoryTestData,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+  createCarbonInventoryLineResult,
+  getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { type GetAllCarbonInventoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  CarbonInventoryLineStatus,
+  Prisma,
+  type PrismaClient,
+} from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   createTestOrganization,
@@ -340,6 +348,217 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
       expect(body.length).toBe(0);
+    });
+  });
+
+  describe("hasActiveLines and areAllActiveLinesCompleted flags", () => {
+    it("should report hasActiveLines=false and areAllActiveLinesCompleted=true (vacuously) when the inventory has no lines", async () => {
+      await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(false);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
+    });
+
+    it("should be false when an ACTIVE line has no input", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const [subcategoryId] = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+      await createCarbonInventoryLine(prisma, inventory.id, subcategoryId);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
+    });
+
+    it("should be false when an ACTIVE line has an input but no result", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const [subcategoryId] = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(1000),
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
+    });
+
+    it("should be true when every ACTIVE line has a calculated result", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      for (const subcategoryId of subcategoryIds.slice(0, 2)) {
+        const line = await createCarbonInventoryLine(
+          prisma,
+          inventory.id,
+          subcategoryId
+        );
+        const input = await createCarbonInventoryLineInput(prisma, line.id, {
+          inputType: "DIRECT",
+          directTotalEmissions: new Prisma.Decimal(1000),
+        });
+        await createCarbonInventoryLineResult(prisma, input.id, 1000);
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
+    });
+
+    it("should be false when at least one ACTIVE line is missing a result", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      // First line: complete (input + result).
+      const completeLine = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const completeInput = await createCarbonInventoryLineInput(
+        prisma,
+        completeLine.id,
+        {
+          inputType: "DIRECT",
+          directTotalEmissions: new Prisma.Decimal(1000),
+        }
+      );
+      await createCarbonInventoryLineResult(prisma, completeInput.id, 1000);
+
+      // Second line: input without a result.
+      const incompleteLine = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[1]
+      );
+      await createCarbonInventoryLineInput(prisma, incompleteLine.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(2000),
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(false);
+    });
+
+    it("should ignore non-ACTIVE lines", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      // Active line with a result.
+      const activeLine = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const activeInput = await createCarbonInventoryLineInput(
+        prisma,
+        activeLine.id,
+        {
+          inputType: "DIRECT",
+          directTotalEmissions: new Prisma.Decimal(1000),
+        }
+      );
+      await createCarbonInventoryLineResult(prisma, activeInput.id, 1000);
+
+      // Deleted line without a result must not flip the flag to false.
+      await createCarbonInventoryLine(prisma, inventory.id, subcategoryIds[1], {
+        status: CarbonInventoryLineStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].hasActiveLines).toBe(true);
+      expect(body[0].areAllActiveLinesCompleted).toBe(true);
     });
   });
 });

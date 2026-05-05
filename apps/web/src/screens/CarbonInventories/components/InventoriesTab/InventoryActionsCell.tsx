@@ -27,7 +27,10 @@ import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
 import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
 import { UnaccreditedOrganizationDialog } from "../Dialogs/UnaccreditedOrganizationDialog";
 import { BlockedOrganizationDialog } from "../Dialogs/BlockedOrganizationDialog";
-import { IncompleteInventoryDialog } from "../Dialogs/IncompleteInventoryDialog";
+import {
+  IncompleteInventoryDialog,
+  IncompleteInventoryField,
+} from "../Dialogs/IncompleteInventoryDialog";
 import { ViewSubmissionDialog } from "@/components/dialogs/SubmissionHistory";
 import { enqueueSnackbar } from "notistack";
 import {
@@ -61,7 +64,9 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     useState(false);
   const [blockedOrgDialogOpen, setBlockedOrgDialogOpen] = useState(false);
   const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
-  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [missingFields, setMissingFields] = useState<
+    IncompleteInventoryField[]
+  >([]);
   const [isVerifySubmitting, setIsVerifySubmitting] = useState(false);
 
   const canRequestMeasurement = canSubmitToMeasurement(carbonInventory.status);
@@ -130,11 +135,22 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   }, [carbonInventory.id]);
 
   const getInventoryMissingFields = useCallback(() => {
-    const fields: string[] = [];
-    if (!carbonInventory.name) fields.push("name");
-    if (carbonInventory.year == null) fields.push("year");
+    const fields: IncompleteInventoryField[] = [];
+    if (!carbonInventory.name) fields.push(IncompleteInventoryField.NAME);
+    if (carbonInventory.year == null)
+      fields.push(IncompleteInventoryField.YEAR);
+    if (!carbonInventory.hasActiveLines) {
+      fields.push(IncompleteInventoryField.LINES);
+    } else if (!carbonInventory.areAllActiveLinesCompleted) {
+      fields.push(IncompleteInventoryField.COMPLETED_LINES);
+    }
     return fields;
-  }, [carbonInventory.name, carbonInventory.year]);
+  }, [
+    carbonInventory.name,
+    carbonInventory.year,
+    carbonInventory.hasActiveLines,
+    carbonInventory.areAllActiveLinesCompleted,
+  ]);
 
   const validateOrganization = useCallback(() => {
     const fields = getInventoryMissingFields();

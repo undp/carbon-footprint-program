@@ -54,6 +54,14 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
       SubmissionTypeSchema.exclude([SubmissionType.ORGANIZATION_ACCREDITATION])
     )
     .describe("List of recognition types earned by this carbon inventory."),
+  hasActiveLines: z
+    .boolean()
+    .describe("True when the inventory has at least one ACTIVE line."),
+  areAllActiveLinesCompleted: z
+    .boolean()
+    .describe(
+      "True when every ACTIVE line has a calculated result. Vacuously true when the inventory has no ACTIVE lines — pair with `hasActiveLines` to distinguish empty inventories from incomplete ones."
+    ),
 });
 
 // Response Schemas

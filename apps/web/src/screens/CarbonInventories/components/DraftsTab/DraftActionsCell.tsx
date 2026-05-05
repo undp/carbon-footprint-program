@@ -134,6 +134,14 @@ export const DraftActionsCell: FC<Props> = ({
       setSelfDeclareValidationReason("missing-year");
       return;
     }
+    if (!carbonInventory.hasActiveLines) {
+      setSelfDeclareValidationReason("missing-lines");
+      return;
+    }
+    if (!carbonInventory.areAllActiveLinesCompleted) {
+      setSelfDeclareValidationReason("missing-completed-lines");
+      return;
+    }
     if (
       carbonInventory.organizationDisplayStatus !==
       OrganizationDisplayStatusValues.ACCREDITED
@@ -150,6 +158,8 @@ export const DraftActionsCell: FC<Props> = ({
     carbonInventory.organizationId,
     carbonInventory.name,
     carbonInventory.year,
+    carbonInventory.hasActiveLines,
+    carbonInventory.areAllActiveLinesCompleted,
     carbonInventory.organizationDisplayStatus,
     isYearAlreadySelfDeclared,
   ]);
