@@ -30,8 +30,14 @@ export const Sidebar: FC<Props> = ({
 }) => {
   const location = useLocation();
 
-  const { isExpanded, requestExpand, handleMouseEnter, handleMouseLeave } =
-    useSidebarState();
+  const {
+    isExpanded,
+    isPinned,
+    togglePin,
+    requestExpand,
+    handleMouseEnter,
+    handleMouseLeave,
+  } = useSidebarState();
 
   return (
     <Drawer
@@ -53,6 +59,8 @@ export const Sidebar: FC<Props> = ({
     >
       <SidebarHeader
         isExpanded={isExpanded}
+        isPinned={isPinned}
+        onTogglePin={togglePin}
         onLogoClick={onLogoClick}
         areaLabel={areaLabel}
         areaVariant={areaVariant}

@@ -11,7 +11,9 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar/Sidebar";
 import type { SidebarDef } from "./Sidebar/Sidebar";
-import { SIDEBAR_MINI_WIDTH } from "@/config/constants";
+import { SIDEBAR_MINI_WIDTH, SIDEBAR_WIDTH } from "@/config/constants";
+import { useSidebarStore } from "@/stores/sidebarStore";
+import { sidebarTransition } from "@/theme";
 import {
   Routes,
   SidebarRoute,
@@ -38,10 +40,17 @@ const SIDEBAR_ITEMS: SidebarDef[] = Object.values(SidebarRoutes).map(
 
 export const MainLayout: FC<PropsWithChildren> = ({ children }) => {
   const navigate = useNavigate();
+  const isPinned = useSidebarStore((state) => state.isPinned);
 
   return (
     <Box className="flex h-screen flex-1">
-      <Box sx={{ width: SIDEBAR_MINI_WIDTH, flexShrink: 0 }}>
+      <Box
+        sx={(theme) => ({
+          width: isPinned ? SIDEBAR_WIDTH : SIDEBAR_MINI_WIDTH,
+          flexShrink: 0,
+          transition: sidebarTransition(theme, "width"),
+        })}
+      >
         <Sidebar
           items={SIDEBAR_ITEMS}
           onLogoClick={() => navigate({ to: Routes.HOME })}

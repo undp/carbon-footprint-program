@@ -1,16 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 const HOVER_OPEN_DELAY_MS = 180;
 
 interface UseSidebarStateResult {
   isExpanded: boolean;
+  isPinned: boolean;
+  togglePin: () => void;
   requestExpand: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
 }
 
 export const useSidebarState = (): UseSidebarStateResult => {
+  const isPinned = useSidebarStore((state) => state.isPinned);
+  const togglePin = useSidebarStore((state) => state.togglePin);
+
   const [isHovered, setIsHovered] = useState(false);
+  const isExpanded = isPinned || isHovered;
 
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -42,7 +49,9 @@ export const useSidebarState = (): UseSidebarStateResult => {
   }, [clearHoverTimer]);
 
   return {
-    isExpanded: isHovered,
+    isExpanded,
+    isPinned,
+    togglePin,
     requestExpand,
     handleMouseEnter,
     handleMouseLeave,
