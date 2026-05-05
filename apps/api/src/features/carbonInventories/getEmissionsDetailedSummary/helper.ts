@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@repo/database";
 import type { OrganizationDataField } from "@repo/types";
-import { roundEmissions } from "../utils.js";
 import type { CategoryData, InventoryBase } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
 
@@ -70,7 +69,7 @@ export async function calculateEquivalence(
   const rate = totalEmissions / mainActivityQuantity;
 
   return {
-    rate: roundEmissions(rate),
+    rate,
     activityName: mainActivity?.name ?? "actividad principal",
   };
 }
@@ -127,14 +126,14 @@ export function buildGHGBreakdown(
 
     return {
       subcategoryName: sub.name,
-      totalTCO2e: roundEmissions(sub.subtotal),
-      co2Fossil: roundEmissions(co2Fossil),
-      ch4: roundEmissions(ch4),
-      n2o: roundEmissions(n2o),
-      hfc: roundEmissions(hfc),
-      pfc: roundEmissions(pfc),
-      sf6: roundEmissions(sf6),
-      nf3: roundEmissions(nf3),
+      totalTCO2e: sub.subtotal,
+      co2Fossil,
+      ch4,
+      n2o,
+      hfc,
+      pfc,
+      sf6,
+      nf3,
     };
   });
 }

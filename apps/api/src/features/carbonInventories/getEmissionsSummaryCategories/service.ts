@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import { type GetEmissionsSummaryCategoriesResponse } from "@repo/types";
-import { distributePercentages, roundEmissions } from "../utils.js";
+import { distributePercentages } from "../utils.js";
 import {
   fetchCategoryData,
   calculateDisplayStatus,
@@ -54,7 +54,7 @@ export const getEmissionsSummaryCategoriesService = async (
     position: category.position,
     icon: category.icon,
     color: category.color,
-    subtotal: roundEmissions(category.subtotal),
+    subtotal: category.subtotal,
     percentage: categoryPercentages[catIdx],
   }));
 
@@ -65,7 +65,7 @@ export const getEmissionsSummaryCategoriesService = async (
       organizationId: inventory.organizationId?.toString() ?? null,
       status: displayStatus,
     },
-    totalEmissions: roundEmissions(totalEmissions),
+    totalEmissions,
     categories,
   };
 };

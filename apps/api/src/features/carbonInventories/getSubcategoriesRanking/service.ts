@@ -1,10 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetSubcategoriesRankingResponse } from "@repo/types";
-import {
-  distributePercentages,
-  getRankingSeverity,
-  roundEmissions,
-} from "../utils.js";
+import { distributePercentages, getRankingSeverity } from "../utils.js";
 import { fetchInventoryWithCategoryData } from "../helpers.js";
 
 export const getSubcategoriesRankingService = async (
@@ -55,7 +51,7 @@ export const getSubcategoriesRankingService = async (
     categoryName: item.categoryName,
     categoryPosition: item.categoryPosition,
     categoryColor: item.categoryColor,
-    subtotal: roundEmissions(item.subtotal),
+    subtotal: item.subtotal,
     percentage: rankingPercentages[idx],
     severity: getRankingSeverity(rankingPercentages[idx]),
   }));
