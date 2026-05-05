@@ -135,10 +135,10 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
+3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 
-⚠️ **Importante:** El campo espera el factor en **kgCO₂/unidad**. Si tu fuente expresa el factor en toneladas de CO₂e, debes convertirlo multiplicando por 1.000.
-_Ejemplo:_ 1,8 t CO₂e/tonelada = **1.800 kgCO₂/tonelada**.
+⚠️ **Importante:** El campo espera el factor en **kgCO₂e/unidad**. Si tu fuente expresa el factor en toneladas de CO₂e, debes convertirlo multiplicando por 1.000.
+_Ejemplo:_ 1,8 t CO₂e/tonelada = **1.800 kgCO₂e/tonelada**.
 
 ---
 
@@ -160,7 +160,7 @@ Y el factor de emisión es (ejemplo referencial):
 
 - **1.800 kgCO₂e por tonelada de acero** (equivalente a 1,8 t CO₂e/tonelada)
 
-En la plataforma ingresarías **1800** en el campo **"Factor kgCO₂/unidad"**.
+En la plataforma ingresarías **1800** en el campo **"Factor kgCO₂e/unidad"**.
 
 Entonces:
 
@@ -171,7 +171,7 @@ Es decir, el proceso productivo habría generado:
 - **1.080.000 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.
-Recuerda que el campo **"Factor kgCO₂/unidad"** espera el valor en **kilogramos**, no en toneladas. Si tu fuente indica el factor en toneladas, multiplica por 1.000 antes de ingresarlo.
+Recuerda que el campo **"Factor kgCO₂e/unidad"** espera el valor en **kilogramos**, no en toneladas. Si tu fuente indica el factor en toneladas, multiplica por 1.000 antes de ingresarlo.
 
 ---
 

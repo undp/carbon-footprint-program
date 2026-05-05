@@ -132,7 +132,7 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado (recuerda ingresar el factor en **kilogramos** de CO₂e por unidad).
+3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado (recuerda ingresar el factor en **kilogramos** de CO₂e por unidad).
 
 ---
 
@@ -167,7 +167,7 @@ Es decir, el proceso productivo habría generado:
 - **42.000 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.
-El campo "Factor kgCO₂/unidad" espera el factor en **kilogramos** de CO₂e por unidad. Si tu fuente expresa el factor en toneladas, multiplícalo por 1.000 para convertirlo a kg.
+El campo "Factor kgCO₂e/unidad" espera el factor en **kilogramos** de CO₂e por unidad. Si tu fuente expresa el factor en toneladas, multiplícalo por 1.000 para convertirlo a kg.
 
 ---
 
