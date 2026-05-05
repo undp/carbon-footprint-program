@@ -1,6 +1,6 @@
 [
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sectorName": "Manufactura / Industria Manufacturera",
     "subcategoryNames": [
       "Combustiones estacionarias",
@@ -11,7 +11,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sectorName": "Manufactura / Industria Manufacturera",
     "subsectorName": "Alimentos y Bebidas - Procesamiento de carnes",
     "subcategoryNames": [
@@ -21,7 +21,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sectorName": "Energía",
     "subcategoryNames": [
       "Combustiones estacionarias",
@@ -31,7 +31,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sectorName": "Energía",
     "subsectorName": "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
     "subcategoryNames": ["Emisiones provenientes de otras fuentes"]
