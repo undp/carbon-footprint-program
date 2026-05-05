@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
-import { formatEmissions, formatPercentage } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionPercentageBadgeProps {
@@ -26,7 +26,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
         fontWeight={fontWeight}
         sx={{ color: categoryColorPalette.dark }}
       >
-        {formatEmissions(emissions)}
+        {formatter.emissions(emissions)}
       </Typography>
       {hasPercentage && (
         <Box className="flex min-w-[60px] justify-end">
@@ -39,7 +39,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
               fontWeight={fontWeight}
               sx={{ color: categoryColorPalette.dark }}
             >
-              {formatPercentage(percentage)}
+              {formatter.percentage(percentage)}
             </Typography>
           </Box>
         </Box>

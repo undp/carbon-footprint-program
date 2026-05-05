@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Card, Stack, Typography, alpha } from "@mui/material";
-import { formatQuantity } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface SubmissionStatusCardProps {
   label: string;
@@ -47,7 +47,7 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
     {secondary !== undefined ? (
       <Stack direction="column" alignItems="baseline" spacing={0.5}>
         <Typography variant="h4" fontWeight={700}>
-          {formatQuantity(primary)} | {formatQuantity(secondary)}
+          {formatter.quantity(primary)} | {formatter.quantity(secondary)}
         </Typography>
         <Typography variant="caption" color="text.primary">
           {primaryLabel} | {secondaryLabel}
@@ -55,7 +55,7 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
       </Stack>
     ) : (
       <Typography variant="h4" fontWeight={700}>
-        {formatQuantity(primary)}
+        {formatter.quantity(primary)}
       </Typography>
     )}
   </Card>

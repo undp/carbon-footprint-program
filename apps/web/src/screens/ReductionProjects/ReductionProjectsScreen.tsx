@@ -30,7 +30,7 @@ import {
   useCarbonInventoriesMinimalData,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
-import { formatEmissions } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import {
   GetAllReductionProjectsResponse,
   ReductionProjectDisplayStatus,
@@ -225,8 +225,7 @@ export const ReductionProjectsScreen: FC = () => {
           minWidth: 100,
           flex: 0.6,
           cellClassName: "content-center",
-          valueFormatter: (value: number | null) =>
-            value != null ? formatEmissions(value) : "—",
+          valueFormatter: (value: number | null) => formatter.emissions(value),
         },
         {
           field: "status",

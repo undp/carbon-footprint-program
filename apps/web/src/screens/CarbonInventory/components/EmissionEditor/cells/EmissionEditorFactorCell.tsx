@@ -4,7 +4,7 @@ import { Typography, Tooltip } from "@mui/material";
 import { NumericInput } from "@/components";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
-import { formatEmissionFactor } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import {
   MethodologyEmissionFactorDimension,
   RateMeasurementUnit,
@@ -66,9 +66,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <Typography>
-      {value !== null && value !== undefined
-        ? formatEmissionFactor(value)
-        : value}{" "}
+      {formatter.emissionFactor(value, { ifEmpty: " " })}{" "}
       {unit?.abbreviation ?? ""}
     </Typography>
   );

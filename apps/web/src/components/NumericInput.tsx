@@ -2,7 +2,7 @@ import { FC } from "react";
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material";
 import type { FieldError } from "react-hook-form";
 import { NumericFormat, NumberFormatValues } from "react-number-format";
-import { NUMBER_LOCALE } from "@/config/locale";
+import { formatter } from "@/utils/formatting";
 
 interface Props
   extends Omit<TextFieldProps, "onChange" | "value" | "defaultValue" | "type"> {
@@ -19,7 +19,7 @@ export const NumericInput: FC<Props> = ({
   value,
   suffix,
   min,
-  decimalScale = NUMBER_LOCALE.decimalScale,
+  decimalScale = formatter.decimalScale,
   sx,
   fieldError,
   error,
@@ -47,8 +47,8 @@ export const NumericInput: FC<Props> = ({
       customInput={TextField}
       value={value}
       valueIsNumericString={false}
-      decimalSeparator={NUMBER_LOCALE.decimalSeparator}
-      thousandSeparator={NUMBER_LOCALE.thousandSeparator}
+      decimalSeparator={formatter.decimalSeparator}
+      thousandSeparator={formatter.thousandSeparator}
       decimalScale={decimalScale}
       allowNegative={min === undefined || min < 0}
       onValueChange={handleValueChange}

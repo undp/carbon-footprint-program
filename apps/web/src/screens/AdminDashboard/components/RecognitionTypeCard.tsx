@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Avatar, Box, Card, Stack, Typography } from "@mui/material";
-import { formatQuantity } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface RecognitionTypeCardProps {
   label: string;
@@ -60,7 +60,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
     {showPaired ? (
       <Stack direction="column" alignItems="baseline" spacing={0.5}>
         <Typography variant="h4" fontWeight={700}>
-          {formatQuantity(approved)} | {formatQuantity(approvedAuto)}
+          {formatter.quantity(approved)} | {formatter.quantity(approvedAuto)}
         </Typography>
         <Typography variant="caption" color="text.secondary">
           Manual | Automático
@@ -68,7 +68,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
       </Stack>
     ) : (
       <Typography variant="h4" fontWeight={700}>
-        {formatQuantity(approved + approvedAuto)}
+        {formatter.quantity(approved + approvedAuto)}
       </Typography>
     )}
   </Card>

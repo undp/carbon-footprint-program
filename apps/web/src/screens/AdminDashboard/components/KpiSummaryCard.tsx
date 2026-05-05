@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Card, Skeleton, Stack, Typography, alpha } from "@mui/material";
-import { formatQuantity } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface KpiSummaryCardProps {
   title: string;
@@ -77,8 +77,8 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
       <Stack direction="column" alignItems="baseline" spacing={0.5}>
         <Typography variant="h4" fontWeight={700}>
           {secondaryValue != null
-            ? `${formatQuantity(primaryValue)} | ${formatQuantity(secondaryValue)}`
-            : formatQuantity(primaryValue)}
+            ? `${formatter.quantity(primaryValue)} | ${formatter.quantity(secondaryValue)}`
+            : formatter.quantity(primaryValue)}
         </Typography>
         <Typography variant="body2" color="text.primary">
           {secondaryLabel

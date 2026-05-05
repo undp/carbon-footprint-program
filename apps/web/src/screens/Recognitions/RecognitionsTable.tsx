@@ -8,6 +8,7 @@ import {
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
+import { formatter } from "@/utils/formatting";
 
 const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
   {
@@ -17,14 +18,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerAlign: "center",
     align: "center",
     cellClassName: "content-center",
-    valueFormatter: (value: string) =>
-      value
-        ? new Date(value).toLocaleDateString("es", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-        : "-",
+    valueFormatter: (value: string) => formatter.dateNumeric(value),
   },
   {
     field: "measurementYear",
@@ -49,9 +43,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerName: "Emisiones (tCO₂e)",
     flex: 1,
     valueFormatter: (value: number) =>
-      value != null
-        ? value.toLocaleString("es", { maximumFractionDigits: 0 })
-        : "-",
+      formatter.emissions(value, { withSuffix: false }),
   },
   {
     field: "actions",

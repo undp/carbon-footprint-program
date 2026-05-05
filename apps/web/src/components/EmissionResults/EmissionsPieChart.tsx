@@ -4,6 +4,7 @@ import { PieChart } from "@mui/x-charts/PieChart";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { getColorPalette } from "@/utils/categoryColors";
+import { formatter } from "@/utils/formatting";
 
 interface CategoryData {
   name: string;
@@ -19,12 +20,6 @@ interface EmissionsPieChartProps {
   isLoading?: boolean;
   hasError?: boolean;
 }
-
-const formatNumber = (value: number): string =>
-  value.toLocaleString("es", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
 
 export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   categories,
@@ -80,7 +75,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
                 fontWeight="fontWeightSemiBold"
                 color="text.primary"
               >
-                {formatNumber(totalEmissions)}
+                {formatter.emissions(totalEmissions, { withSuffix: false })}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 tCO₂e

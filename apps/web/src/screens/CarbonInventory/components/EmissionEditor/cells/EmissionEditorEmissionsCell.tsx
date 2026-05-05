@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useWatch } from "react-hook-form";
 import { Typography } from "@mui/material";
 import { kgToTon } from "@/utils/number";
-import { formatEmissions } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface EmissionEditorEmissionsCellProps {
   subcategoryId: string;
@@ -22,5 +22,5 @@ export const EmissionEditorEmissionsCell: FC<
 
   const totalEmissions = kgToTon((quantity || 0) * (factorValue || 0));
 
-  return <Typography>{formatEmissions(totalEmissions)}</Typography>;
+  return <Typography>{formatter.emissions(totalEmissions)}</Typography>;
 };

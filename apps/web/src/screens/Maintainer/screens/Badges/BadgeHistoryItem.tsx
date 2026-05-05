@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { BrokenImageOutlined, RefreshOutlined } from "@mui/icons-material";
 import type { BadgeDTO } from "@repo/types";
-import { formatDate } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface BadgeHistoryItemProps {
   badge: BadgeDTO;
@@ -87,7 +87,7 @@ export const BadgeHistoryItem: FC<BadgeHistoryItemProps> = ({
           {badge.fileName}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {formatDate(badge.createdAt)}
+          {formatter.date(badge.createdAt)}
         </Typography>
         {highlight && (
           <Typography variant="caption" color="primary" display="block">

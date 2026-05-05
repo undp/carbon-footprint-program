@@ -9,7 +9,7 @@ import {
   Skeleton,
 } from "@mui/material";
 import { InfoButton, NumericInput } from "@/components";
-import { formatEmissions } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
@@ -156,7 +156,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         {/* Case 4: Detailed mode active and not loading (Shows the real total) */}
         {!isManualModeLoading && !isTotalManualEmissionsModeActive && (
           <Typography variant="subtitle1" fontWeight="bold">
-            {formatEmissions(kgToTon(totalEmission))}
+            {formatter.emissions(kgToTon(totalEmission))}
           </Typography>
         )}
       </Box>
