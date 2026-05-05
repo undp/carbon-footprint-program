@@ -1,6 +1,9 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { Box } from "@mui/material";
-import { useCarbonInventoriesMinimalData } from "@/api/query";
+import {
+  useCarbonInventoriesMinimalData,
+  useMyOrganizations,
+} from "@/api/query";
 import { Header } from "./components";
 import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent, ScreenEmptyState } from "@/components";
@@ -22,6 +25,17 @@ export const HomeScreen: FC = () => {
       CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
       CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
     ]);
+
+  const { data: organizations = [] } = useMyOrganizations();
+
+  const organizationsById = useMemo(
+    () =>
+      organizations.reduce<Record<string, string>>((acc, { id, name }) => {
+        acc[id] = name;
+        return acc;
+      }, {}),
+    [organizations]
+  );
 
   const availableYears = useMemo(() => {
     const years = inventories
@@ -78,6 +92,7 @@ export const HomeScreen: FC = () => {
         onCarbonInventoryChange={setSelectedCarbonInventoryId}
         selectedYear={effectiveYear}
         selectedCarbonInventory={effectiveInventoryId}
+        organizationsById={organizationsById}
       />
 
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
