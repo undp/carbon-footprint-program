@@ -17,7 +17,6 @@ interface Props {
   onCarbonInventoryChange: (inventoryId: string) => void;
   selectedYear: string;
   selectedCarbonInventory: string;
-  organizationsById: Record<string, string>;
 }
 
 export const Header: FC<Props> = ({
@@ -27,7 +26,6 @@ export const Header: FC<Props> = ({
   onCarbonInventoryChange,
   selectedYear,
   selectedCarbonInventory,
-  organizationsById,
 }) => {
   const onYearSelectChange = useCallback(
     (event: SelectChangeEvent) => {
@@ -49,9 +47,7 @@ export const Header: FC<Props> = ({
   );
 
   const selectedInventoryName = selectedInventory?.name ?? "";
-  const selectedOrganizationName = selectedInventory?.organizationId
-    ? (organizationsById[selectedInventory.organizationId] ?? "")
-    : "";
+  const selectedOrganizationName = selectedInventory?.organizationName ?? "";
 
   return (
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
