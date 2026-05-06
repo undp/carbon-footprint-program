@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { FC, PropsWithChildren, useMemo } from "react";
-import { SIDEBAR_WIDTH } from "@/config/constants";
+import { SIDEBAR_MINI_WIDTH, SIDEBAR_WIDTH } from "@/config/constants";
+import { useSidebarStore } from "@/stores/sidebarStore";
+import { sidebarTransition } from "@/theme";
 import {
   DashboardOutlined,
   MenuBookOutlined,
@@ -73,7 +75,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   },
   {
     text: "Unidades",
-    icon: <SquareFootOutlined fontSize="small" />,
+    icon: <SquareFootOutlined />,
     path: Routes.ADMIN_UNITS,
   },
   {
@@ -155,6 +157,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
 export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
   const { data: me } = useMe(true);
   const userRole = me?.role;
+  const isPinned = useSidebarStore((state) => state.isPinned);
 
   const visibleItems = useMemo(
     () =>
@@ -167,7 +170,13 @@ export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
   );
 
   return (
-    <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_WIDTH }}>
+    <Box
+      className="min-h-screen"
+      sx={(theme) => ({
+        pl: `${isPinned ? SIDEBAR_WIDTH : SIDEBAR_MINI_WIDTH}px`,
+        transition: sidebarTransition(theme, "padding-left"),
+      })}
+    >
       <Sidebar items={visibleItems} areaLabel="Admin" areaVariant="admin" />
       <Box className="flex min-h-screen flex-col gap-3 bg-gray-50 px-6 py-6">
         {children}

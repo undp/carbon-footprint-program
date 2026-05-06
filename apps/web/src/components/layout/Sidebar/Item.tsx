@@ -8,6 +8,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { Link } from "@tanstack/react-router";
+import { sidebarTransition } from "@/theme";
+import { OverflowTooltipText } from "@/components/OverflowTooltipText";
 
 export interface SidebarItemProps {
   icon: React.ReactNode;
@@ -16,6 +18,7 @@ export interface SidebarItemProps {
   selected: boolean;
   disabled?: boolean;
   isChild?: boolean;
+  isExpanded?: boolean;
 }
 
 export const Item: FC<SidebarItemProps> = ({
@@ -25,6 +28,7 @@ export const Item: FC<SidebarItemProps> = ({
   selected,
   disabled,
   isChild,
+  isExpanded = true,
 }) => {
   const theme = useTheme();
 
@@ -38,16 +42,17 @@ export const Item: FC<SidebarItemProps> = ({
         to={path}
         disabled={disabled}
         sx={{
-          mx: 1,
           minHeight: isChild ? 36 : 34,
           borderRadius: 34,
-          pt: 0.5,
-          pb: 0.5,
-          mr: 0,
+          py: 0.5,
+          px: 2,
           ml: isChild ? 3 : 0,
+          mr: 0,
+          justifyContent: "flex-start",
           "& .MuiListItemIcon-root": {
             mr: 1,
-            minWidth: "unset",
+            minWidth: 0,
+            justifyContent: "center",
           },
           "& .MuiListItemText-primary": {
             mt: 0,
@@ -75,7 +80,18 @@ export const Item: FC<SidebarItemProps> = ({
         selected={selected}
       >
         <ListItemIcon>{icon}</ListItemIcon>
-        <ListItemText primary={text} />
+        <ListItemText
+          primary={
+            <OverflowTooltipText variant="body1">{text}</OverflowTooltipText>
+          }
+          slotProps={{ primary: { noWrap: true } }}
+          sx={{
+            opacity: isExpanded ? 1 : 0,
+            width: isExpanded ? "auto" : 0,
+            overflow: "hidden",
+            transition: sidebarTransition(theme, ["opacity", "width"]),
+          }}
+        />
       </ListItemButton>
     </ListItem>
   );

@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import {
   Collapse,
   IconButton,
@@ -14,6 +14,8 @@ import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Link, useLocation } from "@tanstack/react-router";
 import type { SystemRole } from "@repo/types";
 import { Item } from "./Item";
+import { sidebarTransition } from "@/theme";
+import { OverflowTooltipText } from "@components/OverflowTooltipText";
 
 export interface SidebarGroupItem {
   icon: React.ReactNode;
@@ -25,6 +27,7 @@ export interface SidebarGroupItem {
 
 export interface SidebarGroupProps extends SidebarGroupItem {
   children: SidebarGroupItem[];
+  isExpanded?: boolean;
 }
 
 export const Group: FC<SidebarGroupProps> = ({
@@ -33,6 +36,7 @@ export const Group: FC<SidebarGroupProps> = ({
   path,
   disabled,
   children,
+  isExpanded = true,
 }) => {
   const theme = useTheme();
   const location = useLocation();
@@ -42,77 +46,112 @@ export const Group: FC<SidebarGroupProps> = ({
   const isChildActive = children.some(
     (child) => location.pathname === child.path
   );
-  const isGroupOpen = isActive || isChildActive || isOpen;
 
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
 
-  const handleToggleGroup = useCallback(
-    (event: React.MouseEvent) => {
-      event.stopPropagation();
-      event.preventDefault();
-      if (isActive || isChildActive) return;
-      setIsOpen((prev) => !prev);
-    },
-    [isChildActive, isActive]
+  // Persistently collapse the groups when sidebar collapses
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!isExpanded) setIsOpen(false);
+  }, [isExpanded]);
+
+  const handleToggleGroup = useCallback((event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setIsOpen((prev) => !prev);
+  }, []);
+
+  const button = (
+    <ListItemButton
+      component={Link}
+      to={path}
+      disabled={disabled}
+      onClick={handleToggleGroup}
+      selected={isActive || isChildActive}
+      sx={{
+        minHeight: 34,
+        borderRadius: 34,
+        py: 0.5,
+        px: 2,
+        ml: 0,
+        mr: 0,
+        justifyContent: "flex-start",
+        "& .MuiListItemIcon-root": {
+          mr: 1,
+          minWidth: 0,
+          justifyContent: "center",
+        },
+        "& .MuiListItemText-primary": {
+          mt: 0,
+          mb: 0,
+        },
+        "&.Mui-selected": {
+          borderRadius: 34,
+          backgroundColor,
+          color: selectedTextColor,
+          fontWeight: "bold",
+          "& .MuiListItemIcon-root": {
+            color: selectedTextColor,
+          },
+          "& .MuiListItemText-primary": {
+            color: selectedTextColor,
+            fontWeight: "bold",
+          },
+          "&:hover": {
+            color: selectedTextColor,
+            backgroundColor,
+          },
+        },
+      }}
+    >
+      <ListItemIcon>{icon}</ListItemIcon>
+      <ListItemText
+        primary={
+          <OverflowTooltipText variant="body1">{text}</OverflowTooltipText>
+        }
+        slotProps={{ primary: { noWrap: true } }}
+        sx={{
+          opacity: isExpanded ? 1 : 0,
+          width: isExpanded ? "auto" : 0,
+          overflow: "hidden",
+          transition: sidebarTransition(theme, ["opacity", "width"]),
+        }}
+      />
+      <IconButton
+        disableRipple
+        size="small"
+        sx={{
+          p: 0,
+          opacity: isExpanded ? 1 : 0,
+          width: isExpanded ? "auto" : 0,
+          minWidth: 0,
+          overflow: "hidden",
+          flexShrink: 0,
+          transition: sidebarTransition(theme, "opacity"),
+        }}
+      >
+        {isOpen ? (
+          <ExpandLess sx={{ fontSize: 16 }} />
+        ) : (
+          <ExpandMore sx={{ fontSize: 16 }} />
+        )}
+      </IconButton>
+    </ListItemButton>
   );
 
   return (
     <>
-      <ListItem sx={{ mb: isGroupOpen ? 0.5 : 2 }} disablePadding>
-        <ListItemButton
-          component={Link}
-          to={path}
-          disabled={disabled}
-          onClick={handleToggleGroup}
-          selected={isActive}
-          sx={{
-            mx: 1,
-            minHeight: 34,
-            borderRadius: 34,
-            pt: 0.5,
-            pb: 0.5,
-            mr: 0,
-            ml: 0,
-            "& .MuiListItemIcon-root": {
-              mr: 1,
-              minWidth: "unset",
-            },
-            "& .MuiListItemText-primary": {
-              mt: 0,
-              mb: 0,
-            },
-            "&.Mui-selected": {
-              borderRadius: 34,
-              backgroundColor,
-              color: selectedTextColor,
-              fontWeight: "bold",
-              "& .MuiListItemIcon-root": {
-                color: selectedTextColor,
-              },
-              "& .MuiListItemText-primary": {
-                color: selectedTextColor,
-                fontWeight: "bold",
-              },
-              "&:hover": {
-                color: selectedTextColor,
-                backgroundColor,
-              },
-            },
-          }}
-        >
-          <ListItemIcon>{icon}</ListItemIcon>
-          <ListItemText primary={text} />
-          <IconButton disableRipple size="small" sx={{ p: 0 }}>
-            {isGroupOpen ? (
-              <ExpandLess sx={{ fontSize: 16 }} />
-            ) : (
-              <ExpandMore sx={{ fontSize: 16 }} />
-            )}
-          </IconButton>
-        </ListItemButton>
+      <ListItem
+        sx={{
+          mb: 1,
+          transition: sidebarTransition(theme, "margin-bottom"),
+        }}
+        disablePadding
+      >
+        {button}
       </ListItem>
-      <Collapse in={isGroupOpen} timeout="auto" unmountOnExit>
+      <Collapse in={isOpen} timeout="auto" unmountOnExit>
         <List component="div" disablePadding sx={{ mb: 1 }}>
           {children.map((child) => (
             <Item
@@ -123,6 +162,7 @@ export const Group: FC<SidebarGroupProps> = ({
               selected={location.pathname === child.path}
               disabled={child.disabled}
               isChild
+              isExpanded={isExpanded}
             />
           ))}
         </List>
