@@ -77,6 +77,12 @@ const main = async (argv: string[]): Promise<number> => {
           `La fuente ${locked.id.toString()} no está en estado DRAFT (estado actual: ${locked.status}).`
         );
       }
+      // Single timestamp for the cutover so the OUTDATED predecessor's
+      // deactivated_at and the new ACTIVE's activated_at are exactly equal —
+      // the spec models activation as one atomic instant; treating these as
+      // separate `new Date()` calls leaks a few-millisecond drift into the
+      // history that confuses tests and analytics.
+      const now = new Date();
       await tx.chatbotCorpusSource.updateMany({
         where: {
           name: locked.name,
@@ -85,14 +91,14 @@ const main = async (argv: string[]): Promise<number> => {
         },
         data: {
           status: CorpusSourceStatus.OUTDATED,
-          deactivatedAt: new Date(),
+          deactivatedAt: now,
         },
       });
       await tx.chatbotCorpusSource.update({
         where: { id: locked.id },
         data: {
           status: CorpusSourceStatus.ACTIVE,
-          activatedAt: new Date(),
+          activatedAt: now,
         },
       });
     });
