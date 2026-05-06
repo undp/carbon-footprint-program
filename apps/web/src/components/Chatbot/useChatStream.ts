@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import type { SourceCitationWire } from "@repo/types";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
@@ -94,6 +95,23 @@ export const useChatStream = () => {
       const processEvent = (ev: SsePayload): SendMessageResult | null => {
         if (ev.id) lastEventIdRef.current = ev.id;
         if (ev.event === "done") {
+          try {
+            const parsed = JSON.parse(ev.data) as {
+              sources?: SourceCitationWire[];
+            };
+            if (Array.isArray(parsed.sources) && parsed.sources.length > 0) {
+              const sources = parsed.sources;
+              updateLastAssistant((msg) => ({
+                ...msg,
+                sourcesCited: sources,
+              }));
+            }
+          } catch {
+            // Malformed `done` payload — log and continue. Foundation widgets
+            // that ignore the new optional field stay backwards-compatible.
+            // eslint-disable-next-line no-console
+            console.warn("Malformed done event payload");
+          }
           return { kind: "completed" };
         }
         if (ev.event === "error") {

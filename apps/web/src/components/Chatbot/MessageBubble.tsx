@@ -1,4 +1,13 @@
-import { Box, Typography } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Collapse,
+  IconButton,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { alpha, useTheme } from "@mui/material/styles";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -11,8 +20,15 @@ interface MessageBubbleProps {
   message: ChatbotMessage;
 }
 
+const ExternalLink = (
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+): React.ReactElement => (
+  <a {...props} target="_blank" rel="noopener noreferrer" />
+);
+
 export function MessageBubble({ message }: MessageBubbleProps) {
   const theme = useTheme();
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const isUser = message.role === "user";
   const bubbleBg = isUser
     ? theme.palette.primary.main
@@ -20,11 +36,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const textColor = isUser
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary;
+  const sources = message.sourcesCited ?? [];
+  const hasSources = !isUser && sources.length > 0;
 
   return (
     <Box
       display="flex"
-      justifyContent={isUser ? "flex-end" : "flex-start"}
+      flexDirection="column"
+      alignItems={isUser ? "flex-end" : "flex-start"}
       mb={1}
     >
       <Box
@@ -50,6 +69,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeKatex]}
+              components={{ a: ExternalLink }}
             >
               {message.content || "…"}
             </ReactMarkdown>
@@ -66,6 +86,50 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </Box>
         )}
       </Box>
+      {hasSources ? (
+        <Box mt={0.5} maxWidth="85%" width="100%">
+          <Box display="flex" alignItems="center" gap={0.5}>
+            <IconButton
+              size="small"
+              aria-label="Ver fuentes consultadas"
+              aria-expanded={sourcesOpen}
+              onClick={() => setSourcesOpen((prev) => !prev)}
+              sx={{
+                transform: sourcesOpen ? "rotate(180deg)" : "none",
+                transition: "transform 0.2s",
+              }}
+            >
+              <ExpandMoreIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="caption" color="text.secondary">
+              {`Fuentes consultadas (${sources.length})`}
+            </Typography>
+          </Box>
+          <Collapse in={sourcesOpen}>
+            <Stack spacing={0.5} mt={0.5} pl={2}>
+              {sources.map((source) => (
+                <Box key={`${source.source_id}-${source.chunk_id}`}>
+                  <Link
+                    href={source.cite_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="caption"
+                  >
+                    {source.cite_label}
+                  </Link>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                  >
+                    {source.snippet}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Collapse>
+        </Box>
+      ) : null}
     </Box>
   );
 }
