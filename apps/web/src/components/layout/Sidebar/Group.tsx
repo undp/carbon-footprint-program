@@ -46,7 +46,7 @@ export const Group: FC<SidebarGroupProps> = ({
   const isChildActive = children.some(
     (child) => location.pathname === child.path
   );
-  const isGroupOpen = isExpanded && (isActive || isChildActive || isOpen);
+  const isGroupOpen = isExpanded && isOpen;
 
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
@@ -63,7 +63,7 @@ export const Group: FC<SidebarGroupProps> = ({
       to={path}
       disabled={disabled}
       onClick={handleToggleGroup}
-      selected={isActive || (!isExpanded && isChildActive)}
+      selected={isActive || isChildActive}
       sx={{
         minHeight: 34,
         borderRadius: 34,
