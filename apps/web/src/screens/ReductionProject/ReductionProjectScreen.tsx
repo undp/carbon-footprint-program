@@ -88,14 +88,6 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const hasError = hasProjectInformationError || hasSelectorsError;
 
   const status = isEditMode || isViewMode ? project?.status : undefined;
-  // Guard only fires in edit mode; view/create pass undefined so the hook is
-  // a no-op and never redirects.
-  const { canEdit, mustNavigateAway } = useReductionProjectRouteGuard(
-    isEditMode ? id : undefined
-  );
-  const isFormDisabled =
-    isViewMode || (!isCreateMode && Boolean(status) && !canEdit);
-
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const showFileUpload = isCreateMode || (isReviewed && !isViewMode);
 
@@ -107,7 +99,20 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     setValue,
     selectedOrganizationId,
     selectedCarbonInventoryId,
+    formState: { isSubmitting: isFormSubmitting, isSubmitSuccessful },
   } = form;
+
+  // Guard only fires in edit mode; view/create pass undefined so the hook is
+  // a no-op and never redirects. Suppress it while submitting and after a
+  // successful save: the mutation invalidates the access query and a status
+  // transition (e.g. REVIEWED→SUBMITTED) would otherwise fire a stale
+  // "no edit" snackbar before the screen unmounts.
+  const { canEdit, mustNavigateAway } = useReductionProjectRouteGuard(
+    isEditMode ? id : undefined,
+    !isFormSubmitting && !isSubmitSuccessful
+  );
+  const isFormDisabled =
+    isViewMode || (!isCreateMode && Boolean(status) && !canEdit);
 
   // Derived: carbon inventory detail for methodology + year
   const { data: inventoryDetail } = useCarbonInventory(
