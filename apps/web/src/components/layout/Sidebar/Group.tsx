@@ -28,7 +28,6 @@ export interface SidebarGroupItem {
 export interface SidebarGroupProps extends SidebarGroupItem {
   children: SidebarGroupItem[];
   isExpanded?: boolean;
-  onRequestExpand?: () => void;
 }
 
 export const Group: FC<SidebarGroupProps> = ({
@@ -38,7 +37,6 @@ export const Group: FC<SidebarGroupProps> = ({
   disabled,
   children,
   isExpanded = true,
-  onRequestExpand,
 }) => {
   const theme = useTheme();
   const location = useLocation();
@@ -53,20 +51,11 @@ export const Group: FC<SidebarGroupProps> = ({
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
 
-  const handleToggleGroup = useCallback(
-    (event: React.MouseEvent) => {
+  const handleToggleGroup = useCallback((event: React.MouseEvent) => {
       event.stopPropagation();
       event.preventDefault();
-      if (!isExpanded) {
-        onRequestExpand?.();
-        setIsOpen(true);
-        return;
-      }
-      if (isActive || isChildActive) return;
       setIsOpen((prev) => !prev);
-    },
-    [isChildActive, isActive, isExpanded, onRequestExpand]
-  );
+  }, []);
 
   const button = (
     <ListItemButton

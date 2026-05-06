@@ -34,7 +34,6 @@ export const Sidebar: FC<Props> = ({
     isExpanded,
     isPinned,
     togglePin,
-    requestExpand,
     handleMouseEnter,
     handleMouseLeave,
   } = useSidebarState();
@@ -54,8 +53,8 @@ export const Sidebar: FC<Props> = ({
       })}
       slotProps={{
         paper: {
-        onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
         },
       }}
     >
@@ -102,7 +101,6 @@ export const Sidebar: FC<Props> = ({
                 path={def.path}
                 disabled={def.disabled}
                 isExpanded={isExpanded}
-                onRequestExpand={requestExpand}
               >
                 {def.children}
               </Group>
