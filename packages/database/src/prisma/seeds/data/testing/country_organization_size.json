@@ -1,34 +1,34 @@
 [
   {
     "name": "Microempresa (1-10 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Pequeña empresa (11-49 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Mediana empresa I (50-99 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Mediana empresa II (100-249 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Gran empresa (250-499 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Empresa muy grande (500-999 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Corporación grande (1000-4999 empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   },
   {
     "name": "Corporación multinacional (5000+ empleados)",
-    "countryIsoCode": "CL"
+    "countryIsoCode": "PD"
   }
 ]
