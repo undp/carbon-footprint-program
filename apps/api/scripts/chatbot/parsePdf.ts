@@ -14,8 +14,9 @@ export const parsePdf = async (filePath: string): Promise<ParsedPdf> => {
     const reason = err instanceof Error ? err.message : String(err);
     throw new Error(`No se pudo leer el archivo PDF en ${filePath}: ${reason}`);
   }
+  let parser: PDFParse | null = null;
   try {
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    parser = new PDFParse({ data: new Uint8Array(buffer) });
     const result = await parser.getText();
     return {
       text: result.text,
@@ -24,5 +25,9 @@ export const parsePdf = async (filePath: string): Promise<ParsedPdf> => {
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     throw new Error(`No se pudo procesar el PDF en ${filePath}: ${reason}`);
+  } finally {
+    // pdf-parse 2.x requires destroy() to release pdfjs worker resources.
+    // Swallow destroy errors so they cannot mask the original parse error.
+    if (parser) await parser.destroy().catch(() => undefined);
   }
 };
