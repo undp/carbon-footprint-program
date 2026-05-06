@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import {
   Collapse,
   IconButton,
@@ -46,15 +46,20 @@ export const Group: FC<SidebarGroupProps> = ({
   const isChildActive = children.some(
     (child) => location.pathname === child.path
   );
-  const isGroupOpen = isExpanded && isOpen;
 
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
 
+  // Persistently collapse the groups when sidebar collapses
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!isExpanded) setIsOpen(false);
+  }, [isExpanded]);
+
   const handleToggleGroup = useCallback((event: React.MouseEvent) => {
-      event.stopPropagation();
-      event.preventDefault();
-      setIsOpen((prev) => !prev);
+    event.stopPropagation();
+    event.preventDefault();
+    setIsOpen((prev) => !prev);
   }, []);
 
   const button = (
@@ -125,7 +130,7 @@ export const Group: FC<SidebarGroupProps> = ({
           transition: sidebarTransition(theme, "opacity"),
         }}
       >
-        {isGroupOpen ? (
+        {isOpen ? (
           <ExpandLess sx={{ fontSize: 16 }} />
         ) : (
           <ExpandMore sx={{ fontSize: 16 }} />
@@ -138,7 +143,7 @@ export const Group: FC<SidebarGroupProps> = ({
     <>
       <ListItem
         sx={{
-          mb: isGroupOpen ? 0.5 : 2,
+          mb: isOpen ? 0.5 : 2,
           transition: sidebarTransition(theme, "margin-bottom"),
         }}
         disablePadding
@@ -151,7 +156,7 @@ export const Group: FC<SidebarGroupProps> = ({
           </Tooltip>
         )}
       </ListItem>
-      <Collapse in={isGroupOpen} timeout="auto" unmountOnExit>
+      <Collapse in={isOpen} timeout="auto" unmountOnExit>
         <List component="div" disablePadding sx={{ mb: 1 }}>
           {children.map((child) => (
             <Item
