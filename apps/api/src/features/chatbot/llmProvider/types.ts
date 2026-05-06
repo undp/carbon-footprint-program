@@ -1,4 +1,4 @@
-import { ChatMessageRole } from "@repo/database/enums";
+import type { ChatMessageRole } from "@repo/database/enums";
 
 /** A single tool call produced by the LLM in an assistant turn. */
 export type LlmToolCall = {

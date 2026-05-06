@@ -24,8 +24,8 @@ const expandToVector = (input: string): number[] => {
   for (let i = 0; i < HASH_ITERATIONS_PER_VECTOR; i++) {
     for (let j = 0; j < FLOATS_PER_HASH; j++) {
       const u32 = digest.readUInt32BE(j * 4);
-      // Map u32 to roughly [-1, 1) so the normalization step has a non-zero
-      // chance of touching every component.
+      // Map u32 to roughly [-0.5, 0.5] (centered around 0) so the
+      // normalization step has a non-zero chance of touching every component.
       vector[offset++] = u32 / 0xffffffff - 0.5;
     }
     digest = createHash("sha256").update(digest).digest();
