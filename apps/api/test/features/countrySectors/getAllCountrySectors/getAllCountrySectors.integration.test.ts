@@ -39,7 +39,7 @@ describe("GET /api/country-sectors - Integration Tests", () => {
   afterEach(async () => {});
 
   describe("Sectors - Successful retrieval", () => {
-    it("should return exactly 17 country sectors", async () => {
+    it("should return exactly 18 country sectors", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/country-sectors",
@@ -47,7 +47,7 @@ describe("GET /api/country-sectors - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
-      expect(body).toHaveLength(17);
+      expect(body).toHaveLength(18);
     });
 
     it("should return country sectors with expected attributes", async () => {
@@ -162,7 +162,7 @@ describe("GET /api/country-sectors - Integration Tests", () => {
   });
 
   describe("Subsectors - Successful retrieval", () => {
-    it("should return exactly 143 subsectors across all sectors", async () => {
+    it("should return exactly 150 subsectors across all sectors", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/country-sectors",
@@ -175,7 +175,7 @@ describe("GET /api/country-sectors - Integration Tests", () => {
         (acc, sector) => acc + sector.subsectors.length,
         0
       );
-      expect(totalSubsectors).toBe(143);
+      expect(totalSubsectors).toBe(150);
     });
 
     it("should return subsectors with expected attributes", async () => {
