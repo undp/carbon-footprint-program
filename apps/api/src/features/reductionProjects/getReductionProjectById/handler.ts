@@ -11,7 +11,8 @@ export const getReductionProjectByIdHandler = async (
   log.info(`Getting reduction project ${id}...`);
 
   const prisma = request.server.prisma;
-  const data = await getReductionProjectByIdService(prisma, id);
+  const userId = request.currentUser ? BigInt(request.currentUser.id) : null;
+  const data = await getReductionProjectByIdService(prisma, id, userId);
 
   log.info("Reduction project found successfully");
   return reply.status(200).send(data);

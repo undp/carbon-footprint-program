@@ -8,18 +8,33 @@ import type { ReductionProjectDisplayStatus } from "@repo/types";
 import { GwpSourceSchema } from "@repo/types";
 import { ConsideredGeiSchema } from "@repo/types";
 
-type ReductionProjectWithSubcategory = Prisma.ReductionProjectGetPayload<{
-  include: { subcategory: { select: { id: true; name: true } } };
+type ReductionProjectWithRelations = Prisma.ReductionProjectGetPayload<{
+  include: {
+    subcategory: { select: { id: true; name: true } };
+    organization: {
+      select: { id: true; summary: { select: { name: true } } };
+    };
+    carbonInventory: { select: { id: true; name: true; year: true } };
+  };
 }>;
 
 function mapPersistenceFields(
-  row: ReductionProjectWithSubcategory
-): Omit<GetReductionProjectByIdResponse, "status"> {
+  row: ReductionProjectWithRelations
+): Omit<GetReductionProjectByIdResponse, "status" | "canEdit"> {
   return {
     id: row.id.toString(),
     name: row.name,
     organizationId: row.organizationId.toString(),
+    organization: {
+      id: row.organization.id.toString(),
+      name: row.organization.summary?.name ?? null,
+    },
     carbonInventoryId: row.carbonInventoryId.toString(),
+    carbonInventory: {
+      id: row.carbonInventory.id.toString(),
+      name: row.carbonInventory.name,
+      year: row.carbonInventory.year,
+    },
     implementationDate: row.implementationDate,
     description: row.description,
     subcategory: {
@@ -43,12 +58,14 @@ function mapPersistenceFields(
 }
 
 export function mapReductionProjectToGetByIdResponse(
-  row: ReductionProjectWithSubcategory,
-  displayStatus: ReductionProjectDisplayStatus
+  row: ReductionProjectWithRelations,
+  displayStatus: ReductionProjectDisplayStatus,
+  canEdit: boolean
 ): GetReductionProjectByIdResponse {
   return {
     ...mapPersistenceFields(row),
     status: displayStatus,
+    canEdit,
   };
 }
 

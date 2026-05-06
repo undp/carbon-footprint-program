@@ -31,6 +31,7 @@ export const getReductionProjectByIdRoute: StandardRouteSignature = (
             OrganizationRole.CONTRIBUTOR,
             OrganizationRole.VIEWER,
           ],
+          canAdminsBypass: true,
         }),
       ],
     },

@@ -6,7 +6,7 @@ import {
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
-import type { OrganizationRole } from "@repo/database/enums";
+import { OrganizationRole } from "@repo/database/enums";
 import type { BodyOrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
 import {
   InventoryStatus,
@@ -14,7 +14,39 @@ import {
   ReductionProjectDisplayStatusEnum,
   type ReductionProjectDisplayStatus,
 } from "@repo/types";
+import { isReductionProjectEditable } from "@repo/utils";
 import { ReductionProjectInvalidDataError } from "./errors.js";
+
+const REDUCTION_PROJECT_EDIT_ROLES: OrganizationRole[] = [
+  OrganizationRole.CONTRIBUTOR,
+  OrganizationRole.ADMIN,
+];
+
+/**
+ * Resolves whether the current request can edit a reduction project.
+ * Assumes the caller already passed `requireReductionProjectAccess`.
+ *
+ * Edit rights require an active membership in the project's organization
+ * with role CONTRIBUTOR or ADMIN; system admins reading via the bypass have
+ * no such membership and get false.
+ *
+ * The status check is folded in: a non-editable status yields false even when
+ * the role check passes.
+ *
+ * `currentUserMemberships` must be the result of including
+ * `organization.memberships` on the project query, filtered by the current
+ * userId and ACTIVE status. Pure synchronous logic — no DB calls.
+ */
+export function resolveReductionProjectEditAccess(
+  status: ReductionProjectDisplayStatus,
+  currentUserMemberships: { role: OrganizationRole }[]
+): boolean {
+  if (!isReductionProjectEditable(status)) {
+    return false;
+  }
+  const membership = currentUserMemberships[0];
+  return !!membership && REDUCTION_PROJECT_EDIT_ROLES.includes(membership.role);
+}
 
 type ReductionProjectBody = { organizationId: string };
 
