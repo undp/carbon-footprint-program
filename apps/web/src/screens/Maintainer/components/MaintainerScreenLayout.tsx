@@ -88,17 +88,7 @@ export const MaintainerScreenLayout = ({
         addLabel={addLabel}
         extra={methodologySelector}
       />
-      <Box
-        className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: 8 } : undefined}
-      >
-        {!isViewOnly && (
-          <InfoBanner
-            variant="success"
-            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
-            subtitle="Los cambios se aplicarán automáticamente"
-          />
-        )}
+      <Box className="rounded-sm bg-white p-3">
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly ? readOnlyDescription : editDescription}
         </Typography>

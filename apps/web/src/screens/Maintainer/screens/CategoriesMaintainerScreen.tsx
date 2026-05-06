@@ -16,10 +16,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Paper,
   Typography,
 } from "@mui/material";
-import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -39,8 +37,8 @@ import { FormDebugPanel } from "@/devtools";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
-import { InfoBanner } from "../components/InfoBanner";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
+import { EditModeToolbar } from "../components/EditModeToolbar";
 
 export const CategoriesMaintainerScreen: FC = () => {
   const {
@@ -500,17 +498,7 @@ export const CategoriesMaintainerScreen: FC = () => {
         addLabel="Agregar fila"
         extra={methodologySelector}
       />
-      <Box
-        className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: 8 } : undefined}
-      >
-        {!isViewOnly && (
-          <InfoBanner
-            variant="success"
-            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
-            subtitle="Los cambios se aplicarán automáticamente"
-          />
-        )}
+      <Box className="rounded-sm bg-white p-3">
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly
             ? "Vista de solo lectura de las categorías y alcances de esta metodología."
@@ -545,38 +533,10 @@ export const CategoriesMaintainerScreen: FC = () => {
         </form>
       </Box>
       {!isViewOnly && (
-        <Paper
-          elevation={3}
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            px: 4,
-            py: 1.5,
-            zIndex: 1200,
-            borderTop: "2px solid",
-            borderColor: "success.main",
-          }}
-        >
-          <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology?.name ?? ""}
-            </Typography>
-          </Box>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => setExitEditModeOpen(true)}
-          >
-            Salir de modo edición
-          </Button>
-        </Paper>
+        <EditModeToolbar
+          methodologyName={targetMethodology?.name ?? ""}
+          onExitClick={() => setExitEditModeOpen(true)}
+        />
       )}
       <Dialog
         open={exitEditModeOpen}
