@@ -1,6 +1,5 @@
 import { FC, useEffect, useRef } from "react";
 import { Box, Typography, Button } from "@mui/material";
-import { MainLayout } from "@/components/layout";
 import {
   OrganizationProfileSection,
   OrganizationProfileSectionSkeleton,
@@ -93,50 +92,46 @@ export const MyOrganizationScreen: FC = () => {
   // Loading state
   if (isLoadingOrganizations) {
     return (
-      <MainLayout>
-        <Box className="flex flex-1 flex-col gap-6 p-6">
-          <OrganizationHeaderSkeleton />
-          <OrganizationProfileSectionSkeleton />
-          <OrganizationUsersTableSkeleton />
-        </Box>
-      </MainLayout>
+      <Box className="flex flex-1 flex-col gap-6 p-6">
+        <OrganizationHeaderSkeleton />
+        <OrganizationProfileSectionSkeleton />
+        <OrganizationUsersTableSkeleton />
+      </Box>
     );
   }
 
   // Error state
   if (organizationsError) {
     return (
-      <MainLayout>
-        <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-          <Typography variant="h5" color="text.primary" fontWeight="bold">
-            Hubo un error cargando tus {VOCAB.organization.noun.plural}
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            className="max-w-[600px]"
-          >
-            {organizationsError instanceof Error
-              ? organizationsError.message
-              : "Por favor, intente nuevamente más tarde."}
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => refetchOrganizations()}
-            sx={{ mt: 2 }}
-          >
-            Reintentar
-          </Button>
-        </Box>
-      </MainLayout>
+      <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+        <Typography variant="h5" color="text.primary" fontWeight="bold">
+          Hubo un error cargando tus {VOCAB.organization.noun.plural}
+        </Typography>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          className="max-w-[600px]"
+        >
+          {organizationsError instanceof Error
+            ? organizationsError.message
+            : "Por favor, intente nuevamente más tarde."}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => refetchOrganizations()}
+          sx={{ mt: 2 }}
+        >
+          Reintentar
+        </Button>
+      </Box>
     );
   }
 
   // No organizations exist - show empty state
   if (!organizations || organizations.length === 0) {
     return (
-      <MainLayout>
+      <>
         <ScreenEmptyState
           title={`Aún no tienes ${VOCAB.organization.noun.plural} creadas`}
           description={`Haz clic en el botón para crear tu primera ${VOCAB.organization.noun.singular} y comenzar a
@@ -152,86 +147,84 @@ export const MyOrganizationScreen: FC = () => {
           mode={DialogMode.create}
           onCreated={setSelectedOrganizationId}
         />
-      </MainLayout>
+      </>
     );
   }
 
   return (
-    <MainLayout>
-      <Box className="flex flex-1 flex-col gap-6">
-        <OrganizationHeader
-          selectedOrganizationId={selectedOrganizationId}
-          onOrganizationChange={setSelectedOrganizationId}
-          onCreateOrganization={() => openFormDialog(DialogMode.create)}
-        />
+    <Box className="flex flex-1 flex-col gap-6">
+      <OrganizationHeader
+        selectedOrganizationId={selectedOrganizationId}
+        onOrganizationChange={setSelectedOrganizationId}
+        onCreateOrganization={() => openFormDialog(DialogMode.create)}
+      />
 
-        {organization ? (
-          <>
-            <OrganizationProfileSection
-              profile={organization}
-              onEdit={() =>
-                openFormDialog(
-                  organization.status ===
-                    OrganizationDisplayStatusValues.ACCREDITED
-                    ? DialogMode.accredited
-                    : DialogMode.edit
-                )
-              }
-              canManageOrganization={
-                myOrganizationRole === OrganizationRole.ADMIN
-              }
-            />
+      {organization ? (
+        <>
+          <OrganizationProfileSection
+            profile={organization}
+            onEdit={() =>
+              openFormDialog(
+                organization.status ===
+                  OrganizationDisplayStatusValues.ACCREDITED
+                  ? DialogMode.accredited
+                  : DialogMode.edit
+              )
+            }
+            canManageOrganization={
+              myOrganizationRole === OrganizationRole.ADMIN
+            }
+          />
 
-            <OrganizationUsersTable
-              users={organizationUsers ?? []}
-              onAdd={openAddUserDialog}
-              onEdit={openEditUserDialog}
-              onDelete={openDeleteUserDialog}
-              isLoading={isLoadingUsers}
-              canManageUsers={myOrganizationRole === OrganizationRole.ADMIN}
-            />
+          <OrganizationUsersTable
+            users={organizationUsers ?? []}
+            onAdd={openAddUserDialog}
+            onEdit={openEditUserDialog}
+            onDelete={openDeleteUserDialog}
+            isLoading={isLoadingUsers}
+            canManageUsers={myOrganizationRole === OrganizationRole.ADMIN}
+          />
 
-            <OrganizationFormDialog
-              open={formDialogOpen}
-              onClose={closeFormDialog}
-              organization={
-                formDialogMode === DialogMode.create ? undefined : organization
-              }
-              mode={formDialogMode}
-              onCreated={setSelectedOrganizationId}
-            />
+          <OrganizationFormDialog
+            open={formDialogOpen}
+            onClose={closeFormDialog}
+            organization={
+              formDialogMode === DialogMode.create ? undefined : organization
+            }
+            mode={formDialogMode}
+            onCreated={setSelectedOrganizationId}
+          />
 
-            <AddUserDialog
-              open={addDialogOpen}
-              onClose={closeAddUserDialog}
-              onSubmit={handleAddUser}
-              isSubmitting={isAddingUser}
-            />
+          <AddUserDialog
+            open={addDialogOpen}
+            onClose={closeAddUserDialog}
+            onSubmit={handleAddUser}
+            isSubmitting={isAddingUser}
+          />
 
-            <EditUserRoleDialog
-              open={editDialogOpen}
-              onClose={closeEditUserDialog}
-              onSubmit={handleUpdateUserRole}
-              currentRole={selectedUserRole}
-              userEmail={selectedUserEmail}
-              isSubmitting={isUpdatingUser}
-            />
+          <EditUserRoleDialog
+            open={editDialogOpen}
+            onClose={closeEditUserDialog}
+            onSubmit={handleUpdateUserRole}
+            currentRole={selectedUserRole}
+            userEmail={selectedUserEmail}
+            isSubmitting={isUpdatingUser}
+          />
 
-            <DeleteUserConfirmationDialog
-              open={deleteDialogOpen}
-              onClose={closeDeleteUserDialog}
-              onConfirm={handleDeleteUser}
-              userEmail={selectedUserEmail}
-              isDeleting={isDeletingUser}
-            />
-          </>
-        ) : (
-          <>
-            <OrganizationProfileSectionSkeleton />
-            <OrganizationUsersTableSkeleton />
-          </>
-        )}
-      </Box>
-    </MainLayout>
+          <DeleteUserConfirmationDialog
+            open={deleteDialogOpen}
+            onClose={closeDeleteUserDialog}
+            onConfirm={handleDeleteUser}
+            userEmail={selectedUserEmail}
+            isDeleting={isDeletingUser}
+          />
+        </>
+      ) : (
+        <>
+          <OrganizationProfileSectionSkeleton />
+          <OrganizationUsersTableSkeleton />
+        </>
+      )}
+    </Box>
   );
 };
