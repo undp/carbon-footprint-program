@@ -30,7 +30,7 @@ export const ReductionReportSection: FC<Props> = ({
 
   const reduction = useMemo(() => {
     if (baselineScenario == null || projectScenario == null) {
-      return 0;
+      return null;
     }
     return baselineScenario - projectScenario;
   }, [baselineScenario, projectScenario]);
