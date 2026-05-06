@@ -1,11 +1,23 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { ChatMessageRole } from "@repo/database/enums";
 import type { SendMessageRequestBody } from "@repo/types";
-import { CHATBOT_MAX_OUTPUT_TOKENS } from "@/config/constants.js";
+import {
+  CHATBOT_MAX_OUTPUT_TOKENS,
+  CHATBOT_MAX_RAG_CONTEXT_TOKENS,
+} from "@/config/constants.js";
 import { ExternalServiceError } from "@/errors/ExternalServiceError.js";
 import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
 import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
-import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
+import {
+  estimateTokens,
+  type LlmMessage,
+  type LlmStreamEvent,
+} from "@/features/chatbot/llmProvider/index.js";
+import { SYSTEM_PROMPT_ES } from "@/features/chatbot/prompts/loader.js";
+import {
+  executeSearchKnowledgeTool,
+  searchKnowledgeToolDefinition,
+} from "@/features/chatbot/tools/searchKnowledge/index.js";
 import {
   acquireIdentityAdvisoryLock,
   enforceHistoryCap,
@@ -15,6 +27,8 @@ import {
   resolveOrCreateConversation,
 } from "./service.js";
 import { writeSseEvent, writeSseHeaders } from "./helpers.js";
+import type { Prisma } from "@repo/database";
+import type { SourceCitation } from "@repo/types";
 
 type SendMessageRequest = FastifyRequest<{ Body: SendMessageRequestBody }>;
 
@@ -44,9 +58,52 @@ const buildLlmMessages = (
   history: { role: ChatMessageRole; content: string }[],
   userContent: string
 ): LlmMessage[] => [
+  { role: ChatMessageRole.SYSTEM, content: SYSTEM_PROMPT_ES },
   ...history.map(historyToLlmMessage),
   { role: ChatMessageRole.USER, content: userContent },
 ];
+
+type ToolCallEvent = Extract<LlmStreamEvent, { type: "tool_call" }>;
+
+type StreamConsumeResult = {
+  buffer: string;
+  toolCall: ToolCallEvent | null;
+  usage: { inputTokens: number; outputTokens: number } | null;
+  firstChunkSeen: boolean;
+};
+
+const consumeStream = async (
+  stream: AsyncIterable<LlmStreamEvent>,
+  reply: FastifyReply,
+  assistantRowIdString: string,
+  signal: AbortSignal
+): Promise<StreamConsumeResult> => {
+  let buffer = "";
+  let toolCall: ToolCallEvent | null = null;
+  let usage: { inputTokens: number; outputTokens: number } | null = null;
+  let firstChunkSeen = false;
+  for await (const event of stream) {
+    if (signal.aborted) break;
+    if (event.type === "delta") {
+      if (!firstChunkSeen) firstChunkSeen = true;
+      buffer += event.content;
+      writeSseEvent(
+        reply,
+        undefined,
+        { content: event.content },
+        { id: assistantRowIdString }
+      );
+    } else if (event.type === "tool_call") {
+      toolCall = event;
+    } else if (event.type === "usage") {
+      usage = {
+        inputTokens: event.inputTokens,
+        outputTokens: event.outputTokens,
+      };
+    }
+  }
+  return { buffer, toolCall, usage, firstChunkSeen };
+};
 
 export const sendMessageHandler = async (
   request: SendMessageRequest,
@@ -76,7 +133,8 @@ export const sendMessageHandler = async (
       const conversation = await resolveOrCreateConversation(tx, identity);
 
       const lockedHistory = await loadConversationHistory(tx, conversation.id);
-      enforceHistoryCap(lockedHistory);
+      // Enforce history cap including the system prompt's contribution.
+      enforceHistoryCap([...lockedHistory, { content: SYSTEM_PROMPT_ES }]);
       await enforceTurnCap(tx, conversation.id);
 
       await tx.chatbotChatMessage.create({
@@ -141,15 +199,14 @@ export const sendMessageHandler = async (
     );
   });
 
-  let stream: AsyncIterable<
-    | { type: "delta"; content: string }
-    | { type: "tool_call"; id: string; name: string; arguments: string }
-    | { type: "usage"; inputTokens: number; outputTokens: number }
-  >;
+  // Probe the first invocation BEFORE hijacking so a synchronous provider
+  // failure can fall through to the global error handler.
+  let firstStream: AsyncIterable<LlmStreamEvent>;
   try {
-    stream = provider.streamCompletion(llmMessages, {
+    firstStream = provider.streamCompletion(llmMessages, {
       maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
       signal: abortController.signal,
+      tools: [searchKnowledgeToolDefinition],
     });
   } catch {
     throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
@@ -160,32 +217,25 @@ export const sendMessageHandler = async (
   reply.hijack();
   writeSseHeaders(reply);
 
-  let usage: { inputTokens: number; outputTokens: number } | null = null;
-  let firstChunkSeen = false;
+  const assistantRowIdString = assistantRowId.toString();
+  const finalSources: SourceCitation[] = [];
 
+  let firstResult: StreamConsumeResult;
   try {
-    for await (const event of stream) {
-      if (event.type === "delta") {
-        if (!firstChunkSeen) firstChunkSeen = true;
-        assistantBuffer += event.content;
-        writeSseEvent(
-          reply,
-          undefined,
-          { content: event.content },
-          {
-            id: assistantRowId.toString(),
-          }
-        );
-      } else if (event.type === "usage") {
-        usage = {
-          inputTokens: event.inputTokens,
-          outputTokens: event.outputTokens,
-        };
-      }
-    }
+    firstResult = await consumeStream(
+      firstStream,
+      reply,
+      assistantRowIdString,
+      abortController.signal
+    );
   } catch (err) {
     request.log.error(
-      { err, assistantRowId: assistantRowId.toString(), firstChunkSeen },
+      {
+        err,
+        assistantRowId: assistantRowIdString,
+        firstChunkSeen: false,
+        round: 1,
+      },
       "chatbot LLM provider stream errored"
     );
     writeSseEvent(reply, "error", {
@@ -193,19 +243,138 @@ export const sendMessageHandler = async (
       message: CHATBOT_GENERIC_ERROR_MESSAGE,
     });
     reply.raw.end();
-    // The reply.raw.on("close") handler marks the assistant row truncated
-    // via the conditional UPDATE — same path for both pre-stream and
-    // mid-stream errors, since headers are already on the wire either way.
     return;
   }
 
-  // Provider implementations honor `options.signal` and may return without
-  // throwing when the abort fires (the client disconnected mid-stream).
-  // Bail out before the success finalizer would overwrite the truncated
-  // state set by the disconnect handler — otherwise an aborted turn could
-  // be persisted as a successful completion.
   if (clientDisconnected || abortController.signal.aborted) {
     return;
+  }
+
+  let usage = firstResult.usage;
+  assistantBuffer = firstResult.buffer;
+
+  if (firstResult.toolCall) {
+    // Tool round: execute server-side, then re-invoke once.
+    let toolResult;
+    try {
+      toolResult = await executeSearchKnowledgeTool(
+        prisma,
+        firstResult.toolCall.arguments
+      );
+    } catch (err) {
+      request.log.error(
+        { err, assistantRowId: assistantRowIdString, round: 1 },
+        "chatbot searchKnowledge tool execution failed"
+      );
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      return;
+    }
+
+    const toolMessageTokens = estimateTokens(toolResult.toolResultMessage);
+    if (toolMessageTokens > CHATBOT_MAX_RAG_CONTEXT_TOKENS) {
+      request.log.warn(
+        {
+          assistantRowId: assistantRowIdString,
+          toolMessageTokens,
+          cap: CHATBOT_MAX_RAG_CONTEXT_TOKENS,
+        },
+        "chatbot RAG context exceeds CHATBOT_MAX_RAG_CONTEXT_TOKENS"
+      );
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      return;
+    }
+
+    const secondMessages: LlmMessage[] = [
+      ...llmMessages,
+      {
+        role: ChatMessageRole.ASSISTANT,
+        content: "",
+        toolCalls: [
+          {
+            id: firstResult.toolCall.id,
+            name: firstResult.toolCall.name,
+            arguments: firstResult.toolCall.arguments,
+          },
+        ],
+      },
+      {
+        role: ChatMessageRole.TOOL,
+        content: toolResult.toolResultMessage,
+        toolCallId: firstResult.toolCall.id,
+      },
+    ];
+
+    let secondStream: AsyncIterable<LlmStreamEvent>;
+    try {
+      secondStream = provider.streamCompletion(secondMessages, {
+        maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
+        signal: abortController.signal,
+        tools: [searchKnowledgeToolDefinition],
+      });
+    } catch (err) {
+      request.log.error(
+        { err, assistantRowId: assistantRowIdString, round: 2 },
+        "chatbot LLM provider second-round invocation failed"
+      );
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      return;
+    }
+
+    let secondResult: StreamConsumeResult;
+    try {
+      secondResult = await consumeStream(
+        secondStream,
+        reply,
+        assistantRowIdString,
+        abortController.signal
+      );
+    } catch (err) {
+      request.log.error(
+        { err, assistantRowId: assistantRowIdString, round: 2 },
+        "chatbot LLM provider second-round stream errored"
+      );
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      return;
+    }
+
+    if (clientDisconnected || abortController.signal.aborted) {
+      return;
+    }
+
+    if (secondResult.toolCall) {
+      request.log.error(
+        { assistantRowId: assistantRowIdString },
+        "chatbot LLM provider issued a second consecutive tool_call"
+      );
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      reply.raw.end();
+      return;
+    }
+
+    assistantBuffer += secondResult.buffer;
+    usage = secondResult.usage ?? usage;
+    for (const validSource of toolResult.validSources) {
+      finalSources.push(validSource);
+    }
   }
 
   const latencyMs = Date.now() - startedAt;
@@ -226,6 +395,7 @@ export const sendMessageHandler = async (
         tokensUsed,
         latencyMs,
         truncated: false,
+        sourcesCited: finalSources as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -235,7 +405,7 @@ export const sendMessageHandler = async (
     });
   } catch (err) {
     request.log.error(
-      { err, assistantRowId: assistantRowId.toString() },
+      { err, assistantRowId: assistantRowIdString },
       "chatbot finalization writes failed after successful stream"
     );
     writeSseEvent(reply, "error", {
@@ -246,14 +416,20 @@ export const sendMessageHandler = async (
     return;
   }
 
-  writeSseEvent(
-    reply,
-    "done",
-    {
-      inputTokens: usage?.inputTokens ?? 0,
-      outputTokens: usage?.outputTokens ?? 0,
-    },
-    { id: assistantRowId.toString() }
-  );
+  type DonePayload = {
+    inputTokens: number;
+    outputTokens: number;
+    sources?: SourceCitation[];
+  };
+  const donePayload: DonePayload = {
+    inputTokens: usage?.inputTokens ?? 0,
+    outputTokens: usage?.outputTokens ?? 0,
+  };
+  if (finalSources.length > 0) {
+    donePayload.sources = finalSources;
+  }
+  writeSseEvent(reply, "done", donePayload, {
+    id: assistantRowIdString,
+  });
   reply.raw.end();
 };
