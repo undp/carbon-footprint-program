@@ -12,7 +12,11 @@ export const Route = createFileRoute(Routes.APP)({
       redirectTo: Routes.LANDING,
     }
   ),
-  pendingComponent: RouteLoadingFallback,
+  pendingComponent: () => (
+    <MainLayout>
+      <RouteLoadingFallback />
+    </MainLayout>
+  ),
   component: () => (
     <MainLayout>
       <Outlet />
