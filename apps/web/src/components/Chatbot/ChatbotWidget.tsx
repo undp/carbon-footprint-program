@@ -32,6 +32,9 @@ import { useChatbotSize } from "./useChatbotSize";
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
 
+const FOOT_DISCLAIMER =
+  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
+
 const hasBeenIntroduced = (): boolean => {
   if (typeof window === "undefined") return true;
   try {
@@ -364,6 +367,22 @@ export function ChatbotWidget() {
             {numberFormatter.format(CHATBOT_MAX_USER_INPUT_CHARS)}
           </Typography>
         ) : null}
+      </Box>
+      <Box
+        sx={{
+          px: 1,
+          pb: 0.5,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          textAlign="center"
+        >
+          {FOOT_DISCLAIMER}
+        </Typography>
       </Box>
     </Paper>
   );
