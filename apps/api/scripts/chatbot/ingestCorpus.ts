@@ -190,37 +190,68 @@ const main = async (argv: string[]): Promise<number> => {
       return 5;
     }
 
-    // Atomic insert: source + N chunks.
-    const result = await prisma.$transaction(async (tx) => {
-      const source = await tx.chatbotCorpusSource.create({
-        data: {
-          name: args.label,
-          version: args.version,
-          sourceType: args.sourceType,
-          scope: args.scope,
-          citeUrl: args.citeUrl,
-          citeLabel: args.label,
-          status: CorpusSourceStatus.DRAFT,
-          embeddingModel: model,
-        },
-      });
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        const vectorLiteral = formatPgVector(vectors[i]);
+    // Atomic insert: source + N chunks. The advisory lock + re-check inside
+    // the transaction closes the TOCTOU race between the pre-flight DRAFT
+    // probe above and the source create below — two concurrent ingests with
+    // the same (label, version) serialize on the lock and the second observes
+    // the first's row.
+    const lockKey = `chatbot-corpus-ingest:${args.label}:${args.version}`;
+    type IngestResult =
+      | { kind: "ok"; source: { id: bigint } }
+      | { kind: "collision"; existingId: bigint };
+    const result = await prisma.$transaction(
+      async (tx): Promise<IngestResult> => {
         await tx.$executeRaw`
-          INSERT INTO chatbot_corpus_chunk
-            (source_id, chunk_index, content, page_number, section_title, tokens, embedding)
-          VALUES
-            (${source.id}, ${i}, ${chunk.content}, ${chunk.pageNumber}, ${chunk.sectionTitle}, ${chunk.tokens}, ${vectorLiteral}::vector)
+          SELECT pg_advisory_xact_lock(('x' || substr(md5(${lockKey}), 1, 16))::bit(64)::bigint)
         `;
+        const collision = await tx.chatbotCorpusSource.findFirst({
+          where: {
+            name: args.label,
+            version: args.version,
+            status: CorpusSourceStatus.DRAFT,
+          },
+          select: { id: true },
+        });
+        if (collision) {
+          return { kind: "collision", existingId: collision.id };
+        }
+        const source = await tx.chatbotCorpusSource.create({
+          data: {
+            name: args.label,
+            version: args.version,
+            sourceType: args.sourceType,
+            scope: args.scope,
+            citeUrl: args.citeUrl,
+            citeLabel: args.label,
+            status: CorpusSourceStatus.DRAFT,
+            embeddingModel: model,
+          },
+        });
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          const vectorLiteral = formatPgVector(vectors[i]);
+          await tx.$executeRaw`
+            INSERT INTO chatbot_corpus_chunk
+              (source_id, chunk_index, content, page_number, section_title, tokens, embedding)
+            VALUES
+              (${source.id}, ${i}, ${chunk.content}, ${chunk.pageNumber}, ${chunk.sectionTitle}, ${chunk.tokens}, ${vectorLiteral}::vector)
+          `;
+        }
+        return { kind: "ok", source };
       }
-      return source;
-    });
+    );
+
+    if (result.kind === "collision") {
+      process.stderr.write(
+        `Otra ingesta concurrente creó una fuente DRAFT con nombre "${args.label}" y versión "${args.version}" (id ${result.existingId.toString()}). Aborta o elimínala antes de re-ingerir.\n`
+      );
+      return 3;
+    }
 
     await prisma.chatbotCorpusIngestRun.update({
       where: { id: auditRow.id },
       data: {
-        sourceId: result.id,
+        sourceId: result.source.id,
         completedAt: new Date(),
         chunksCreated: chunks.length,
         embeddingModel: model,
@@ -228,7 +259,7 @@ const main = async (argv: string[]): Promise<number> => {
     });
 
     process.stdout.write(
-      `Ingesta exitosa. Fuente creada (id=${result.id.toString()}, status=DRAFT) con ${chunks.length} chunks usando el modelo "${model}".\n`
+      `Ingesta exitosa. Fuente creada (id=${result.source.id.toString()}, status=DRAFT) con ${chunks.length} chunks usando el modelo "${model}".\n`
     );
     return 0;
   } catch (err) {
