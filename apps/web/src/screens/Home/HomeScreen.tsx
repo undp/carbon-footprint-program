@@ -2,13 +2,14 @@ import { FC, useCallback, useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { useCarbonInventoriesMinimalData } from "@/api/query";
 import { Header } from "./components";
-import { orderBy, uniq } from "lodash-es";
+import { capitalize, orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent, ScreenEmptyState } from "@/components";
 import { UnverifiedCarbonInventoriesContent } from "./components/UnverifiedCarbonInventoriesContent";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
+import { VOCAB } from "@/config/vocab";
 
 export const HomeScreen: FC = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export const HomeScreen: FC = () => {
         title="No tienes huellas con reconocimiento de verificación"
         description="Postula al reconocimiento de verificación alguna de tus huellas"
         action={{
-          label: "Ir a Huella Organizacional",
+          label: `Ir a Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
           onClick: onNavigateToInventories,
         }}
       />

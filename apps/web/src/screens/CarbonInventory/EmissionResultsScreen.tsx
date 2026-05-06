@@ -17,6 +17,8 @@ import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatu
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import capitalize from "lodash-es/capitalize";
+import { VOCAB } from "../../config/vocab";
 
 const EMISSION_RESULTS_EXPLANATION_SLUGS = {
   MAIN: "emission-results",
@@ -68,7 +70,7 @@ export const EmissionResultsScreen: FC = () => {
   return (
     <CarbonInventoryLayout
       headerProps={{
-        title: "Simulador de Huella Organizacional",
+        title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
         subtitle: summaryData?.carbonInventory.name ?? undefined,
         action: isEditable ? undefined : (
           // If the inventory is locked (non-editable), we assume a registered user session.

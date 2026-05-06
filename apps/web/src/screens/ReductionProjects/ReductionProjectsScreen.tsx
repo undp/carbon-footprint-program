@@ -281,7 +281,7 @@ export const ReductionProjectsScreen: FC = () => {
         title="Sin huellas con reconocimiento de verificación"
         description="Debes tener al menos una huella con reconocimiento de verificación antes de poder ingresar un proyecto de reducción."
         action={{
-          label: "Ir a Huella Organizacional",
+          label: `Ir a Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />

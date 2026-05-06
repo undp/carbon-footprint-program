@@ -17,6 +17,7 @@ import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGr
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
 import { getRouteApi } from "@tanstack/react-router";
+import capitalize from "lodash-es/capitalize";
 
 const REDUCTION_PLAN_EXPLANATION_SLUGS = {
   MAIN: "reduction-plan",
@@ -188,7 +189,7 @@ export const ReductionPlanScreen: FC = () => {
         title="Aún no tienes una huella"
         description="Crea tu primera huella para comenzar a ver tu plan de reducción."
         action={{
-          label: "Ir a Huella Organizacional",
+          label: `Ir a Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />

@@ -3,6 +3,7 @@ import { useSnackbar } from "notistack";
 import { useUpdateCarbonInventory } from "@/api/query";
 import { BusinessProfilingFormValues } from "./useBusinessProfilingForm";
 import { mapFormValuesToRequest } from "../utils/businessProfilingTransformers";
+import { VOCAB } from "@/config/vocab";
 
 type Params = {
   inventoryId?: string;
@@ -35,9 +36,12 @@ export const useBusinessProfilingSubmit = ({
 
       try {
         if (!inventoryId) {
-          enqueueSnackbar("No se encontró la huella organizacional a editar", {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            `No se encontró la huella ${VOCAB.organization.relationalAdjective} a editar`,
+            {
+              variant: "error",
+            }
+          );
           return;
         }
 
@@ -51,10 +55,16 @@ export const useBusinessProfilingSubmit = ({
         onSuccess?.();
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Error al guardar la huella organizacional:", error);
-        enqueueSnackbar("Error al guardar la huella organizacional", {
-          variant: "error",
-        });
+        console.error(
+          `Error al guardar la huella ${VOCAB.organization.relationalAdjective}:`,
+          error
+        );
+        enqueueSnackbar(
+          `Error al guardar la huella ${VOCAB.organization.relationalAdjective}`,
+          {
+            variant: "error",
+          }
+        );
       }
     },
     [inventoryId, enqueueSnackbar, updateCarbonInventoryMutation, onSuccess]

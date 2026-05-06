@@ -35,6 +35,7 @@ import { useAuth } from "@/contexts";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import capitalize from "lodash-es/capitalize";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -203,7 +204,7 @@ export const BusinessProfilingScreen: FC = () => {
       >
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Huella Organizacional",
+            title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
             action: (
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}

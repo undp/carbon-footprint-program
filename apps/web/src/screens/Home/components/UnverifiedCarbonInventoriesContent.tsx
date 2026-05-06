@@ -4,6 +4,8 @@ import { AddRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces";
 
 import { useNavigate } from "@tanstack/react-router";
+import capitalize from "lodash-es/capitalize";
+import { VOCAB } from "@/config/vocab";
 
 export const UnverifiedCarbonInventoriesContent: FC = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ export const UnverifiedCarbonInventoriesContent: FC = () => {
         Postula a verificación alguna de tus huellas
       </Typography>
       <Button variant="contained" startIcon={<AddRounded />} onClick={onClick}>
-        Ir a Huella Organizacional
+        Ir a Huella {capitalize(VOCAB.organization.relationalAdjective)}
       </Button>
     </Box>
   );

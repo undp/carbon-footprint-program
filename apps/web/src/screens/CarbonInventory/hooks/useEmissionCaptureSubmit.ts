@@ -6,6 +6,7 @@ import {
   EmissionCaptureFormLine,
 } from "../types/EmissionCaptureTypes";
 import { mapLinesToSyncRequest } from "../utils/emissionCaptureTransformers";
+import { VOCAB } from "@/config/vocab";
 
 interface Params {
   inventoryId: string;
@@ -40,9 +41,12 @@ export const useEmissionCaptureSubmit = ({
     async (data: EmissionCaptureFormValues) => {
       try {
         if (!inventoryId) {
-          enqueueSnackbar("No se encontró la huella organizacional a editar", {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            `No se encontró la huella ${VOCAB.organization.relationalAdjective} a editar`,
+            {
+              variant: "error",
+            }
+          );
           return;
         }
 

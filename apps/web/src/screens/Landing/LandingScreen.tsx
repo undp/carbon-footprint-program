@@ -3,6 +3,7 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
+import { VOCAB } from "@/config/vocab";
 
 export const LandingScreen: FC = () => {
   const theme = useTheme();
@@ -42,8 +43,8 @@ export const LandingScreen: FC = () => {
             Huella Latam
           </Typography>
           <Typography variant="h5" color="white">
-            Mide, reporta y toma acción sobre tu huella de carbono
-            organizacional
+            Mide, reporta y toma acción sobre tu huella de carbono{" "}
+            {VOCAB.organization.relationalAdjective}
           </Typography>
         </Box>
         <CreateInventoryOptions />

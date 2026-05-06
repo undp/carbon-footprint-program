@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { BaseHeader } from "../../../components";
+import capitalize from "lodash-es/capitalize";
+import { VOCAB } from "@/config/vocab";
 
 interface CarbonInventoryHeaderProps {
   title?: string;
@@ -18,7 +20,7 @@ interface CarbonInventoryHeaderProps {
 }
 
 export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
-  title = "Huella Organizacional",
+  title = `Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
   subtitle,
   action,
 }) => {

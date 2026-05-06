@@ -6,6 +6,7 @@ type VocabEntry = {
   noun?: GrammaticalForm;
   adjective?: GrammaticalForm;
   article?: GrammaticalForm;
+  relationalAdjective?: string;
   verb?: Pick<GrammaticalForm, "singular">;
 };
 
@@ -19,6 +20,7 @@ export const VOCAB = {
       singular: "la organización",
       plural: "las organizaciones",
     },
+    relationalAdjective: "organizacional",
   },
   inscription: {
     noun: {

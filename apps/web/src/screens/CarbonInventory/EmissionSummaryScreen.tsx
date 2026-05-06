@@ -28,6 +28,8 @@ import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import capitalize from "lodash-es/capitalize";
+import { VOCAB } from "@/config/vocab";
 
 const EMISSION_SUMMARY_EXPLANATION_SLUGS = {
   MAIN: "emission-summary",
@@ -114,7 +116,7 @@ export const EmissionSummaryScreen: FC = () => {
   return (
     <CarbonInventoryLayout
       headerProps={{
-        title: "Simulador de Huella Organizacional",
+        title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
         action: (
           <CarbonInventoryNavigationButton
             type={user ? "inventories" : "landing"}

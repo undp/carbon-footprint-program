@@ -25,6 +25,8 @@ import { NewInventoryDialog } from "@/components/dialogs";
 import { InventoryTabs } from "./components/InventoryTabs";
 import { DraftsTab } from "./components/DraftsTab";
 import { InventoriesTab } from "./components/InventoriesTab";
+import { VOCAB } from "@/config/vocab";
+import capitalize from "lodash-es/capitalize";
 
 const CARBON_INVENTORIES_EXPLANATION_SLUGS = {
   MAIN: "carbon-inventories",
@@ -98,7 +100,7 @@ export const CarbonInventoriesScreen: FC = () => {
             <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
               <Box className="flex items-center gap-1">
                 <Typography variant="h5" fontWeight={600}>
-                  Huella Organizacional
+                  Huella {capitalize(VOCAB.organization.relationalAdjective)}
                 </Typography>
                 <InfoButton
                   label="Más información"

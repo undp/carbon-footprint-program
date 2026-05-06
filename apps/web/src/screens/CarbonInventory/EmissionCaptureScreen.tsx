@@ -37,6 +37,8 @@ import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import capitalize from "lodash-es/capitalize";
+import { VOCAB } from "@/config/vocab";
 
 const EMISSION_CAPTURE_EXPLANATION_SLUGS = {
   MAIN: "emission-capture",
@@ -283,7 +285,7 @@ export const EmissionCaptureScreen: FC = () => {
       <form id="emission-capture-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Huella Organizacional",
+            title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
             subtitle: data?.name ?? undefined,
             action: (
               <CarbonInventoryNavigationButton

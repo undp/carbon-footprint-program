@@ -27,6 +27,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { VOCAB } from "@/config/vocab";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import capitalize from "lodash-es/capitalize";
 
 const ERROR_MESSAGE = {
   title:
@@ -174,7 +175,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       <form id="subcategory-preselection-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Huella Organizacional",
+            title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
             subtitle: data?.name ?? undefined,
             action: (
               <CarbonInventoryNavigationButton

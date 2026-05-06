@@ -16,7 +16,7 @@ export type SidebarRoute = (typeof SidebarRoutes)[keyof typeof SidebarRoutes];
 export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
   [SidebarRoutes.HOME]: "Inicio",
   [SidebarRoutes.MY_ORGANIZATION]: `Mi ${VOCAB.organization.noun.singular}`,
-  [SidebarRoutes.CARBON_INVENTORIES]: "Huella organizacional",
+  [SidebarRoutes.CARBON_INVENTORIES]: `Huella ${VOCAB.organization.relationalAdjective}`,
   [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
   [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
   [SidebarRoutes.RECOGNITIONS]: "Reconocimientos",
