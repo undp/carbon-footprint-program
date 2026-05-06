@@ -5,8 +5,10 @@ import { searchKnowledge } from "@/features/chatbot/searchKnowledge/index.js";
 import type { ChunkWithMetadata } from "@/features/chatbot/searchKnowledge/index.js";
 
 const SearchKnowledgeArgsSchema = z.object({
-  query: z.string().min(1),
+  query: z.string().trim().min(1),
 });
+
+const EMPTY_RESULT_FALLBACK_MESSAGE = "0 fuentes válidas encontradas";
 
 const SNIPPET_MAX_LENGTH = 240;
 
@@ -23,7 +25,7 @@ export type ExecuteSearchKnowledgeResult = {
 
 const formatToolResultMessage = (validSources: SourceCitation[]): string => {
   if (validSources.length === 0) {
-    return "0 fuentes válidas encontradas";
+    return EMPTY_RESULT_FALLBACK_MESSAGE;
   }
   return validSources
     .map((source, index) => {
@@ -32,6 +34,14 @@ const formatToolResultMessage = (validSources: SourceCitation[]): string => {
     })
     .join("\n");
 };
+
+const emptyResult = (
+  chunks: ChunkWithMetadata[] = []
+): ExecuteSearchKnowledgeResult => ({
+  chunks,
+  validSources: [],
+  toolResultMessage: EMPTY_RESULT_FALLBACK_MESSAGE,
+});
 
 const buildCandidateCitation = (chunk: ChunkWithMetadata) => ({
   source_id: chunk.source_id.toString(),
@@ -45,9 +55,22 @@ export const executeSearchKnowledgeTool = async (
   prisma: PrismaClient,
   argsJson: string
 ): Promise<ExecuteSearchKnowledgeResult> => {
-  const parsedJson: unknown = JSON.parse(argsJson);
-  const args = SearchKnowledgeArgsSchema.parse(parsedJson);
-  const chunks = await searchKnowledge(prisma, args.query);
+  // Tool arguments are model-generated and therefore untrusted. Malformed
+  // JSON or a whitespace-only / missing query routes through the K=0
+  // empty-result fallback (same path the system prompt's K=0 guardrail
+  // expects) instead of throwing out of the handler and turning a single
+  // bad tool call into a failed turn.
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(argsJson);
+  } catch {
+    return emptyResult();
+  }
+  const argsResult = SearchKnowledgeArgsSchema.safeParse(parsedJson);
+  if (!argsResult.success) {
+    return emptyResult();
+  }
+  const chunks = await searchKnowledge(prisma, argsResult.data.query);
   const validSources: SourceCitation[] = [];
   for (const chunk of chunks) {
     const candidate = buildCandidateCitation(chunk);
