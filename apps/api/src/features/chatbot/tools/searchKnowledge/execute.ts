@@ -45,7 +45,7 @@ export const executeSearchKnowledgeTool = async (
   prisma: PrismaClient,
   argsJson: string
 ): Promise<ExecuteSearchKnowledgeResult> => {
-  const parsedJson = JSON.parse(argsJson);
+  const parsedJson: unknown = JSON.parse(argsJson);
   const args = SearchKnowledgeArgsSchema.parse(parsedJson);
   const chunks = await searchKnowledge(prisma, args.query);
   const validSources: SourceCitation[] = [];

@@ -152,4 +152,13 @@ export default [
       "chatbot/single-source-estimate-tokens": "error",
     },
   },
+  {
+    // CLI scripts are entry points; process.exit and the trailing fire-and-forget
+    // main() call are idiomatic for this shape.
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "no-process-exit": "off",
+      "@typescript-eslint/no-floating-promises": "off",
+    },
+  },
 ] satisfies Linter.Config[];

@@ -18,7 +18,7 @@ const HASH_ITERATIONS_PER_VECTOR = MOCK_VECTOR_DIM / FLOATS_PER_HASH;
  * eight 32-bit floats from the digest.
  */
 const expandToVector = (input: string): number[] => {
-  const vector: number[] = new Array(MOCK_VECTOR_DIM);
+  const vector: number[] = new Array<number>(MOCK_VECTOR_DIM);
   let digest = createHash("sha256").update(input).digest();
   let offset = 0;
   for (let i = 0; i < HASH_ITERATIONS_PER_VECTOR; i++) {
