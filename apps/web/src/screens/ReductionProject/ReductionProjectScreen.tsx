@@ -199,10 +199,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         },
       };
 
-  const footerButtons = [
-    ...(backButton ? [backButton] : []),
-    ...(saveButton ? [saveButton] : []),
-  ];
+  const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
 
   const layoutProps = {
     headerProps: {
