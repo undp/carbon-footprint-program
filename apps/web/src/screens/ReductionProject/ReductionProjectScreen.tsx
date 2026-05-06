@@ -134,7 +134,9 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     return [
       {
         id: project.organization.id,
-        name: project.organization.name ?? "Organización",
+        name:
+          project.organization.name ??
+          capitalize(VOCAB.organization.noun.singular),
       },
     ];
   }, [isViewMode, project, organizations]);
