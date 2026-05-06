@@ -69,7 +69,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Carbón",
+                    "name": "Carbón industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Carbón para electricidad",
                     "parentValue": null
                   },
                   {
@@ -330,7 +334,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Carbón"
+                  "valueName": "Carbón industrial"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
