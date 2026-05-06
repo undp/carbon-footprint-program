@@ -32,7 +32,7 @@ import {
 } from "@repo/types";
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
-import { isReductionProjectEditable } from "@repo/utils";
+import { useReductionProjectRouteGuard } from "./hooks/useReductionProjectRouteGuard";
 
 interface Props {
   mode: "create" | "edit" | "view";
@@ -88,10 +88,16 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const hasError = hasProjectInformationError || hasSelectorsError;
 
   const status = isEditMode || isViewMode ? project?.status : undefined;
+  // Guard only fires in edit mode; view/create pass undefined so the hook is
+  // a no-op and never redirects.
+  const { canEdit } = useReductionProjectRouteGuard(
+    isEditMode ? id : undefined
+  );
   const isFormDisabled =
-    isViewMode || Boolean(status && !isReductionProjectEditable(status));
+    isViewMode || (!isCreateMode && Boolean(status) && !canEdit);
+
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
-  const showFileUpload = isCreateMode || isReviewed;
+  const showFileUpload = isCreateMode || (isReviewed && !isViewMode);
 
   // Form
   const form = useReductionProjectForm({ project, showFileUpload });
@@ -116,6 +122,37 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
 
   const hasInventorySelected = !!selectedCarbonInventoryId;
 
+  // In view mode the user may not be a member of the project's organization
+  // (admin reviewing). The selector data sources (useMyOrganizations,
+  // useCarbonInventoriesMinimalData) are scoped to the user's own data, so
+  // the project's referenced entities may be missing from those lists.
+  // Use the embedded `organization` and `carbonInventory` objects from the
+  // project response as a single-element fallback so disabled selectors
+  // render meaningful labels.
+  const formOrganizations = useMemo(() => {
+    if (!isViewMode || !project) return organizations;
+    return [
+      {
+        id: project.organization.id,
+        name: project.organization.name ?? "Organización",
+      },
+    ];
+  }, [isViewMode, project, organizations]);
+
+  const formVerifiedInventories = useMemo(() => {
+    if (!isViewMode || !project) return verifiedInventories;
+    return [
+      {
+        id: project.carbonInventory.id,
+        organizationId: project.organization.id,
+        organizationName: project.organization.name,
+        name: project.carbonInventory.name,
+        year: project.carbonInventory.year,
+        status: CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+      },
+    ];
+  }, [isViewMode, project, verifiedInventories]);
+
   const projectName = useWatch({ control, name: "name" });
 
   useEffect(() => {
@@ -134,14 +171,16 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   };
 
   // Footer buttons
-  const backButton: FooterButton = {
-    text: "Volver",
-    align: "right",
-    buttonProps: {
-      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: goBack,
-    },
-  };
+  const backButton: FooterButton | undefined = isViewMode
+    ? undefined
+    : {
+        text: "Volver",
+        align: "right",
+        buttonProps: {
+          startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+          onClick: goBack,
+        },
+      };
 
   const saveButton: FooterButton | undefined = isFormDisabled
     ? undefined
@@ -162,7 +201,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         },
       };
 
-  const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
+  const footerButtons = [
+    ...(backButton ? [backButton] : []),
+    ...(saveButton ? [saveButton] : []),
+  ];
 
   const layoutProps = {
     headerProps: {
@@ -178,7 +220,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     throw new Error("Error al cargar la información del proyecto de reducción");
   }
 
-  if (!isLoadingOrgs && organizations.length === 0) {
+  if (!isViewMode && !isLoadingOrgs && organizations.length === 0) {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
@@ -193,7 +235,11 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     );
   }
 
-  if (!isLoadingInventories && verifiedInventories.length === 0) {
+  if (
+    !isViewMode &&
+    !isLoadingInventories &&
+    verifiedInventories.length === 0
+  ) {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
@@ -239,9 +285,9 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         <ReductionProjectFormFields
           control={control}
           disabled={isFormDisabled}
-          organizations={organizations}
+          organizations={formOrganizations}
           isLoadingOrgs={isLoadingOrgs}
-          verifiedInventories={verifiedInventories}
+          verifiedInventories={formVerifiedInventories}
           isLoadingInventories={isLoadingInventories}
           selectedOrganizationId={selectedOrganizationId}
           subcategories={subcategories}
