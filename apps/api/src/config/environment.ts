@@ -290,6 +290,38 @@ export const AZURE_OPENAI_DEPLOYMENT_NAME = trimEnv(
   process.env.AZURE_OPENAI_DEPLOYMENT_NAME
 );
 
+/**
+ * Azure OpenAI API version — promoted to env var (was hardcoded). Operators
+ * can bump the version per deployment without code changes.
+ */
+export const AZURE_OPENAI_API_VERSION =
+  trimEnv(process.env.AZURE_OPENAI_API_VERSION) ?? "2024-10-21";
+
+/**
+ * Azure OpenAI API key — optional fallback for development. When set,
+ * providers use API key auth instead of DefaultAzureCredential. Production
+ * SHALL leave this unset and rely on managed identity (see runbook).
+ */
+export const AZURE_OPENAI_API_KEY = trimEnv(process.env.AZURE_OPENAI_API_KEY);
+
+/**
+ * Embedding deployment name — required when EMBEDDING_PROVIDER=azure-openai.
+ * Distinct from the chat deployment because embeddings use a separate model
+ * (text-embedding-3-large).
+ */
+export const AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME = trimEnv(
+  process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+);
+
+/**
+ * Embedding API version — optional, defaults to AZURE_OPENAI_API_VERSION.
+ * Allows pinning the embedding endpoint to a different SDK contract than the
+ * chat endpoint when the deployment-side versions diverge.
+ */
+export const AZURE_OPENAI_EMBEDDING_API_VERSION =
+  trimEnv(process.env.AZURE_OPENAI_EMBEDDING_API_VERSION) ??
+  AZURE_OPENAI_API_VERSION;
+
 // Boot-time validation: if the operator selected the Azure provider, both
 // endpoint and deployment name MUST be set. Failing fast at boot surfaces
 // misconfiguration in CI / health checks instead of in user traffic.
@@ -305,6 +337,38 @@ export const AZURE_OPENAI_DEPLOYMENT_NAME = trimEnv(
         "Set the missing variables or change LLM_PROVIDER."
     );
   }
+})();
+
+// EMBEDDING_PROVIDER: "mock" | "azure-openai"
+// - mock: Deterministic SHA-256-seeded provider for local dev and tests.
+// - azure-openai: Production Azure OpenAI embeddings client.
+// `mock` is rejected at boot when NODE_ENV=production: the mock returns
+// SHA-256-derived vectors with no semantic relation to the input text, so
+// cosine similarity over them is essentially random — silent corpus
+// corruption is the failure mode and it must fail loud at boot instead.
+export type EmbeddingProviderType = "mock" | "azure-openai";
+
+export const EMBEDDING_PROVIDER: EmbeddingProviderType = (() => {
+  const raw = process.env.EMBEDDING_PROVIDER ?? "mock";
+  const valid: EmbeddingProviderType[] = ["mock", "azure-openai"];
+  if (!valid.includes(raw as EmbeddingProviderType)) {
+    throw new Error(
+      `Invalid EMBEDDING_PROVIDER value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+    );
+  }
+  if (raw === "mock" && IS_PROD) {
+    throw new Error(
+      'EMBEDDING_PROVIDER="mock" is not allowed when NODE_ENV=production. ' +
+        'Set EMBEDDING_PROVIDER="azure-openai" and provision the Azure OpenAI infra.'
+    );
+  }
+  if (raw === "azure-openai" && !AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME) {
+    throw new Error(
+      'EMBEDDING_PROVIDER="azure-openai" requires AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME. ' +
+        "Set the missing variable or change EMBEDDING_PROVIDER."
+    );
+  }
+  return raw as EmbeddingProviderType;
 })();
 
 // ============================================================================
