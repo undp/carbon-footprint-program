@@ -52,22 +52,20 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
       )}
 
       {!isLoading && !hasError && !!totalEmissions && (
-        <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
-          <Box className="relative">
+        <Box className="flex min-h-0 flex-1 items-center justify-center">
+          <Box className="relative aspect-square h-[80%] w-[80%]">
             <PieChart
               series={[
                 {
                   data: pieData,
-                  innerRadius: 55,
-                  outerRadius: 80,
+                  innerRadius: "68%",
+                  outerRadius: "100%",
                   paddingAngle: 1,
                   cornerRadius: 2,
                 },
               ]}
-              width={260}
-              height={195}
               hideLegend={!showLegend}
-              margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
+              margin={{ top: 0, bottom: 0, left: 0, right: 0 }}
             />
             <Box className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
               <Typography
