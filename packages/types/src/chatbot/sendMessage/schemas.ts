@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SourceCitationSchema } from "../sourceCitation/schemas.js";
 
 // Mirrors `CHATBOT_MAX_USER_INPUT_TOKENS` (4000) * 4 chars/token = 16000 from
 // apps/api/src/config/constants.ts. Kept as a literal here because
@@ -19,6 +20,7 @@ export const SendMessageDeltaEventSchema = z.object({
 export const SendMessageDoneEventSchema = z.object({
   inputTokens: z.number().int().nonnegative(),
   outputTokens: z.number().int().nonnegative(),
+  sources: z.array(SourceCitationSchema).optional(),
 });
 
 export const SendMessageErrorEventSchema = z.object({
