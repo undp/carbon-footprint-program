@@ -12,11 +12,11 @@ export interface ReductionProjectAccess {
 export const useReductionProjectAccess = (
   projectId: string | undefined
 ): ReductionProjectAccess => {
-  const { data, isFetching, isError } =
+  const { data, isLoading, isError } =
     useReductionProjectAccessQuery(projectId);
 
   // No projectId = create mode = nothing to access-check.
-  const isReady = !projectId || !isFetching;
+  const isReady = !projectId || !isLoading;
 
   return {
     isReady,
