@@ -200,7 +200,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         }}
       >
         <Typography variant="h6" component="span">
-          Gestionar Subcategorías
+          Agregar Subcategorías
         </Typography>
         <IconButton
           aria-label="Cerrar Modal"

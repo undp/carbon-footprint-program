@@ -318,7 +318,7 @@ export const EmissionCaptureScreen: FC = () => {
                     disabled={globalSubmitting || isBusy}
                     loading={isSubmittingBeforeModal}
                   >
-                    Gestionar Subcategorías
+                    Agregar Subcategorías
                   </Button>
                 }
               />
