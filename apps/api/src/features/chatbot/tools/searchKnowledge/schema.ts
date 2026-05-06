@@ -20,6 +20,16 @@ export const searchKnowledgeToolDefinition: LlmToolDefinition = {
         type: "string",
         description:
           "La pregunta del usuario sobre metodología de huella de carbono, en español.",
+        // Length bounds: 1–2000 chars matches a reasonable upper-bound user
+        // question and stays well below the 512-token limit enforced by
+        // searchKnowledge (~4 chars/token ≈ 2048 chars). Empty / oversized
+        // tool calls are also defended against by execute.ts (untrusted-input
+        // hardening) and searchKnowledge (InvalidQueryError) — these JSON
+        // Schema bounds are the first line of defence, signalling intent
+        // to the model so it stops attempting no-op or wildly oversized
+        // queries before the request is issued.
+        minLength: 1,
+        maxLength: 2000,
       },
     },
     required: ["query"],

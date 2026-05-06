@@ -60,9 +60,11 @@ export const mockEmbeddingProvider: EmbeddingProvider = {
       normalizeInPlace(vector);
       vectors.push(vector);
       inputTokens += estimateTokens(text);
-      // Yield to the event loop between batched computations so the abort
-      // signal can propagate.
-      await Promise.resolve();
+      // Yield to the check phase (macrotask) between iterations so an
+      // AbortController.abort() scheduled via a timer / IO callback is
+      // observed promptly. `await Promise.resolve()` only drains microtasks
+      // which would not see a timer-driven abort until the next loop turn.
+      await new Promise<void>((resolve) => setImmediate(resolve));
     }
     return {
       vectors,

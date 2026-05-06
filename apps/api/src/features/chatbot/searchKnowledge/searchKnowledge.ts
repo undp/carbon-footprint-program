@@ -39,6 +39,17 @@ const validateQuery = (query: string): string => {
 };
 
 const formatVectorLiteral = (vector: number[]): string => {
+  // Defensive guard: pgvector cannot parse NaN / Infinity / -Infinity; an
+  // upstream embedding-provider bug that returns non-finite values would
+  // otherwise surface as an opaque database error mid-query. Failing early
+  // with a clear message keeps the failure mode debuggable.
+  for (const v of vector) {
+    if (!Number.isFinite(v)) {
+      throw new Error(
+        "Embedding vector contains a non-finite value; refusing to build a pgvector literal."
+      );
+    }
+  }
   return `[${vector.join(",")}]`;
 };
 
