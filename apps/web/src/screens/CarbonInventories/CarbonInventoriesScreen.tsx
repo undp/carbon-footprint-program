@@ -13,7 +13,6 @@ import {
   FormControl,
 } from "@mui/material";
 import { InfoButton, OrganizationSelector } from "@/components";
-import { MainLayout } from "@/components/layout";
 import { useExplanationDialog } from "@/contexts";
 import {
   useCarbonInventories,
@@ -92,7 +91,7 @@ export const CarbonInventoriesScreen: FC = () => {
   }, []);
 
   return (
-    <MainLayout>
+    <>
       <Box className="flex flex-1 flex-col">
         <Box className="flex flex-col rounded-lg bg-white">
           {/* Header */}
@@ -182,6 +181,6 @@ export const CarbonInventoriesScreen: FC = () => {
             : selectedOrganizationId
         }
       />
-    </MainLayout>
+    </>
   );
 };

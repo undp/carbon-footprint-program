@@ -9,7 +9,11 @@ export const Route = createFileRoute(Routes.ADMIN)({
   beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], {
     redirectTo: Routes.HOME,
   }),
-  pendingComponent: RouteLoadingFallback,
+  pendingComponent: () => (
+    <MaintainerLayout>
+      <RouteLoadingFallback />
+    </MaintainerLayout>
+  ),
   component: () => (
     <MaintainerLayout>
       <Outlet />

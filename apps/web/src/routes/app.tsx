@@ -2,6 +2,7 @@ import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
+import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute(Routes.APP)({
@@ -11,7 +12,15 @@ export const Route = createFileRoute(Routes.APP)({
       redirectTo: Routes.LANDING,
     }
   ),
-  pendingComponent: RouteLoadingFallback,
-  component: () => <Outlet />,
+  pendingComponent: () => (
+    <MainLayout>
+      <RouteLoadingFallback />
+    </MainLayout>
+  ),
+  component: () => (
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  ),
   notFoundComponent: () => <Navigate to={Routes.APP} />,
 });
