@@ -90,7 +90,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const status = isEditMode || isViewMode ? project?.status : undefined;
   // Guard only fires in edit mode; view/create pass undefined so the hook is
   // a no-op and never redirects.
-  const { canEdit } = useReductionProjectRouteGuard(
+  const { canEdit, mustNavigateAway } = useReductionProjectRouteGuard(
     isEditMode ? id : undefined
   );
   const isFormDisabled =
@@ -220,7 +220,12 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     throw new Error("Error al cargar la información del proyecto de reducción");
   }
 
-  if (!isViewMode && !isLoadingOrgs && organizations.length === 0) {
+  if (
+    !isViewMode &&
+    !mustNavigateAway &&
+    !isLoadingOrgs &&
+    organizations.length === 0
+  ) {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
@@ -237,6 +242,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
 
   if (
     !isViewMode &&
+    !mustNavigateAway &&
     !isLoadingInventories &&
     verifiedInventories.length === 0
   ) {
