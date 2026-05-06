@@ -1,9 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetMainActivityEquivalenceResponse } from "@repo/types";
-import {
-  roundEmissions,
-  safeParseCarbonInventoryOrganizationData,
-} from "../utils.js";
+import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
 import { fetchInventory, fetchCategoryData } from "../helpers.js";
 
 export const getMainActivityEquivalenceService = async (
@@ -37,7 +34,7 @@ export const getMainActivityEquivalenceService = async (
   const rate = totalEmissions / mainActivityQuantity;
 
   return {
-    rate: roundEmissions(rate),
+    rate,
     activityName: mainActivity?.name ?? "actividad principal",
   };
 };

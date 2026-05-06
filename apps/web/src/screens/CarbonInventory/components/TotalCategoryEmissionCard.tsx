@@ -4,7 +4,7 @@ import React from "react";
 import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
-import { formatEmissions } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { kgToTon } from "@repo/utils";
 
 interface Props {
@@ -39,7 +39,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
         </Box>
         <Box className="justify-left flex flex-1 items-center">
           <Typography variant="subtitle1" fontWeight="bold">
-            {formatEmissions(kgToTon(totalEmissions ?? 0))}
+            {formatter.emissions(kgToTon(totalEmissions ?? 0))}
           </Typography>
         </Box>
       </Card>

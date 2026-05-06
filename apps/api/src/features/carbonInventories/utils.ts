@@ -4,10 +4,7 @@ import {
   type OrganizationDataField,
   type RankingSeverity,
 } from "@repo/types";
-import {
-  PERCENTAGE_PRECISION,
-  EMISSIONS_PRECISION,
-} from "@/config/constants.js";
+import { PERCENTAGE_PRECISION } from "@/config/constants.js";
 import { DataIntegrityError } from "../../errors/DataIntegrityError.js";
 
 /**
@@ -60,7 +57,6 @@ export const isCarbonInventoryLineEdited = (
 };
 
 const pFactor = 10 ** PERCENTAGE_PRECISION;
-const eFactor = 10 ** EMISSIONS_PRECISION;
 
 /**
  * Distributes percentages using the largest remainder method so they sum to exactly 1.
@@ -96,10 +92,6 @@ export function distributePercentages(
   }
 
   return truncated.map((p) => Math.round(p * pFactor) / pFactor);
-}
-
-export function roundEmissions(n: number): number {
-  return Math.round(n * eFactor) / eFactor;
 }
 
 export function getRankingSeverity(percentage: number): RankingSeverity {

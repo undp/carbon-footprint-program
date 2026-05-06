@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { formatEmissions, formatRate } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 
 interface TotalEmissionsBarProps {
@@ -47,14 +47,14 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
           fontWeight="fontWeightBold"
           sx={{ color: theme.palette.common.deepForest }}
         >
-          {formatEmissions(totalEmissions)}
+          {formatter.emissions(totalEmissions)}
         </Typography>
         {equivalence?.rate != null && !!equivalence?.activityName && (
           <Typography
             variant="caption"
             sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
           >
-            Equivalencia: {formatRate(equivalence.rate)} kg CO₂e/
+            Equivalencia: {formatter.rate(equivalence.rate)} kg CO₂e/
             {equivalence.activityName}
           </Typography>
         )}

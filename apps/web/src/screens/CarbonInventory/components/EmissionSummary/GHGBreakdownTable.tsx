@@ -8,6 +8,7 @@
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
+import { formatter } from "@/utils/formatting";
 
 type GHGBreakdown = NonNullable<
   GetEmissionsDetailedSummaryResponse["categories"][number]["ghgBreakdown"]
@@ -17,9 +18,6 @@ interface GHGBreakdownTableProps {
   breakdown: GHGBreakdown;
   isLoading?: boolean;
 }
-
-const formatValue = (value: number): string =>
-  value.toLocaleString("es-CL", { maximumFractionDigits: 2 });
 
 const GAS_COLUMNS = [
   { key: "totalTCO2e" as const, label: "Total tCO₂e" },
@@ -91,7 +89,7 @@ export const GHGBreakdownTable: FC<GHGBreakdownTableProps> = ({
             <tr key={row.subcategoryName + index}>
               <td>{row.subcategoryName}</td>
               {GAS_COLUMNS.map((col) => (
-                <td key={col.key}>{formatValue(row[col.key])}</td>
+                <td key={col.key}>{formatter.quantity(row[col.key])}</td>
               ))}
             </tr>
           ))}

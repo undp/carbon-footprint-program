@@ -1,5 +1,7 @@
-import { TextField, TextFieldProps } from "@mui/material";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { TextFieldProps } from "@mui/material";
+import { NumericInput } from "../NumericInput";
+import { toNullableNumber } from "@/utils/number";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -12,6 +14,9 @@ type Props<T extends FieldValues> = {
   maxMessage?: string;
   helperText?: string;
   fullWidth?: boolean;
+  onlyInteger?: boolean;
+  onlyIntegerMessage?: string;
+  decimalScale?: number;
 } & Omit<
   TextFieldProps,
   | "name"
@@ -34,68 +39,58 @@ export const FormNumericField = <T extends FieldValues>({
   max,
   maxMessage = "El valor es demasiado alto",
   fullWidth = true,
+  onlyInteger = false,
+  onlyIntegerMessage = "Debe ser un número entero",
+  decimalScale,
   sx,
-  slotProps,
   ...props
 }: Props<T>) => {
+  const effectiveDecimalScale = onlyInteger ? 0 : decimalScale;
   return (
     <Controller
       name={name}
       control={control}
       rules={{
-        required: required ? requiredMessage : false,
         validate: {
+          required: (value) => {
+            if (!required) return true;
+            return toNullableNumber(value) == null ? requiredMessage : true;
+          },
           min: (value) => {
-            if (min === undefined || value === "" || value == null) {
-              return true;
-            }
-            const valueNum = Number(value);
-            if (isNaN(valueNum) || valueNum < min) {
-              return minMessage;
-            }
-            return true;
+            const parsed = toNullableNumber(value);
+            if (min === undefined || parsed == null) return true;
+            return parsed < min ? minMessage : true;
           },
           max: (value) => {
-            if (max === undefined || value === "" || value == null) {
-              return true;
-            }
-            const valueNum = Number(value);
-            if (isNaN(valueNum) || valueNum > max) {
-              return maxMessage;
-            }
-            return true;
+            const parsed = toNullableNumber(value);
+            if (max === undefined || parsed == null) return true;
+            return parsed > max ? maxMessage : true;
+          },
+          onlyInteger: (value) => {
+            const parsed = toNullableNumber(value);
+            if (!onlyInteger || parsed == null) return true;
+            return Number.isInteger(parsed) ? true : onlyIntegerMessage;
           },
         },
       }}
       render={({ field, fieldState }) => (
-        <TextField
-          {...field}
+        <NumericInput
+          size="medium"
+          placeholder=""
           {...props}
-          type="number"
-          slotProps={{
-            ...slotProps,
-            htmlInput: {
-              min,
-              max,
-              ...slotProps?.htmlInput,
-            },
-          }}
-          sx={{
-            minHeight: "5rem",
-            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-              {
-                WebkitAppearance: "none",
-                margin: 0,
-              },
-            "& input[type=number]": {
-              MozAppearance: "textfield",
-            },
-            ...sx,
-          }}
+          decimalScale={effectiveDecimalScale}
+          value={toNullableNumber(field.value)}
+          onChange={(value) => field.onChange(value)}
+          min={min}
           required={required}
           error={!!fieldState.error && !props.disabled}
           helperText={fieldState.error?.message ?? helperText}
           fullWidth={fullWidth}
+          sx={{
+            minHeight: "5rem",
+            "& input": { textAlign: "left" },
+            ...sx,
+          }}
         />
       )}
     />

@@ -42,7 +42,7 @@ interface UseEmssionEditorFormResults {
   ) => void;
   handleFactorSourceChange: (lineId: LineId, newFactorSource: string) => void;
   handleDeleteLine: (lineId: LineId) => void;
-  handleSetTotalEmission: (total: number) => void;
+  handleSetTotalEmission: (total: number | null) => void;
   handleSetManualMode: (isManual: boolean) => Promise<void>;
 }
 
@@ -414,7 +414,7 @@ export const useEmissionEditorForm = ({
   );
 
   const handleSetTotalEmission = useCallback(
-    (total: number) => {
+    (total: number | null) => {
       const lines = getValues(`subcategories.${subcategoryId}.lines`) || {};
       // Filter to get only non-deleted lines
       const existingLineIds = Object.keys(lines).filter(

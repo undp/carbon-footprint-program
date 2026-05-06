@@ -4,7 +4,7 @@ import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
 import { EmptyStateMessage } from "../EmptyStateMessage";
-import { formatQuantity } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { VOCAB } from "@/config/vocab";
 
 interface InventoryAttributesCardProps {
@@ -92,7 +92,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
             </Typography>
             {data.organizationMainActivityQuantity != null && (
               <Typography variant="caption" color="text.secondary">
-                {formatQuantity(data.organizationMainActivityQuantity)}
+                {formatter.quantity(data.organizationMainActivityQuantity)}
               </Typography>
             )}
           </Box>

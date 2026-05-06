@@ -46,9 +46,6 @@ export const mapFormValuesToRequest = (
     subsectorId: values.subsectorId || null,
     countryOrganizationSizeId: values.countryOrganizationSizeId || null,
     mainActivityId: values.mainActivityId || null,
-    employeesCount:
-      values.employeesCount !== null && values.employeesCount !== undefined
-        ? Number(values.employeesCount)
-        : null,
+    employeesCount: values.employeesCount,
   };
 };

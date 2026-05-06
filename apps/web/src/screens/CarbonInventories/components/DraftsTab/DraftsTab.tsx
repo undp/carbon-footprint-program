@@ -3,7 +3,7 @@ import { Box, Typography, useMediaQuery } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ResponsiveTypography, StylizedDataGrid } from "@/components";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
-import { formatEmissions } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,
   CarbonInventoryDisplayStatus,
@@ -93,7 +93,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           minWidth: 120,
           flex: 0.6,
           cellClassName: "content-center",
-          valueFormatter: (value: number) => formatEmissions(value),
+          valueFormatter: (value: number) => formatter.emissions(value),
         },
         {
           field: "status",

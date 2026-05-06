@@ -12,7 +12,7 @@ import {
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardCategoryChart } from "@/api/query/dashboard";
-import { formatEmissions, formatAsPercentage } from "../../../utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 interface CategoryChartCardProps {
   year?: number;
@@ -182,9 +182,11 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
                     paddingAngle: 3,
                     cornerRadius: 2,
                     arcLabel: (item) =>
-                      `${formatAsPercentage(item.value, totalEmissions)}`,
+                      formatter.percentage(item.value / totalEmissions, {
+                        maximumFractionDigits: 0,
+                      }),
                     arcLabelRadius: 100,
-                    valueFormatter: (item) => formatEmissions(item.value, true),
+                    valueFormatter: (item) => formatter.emissions(item.value),
                     highlightScope: { fade: "global", highlight: "item" },
                     highlighted: { additionalRadius: 2 },
                   },

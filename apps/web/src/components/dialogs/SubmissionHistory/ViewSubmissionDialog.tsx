@@ -19,7 +19,7 @@ import {
   HistoryOutlined,
   OpenInNewOutlined,
 } from "@mui/icons-material";
-import { formatDateTime } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { getReviewTitle } from "@/utils/submissions";
 import { FilesSection } from "./FilesSection";
 import { CurrentStatusBanner } from "./CurrentStatusBanner";
@@ -140,7 +140,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                     sx={{ mb: 1 }}
                   >
                     <Chip
-                      label={formatDateTime(submission.date)}
+                      label={formatter.dateTime(submission.date)}
                       size="small"
                       sx={{
                         bgcolor: theme.palette.background.default,

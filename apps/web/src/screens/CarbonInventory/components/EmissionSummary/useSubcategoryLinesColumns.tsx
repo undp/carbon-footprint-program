@@ -1,11 +1,7 @@
 import { useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
-import {
-  formatEmissionFactor,
-  formatEmissions,
-  formatQuantity,
-} from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 
 type LineRow =
   GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number]["lines"][number];
@@ -43,8 +39,7 @@ export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
         align: "right",
         headerClassName,
         cellClassName,
-        valueFormatter: (value: number | null) =>
-          value != null ? formatQuantity(value) : "-",
+        valueFormatter: (value: number | null) => formatter.quantity(value),
       },
       {
         field: "factorValue",
@@ -56,7 +51,7 @@ export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
         headerClassName,
         cellClassName,
         valueFormatter: (value: number | null) =>
-          value != null ? formatEmissionFactor(value) : "-",
+          formatter.emissionFactor(value),
       },
       {
         field: "factorSource",
@@ -79,7 +74,7 @@ export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
         headerAlign: "right",
         align: "right",
         valueFormatter: (value: number | null) =>
-          value != null ? formatEmissions(value, false) : "-",
+          formatter.emissions(value, { withSuffix: false }),
       },
     ],
     []

@@ -21,13 +21,21 @@ const ItemSchema = z
       .describe(
         "Dimension value name or description of the activity parameter"
       ),
-    factorLabel: z
+    factorValue: z.number().describe("Total factor value, e.g. 2.395"),
+    rateUnit: z
       .string()
-      .describe("Total factor value with unit, e.g. '2.395 kg CO₂e/ton'"),
+      .describe("Unit for the factor value, e.g. 'kg CO₂e/ton'"),
     gasBreakdownLines: z
-      .array(z.string())
+      .array(
+        z.object({
+          value: z.number().describe("Per-gas factor value"),
+          gas: z
+            .string()
+            .describe("Gas display label, e.g. 'CO₂', 'CH4', 'N₂O'"),
+        })
+      )
       .describe(
-        "Individual gas breakdown strings, e.g. ['2.370 kg CO₂e of CO₂/ton', '0.63 kg CO₂e of CH4/ton']"
+        "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e of <gas>/<denominator>` where the denominator is derived from `rateUnit`."
       ),
     factorSource: EmissionFactorBaseSchema.shape.source,
     factorSourceDetail: z

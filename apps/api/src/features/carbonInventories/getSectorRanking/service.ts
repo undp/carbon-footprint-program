@@ -1,10 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetSectorRankingResponse } from "@repo/types";
-import {
-  distributePercentages,
-  getRankingSeverity,
-  roundEmissions,
-} from "../utils.js";
+import { distributePercentages, getRankingSeverity } from "../utils.js";
 import { fetchInventoryWithCategoryData } from "../helpers.js";
 
 // TODO: This is a stub that duplicates the own-organization ranking.
@@ -57,7 +53,7 @@ export const getSectorRankingService = async (
     categoryName: item.categoryName,
     categoryPosition: item.categoryPosition,
     categoryColor: item.categoryColor,
-    subtotal: roundEmissions(item.subtotal),
+    subtotal: item.subtotal,
     percentage: rankingPercentages[idx],
     severity: getRankingSeverity(rankingPercentages[idx]),
   }));

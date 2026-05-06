@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box, Chip, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { CalendarTodayOutlined } from "@mui/icons-material";
 import { type SubmissionHistoryEntry } from "@repo/types";
-import { formatDateTime } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { FilesSection } from "./FilesSection";
 import { getEventLabel, REQUEST_TYPE_LABEL } from "../../../utils/submissions";
 import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
@@ -45,7 +45,7 @@ export const HistoryCard: FC<{
                   {getEventLabel(entry)}
                 </Typography>
                 <Chip
-                  label={formatDateTime(entry.date)}
+                  label={formatter.dateTime(entry.date)}
                   size="small"
                   sx={{
                     bgcolor: theme.palette.background.default,

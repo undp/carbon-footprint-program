@@ -5,7 +5,7 @@ import { NumericInput } from "@/components";
 interface EmissionEditorQuantityCellProps {
   subcategoryId: string;
   lineId: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: number | null) => void;
   disabled?: boolean;
 }
 
@@ -14,7 +14,7 @@ export const EmissionEditorQuantityCell: FC<
 > = ({ subcategoryId, lineId, onChange, disabled = false }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.quantity`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   return (
     <NumericInput
@@ -22,6 +22,7 @@ export const EmissionEditorQuantityCell: FC<
       onChange={onChange}
       disabled={disabled}
       min={0}
+      placeholder=""
       sx={{ minHeight: "unset" }}
     />
   );

@@ -9,6 +9,7 @@ import {
   display,
   BASE_FONT_SIZE,
 } from "@/services/excel";
+import { formatter } from "@/utils/formatting";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
 
@@ -170,7 +171,9 @@ function buildFactorsSheet(
       display(categoryLabel),
       display(factor.subcategoryName),
       display(factor.activityParameter),
-      display(factor.factorLabel),
+      display(
+        `${formatter.emissionFactor(factor.factorValue)} ${factor.rateUnit}`
+      ),
       display(source),
     ];
   });

@@ -4,7 +4,7 @@ import { Typography, Tooltip } from "@mui/material";
 import { NumericInput } from "@/components";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
-import { formatEmissionFactor } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import {
   MethodologyEmissionFactorDimension,
   RateMeasurementUnit,
@@ -15,7 +15,7 @@ interface EmissionEditorFactorCellProps {
   lineId: string;
   dimensions: MethodologyEmissionFactorDimension[];
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: number | null) => void;
   disabled?: boolean;
 }
 
@@ -54,6 +54,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
       onChange={onChange}
       disabled={disabled || !validation.canEditFactorValue}
       min={0}
+      placeholder=""
       sx={{
         "& .MuiInputBase-input.Mui-disabled": {
           WebkitTextFillColor:
@@ -65,9 +66,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <Typography>
-      {value !== null && value !== undefined
-        ? formatEmissionFactor(value)
-        : value}{" "}
+      {formatter.emissionFactor(value, { ifEmpty: " " })}{" "}
       {unit?.abbreviation ?? ""}
     </Typography>
   );
