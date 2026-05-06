@@ -82,7 +82,7 @@ export const Group: FC<SidebarGroupProps> = ({
         px: 2,
         ml: 0,
         mr: 0,
-        justifyContent: isExpanded ? "flex-start" : "center",
+        justifyContent: "flex-start",
         "& .MuiListItemIcon-root": {
           mr: isExpanded ? 1 : 0,
           minWidth: 0,

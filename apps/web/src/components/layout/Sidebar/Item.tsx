@@ -47,7 +47,7 @@ export const Item: FC<SidebarItemProps> = ({
         px: 2,
         ml: isChild ? 3 : 0,
         mr: 0,
-        justifyContent: isExpanded ? "flex-start" : "center",
+        justifyContent: "flex-start",
         "& .MuiListItemIcon-root": {
           mr: isExpanded ? 1 : 0,
           minWidth: 0,
