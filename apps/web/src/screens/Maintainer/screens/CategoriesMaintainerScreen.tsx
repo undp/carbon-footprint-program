@@ -38,7 +38,10 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
-import { EditModeToolbar } from "../components/EditModeToolbar";
+import {
+  EditModeToolbar,
+  EDIT_MODE_TOOLBAR_HEIGHT,
+} from "../components/EditModeToolbar";
 
 export const CategoriesMaintainerScreen: FC = () => {
   const {
@@ -498,7 +501,10 @@ export const CategoriesMaintainerScreen: FC = () => {
         addLabel="Agregar fila"
         extra={methodologySelector}
       />
-      <Box className="rounded-sm bg-white p-3">
+      <Box
+        className="rounded-sm bg-white p-3"
+        sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
+      >
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly
             ? "Vista de solo lectura de las categorías y alcances de esta metodología."
