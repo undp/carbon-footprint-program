@@ -13,9 +13,15 @@ export type Chunk = {
   sectionTitle: string | null;
 };
 
+type Block = {
+  content: string;
+  tokens: number;
+  isHeaderStart: boolean;
+  sectionTitle: string | null;
+};
+
 const splitIntoSentences = (text: string): string[] => {
   const result: string[] = [];
-  // Split on sentence terminators while preserving them.
   const parts = text.split(/(?<=[.!?])\s+/);
   for (const part of parts) {
     const trimmed = part.trim();
@@ -24,115 +30,143 @@ const splitIntoSentences = (text: string): string[] => {
   return result;
 };
 
-const findCurrentHeader = (
-  lines: string[],
-  upToIndex: number
-): string | null => {
-  for (let i = upToIndex; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (HEADER_REGEX.test(line)) return line;
+const buildBlocksWithHeaders = (text: string): Block[] => {
+  const lines = text.split(/\r?\n/);
+  const blocks: Block[] = [];
+  let currentSection: string | null = null;
+  let buf = "";
+  const flushBuf = (): void => {
+    const content = buf.trim();
+    if (content.length === 0) return;
+    blocks.push({
+      content,
+      tokens: estimateTokens(content),
+      isHeaderStart: false,
+      sectionTitle: currentSection,
+    });
+    buf = "";
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.length > 0 && HEADER_REGEX.test(trimmed)) {
+      flushBuf();
+      currentSection = trimmed;
+      blocks.push({
+        content: trimmed,
+        tokens: estimateTokens(trimmed),
+        isHeaderStart: true,
+        sectionTitle: trimmed,
+      });
+      continue;
+    }
+    if (trimmed.length === 0) {
+      flushBuf();
+      continue;
+    }
+    buf = buf.length === 0 ? trimmed : `${buf} ${trimmed}`;
   }
-  return null;
+  flushBuf();
+  return blocks;
 };
 
-const buildChunkMeta = (
-  text: string,
-  lines: string[],
-  approximateLineIndex: number
-): Pick<Chunk, "tokens" | "pageNumber" | "sectionTitle"> => {
-  return {
-    tokens: estimateTokens(text),
-    pageNumber: null,
-    sectionTitle: findCurrentHeader(lines, approximateLineIndex),
-  };
+const buildBlocksFromSentences = (text: string): Block[] => {
+  const flattened = text.replace(/\r?\n/g, " ");
+  return splitIntoSentences(flattened).map((sentence) => ({
+    content: sentence,
+    tokens: estimateTokens(sentence),
+    isHeaderStart: false,
+    sectionTitle: null,
+  }));
 };
 
 /**
  * Split a long piece of text into ~600-token chunks with ~80-token overlap.
- * Header-aware where possible; otherwise sentence-aligned.
  *
- * Falls back to sentence boundaries flawlessly when no header is detected
- * within the ±150-token window — pdf-parse may flatten newlines on some
- * layouts and the line-anchored regex matches nothing in that case.
+ * Two-pass strategy:
+ * 1. Detect section headings via /^\d+(\.\d+)*\s+[A-Z]/ on each line and
+ *    build "blocks" — each block is either a header line or a paragraph
+ *    between headers/blank lines. When packing, an upcoming header within
+ *    ±HEADER_WINDOW_TOKENS of the current target (~600) becomes a preferred
+ *    split boundary so the header opens the next chunk.
+ * 2. If the line-anchored regex matched nothing (pdf-parse can flatten
+ *    newlines on multi-column or soft-wrapped layouts), fall back to
+ *    sentence-boundary blocks. The packing algorithm is identical, just
+ *    with no header-preference signal.
  */
 export const chunkText = (text: string): Chunk[] => {
   const trimmed = text.trim();
   if (trimmed.length === 0) return [];
 
-  const lines = trimmed.split(/\r?\n/);
-  const sentences = splitIntoSentences(trimmed.replace(/\r?\n/g, " "));
-  if (sentences.length === 0) return [];
+  let blocks = buildBlocksWithHeaders(trimmed);
+  const headerCount = blocks.filter((b) => b.isHeaderStart).length;
+  if (headerCount === 0) {
+    blocks = buildBlocksFromSentences(trimmed);
+  }
+  if (blocks.length === 0) return [];
 
   const chunks: Chunk[] = [];
-  let buffer: string[] = [];
-  let bufferTokens = 0;
-  let approximateLineCursor = 0;
+  let pending: Block[] = [];
+  let pendingTokens = 0;
+  let pendingTitle: string | null = null;
 
-  const totalLines = lines.length;
-  const totalSentences = sentences.length;
-  const advanceLineCursor = (sentenceIndex: number): void => {
-    if (totalSentences === 0) return;
-    approximateLineCursor = Math.min(
-      totalLines - 1,
-      Math.floor((sentenceIndex / totalSentences) * totalLines)
-    );
-  };
-
-  const tryHeaderAlignedSplit = (): boolean => {
-    if (totalLines === 0) return false;
-    const lower = Math.max(0, approximateLineCursor - HEADER_WINDOW_TOKENS);
-    const upper = Math.min(
-      totalLines - 1,
-      approximateLineCursor + HEADER_WINDOW_TOKENS
-    );
-    for (let i = lower; i <= upper; i++) {
-      if (HEADER_REGEX.test(lines[i].trim())) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  const flushChunk = (): void => {
-    if (buffer.length === 0) return;
-    const content = buffer.join(" ").trim();
+  const flushPending = (): void => {
+    if (pending.length === 0) return;
+    const content = pending
+      .map((b) => b.content)
+      .join(" ")
+      .trim();
     if (content.length === 0) {
-      buffer = [];
-      bufferTokens = 0;
+      pending = [];
+      pendingTokens = 0;
       return;
     }
     chunks.push({
       content,
-      ...buildChunkMeta(content, lines, approximateLineCursor),
+      tokens: estimateTokens(content),
+      pageNumber: null,
+      sectionTitle: pendingTitle,
     });
     if (OVERLAP_TOKENS > 0) {
       const overlapChars = OVERLAP_TOKENS * 4;
       const tail = content.slice(-overlapChars);
-      buffer = tail.length > 0 ? [tail] : [];
-      bufferTokens = estimateTokens(buffer.join(" "));
+      pending =
+        tail.length > 0
+          ? [
+              {
+                content: tail,
+                tokens: estimateTokens(tail),
+                isHeaderStart: false,
+                sectionTitle: pendingTitle,
+              },
+            ]
+          : [];
+      pendingTokens = pending.reduce((sum, b) => sum + b.tokens, 0);
     } else {
-      buffer = [];
-      bufferTokens = 0;
+      pending = [];
+      pendingTokens = 0;
     }
   };
 
-  for (let s = 0; s < sentences.length; s++) {
-    const sentence = sentences[s];
-    const sentenceTokens = estimateTokens(sentence);
-    advanceLineCursor(s);
-    const wouldOverflow = bufferTokens + sentenceTokens > TARGET_TOKENS;
-    if (wouldOverflow && buffer.length > 0) {
-      // Prefer a header-aligned split when one is available within the window;
-      // otherwise the current sentence boundary is the natural fallback.
-      const _shouldSplit = wouldOverflow && (tryHeaderAlignedSplit() || true);
-      if (_shouldSplit) {
-        flushChunk();
-      }
+  for (const block of blocks) {
+    // Header-aligned split: when a header starts and we are within the window
+    // of the target boundary, flush the current chunk so the header begins
+    // the next chunk. This is the load-bearing piece that turns line 88's
+    // "near a header" detection into an actual repositioned boundary.
+    if (
+      block.isHeaderStart &&
+      pending.length > 0 &&
+      pendingTokens >= TARGET_TOKENS - HEADER_WINDOW_TOKENS
+    ) {
+      flushPending();
     }
-    buffer.push(sentence);
-    bufferTokens += sentenceTokens;
+    if (pending.length > 0 && pendingTokens + block.tokens > TARGET_TOKENS) {
+      flushPending();
+    }
+    if (pending.length === 0) pendingTitle = block.sectionTitle;
+    pending.push(block);
+    pendingTokens += block.tokens;
   }
-  if (buffer.length > 0) flushChunk();
+  flushPending();
 
   return chunks;
 };
