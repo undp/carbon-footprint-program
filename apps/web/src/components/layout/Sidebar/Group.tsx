@@ -7,7 +7,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Tooltip,
   alpha,
   useTheme,
 } from "@mui/material";
@@ -16,6 +15,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import type { SystemRole } from "@repo/types";
 import { Item } from "./Item";
 import { sidebarTransition } from "@/theme";
+import { OverflowTooltipText } from "@components/OverflowTooltipText";
 
 export interface SidebarGroupItem {
   icon: React.ReactNode;
@@ -78,7 +78,7 @@ export const Group: FC<SidebarGroupProps> = ({
         mr: 0,
         justifyContent: "flex-start",
         "& .MuiListItemIcon-root": {
-          mr: isExpanded ? 1 : 0,
+          mr: 1,
           minWidth: 0,
           justifyContent: "center",
         },
@@ -107,14 +107,15 @@ export const Group: FC<SidebarGroupProps> = ({
     >
       <ListItemIcon>{icon}</ListItemIcon>
       <ListItemText
-        primary={text}
+        primary={
+          <OverflowTooltipText variant="body1">{text}</OverflowTooltipText>
+        }
         slotProps={{ primary: { noWrap: true } }}
         sx={{
           opacity: isExpanded ? 1 : 0,
           width: isExpanded ? "auto" : 0,
-          flex: isExpanded ? "1 1 auto" : "0 0 0",
           overflow: "hidden",
-          transition: sidebarTransition(theme, "opacity"),
+          transition: sidebarTransition(theme, ["opacity", "width"]),
         }}
       />
       <IconButton
@@ -143,18 +144,12 @@ export const Group: FC<SidebarGroupProps> = ({
     <>
       <ListItem
         sx={{
-          mb: isOpen ? 0.5 : 2,
+          mb: 1,
           transition: sidebarTransition(theme, "margin-bottom"),
         }}
         disablePadding
       >
-        {isExpanded ? (
-          button
-        ) : (
-          <Tooltip title={text} placement="right">
-            {button}
-          </Tooltip>
-        )}
+        {button}
       </ListItem>
       <Collapse in={isOpen} timeout="auto" unmountOnExit>
         <List component="div" disablePadding sx={{ mb: 1 }}>
