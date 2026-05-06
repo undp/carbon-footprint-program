@@ -20,7 +20,7 @@ import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useCarbonInventory } from "@/api/query";
-import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useCarbonInventoryRouteGuard } from "./hooks/useCarbonInventoryRouteGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -47,13 +47,10 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
   const { user } = useAuth();
 
-  const { data: existingInventory, error: inventoryError } =
-    useCarbonInventory(inventoryId);
+  const { error: inventoryError } = useCarbonInventory(inventoryId);
 
-  const { isReady, mustNavigateAway } = useInventoryEditGuard(
-    inventoryId,
-    existingInventory?.status
-  );
+  const { isReady, mustNavigateAway } =
+    useCarbonInventoryRouteGuard(inventoryId);
 
   const { data } = useEmissionCaptureData({
     inventoryId,

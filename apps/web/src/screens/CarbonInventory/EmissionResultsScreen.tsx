@@ -14,11 +14,11 @@ import { useAuth } from "../../contexts";
 import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
 import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
-import { isCarbonInventoryEditable } from "@repo/utils";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "../../config/vocab";
+import { useCarbonInventoryAccess } from "@/hooks";
 
 const EMISSION_RESULTS_EXPLANATION_SLUGS = {
   MAIN: "emission-results",
@@ -48,9 +48,8 @@ export const EmissionResultsScreen: FC = () => {
     },
   };
 
-  const isEditable =
-    summaryData?.carbonInventory.status &&
-    isCarbonInventoryEditable(summaryData.carbonInventory.status);
+  const { canEdit } = useCarbonInventoryAccess(inventoryId);
+  const isEditable = summaryData?.carbonInventory.status ? canEdit : false;
 
   const nextButton: FooterButton = user
     ? {

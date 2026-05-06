@@ -24,12 +24,12 @@ import {
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
-import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
+import { useCarbonInventoryAccess } from "@/hooks";
 
 const EMISSION_SUMMARY_EXPLANATION_SLUGS = {
   MAIN: "emission-summary",
@@ -87,8 +87,8 @@ export const EmissionSummaryScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
-  const isEditBlocked =
-    metadataData?.status && !isCarbonInventoryEditable(metadataData.status);
+  const { canEdit } = useCarbonInventoryAccess(inventoryId);
+  const isEditBlocked = metadataData?.status ? !canEdit : false;
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -96,11 +96,9 @@ export const EmissionSummaryScreen: FC = () => {
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
-      disabled: isEditBlocked,
+      disabled: isEditBlocked || isMetadataLoading,
     },
-    tooltipTitle: isEditBlocked
-      ? "La huella no es editable actualmente"
-      : undefined,
+    tooltipTitle: isEditBlocked ? "No puedes editar esta huella" : undefined,
   };
 
   const nextButton: FooterButton = {

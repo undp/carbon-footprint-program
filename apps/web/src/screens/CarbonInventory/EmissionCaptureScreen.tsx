@@ -31,7 +31,7 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
-import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useCarbonInventoryRouteGuard } from "./hooks/useCarbonInventoryRouteGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -50,13 +50,10 @@ export const EmissionCaptureScreen: FC = () => {
   });
   const { user } = useAuth();
 
-  const { data: existingInventory, error: inventoryError } =
-    useCarbonInventory(inventoryId);
+  const { error: inventoryError } = useCarbonInventory(inventoryId);
 
-  const { isReady, mustNavigateAway } = useInventoryEditGuard(
-    inventoryId,
-    existingInventory?.status
-  );
+  const { isReady, mustNavigateAway } =
+    useCarbonInventoryRouteGuard(inventoryId);
 
   const { selectedCategory, handleCategoryChange } =
     useEmissionCaptureCategory();

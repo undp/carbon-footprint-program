@@ -30,7 +30,7 @@ import {
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
-import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useCarbonInventoryRouteGuard } from "./hooks/useCarbonInventoryRouteGuard";
 import { useAuth } from "@/contexts";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
@@ -80,10 +80,8 @@ export const BusinessProfilingScreen: FC = () => {
 
   const hasOrganization = !!existingInventory?.organizationId;
 
-  const { isReady, mustNavigateAway } = useInventoryEditGuard(
-    inventoryId,
-    existingInventory?.status
-  );
+  const { isReady, mustNavigateAway } =
+    useCarbonInventoryRouteGuard(inventoryId);
 
   const {
     control,
