@@ -24,7 +24,7 @@ export const REFETCH_INTERVAL_MS = 1000 * 60 * 5; // 5 minutes
 export const DASHBOARD_YEARS_RANGE_FROM_CURRENT = 10;
 
 /** Sidebar width in pixels. Drives layout offsets in `MainLayout` and `MaintainerLayout`. */
-export const SIDEBAR_WIDTH = 270;
+export const SIDEBAR_WIDTH = 280;
 export const SIDEBAR_MINI_WIDTH = 72;
 
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
