@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 import { Box, Typography } from "@mui/material";
 import { FormProvider, type UseFormReturn } from "react-hook-form";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { InfoBanner } from "./InfoBanner";
 import { EditModeToolbar } from "./EditModeToolbar";
 import { ExitEditModeDialog } from "./ExitEditModeDialog";
 import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
