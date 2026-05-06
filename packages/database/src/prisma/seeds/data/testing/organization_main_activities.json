@@ -216,5 +216,17 @@
       "km de red",
       "plantas operadas"
     ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Industria del Cemento",
+    "mainActivities": [
+      "toneladas de clinker producidas",
+      "toneladas de cemento producidas",
+      "m³ de hormigón producidos",
+      "toneladas de cal producidas",
+      "toneladas de yeso producidas",
+      "horas de operación de planta"
+    ]
   }
 ]
