@@ -174,7 +174,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       <form id="subcategory-preselection-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Inventario Organizacional",
+            title: "Simulador de Huella Organizacional",
             subtitle: data?.name ?? undefined,
             action: (
               <CarbonInventoryNavigationButton

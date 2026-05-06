@@ -283,7 +283,7 @@ export const EmissionCaptureScreen: FC = () => {
       <form id="emission-capture-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Inventario Organizacional",
+            title: "Simulador de Huella Organizacional",
             subtitle: data?.name ?? undefined,
             action: (
               <CarbonInventoryNavigationButton

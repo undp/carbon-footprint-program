@@ -18,7 +18,7 @@ interface CarbonInventoryHeaderProps {
 }
 
 export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
-  title = "Inventario Organizacional",
+  title = "Huella Organizacional",
   subtitle,
   action,
 }) => {

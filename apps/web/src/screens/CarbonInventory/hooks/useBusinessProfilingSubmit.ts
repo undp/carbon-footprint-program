@@ -44,7 +44,7 @@ export const useBusinessProfilingSubmit = ({
         const requestData = mapFormValuesToRequest(data);
         await updateCarbonInventoryMutation.mutateAsync(requestData);
 
-        enqueueSnackbar("Inventario organizacional guardado exitosamente", {
+        enqueueSnackbar("Huella guardada exitosamente", {
           variant: "success",
         });
 

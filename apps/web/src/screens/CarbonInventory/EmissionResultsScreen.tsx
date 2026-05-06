@@ -68,7 +68,7 @@ export const EmissionResultsScreen: FC = () => {
   return (
     <CarbonInventoryLayout
       headerProps={{
-        title: "Simulador de Inventario Organizacional",
+        title: "Simulador de Huella Organizacional",
         subtitle: summaryData?.carbonInventory.name ?? undefined,
         action: isEditable ? undefined : (
           // If the inventory is locked (non-editable), we assume a registered user session.

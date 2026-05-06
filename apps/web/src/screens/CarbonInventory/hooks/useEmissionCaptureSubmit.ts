@@ -90,7 +90,7 @@ export const useEmissionCaptureSubmit = ({
         resetAfterSave?.();
 
         if (resultFeedbackWithSnackbar)
-          enqueueSnackbar("Inventario guardado exitosamente", {
+          enqueueSnackbar("Huella guardada exitosamente", {
             variant: "success",
           });
 

@@ -203,7 +203,7 @@ export const BusinessProfilingScreen: FC = () => {
       >
         <CarbonInventoryLayout
           headerProps={{
-            title: "Simulador de Inventario Organizacional",
+            title: "Simulador de Huella Organizacional",
             action: (
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}

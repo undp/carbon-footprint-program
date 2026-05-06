@@ -114,7 +114,7 @@ export const EmissionSummaryScreen: FC = () => {
   return (
     <CarbonInventoryLayout
       headerProps={{
-        title: "Simulador de Inventario Organizacional",
+        title: "Simulador de Huella Organizacional",
         action: (
           <CarbonInventoryNavigationButton
             type={user ? "inventories" : "landing"}
