@@ -243,5 +243,18 @@
       "Tratamiento de Aguas Servidas",
       "Otro"
     ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Industria del Cemento",
+    "subsectors": [
+      "Producción de Clinker",
+      "Producción de Cemento - Molienda y mezcla",
+      "Hormigón Premezclado",
+      "Productos Prefabricados de Hormigón",
+      "Cal y Yeso",
+      "Morteros y Aditivos",
+      "Otro"
+    ]
   }
 ]
