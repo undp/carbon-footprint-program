@@ -6,6 +6,7 @@ import {
   InputTypeSchema,
 } from "@repo/types";
 import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
+import { toNullableNumber } from "@/utils/number";
 
 /**
  * Maps common fields shared between create and update requests
@@ -18,12 +19,12 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
-    quantity: line.quantity,
+    quantity: toNullableNumber(line.quantity),
     factorSource: line.factorSource,
     baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue: line.factorValue,
+    appliedFactorValue: toNullableNumber(line.factorValue),
     appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions: line.manualTotalEmissions,
+    manualTotalEmissions: toNullableNumber(line.manualTotalEmissions),
     comment: line.comment,
   };
 }
