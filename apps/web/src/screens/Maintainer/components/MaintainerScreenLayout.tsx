@@ -2,8 +2,7 @@ import { ReactNode } from "react";
 import { Box, Typography } from "@mui/material";
 import { FormProvider, type UseFormReturn } from "react-hook-form";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { InfoBanner } from "./InfoBanner";
-import { EditModeToolbar } from "./EditModeToolbar";
+import { EditModeToolbar, EDIT_MODE_TOOLBAR_HEIGHT } from "./EditModeToolbar";
 import { ExitEditModeDialog } from "./ExitEditModeDialog";
 import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 import { FormDebugPanel } from "@/devtools";
@@ -94,15 +93,8 @@ export const MaintainerScreenLayout = ({
       />
       <Box
         className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: 8 } : undefined}
+        sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
       >
-        {!isViewOnly && (
-          <InfoBanner
-            variant="success"
-            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
-            subtitle="Los cambios se aplicarán automáticamente"
-          />
-        )}
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly ? readOnlyDescription : editDescription}
         </Typography>

@@ -2,6 +2,8 @@ import { FC } from "react";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 
+export const EDIT_MODE_TOOLBAR_HEIGHT = 64;
+
 interface EditModeToolbarProps {
   methodologyName: string;
   onExitClick: () => void;
@@ -12,19 +14,17 @@ export const EditModeToolbar: FC<EditModeToolbarProps> = ({
   onExitClick,
 }) => (
   <Paper
-    elevation={3}
+    elevation={0}
     sx={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
+      minHeight: EDIT_MODE_TOOLBAR_HEIGHT,
+      position: "sticky",
+      bottom: 3,
       display: "flex",
       alignItems: "center",
       gap: 1.5,
       px: 4,
-      py: 1.5,
-      zIndex: 1200,
-      borderTop: "2px solid",
+      py: 1,
+      border: "2px solid",
       borderColor: "success.main",
     }}
   >
