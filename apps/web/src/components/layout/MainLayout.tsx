@@ -43,22 +43,18 @@ export const MainLayout: FC<PropsWithChildren> = ({ children }) => {
   const isPinned = useSidebarStore((state) => state.isPinned);
 
   return (
-    <Box className="flex h-screen flex-1">
-      <Box
-        sx={(theme) => ({
-          width: isPinned ? SIDEBAR_WIDTH : SIDEBAR_MINI_WIDTH,
-          flexShrink: 0,
-          transition: sidebarTransition(theme, "width"),
-        })}
-      >
-        <Sidebar
-          items={SIDEBAR_ITEMS}
-          onLogoClick={() => navigate({ to: Routes.HOME })}
-        />
-      </Box>
-      <Box className="flex min-h-0 flex-1 overflow-y-auto px-6 py-6">
-        {children}
-      </Box>
+    <Box
+      className="min-h-screen"
+      sx={(theme) => ({
+        pl: `${isPinned ? SIDEBAR_WIDTH : SIDEBAR_MINI_WIDTH}px`,
+        transition: sidebarTransition(theme, "padding-left"),
+      })}
+    >
+      <Sidebar
+        items={SIDEBAR_ITEMS}
+        onLogoClick={() => navigate({ to: Routes.HOME })}
+      />
+      <Box className="flex min-h-screen flex-col px-6 py-6">{children}</Box>
     </Box>
   );
 };
