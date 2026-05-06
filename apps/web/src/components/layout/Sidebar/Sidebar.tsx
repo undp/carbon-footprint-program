@@ -52,9 +52,11 @@ export const Sidebar: FC<Props> = ({
           transition: sidebarTransition(theme, "width"),
         },
       })}
-      PaperProps={{
+      slotProps={{
+        paper: {
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
+        },
       }}
     >
       <SidebarHeader
