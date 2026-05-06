@@ -59,7 +59,7 @@ type LlmToolDefinition = {
 };
 ```
 
-`role` uses `ChatMessageRole` enum values. `role = "TOOL"` SHALL carry a non-empty `toolCallId` matching the `id` of an earlier `tool_call`. `tool_call` SHALL be the terminal event of its invocation. Interface lives at `apps/api/src/features/chatbot/llmProvider/types.ts`.
+`role` uses `ChatMessageRole` enum values. `role = "TOOL"` SHALL carry a non-empty `toolCallId` matching the `id` of an earlier `tool_call`. `tool_call` SHALL be the terminal event of its invocation. `LlmToolCall.arguments` is a JSON-serialized string at the interface boundary (matching the OpenAI SDK's wire shape) — the streaming handler is the only place that parses it into a JS object via `JSON.parse(...).safeParse(SearchKnowledgeArgsSchema)`, and the parsed object never escapes the handler. Interface lives at `apps/api/src/features/chatbot/llmProvider/types.ts`.
 
 #### Scenario: Both implementations satisfy the extended interface
 

@@ -86,7 +86,7 @@ This is a thin, persistent reminder that the chatbot is AI-generated and that ci
 #### Scenario: Disclaimer is non-interactive
 
 - **WHEN** the disclaimer element is inspected
-- **THEN** it SHALL NOT carry any `onClick` handler, `aria-role` of `button`, or visible dismiss control; it SHALL be a static text node only
+- **THEN** it SHALL NOT carry any `onClick` handler, `role="button"` attribute, or visible dismiss control; it SHALL be a static text node only
 
 #### Scenario: Disclaimer wording is the canonical literal
 
@@ -100,7 +100,7 @@ The trash-icon (clear-chat) control in the chatbot widget SHALL ONLY clear local
 1. Reset the widget's message list to empty.
 2. Generate a fresh `conversation_id` (e.g., via `crypto.randomUUID()`) so that the next outgoing `sendMessage` starts a new conversation thread for backend persistence.
 
-The handler SHALL NOT issue any HTTP request — there is NO `DELETE /chat/conversations/...` (or equivalent) endpoint in V1, and none is added by this change. The persisted `chatbot_chat_conversation` and `chatbot_chat_message` rows in the database SHALL remain untouched after the click. The icon's visible/aria label SHALL be `"Limpiar conversación"` (clear) — NOT `"Eliminar conversación"` (delete) — because the wording must match the actual behavior.
+The trash-icon click handler SHALL NOT issue any HTTP request. The persisted `chatbot_chat_conversation` and `chatbot_chat_message` rows in the database SHALL remain untouched after the click. The icon's visible/aria label SHALL be `"Limpiar conversación"` (clear) — NOT `"Eliminar conversación"` (delete) — because the wording must match the actual behavior. (The widget DOES expose a SEPARATE "Eliminar mi historial" affordance in the foot of the panel that calls the foundation `DELETE /api/chatbot/conversations/me` endpoint with confirmation; that endpoint comes from the foundation `chatbot-conversation-deletion` capability, not this change. See the dedicated requirement below for the D11 affordance contract.)
 
 This is a PM-owned decision: conversations are auditable and may need server-side review after the user clears the UI; client-triggered hard delete is out of V1 scope and belongs to the V4 admin-UI scope. Decision recorded in `design.md` Decision 25.
 
