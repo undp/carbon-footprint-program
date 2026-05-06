@@ -6,6 +6,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { NumericInput } from "@/components/NumericInput";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { InfoButton } from "@/components";
+import { formatter } from "@/utils/formatting";
 import type { ReductionProjectFormValues } from "../formSchema";
 
 interface Props {
@@ -145,7 +146,9 @@ export const ReductionReportSection: FC<Props> = ({
         ),
         renderCell: () => (
           <Box className="flex items-center justify-end px-10 py-4">
-            <Typography fontWeight={500}>{reduction} tCO₂e</Typography>
+            <Typography fontWeight={500}>
+              {formatter.emissions(reduction)}
+            </Typography>
           </Box>
         ),
       },
