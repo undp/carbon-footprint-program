@@ -15,6 +15,7 @@ import {
   SubmissionStatus,
   OrganizationStatus,
   MembershipStatus,
+  SystemRole,
 } from "@repo/database";
 import {
   createTestOrganization,
@@ -540,7 +541,7 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
   });
 
   describe("Error cases", () => {
-    it("should return 403 for non-existent organization ID", async () => {
+    it("should return 404 for SUPERADMIN with non-existent organization ID (canAdminsBypass)", async () => {
       const nonExistentId = "999999999";
 
       const response = await app.inject({
@@ -548,27 +549,73 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
         url: `/api/app/organizations/${nonExistentId}`,
       });
 
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
+      expect(response.statusCode).toBe(404);
     });
 
-    it("should return 403 for user without membership", async () => {
+    it("should return 403 for USER with non-existent organization ID", async () => {
+      const nonExistentId = "999999999";
+
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { role: SystemRole.USER },
+      });
+      try {
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/app/organizations/${nonExistentId}`,
+        });
+
+        expect(response.statusCode).toBe(403);
+        const body = JSON.parse(response.body) as ApiErrorResponse;
+        expect(body.code).toBe("FORBIDDEN");
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: testUser.role },
+        });
+      }
+    });
+
+    it("should return 200 for SUPERADMIN without membership (canAdminsBypass)", async () => {
       const org = await createTestOrganization(prisma);
       await createTestOrganizationData(prisma, org.id);
-      // No membership created for testUser
+      // No membership created for testUser; testUser is SUPERADMIN by seed
 
       const response = await app.inject({
         method: "GET",
         url: `/api/app/organizations/${org.id.toString()}`,
       });
 
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
+      expect(response.statusCode).toBe(200);
     });
 
-    it("should return 403 for user with deleted membership", async () => {
+    it("should return 403 for USER without membership", async () => {
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id);
+      // No membership created for testUser
+
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { role: SystemRole.USER },
+      });
+      try {
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/app/organizations/${org.id.toString()}`,
+        });
+
+        expect(response.statusCode).toBe(403);
+        const body = JSON.parse(response.body) as ApiErrorResponse;
+        expect(body.code).toBe("FORBIDDEN");
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: testUser.role },
+        });
+      }
+    });
+
+    it("should return 200 for SUPERADMIN with deleted membership (canAdminsBypass)", async () => {
       const org = await createTestOrganization(prisma);
       await createTestOrganizationData(prisma, org.id);
       await createTestMembership(prisma, testUser.id, org.id, {
@@ -580,10 +627,36 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
         url: `/api/app/organizations/${org.id.toString()}`,
       });
 
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
-      expect(body.message).toBeTruthy();
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should return 403 for USER with deleted membership", async () => {
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id);
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.DELETED,
+      });
+
+      await prisma.user.update({
+        where: { id: testUser.id },
+        data: { role: SystemRole.USER },
+      });
+      try {
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/app/organizations/${org.id.toString()}`,
+        });
+
+        expect(response.statusCode).toBe(403);
+        const body = JSON.parse(response.body) as ApiErrorResponse;
+        expect(body.code).toBe("FORBIDDEN");
+        expect(body.message).toBeTruthy();
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: testUser.role },
+        });
+      }
     });
 
     it("should return 400 for invalid ID format", async () => {
