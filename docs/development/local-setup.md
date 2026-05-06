@@ -108,6 +108,8 @@ docker compose up -d
 
 This starts a PostgreSQL container using the configuration in `packages/database/docker-compose.yml`.
 
+> **pgvector image bump.** The Postgres image is `pgvector/pgvector:pg18` (bundles the `vector` extension required by the chatbot RAG migration). If you have an existing `postgres-data` Docker volume created against the prior `postgres:18-alpine` image, run `docker compose down -v` first — the new image's `initdb` refuses to initialize over a data directory created by a different base image. Once down, `docker compose up -d` against `pgvector/pgvector:pg18` will initialize cleanly. The migrations then run `CREATE EXTENSION IF NOT EXISTS vector` on first apply.
+
 **Verify the container is running:**
 
 ```bash

@@ -365,3 +365,57 @@ Until the infra change lands, run the SQL above manually as needed (for example,
 **Cookie rotation:**
 
 Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. Any anonymous conversations whose session cookie was issued under the previous secret become unrecoverable from the user's perspective. Schedule rotations during low-traffic windows and document them in the deployment log.
+
+---
+
+## Chatbot corpus ingestion and activation
+
+The corpus that backs the educational mode (`Modo A`) is ingested via two CLI scripts under `apps/api/scripts/chatbot/`:
+
+```bash
+# 1. Ingest a PDF — creates a DRAFT source plus chunks plus an audit row.
+pnpm --filter api chatbot:ingest path/to/document.pdf \
+  --label "GHG Protocol Corporate Standard" \
+  --version v05 \
+  --source-type PDF \
+  --scope GLOBAL \
+  --cite-url "https://ghgprotocol.org/corporate-standard"
+
+# 2. Activate — atomically flips the DRAFT to ACTIVE and any prior ACTIVE
+#    of the same (name, scope) to OUTDATED.
+pnpm --filter api chatbot:activate <source-id>
+```
+
+**Re-ingest contract:**
+
+- A new ingest always creates a `DRAFT` row.
+- If a `(name, version, status=DRAFT)` row already exists, the script aborts non-zero with a Spanish error naming the colliding `id`. Operators MUST delete the stale draft (or re-ingest with a new `--version`) before retrying.
+- An existing `ACTIVE` or `OUTDATED` row with the same `(name, version)` does NOT block a new ingest — the new draft sits alongside until activate flips it.
+
+**Activation playbook:**
+
+- Activation is wrapped in a single Prisma transaction, guarded by an advisory lock keyed on `'chatbot-corpus:' + name + ':' + scope`. The lock serializes concurrent activations against the same `(name, scope)` and lets activates against different `(name, scope)` proceed in parallel.
+- The script refuses non-`DRAFT` targets with an explicit Spanish error.
+- The previously `ACTIVE` row (if any) gets `status='OUTDATED'` and `deactivated_at = NOW()`; the target gets `status='ACTIVE'` and `activated_at = NOW()`. Both updates share the transaction commit timestamp.
+
+**Re-embed playbook (deployment-name rotation):**
+
+If the Azure OpenAI embedding deployment is rotated (e.g., `…prod-v1` → `…prod-v2`), every existing `chatbot_corpus_chunk.embedding` was computed against the old deployment and must be re-built. The conservative recipe:
+
+1. Run `chatbot:ingest` again with the same `--label` and a fresh `--version` (e.g., `v06`).
+2. Run `chatbot:activate <new-source-id>` — the prior version transitions to `OUTDATED`.
+3. Verify retrieval against goldens before announcing the rotation. The widget continues to work against the old `OUTDATED` chunks until the new ones are activated; activation is the cutover.
+
+If the underlying model is unchanged (only the deployment name rotated), operators MAY skip the re-embed — the persisted `embedding_model` column is the deployment name, so the audit trail will still reflect the rotation.
+
+**Document Intelligence upgrade trigger:**
+
+`pdf-parse` is the V1 default. If manual review of ingested chunks surfaces ≥3 broken samples (multi-column layouts, scanned pages, dense tables) on representative PDFs, evaluate Azure Document Intelligence as a per-deployment optional parser. Until that signal exists, `pdf-parse` is the right default.
+
+**Production constraint — `AZURE_OPENAI_API_KEY`:**
+
+Production deployments SHALL leave `AZURE_OPENAI_API_KEY` unset. The chat and embeddings clients fall back to `DefaultAzureCredential` (managed identity), which is the auditable, key-less path. Setting the key in production silently bypasses managed identity — chats still work, but the security posture degrades. The deployment manifest is the right place to enforce absence.
+
+**Test fixture:**
+
+Integration tests reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` — ~5 pages of GHG Protocol Corporate Standard fair-use excerpt, parseable by `pdf-parse`, with at least one section heading and one definition paragraph. The binary is committed during the implementation phase and rebuilt by the operator if the canonical PDF revs.

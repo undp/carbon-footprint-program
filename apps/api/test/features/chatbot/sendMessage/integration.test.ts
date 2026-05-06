@@ -43,10 +43,13 @@ describe("POST /api/chatbot/message — integration", () => {
     // identity preHandler does not mint a session cookie for authenticated
     // callers — the cookie path is reserved for the anonymous flow, which
     // requires `withAnonymousIdentity` (out of scope for foundation tests).
+    // Use a phrase that does NOT match any of the mock provider's routing
+    // modes (greeting / platform-redirect / tool-keyword) so the eco template
+    // path runs. The deterministic template is what foundation pinned.
     const { status, events } = await collectSseEvents(
       app,
       "/api/chatbot/message",
-      { content: "hola" },
+      { content: "mensaje de prueba" },
       {
         // The suite owns the Fastify lifecycle (listen/close in
         // beforeAll/afterAll) — the helper must not close it under us.
@@ -85,7 +88,7 @@ describe("POST /api/chatbot/message — integration", () => {
 
     // Per-turn cost = inputTokens + outputTokens — matches estimateTokens.
     const expectedOutputTokens = estimateTokens(
-      "Recibí: hola. Esta es una respuesta de mock."
+      "Recibí: mensaje de prueba. Esta es una respuesta de mock."
     );
     expect(messages[1].tokensUsed).toBe(done.inputTokens + done.outputTokens);
     expect(done.outputTokens).toBe(expectedOutputTokens);
