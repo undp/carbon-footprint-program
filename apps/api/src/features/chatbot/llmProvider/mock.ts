@@ -14,22 +14,21 @@ const findLatestUserMessage = (messages: LlmMessage[]): string => {
 };
 
 const isSecondRound = (messages: LlmMessage[]): boolean => {
-  // The handler appends a TOOL message after an ASSISTANT message with
-  // toolCalls when re-invoking the provider for the second round. Detect that
-  // shape so the mock yields the eco template instead of a fresh tool_call.
-  for (let i = messages.length - 1; i >= 1; i--) {
-    if (messages[i].role === ChatMessageRole.TOOL) {
-      const prev = messages[i - 1];
-      if (
-        prev.role === ChatMessageRole.ASSISTANT &&
-        prev.toolCalls &&
-        prev.toolCalls.length > 0
-      ) {
-        return true;
-      }
-    }
-  }
-  return false;
+  // The handler builds the second-round messages array as
+  // [...history, USER, ASSISTANT(toolCalls), TOOL] before re-invoking the
+  // provider, so the LAST two entries are always the round-1 ASSISTANT(toolCalls)
+  // followed by the TOOL result. Scoping the check to the tail keeps later
+  // turns of the same conversation from incorrectly skipping routing because
+  // an OLDER ASSISTANT(toolCalls)+TOOL pair lives somewhere in the history.
+  if (messages.length < 2) return false;
+  const last = messages[messages.length - 1];
+  const prev = messages[messages.length - 2];
+  return (
+    last.role === ChatMessageRole.TOOL &&
+    prev.role === ChatMessageRole.ASSISTANT &&
+    !!prev.toolCalls &&
+    prev.toolCalls.length > 0
+  );
 };
 
 const isPlatformQuery = (text: string): boolean => {
