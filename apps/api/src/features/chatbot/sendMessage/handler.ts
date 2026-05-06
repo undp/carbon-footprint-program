@@ -18,11 +18,33 @@ import { writeSseEvent, writeSseHeaders } from "./helpers.js";
 
 type SendMessageRequest = FastifyRequest<{ Body: SendMessageRequestBody }>;
 
+const historyToLlmMessage = (m: {
+  role: ChatMessageRole;
+  content: string;
+}): LlmMessage => {
+  switch (m.role) {
+    case ChatMessageRole.USER:
+    case ChatMessageRole.SYSTEM:
+      return { role: m.role, content: m.content };
+    case ChatMessageRole.ASSISTANT:
+      return { role: ChatMessageRole.ASSISTANT, content: m.content };
+    case ChatMessageRole.TOOL:
+      // History does not preserve tool_call_id; foundation never persists
+      // TOOL rows so this is unreachable in practice. Skip with a placeholder
+      // id rather than hard-fail because typing requires a discriminated branch.
+      return {
+        role: ChatMessageRole.TOOL,
+        content: m.content,
+        toolCallId: "history-tool-noop",
+      };
+  }
+};
+
 const buildLlmMessages = (
   history: { role: ChatMessageRole; content: string }[],
   userContent: string
 ): LlmMessage[] => [
-  ...history.map((m) => ({ role: m.role, content: m.content })),
+  ...history.map(historyToLlmMessage),
   { role: ChatMessageRole.USER, content: userContent },
 ];
 
@@ -121,6 +143,7 @@ export const sendMessageHandler = async (
 
   let stream: AsyncIterable<
     | { type: "delta"; content: string }
+    | { type: "tool_call"; id: string; name: string; arguments: string }
     | { type: "usage"; inputTokens: number; outputTokens: number }
   >;
   try {
