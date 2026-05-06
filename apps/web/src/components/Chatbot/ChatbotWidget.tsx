@@ -376,11 +376,7 @@ export function ChatbotWidget() {
           justifyContent: "center",
         }}
       >
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          textAlign="center"
-        >
+        <Typography variant="caption" color="text.secondary" textAlign="center">
           {FOOT_DISCLAIMER}
         </Typography>
       </Box>

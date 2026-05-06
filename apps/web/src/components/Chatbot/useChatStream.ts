@@ -55,6 +55,15 @@ export const useChatStream = () => {
   // updateLastAssistant can target it directly instead of scanning backward
   // on every delta. Reset to -1 between turns and on new conversation.
   const inFlightAssistantIndexRef = useRef<number>(-1);
+  // AbortController for the active turn's fetch+SSE pipeline. startNewConversation
+  // aborts it so an in-flight stream cannot re-dirty the freshly-cleared UI
+  // with a late `error`/`truncated`/`empty` setState. Cleared at turn boundaries.
+  const turnControllerRef = useRef<AbortController | null>(null);
+  // Monotonic generation token bumped on every startNewConversation /
+  // sendMessage start. setState calls inside an async sendMessage are gated
+  // on the captured generation matching the current ref so a turn that was
+  // cancelled mid-flight cannot mutate state that belongs to a later turn.
+  const turnGenerationRef = useRef(0);
   // Monotonic counter used to mint locally unique React keys for each
   // message bubble. `Date.now()` collisions (mocked timers, two turns
   // started in the same millisecond) would otherwise let React reconcile
@@ -196,6 +205,17 @@ export const useChatStream = () => {
       // observed during the CURRENT turn's stream, never a stale one from
       // an earlier turn that completed or errored.
       lastEventIdRef.current = undefined;
+      // Mint a generation token for this turn; every subsequent state mutation
+      // checks that the token still matches before applying. startNewConversation
+      // bumps the token, so a turn that was cancelled mid-flight cannot
+      // re-dirty state that belongs to a later turn.
+      turnGenerationRef.current += 1;
+      const turnGeneration = turnGenerationRef.current;
+      const isCurrentTurn = (): boolean =>
+        turnGenerationRef.current === turnGeneration;
+      const controller = new AbortController();
+      turnControllerRef.current = controller;
+
       const userMessage: ChatbotMessage = {
         id: nextMessageId("user"),
         role: "user",
@@ -236,6 +256,7 @@ export const useChatStream = () => {
             credentials: "include",
             headers,
             body: JSON.stringify({ content }),
+            signal: controller.signal,
           });
           return { response, transportError: false };
         } catch {
@@ -245,8 +266,10 @@ export const useChatStream = () => {
 
       const initialAttempt = await attempt(false);
       let response = initialAttempt.response;
+      if (!isCurrentTurn()) return;
       if (initialAttempt.transportError) {
         const retry = await attempt(true);
+        if (!isCurrentTurn()) return;
         if (retry.transportError) {
           consecutiveFailuresRef.current += 1;
           if (consecutiveFailuresRef.current >= 2) {
@@ -268,13 +291,14 @@ export const useChatStream = () => {
       }
 
       if (!response) {
-        setState("error");
+        if (isCurrentTurn()) setState("error");
         return;
       }
 
       if (!response.ok) {
         consecutiveFailuresRef.current = 0;
         if (response.status === 413) {
+          if (!isCurrentTurn()) return;
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
@@ -290,10 +314,12 @@ export const useChatStream = () => {
           } catch {
             // fall through to generic
           }
+          if (!isCurrentTurn()) return;
           setState("error");
           updateLastAssistant((msg) => ({ ...msg, content: serverMessage }));
           return;
         }
+        if (!isCurrentTurn()) return;
         setState("error");
         updateLastAssistant((msg) => ({
           ...msg,
@@ -304,6 +330,7 @@ export const useChatStream = () => {
 
       consecutiveFailuresRef.current = 0;
       const result = await consumeStream(response);
+      if (!isCurrentTurn()) return;
 
       switch (result.kind) {
         case "completed":
@@ -324,9 +351,12 @@ export const useChatStream = () => {
           setState("degraded");
           break;
       }
-      // Turn finished — clear the in-flight pointer so the next turn starts
-      // clean and stale indices can't leak across turns.
+      // Turn finished — clear the in-flight pointer and the per-turn controller
+      // so the next turn starts clean and stale indices can't leak across turns.
       inFlightAssistantIndexRef.current = -1;
+      if (turnControllerRef.current === controller) {
+        turnControllerRef.current = null;
+      }
     },
     [consumeStream, nextMessageId, updateLastAssistant]
   );
@@ -336,6 +366,14 @@ export const useChatStream = () => {
   // backend conversation store — this is intentional, the user is starting
   // a NEW client-side thread, not deleting history.
   const startNewConversation = useCallback((): void => {
+    // Bump the generation token BEFORE we abort so any pending
+    // setState calls inside an in-flight sendMessage that resume after
+    // the abort observe a stale generation and skip the mutation.
+    turnGenerationRef.current += 1;
+    if (turnControllerRef.current) {
+      turnControllerRef.current.abort();
+      turnControllerRef.current = null;
+    }
     setMessages([]);
     setState("empty");
     lastEventIdRef.current = undefined;
