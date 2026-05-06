@@ -15,6 +15,7 @@ export enum CarbonInventoryQueryKey {
   EmissionsDetailedSummary = "emissions-detailed-summary",
   EmissionFactors = "emission-factors",
   Metadata = "metadata",
+  Access = "access",
   Minimal = "minimal",
   Badges = "badges",
   SubcategoryRecommendations = "subcategory-recommendations",
@@ -106,6 +107,13 @@ export const carbonInventoryKeys = {
       id,
       CarbonInventoryQueryKey.Metadata,
       CarbonInventoryQueryKey.AttributesUpdateDependency,
+    ] as const,
+  access: (id: string) =>
+    [
+      CarbonInventoryQueryKey.Root,
+      id,
+      CarbonInventoryQueryKey.Access,
+      CarbonInventoryQueryKey.StatusUpdateDependency,
     ] as const,
   minimal: [
     CarbonInventoryQueryKey.Root,

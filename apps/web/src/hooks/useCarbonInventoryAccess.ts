@@ -1,4 +1,4 @@
-import { useCarbonInventoryMetadata } from "@/api/query";
+import { useCarbonInventoryAccessQuery } from "@/api/query";
 
 export interface CarbonInventoryAccess {
   /** True once the underlying read settles; consumers gate redirects on this. */
@@ -12,15 +12,12 @@ export interface CarbonInventoryAccess {
 export const useCarbonInventoryAccess = (
   inventoryId: string
 ): CarbonInventoryAccess => {
-  const {
-    data: metadata,
-    isLoading,
-    isError,
-  } = useCarbonInventoryMetadata(inventoryId);
+  const { data, isLoading, isError } =
+    useCarbonInventoryAccessQuery(inventoryId);
 
   return {
     isReady: !isLoading,
     canAccess: !isError,
-    canEdit: !isError && (metadata?.canEdit ?? false),
+    canEdit: !isError && (data?.canEdit ?? false),
   };
 };

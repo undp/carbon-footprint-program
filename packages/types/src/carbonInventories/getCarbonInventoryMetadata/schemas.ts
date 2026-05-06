@@ -34,10 +34,5 @@ export const GetCarbonInventoryMetadataResponseSchema = z
       .nullable()
       .describe("The quantity of the organization main activity"),
     status: CarbonInventoryDisplayStatusSchema,
-    canEdit: z
-      .boolean()
-      .describe(
-        "Whether the requesting user is allowed to edit this inventory (combines edit-role and editable-status checks)"
-      ),
   })
   .strict();

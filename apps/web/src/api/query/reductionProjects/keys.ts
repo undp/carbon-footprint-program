@@ -3,6 +3,7 @@ export enum ReductionProjectQueryKey {
   ListDependency = "reductionProjectsListDependency",
   AttributesUpdateDependency = "reductionProjectAttributesUpdateDependency",
   Minimal = "reductionProjectsMinimal",
+  Access = "access",
 }
 
 export const reductionProjectKeys = {
@@ -14,6 +15,13 @@ export const reductionProjectKeys = {
     [
       ReductionProjectQueryKey.Root,
       id,
+      ReductionProjectQueryKey.AttributesUpdateDependency,
+    ] as const,
+  access: (id: string) =>
+    [
+      ReductionProjectQueryKey.Root,
+      id,
+      ReductionProjectQueryKey.Access,
       ReductionProjectQueryKey.AttributesUpdateDependency,
     ] as const,
   minimal: [

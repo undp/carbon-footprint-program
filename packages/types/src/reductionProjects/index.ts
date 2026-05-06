@@ -8,5 +8,7 @@ export * from "./getReductionProjectsMinimal/schemas.js";
 export * from "./getReductionProjectsMinimal/types.js";
 export * from "./getReductionProjectById/schemas.js";
 export * from "./getReductionProjectById/types.js";
+export * from "./getReductionProjectAccess/schemas.js";
+export * from "./getReductionProjectAccess/types.js";
 export * from "./updateReductionProject/schemas.js";
 export * from "./updateReductionProject/types.js";

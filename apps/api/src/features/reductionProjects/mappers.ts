@@ -20,7 +20,7 @@ type ReductionProjectWithRelations = Prisma.ReductionProjectGetPayload<{
 
 function mapPersistenceFields(
   row: ReductionProjectWithRelations
-): Omit<GetReductionProjectByIdResponse, "status" | "canEdit"> {
+): Omit<GetReductionProjectByIdResponse, "status"> {
   return {
     id: row.id.toString(),
     name: row.name,
@@ -59,13 +59,11 @@ function mapPersistenceFields(
 
 export function mapReductionProjectToGetByIdResponse(
   row: ReductionProjectWithRelations,
-  displayStatus: ReductionProjectDisplayStatus,
-  canEdit: boolean
+  displayStatus: ReductionProjectDisplayStatus
 ): GetReductionProjectByIdResponse {
   return {
     ...mapPersistenceFields(row),
     status: displayStatus,
-    canEdit,
   };
 }
 

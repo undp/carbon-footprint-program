@@ -30,10 +30,5 @@ export const GetReductionProjectByIdResponseSchema =
       status: ReductionProjectDisplayStatusSchema.describe(
         "Workflow display status derived from submissions"
       ),
-      canEdit: z
-        .boolean()
-        .describe(
-          "Whether the requesting user is allowed to edit this project (combines edit-role and editable-status checks)"
-        ),
     }
   );

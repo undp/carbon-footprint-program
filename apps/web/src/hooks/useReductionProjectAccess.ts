@@ -1,4 +1,4 @@
-import { useReductionProject } from "@/api/query/reductionProjects";
+import { useReductionProjectAccessQuery } from "@/api/query/reductionProjects";
 
 export interface ReductionProjectAccess {
   /** True once the underlying read settles; consumers gate redirects on this. */
@@ -12,18 +12,15 @@ export interface ReductionProjectAccess {
 export const useReductionProjectAccess = (
   projectId: string | undefined
 ): ReductionProjectAccess => {
-  const { data: project, isLoading, isError } = useReductionProject(projectId);
+  const { data, isFetching, isError } =
+    useReductionProjectAccessQuery(projectId);
 
-  // In create mode the caller passes projectId=undefined. useReductionProject
-  // is then disabled, but TanStack Query v5 keeps a disabled-with-no-data
-  // query at isPending=true forever — so without this guard isReady would
-  // never resolve. There's no entity to gate, so the hook is trivially ready.
-  const isReady = !projectId ? true : !isLoading;
+  // No projectId = create mode = nothing to access-check.
+  const isReady = !projectId || !isFetching;
 
   return {
     isReady,
-    // No projectId = create mode = nothing to access-check.
     canAccess: !projectId || !isError,
-    canEdit: !isError && (project?.canEdit ?? false),
+    canEdit: !isError && (data?.canEdit ?? false),
   };
 };
