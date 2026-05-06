@@ -92,7 +92,7 @@ export const MyOrganizationScreen: FC = () => {
   // Loading state
   if (isLoadingOrganizations) {
     return (
-      <Box className="flex flex-1 flex-col gap-6 p-6">
+      <Box className="flex flex-1 flex-col gap-6">
         <OrganizationHeaderSkeleton />
         <OrganizationProfileSectionSkeleton />
         <OrganizationUsersTableSkeleton />
@@ -103,7 +103,7 @@ export const MyOrganizationScreen: FC = () => {
   // Error state
   if (organizationsError) {
     return (
-      <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+      <Box className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <Typography variant="h5" color="text.primary" fontWeight="bold">
           Hubo un error cargando tus {VOCAB.organization.noun.plural}
         </Typography>
