@@ -18,6 +18,7 @@ export const GetCarbonInventoryMetadataResponseSchema = z
   .object({
     id: CarbonInventoryBaseSchema.shape.id,
     name: CarbonInventoryBaseSchema.shape.name,
+    year: CarbonInventoryBaseSchema.shape.year,
     country: CountryBaseSchema.shape.name.nullable(),
     organizationName: OrganizationSummaryBaseSchema.shape.name.nullable(),
     organizationBranchesQuantity: z

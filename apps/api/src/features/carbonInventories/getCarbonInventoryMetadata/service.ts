@@ -15,6 +15,7 @@ export const getCarbonInventoryMetadataService = async (
     where: { id: BigInt(id) },
     select: {
       name: true,
+      year: true,
       organizationData: true,
       methodologyVersionId: true,
       organization: {
@@ -73,6 +74,7 @@ export const getCarbonInventoryMetadataService = async (
   return {
     id: inventory.id.toString(),
     name: inventory.name,
+    year: inventory.year,
     country: methodology?.country.name ?? null,
     organizationName:
       inventory.organization?.summary?.name || orgData?.name || null,

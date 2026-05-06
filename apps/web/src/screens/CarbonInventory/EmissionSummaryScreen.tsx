@@ -1,8 +1,10 @@
-import { FC, useEffect } from "react";
-import { Box } from "@mui/material";
+import { FC, useCallback, useEffect } from "react";
+import { Box, Button, CircularProgress, Tooltip } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useDownloadCarbonInventory } from "@/hooks";
+import { ExcelIcon } from "@/icons";
 import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import {
@@ -90,6 +92,24 @@ export const EmissionSummaryScreen: FC = () => {
   const isEditBlocked =
     metadataData?.status && !isCarbonInventoryEditable(metadataData.status);
 
+  const { download, isDownloading } = useDownloadCarbonInventory();
+  const totalEmissions = summaryData?.totalEmissions ?? 0;
+  const canDownload =
+    !!metadataData && !isSummaryLoading && totalEmissions > 0;
+
+  const onDownloadClick = useCallback(() => {
+    if (!metadataData) return;
+    void download(inventoryId, metadataData.name, metadataData.year);
+  }, [download, inventoryId, metadataData]);
+
+  const downloadTooltip = isDownloading
+    ? "Descargando..."
+    : !metadataData || isSummaryLoading
+      ? "Cargando datos"
+      : totalEmissions === 0
+        ? "Sin datos de emisiones"
+        : "Descargar huella";
+
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
@@ -138,12 +158,34 @@ export const EmissionSummaryScreen: FC = () => {
             description="Verifica tus datos antes de calcular"
             explanationSlug={EMISSION_SUMMARY_EXPLANATION_SLUGS.MAIN}
           />
-          {metadataData?.status && (
-            <CarbonInventoryStatusChip
-              status={metadataData.status}
-              size="medium"
-            />
-          )}
+          <Box className="flex items-center gap-2">
+            <Tooltip title={downloadTooltip}>
+              <span>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={onDownloadClick}
+                  disabled={!canDownload || isDownloading}
+                  startIcon={
+                    isDownloading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <ExcelIcon fontSize="small" />
+                    )
+                  }
+                  aria-label="Descargar huella"
+                >
+                  Descargar
+                </Button>
+              </span>
+            </Tooltip>
+            {metadataData?.status && (
+              <CarbonInventoryStatusChip
+                status={metadataData.status}
+                size="medium"
+              />
+            )}
+          </Box>
         </Box>
 
         {/* Inventory attributes */}
