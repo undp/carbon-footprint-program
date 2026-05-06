@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { Box, Typography, Card } from "@mui/material";
+import { Box, Card } from "@mui/material";
 import { darken } from "@mui/material/styles";
 import type { IconName } from "@repo/types";
-import { InfoButton } from "@/components";
+import { InfoButton, OverflowTooltipText } from "@/components";
 import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { useExplanationDialog } from "../../../contexts";
@@ -74,21 +74,29 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           <IconComponent sx={{ fill: categoryColorPalette.dark }} />
         )}
       </Box>
-      <Box className="flex-1">
-        <Typography
+      <Box className="min-w-0 flex-1">
+        <OverflowTooltipText
           fontSize="0.65rem"
           fontWeight="medium"
           lineHeight="normal"
           color={textColor}
         >
           {subtitle?.toUpperCase() ?? ""}
-        </Typography>
-        <Typography variant="body1" fontWeight="medium" color={textColor}>
+        </OverflowTooltipText>
+        <OverflowTooltipText
+          variant="body1"
+          fontWeight="medium"
+          color={textColor}
+        >
           {title}
-        </Typography>
-        <Typography fontSize="0.65rem" lineHeight="normal" color={textColor}>
+        </OverflowTooltipText>
+        <OverflowTooltipText
+          fontSize="0.65rem"
+          lineHeight="normal"
+          color={textColor}
+        >
           {description}
-        </Typography>
+        </OverflowTooltipText>
       </Box>
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
