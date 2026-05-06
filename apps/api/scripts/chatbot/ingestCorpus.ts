@@ -248,15 +248,31 @@ const main = async (argv: string[]): Promise<number> => {
       return 3;
     }
 
-    await prisma.chatbotCorpusIngestRun.update({
-      where: { id: auditRow.id },
-      data: {
-        sourceId: result.source.id,
-        completedAt: new Date(),
-        chunksCreated: chunks.length,
-        embeddingModel: model,
-      },
-    });
+    // Audit-row update runs OUTSIDE the source/chunks transaction. A failure
+    // here MUST NOT take down the success path: by the time we reach this
+    // line the source and chunks are already committed and durable, so
+    // returning a non-zero exit would mislabel a successful ingest as a
+    // failure (and the next retry would hit the DRAFT-collision branch
+    // because the source IS in the database). Instead, swallow + log the
+    // audit failure and surface the partial-success state on stdout — the
+    // operator can repair the audit row by hand if needed; the dataset is
+    // intact.
+    try {
+      await prisma.chatbotCorpusIngestRun.update({
+        where: { id: auditRow.id },
+        data: {
+          sourceId: result.source.id,
+          completedAt: new Date(),
+          chunksCreated: chunks.length,
+          embeddingModel: model,
+        },
+      });
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      process.stderr.write(
+        `Advertencia: la fuente ${result.source.id.toString()} se creó correctamente, pero falló la actualización del audit row (id=${auditRow.id.toString()}): ${reason}. La ingesta es exitosa; revisa el audit row manualmente.\n`
+      );
+    }
 
     process.stdout.write(
       `Ingesta exitosa. Fuente creada (id=${result.source.id.toString()}, status=DRAFT) con ${chunks.length} chunks usando el modelo "${model}".\n`
