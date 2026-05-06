@@ -114,10 +114,16 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
-            <Typography variant="subtitle2" fontWeight="regular">
-              Agrega las fuentes consideradas. Es opcional, pero nos ayuda a
-              validar tu cálculo.
-            </Typography>
+            {inventoryUsageMode === UsageMode.EXPERT && (
+              <Typography
+                variant="subtitle2"
+                fontWeight="regular"
+                sx={{ pl: 0.5 }}
+              >
+                Agrega las fuentes consideradas. Es opcional, pero nos ayuda a
+                validar tu cálculo.
+              </Typography>
+            )}
 
             {measurementUnits && rateMeasurementUnits && (
               <EmissionEditorGrid
