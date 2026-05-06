@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Box, Typography } from "@mui/material";
 import { FormProvider, type UseFormReturn } from "react-hook-form";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { EditModeToolbar } from "./EditModeToolbar";
+import { EditModeToolbar, EDIT_MODE_TOOLBAR_HEIGHT } from "./EditModeToolbar";
 import { ExitEditModeDialog } from "./ExitEditModeDialog";
 import { UnsavedChangesDialog } from "./UnsavedChangesDialog";
 import { FormDebugPanel } from "@/devtools";
@@ -87,7 +87,10 @@ export const MaintainerScreenLayout = ({
         addLabel={addLabel}
         extra={methodologySelector}
       />
-      <Box className="rounded-sm bg-white p-3">
+      <Box
+        className="rounded-sm bg-white p-3"
+        sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
+      >
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly ? readOnlyDescription : editDescription}
         </Typography>
