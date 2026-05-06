@@ -1704,7 +1704,7 @@
       {
         "name": "Emisiones indirectas por energías importadas",
         "synonyms": "CATEGORIA 2 / ALCANCE 2",
-        "description": "Generadas por la electricidad consumida",
+        "description": "Generadas por la energía consumida",
         "icon": "INDIRECT_EMISSION",
         "color": "#64B5F6",
         "position": 2,
