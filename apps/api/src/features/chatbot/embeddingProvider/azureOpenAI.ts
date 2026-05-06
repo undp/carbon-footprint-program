@@ -114,14 +114,19 @@ export const azureOpenAIEmbeddingProvider: EmbeddingProvider = {
     options?: EmbedOptions
   ): Promise<EmbeddingResult> {
     validatePerInputBudget(texts);
+    // Construct the client BEFORE the empty-input fast path so a missing /
+    // blank AZURE_OPENAI_ENDPOINT or AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+    // surfaces as an error on every call path — otherwise embed([]) would
+    // succeed against a misconfigured deployment and return model: "",
+    // which violates the EmbeddingResult contract (model is non-empty).
+    const client = getClient();
     if (texts.length === 0) {
       return {
         vectors: [],
         inputTokens: 0,
-        model: AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME ?? "",
+        model: AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME!,
       };
     }
-    const client = getClient();
     const batches = buildBatches(texts);
     const allVectors: number[][] = [];
     let totalInputTokens = 0;
