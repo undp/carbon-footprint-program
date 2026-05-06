@@ -171,16 +171,14 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   };
 
   // Footer buttons
-  const backButton: FooterButton | undefined = isViewMode
-    ? undefined
-    : {
-        text: "Volver",
-        align: "right",
-        buttonProps: {
-          startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-          onClick: goBack,
-        },
-      };
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
 
   const saveButton: FooterButton | undefined = isFormDisabled
     ? undefined
