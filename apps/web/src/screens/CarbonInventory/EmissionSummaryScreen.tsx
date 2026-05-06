@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect } from "react";
-import { Box, Button, CircularProgress, Tooltip } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -94,8 +94,7 @@ export const EmissionSummaryScreen: FC = () => {
 
   const { download, isDownloading } = useDownloadCarbonInventory();
   const totalEmissions = summaryData?.totalEmissions ?? 0;
-  const canDownload =
-    !!metadataData && !isSummaryLoading && totalEmissions > 0;
+  const canDownload = !!metadataData && !isSummaryLoading && totalEmissions > 0;
 
   const onDownloadClick = useCallback(() => {
     if (!metadataData) return;
@@ -166,13 +165,8 @@ export const EmissionSummaryScreen: FC = () => {
                   size="small"
                   onClick={onDownloadClick}
                   disabled={!canDownload || isDownloading}
-                  startIcon={
-                    isDownloading ? (
-                      <CircularProgress size={16} />
-                    ) : (
-                      <ExcelIcon fontSize="small" />
-                    )
-                  }
+                  loading={isDownloading}
+                  startIcon={<ExcelIcon fontSize="small" />}
                   aria-label="Descargar huella"
                 >
                   Descargar
