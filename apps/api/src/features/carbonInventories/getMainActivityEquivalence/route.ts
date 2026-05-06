@@ -30,7 +30,11 @@ export const getMainActivityEquivalenceRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
-      preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          canAdminsBypass: true,
+        }),
+      ],
     },
     getMainActivityEquivalenceHandler
   );

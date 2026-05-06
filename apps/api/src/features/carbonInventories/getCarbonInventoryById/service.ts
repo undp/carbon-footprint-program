@@ -3,7 +3,6 @@ import {
   EmissionFactorDimensionStatus,
   type GetCarbonInventoryByIdResponse,
   CarbonInventoryLineStatus,
-  User,
 } from "@repo/types";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { map, uniq } from "lodash-es";
@@ -16,14 +15,10 @@ import {
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
-  id: string,
-  user?: User | null
+  id: string
 ): Promise<GetCarbonInventoryByIdResponse> => {
-  const inventory = await prismaClient.carbonInventory.findFirst({
-    where: {
-      id: BigInt(id),
-      createdById: user ? BigInt(user.id) : null,
-    },
+  const inventory = await prismaClient.carbonInventory.findUnique({
+    where: { id: BigInt(id) },
     include: {
       lines: {
         where: {

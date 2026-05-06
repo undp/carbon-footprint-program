@@ -11,9 +11,11 @@ export const getCarbonInventoryMetadataHandler = async (
   log.info({ carbonInventoryId }, "Getting carbon inventory metadata...");
 
   const prisma = request.server.prisma;
+  const userId = request.currentUser ? BigInt(request.currentUser.id) : null;
   const data = await getCarbonInventoryMetadataService(
     prisma,
-    carbonInventoryId
+    carbonInventoryId,
+    userId
   );
 
   log.info(
