@@ -23,7 +23,7 @@ const parseArgs = (argv: string[]): { sourceId: bigint } => {
     process.exit(0);
   }
   const [raw] = argv;
-  if (!raw || !/^\d+$/.test(raw)) {
+  if (!raw || !/^[1-9]\d*$/.test(raw)) {
     throw new CliArgumentError(
       `<source-id> debe ser un entero positivo; se recibió "${raw}".`
     );
