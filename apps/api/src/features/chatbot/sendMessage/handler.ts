@@ -76,7 +76,8 @@ const consumeStream = async (
   stream: AsyncIterable<LlmStreamEvent>,
   reply: FastifyReply,
   assistantRowIdString: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  onDelta: (content: string) => void
 ): Promise<StreamConsumeResult> => {
   let buffer = "";
   let toolCall: ToolCallEvent | null = null;
@@ -87,6 +88,13 @@ const consumeStream = async (
     if (event.type === "delta") {
       if (!firstChunkSeen) firstChunkSeen = true;
       buffer += event.content;
+      // Push the delta to the handler's outer assistantBuffer immediately so
+      // the disconnect finalizer's UPDATE captures everything sent to the
+      // client up to the disconnect point — not just whatever the most
+      // recent fully-resolved consumeStream() returned. Otherwise a mid-
+      // stream disconnect persists an empty / stale row even though the
+      // user already saw the partial reply on the wire.
+      onDelta(event.content);
       writeSseEvent(
         reply,
         undefined,
@@ -219,6 +227,12 @@ export const sendMessageHandler = async (
 
   const assistantRowIdString = assistantRowId.toString();
   const finalSources: SourceCitation[] = [];
+  // Mutated by consumeStream's onDelta callback so the disconnect finalizer
+  // (reply.raw.on("close")) reads the current partial content even if the
+  // stream is cut mid-flight before consumeStream() resolves.
+  const onDelta = (content: string): void => {
+    assistantBuffer += content;
+  };
 
   let firstResult: StreamConsumeResult;
   try {
@@ -226,7 +240,8 @@ export const sendMessageHandler = async (
       firstStream,
       reply,
       assistantRowIdString,
-      abortController.signal
+      abortController.signal,
+      onDelta
     );
   } catch (err) {
     request.log.error(
@@ -251,7 +266,11 @@ export const sendMessageHandler = async (
   }
 
   let usage = firstResult.usage;
-  assistantBuffer = firstResult.buffer;
+  // assistantBuffer was already accumulated incrementally via the onDelta
+  // callback (so the disconnect finalizer captured it on early disconnect);
+  // overwriting it with firstResult.buffer here would be a no-op on the
+  // happy path AND would silently re-introduce stale state if the second
+  // round mutates assistantBuffer further.
 
   if (firstResult.toolCall) {
     // Tool round: execute server-side, then re-invoke once.
@@ -338,7 +357,8 @@ export const sendMessageHandler = async (
         secondStream,
         reply,
         assistantRowIdString,
-        abortController.signal
+        abortController.signal,
+        onDelta
       );
     } catch (err) {
       request.log.error(
@@ -370,8 +390,27 @@ export const sendMessageHandler = async (
       return;
     }
 
-    assistantBuffer += secondResult.buffer;
-    usage = secondResult.usage ?? usage;
+    // assistantBuffer is already up-to-date via onDelta; do NOT add
+    // secondResult.buffer here (that would double-count the second-round
+    // deltas because every delta was already pushed to assistantBuffer
+    // inside consumeStream).
+    //
+    // Token accounting: the spec wants `tokens_used = sum across rounds`
+    // for accurate per-turn cost. The OpenAI SDK's per-call usage covers
+    // ONLY that call, so on a tool turn we must add round-1 + round-2.
+    // Keep `usage` pointing at the SECOND round (the terminal round
+    // closing the assistant turn) for the `done` SSE payload — but
+    // accumulate inputTokens/outputTokens across both rounds for the
+    // persisted `tokens_used` below.
+    if (secondResult.usage) {
+      const round1 = usage;
+      usage = {
+        inputTokens:
+          (round1?.inputTokens ?? 0) + secondResult.usage.inputTokens,
+        outputTokens:
+          (round1?.outputTokens ?? 0) + secondResult.usage.outputTokens,
+      };
+    }
     for (const validSource of toolResult.validSources) {
       finalSources.push(validSource);
     }
