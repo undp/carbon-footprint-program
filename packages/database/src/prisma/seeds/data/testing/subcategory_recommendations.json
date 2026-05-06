@@ -35,5 +35,88 @@
     "sectorName": "Energía",
     "subsectorName": "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
     "subcategoryNames": ["Emisiones provenientes de otras fuentes"]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Producción de Clinker",
+    "subcategoryNames": [
+      "Procesos industriales - Cemento",
+      "Combustiones estacionarias",
+      "Electricidad",
+      "Combustiones móviles (flota propia)",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo",
+      "Productos comprados",
+      "Emisiones fugitivas"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Producción de Cemento - Molienda y mezcla",
+    "subcategoryNames": [
+      "Procesos industriales - Cemento",
+      "Combustiones estacionarias",
+      "Electricidad",
+      "Combustiones móviles (flota propia)",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo",
+      "Productos comprados",
+      "Emisiones fugitivas"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Hormigón Premezclado",
+    "subcategoryNames": [
+      "Productos comprados",
+      "Combustiones móviles (flota propia)",
+      "Electricidad",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Productos Prefabricados de Hormigón",
+    "subcategoryNames": [
+      "Productos comprados",
+      "Combustiones móviles (flota propia)",
+      "Electricidad",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo",
+      "Combustiones estacionarias",
+      "Emisiones provenientes de otras fuentes"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Cal y Yeso",
+    "subcategoryNames": [
+      "Emisiones provenientes de otras fuentes",
+      "Combustiones estacionarias",
+      "Electricidad",
+      "Combustiones móviles (flota propia)",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo",
+      "Productos comprados"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sectorName": "Industria del Cemento",
+    "subsectorName": "Morteros y Aditivos",
+    "subcategoryNames": [
+      "Productos comprados",
+      "Electricidad",
+      "Transporte y distribución de bienes aguas arriba",
+      "Transporte y distribución de bienes aguas abajo",
+      "Combustiones estacionarias",
+      "Combustiones móviles (flota propia)"
+    ]
   }
 ]
