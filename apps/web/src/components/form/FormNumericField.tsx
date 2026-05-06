@@ -81,6 +81,9 @@ export const FormNumericField = <T extends FieldValues>({
           decimalScale={effectiveDecimalScale}
           value={toNullableNumber(field.value)}
           onChange={(value) => field.onChange(value)}
+          onBlur={field.onBlur}
+          name={field.name}
+          inputRef={field.ref}
           min={min}
           required={required}
           error={!!fieldState.error && !props.disabled}
