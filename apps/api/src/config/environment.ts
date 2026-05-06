@@ -362,11 +362,17 @@ export const EMBEDDING_PROVIDER: EmbeddingProviderType = (() => {
         'Set EMBEDDING_PROVIDER="azure-openai" and provision the Azure OpenAI infra.'
     );
   }
-  if (raw === "azure-openai" && !AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME) {
-    throw new Error(
-      'EMBEDDING_PROVIDER="azure-openai" requires AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME. ' +
-        "Set the missing variable or change EMBEDDING_PROVIDER."
-    );
+  if (raw === "azure-openai") {
+    const missing: string[] = [];
+    if (!AZURE_OPENAI_ENDPOINT) missing.push("AZURE_OPENAI_ENDPOINT");
+    if (!AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME)
+      missing.push("AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME");
+    if (missing.length > 0) {
+      throw new Error(
+        `EMBEDDING_PROVIDER="azure-openai" requires: ${missing.join(", ")}. ` +
+          "Set the missing variables or change EMBEDDING_PROVIDER."
+      );
+    }
   }
   return raw as EmbeddingProviderType;
 })();
