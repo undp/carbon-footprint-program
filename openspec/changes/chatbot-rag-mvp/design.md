@@ -154,7 +154,7 @@ The persistent foot-of-chat disclaimer (`"Huella usa IA y puede equivocarse. Ver
 
 **Intentional asymmetry with the mock-in-prod guard**: the embedding provider throws at boot when `IS_PROD && EMBEDDING_PROVIDER === "mock"` (Decision 6). There is **no parallel guard** for `IS_PROD && AZURE_OPENAI_API_KEY !== undefined`. The two cases are not symmetric:
 
-- **Mock embedding in prod = silent corpus corruption**. The mock returns SHA-256-derived vectors with no semantic relation to the input text; cosine similarity over them is essentially random. The chatbot would happily cite chunks that have nothing to do with the user's question, with full citation panels and `"sources"` payloads — a *worse* failure mode than no answer at all, because the broken behaviour is invisible to the user. This must fail fast and loud at boot.
+- **Mock embedding in prod = silent corpus corruption**. The mock returns SHA-256-derived vectors with no semantic relation to the input text; cosine similarity over them is essentially random. The chatbot would happily cite chunks that have nothing to do with the user's question, with full citation panels and `"sources"` payloads — a _worse_ failure mode than no answer at all, because the broken behaviour is invisible to the user. This must fail fast and loud at boot.
 - **API key in prod = security suboptimum, functionally correct**. The chat completes correctly; the only loss is the operational benefit of managed identity (no rotating secrets, central auth audit). A boot guard here would block legitimate operational scenarios — e.g., a brief migration window where managed identity is being rolled out per-deployment, or an incident-response situation where ad-hoc key auth is the fastest path back to service. The constraint is documented in `docs/operations/runbook.md` and enforced via deployment manifest, not via a hard runtime crash.
 
 If a future change observes operators routinely leaking the key into production, that is the trigger to revisit and add the guard. Until that signal exists, the asymmetry is the right default.
@@ -187,12 +187,14 @@ If a future change observes operators routinely leaking the key into production,
 The foundation widget requirement "Widget invokes DELETE on user request" is thus FULFILLED by this change — just routed through a dedicated, clearly-labeled control instead of overloading the trash icon. The full UI contract (button styling, dialog copy, error handling, visibility rules) is specified in the `Widget invokes DELETE /api/chatbot/conversations/me via a dedicated "Eliminar mi historial" affordance` requirement in `chatbot-widget/spec.md`.
 
 **Rationale for splitting the two affordances** (instead of overloading one button):
+
 - **Trash icon = "clear current conversation from my view"** — non-destructive, instant, no auth interaction, no audit trail loss. Cheap action, cheap UI.
 - **D11 link = "delete my data from the database"** — destructive, requires confirmation, has compliance weight. Different action, different UX cost.
 
 Conflating them confused users: they either (a) expected "trash" to actually delete and panicked when it didn't, or (b) expected "trash" to be cosmetic and panicked when an early implementation actually deleted persisted rows. Two affordances with explicit, distinct labels remove the ambiguity.
 
 **Why ship the D11 link in V1 instead of deferring**:
+
 - Compliance under Ley 21.719 (Chile), LGPD (Brasil), GDPR-equivalent local laws requires the right to be **exercisable** by the data subject. Foundation already shipped the endpoint; not exposing it via UI puts the compliance burden on a manual support channel that doesn't yet exist (V1 has no operational support team — see Decision 27 on the Modo B redirect literal not mentioning support).
 - The UX cost is minimal: one text-link button + one confirmation dialog. ~2 hours of frontend work + tests.
 - A self-service deletion UI is also a **trust signal for UNDP and country deployments** — operators evaluating whether to deploy Huella Latam in their jurisdiction can point at the affordance as evidence of compliance posture, not just a backend promise.

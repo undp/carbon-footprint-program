@@ -7,7 +7,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const TEST_DATABASE_CONFIG = {
-  image: "postgres:18-alpine",
+  image: "pgvector/pgvector:pg18",
   database: "testdb",
   username: "testuser",
   password: "testpass",

@@ -8,10 +8,14 @@ The system SHALL define `searchKnowledge(query: string, options?: { topK?: numbe
 
 ```ts
 type ChunkWithMetadata = {
-  source_id: bigint; chunk_id: bigint;
-  cite_label: string | null; cite_url: string | null;
-  page_number: number | null; section_title: string | null;
-  content: string; similarity: number;
+  source_id: bigint;
+  chunk_id: bigint;
+  cite_label: string | null;
+  cite_url: string | null;
+  page_number: number | null;
+  section_title: string | null;
+  content: string;
+  similarity: number;
 };
 ```
 

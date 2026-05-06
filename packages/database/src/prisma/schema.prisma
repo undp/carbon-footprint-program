@@ -1317,6 +1317,7 @@ model ChatbotCorpusChunk {
   pageNumber   Int?    @map("page_number")
   sectionTitle String? @map("section_title")
   tokens       Int?
+  embedding    Unsupported("vector(1024)")?
 
   source ChatbotCorpusSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
 

@@ -52,7 +52,11 @@ type LlmMessage =
   | { role: "ASSISTANT"; content: string; toolCalls?: LlmToolCall[] }
   | { role: "TOOL"; content: string; toolCallId: string };
 type LlmToolCall = { id: string; name: string; arguments: string };
-type LlmToolDefinition = { name: string; description: string; parameters: object };
+type LlmToolDefinition = {
+  name: string;
+  description: string;
+  parameters: object;
+};
 ```
 
 `role` uses `ChatMessageRole` enum values. `role = "TOOL"` SHALL carry a non-empty `toolCallId` matching the `id` of an earlier `tool_call`. `tool_call` SHALL be the terminal event of its invocation. Interface lives at `apps/api/src/features/chatbot/llmProvider/types.ts`.

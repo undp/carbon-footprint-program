@@ -21,11 +21,12 @@
 - [ ] 3.2 Create `apps/api/src/features/chatbot/embeddingProvider/mock.ts` exporting an `EmbeddingProvider` whose `embed` produces deterministic 1024-dimensional vectors derived from each input via SHA-256: hash the input string, expand the 32-byte digest into 1024 float32 values via repeated hashing or seeded PRNG, normalize to unit length. `model` SHALL be the literal string `"mock-sha256-1024"`. Honor `options.signal` between batched computations. No imports from `openai`, `node:https`, `node:fetch`, `https`, `node-fetch`, or `axios`.
 - [ ] 3.3 Create `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts` exporting an `EmbeddingProvider` that uses the `openai` package's `AzureOpenAI` client. Read deployment name from `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME`; pass `dimensions: 1024` to the SDK call; set `model` on the result to the deployment name. Implement API key fallback: if `AZURE_OPENAI_API_KEY` env var is set to a non-empty trimmed string, use API key auth; otherwise use `DefaultAzureCredential`. Resolve API version from `AZURE_OPENAI_EMBEDDING_API_VERSION` env var, falling back to `AZURE_OPENAI_API_VERSION`. Pass `options.signal` to the SDK call.
 
-    **Internal batching with safety margin**: implement batching that evaluates BOTH conditions per request: (a) the cumulative `estimateTokens` over the batch SHALL be ≤ **7782 tokens** (= `Math.floor(8192 * 0.95)`, named constant `AZURE_EMBED_BATCH_TOKEN_THRESHOLD` in the same file), AND (b) `texts.length` per SDK call SHALL be ≤ 16. A new batch starts when either condition would otherwise be violated. Use the shared `estimateTokens` helper from `apps/api/src/features/chatbot/llmProvider/estimateTokens.ts` — DO NOT inline a parallel formula (would trip the foundation-defined `chatbot/single-source-estimate-tokens` ESLint rule).
+  **Internal batching with safety margin**: implement batching that evaluates BOTH conditions per request: (a) the cumulative `estimateTokens` over the batch SHALL be ≤ **7782 tokens** (= `Math.floor(8192 * 0.95)`, named constant `AZURE_EMBED_BATCH_TOKEN_THRESHOLD` in the same file), AND (b) `texts.length` per SDK call SHALL be ≤ 16. A new batch starts when either condition would otherwise be violated. Use the shared `estimateTokens` helper from `apps/api/src/features/chatbot/llmProvider/estimateTokens.ts` — DO NOT inline a parallel formula (would trip the foundation-defined `chatbot/single-source-estimate-tokens` ESLint rule).
 
-    **Why 7782, not 8192**: the foundation `estimateTokens` helper uses `Math.ceil(text.length / 4)` as a fixed heuristic (foundation contract, byte-for-byte test). For Spanish technical prose with diacritics, this can mildly underestimate against `cl100k_base` (the actual tokenizer). The 5% margin absorbs the drift; 8192 remains the documented Azure hard ceiling and is NOT touched by this internal threshold.
+  **Why 7782, not 8192**: the foundation `estimateTokens` helper uses `Math.ceil(text.length / 4)` as a fixed heuristic (foundation contract, byte-for-byte test). For Spanish technical prose with diacritics, this can mildly underestimate against `cl100k_base` (the actual tokenizer). The 5% margin absorbs the drift; 8192 remains the documented Azure hard ceiling and is NOT touched by this internal threshold.
 
-    **Per-input rejection (uses 8192, not 7782)**: before batching, validate every input individually — if any single input has `estimateTokens(input) > 8192`, throw an error with `error.name === "InputTooLargeError"` whose message names the offending input's index AND its estimated token count. This pre-empts an unrecoverable Azure HTTP 400. The per-input check uses the 8192 hard ceiling, NOT the 7782 batch margin (the margin only applies to cumulative batch totals).
+  **Per-input rejection (uses 8192, not 7782)**: before batching, validate every input individually — if any single input has `estimateTokens(input) > 8192`, throw an error with `error.name === "InputTooLargeError"` whose message names the offending input's index AND its estimated token count. This pre-empts an unrecoverable Azure HTTP 400. The per-input check uses the 8192 hard ceiling, NOT the 7782 batch margin (the margin only applies to cumulative batch totals).
+
 - [ ] 3.4 Create `apps/api/src/features/chatbot/embeddingProvider/index.ts` exporting `getEmbeddingProvider()` cached factory. Selection by `EMBEDDING_PROVIDER` env var.
 - [ ] 3.5 Extend the `chatbot/no-network-imports-in-mock` ESLint rule scope in `apps/api/eslint.config.ts`: add a second `files: [...]` block applying the same rule to `apps/api/src/features/chatbot/embeddingProvider/mock.ts`. One rule, two file targets — do NOT duplicate the rule.
 
@@ -44,8 +45,8 @@
 - [ ] 5.1 Add the `pdf-parse` runtime dependency to `apps/api/package.json` via `pnpm --filter api add pdf-parse`.
 - [ ] 5.2 Create `apps/api/scripts/chatbot/ingestCorpus.ts` implementing the CLI per the `chatbot-corpus-ingest` spec. Use a tsx shebang (`#!/usr/bin/env tsx`) and `process.exit(code)` for explicit exit codes. Output strings in Spanish.
 - [ ] 5.3 Create `apps/api/scripts/chatbot/chunking.ts` exporting the chunking helper. Target ~600 tokens per chunk with ~80 overlap. Detect section headings via the regex `^\d+(\.\d+)*\s+[A-Z]` on each line. Prefer header-aligned splits within ±150 tokens of the target boundary; fall back to sentence boundaries when no header is in range. Use the shared `estimateTokens` helper.
-    - **pdf-parse newline robustness**: `pdf-parse` is known to flatten or destroy newlines on some PDF layouts (multi-column, soft-wrapped paragraphs), which causes the `^\d+(\.\d+)*\s+[A-Z]` line-anchored regex to match nothing. The chunker MUST flawlessly fall back to sentence boundaries when no header is found within the ±150-token window — not skip the chunk, not error, not produce a chunk wildly outside [400, 800] tokens. Sentence-boundary fallback MUST keep at least 80% of chunks in [400, 800] per the spec scenario, even on a PDF whose extracted text contains zero detectable headers.
-    - **Tokenizer compatibility**: `estimateTokens` SHALL use an encoding compatible with `text-embedding-3-large` (i.e., `cl100k_base` / `tiktoken`'s `o200k_base` is compatible), or a safe heuristic that OVERestimates rather than underestimates. The same helper is reused by the embedding batcher (Task 3.3) — an underestimate here causes Azure HTTP 400 at the SDK call.
+  - **pdf-parse newline robustness**: `pdf-parse` is known to flatten or destroy newlines on some PDF layouts (multi-column, soft-wrapped paragraphs), which causes the `^\d+(\.\d+)*\s+[A-Z]` line-anchored regex to match nothing. The chunker MUST flawlessly fall back to sentence boundaries when no header is found within the ±150-token window — not skip the chunk, not error, not produce a chunk wildly outside [400, 800] tokens. Sentence-boundary fallback MUST keep at least 80% of chunks in [400, 800] per the spec scenario, even on a PDF whose extracted text contains zero detectable headers.
+  - **Tokenizer compatibility**: `estimateTokens` SHALL use an encoding compatible with `text-embedding-3-large` (i.e., `cl100k_base` / `tiktoken`'s `o200k_base` is compatible), or a safe heuristic that OVERestimates rather than underestimates. The same helper is reused by the embedding batcher (Task 3.3) — an underestimate here causes Azure HTTP 400 at the SDK call.
 - [ ] 5.4 Create `apps/api/scripts/chatbot/parsePdf.ts` thin wrapper around `pdf-parse` exposing `parsePdf(filePath: string): Promise<{ text: string; pages: number }>`. Surface `pdf-parse` errors as ingest-CLI errors with Spanish messages.
 - [ ] 5.5 Add `"chatbot:ingest": "tsx scripts/chatbot/ingestCorpus.ts"` to `apps/api/package.json` scripts. Confirm the script is invokable as `pnpm --filter api chatbot:ingest --help` (which prints usage in Spanish and exits 0).
 - [ ] 5.6 Document the test fixture path in a one-line comment at the top of `apps/api/test/features/chatbot/ingest/integration.test.ts`: `// Fixture path: apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf — committed in implementation phase, ~5 pp GHG Protocol Corporate Standard fair-use excerpt.`. The PDF binary itself is committed during implementation (separate commit, separate review).
@@ -66,117 +67,124 @@
 
 - [ ] 8.1 Create `apps/api/src/features/chatbot/prompts/es/system.md` (~30 lines, Spanish) covering, in this order:
 
-    **(a) Forward-compatible identity (literal opening line)**:
-    ```
-    Eres el Asistente de Huella Latam, una plataforma para medir y reducir
-    huella de carbono.
-    ```
-    Stable across V1/V2/V3/V4/V5 — DO NOT use "educativo" or "didáctico" as scope-narrowing modifiers.
+  **(a) Forward-compatible identity (literal opening line)**:
 
-    **(b) Phase-aware capability disclosure (literal)**:
-    ```
-    En esta versión inicial puedo responder preguntas sobre metodología de
-    huella de carbono citando fuentes verificadas. Las funcionalidades de
-    medición asistida y guía de uso de la plataforma llegarán en próximas
-    versiones.
-    ```
+  ```
+  Eres el Asistente de Huella Latam, una plataforma para medir y reducir
+  huella de carbono.
+  ```
 
-    **(c) Three-mode routing block (verbatim)**:
-    ```
-    Para cada mensaje del usuario, primero clasifica el modo y actúa según
-    corresponda:
+  Stable across V1/V2/V3/V4/V5 — DO NOT use "educativo" or "didáctico" as scope-narrowing modifiers.
 
-    Modo A — Metodología: preguntas sobre huella de carbono, alcances 1/2/3,
-    factores de emisión, GHG Protocol, IPCC, ISO 14064, GWP, metodologías de
-    cálculo. ACCIÓN: invoca la herramienta searchKnowledge y sigue el flujo
-    de citas.
+  **(b) Phase-aware capability disclosure (literal)**:
 
-    Modo B — Plataforma: preguntas sobre el uso de la plataforma Huella Latam
-    (cómo crear un inventario, cómo invitar usuarios, cómo solicitar
-    verificación, navegación, configuración). ACCIÓN: NO invoques
-    searchKnowledge. Responde EXACTAMENTE con: "Esa pregunta corresponde al
-    uso de la plataforma Huella Latam. Esa funcionalidad estará disponible
-    en una próxima versión del asistente; por ahora puedo ayudarte con
-    preguntas sobre metodología de huella de carbono."
+  ```
+  En esta versión inicial puedo responder preguntas sobre metodología de
+  huella de carbono citando fuentes verificadas. Las funcionalidades de
+  medición asistida y guía de uso de la plataforma llegarán en próximas
+  versiones.
+  ```
 
-    Modo C — Conversacional / orientación: saludos, agradecimientos,
-    meta-preguntas sobre el asistente, preguntas claramente fuera de huella
-    de carbono y plataforma. ACCIÓN: respuesta breve y natural en español;
-    NO invoques searchKnowledge; NO uses la frase del Modo A ni la del
-    Modo B.
+  **(c) Three-mode routing block (verbatim)**:
 
-    Sub-guía para saludos y orientación: cuando el usuario salude ("hola",
-    "buenas", "hi") o pregunte por tus capacidades ("¿qué puedes hacer?",
-    "ayuda", "¿en qué me ayudas?", "qué eres"), responde con una bienvenida
-    breve (entre 2 y 6 frases) que incluya, en redacción natural y libre:
-    (1) lo que puedes hacer hoy: responder preguntas sobre metodología de
-    huella de carbono, alcances 1/2/3 y factores de emisión, citando
-    fuentes verificadas como GHG Protocol e IPCC; (2) la mención de que la
-    guía sobre el uso de la plataforma y la medición asistida llegarán en
-    próximas versiones; (3) una invitación a hacer una primera pregunta. La
-    bienvenida es de tono cálido, no de límite — NO uses el opener del
-    Modo A ni el redirect del Modo B.
-    ```
+  ```
+  Para cada mensaje del usuario, primero clasifica el modo y actúa según
+  corresponda:
 
-    **(d) Mandatory-citation rule (Modo A only, brief)**: cite every factual claim with `[<cite_label>](<cite_url>)` derived from the searchKnowledge chunks. The K=0 guardrail block (below) applies only when searchKnowledge returned 0 valid chunks.
+  Modo A — Metodología: preguntas sobre huella de carbono, alcances 1/2/3,
+  factores de emisión, GHG Protocol, IPCC, ISO 14064, GWP, metodologías de
+  cálculo. ACCIÓN: invoca la herramienta searchKnowledge y sigue el flujo
+  de citas.
 
-    **(e) K=0 guardrail (Modo A only)** SHALL appear verbatim:
+  Modo B — Plataforma: preguntas sobre el uso de la plataforma Huella Latam
+  (cómo crear un inventario, cómo invitar usuarios, cómo solicitar
+  verificación, navegación, configuración). ACCIÓN: NO invoques
+  searchKnowledge. Responde EXACTAMENTE con: "Esa pregunta corresponde al
+  uso de la plataforma Huella Latam. Esa funcionalidad estará disponible
+  en una próxima versión del asistente; por ahora puedo ayudarte con
+  preguntas sobre metodología de huella de carbono."
 
-    ```
-    Si el resultado de la búsqueda indica '0 fuentes válidas encontradas', DEBES
-    comenzar tu respuesta EXACTAMENTE con la frase "No dispongo de fuentes
-    verificadas en mi corpus para responder esto con precisión." A continuación
-    PUEDES sugerir al usuario consultar fuentes externas autorizadas (por
-    ejemplo, el GHG Protocol Corporate Standard, las metodologías del IPCC, o
-    un verificador certificado) y PUEDES incluir información complementaria
-    (factores aproximados, cifras orientativas, contexto general del dominio)
-    siempre que:
+  Modo C — Conversacional / orientación: saludos, agradecimientos,
+  meta-preguntas sobre el asistente, preguntas claramente fuera de huella
+  de carbono y plataforma. ACCIÓN: respuesta breve y natural en español;
+  NO invoques searchKnowledge; NO uses la frase del Modo A ni la del
+  Modo B.
 
-    - Califiques claramente la información como aproximada o referencial usando
-      expresiones como "aproximadamente", "típicamente", "según fuentes
-      públicas como [nombre]".
-    - Recuerdes al usuario que cualquier valor que use en un inventario formal
-      debe verificarse contra la fuente oficial.
+  Sub-guía para saludos y orientación: cuando el usuario salude ("hola",
+  "buenas", "hi") o pregunte por tus capacidades ("¿qué puedes hacer?",
+  "ayuda", "¿en qué me ayudas?", "qué eres"), responde con una bienvenida
+  breve (entre 2 y 6 frases) que incluya, en redacción natural y libre:
+  (1) lo que puedes hacer hoy: responder preguntas sobre metodología de
+  huella de carbono, alcances 1/2/3 y factores de emisión, citando
+  fuentes verificadas como GHG Protocol e IPCC; (2) la mención de que la
+  guía sobre el uso de la plataforma y la medición asistida llegarán en
+  próximas versiones; (3) una invitación a hacer una primera pregunta. La
+  bienvenida es de tono cálido, no de límite — NO uses el opener del
+  Modo A ni el redirect del Modo B.
+  ```
 
-    PROHIBIDO en este escenario: inventar URLs específicas, inventar números
-    de sección (formato §X.Y), o inventar referencias bibliográficas. La
-    apertura ya aclara que la respuesta no proviene del corpus verificado;
-    no es necesario inventar trazabilidad falsa.
-    ```
+  **(d) Mandatory-citation rule (Modo A only, brief)**: cite every factual claim with `[<cite_label>](<cite_url>)` derived from the searchKnowledge chunks. The K=0 guardrail block (below) applies only when searchKnowledge returned 0 valid chunks.
 
-    Two pieces are load-bearing for the test (10.4): (a) the opener literal — the assistant turn STARTS with `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` byte-for-byte; (b) the URL/citation-invention prohibition — the assistant turn in K=0 contains no Markdown link `[label](url)` and no `§X.Y` section reference. Quantitative content (factors, percentages, dates) IS permitted in the K=0 path provided it is calificado per the soft-guidance bullets. Do not paraphrase the opener or weaken the URL prohibition.
+  **(e) K=0 guardrail (Modo A only)** SHALL appear verbatim:
+
+  ```
+  Si el resultado de la búsqueda indica '0 fuentes válidas encontradas', DEBES
+  comenzar tu respuesta EXACTAMENTE con la frase "No dispongo de fuentes
+  verificadas en mi corpus para responder esto con precisión." A continuación
+  PUEDES sugerir al usuario consultar fuentes externas autorizadas (por
+  ejemplo, el GHG Protocol Corporate Standard, las metodologías del IPCC, o
+  un verificador certificado) y PUEDES incluir información complementaria
+  (factores aproximados, cifras orientativas, contexto general del dominio)
+  siempre que:
+
+  - Califiques claramente la información como aproximada o referencial usando
+    expresiones como "aproximadamente", "típicamente", "según fuentes
+    públicas como [nombre]".
+  - Recuerdes al usuario que cualquier valor que use en un inventario formal
+    debe verificarse contra la fuente oficial.
+
+  PROHIBIDO en este escenario: inventar URLs específicas, inventar números
+  de sección (formato §X.Y), o inventar referencias bibliográficas. La
+  apertura ya aclara que la respuesta no proviene del corpus verificado;
+  no es necesario inventar trazabilidad falsa.
+  ```
+
+  Two pieces are load-bearing for the test (10.4): (a) the opener literal — the assistant turn STARTS with `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` byte-for-byte; (b) the URL/citation-invention prohibition — the assistant turn in K=0 contains no Markdown link `[label](url)` and no `§X.Y` section reference. Quantitative content (factors, percentages, dates) IS permitted in the K=0 path provided it is calificado per the soft-guidance bullets. Do not paraphrase the opener or weaken the URL prohibition.
+
 - [ ] 8.2 Create `apps/api/src/features/chatbot/prompts/loader.ts` reading `prompts/es/system.md` once at module load (via `fs.readFileSync`), exporting `SYSTEM_PROMPT_ES: string`. Throw at boot if the file is missing or empty.
 - [ ] 8.3 Create `apps/api/src/features/chatbot/tools/searchKnowledge/schema.ts` exporting the `LlmToolDefinition` for `searchKnowledge`. The `description` SHALL be tight enough that the model does NOT invoke the tool for platform-usage or conversational turns. Use this literal Spanish description:
 
-    ```
-    Búsqueda semántica sobre el corpus de metodología de huella de carbono
-    (GHG Protocol, IPCC, ISO 14064, normativas nacionales). Usa esta
-    herramienta SOLO para preguntas educativas sobre huella de carbono,
-    factores de emisión, alcances 1/2/3, GWP, y metodología de cálculo. NO
-    la uses para preguntas sobre el uso de la plataforma Huella Latam
-    (navegación, creación de inventarios, configuración, soporte) — esa
-    funcionalidad pertenece a una próxima versión del asistente. NO la
-    uses para saludos ni preguntas fuera del dominio de huella de carbono.
-    ```
+  ```
+  Búsqueda semántica sobre el corpus de metodología de huella de carbono
+  (GHG Protocol, IPCC, ISO 14064, normativas nacionales). Usa esta
+  herramienta SOLO para preguntas educativas sobre huella de carbono,
+  factores de emisión, alcances 1/2/3, GWP, y metodología de cálculo. NO
+  la uses para preguntas sobre el uso de la plataforma Huella Latam
+  (navegación, creación de inventarios, configuración, soporte) — esa
+  funcionalidad pertenece a una próxima versión del asistente. NO la
+  uses para saludos ni preguntas fuera del dominio de huella de carbono.
+  ```
 
-    JSON Schema: single required field `query: string` with `description: "La pregunta del usuario sobre metodología de huella de carbono, en español."`. No other parameters.
+  JSON Schema: single required field `query: string` with `description: "La pregunta del usuario sobre metodología de huella de carbono, en español."`. No other parameters.
+
 - [ ] 8.4 Create `apps/api/src/features/chatbot/tools/searchKnowledge/execute.ts` exporting `executeSearchKnowledgeTool(prisma, argsJson) → Promise<{ chunks: ChunkWithMetadata[]; toolResultMessage: string }>`. The function parses `argsJson` (with Zod), invokes `searchKnowledge`, and formats a Spanish tool-result string for the LLM. Each chunk in the result string MUST be formatted with the EXACT Markdown link inline so the LLM can copy-paste it verbatim into the assistant turn — never asking the model to construct or reformat the URL itself. Required per-chunk shape:
 
-    ```
-    Fuente 1: [cite_label](cite_url) - Contenido: "<truncated chunk content>"
-    Fuente 2: [cite_label](cite_url) - Contenido: "<truncated chunk content>"
-    ```
+  ```
+  Fuente 1: [cite_label](cite_url) - Contenido: "<truncated chunk content>"
+  Fuente 2: [cite_label](cite_url) - Contenido: "<truncated chunk content>"
+  ```
 
-    The intent: the LLM strict-citation behavior depends on the model copying a pre-formatted Markdown link, not hallucinating URL syntax. If the chunk's `cite_label` or `cite_url` fail Zod validation at the streaming-handler boundary, the chunk SHALL be filtered out before this string is formed; the K = 0 fallback path then applies the empty-corpus tool-result message (`"0 fuentes válidas encontradas"`) per the system prompt's strict guardrail in Task 8.1.
+  The intent: the LLM strict-citation behavior depends on the model copying a pre-formatted Markdown link, not hallucinating URL syntax. If the chunk's `cite_label` or `cite_url` fail Zod validation at the streaming-handler boundary, the chunk SHALL be filtered out before this string is formed; the K = 0 fallback path then applies the empty-corpus tool-result message (`"0 fuentes válidas encontradas"`) per the system prompt's strict guardrail in Task 8.1.
+
 - [ ] 8.5 Create `apps/api/src/features/chatbot/tools/searchKnowledge/index.ts` barrel.
 - [ ] 8.6 Modify `apps/api/src/features/chatbot/sendMessage/handler.ts`:
-    - Prepend the system prompt as the first message in `llmMessages`.
-    - Pass `tools: [searchKnowledgeToolDefinition]` to `provider.streamCompletion`.
-    - Detect `tool_call` event from the first stream invocation; when seen, execute the tool server-side BEFORE `reply.hijack()`, append `role = TOOL` message with `toolCallId` matching the event's `id`, and re-invoke `streamCompletion` once.
-    - Throw `ExternalServiceError` if the second invocation also yields `tool_call`.
-    - Build `sources` array from the tool's chunks; validate each entry against `SourceCitationSchema`; route `K = 0` and `N = 0` through the empty-tool-result fallback path; persist `sources_cited` JSONB on the assistant row at finalization.
-    - Emit the optional `sources` field in the `done` SSE event payload when `K ≥ 1` (with BigInts coerced to strings).
-    - Enforce `CHATBOT_MAX_RAG_CONTEXT_TOKENS` against the tool-result message; if exceeded, emit a terminal SSE error event and rely on the disconnect finalizer to mark the assistant row truncated.
+  - Prepend the system prompt as the first message in `llmMessages`.
+  - Pass `tools: [searchKnowledgeToolDefinition]` to `provider.streamCompletion`.
+  - Detect `tool_call` event from the first stream invocation; when seen, execute the tool server-side BEFORE `reply.hijack()`, append `role = TOOL` message with `toolCallId` matching the event's `id`, and re-invoke `streamCompletion` once.
+  - Throw `ExternalServiceError` if the second invocation also yields `tool_call`.
+  - Build `sources` array from the tool's chunks; validate each entry against `SourceCitationSchema`; route `K = 0` and `N = 0` through the empty-tool-result fallback path; persist `sources_cited` JSONB on the assistant row at finalization.
+  - Emit the optional `sources` field in the `done` SSE event payload when `K ≥ 1` (with BigInts coerced to strings).
+  - Enforce `CHATBOT_MAX_RAG_CONTEXT_TOKENS` against the tool-result message; if exceeded, emit a terminal SSE error event and rely on the disconnect finalizer to mark the assistant row truncated.
 
 - [ ] 8.7 **[FOUNDATION FIX]** `tokens_used` calculation correctness on `chat_message`. In the same finalization step that persists assistant content and `sources_cited`, set `chat_message.tokens_used = inputTokens + outputTokens`, where both counts are extracted from the LLM provider's terminal `usage` event. Foundation persisted only one of the two (output) on the assistant row; this change SHALL sum BOTH so per-turn cost analytics and the history-cap diagnostic read a faithful total. Applies on every successful turn — both single-round (no tool) and two-round (tool path); in the two-round case, `inputTokens`/`outputTokens` are taken from the SECOND (terminal) `usage` event since that is the one that closed the assistant turn. Add a regression assertion in an existing toolRound test (or a new sub-case) that the persisted `chat_message.tokens_used` equals `done.inputTokens + done.outputTokens` for both a tool turn and a non-tool turn.
 
@@ -188,25 +196,24 @@
 - [ ] 9.4 Confirm `react-markdown` configuration in `MessageBubble.tsx` rewrites inline links to open in a new tab via `target="_blank"` plus `rel="noopener noreferrer"`. If not already configured, add a `components: { a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" /> }` override to the `ReactMarkdown` element.
 
 - [ ] 9.5 **[FOUNDATION FIX — PM DECISION]** Trash icon (clear chat) behavior. The trash-icon click handler in the chatbot widget SHALL ONLY clear local React state — reset the message list to empty AND generate a fresh `conversation_id` (the next user message starts a new conversation thread for backend purposes). It SHALL NOT call any backend `DELETE` endpoint, and no such endpoint is added by this change. The persisted `chatbot_chat_conversation` and `chatbot_chat_message` rows in the database SHALL remain untouched — conversations are auditable, not user-deletable. Concretely:
-    - Locate the existing trash-icon click handler in the widget (likely in `apps/web/src/components/Chatbot/` — header / toolbar component).
-    - Remove any `fetch`/`apiClient` call to a `DELETE /chat/conversations/...` (or similar) path it currently makes; if no such call exists yet, just confirm.
-    - Replace with: `setMessages([])` (or whatever local state mutation clears the message list) AND a `crypto.randomUUID()` (or existing UUID-generation helper) assigned to the `conversation_id` state so the next outgoing `sendMessage` carries a fresh id.
-    - Surface the icon's tooltip/aria-label as `"Limpiar conversación"` (clear), NOT `"Eliminar conversación"` (delete) — the wording matters because the row is preserved.
-    - Add a unit/integration test asserting that clicking the trash icon (a) clears the rendered message list, (b) does NOT trigger any HTTP request (assert via mocked `apiClient` / `fetch` spy that no DELETE is fired), and (c) the next outgoing `sendMessage` carries a `conversation_id` distinct from the one used before the click.
-    - Rationale: PM-owned decision. Conversations are audit material; client-triggered hard delete is V4 admin-UI scope, not V1 widget scope. Documented in `design.md` Decision 25.
+  - Locate the existing trash-icon click handler in the widget (likely in `apps/web/src/components/Chatbot/` — header / toolbar component).
+  - Remove any `fetch`/`apiClient` call to a `DELETE /chat/conversations/...` (or similar) path it currently makes; if no such call exists yet, just confirm.
+  - Replace with: `setMessages([])` (or whatever local state mutation clears the message list) AND a `crypto.randomUUID()` (or existing UUID-generation helper) assigned to the `conversation_id` state so the next outgoing `sendMessage` carries a fresh id.
+  - Surface the icon's tooltip/aria-label as `"Limpiar conversación"` (clear), NOT `"Eliminar conversación"` (delete) — the wording matters because the row is preserved.
+  - Add a unit/integration test asserting that clicking the trash icon (a) clears the rendered message list, (b) does NOT trigger any HTTP request (assert via mocked `apiClient` / `fetch` spy that no DELETE is fired), and (c) the next outgoing `sendMessage` carries a `conversation_id` distinct from the one used before the click.
+  - Rationale: PM-owned decision. Conversations are audit material; client-triggered hard delete is V4 admin-UI scope, not V1 widget scope. Documented in `design.md` Decision 25.
 
 - [ ] 9.6 Render a persistent foot-of-chat disclaimer beneath the input area in `apps/web/src/components/Chatbot/ChatbotWidget.tsx` (or wherever the input panel is composed). Use a `<Typography>` component with `variant="caption"` and `color="text.secondary"`, padding consistent with the input row, and the literal text `"Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas."` byte-for-byte (no truncation, no emoji). The disclaimer SHALL be a static text node — no `onClick`, no dismiss button, no animation. It SHALL appear in every canonical widget state (`empty`, `loading`, `streaming`, `error`, `truncated`, `degraded`) so long as the widget panel is open.
 
 - [ ] 9.7 Render the "Eliminar mi historial" affordance in the foot of the widget panel (adjacent to the disclaimer from Task 9.6). Use a `<Button variant="text">` styled as a discrete text link with `theme.palette.text.secondary`, `variant="caption"` typography, and visible label `"Eliminar mi historial"`. The button SHALL be visually distinct from the trash icon (different position — foot vs. top, different size, different visual weight — text link vs. icon button). On click, open an MUI `<Dialog>` (or equivalent confirmation modal) with the literal copy:
+  - Title: `"¿Eliminar tu historial de conversaciones?"`
+  - Body: `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`
+  - Confirm button: `"Eliminar permanentemente"` with `color="error"` (destructive variant)
+  - Cancel button: `"Cancelar"`
 
-    - Title: `"¿Eliminar tu historial de conversaciones?"`
-    - Body: `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`
-    - Confirm button: `"Eliminar permanentemente"` with `color="error"` (destructive variant)
-    - Cancel button: `"Cancelar"`
+  On Confirm: issue `fetch('/api/chatbot/conversations/me', { method: 'DELETE', credentials: 'include' })` (NOT via `apiClient` / `ky` — same convention as the streaming endpoint per foundation widget spec). On HTTP 204: clear local message list, generate a fresh `conversation_id` (e.g., `crypto.randomUUID()`), transition the widget to the `empty` state, and surface a brief inline confirmation `"Tu historial fue eliminado"` (toast, snackbar, or inline transient message). On HTTP 5xx or network error: close the dialog, surface error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."`, preserve local state — DO NOT retry automatically and DO NOT generate a fresh `conversation_id`.
 
-    On Confirm: issue `fetch('/api/chatbot/conversations/me', { method: 'DELETE', credentials: 'include' })` (NOT via `apiClient` / `ky` — same convention as the streaming endpoint per foundation widget spec). On HTTP 204: clear local message list, generate a fresh `conversation_id` (e.g., `crypto.randomUUID()`), transition the widget to the `empty` state, and surface a brief inline confirmation `"Tu historial fue eliminado"` (toast, snackbar, or inline transient message). On HTTP 5xx or network error: close the dialog, surface error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."`, preserve local state — DO NOT retry automatically and DO NOT generate a fresh `conversation_id`.
-
-    Visibility rule: hide the link only when the widget has never sent a message in the current session AND the local message list is empty. In every other state, show it. The link triggers the foundation-defined `DELETE` endpoint that already exists from `chatbot-conversation-deletion`; no new backend route is added.
+  Visibility rule: hide the link only when the widget has never sent a message in the current session AND the local message list is empty. In every other state, show it. The link triggers the foundation-defined `DELETE` endpoint that already exists from `chatbot-conversation-deletion`; no new backend route is added.
 
 ## 10. Tests
 
@@ -216,11 +223,11 @@ CRITICAL tests gate production: any one failing blocks merge to `main`. Foundati
 - [ ] 10.2 **[CRITICAL #2]** `apps/api/test/features/chatbot/ingest/integration.test.ts > happy path with valid PDF` — invoke the ingest CLI against `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` with valid args; assert (a) exactly one `chatbot_corpus_source` row exists with `status = 'DRAFT'`; (b) one or more `chatbot_corpus_chunk` rows exist with non-NULL `embedding` of length 1024; (c) one `chatbot_corpus_ingest_run` row exists with non-NULL `completed_at` and `chunks_created` matching the count. Maps to the `chatbot-corpus-ingest` spec's CRITICAL-marked requirement "Ingest CLI computes embeddings and inserts source plus chunks atomically".
 - [ ] 10.3 **[CRITICAL #3]** `apps/api/test/features/chatbot/toolRound/integration.test.ts > single-round tool calling end-to-end` — POST a message containing a keyword that triggers the mock tool_call (e.g., `"explicame los alcances 1, 2 y 3"`); seed an ACTIVE source plus chunks beforehand; assert the SSE stream produces only `delta` and `done` events (no `tool_call` event leaks); the assistant row's `sources_cited` is non-empty and matches the persisted JSONB; the `done` event payload includes a `sources` field matching `sources_cited` (with BigInts as strings). Maps to the `chatbot-message-streaming` spec's CRITICAL-marked requirement "Handler executes a single round of tool calling server-side".
 - [ ] 10.4 **[CRITICAL #4]** `apps/api/test/features/chatbot/toolRound/integration.test.ts > all-sources-filtered triggers middle-ground no-source fallback` — seed an ACTIVE source whose chunks all have malformed `cite_url` (e.g., `"not-a-url"` or empty string); POST a message that triggers the mock tool_call; assert ALL of the following on the assistant content captured from the SSE stream:
-    - **(a) Opener invariant**: `assistantContent.trimStart().startsWith("No dispongo de fuentes verificadas en mi corpus para responder esto con precisión.")` returns `true`. The assistant turn SHALL start with the load-bearing literal byte-for-byte (leading whitespace permitted only).
-    - **(b) No invented citations**: `assistantContent` SHALL NOT match `/\[[^\]]+\]\([^)]+\)/` (Markdown link pattern) and SHALL NOT match `/§\s*\d/` (section reference pattern). A single match fails the test with a message naming the offending excerpt.
-    - **(c) Persistence and wire**: the assistant row's `sources_cited` is the empty array `[]`; the `done` event payload does NOT include a `sources` field.
+  - **(a) Opener invariant**: `assistantContent.trimStart().startsWith("No dispongo de fuentes verificadas en mi corpus para responder esto con precisión.")` returns `true`. The assistant turn SHALL start with the load-bearing literal byte-for-byte (leading whitespace permitted only).
+  - **(b) No invented citations**: `assistantContent` SHALL NOT match `/\[[^\]]+\]\([^)]+\)/` (Markdown link pattern) and SHALL NOT match `/§\s*\d/` (section reference pattern). A single match fails the test with a message naming the offending excerpt.
+  - **(c) Persistence and wire**: the assistant row's `sources_cited` is the empty array `[]`; the `done` event payload does NOT include a `sources` field.
 
-    Maps to the `chatbot-message-streaming` spec's CRITICAL-marked K=0 scenario within "Handler persists sources_cited on the assistant message at finalization, with Zod validation and K=0 fallback". Quantitative content (factors, percentages, dates) is intentionally NOT asserted against — under Decision 14 it is permitted with soft caveats, and the opener literal + persistent foot disclaimer are the two layers of protection. If empirical drift on quality emerges from operator review, the eval suite (`chatbot-educate-mode-full`) is the right place to tighten — not this structural CRITICAL test.
+  Maps to the `chatbot-message-streaming` spec's CRITICAL-marked K=0 scenario within "Handler persists sources_cited on the assistant message at finalization, with Zod validation and K=0 fallback". Quantitative content (factors, percentages, dates) is intentionally NOT asserted against — under Decision 14 it is permitted with soft caveats, and the opener literal + persistent foot disclaimer are the two layers of protection. If empirical drift on quality emerges from operator review, the eval suite (`chatbot-educate-mode-full`) is the right place to tighten — not this structural CRITICAL test.
 
 Non-critical regression tests (must pass for merge but a single-test failure is investigable rather than a release-gate blocker):
 
@@ -257,9 +264,10 @@ Non-critical regression tests (must pass for merge but a single-test failure is 
 - [ ] 10.35 `toolRound/integration.test.ts > Modo B platform question does NOT invoke searchKnowledge and responds with redirect literal` — POST a message classified as platform usage (e.g., `"¿cómo creo un inventario?"`, `"¿dónde veo los reportes?"`, `"¿cómo invito a un colega?"`); assert (a) zero `tool_call` events leaked across the SSE stream — and via a server-side spy on `executeSearchKnowledgeTool`, that it was NOT invoked; (b) the assistant content contains the literal substring `"Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono."` byte-for-byte; (c) the assistant row's `sources_cited` is `[]`; (d) the `done` event payload does NOT include a `sources` field. Run this with three different platform-usage phrasings as sub-cases to assert the Modo B classification is robust, not over-fit to one wording.
 - [ ] 10.36 `toolRound/integration.test.ts > Modo C conversational and welcome behaviors` — split into two sub-suites:
 
-    **(a) Plain conversational** — POST `"gracias"` and `"¿cómo estás?"`; assert: zero `tool_call` events; assistant content does NOT start with the K=0 opener `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."`; does NOT contain the platform-redirect literal; the response is non-empty Spanish prose.
+  **(a) Plain conversational** — POST `"gracias"` and `"¿cómo estás?"`; assert: zero `tool_call` events; assistant content does NOT start with the K=0 opener `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."`; does NOT contain the platform-redirect literal; the response is non-empty Spanish prose.
 
-    **(b) Welcome / orientation** — POST `"hola"`, `"¿qué puedes hacer?"`, and `"ayuda"` as three sub-cases. For each, assert ALL of: (i) zero `tool_call` events; (ii) assistant content does NOT start with the K=0 opener and does NOT contain the platform-redirect literal; (iii) the response contains at least ONE of the keywords `"metodología"`, `"huella de carbono"`, `"alcances"`, `"factores de emisión"` (case-insensitive) — covers capability disclosure (a); (iv) the response contains at least ONE of the phrases `"próxima versión"`, `"próximas versiones"`, `"próximamente"` (case-insensitive) — covers roadmap mention (b); (v) the response is between 2 and 6 sentences inclusive (count `.`, `!`, `?` as sentence terminators excluding URL/decimal cases). A single sub-case failing fails the test naming the offending input and assertion.
+  **(b) Welcome / orientation** — POST `"hola"`, `"¿qué puedes hacer?"`, and `"ayuda"` as three sub-cases. For each, assert ALL of: (i) zero `tool_call` events; (ii) assistant content does NOT start with the K=0 opener and does NOT contain the platform-redirect literal; (iii) the response contains at least ONE of the keywords `"metodología"`, `"huella de carbono"`, `"alcances"`, `"factores de emisión"` (case-insensitive) — covers capability disclosure (a); (iv) the response contains at least ONE of the phrases `"próxima versión"`, `"próximas versiones"`, `"próximamente"` (case-insensitive) — covers roadmap mention (b); (v) the response is between 2 and 6 sentences inclusive (count `.`, `!`, `?` as sentence terminators excluding URL/decimal cases). A single sub-case failing fails the test naming the offending input and assertion.
+
 - [ ] 10.37 `prompts/loader.test.ts > system prompt contains the three-mode routing block` — read `apps/api/src/features/chatbot/prompts/es/system.md` at module load time; assert it contains all three of: `"Modo A — Metodología"`, `"Modo B — Plataforma"`, `"Modo C — Conversacional"` byte-for-byte, AND the platform-redirect literal byte-for-byte. This protects against the prompt being silently rewritten in a way that drops the routing scaffolding.
 - [ ] 10.38 `widget/render.test.ts > "Eliminar mi historial" link triggers DELETE with confirmation flow` — render the widget with a populated message list; assert (a) the rendered DOM contains a button with visible text `"Eliminar mi historial"` in the foot of the panel (separate from the trash icon at the top); (b) clicking the link opens a dialog with title `"¿Eliminar tu historial de conversaciones?"`, body `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`, confirm label `"Eliminar permanentemente"`, cancel label `"Cancelar"`; (c) clicking "Cancelar" closes the dialog AND fires zero HTTP requests (assert via `fetch` spy); (d) clicking "Eliminar permanentemente" with a stub returning HTTP 204 fires exactly one `DELETE /api/chatbot/conversations/me` with `credentials: "include"`, clears the message list, generates a fresh `conversation_id` distinct from the prior one, and surfaces the literal confirmation `"Tu historial fue eliminado"`; (e) clicking confirm with a stub returning HTTP 500 closes the dialog, preserves the message list intact, surfaces the literal `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."`, fires no retry, and does NOT generate a fresh `conversation_id`. Five sub-cases. Compliance regression guard for D11.
 
@@ -276,13 +284,13 @@ Non-critical regression tests (must pass for merge but a single-test failure is 
 - [ ] 12.2 Run `pnpm test --filter=api -- /chatbot --coverage=false`. All chatbot integration and unit tests SHALL pass, including the four CRITICAL tests (10.1, 10.2, 10.3, 10.4).
 - [ ] 12.3 Run `pnpm test --filter=web -- chatbot --coverage=false` (or the equivalent for the widget tests). The MessageBubble citation-panel tests SHALL pass.
 - [ ] 12.4 Local end-to-end smoke matching the Criterio de éxito stated in `proposal.md`: with `LLM_PROVIDER=azure-openai`, `EMBEDDING_PROVIDER=azure-openai`, `AZURE_OPENAI_API_KEY` set, and a manually-provisioned Azure OpenAI resource:
-    - Run `pnpm --filter api chatbot:ingest path/to/ghg.pdf --label "GHG Protocol Corporate Standard" --version v05 --source-type PDF --scope GLOBAL --cite-url "https://ghgprotocol.org/corporate-standard"`. Confirm the script exits 0 and prints the source id and chunk count in Spanish.
-    - Run `pnpm --filter api chatbot:activate <source-id>`. Confirm the script exits 0 and prints a Spanish success message.
-    - In Prisma Studio, confirm the source row has `status = 'ACTIVE'` and N chunk rows exist with non-NULL embeddings.
-    - Open `localhost:5173`, click the widget, send `"¿Qué son los alcances 1, 2 y 3 de emisiones según el GHG Protocol?"`. Observe the assistant response renders incrementally, includes inline `[GHG Protocol §X.Y](https://ghgprotocol.org/...)` markdown links, and the "Fuentes consultadas (n)" panel appears beneath the bubble.
-    - In the database, confirm `chatbot_chat_message.sources_cited` for the assistant row matches the panel content.
-    - **Modo A (metodología cubierta)**: send `"¿qué son los alcances 1, 2 y 3 de emisiones según el GHG Protocol?"`. Observe the response renders incrementally with inline `[GHG Protocol §X.Y](https://ghgprotocol.org/...)` markdown links and the "Fuentes consultadas (n)" panel appears beneath the bubble.
-    - **Modo A (metodología NO cubierta — K=0 opener)**: send `"¿cuál es la población de Marte?"` (off-domain — methodology classifier still routes it through searchKnowledge in the V1 mock; the K=0 fallback fires). Observe the response opens with the literal `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` (verbatim, byte-for-byte; leading whitespace OK). The response SHALL NOT contain Markdown links `[label](url)` or `§X.Y` section references. Quantitative content with caveats (e.g., "aproximadamente 2.7 kg CO2/L según fuentes públicas") is acceptable per Decision 14. No "Fuentes consultadas" panel appears.
-    - **Modo B (uso de plataforma)**: send `"¿cómo creo un inventario en la plataforma?"`. Observe the response contains the literal `"Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono."` byte-for-byte. The response SHALL NOT trigger searchKnowledge (Network tab: zero SSE chunks should reflect a tool round; total turn latency similar to a plain LLM call). No panel appears.
-    - **Modo C (saludo/orientación)**: send `"hola"` or `"¿qué puedes hacer?"`. Observe a brief Spanish welcome (2–6 sentences) that mentions methodology capabilities (`metodología`, `huella de carbono`, `alcances`, `factores de emisión` — at least one) AND mentions that platform-usage guidance arrives in a future version (`próxima versión`/`próximas versiones`/`próximamente` — at least one). The response does NOT start with the K=0 opener and does NOT contain the platform-redirect literal. No panel appears. Then send `"gracias"` — expect a brief natural acknowledgement without the orientation block.
+  - Run `pnpm --filter api chatbot:ingest path/to/ghg.pdf --label "GHG Protocol Corporate Standard" --version v05 --source-type PDF --scope GLOBAL --cite-url "https://ghgprotocol.org/corporate-standard"`. Confirm the script exits 0 and prints the source id and chunk count in Spanish.
+  - Run `pnpm --filter api chatbot:activate <source-id>`. Confirm the script exits 0 and prints a Spanish success message.
+  - In Prisma Studio, confirm the source row has `status = 'ACTIVE'` and N chunk rows exist with non-NULL embeddings.
+  - Open `localhost:5173`, click the widget, send `"¿Qué son los alcances 1, 2 y 3 de emisiones según el GHG Protocol?"`. Observe the assistant response renders incrementally, includes inline `[GHG Protocol §X.Y](https://ghgprotocol.org/...)` markdown links, and the "Fuentes consultadas (n)" panel appears beneath the bubble.
+  - In the database, confirm `chatbot_chat_message.sources_cited` for the assistant row matches the panel content.
+  - **Modo A (metodología cubierta)**: send `"¿qué son los alcances 1, 2 y 3 de emisiones según el GHG Protocol?"`. Observe the response renders incrementally with inline `[GHG Protocol §X.Y](https://ghgprotocol.org/...)` markdown links and the "Fuentes consultadas (n)" panel appears beneath the bubble.
+  - **Modo A (metodología NO cubierta — K=0 opener)**: send `"¿cuál es la población de Marte?"` (off-domain — methodology classifier still routes it through searchKnowledge in the V1 mock; the K=0 fallback fires). Observe the response opens with the literal `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` (verbatim, byte-for-byte; leading whitespace OK). The response SHALL NOT contain Markdown links `[label](url)` or `§X.Y` section references. Quantitative content with caveats (e.g., "aproximadamente 2.7 kg CO2/L según fuentes públicas") is acceptable per Decision 14. No "Fuentes consultadas" panel appears.
+  - **Modo B (uso de plataforma)**: send `"¿cómo creo un inventario en la plataforma?"`. Observe the response contains the literal `"Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono."` byte-for-byte. The response SHALL NOT trigger searchKnowledge (Network tab: zero SSE chunks should reflect a tool round; total turn latency similar to a plain LLM call). No panel appears.
+  - **Modo C (saludo/orientación)**: send `"hola"` or `"¿qué puedes hacer?"`. Observe a brief Spanish welcome (2–6 sentences) that mentions methodology capabilities (`metodología`, `huella de carbono`, `alcances`, `factores de emisión` — at least one) AND mentions that platform-usage guidance arrives in a future version (`próxima versión`/`próximas versiones`/`próximamente` — at least one). The response does NOT start with the K=0 opener and does NOT contain the platform-redirect literal. No panel appears. Then send `"gracias"` — expect a brief natural acknowledgement without the orientation block.
 - [ ] 12.5 Run `openspec validate chatbot-rag-mvp --strict`. The validation SHALL pass cleanly.
