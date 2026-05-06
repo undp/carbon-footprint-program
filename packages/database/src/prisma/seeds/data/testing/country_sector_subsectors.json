@@ -1,6 +1,6 @@
 [
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Manufactura / Industria Manufacturera",
     "subsectors": [
       "Alimentos y Bebidas - Procesamiento de carnes",
@@ -28,7 +28,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Energía",
     "subsectors": [
       "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
@@ -42,7 +42,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
     "subsectors": [
       "Agricultura - Cultivos anuales",
@@ -63,7 +63,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Construcción",
     "subsectors": [
       "Construcción de Edificaciones - Residencial",
@@ -79,7 +79,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Transporte y Logística",
     "subsectors": [
       "Transporte Terrestre - Pasajeros",
@@ -96,7 +96,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Comercio",
     "subsectors": [
       "Comercio Mayorista - Alimentos",
@@ -109,7 +109,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Servicios Financieros",
     "subsectors": [
       "Banca - Comercial",
@@ -124,7 +124,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Turismo, Hotelería y Restaurantes",
     "subsectors": [
       "Hoteles y Hospedaje - Hoteles",
@@ -140,7 +140,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Salud",
     "subsectors": [
       "Servicios de Salud - Hospitales",
@@ -155,7 +155,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Educación",
     "subsectors": [
       "Educación Escolar - Básica",
@@ -167,7 +167,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Servicios Profesionales y Empresariales",
     "subsectors": [
       "Consultoría - Gestión",
@@ -183,7 +183,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Administración Pública",
     "subsectors": [
       "Gobierno Central",
@@ -193,7 +193,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Minería",
     "subsectors": [
       "Extracción - Cobre",
@@ -206,7 +206,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Telecomunicaciones",
     "subsectors": [
       "Telefonía Móvil",
@@ -216,7 +216,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Bienes Raíces",
     "subsectors": [
       "Desarrollo Inmobiliario",
@@ -226,7 +226,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Gestión de Residuos",
     "subsectors": [
       "Recolección de Residuos",
@@ -236,7 +236,7 @@
     ]
   },
   {
-    "countryIsoCode": "CL",
+    "countryIsoCode": "PD",
     "sector": "Agua y Saneamiento",
     "subsectors": [
       "Producción y Distribución de Agua",
