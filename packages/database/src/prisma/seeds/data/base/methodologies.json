@@ -29,11 +29,239 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Generador",
+                    "name": "Caldera de vapor",
                     "parentValue": null
                   },
                   {
-                    "name": "Turbina",
+                    "name": "Caldera de agua caliente",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Termocaldera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Boiler",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno de fundición",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno metalúrgico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno cementero",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno cerámico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno de secado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno de tratamiento térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno panadero industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Incinerador",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Incinerador con recuperación energética",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Quemador industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Quemador de proceso",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Estufa industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Secador industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Secador rotatorio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Secador de granos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Reactor térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Craqueador térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Autoclave térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Equipo de curado térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Equipo de pirólisis",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Equipo de carbonización",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Generador eléctrico estacionario",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Grupo electrógeno",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Motor estacionario de combustión interna",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Turbina de gas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Turbina de vapor",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Microturbina",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Planta de cogeneración",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Planta de trigeneración",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Unidad CHP",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Calefactor industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Sistema centralizado de calefacción",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Sistema de agua caliente sanitaria",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Chiller de absorción",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Rooftop HVAC a combustión",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Unidad de climatización a gas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cocina industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Parrilla industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Freidora industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Marmita industrial",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Equipo térmico de cocina",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Equipo térmico agrícola",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Calefactor de invernadero",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Generador de vapor agrícola",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Antorcha fija (flare)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Tea estacionaria",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Oxidador térmico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Postquemador",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Unidad de combustión de residuos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Unidad de recuperación térmica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Compresor estacionario accionado por combustión",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bomba estacionaria accionada por combustión",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Sistema fijo de generación térmica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Sistema fijo de generación eléctrica",
                     "parentValue": null
                   }
                 ]
