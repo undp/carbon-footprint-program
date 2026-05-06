@@ -4,7 +4,7 @@
     "name": "Metodología inicial",
     "description": "Metodología inicial para País Demo",
     "regulation": "GHG Protocol",
-    "version": "1.0",
+    "version": "2004",
     "categories": [
       {
         "name": "Emisiones directas",
@@ -49,7 +49,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Gas licuado del petróleo",
+                    "name": "GLP",
                     "parentValue": null
                   },
                   {
@@ -57,7 +57,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Gasolina/Nafta",
+                    "name": "Gasolina",
                     "parentValue": null
                   },
                   {
@@ -65,15 +65,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Fuel oil / Petróleo pesado",
+                    "name": "Fuel oil",
                     "parentValue": null
                   },
                   {
-                    "name": "Carbón industrial",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Carbón para electricidad",
+                    "name": "Carbón",
                     "parentValue": null
                   },
                   {
@@ -81,7 +77,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Bioethanol",
+                    "name": "Biogás",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bioetanol",
                     "parentValue": null
                   },
                   {
@@ -89,7 +89,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Bio-gas",
+                    "name": "Biomasa",
                     "parentValue": null
                   }
                 ]
@@ -110,7 +110,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Bioethanol"
+                  "valueName": "Bioetanol"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/GJ",
                 "source": "DEFRA 2025",
@@ -130,7 +130,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Bioethanol"
+                  "valueName": "Bioetanol"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
@@ -140,7 +140,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Bio-gas"
+                  "valueName": "Biogás"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
@@ -190,7 +190,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Fuel oil / Petróleo pesado"
+                  "valueName": "Fuel oil"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
@@ -200,7 +200,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gas licuado del petróleo"
+                  "valueName": "GLP"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
@@ -220,7 +220,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gasolina/Nafta"
+                  "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
@@ -250,7 +250,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Bioethanol"
+                  "valueName": "Bioetanol"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
@@ -270,7 +270,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Fuel oil / Petróleo pesado"
+                  "valueName": "Fuel oil"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
@@ -280,7 +280,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gas licuado del petróleo"
+                  "valueName": "GLP"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
@@ -300,7 +300,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gasolina/Nafta"
+                  "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
@@ -320,7 +320,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Bio-gas"
+                  "valueName": "Biogás"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
@@ -330,7 +330,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Carbón industrial"
+                  "valueName": "Carbón"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
@@ -370,7 +370,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Fuel oil / Petróleo pesado"
+                  "valueName": "Fuel oil"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
@@ -380,7 +380,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gas licuado del petróleo"
+                  "valueName": "GLP"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
@@ -400,7 +400,7 @@
                 "dimensionValue1": null,
                 "dimensionValue2": {
                   "dimensionCode": "Combustiones estacionarias_Combustible",
-                  "valueName": "Gasolina/Nafta"
+                  "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
