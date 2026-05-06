@@ -1,12 +1,16 @@
-import { ChangeEventHandler, FC } from "react";
+import { FC } from "react";
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material";
 import type { FieldError } from "react-hook-form";
+import { NumericFormat, NumberFormatValues } from "react-number-format";
+import { formatter } from "@/utils/formatting";
 
-interface Props extends Omit<TextFieldProps, "onChange" | "value"> {
-  onChange: ChangeEventHandler<HTMLInputElement>;
-  value?: number | null;
+interface Props
+  extends Omit<TextFieldProps, "onChange" | "value" | "defaultValue" | "type"> {
+  value: number | null;
+  onChange: (value: number | null) => void;
   suffix?: string;
   min?: number;
+  decimalScale?: number;
   fieldError?: FieldError;
 }
 
@@ -15,49 +19,42 @@ export const NumericInput: FC<Props> = ({
   value,
   suffix,
   min,
+  decimalScale = formatter.decimalScale,
   sx,
   fieldError,
   error,
   helperText,
+  size = "small",
+  fullWidth = true,
+  placeholder = "0",
   ...props
 }) => {
-  const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const inputValue = e.target.value;
-
-    // Allow empty string to pass through
-    if (inputValue === "") {
-      onChange(e);
+  const handleValueChange = (values: NumberFormatValues): void => {
+    const next = values.floatValue;
+    if (next == null) {
+      onChange(null);
       return;
     }
-
-    const numValue = parseFloat(inputValue);
-
-    // Clamp to min if defined and value is below min
-    if (min !== undefined && numValue < min) {
-      const valueToEmit = String(min);
-      const clampedEvent = {
-        ...e,
-        target: {
-          ...e.target,
-          value: valueToEmit,
-          name: e.target.name,
-          dataset: e.target.dataset,
-        },
-      };
-      onChange(clampedEvent as React.ChangeEvent<HTMLInputElement>);
+    if (min !== undefined && next < min) {
+      onChange(min);
       return;
     }
-
-    onChange(e);
+    onChange(next);
   };
 
   return (
-    <TextField
-      type="number"
-      size="small"
-      fullWidth
-      value={value ?? ""}
-      placeholder="0"
+    <NumericFormat
+      customInput={TextField}
+      value={value}
+      valueIsNumericString={false}
+      decimalSeparator={formatter.decimalSeparator}
+      thousandSeparator={formatter.thousandSeparator}
+      decimalScale={decimalScale}
+      allowNegative={min === undefined || min < 0}
+      onValueChange={handleValueChange}
+      size={size}
+      fullWidth={fullWidth}
+      placeholder={placeholder}
       error={error || !!fieldError}
       helperText={helperText ?? fieldError?.message}
       slotProps={{
@@ -66,32 +63,18 @@ export const NumericInput: FC<Props> = ({
             <InputAdornment position="end">{suffix}</InputAdornment>
           ),
         },
-        htmlInput: min !== undefined ? { min } : undefined,
+        htmlInput: { inputMode: "decimal" },
       }}
       onKeyDown={(e) => {
-        // Stop propagation of arrow keys to prevent DataGrid navigation
         if (
           ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)
         ) {
           e.stopPropagation();
         }
       }}
-      onChange={handleChange}
       sx={{
-        //* Align numbers to the right for better readability and consistency with numeric formatting conventions
         "& input": {
           textAlign: "right",
-        },
-        //* Remove default spin buttons for a cleaner UI and to prevent accidental clicks when entering values
-        /* Chrome / Edge / Safari */
-        "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-          {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-        /* Firefox - uses a different property to hide spin buttons */
-        "& input[type=number]": {
-          MozAppearance: "textfield",
         },
         ...sx,
       }}

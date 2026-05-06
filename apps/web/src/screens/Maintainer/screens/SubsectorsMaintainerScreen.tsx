@@ -38,6 +38,10 @@ import { sortByStatusThenName } from "../utils/profilingSort";
 import { PROFILING_STATUS_LABELS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 
+const SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "subsectors-maintainer",
+} as const;
+
 const FormSchema = z.object({
   subsectors: z.array(SubsectorRowSchema),
 });
@@ -264,6 +268,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
       blockerStatus={status}
       onBlockerProceed={() => proceed?.()}
       onBlockerReset={() => reset?.()}
+      explanationSlug={SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
           <InUseWarningDialog

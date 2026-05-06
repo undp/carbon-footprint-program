@@ -21,7 +21,7 @@ export const mapInventoryToFormValues = (
     subSector: toSafeString(organizationData?.subsectorId),
     companySize: toSafeString(organizationData?.sizeId),
     activity: toSafeString(organizationData?.mainActivityId),
-    quantity: toSafeString(organizationData?.mainActivityQuantity),
+    quantity: organizationData?.mainActivityQuantity ?? null,
   };
 };
 
@@ -38,8 +38,7 @@ export const mapFormValuesToRequest = (
       subsectorId: values.subSector || null,
       sizeId: values.companySize || null,
       mainActivityId: values.activity || null,
-      mainActivityQuantity:
-        values.quantity !== "" ? Number(values.quantity) : null,
+      mainActivityQuantity: values.quantity,
     },
   };
 };

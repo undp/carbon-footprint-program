@@ -18,6 +18,10 @@ import { isCarbonInventoryEditable } from "@repo/utils";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
+const EMISSION_RESULTS_EXPLANATION_SLUGS = {
+  MAIN: "emission-results",
+} as const;
+
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
@@ -85,6 +89,7 @@ export const EmissionResultsScreen: FC = () => {
           <StepHeader
             title="Paso 5: Resultados"
             description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
+            explanationSlug={EMISSION_RESULTS_EXPLANATION_SLUGS.MAIN}
           />
           {summaryData?.carbonInventory.status && (
             <CarbonInventoryStatusChip

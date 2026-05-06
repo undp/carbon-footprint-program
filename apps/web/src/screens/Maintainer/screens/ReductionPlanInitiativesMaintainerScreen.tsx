@@ -28,6 +28,10 @@ import {
 } from "../hooks/useReductionPlanInitiativesForm";
 import { useReductionPlanInitiativeColumns } from "../hooks/useReductionPlanInitiativeColumns";
 
+const REDUCTION_PLAN_INITIATIVES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "reduction-plan-initiatives-maintainer",
+} as const;
+
 const isNewRow = (id: string) => id.startsWith("temp_");
 
 export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
@@ -365,6 +369,9 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         addLabel="Agregar fila"
         showDownload={false}
         extra={methodologySelector}
+        explanationSlug={
+          REDUCTION_PLAN_INITIATIVES_MAINTAINER_EXPLANATION_SLUGS.MAIN
+        }
       />
       <Box className="rounded-sm bg-white p-3">
         <form id="reduction-plan-initiatives-form" noValidate>

@@ -13,7 +13,7 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardSectorChart } from "@/api/query/dashboard";
 import { SECTOR_CHART_LIMIT } from "../constants";
-import { formatEmissions, formatQuantity } from "../../../utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 
@@ -163,8 +163,8 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
                 color: theme.palette.primary.main,
                 valueFormatter: (value) =>
                   activeTab === "emissions"
-                    ? formatEmissions(value ?? 0, true)
-                    : formatQuantity(value ?? 0),
+                    ? formatter.emissions(value)
+                    : formatter.quantity(value),
               },
             ]}
             height={220}

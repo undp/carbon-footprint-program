@@ -5,7 +5,6 @@ import {
 } from "@repo/types";
 import {
   distributePercentages,
-  roundEmissions,
   safeParseCarbonInventoryOrganizationData,
 } from "../utils.js";
 import { fetchInventory, fetchCategoryData } from "../helpers.js";
@@ -141,7 +140,7 @@ export const getEmissionsDetailedSummaryService = async (
                   ? input.factor.appliedFactorValue.toNumber()
                   : null,
                 factorSource: input.factor?.appliedFactorSource ?? null,
-                emissions: roundEmissions(lineEmissions),
+                emissions: lineEmissions,
               };
             })
             .filter((item) => item !== null)
@@ -154,7 +153,7 @@ export const getEmissionsDetailedSummaryService = async (
         icon: IconNameSchema.parse(sub.icon),
         hasLines,
         lines: emissionLines,
-        subtotal: roundEmissions(sub.subtotal),
+        subtotal: sub.subtotal,
         percentage: subcategoryPercentages[subIdx],
       };
     });
@@ -173,7 +172,7 @@ export const getEmissionsDetailedSummaryService = async (
       icon: IconNameSchema.parse(category.icon),
       color: category.color,
       subcategories,
-      subtotal: roundEmissions(category.subtotal),
+      subtotal: category.subtotal,
       percentage: categoryPercentages[catIdx],
       ghgBreakdown,
     };
@@ -181,7 +180,7 @@ export const getEmissionsDetailedSummaryService = async (
 
   return {
     inventoryAttributes,
-    totalEmissions: roundEmissions(totalEmissions),
+    totalEmissions,
     equivalence,
     categories,
   };

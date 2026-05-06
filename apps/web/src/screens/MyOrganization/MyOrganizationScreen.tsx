@@ -150,6 +150,7 @@ export const MyOrganizationScreen: FC = () => {
           open={formDialogOpen}
           onClose={closeFormDialog}
           mode={DialogMode.create}
+          onCreated={setSelectedOrganizationId}
         />
       </MainLayout>
     );
@@ -161,6 +162,7 @@ export const MyOrganizationScreen: FC = () => {
         <OrganizationHeader
           selectedOrganizationId={selectedOrganizationId}
           onOrganizationChange={setSelectedOrganizationId}
+          onCreateOrganization={() => openFormDialog(DialogMode.create)}
         />
 
         {organization ? (
@@ -192,8 +194,11 @@ export const MyOrganizationScreen: FC = () => {
             <OrganizationFormDialog
               open={formDialogOpen}
               onClose={closeFormDialog}
-              organization={organization}
+              organization={
+                formDialogMode === DialogMode.create ? undefined : organization
+              }
               mode={formDialogMode}
+              onCreated={setSelectedOrganizationId}
             />
 
             <AddUserDialog

@@ -11,6 +11,7 @@ import {
 } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
+import { formatter } from "@/utils/formatting";
 import {
   REQUEST_STATUS_LABEL as STATUS_LABEL,
   REQUEST_TYPE_LABEL as TYPE_LABEL,
@@ -98,13 +99,7 @@ export const useRequestColumns = ({
         headerName: "Fecha Envío",
         cellClassName,
         flex: 0.7,
-        valueFormatter: (value: string) => {
-          return new Intl.DateTimeFormat("es", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          }).format(new Date(value));
-        },
+        valueFormatter: (value: string) => formatter.date(value),
       },
       {
         field: "actions",

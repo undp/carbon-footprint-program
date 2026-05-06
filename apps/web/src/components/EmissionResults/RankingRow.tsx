@@ -3,6 +3,7 @@ import { Avatar, Box, Typography } from "@mui/material";
 import { alpha, useTheme, type Theme } from "@mui/material/styles";
 import type { RankingItem, RankingSeverity } from "@repo/types";
 import { CategoryChip } from "./CategoryChip";
+import { formatter } from "../../utils/formatting";
 
 interface RankingRowProps {
   item: RankingItem;
@@ -67,7 +68,7 @@ export const RankingRow: FC<RankingRowProps> = ({ item }) => {
           fontWeight="fontWeightSemiBold"
           sx={{ color: colors.text }}
         >
-          {Math.round(item.percentage * 100)}%
+          {formatter.percentage(item.percentage, { maximumFractionDigits: 0 })}
         </Typography>
       </Box>
     </Box>

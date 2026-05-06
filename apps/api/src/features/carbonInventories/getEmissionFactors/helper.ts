@@ -1,11 +1,11 @@
-import { formatEmissionFactor } from "@repo/utils";
-
-export { formatEmissionFactor };
+export interface GasBreakdownLine {
+  value: number;
+  gas: string;
+}
 
 export function buildGasBreakdownLines(
-  gasDetails: unknown,
-  rateUnit: string
-): string[] {
+  gasDetails: unknown
+): GasBreakdownLine[] {
   if (
     !gasDetails ||
     typeof gasDetails !== "object" ||
@@ -15,9 +15,8 @@ export function buildGasBreakdownLines(
   }
 
   const details = gasDetails as Record<string, unknown>;
-  const lines: string[] = [];
+  const lines: GasBreakdownLine[] = [];
 
-  // Common gas field mappings
   const gasFields: Array<{ key: string; label: string }> = [
     { key: "co2", label: "CO₂" },
     { key: "co2Fossil", label: "CO₂" },
@@ -34,20 +33,12 @@ export function buildGasBreakdownLines(
     if (val !== undefined && val !== null && val !== 0) {
       const numVal = Number(val);
       if (Number.isFinite(numVal) && numVal !== 0) {
-        lines.push(
-          `${formatEmissionFactor(numVal)} kg CO₂e of ${label}/${extractDenominator(rateUnit)}`
-        );
+        lines.push({ value: numVal, gas: label });
       }
     }
   }
 
   return lines;
-}
-
-export function extractDenominator(rateUnit: string): string {
-  // rateUnit is like "kgCO2e/ton" or "kgCO2e/lt"
-  const parts = rateUnit.split("/");
-  return parts.length > 1 ? parts.slice(1).join("/") : rateUnit;
 }
 
 export function parseFactorSource(source: string): {

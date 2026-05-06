@@ -1,5 +1,6 @@
 import { FC, useMemo, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import { useSnackbar } from "notistack";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationSelector } from "@/components";
@@ -10,11 +11,13 @@ import { capitalize } from "lodash-es";
 type OrganizationHeaderProps = {
   selectedOrganizationId?: string;
   onOrganizationChange: (organizationId: string) => void;
+  onCreateOrganization: () => void;
 };
 
 export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
   selectedOrganizationId,
   onOrganizationChange,
+  onCreateOrganization,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { data: organizations, isLoading, error } = useMyOrganizations();
@@ -44,12 +47,22 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
         {activeOrganization.name}
       </Typography>
 
-      <OrganizationSelector
-        organizations={organizations}
-        value={activeOrganization.id}
-        onChange={onOrganizationChange}
-        label={capitalize(VOCAB.organization.noun.plural)}
-      />
+      <Box className="flex items-center gap-2">
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={onCreateOrganization}
+        >
+          {`Nueva ${capitalize(VOCAB.organization.noun.singular)}`}
+        </Button>
+        <OrganizationSelector
+          organizations={organizations}
+          value={activeOrganization.id}
+          onChange={onOrganizationChange}
+          label={capitalize(VOCAB.organization.noun.plural)}
+        />
+      </Box>
     </Box>
   );
 };

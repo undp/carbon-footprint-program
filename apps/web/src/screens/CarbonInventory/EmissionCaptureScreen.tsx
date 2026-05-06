@@ -38,6 +38,10 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
+const EMISSION_CAPTURE_EXPLANATION_SLUGS = {
+  MAIN: "emission-capture",
+} as const;
+
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
@@ -302,6 +306,7 @@ export const EmissionCaptureScreen: FC = () => {
               <StepHeader
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
+                explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
                 action={
                   <Button
                     variant="outlined"

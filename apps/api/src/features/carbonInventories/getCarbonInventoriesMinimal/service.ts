@@ -53,6 +53,11 @@ export const getCarbonInventoriesMinimalService = async (
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,
       organizationId: true,
+      organization: {
+        select: {
+          summary: { select: { name: true } },
+        },
+      },
       name: true,
       year: true,
     },
@@ -63,6 +68,7 @@ export const getCarbonInventoriesMinimalService = async (
     .map((inv) => ({
       id: inv.id.toString(),
       organizationId: inv.organizationId?.toString() ?? null,
+      organizationName: inv.organization?.summary?.name ?? null,
       name: inv.name,
       year: inv.year,
       status: calculateDisplayStatus(inv),

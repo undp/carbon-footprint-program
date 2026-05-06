@@ -18,16 +18,12 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
-    quantity: line.quantity != null ? Number(line.quantity) : null,
+    quantity: line.quantity,
     factorSource: line.factorSource,
     baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue:
-      line.factorValue != null ? Number(line.factorValue) : null,
+    appliedFactorValue: line.factorValue,
     appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions:
-      line.manualTotalEmissions != null
-        ? Number(line.manualTotalEmissions)
-        : null,
+    manualTotalEmissions: line.manualTotalEmissions,
     comment: line.comment,
   };
 }

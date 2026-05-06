@@ -12,6 +12,7 @@ import { GetAllOrganizationsResponse } from "@repo/types";
 import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
+import { formatter } from "@/utils/formatting";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
@@ -100,14 +101,7 @@ export const useOrganizationColumns = ({
 
         cellClassName,
         flex: 0.9,
-        valueFormatter: (value: string | null) => {
-          if (!value) return "-";
-          return new Intl.DateTimeFormat("es", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          }).format(new Date(value));
-        },
+        valueFormatter: (value: string | null) => formatter.date(value),
       },
       {
         field: "totalEmissions",
@@ -117,10 +111,8 @@ export const useOrganizationColumns = ({
         flex: 0.9,
         align: "right",
         headerAlign: "right",
-        valueFormatter: (value: number) => {
-          if (value == null || Number.isNaN(value)) return "-";
-          return new Intl.NumberFormat("es").format(value);
-        },
+        valueFormatter: (value: number) =>
+          formatter.emissions(value, { withSuffix: false }),
       },
       {
         field: "actions",

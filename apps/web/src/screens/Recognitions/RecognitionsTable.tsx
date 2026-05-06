@@ -2,12 +2,14 @@ import { FC } from "react";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EmojiEventsOutlined } from "@mui/icons-material";
 import { GridColDef } from "@mui/x-data-grid";
-import { StylizedDataGrid } from "@/components";
+import { InfoButton, StylizedDataGrid } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import {
   GetOrganizationRecognitionsResponse,
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
+import { formatter } from "@/utils/formatting";
 
 const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
   {
@@ -17,14 +19,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerAlign: "center",
     align: "center",
     cellClassName: "content-center",
-    valueFormatter: (value: string) =>
-      value
-        ? new Date(value).toLocaleDateString("es", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-        : "-",
+    valueFormatter: (value: string) => formatter.dateNumeric(value),
   },
   {
     field: "measurementYear",
@@ -49,9 +44,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerName: "Emisiones (tCO₂e)",
     flex: 1,
     valueFormatter: (value: number) =>
-      value != null
-        ? value.toLocaleString("es", { maximumFractionDigits: 0 })
-        : "-",
+      formatter.emissions(value, { withSuffix: false }),
   },
   {
     field: "actions",
@@ -95,30 +88,44 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
 interface RecognitionsTableProps {
   loading: boolean;
   rows: GetOrganizationRecognitionsResponse;
+  explanationSlug?: string;
 }
 
 export const RecognitionsTable: FC<RecognitionsTableProps> = ({
   loading,
   rows,
-}) => (
-  <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
-    <Typography variant="h6" fontWeight={600}>
-      Reconocimientos
-    </Typography>
-    <StylizedDataGrid
-      sx={{
-        "& .MuiDataGrid-cell": {
-          padding: 0,
-        },
-      }}
-      loading={loading}
-      getRowHeight={() => 48}
-      disableColumnSorting={false}
-      columns={columns}
-      rows={rows}
-      getRowId={(row: GetOrganizationRecognitionsResponse[number]) =>
-        `${row.submissionId}-${row.submissionType}`
-      }
-    />
-  </Box>
-);
+  explanationSlug,
+}) => {
+  const { openExplanationBySlug } = useExplanationDialog();
+
+  return (
+    <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
+      <Box className="flex items-center gap-1">
+        <Typography variant="h6" fontWeight={600}>
+          Reconocimientos
+        </Typography>
+        {explanationSlug && (
+          <InfoButton
+            label="Más información"
+            onClick={() => openExplanationBySlug(explanationSlug)}
+          />
+        )}
+      </Box>
+      <StylizedDataGrid
+        sx={{
+          "& .MuiDataGrid-cell": {
+            padding: 0,
+          },
+        }}
+        loading={loading}
+        getRowHeight={() => 48}
+        disableColumnSorting={false}
+        columns={columns}
+        rows={rows}
+        getRowId={(row: GetOrganizationRecognitionsResponse[number]) =>
+          `${row.submissionId}-${row.submissionType}`
+        }
+      />
+    </Box>
+  );
+};

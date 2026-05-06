@@ -1,6 +1,8 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import { PersonAddOutlined } from "@mui/icons-material";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { useUsers } from "@/api/query/users";
@@ -20,7 +22,12 @@ import {
   type TabKey,
 } from "./constants";
 
+const USERS_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "users-maintainer",
+} as const;
+
 export const UsersScreen: FC = () => {
+  const { openExplanationBySlug } = useExplanationDialog();
   const { data: me } = useMe(true);
   const { data: users, isLoading } = useUsers();
   const { tab } = Route.useSearch();
@@ -88,9 +95,17 @@ export const UsersScreen: FC = () => {
           alignItems="center"
         >
           <Box>
-            <Typography variant="h5" fontWeight={700}>
-              {USERS_SCREEN_TITLE}
-            </Typography>
+            <Box className="flex items-center gap-1">
+              <Typography variant="h5" fontWeight={700}>
+                {USERS_SCREEN_TITLE}
+              </Typography>
+              <InfoButton
+                label="Más información"
+                onClick={() =>
+                  openExplanationBySlug(USERS_MAINTAINER_EXPLANATION_SLUGS.MAIN)
+                }
+              />
+            </Box>
             <Typography variant="body2" color="text.secondary">
               {USERS_SCREEN_SUBTITLE}
             </Typography>

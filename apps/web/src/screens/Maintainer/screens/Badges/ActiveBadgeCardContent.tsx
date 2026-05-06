@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import type { BadgeDTO } from "@repo/types";
-import { formatDate } from "@/utils/formatting";
+import { formatter } from "@/utils/formatting";
 import { BadgePreview } from "./BadgePreview";
 
 interface ActiveBadgeCardContentProps {
@@ -37,7 +37,7 @@ export const ActiveBadgeCardContent: FC<ActiveBadgeCardContentProps> = ({
       align="center"
       display="block"
     >
-      {formatDate(badge.createdAt)}
+      {formatter.date(badge.createdAt)}
     </Typography>
   </Box>
 );

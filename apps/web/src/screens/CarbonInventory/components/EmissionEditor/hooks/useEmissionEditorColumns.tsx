@@ -188,9 +188,7 @@ export const useEmissionEditorColumns = ({
           <EmissionEditorQuantityCell
             subcategoryId={subcategory.id}
             lineId={params.row.lineId}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onCellChange(e.target.value, params)
-            }
+            onChange={(value) => onCellChange(value, params)}
             disabled={isManualModeLoading}
           />
         ),
@@ -240,9 +238,7 @@ export const useEmissionEditorColumns = ({
               lineId={params.row.lineId}
               dimensions={dimensions}
               rateMeasurementUnits={rateMeasurementUnits || []}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onCellChange(e.target.value, params)
-              }
+              onChange={(value) => onCellChange(value, params)}
               disabled={isManualModeLoading}
             />
           );

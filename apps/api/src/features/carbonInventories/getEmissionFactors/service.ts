@@ -5,11 +5,7 @@ import {
   type GetEmissionFactorsResponse,
 } from "@repo/types";
 import { fetchInventory } from "../helpers.js";
-import {
-  formatEmissionFactor,
-  buildGasBreakdownLines,
-  parseFactorSource,
-} from "./helper.js";
+import { buildGasBreakdownLines, parseFactorSource } from "./helper.js";
 
 export const getEmissionFactorsService = async (
   prismaClient: PrismaClient,
@@ -132,11 +128,9 @@ export const getEmissionFactorsService = async (
     const factorValue = hasLineFactor
       ? factor.appliedFactorValue.toNumber()
       : input.manualFactor!.toNumber();
-    const factorLabel = `${formatEmissionFactor(factorValue)} ${rateUnit}`;
 
-    // Parse gasDetails to build breakdown lines
     const gasBreakdownLines = emissionFactor
-      ? buildGasBreakdownLines(emissionFactor.gasDetails, rateUnit)
+      ? buildGasBreakdownLines(emissionFactor.gasDetails)
       : [];
 
     // Build source detail from the emission factor source or manual factor source
@@ -160,7 +154,8 @@ export const getEmissionFactorsService = async (
       categoryColor: line.subcategory.category.color,
       subcategoryName: line.subcategory.name,
       activityParameter,
-      factorLabel,
+      factorValue,
+      rateUnit,
       gasBreakdownLines,
       factorSource,
       factorSourceDetail,

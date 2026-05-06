@@ -36,6 +36,10 @@ const ERROR_MESSAGE = {
   retryButtonText: "Recargar Página",
 } as const;
 
+const SUBCATEGORY_PRESELECTION_EXPLANATION_SLUGS = {
+  MAIN: "subcategory-preselection",
+} as const;
+
 export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
@@ -194,6 +198,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description={`Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`}
+              explanationSlug={SUBCATEGORY_PRESELECTION_EXPLANATION_SLUGS.MAIN}
             />
             <SubcategoryPreselectionCarousel categories={categories} />
           </Box>
