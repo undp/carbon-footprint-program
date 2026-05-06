@@ -19,9 +19,16 @@ The system SHALL define `EmbeddingProvider` at `apps/api/src/features/chatbot/em
 - **WHEN** any provider is invoked with `embed(texts)` where `texts.length = N`
 - **THEN** `vectors` SHALL have length `N` in the same positional order as inputs
 
+#### Scenario: Every returned vector has exactly 1024 dimensions
+
+- **WHEN** any provider returns a non-empty `EmbeddingResult`
+- **THEN** every entry in `vectors` SHALL have `length === 1024` exactly — neither shorter nor longer; this invariant holds for both `mock` and `azureOpenAI` and is asserted in unit tests so regressions surface before reaching the database (`vector(1024)` column would otherwise reject inserts at write time)
+
 ### Requirement: System provides a deterministic mock embedding implementation
 
-The `mock` at `apps/api/src/features/chatbot/embeddingProvider/mock.ts` SHALL produce 1024-dim vectors deterministically derived from each input via SHA-256, normalized to unit length. `inputTokens` uses the shared `estimateTokens` from `apps/api/src/features/chatbot/llmProvider/estimateTokens.ts`. `model` SHALL be the literal `"mock-sha256-1024"`. SHALL NOT make network calls.
+The `mock` at `apps/api/src/features/chatbot/embeddingProvider/mock.ts` SHALL produce 1024-dim vectors deterministically derived from each input via SHA-256, then **L2-normalized to unit length** (`sum(v[i]^2) === 1.0` within floating-point precision). `inputTokens` uses the shared `estimateTokens` from `apps/api/src/features/chatbot/llmProvider/estimateTokens.ts`. `model` SHALL be the literal `"mock-sha256-1024"`. SHALL NOT make network calls.
+
+The expansion algorithm: hash the input string with SHA-256 (32 bytes = 256 bits) and expand into 1024 float32 values via repeated re-hashing of the digest concatenated with a counter. After expansion, divide every component by the L2 norm so the resulting vector lives on the unit sphere. A zero-norm fallback is unreachable in practice (SHA-256 of any non-empty input is never all-zero) but if encountered SHALL leave the vector unchanged rather than divide by zero.
 
 #### Scenario: Mock determinism across calls
 
@@ -43,6 +50,11 @@ The `mock` at `apps/api/src/features/chatbot/embeddingProvider/mock.ts` SHALL pr
 - **WHEN** the mock provider is invoked with input `["hola", "mundo"]`
 - **THEN** `inputTokens` SHALL equal `estimateTokens("hola") + estimateTokens("mundo")` using the shared helper
 
+#### Scenario: Mock vectors are L2-normalized
+
+- **WHEN** the mock provider returns a vector for any non-empty input
+- **THEN** the sum of the squared components SHALL equal `1.0` within a floating-point tolerance of `1e-6` — i.e., `Math.abs(v.reduce((acc, x) => acc + x*x, 0) - 1) < 1e-6`
+
 #### Scenario: ESLint rule extends scope to mock embedding provider
 
 - **WHEN** ESLint runs on `apps/api/src/features/chatbot/embeddingProvider/mock.ts`
@@ -52,10 +64,14 @@ The `mock` at `apps/api/src/features/chatbot/embeddingProvider/mock.ts` SHALL pr
 
 The `azureOpenAI` at `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts` SHALL use the `openai` package's `AzureOpenAI` client against `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME`. Pass `dimensions: 1024`. `EmbeddingResult.model` SHALL be the deployment name. SHALL pass `options.signal` and SHALL batch internally subject to BOTH of the following per-request bounds:
 
-1. **Token bound**: the sum of `estimateTokens` over the batch's inputs SHALL be ≤ 8192 tokens.
+1. **Token bound (Azure hard ceiling)**: 8192 tokens per SDK call. The implementation SHALL use an internal threshold of `7782` (= `Math.floor(8192 * 0.95)`, a 5% safety margin) when evaluating whether to start a new batch — see the "Embedding batcher applies a safety margin" requirement below for the foundation-driven rationale. The 8192 figure remains the documented Azure boundary; 7782 is the runtime threshold that absorbs `estimateTokens` drift on Spanish diacritics.
 2. **Array-length bound**: `texts.length` per SDK call SHALL be ≤ 16.
 
 A new batch SHALL start as soon as either bound would otherwise be violated. Both bounds are hard limits enforced by Azure (HTTP 400 on violation); the array-length cap is enforced strictly regardless of token totals, so a batch of 17 short strings totalling 50 tokens SHALL still be split into two SDK calls.
+
+**Single-input overflow**: if any individual input has `estimateTokens(input) > 8192`, the provider SHALL throw before invoking the SDK. The thrown error's `name` SHALL be `"InputTooLargeError"` and its message SHALL name the offending input's index and its estimated token count. This pre-empts an unrecoverable Azure HTTP 400 (the model's hard per-input limit) and surfaces a clear failure to the caller — whether that caller is the ingest CLI (where it indicates a chunker bug, since chunks target ~600 tokens with hard ceiling well below 8192) or the search query path (where it indicates the upstream user-input cap let through an oversized query).
+
+**Operational SDK errors**: network failures, timeouts, HTTP 429 (rate limit), HTTP 5xx (service errors), and quota-exhaustion errors raised by the underlying `openai` package SHALL propagate as-is from `embed()` without wrapping or translation. Consumers (ingest CLI, retrieval path) SHALL handle the SDK's own error types directly — distinguishing transient (retry-eligible) from permanent failures by inspecting the SDK error's `status` / `code`. The provider SHALL NOT swallow, log-and-rethrow, or rebrand these errors; the only errors authored by the provider itself are `InputTooLargeError` (validation) and abort-related errors when `options.signal` aborts.
 
 #### Scenario: Module compiles against the openai SDK
 
@@ -82,10 +98,10 @@ A new batch SHALL start as soon as either bound would otherwise be violated. Bot
 - **WHEN** the test suite runs end-to-end
 - **THEN** no test SHALL set `EMBEDDING_PROVIDER=azure-openai` and no test path SHALL instantiate `AzureOpenAI` for embeddings
 
-#### Scenario: Batch splits when token sum would exceed 8192
+#### Scenario: Batch splits when token sum would exceed the 7782 internal threshold
 
 - **WHEN** the implementation is invoked with a `texts` array whose cumulative `estimateTokens` is 16000 across 10 inputs
-- **THEN** the implementation SHALL split into ≥ 2 SDK calls so that no single call's input sum exceeds 8192 tokens
+- **THEN** the implementation SHALL split into ≥ 2 SDK calls so that no single call's cumulative `estimateTokens` exceeds 7782 (the 5% safety margin under Azure's 8192 hard ceiling)
 
 #### Scenario: Batch splits when array length would exceed 16
 
@@ -97,19 +113,40 @@ A new batch SHALL start as soon as either bound would otherwise be violated. Bot
 - **WHEN** the implementation is invoked with a `texts` array of length 32 whose cumulative `estimateTokens` is 9000
 - **THEN** the implementation SHALL split into ≥ 3 SDK calls — at least 2 to satisfy the array-length cap, plus an additional split if the 16-input groups cross the token cap
 
-### Requirement: estimateTokens helper is compatible with the embedding model's tokenizer
+#### Scenario: Single input exceeding the per-input token bound is rejected before SDK call
 
-The shared `estimateTokens` helper used to size embedding batches and to enforce ingest chunking targets SHALL use a tokenizer compatible with `text-embedding-3-large` (i.e., `cl100k_base`-equivalent or newer compatible encoding) — OR a heuristic that consistently OVERestimates rather than underestimates. An UNDERestimate causes Azure to reject the SDK call with HTTP 400 at runtime, defeating the purpose of pre-flight bounding. The same helper is shared with the chunking heuristic in `chatbot-corpus-ingest`; both rely on the OVERestimation property to keep their respective bounds safe.
+- **WHEN** the implementation is invoked with `texts = [shortInput, oversizedInput]` where `estimateTokens(oversizedInput) > 8192`
+- **THEN** the provider SHALL throw an error with `error.name === "InputTooLargeError"` whose message names the offending input's index (1) and its estimated token count, and SHALL NOT invoke the underlying SDK at all (no embeddings call recorded by a stub SDK spy)
 
-#### Scenario: Tokenizer never underestimates against the model's count
+#### Scenario: Operational SDK errors propagate without wrapping
 
-- **WHEN** `estimateTokens(text)` is invoked for any non-empty input that the SDK is asked to embed
-- **THEN** the helper's returned count SHALL be ≥ the model's actual tokenization for that input, OR equal under a `cl100k_base`-compatible encoding — never strictly less
+- **WHEN** the underlying `openai` SDK rejects with a network error, HTTP 429 (rate limit), HTTP 5xx, or quota-exhaustion error
+- **THEN** the promise returned by `embed()` SHALL reject with the SDK's original error object — same constructor, same `status` / `code` / `cause` fields — without re-wrapping, re-throwing as a different class, or stripping metadata; consumers SHALL be able to distinguish transient vs permanent failures by inspecting that original error
+
+### Requirement: Embedding batcher applies a safety margin to absorb estimateTokens drift
+
+The `azureOpenAI` embedding provider's batcher SHALL apply an internal **safety margin of 5%** when evaluating the per-request token bound — i.e., it SHALL start a new batch as soon as `cumulative_estimateTokens > 7782` (= `Math.floor(8192 * 0.95)`), even though Azure's hard limit is 8192. The 5% margin absorbs the worst observed drift between `Math.ceil(text.length / 4)` and `cl100k_base` on Spanish technical prose. The 8192 number remains the documented Azure hard ceiling; 7782 is an implementation-internal threshold and SHALL NOT leak into wire contracts, error messages, or other specs.
+
+> **Foundation constraint that motivates this**: the shared `estimateTokens` helper is fixed by foundation's `chatbot-llm-provider` spec at `Math.ceil(text.length / 4)` with a byte-for-byte assertion (`estimateTokens("hola mundo") === 3`). This change CANNOT alter that formula without modifying the foundation contract. For Spanish text with diacritics, that formula can mildly UNDERestimate against `cl100k_base` (real tokenization sometimes runs 3.0–3.5 chars/token on accented prose, vs. the heuristic's 4.0). To prevent rare HTTP 400 from Azure on legitimate batches, this change handles the drift in the BATCHER, not the helper.
+
+The array-length cap (≤ 16) is unaffected by this margin — it is a pure count, not a token-derived value, and Azure enforces it byte-for-byte.
+
+If telemetry or operational logs ever surface an Azure HTTP 400 for token-count violation, the runbook trigger is to (a) inspect the offending input, (b) consider tightening the margin further (e.g., 10%) or (c) escalate to swap the heuristic for a real `cl100k_base` tokenizer (`js-tiktoken`) — but doing so requires a parallel change that modifies the foundation `estimateTokens` contract, which is out of scope here.
+
+#### Scenario: Batcher uses 7782 as the internal token threshold
+
+- **WHEN** the implementation source for the azureOpenAI embedding batcher is inspected
+- **THEN** the per-batch token threshold used to trigger a split SHALL be `7782` (or a named constant equal to `Math.floor(8192 * 0.95)`) — NOT `8192`. The 8192 figure remains in the spec as the documented Azure hard ceiling but SHALL NOT appear as the runtime threshold in the batching code
 
 #### Scenario: Bounded batches never trigger HTTP 400 at the SDK boundary
 
-- **WHEN** the embedding provider has split a request into batches per the documented dual bound (≤8192 tokens AND ≤16 inputs per call) using `estimateTokens`
-- **THEN** no resulting SDK call SHALL receive an HTTP 400 from Azure due to per-request token-count or array-length violations
+- **WHEN** the embedding provider has split a request into batches per the documented dual bound (using `estimateTokens` against the 7782-token internal threshold AND the ≤16-input cap)
+- **THEN** no resulting SDK call SHALL receive an HTTP 400 from Azure due to per-request token-count or array-length violations on representative Spanish technical prose
+
+#### Scenario: Single oversized input check uses the documented 8192 ceiling, not the 7782 margin
+
+- **WHEN** the batcher evaluates a single input for the per-input rejection rule (`InputTooLargeError`)
+- **THEN** the threshold SHALL be `8192` exactly, NOT `7782` — the per-input limit is Azure's hard ceiling on individual inputs and the safety margin only applies to batch-cumulative totals
 
 ### Requirement: azureOpenAI embedding provider supports API key fallback
 

@@ -67,6 +67,32 @@
 - **WHEN** the panel is expanded and contains an entry with a non-empty `snippet`
 - **THEN** the rendered row SHALL contain the `snippet` text below the link
 
+#### Scenario: Widget renders snippets as-received without additional truncation
+
+- **WHEN** the widget receives a `done` event whose `sources[i].snippet` is up to 240 characters (the maximum enforced by the streaming handler per `chatbot-message-streaming` spec)
+- **THEN** the widget SHALL render the full snippet text verbatim — without re-truncating, adding ellipsis, or otherwise modifying its length. Truncation is the streaming handler's responsibility at persistence time; the widget is a pass-through for whatever the API delivered. This avoids double-truncation drift if the server-side cap ever changes
+
+### Requirement: Widget renders a persistent foot-of-chat disclaimer
+
+The widget SHALL render a single-line, visually subtle disclaimer pinned beneath the input area, visible whenever the chat panel is open (not gated to first-open). The text SHALL be exactly `"Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas."` (Spanish, byte-for-byte; the wording is documented as load-bearing because tests assert the substring). The disclaimer SHALL render in a smaller font size and lower-emphasis color (e.g., `theme.palette.text.secondary`) so it is informational, not visually competing with the input. It SHALL be a static element — no interaction, no dismissal, no animation.
+
+This is a thin, persistent reminder that the chatbot is AI-generated and that citations are the verifiable source of truth. It is NOT a first-open modal (those remain deferred per the foundation deferral that this requirement narrows). It is NOT positioned to imply any single message is unreliable; it scopes the warning to the entire chat surface.
+
+#### Scenario: Disclaimer present when widget is open
+
+- **WHEN** the chatbot widget is open in any of its canonical states (`empty`, `loading`, `streaming`, `error`, `truncated`, `degraded`)
+- **THEN** the rendered DOM SHALL contain an element with the exact text `"Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas."` positioned beneath the input area
+
+#### Scenario: Disclaimer is non-interactive
+
+- **WHEN** the disclaimer element is inspected
+- **THEN** it SHALL NOT carry any `onClick` handler, `aria-role` of `button`, or visible dismiss control; it SHALL be a static text node only
+
+#### Scenario: Disclaimer wording is the canonical literal
+
+- **WHEN** any test or component snapshot inspects the disclaimer text
+- **THEN** it SHALL match the literal `"Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas."` exactly — no truncation, no paraphrase, no emoji
+
 ### Requirement: Trash icon clears local widget state only — never deletes the persisted conversation
 
 The trash-icon (clear-chat) control in the chatbot widget SHALL ONLY clear local React state. Specifically, on click it SHALL:
@@ -124,3 +150,61 @@ The widget SHALL render assistant content as Markdown via `react-markdown` (`rem
 
 - **WHEN** a user message contains characters that look like Markdown syntax (e.g., `**`, `#`)
 - **THEN** the widget SHALL render those characters literally, not as formatting
+
+## MODIFIED Requirements
+
+### Requirement: Widget invokes `DELETE /api/chatbot/conversations/me` via a dedicated "Eliminar mi historial" affordance, separate from the trash icon
+
+The widget SHALL split the foundation-defined "user-visible affordance to delete chat history" into TWO distinct affordances with different semantics:
+
+1. **Trash icon (top of widget panel)**: clears LOCAL React state only — resets message list, generates fresh `conversation_id`, NEVER calls a backend endpoint, NEVER mutates persisted rows. Aria-label: `"Limpiar conversación"`. Fully specified in the `Trash icon clears local widget state only — never deletes the persisted conversation` requirement above.
+
+2. **"Eliminar mi historial" link (foot of widget panel)**: invokes the foundation `DELETE /api/chatbot/conversations/me` endpoint to permanently remove the caller's conversation history from the database. The link SHALL be visually discrete (`<button>` styled as a text link with `theme.palette.text.secondary` color and `variant="caption"` typography), positioned in the foot of the widget panel adjacent to the persistent disclaimer (NOT in the message list, NOT in the input row). On click, the widget SHALL show a confirmation dialog with:
+   - Title: `"¿Eliminar tu historial de conversaciones?"`
+   - Body: `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`
+   - Confirm button label: `"Eliminar permanentemente"` (destructive variant — `color="error"` on MUI)
+   - Cancel button label: `"Cancelar"`
+
+   On confirmation: the widget SHALL `fetch(...)` the `DELETE` endpoint with `credentials: "include"` (matching the foundation widget HTTP convention). On HTTP 204: clear local message list, generate fresh `conversation_id`, transition the widget to the `empty` state, and surface a brief toast/inline confirmation `"Tu historial fue eliminado"`. On HTTP 5xx or network error: keep local state intact, close the dialog, and surface an error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."` — the widget SHALL NOT retry automatically.
+
+   The link SHALL be visible in every canonical widget state EXCEPT `empty` (no point offering deletion when there is no persisted history). When the local view is `empty` but persisted rows exist for the caller's `session_id`/`user_id` (e.g., after a trash-icon click), the link MAY be shown — the widget does not have visibility into persisted state, so the simplest rule is: hide only when the widget has never persisted a conversation in the current session AND the message list is empty.
+
+This split closes the trash-icon dissonance (users no longer guess whether trash deletes the database) and satisfies D11's right-to-be-forgotten with a concrete UI affordance — a compliance trust signal for UNDP and country deployments under Ley 21.719 / LGPD / GDPR. The foundation requirement "Widget invokes DELETE on user request" is thus **fulfilled** by this change, just routed through a different, clearly-labeled control.
+
+#### Scenario: "Eliminar mi historial" link is present in the foot of the widget panel
+
+- **WHEN** the widget is open and the message list contains at least one message (or the widget has previously sent a message in the current session)
+- **THEN** the rendered DOM SHALL contain a button styled as a text link with the visible text `"Eliminar mi historial"` positioned in the foot of the widget panel; the button SHALL be visually distinct from the trash icon (different position, different size, different visual weight)
+
+#### Scenario: Click opens a confirmation dialog with the documented copy
+
+- **WHEN** the user clicks the "Eliminar mi historial" link
+- **THEN** a confirmation dialog SHALL appear with title `"¿Eliminar tu historial de conversaciones?"`, body `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`, confirm label `"Eliminar permanentemente"`, cancel label `"Cancelar"`. No HTTP request SHALL be issued at this stage
+
+#### Scenario: Cancel closes the dialog without side effects
+
+- **WHEN** the user clicks "Cancelar" in the confirmation dialog
+- **THEN** the dialog SHALL close, no HTTP request SHALL fire, the widget state and message list SHALL remain unchanged
+
+#### Scenario: Confirm fires DELETE and clears state on 204
+
+- **WHEN** the user clicks "Eliminar permanentemente" and the API returns HTTP 204
+- **THEN** the widget SHALL clear the local message list, generate a fresh `conversation_id`, transition to the `empty` state, and display a brief confirmation `"Tu historial fue eliminado"`. The outgoing request SHALL be `DELETE /api/chatbot/conversations/me` with `credentials: "include"` and no body
+
+#### Scenario: HTTP 5xx surfaces an error and preserves local state
+
+- **WHEN** the user confirms deletion and the API returns HTTP 500 (or the network call fails)
+- **THEN** the dialog SHALL close, the local message list SHALL remain intact, and an error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."` SHALL be displayed; the widget SHALL NOT retry automatically and SHALL NOT generate a fresh `conversation_id`
+
+#### Scenario: Trash icon and "Eliminar mi historial" link are visually and semantically distinct
+
+- **WHEN** the widget is rendered with both affordances visible
+- **THEN** the trash icon SHALL be a button at the top of the widget panel with aria-label `"Limpiar conversación"` and the "Eliminar mi historial" SHALL be a button styled as a text link at the foot of the widget panel with that visible text. The two SHALL NOT share styling (size, color, position) — the visual distinction is required to prevent users from conflating clear-local with delete-persistent
+
+## REMOVED Requirements
+
+### Requirement: Widget visual review and disclaimer are explicitly out of scope
+
+This requirement is REMOVED and replaced by a narrower deferral. The original foundation requirement deferred ALL of: first-open disclaimer, polished visual design, mobile-responsive layout, ARIA streaming announcements, and discoverability. This change narrows the deferral by **shipping a persistent foot-of-chat disclaimer** (see `Widget renders a persistent foot-of-chat disclaimer` requirement above). All other deferred items (first-open modal disclaimer, visual polish, mobile responsiveness, ARIA announcements, discoverability) remain explicitly out of scope and continue to be deferred to a separate design review.
+
+The persistent disclaimer is a different artifact from the foundation-deferred "first-open disclaimer": foundation deferred a one-time modal/banner shown on first open; this change ships a static, always-visible single line beneath the input. The two are not equivalent and shipping one does not satisfy the other; the foundation-style first-open disclaimer remains deferred.

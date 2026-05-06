@@ -29,13 +29,23 @@ type ChunkWithMetadata = {
 
 #### Scenario: Empty query is rejected with InvalidQueryError
 
-- **WHEN** `searchKnowledge` is invoked with an empty or whitespace-only string
-- **THEN** the function SHALL throw `InvalidQueryError` (defined at `apps/api/src/features/chatbot/searchKnowledge/errors.ts` with stable `name = "InvalidQueryError"`) and SHALL NOT invoke the embedding provider or execute SQL
+- **WHEN** `searchKnowledge` is invoked with an empty or whitespace-only string (e.g., `""`, `"   "`, `"  \n  "`)
+- **THEN** the function SHALL trim the input first and, if the trimmed result is empty, throw `InvalidQueryError` (defined at `apps/api/src/features/chatbot/searchKnowledge/errors.ts` with stable `name = "InvalidQueryError"`) and SHALL NOT invoke the embedding provider or execute SQL
+
+#### Scenario: Oversized query is rejected with InvalidQueryError
+
+- **WHEN** `searchKnowledge` is invoked with a query whose `estimateTokens(query.trim())` exceeds 512
+- **THEN** the function SHALL throw `InvalidQueryError` whose message names the estimated token count and the cap, and SHALL NOT invoke the embedding provider or execute SQL. Rationale: defense in depth against an upstream caller that bypassed the handler-level user-input cap; also keeps the embedding provider's per-input 8192 bound unreachable from this path.
 
 #### Scenario: Results are ordered by descending similarity
 
 - **WHEN** `searchKnowledge` returns N results
 - **THEN** the array SHALL be ordered with `result[i].similarity >= result[i+1].similarity` for all `0 ≤ i < N-1`
+
+#### Scenario: Embedding provider failures propagate to the caller
+
+- **WHEN** `getEmbeddingProvider().embed([query])` rejects (e.g., network error, HTTP 429, HTTP 5xx, invalid API key, quota exhaustion as defined in `chatbot-corpus-embeddings`)
+- **THEN** `searchKnowledge` SHALL propagate the rejection as-is — without wrapping, without translating to `InvalidQueryError`, without catching-and-logging — and SHALL NOT execute the SQL query. The streaming handler is responsible for mapping the propagated error to its terminal SSE `error` event with `code = "EXTERNAL_SERVICE_ERROR"` (per `chatbot-message-streaming`); `searchKnowledge` itself stays transport-agnostic
 
 ### Requirement: Retrieval always filters on chatbot_corpus_source.status = 'ACTIVE'
 
@@ -85,7 +95,7 @@ When `options.scope` is supplied, the SQL SHALL include `chatbot_corpus_source.s
 
 ### Requirement: Retrieval defaults to top-K = 8 and respects custom topK
 
-The SQL SHALL include `LIMIT $topK`. Default 8 when omitted. Allowed integer range `[1, 20]`; values outside SHALL throw `InvalidQueryError` and SHALL NOT execute SQL. Upper bound calibrated against `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000` (~600-token chunks × 20 ≈ budget).
+The SQL SHALL include `LIMIT $topK`. Default 8 when omitted. `topK` SHALL be an **integer in the inclusive range `[1, 20]`**; non-integer values (e.g., `3.5`), negative values, and out-of-range values SHALL throw `InvalidQueryError` and SHALL NOT execute SQL. Upper bound calibrated against `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000` (~600-token chunks × 20 ≈ budget).
 
 #### Scenario: Default top-K is 8
 
@@ -100,8 +110,13 @@ The SQL SHALL include `LIMIT $topK`. Default 8 when omitted. Allowed integer ran
 
 #### Scenario: Out-of-range top-K is rejected with InvalidQueryError
 
-- **WHEN** `searchKnowledge` is invoked with `options = { topK: 0 }` or `options = { topK: 21 }`
+- **WHEN** `searchKnowledge` is invoked with `options = { topK: 0 }`, `options = { topK: 21 }`, or `options = { topK: -1 }`
 - **THEN** the function SHALL throw `InvalidQueryError` (with `error.name === "InvalidQueryError"`) and SHALL NOT execute SQL
+
+#### Scenario: Non-integer top-K is rejected with InvalidQueryError
+
+- **WHEN** `searchKnowledge` is invoked with `options = { topK: 3.5 }` or any non-integer numeric value
+- **THEN** the function SHALL throw `InvalidQueryError` whose message indicates `topK` must be an integer, and SHALL NOT execute SQL — the implementation SHALL use `Number.isInteger(topK)` (not coercion or `Math.floor`) so the contract stays explicit and silent rounding is impossible
 
 ### Requirement: Retrieval returns an empty array when the corpus has no ACTIVE chunks
 

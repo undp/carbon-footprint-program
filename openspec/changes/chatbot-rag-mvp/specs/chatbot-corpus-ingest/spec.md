@@ -7,7 +7,7 @@ The system SHALL provide `apps/api/scripts/chatbot/ingestCorpus.ts`, registered 
 Argument validation:
 
 - `<pdf-path>` — positional; readable file ending in `.pdf`
-- `--label <label>` — non-empty string; written to `chatbot_corpus_source.cite_label`
+- `--label <label>` — non-empty string; SHALL NOT contain the `:` character (rejected at CLI argument parsing with a Spanish error). Written to `chatbot_corpus_source.cite_label`. Rationale: the activate CLI's advisory-lock key (see "Activate CLI flips state atomically under an identity-scoped advisory lock") is built as `'chatbot-corpus:' || name || ':' || scope`; permitting `:` inside `name` would let two distinct `(name, scope)` tuples hash to the same lock key (e.g., `("Foo:Bar", "GLOBAL")` vs `("Foo", "Bar:GLOBAL")` both yield `'chatbot-corpus:Foo:Bar:GLOBAL'`), causing unrelated activations to needlessly serialize on the same lock
 - `--version <version>` — non-empty string; written to `chatbot_corpus_source.version`
 - `--source-type <type>` — only `PDF` accepted in V1
 - `--scope <scope>` — `GLOBAL` or `NATIONAL`
@@ -40,6 +40,11 @@ Argument validation:
 
 - **WHEN** the script is invoked with `--cite-url "not-a-url"`
 - **THEN** the script SHALL exit non-zero with a Spanish error indicating `--cite-url` must be a parseable HTTPS URL, before any database write
+
+#### Scenario: Label containing colon character is rejected at CLI layer
+
+- **WHEN** the script is invoked with `--label "Foo:Bar"` (or any label string containing `:`)
+- **THEN** the script SHALL exit non-zero with a Spanish error indicating `--label` SHALL NOT contain `:`, before any database write or embedding-provider call. This prevents the advisory-lock-key collision documented on the `--label` argument-validation rule
 
 ### Requirement: Ingest CLI parses PDFs with pdf-parse and chunks with the documented heuristic
 

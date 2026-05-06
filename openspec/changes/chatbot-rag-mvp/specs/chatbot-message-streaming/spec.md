@@ -4,10 +4,46 @@
 
 The streaming handler SHALL prepend a `role = SYSTEM` message at the head of `messages` passed to `LLMProvider.streamCompletion`. Content loaded from `apps/api/src/features/chatbot/prompts/es/system.md` once at module load (cached). The file SHALL contain Spanish text covering:
 
-1. Identity ("asistente educativo de Huella Latam").
-2. The mandatory-citation rule with explicit fallback wording (`"no tengo fuente confiable"`).
-3. One-line guidance to invoke `searchKnowledge` for methodology and emission-factor questions.
-4. A strict K=0 guardrail, present in the prompt verbatim: `"Si el resultado de la búsqueda indica '0 fuentes válidas encontradas', DEBES responder ÚNICAMENTE con la frase exacta 'no tengo fuente confiable' y no agregar ninguna otra información."` This wording is load-bearing — the K=0 fallback CRITICAL test asserts the literal phrase appears. The prompt SHALL NOT paraphrase it, soften it, or add hedging language around it.
+1. **Identity (forward-compatible across phases)**: the bot SHALL identify as the **Huella Latam assistant**, not as an "educational" or scope-narrow agent. The literal opening line of the prompt SHALL be `"Eres el Asistente de Huella Latam, una plataforma para medir y reducir huella de carbono."` This identity is stable across V1 / V2 / V3 / V4 / V5 — when later phases land, only the per-phase capability disclosure (item 5 below) changes; the identity does not. Avoiding "educational" in the identity is intentional: the documented vision (`design.md` §Background and the public plan) frames the bot as a conversational assistant covering carbon-footprint methodology AND platform usage — locking V1 to "educational" would force a system-prompt rewrite when V2/V3 add measurement and platform-guide modes.
+
+2. **Phase-aware capability disclosure**: a single line stating what the bot can do **today** (V1: educational questions about carbon-footprint methodology with verified citations) and acknowledging that platform-usage and measurement help are coming in later versions. Literal: `"En esta versión inicial puedo responder preguntas sobre metodología de huella de carbono citando fuentes verificadas. Las funcionalidades de medición asistida y guía de uso de la plataforma llegarán en próximas versiones."`
+
+3. **Three-mode routing block** that classifies every incoming user message into one of three modes BEFORE deciding whether to invoke `searchKnowledge`:
+   - **Modo A — Metodología** (preguntas sobre huella de carbono, alcances 1/2/3, factores de emisión, GHG Protocol, IPCC, ISO 14064, GWP, metodologías de cálculo): invocar `searchKnowledge` y seguir el flujo de citas / K=0 fallback.
+   - **Modo B — Plataforma** (preguntas sobre el uso de la plataforma Huella Latam: cómo crear un inventario, cómo invitar usuarios, cómo solicitar verificación, navegación, configuración): NO invocar `searchKnowledge`. Responder con el redirect literal definido en el item 4 below.
+   - **Modo C — Conversacional / orientación** (saludos, agradecimientos, meta-preguntas sobre el bot, preguntas claramente fuera de huella de carbono y plataforma): respuesta breve y natural sin invocar tool, sin opener técnico. **Sub-guidance para saludos y orientación**: cuando el usuario salude (`"hola"`, `"buenas"`, `"hi"`) o pregunte por las capacidades del asistente (`"¿qué puedes hacer?"`, `"¿en qué me ayudas?"`, `"ayuda"`, `"qué eres"`), la respuesta SHALL incluir, en una bienvenida breve y natural, los tres elementos siguientes — sin orden fijo y con redacción libre: (a) lo que el bot puede hacer hoy (responder preguntas sobre metodología de huella de carbono, alcances 1/2/3, factores de emisión, citando fuentes verificadas como GHG Protocol e IPCC); (b) la mención de que la guía sobre el uso de la plataforma y la medición asistida llegarán en próximas versiones; (c) una invitación a hacer una primera pregunta. La respuesta de orientación SHALL NOT empezar con el opener del Modo A ni contener el redirect literal del Modo B — su tono es de bienvenida, no de límite.
+
+4. **Modo B redirect literal (load-bearing)**: when the bot classifies a turn as Modo B, the response SHALL be exactly the platform-redirect literal — to be confirmed by Nicolas (see open decision F5). Default applied here pending confirmation: `"Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono."` This phrase is asserted byte-for-byte by the platform-mode test (10.35).
+
+5. **Mandatory-citation rule** for Modo A: every factual claim in a methodology answer SHALL be accompanied by an inline Markdown citation `[<cite_label>](<cite_url>)` derived from the chunks returned by `searchKnowledge`. The K=0 fallback wording (item 6) applies only when Modo A activated `searchKnowledge` and validated chunks came back empty — Modo B and Modo C have their own dedicated wordings and SHALL NOT use the K=0 opener.
+
+6. A K=0 guardrail (Modo A only) with **a load-bearing opener** plus **soft guidance** on quantitative claims, present in the prompt verbatim:
+
+   ```
+   Si el resultado de la búsqueda indica '0 fuentes válidas encontradas', DEBES
+   comenzar tu respuesta EXACTAMENTE con la frase "No dispongo de fuentes
+   verificadas en mi corpus para responder esto con precisión." A continuación
+   PUEDES sugerir al usuario consultar fuentes externas autorizadas (por
+   ejemplo, el GHG Protocol Corporate Standard, las metodologías del IPCC, o
+   un verificador certificado) y PUEDES incluir información complementaria
+   (factores aproximados, cifras orientativas, contexto general del dominio)
+   siempre que:
+
+   - Califiques claramente la información como aproximada o referencial usando
+     expresiones como "aproximadamente", "típicamente", "según fuentes
+     públicas como [nombre]".
+   - Recuerdes al usuario que cualquier valor que use en un inventario formal
+     debe verificarse contra la fuente oficial.
+
+   PROHIBIDO en este escenario: inventar URLs específicas, inventar números
+   de sección (formato §X.Y), o inventar referencias bibliográficas. La
+   apertura ya aclara que la respuesta no proviene del corpus verificado;
+   no es necesario inventar trazabilidad falsa.
+   ```
+
+   The opener phrase is load-bearing — the K=0 fallback CRITICAL test asserts the assistant turn STARTS with that literal substring. The URL/citation invention prohibition is also load-bearing: the test asserts the assistant turn contains no Markdown link `[label](url)` and no `§X.Y` section reference in the K=0 path (those are reserved for citation-backed answers). The prompt SHALL NOT paraphrase the opener or weaken the URL/citation prohibition.
+
+   Cifras, factores, y fechas SÍ pueden aparecer en este escenario cuando vengan calificadas como aproximadas o referenciales — esa es la postura industrial estándar (Claude, ChatGPT) y la protección viene de las dos capas: el opener literal + el disclaimer persistente del widget. Esta decisión está documentada en `design.md` Decision 14.
 
 The prompt counts toward `CHATBOT_MAX_HISTORY_TOKENS`.
 
@@ -31,10 +67,40 @@ The prompt counts toward `CHATBOT_MAX_HISTORY_TOKENS`.
 - **WHEN** the API boots and `apps/api/src/features/chatbot/prompts/es/system.md` does not exist or is empty
 - **THEN** the process SHALL throw an `Error` naming the missing file, and the API SHALL NOT begin accepting requests
 
-#### Scenario: Prompt contains the strict K=0 guardrail verbatim
+#### Scenario: Prompt contains the forward-compatible identity literal
 
 - **WHEN** `apps/api/src/features/chatbot/prompts/es/system.md` is inspected
-- **THEN** it SHALL contain the literal substring `Si el resultado de la búsqueda indica '0 fuentes válidas encontradas', DEBES responder ÚNICAMENTE con la frase exacta 'no tengo fuente confiable' y no agregar ninguna otra información.` — the wording is asserted byte-for-byte by the K=0 fallback test
+- **THEN** it SHALL contain the literal opening line `Eres el Asistente de Huella Latam, una plataforma para medir y reducir huella de carbono.` byte-for-byte. The identity SHALL NOT use the words "educativo" or "didáctico" as scope-narrowing modifiers — V2/V3 expand the bot's modes and the identity must hold across phases without rewrite
+
+#### Scenario: Prompt contains the three-mode routing block
+
+- **WHEN** `apps/api/src/features/chatbot/prompts/es/system.md` is inspected
+- **THEN** it SHALL contain a routing block that names exactly three modes — `Modo A — Metodología`, `Modo B — Plataforma`, `Modo C — Conversacional` — each with the documented invocation rule. The block SHALL appear before the K=0 guardrail block so the model classifies BEFORE it considers the no-source fallback
+
+#### Scenario: Prompt contains the platform-mode redirect literal
+
+- **WHEN** `apps/api/src/features/chatbot/prompts/es/system.md` is inspected
+- **THEN** it SHALL contain the literal `Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono.` byte-for-byte. This wording is asserted by test 10.35; if the wording is changed the test SHALL be updated in the same commit
+
+#### Scenario: Modo B response does not invoke searchKnowledge
+
+- **WHEN** the user posts a platform-usage question (e.g., `"¿cómo creo un inventario?"`, `"¿dónde veo los reportes?"`, `"¿cómo invito a un colega?"`)
+- **THEN** the LLM SHALL classify the turn as Modo B and SHALL NOT emit a `tool_call` event for `searchKnowledge`; the assistant turn SHALL contain (and start with) the platform-redirect literal defined in item 4 of the system-prompt requirement
+
+#### Scenario: Modo C response does not invoke searchKnowledge or open with the K=0 literal
+
+- **WHEN** the user posts a conversational message (e.g., `"hola"`, `"gracias"`, `"¿quién te creó?"`)
+- **THEN** the LLM SHALL classify the turn as Modo C and SHALL NOT emit a `tool_call` event; the assistant turn SHALL be a brief, natural Spanish response that does NOT start with the K=0 opener (`"No dispongo de fuentes verificadas..."`) and does NOT contain the platform-redirect literal — those wordings are reserved for Modo A's no-source path and Modo B respectively
+
+#### Scenario: Modo C welcome response covers capabilities and roadmap on greeting/help queries
+
+- **WHEN** the user posts a greeting or capability query (e.g., `"hola"`, `"¿qué puedes hacer?"`, `"ayuda"`, `"¿en qué me ayudas?"`)
+- **THEN** the assistant turn SHALL include, in natural Spanish prose, all of: (a) a mention of methodology-related capabilities — at least one of the keywords `metodología`, `huella de carbono`, `alcances`, `factores de emisión` SHALL appear; (b) a mention that platform-usage guidance is coming — at least one of the phrases `próxima versión`, `próximas versiones`, `próximamente` SHALL appear; (c) the response SHALL be ≥ 2 sentences and ≤ 6 sentences (orientation, not a wall of text). The response SHALL NOT start with the K=0 opener and SHALL NOT contain the Modo B redirect literal
+
+#### Scenario: Prompt contains the K=0 guardrail verbatim
+
+- **WHEN** `apps/api/src/features/chatbot/prompts/es/system.md` is inspected
+- **THEN** it SHALL contain (a) the literal opener `No dispongo de fuentes verificadas en mi corpus para responder esto con precisión.` and (b) the literal URL-invention prohibition `PROHIBIDO en este escenario: inventar URLs específicas, inventar números de sección (formato §X.Y), o inventar referencias bibliográficas.` Both substrings are asserted byte-for-byte by the K=0 fallback test; the prompt SHALL NOT paraphrase either
 
 ### Requirement: Tool result message includes pre-formatted Markdown citation links inline per chunk
 
@@ -123,7 +189,12 @@ Decision 19 in `design.md` carries the rationale.
 #### Scenario: K = 0 routes through the no-source fallback
 
 - **WHEN** `searchKnowledge` returns 3 chunks and all 3 fail Zod validation (e.g., malformed `cite_url`)
-- **THEN** the handler SHALL inject the Spanish `"0 fuentes válidas encontradas"` tool-result into history, invoke the LLM second round, the resulting assistant turn SHALL contain the literal phrase `"no tengo fuente confiable"` (matching the system prompt's strict guardrail wording), the assistant row's `sources_cited` SHALL be `[]`, and the `done` payload SHALL NOT include a `sources` field
+- **THEN** the handler SHALL inject the Spanish `"0 fuentes válidas encontradas"` tool-result into history, invoke the LLM second round, and the resulting assistant turn SHALL satisfy ALL of the following:
+  - **(a) Opener invariant**: the assistant turn STARTS with the load-bearing literal `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` — leading whitespace permitted, but the first non-whitespace substring SHALL be that exact phrase.
+  - **(b) No invented citations**: the assistant turn SHALL NOT contain any Markdown link of the form `[<label>](<url>)` and SHALL NOT contain any section reference of the form `§<digit>` (regex `/§\s*\d/`). Markdown links and section references are reserved for citation-backed answers (K ≥ 1); their presence in a K=0 response indicates the model fabricated traceability that does not exist. Quantitative content (factors, percentages, GWP values, dates) IS permitted in K=0 responses provided it does NOT take the form of an invented citation — the opener literal plus the persistent foot-of-chat disclaimer are the two layers that frame such content as referential rather than corpus-derived.
+  - **(c) Persistence and wire**: the assistant row's `sources_cited` SHALL be `[]`, and the `done` payload SHALL NOT include a `sources` field.
+
+  The redirect-to-external-sources clause is permitted but optional — the assistant MAY suggest consulting external authoritative sources (e.g., "el GHG Protocol Corporate Standard", "las metodologías del IPCC", "un verificador certificado") AFTER the opener as plain Spanish prose, NOT as Markdown links.
 
 #### Scenario: N = 0 reaches the same fallback path
 
@@ -164,24 +235,28 @@ The terminal `done` payload SHALL change from `{ inputTokens, outputTokens }` to
 - **WHEN** a client that only parses `inputTokens` and `outputTokens` from the `done` payload receives a payload that includes `sources`
 - **THEN** the client SHALL successfully parse `inputTokens` and `outputTokens` (the additional `sources` field SHALL NOT cause a JSON parse failure or other error in foundation-era code)
 
-### Requirement: tokens_used on the assistant chat_message row sums input and output tokens
+### Requirement: tokens_used on the assistant chat_message row uses the second-round usage event in the tool path
 
-The streaming handler SHALL set `chatbot_chat_message.tokens_used` on the assistant row, at the same finalization step that persists `content` and `sources_cited`, equal to `inputTokens + outputTokens` extracted from the LLM provider's terminal `usage` event. Foundation persisted only one of the two counts on the assistant row; this change SHALL sum BOTH so per-turn cost analytics and history-cap diagnostics read a faithful total. In the two-round (tool path) case, the values SHALL come from the SECOND (terminal) `usage` event, since that is the one that closed the assistant turn.
+In the two-round (tool path) case introduced by this change, the values used to populate `chatbot_chat_message.tokens_used` on the assistant row SHALL come from the **SECOND (terminal) `usage` event** — the one that closed the assistant turn — NOT a sum across both rounds and NOT the first-round event (which carries no `usage` because the first invocation terminated on `tool_call`). The `tokens_used` value SHALL be `inputTokens + outputTokens` from that second-round `usage` event, matching the foundation contract.
 
-#### Scenario: tokens_used on a non-tool turn equals inputTokens + outputTokens
+> **Note on relationship to foundation**: foundation's `chatbot-message-streaming` spec already mandates `tokens_used = inputTokens + outputTokens` for every successful turn (see foundation requirement "Streamed assistant message is persisted with per-turn metrics on success"). This change does NOT add a new contract on the sum semantics — it only **extends** foundation's rule for the new tool-round path that did not exist in foundation, where two separate `usage` events fire and the handler must pick the right one. The non-tool case is fully governed by foundation; this requirement adds the tool-path clarification and a regression test that catches implementation drift on either path.
+
+The implementation regression that motivates this clarification: the foundation handler persisted only `outputTokens` on the assistant row, contradicting foundation's own spec ("the per-turn total `inputTokens + outputTokens`"). That bug is fixed in this change's handler edit (Task 8.7); the tests below act as the regression guard going forward, on both the foundation-defined non-tool path AND the new tool path.
+
+#### Scenario: tokens_used on a non-tool turn equals inputTokens + outputTokens (foundation contract regression guard)
 
 - **WHEN** a turn completes without invoking the tool, the LLM provider yields a terminal `usage` event with `{ inputTokens: 12, outputTokens: 34 }`, and the handler finalizes
-- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL be exactly `46` (12 + 34)
+- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL be exactly `46` (12 + 34) per the foundation spec; this scenario is duplicated here as a regression guard against the previously-shipped output-only bug, NOT as a new contract
 
-#### Scenario: tokens_used on a tool turn uses the second-round usage event
+#### Scenario: tokens_used on a tool turn uses the SECOND usage event
 
 - **WHEN** a turn invokes the tool, the first invocation yields a `tool_call` event (no `usage`), and the second invocation yields a terminal `usage` event with `{ inputTokens: 200, outputTokens: 80 }`
-- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL be exactly `280` (200 + 80) — the value SHALL NOT be `80` alone (output only) or `200` alone (input only)
+- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL be exactly `280` (200 + 80) — the value SHALL NOT be `80` alone (output only), `200` alone (input only), or any sum that includes the first-round counters (which are not reported by the provider)
 
 #### Scenario: tokens_used matches the done payload's inputTokens + outputTokens
 
 - **WHEN** any successful turn completes and emits its terminal `done` SSE event with `{ inputTokens: N, outputTokens: M, ... }`
-- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL equal `N + M`
+- **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL equal `N + M` — the wire and the persisted value cannot drift
 
 ## MODIFIED Requirements
 
