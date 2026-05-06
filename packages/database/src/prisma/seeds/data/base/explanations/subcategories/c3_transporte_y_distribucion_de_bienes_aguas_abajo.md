@@ -37,14 +37,14 @@ El cálculo combina peso, distancia y modo de transporte:
 
 (unidad estándar: **ton-km**)
 
-| Modo de transporte | Factor referencial |
-| :--- | :--- |
-| Camión liviano (<3,5 ton) | 0,25 kg CO₂e/ton-km |
-| Camión pesado (>16 ton) | 0,07 kg CO₂e/ton-km |
-| Tren de carga | 0,03 kg CO₂e/ton-km |
-| Marítimo (carga general) | 0,015 kg CO₂e/ton-km |
-| Aéreo (carga) | 0,6 kg CO₂e/ton-km |
-| Refrigerado (cold chain) | +30-50% sobre el factor base |
+| Modo de transporte        | Factor referencial           |
+| :------------------------ | :--------------------------- |
+| Camión liviano (<3,5 ton) | 0,25 kg CO₂e/ton-km          |
+| Camión pesado (>16 ton)   | 0,07 kg CO₂e/ton-km          |
+| Tren de carga             | 0,03 kg CO₂e/ton-km          |
+| Marítimo (carga general)  | 0,015 kg CO₂e/ton-km         |
+| Aéreo (carga)             | 0,6 kg CO₂e/ton-km           |
+| Refrigerado (cold chain)  | +30-50% sobre el factor base |
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -113,12 +113,12 @@ Couriers grandes (DHL, FedEx, UPS, entre otros) pueden entregar reporte de huell
 
 Debes rellenar los siguientes campos:
 
-| Campo | Qué debes ingresar | Ejemplo |
-| :--- | :--- | ---: |
-| Modo de transporte | Tipo de transporte | Terrestre, Aéreo, Marítimo |
-| Sub-modo | Detalle | Camión liviano, Camión pesado, Carga aérea |
-| Unidad | Unidad declarada | ton-km, km, moneda local |
-| Cantidad | Total anual | 1.500 ton-km |
+| Campo              | Qué debes ingresar |                                    Ejemplo |
+| :----------------- | :----------------- | -----------------------------------------: |
+| Modo de transporte | Tipo de transporte |                 Terrestre, Aéreo, Marítimo |
+| Sub-modo           | Detalle            | Camión liviano, Camión pesado, Carga aérea |
+| Unidad             | Unidad declarada   |                   ton-km, km, moneda local |
+| Cantidad           | Total anual        |                               1.500 ton-km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -163,7 +163,7 @@ Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
 ## 📝 Notas importantes
 
 > - **Diferencia clave con Alcance 1:** si transportas con **flota propia o leasing operativo**, eso va en Alcance 1 (combustiones móviles), no aquí
-> - **Diferencia con upstream:** acá se reporta lo que **sale** de tu empresa hacia el cliente. Lo que **entra** desde proveedores se reporta en *Transporte y distribución aguas arriba*
+> - **Diferencia con upstream:** acá se reporta lo que **sale** de tu empresa hacia el cliente. Lo que **entra** desde proveedores se reporta en _Transporte y distribución aguas arriba_
 > - **Productos refrigerados** tienen factor mayor (cold chain) por consumo del equipo de refrigeración del transporte
 > - **Aéreo es ~10x más intensivo** que terrestre por ton-km. Reducir aéreo es la mayor palanca de mitigación
 > - **Si vendes FOB (Free On Board):** técnicamente el cliente asume el transporte. Aún así, reportarlo voluntariamente da visibilidad de la huella total de tu cadena

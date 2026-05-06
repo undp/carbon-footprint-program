@@ -35,15 +35,15 @@ La fórmula general:
 
 > $CO₂e$ = $Distancia \times Factor\ por\ modo \times Ajuste\ por\ clase\ (en\ aéreo)$
 
-| Modo | Factor referencial |
-| :--- | :--- |
-| Vuelo doméstico (corto, <500 km) | 0,25 kg CO₂e/km/pax |
-| Vuelo regional (500-3.700 km) | 0,15 kg CO₂e/km/pax |
+| Modo                                  | Factor referencial  |
+| :------------------------------------ | :------------------ |
+| Vuelo doméstico (corto, <500 km)      | 0,25 kg CO₂e/km/pax |
+| Vuelo regional (500-3.700 km)         | 0,15 kg CO₂e/km/pax |
 | Vuelo internacional largo (>3.700 km) | 0,11 kg CO₂e/km/pax |
-| Bus interurbano | 0,03 kg CO₂e/km/pax |
-| Tren | 0,04 kg CO₂e/km/pax |
-| Taxi / Uber | 0,18 kg CO₂e/km |
-| Auto arrendado | 0,18 kg CO₂e/km |
+| Bus interurbano                       | 0,03 kg CO₂e/km/pax |
+| Tren                                  | 0,04 kg CO₂e/km/pax |
+| Taxi / Uber                           | 0,18 kg CO₂e/km     |
+| Auto arrendado                        | 0,18 kg CO₂e/km     |
 
 **Ajuste por clase en vuelos:**
 
@@ -120,12 +120,12 @@ Si solo tienes el monto pagado en pasajes:
 
 Debes rellenar los siguientes campos:
 
-| Campo | Qué debes ingresar | Ejemplo |
-| :--- | :--- | ---: |
-| Modo | Tipo de transporte | Vuelo doméstico, Vuelo internacional, Bus, Tren, Taxi, Auto arrendado |
-| Clase (si aplica) | Clase del vuelo | Economy, Business |
-| Unidad | Unidad declarada | km, moneda local |
-| Cantidad | Total anual | 28.000 km |
+| Campo             | Qué debes ingresar |                                                               Ejemplo |
+| :---------------- | :----------------- | --------------------------------------------------------------------: |
+| Modo              | Tipo de transporte | Vuelo doméstico, Vuelo internacional, Bus, Tren, Taxi, Auto arrendado |
+| Clase (si aplica) | Clase del vuelo    |                                                     Economy, Business |
+| Unidad            | Unidad declarada   |                                                      km, moneda local |
+| Cantidad          | Total anual        |                                                             28.000 km |
 
 ⚠️ Para vuelos, ingresa una línea por **categoría de distancia** (corto/medio/largo) o por **clase**.
 
@@ -161,13 +161,13 @@ Supongamos una **consultora** que durante el año tuvo:
 
 Cálculo:
 
-| Modo | km | Factor | Multiplicador clase | Emisiones |
-| :--- | ---: | ---: | ---: | ---: |
-| Vuelo doméstico (Economy) | 6.000 | 0,25 | 1 | 1.500 kg CO₂e |
-| Vuelo regional (Economy) | 10.000 | 0,15 | 1 | 1.500 kg CO₂e |
-| Vuelo internacional (Business) | 7.000 | 0,11 | 2,5 | 1.925 kg CO₂e |
-| Taxi / ride-hailing | 600 | 0,18 | 1 | 108 kg CO₂e |
-| Auto arrendado | 800 | 0,18 | 1 | 144 kg CO₂e |
+| Modo                           |     km | Factor | Multiplicador clase |     Emisiones |
+| :----------------------------- | -----: | -----: | ------------------: | ------------: |
+| Vuelo doméstico (Economy)      |  6.000 |   0,25 |                   1 | 1.500 kg CO₂e |
+| Vuelo regional (Economy)       | 10.000 |   0,15 |                   1 | 1.500 kg CO₂e |
+| Vuelo internacional (Business) |  7.000 |   0,11 |                 2,5 | 1.925 kg CO₂e |
+| Taxi / ride-hailing            |    600 |   0,18 |                   1 |   108 kg CO₂e |
+| Auto arrendado                 |    800 |   0,18 |                   1 |   144 kg CO₂e |
 
 **Total: ~5.177 kg CO₂e al año (~5,2 ton CO₂e)**
 

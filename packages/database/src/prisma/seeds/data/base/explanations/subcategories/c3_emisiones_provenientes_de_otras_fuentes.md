@@ -38,12 +38,12 @@ El cálculo varía mucho según la fuente. La lógica general:
 
 La **atribución** indica qué fracción de las emisiones del tercero se le asigna a tu empresa:
 
-| Tipo de fuente | Atribución típica |
-| :--- | :--- |
-| Inversiones | % participación en la empresa invertida |
-| Franquicias | 100% si la marca es tuya y el franquiciado opera bajo tus estándares |
-| Arriendo upstream | 100% del consumo del activo arrendado |
-| Arriendo downstream | 100% del consumo de los activos que tú arriendas a otros |
+| Tipo de fuente      | Atribución típica                                                    |
+| :------------------ | :------------------------------------------------------------------- |
+| Inversiones         | % participación en la empresa invertida                              |
+| Franquicias         | 100% si la marca es tuya y el franquiciado opera bajo tus estándares |
+| Arriendo upstream   | 100% del consumo del activo arrendado                                |
+| Arriendo downstream | 100% del consumo de los activos que tú arriendas a otros             |
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -92,12 +92,12 @@ Si tienes el gasto en el servicio (ej. seguro, banca), usa factores EEIO sectori
 
 Debes rellenar los siguientes campos:
 
-| Campo | Qué debes ingresar | Ejemplo |
-| :--- | :--- | ---: |
-| Tipo de fuente | Categoría general | Inversión, Franquicia, Arriendo upstream, Arriendo downstream |
-| Sub-tipo | Detalle específico | Participación 30% empresa X, 5 franquicias, etc. |
-| Unidad | Unidad declarada | kWh equivalentes, moneda local, ton CO₂e |
-| Cantidad | Total anual atribuible | Según el caso |
+| Campo          | Qué debes ingresar     |                                                       Ejemplo |
+| :------------- | :--------------------- | ------------------------------------------------------------: |
+| Tipo de fuente | Categoría general      | Inversión, Franquicia, Arriendo upstream, Arriendo downstream |
+| Sub-tipo       | Detalle específico     |              Participación 30% empresa X, 5 franquicias, etc. |
+| Unidad         | Unidad declarada       |                      kWh equivalentes, moneda local, ton CO₂e |
+| Cantidad       | Total anual atribuible |                                                 Según el caso |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 

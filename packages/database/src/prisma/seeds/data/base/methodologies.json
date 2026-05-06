@@ -3271,7 +3271,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Viajes de negocios - Traslado_Transporte",
-                  "valueName": "Trasnporte en Taxi"
+                  "valueName": "Transporte en Taxi"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/km",

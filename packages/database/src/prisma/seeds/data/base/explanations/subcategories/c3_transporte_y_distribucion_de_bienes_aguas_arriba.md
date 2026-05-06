@@ -37,14 +37,14 @@ Misma lógica que el transporte downstream:
 
 (unidad estándar: **ton-km**)
 
-| Modo de transporte | Factor referencial |
-| :--- | :--- |
-| Camión liviano (<3,5 ton) | 0,25 kg CO₂e/ton-km |
-| Camión pesado (>16 ton) | 0,07 kg CO₂e/ton-km |
-| Tren de carga | 0,03 kg CO₂e/ton-km |
-| Marítimo (contenedores) | 0,015 kg CO₂e/ton-km |
-| Aéreo (carga internacional) | 0,5 kg CO₂e/ton-km |
-| Refrigerado (cold chain) | +30-50% sobre el factor base |
+| Modo de transporte          | Factor referencial           |
+| :-------------------------- | :--------------------------- |
+| Camión liviano (<3,5 ton)   | 0,25 kg CO₂e/ton-km          |
+| Camión pesado (>16 ton)     | 0,07 kg CO₂e/ton-km          |
+| Tren de carga               | 0,03 kg CO₂e/ton-km          |
+| Marítimo (contenedores)     | 0,015 kg CO₂e/ton-km         |
+| Aéreo (carga internacional) | 0,5 kg CO₂e/ton-km           |
+| Refrigerado (cold chain)    | +30-50% sobre el factor base |
 
 💡 El **modo aéreo** es por lejos el más intensivo: ~30x más que marítimo.
 
@@ -116,12 +116,12 @@ Si tu incoterm es CIF (Cost, Insurance, Freight), el flete está incluido en el 
 
 Debes rellenar los siguientes campos:
 
-| Campo | Qué debes ingresar | Ejemplo |
-| :--- | :--- | ---: |
-| Modo de transporte | Tipo de transporte | Terrestre, Aéreo, Marítimo, Tren |
-| Sub-modo | Detalle | Camión liviano, Carga marítima, Carga aérea |
-| Unidad | Unidad declarada | ton-km, kg-km |
-| Cantidad | Total anual | 190.000 ton-km |
+| Campo              | Qué debes ingresar |                                     Ejemplo |
+| :----------------- | :----------------- | ------------------------------------------: |
+| Modo de transporte | Tipo de transporte |            Terrestre, Aéreo, Marítimo, Tren |
+| Sub-modo           | Detalle            | Camión liviano, Carga marítima, Carga aérea |
+| Unidad             | Unidad declarada   |                               ton-km, kg-km |
+| Cantidad           | Total anual        |                              190.000 ton-km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -153,11 +153,11 @@ Supongamos un **taller textil** que durante el año recibe:
 
 Cálculo:
 
-| Origen | Modo | Peso | Distancia | ton-km | Factor | Emisiones |
-| :--- | :--- | ---: | ---: | ---: | ---: | ---: |
-| Asia | Marítimo | 10 ton | 19.000 km | 190.000 | 0,015 | 2.850 kg CO₂e |
-| País vecino | Terrestre | 2 ton | 1.400 km | 2.800 | 0,07 | 196 kg CO₂e |
-| Internacional | Aéreo | 0,2 ton | 7.000 km | 1.400 | 0,5 | 700 kg CO₂e |
+| Origen        | Modo      |    Peso | Distancia |  ton-km | Factor |     Emisiones |
+| :------------ | :-------- | ------: | --------: | ------: | -----: | ------------: |
+| Asia          | Marítimo  |  10 ton | 19.000 km | 190.000 |  0,015 | 2.850 kg CO₂e |
+| País vecino   | Terrestre |   2 ton |  1.400 km |   2.800 |   0,07 |   196 kg CO₂e |
+| Internacional | Aéreo     | 0,2 ton |  7.000 km |   1.400 |    0,5 |   700 kg CO₂e |
 
 **Total sub-categoría: ~3.746 kg CO₂e al año (~3,7 ton CO₂e)**
 
@@ -171,7 +171,7 @@ Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
 ## 📝 Notas importantes
 
 > - **Diferencia clave con Alcance 1:** si transportas insumos con **flota propia**, eso es Alcance 1, no aquí
-> - **Diferencia con downstream:** acá entran insumos. Los productos que **salen** de tu empresa hacia clientes van en *Transporte y distribución aguas abajo*
+> - **Diferencia con downstream:** acá entran insumos. Los productos que **salen** de tu empresa hacia clientes van en _Transporte y distribución aguas abajo_
 > - **No dupliques con productos comprados:** el factor de "productos comprados" cubre la producción **hasta la puerta del proveedor**. El transporte desde ahí hasta tu empresa va aquí
 > - **Aéreo:** factor ~30x mayor que marítimo. Para insumos pesados o volumétricos, conviene marítimo cuando es posible
 > - **Cold chain:** insumos refrigerados (alimentos, biotecnología, fármacos) tienen factor mayor

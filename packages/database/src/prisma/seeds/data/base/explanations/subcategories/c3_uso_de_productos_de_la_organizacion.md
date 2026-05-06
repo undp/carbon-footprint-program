@@ -43,12 +43,12 @@ La fórmula general:
 
 > $Emisiones\ sub{\text -}categoría$ = $Unidades\ vendidas \times Emisiones\ por\ unidad$
 
-| Tipo de producto | Variables clave |
-| :--- | :--- |
-| Refrigerador | kWh/año × 15 años × factor red |
-| Lavadora | kWh/lavado × ciclos/año × vida útil × factor |
-| Auto a combustión | L/100km × km/vida útil × factor combustible |
-| Combustible vendido | Litros vendidos × factor de combustión |
+| Tipo de producto    | Variables clave                              |
+| :------------------ | :------------------------------------------- |
+| Refrigerador        | kWh/año × 15 años × factor red               |
+| Lavadora            | kWh/lavado × ciclos/año × vida útil × factor |
+| Auto a combustión   | L/100km × km/vida útil × factor combustible  |
+| Combustible vendido | Litros vendidos × factor de combustión       |
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -116,12 +116,12 @@ Para el factor de la red eléctrica, asume la red del **país donde se vende** e
 
 Debes rellenar los siguientes campos:
 
-| Campo | Qué debes ingresar | Ejemplo |
-| :--- | :--- | ---: |
-| Tipo de producto | Categoría | Electrodoméstico, Vehículo, Combustible |
-| Sub-tipo | Detalle | Refrigerador, Auto a gasolina, Diésel vendido |
-| Unidad | Unidad de consumo | kWh totales, L totales |
-| Cantidad | Total durante vida útil de unidades vendidas | 6.300.000 kWh, 1.500.000 L |
+| Campo            | Qué debes ingresar                           |                                       Ejemplo |
+| :--------------- | :------------------------------------------- | --------------------------------------------: |
+| Tipo de producto | Categoría                                    |       Electrodoméstico, Vehículo, Combustible |
+| Sub-tipo         | Detalle                                      | Refrigerador, Auto a gasolina, Diésel vendido |
+| Unidad           | Unidad de consumo                            |                        kWh totales, L totales |
+| Cantidad         | Total durante vida útil de unidades vendidas |                    6.300.000 kWh, 1.500.000 L |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -179,7 +179,7 @@ Si el factor está en kg CO₂e/kWh, la cantidad debe estar en kWh totales.
 > - **Vida útil:** es un supuesto crítico. Documenta la fuente (estudios sectoriales, datos internos, normativas)
 > - **País de uso:** si vendes en varios países, idealmente calcula con el factor de la red de cada país. Como aproximación, usa el factor del país de venta principal
 > - **Atribución:** si tu producto integra partes de terceros, las emisiones de uso suelen atribuirse 100% al producto final (al fabricante)
-> - **No dupliques con productos comprados:** los insumos para fabricar el producto van en *productos comprados*. El uso del producto **vendido** va aquí
-> - **No dupliques con downstream:** el transporte del producto al cliente va en *transporte downstream*; el uso por el cliente va aquí
+> - **No dupliques con productos comprados:** los insumos para fabricar el producto van en _productos comprados_. El uso del producto **vendido** va aquí
+> - **No dupliques con downstream:** el transporte del producto al cliente va en _transporte downstream_; el uso por el cliente va aquí
 > - **Combustibles vendidos:** factor especial. Para 1 L de gasolina vendido, las emisiones son ~2,3 kg CO₂e (combustión completa)
 > - Guarda **fichas técnicas, etiquetado energético, datos de ventas** como respaldo

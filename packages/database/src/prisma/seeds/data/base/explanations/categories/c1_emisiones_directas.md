@@ -6,12 +6,12 @@ Son emisiones que ocurren **físicamente en tus instalaciones** o en equipos que
 
 ### Sub-categorías que incluye
 
-| Sub-categoría | Qué cubre | Ejemplos |
-| :--- | :--- | :--- |
-| 🏭 **Combustiones estacionarias** | Equipos fijos que queman combustible | Calderas, generadores, hornos, cocinas industriales, secadores |
-| 🚗 **Combustiones móviles** | Vehículos y maquinaria móvil de la empresa | Camiones, autos corporativos, montacargas, maquinaria agrícola |
-| ❄️ **Emisiones fugitivas** | Fugas de gases con potencial de calentamiento | Refrigerantes (HFC, R-410A), CO₂ de extintores, fugas de gas |
-| ⚙️ **Procesos industriales** | Reacciones químicas o físicas del proceso productivo | Producción de cemento, fundición de metales, fermentación |
+| Sub-categoría                     | Qué cubre                                            | Ejemplos                                                       |
+| :-------------------------------- | :--------------------------------------------------- | :------------------------------------------------------------- |
+| 🏭 **Combustiones estacionarias** | Equipos fijos que queman combustible                 | Calderas, generadores, hornos, cocinas industriales, secadores |
+| 🚗 **Combustiones móviles**       | Vehículos y maquinaria móvil de la empresa           | Camiones, autos corporativos, montacargas, maquinaria agrícola |
+| ❄️ **Emisiones fugitivas**        | Fugas de gases con potencial de calentamiento        | Refrigerantes (HFC, R-410A), CO₂ de extintores, fugas de gas   |
+| ⚙️ **Procesos industriales**      | Reacciones químicas o físicas del proceso productivo | Producción de cemento, fundición de metales, fermentación      |
 
 ---
 
@@ -39,12 +39,12 @@ El cálculo general en Alcance 1 sigue siempre la misma lógica:
 
 Lo que cambia entre sub-categorías es **qué se mide** y **qué factor se aplica**:
 
-| Sub-categoría | Qué se mide | Unidad típica |
-| :--- | :--- | :--- |
-| Combustiones estacionarias | Combustible consumido | L, m³, kg, ton |
-| Combustiones móviles | Combustible consumido o km recorridos | L, km |
-| Emisiones fugitivas | Gas refrigerante recargado | kg |
-| Procesos industriales | Materia prima procesada | ton |
+| Sub-categoría              | Qué se mide                           | Unidad típica  |
+| :------------------------- | :------------------------------------ | :------------- |
+| Combustiones estacionarias | Combustible consumido                 | L, m³, kg, ton |
+| Combustiones móviles       | Combustible consumido o km recorridos | L, km          |
+| Emisiones fugitivas        | Gas refrigerante recargado            | kg             |
+| Procesos industriales      | Materia prima procesada               | ton            |
 
 💡 Cada sub-categoría tiene su propia ficha con la fórmula específica y un ejemplo numérico.
 
@@ -94,11 +94,11 @@ Para cada sub-categoría aplicable, accede a la sección correspondiente del cal
 
 Imagina una **panadería industrial**. Su Alcance 1 podría incluir:
 
-| Fuente | Sub-categoría | Detalle |
-| :--- | :--- | :--- |
-| Horno a gas natural | Combustiones estacionarias | 18.000 m³/año de gas natural |
-| Camioneta de reparto | Combustiones móviles | 3.200 L/año de diésel |
-| Aire acondicionado de oficina | Emisiones fugitivas | 2 kg/año de recarga de R-410A |
+| Fuente                        | Sub-categoría              | Detalle                       |
+| :---------------------------- | :------------------------- | :---------------------------- |
+| Horno a gas natural           | Combustiones estacionarias | 18.000 m³/año de gas natural  |
+| Camioneta de reparto          | Combustiones móviles       | 3.200 L/año de diésel         |
+| Aire acondicionado de oficina | Emisiones fugitivas        | 2 kg/año de recarga de R-410A |
 
 Cada fuente se calcula por separado en su sub-categoría y la plataforma suma todo automáticamente para entregar el total de Alcance 1.
 
