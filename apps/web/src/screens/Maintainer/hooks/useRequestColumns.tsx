@@ -76,7 +76,7 @@ export const useRequestColumns = ({
         headerName: "Periodo",
         cellClassName,
         flex: 0.8,
-        maxWidth: 70,
+        maxWidth: 140,
         valueFormatter: (value: number | null) => value ?? "-",
       },
       {
