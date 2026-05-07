@@ -43,6 +43,7 @@ export const getCarbonInventoryAccessService = async (
   }
 
   const status = calculateDisplayStatus(inventory);
+  const memberships = inventory.organization?.memberships ?? [];
   const canEdit = resolveCarbonInventoryEditAccess(
     {
       createdById: inventory.createdById,
@@ -50,8 +51,9 @@ export const getCarbonInventoryAccessService = async (
       status,
     },
     userId,
-    inventory.organization?.memberships ?? []
+    memberships
   );
+  const membership = memberships[0] ? { role: memberships[0].role } : null;
 
-  return { canEdit };
+  return { canEdit, membership };
 };

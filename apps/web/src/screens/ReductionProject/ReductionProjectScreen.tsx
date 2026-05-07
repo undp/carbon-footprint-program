@@ -33,6 +33,7 @@ import {
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
 import { useReductionProjectRouteGuard } from "./hooks/useReductionProjectRouteGuard";
+import { useReductionProjectAccess } from "@/hooks";
 
 interface Props {
   mode: "create" | "edit" | "view";
@@ -113,6 +114,14 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   );
   const isFormDisabled =
     isViewMode || (!isCreateMode && Boolean(status) && !canEdit);
+
+  // In view mode an admin (no organization membership) reaches the screen via
+  // the admin tools; the "Volver" button would route them to the user-facing
+  // projects list, which is not where they came from. Hide it for that case.
+  const { hasMembership } = useReductionProjectAccess(
+    isViewMode ? id : undefined
+  );
+  const hideBackButton = isViewMode && !hasMembership;
 
   // Derived: carbon inventory detail for methodology + year
   const { data: inventoryDetail } = useCarbonInventory(
@@ -206,7 +215,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         },
       };
 
-  const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
+  const footerButtons = [
+    ...(hideBackButton ? [] : [backButton]),
+    ...(saveButton ? [saveButton] : []),
+  ];
 
   const layoutProps = {
     headerProps: {

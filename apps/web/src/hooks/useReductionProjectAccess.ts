@@ -7,6 +7,8 @@ export interface ReductionProjectAccess {
   canAccess: boolean;
   /** False either because the read failed or because the server says edit is not allowed. */
   canEdit: boolean;
+  /** True when the user holds an active membership in the project's organization. */
+  hasMembership: boolean;
 }
 
 export const useReductionProjectAccess = (
@@ -22,5 +24,6 @@ export const useReductionProjectAccess = (
     isReady,
     canAccess: !projectId || !isError,
     canEdit: !isError && (data?.canEdit ?? false),
+    hasMembership: !isError && data?.membership != null,
   };
 };

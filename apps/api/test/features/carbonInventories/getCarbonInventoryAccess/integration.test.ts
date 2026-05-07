@@ -77,6 +77,7 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetCarbonInventoryAccessResponse;
     expect(body.canEdit).toBe(true);
+    expect(body.membership).toEqual({ role: OrganizationRole.CONTRIBUTOR });
   });
 
   it("returns canEdit=false for a VIEWER member on a draft inventory", async () => {
@@ -99,6 +100,7 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetCarbonInventoryAccessResponse;
     expect(body.canEdit).toBe(false);
+    expect(body.membership).toEqual({ role: OrganizationRole.VIEWER });
   });
 
   it("returns canEdit=false for an ADMIN system role with no membership (org inventory)", async () => {
@@ -135,6 +137,7 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
         response.body
       ) as GetCarbonInventoryAccessResponse;
       expect(body.canEdit).toBe(false);
+      expect(body.membership).toBeNull();
     } finally {
       await prisma.user.update({
         where: { id: testUser.id },
@@ -177,6 +180,7 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
         response.body
       ) as GetCarbonInventoryAccessResponse;
       expect(body.canEdit).toBe(false);
+      expect(body.membership).toBeNull();
     } finally {
       await prisma.user.update({
         where: { id: testUser.id },
@@ -202,6 +206,7 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetCarbonInventoryAccessResponse;
     expect(body.canEdit).toBe(true);
+    expect(body.membership).toBeNull();
   });
 
   it("returns canEdit=false for a CONTRIBUTOR when status is non-editable", async () => {
@@ -233,5 +238,6 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as GetCarbonInventoryAccessResponse;
     expect(body.canEdit).toBe(false);
+    expect(body.membership).toEqual({ role: OrganizationRole.CONTRIBUTOR });
   });
 });

@@ -45,10 +45,9 @@ export const getReductionProjectAccessService = async (
   }
 
   const displayStatus = calculateReductionProjectDisplayStatus(row);
-  const canEdit = resolveReductionProjectEditAccess(
-    displayStatus,
-    row.organization?.memberships ?? []
-  );
+  const memberships = row.organization?.memberships ?? [];
+  const canEdit = resolveReductionProjectEditAccess(displayStatus, memberships);
+  const membership = memberships[0] ? { role: memberships[0].role } : null;
 
-  return { canEdit };
+  return { canEdit, membership };
 };

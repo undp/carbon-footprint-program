@@ -48,8 +48,12 @@ export const EmissionResultsScreen: FC = () => {
     },
   };
 
-  const { canEdit } = useCarbonInventoryAccess(inventoryId);
+  const { canEdit, hasMembership, isReady } =
+    useCarbonInventoryAccess(inventoryId);
   const isEditable = summaryData?.carbonInventory.status ? canEdit : false;
+  // Admin viewing an inventory they don't belong to: hide the user-facing
+  // navigation since admins reach this screen through the admin tools.
+  const hideOwnerNavigation = !isEditable && !hasMembership;
 
   const nextButton: FooterButton = user
     ? {
@@ -66,23 +70,28 @@ export const EmissionResultsScreen: FC = () => {
         },
       };
 
+  const showHeaderNavigation = !isEditable && !hideOwnerNavigation;
+  const footerButtons: FooterButton[] = isEditable
+    ? [backButton, nextButton]
+    : [backButton];
+
   return (
     <CarbonInventoryLayout
       headerProps={{
         title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
         subtitle: summaryData?.carbonInventory.name ?? undefined,
-        action: isEditable ? undefined : (
+        action: showHeaderNavigation ? (
           // If the inventory is locked (non-editable), we assume a registered user session.
           // Otherwise, we default to the guest flow, where the footer button handles
           // registration or temporary data persistence.
           <CarbonInventoryNavigationButton
             type="inventories"
-            buttonProps={{ onClick: goToList }}
+            buttonProps={{ onClick: goToList, disabled: !isReady }}
           />
-        ),
+        ) : undefined,
       }}
       footerProps={{
-        buttons: isEditable ? [backButton, nextButton] : [backButton],
+        buttons: footerButtons,
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
