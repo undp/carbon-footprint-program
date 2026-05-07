@@ -25,24 +25,22 @@ export const LandingFooter: FC = () => {
         <b>NO es una plataforma productiva</b>, no constituye una fuente oficial
         de datos ni un sistema de reporte regulatorio. Se recomienda
         enfáticamente{" "}
-        <b>NO ingresar datos reales, sensibles o confidenciales.</b>{" "}
+        <b>NO ingresar datos reales, sensibles o confidenciales.</b> Consulta
+        los{" "}
         {isLoading || !hasTerms ? (
-          <span>Consulta los Términos y Condiciones</span>
+          <span>Términos y Condiciones</span>
         ) : (
-          <>
-            Consulta los{" "}
-            <Link
-              href={TERMS_CONDITIONS_FILE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              color="inherit"
-              underline="always"
-            >
-              Términos y Condiciones
-            </Link>
-            .
-          </>
+          <Link
+            href={TERMS_CONDITIONS_FILE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            color="inherit"
+            underline="always"
+          >
+            Términos y Condiciones
+          </Link>
         )}
+        .
       </Alert>
     </Box>
   );
