@@ -32,8 +32,7 @@ export const VerificationSealInfoSection: FC = () => {
           >
             El Reconocimiento de Verificación es el reconocimiento oficial
             mediante el cual Huella Latam valida que el cálculo de emisiones de
-            tu
-            {VOCAB.organization.noun.singular} cumple con los estándares
+            tu {VOCAB.organization.noun.singular} cumple con los estándares
             gubernamentales establecidos.
           </Typography>
 
