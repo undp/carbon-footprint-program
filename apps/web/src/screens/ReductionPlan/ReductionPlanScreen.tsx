@@ -11,7 +11,7 @@ import { CategoryCarousel } from "@/screens/CarbonInventory/components/CategoryC
 import { LoadingErrorStateMessage } from "@/components/EmissionResults/LoadingErrorStateMessage";
 import { EmptyStateMessage } from "@/components/EmissionResults/EmptyStateMessage";
 import { ScreenEmptyState } from "@/components/ScreenEmptyState";
-import { Routes } from "@/interfaces/routes/routes.const";
+import { RouteIds, Routes } from "@/interfaces/routes/routes.const";
 import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
@@ -27,7 +27,7 @@ export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
   const { openExplanationBySlug } = useExplanationDialog();
 
-  const Route = getRouteApi("/app/_shell/reduction-plan");
+  const Route = getRouteApi(RouteIds.REDUCTION_PLAN);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null

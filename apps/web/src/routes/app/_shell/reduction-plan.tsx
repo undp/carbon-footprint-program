@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RouteIds } from "@/interfaces";
 import { ReductionPlanScreen } from "@/screens/ReductionPlan";
 import { z } from "zod";
 
@@ -7,7 +8,7 @@ const searchParams = z.object({
   organizationId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/app/_shell/reduction-plan")({
+export const Route = createFileRoute(RouteIds.REDUCTION_PLAN)({
   validateSearch: searchParams,
   component: ReductionPlanScreen,
 });

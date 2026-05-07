@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { RouteIds } from "@/interfaces";
 
-export const Route = createFileRoute("/app/_fullscreen/reduction-projects/$id")(
-  {
-    component: () => <Outlet />,
-  }
-);
+export const Route = createFileRoute(RouteIds.REDUCTION_PROJECT_ID)({
+  component: () => <Outlet />,
+});

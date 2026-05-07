@@ -50,3 +50,26 @@ export const Routes = {
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
+
+// Route IDs used by TanStack Router (createFileRoute, getRouteApi, useParams({ from })).
+// These differ from `Routes` for routes nested inside pathless layouts (_shell, _fullscreen):
+// the route ID encodes the file location, while `Routes` holds the public URL.
+export const RouteIds = {
+  APP_SHELL: "/app/_shell",
+  APP_SHELL_INDEX: "/app/_shell/",
+  APP_FULLSCREEN: "/app/_fullscreen",
+  HOME: "/app/_shell/home",
+  MY_ORGANIZATION: "/app/_shell/my-organization",
+  CARBON_INVENTORIES: "/app/_shell/carbon-inventories",
+  REDUCTION_PLAN: "/app/_shell/reduction-plan",
+  RECOGNITIONS: "/app/_shell/recognitions",
+  REDUCTION_PROJECTS: "/app/_shell/reduction-projects",
+  REDUCTION_PROJECTS_INDEX: "/app/_shell/reduction-projects/",
+  USER_FORM: "/app/_shell/user/form",
+  REDUCTION_PROJECT_NEW: "/app/_fullscreen/reduction-projects/new",
+  REDUCTION_PROJECT_ID: "/app/_fullscreen/reduction-projects/$id",
+  REDUCTION_PROJECT_DETAILS: "/app/_fullscreen/reduction-projects/$id/details",
+  REDUCTION_PROJECT_EDIT: "/app/_fullscreen/reduction-projects/$id/edit",
+} as const;
+
+export type RouteId = (typeof RouteIds)[keyof typeof RouteIds];
