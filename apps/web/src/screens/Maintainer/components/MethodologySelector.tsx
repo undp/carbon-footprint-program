@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useId } from "react";
 import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { GetAllMethodologiesResponse } from "@repo/types";
 import { MethodologyStatusChip } from "./MethodologyStatusChip";
@@ -12,8 +12,6 @@ interface Props {
   label?: string;
 }
 
-const LABEL_ID = "methodology-select-label";
-
 export const MethodologySelector: FC<Props> = ({
   methodologies,
   value,
@@ -22,13 +20,14 @@ export const MethodologySelector: FC<Props> = ({
   minWidth = 280,
   label = "Metodología",
 }) => {
+  const labelId = useId();
   const selectedMethodology = methodologies.find((m) => m.id === value);
 
   return (
     <FormControl sx={{ minHeight: 40, minWidth }} size="small">
-      <InputLabel id={LABEL_ID}>{label}</InputLabel>
+      <InputLabel id={labelId}>{label}</InputLabel>
       <Select
-        labelId={LABEL_ID}
+        labelId={labelId}
         label={label}
         value={value ?? ""}
         disabled={disabled || methodologies.length === 0}
