@@ -55,9 +55,56 @@ export type Route = (typeof Routes)[keyof typeof Routes];
 // These differ from `Routes` for routes nested inside pathless layouts (_shell, _fullscreen):
 // the route ID encodes the file location, while `Routes` holds the public URL.
 export const RouteIds = {
+  // Root and top-level routes
+  LANDING: "/",
+  ABOUT_US: "/about",
+  CAPINAUT: "/capinaut",
+  TRANSPARENCY: "/transparency",
+
+  // Carbon inventory layout + nested routes
+  CARBON_INVENTORY: "/carbon-inventory",
+  CARBON_INVENTORY_INDEX: "/carbon-inventory/",
+  CARBON_INVENTORY_BUSINESS_PROFILING:
+    "/carbon-inventory/$inventoryId/business-profiling",
+  CARBON_INVENTORY_SUBCATEGORY_PRESELECTION:
+    "/carbon-inventory/$inventoryId/subcategory-preselection",
+  CARBON_INVENTORY_EMISSION_CAPTURE:
+    "/carbon-inventory/$inventoryId/emission-capture",
+  CARBON_INVENTORY_EMISSION_SUMMARY:
+    "/carbon-inventory/$inventoryId/emission-summary",
+  CARBON_INVENTORY_EMISSION_RESULTS:
+    "/carbon-inventory/$inventoryId/emission-results",
+
+  // Admin layout + nested routes
+  ADMIN: "/admin",
+  ADMIN_INDEX: "/admin/",
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_METHODOLOGIES: "/admin/methodologies",
+  ADMIN_CATEGORIES: "/admin/categories",
+  ADMIN_SUBCATEGORIES: "/admin/subcategories",
+  ADMIN_DIMENSIONS: "/admin/dimensions",
+  ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
+  ADMIN_UNITS: "/admin/units",
+  ADMIN_PARAMETERS: "/admin/parameters",
+  ADMIN_SECTORS: "/admin/sectors",
+  ADMIN_SUBSECTORS: "/admin/subsectors",
+  ADMIN_MAIN_ACTIVITIES: "/admin/main-activities",
+  ADMIN_ORGANIZATION_SIZES: "/admin/organization-sizes",
+  ADMIN_REQUESTS: "/admin/requests",
+  ADMIN_ORGANIZATIONS: "/admin/organizations",
+  ADMIN_BADGES: "/admin/badges",
+  ADMIN_SUBCATEGORY_RECOMMENDATIONS: "/admin/subcategory-recommendations",
+  ADMIN_REDUCTION_PLAN_INITIATIVES: "/admin/reduction-plan-initiatives",
+  ADMIN_EXPLANATIONS: "/admin/explanations",
+  ADMIN_USERS: "/admin/users",
+
+  // App layout + pathless layouts (_shell, _fullscreen)
+  APP: "/app",
   APP_SHELL: "/app/_shell",
   APP_SHELL_INDEX: "/app/_shell/",
   APP_FULLSCREEN: "/app/_fullscreen",
+
+  // App shell routes
   HOME: "/app/_shell/home",
   MY_ORGANIZATION: "/app/_shell/my-organization",
   CARBON_INVENTORIES: "/app/_shell/carbon-inventories",
@@ -66,6 +113,8 @@ export const RouteIds = {
   REDUCTION_PROJECTS: "/app/_shell/reduction-projects",
   REDUCTION_PROJECTS_INDEX: "/app/_shell/reduction-projects/",
   USER_FORM: "/app/_shell/user/form",
+
+  // App fullscreen routes
   REDUCTION_PROJECT_NEW: "/app/_fullscreen/reduction-projects/new",
   REDUCTION_PROJECT_ID: "/app/_fullscreen/reduction-projects/$id",
   REDUCTION_PROJECT_DETAILS: "/app/_fullscreen/reduction-projects/$id/details",
