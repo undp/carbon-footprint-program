@@ -34,7 +34,12 @@ function RootComponent() {
         <SnackbarProvider preventDuplicate autoHideDuration={4000}>
           <MsalProvider instance={msalInstance}>
             <QueryClientProvider client={queryClient}>
-              {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
+              {IS_DEVELOPMENT && (
+                <ReactQueryDevtools
+                  initialIsOpen={false}
+                  buttonPosition="bottom-left"
+                />
+              )}
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
