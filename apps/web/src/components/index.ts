@@ -17,3 +17,4 @@ export * from "./RecognitionChip";
 export * from "./SubmissionTypeChip";
 export * from "./OverflowTooltipText";
 export * from "./SearchBar";
+export * from "./ActionIconButton";

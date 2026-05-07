@@ -2,20 +2,22 @@ import { FC, useMemo } from "react";
 import {
   Box,
   Chip,
-  IconButton,
   MenuItem,
   Select,
   Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
-import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  SaveOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+} from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
 import { useOverflowTooltip } from "@/hooks";
 import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import {
   isNewRow,
   type SubcategoryRecommendationRow,
@@ -307,38 +309,32 @@ export const useSubcategoryRecommendationColumns = ({
             <Stack direction="row" spacing={0.5}>
               {isDirty && (
                 <>
-                  <IconButton
-                    size="small"
+                  <ActionIconButton
+                    icon={SaveOutlined}
+                    tooltip={
+                      SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel
+                    }
                     color="primary"
                     disabled={isSaving}
                     onClick={() => onSaveRow(rowIndex)}
-                    aria-label={
-                      SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel
-                    }
-                  >
-                    <SaveOutlinedIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    disabled={isSaving}
-                    onClick={() => onCancelRow(rowIndex)}
-                    aria-label={
+                  />
+                  <ActionIconButton
+                    icon={CloseOutlined}
+                    tooltip={
                       SUBCATEGORY_RECOMMENDATIONS_LABELS.cancelRowAriaLabel
                     }
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
+                    disabled={isSaving}
+                    onClick={() => onCancelRow(rowIndex)}
+                  />
                 </>
               )}
               {!isNew && !isDirty && (
-                <IconButton
-                  size="small"
+                <ActionIconButton
+                  icon={DeleteOutlined}
+                  tooltip={SUBCATEGORY_RECOMMENDATIONS_LABELS.deleteRow}
                   disabled={isSaving}
                   onClick={() => onDeleteRow(rowIndex)}
-                  aria-label={SUBCATEGORY_RECOMMENDATIONS_LABELS.deleteRow}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
+                />
               )}
             </Stack>
           );

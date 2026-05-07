@@ -1,17 +1,11 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import {
-  Box,
-  Chip,
-  IconButton,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Chip, Stack, Typography } from "@mui/material";
 import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { UserRoleChip } from "../components/UserRoleChip";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
 import { ORGANIZATION_ROLE_LABELS } from "@/labels";
 import { format } from "date-fns";
@@ -141,30 +135,22 @@ export const useUsersColumns = ({
           const showChangeRoleButton = showChangeRole && !isOwnRow;
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <Tooltip title={ACTION_LABELS.viewHistory}>
-                <IconButton
-                  size="small"
-                  aria-label={ACTION_LABELS.viewHistory}
-                  onClick={() => onViewHistory(params.row.id)}
-                >
-                  <HistoryOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              <ActionIconButton
+                icon={HistoryOutlined}
+                tooltip={ACTION_LABELS.viewHistory}
+                onClick={() => onViewHistory(params.row.id)}
+              />
               {showChangeRole && (
                 <Box
                   sx={{
                     visibility: showChangeRoleButton ? "visible" : "hidden",
                   }}
                 >
-                  <Tooltip title={ACTION_LABELS.changeRole}>
-                    <IconButton
-                      size="small"
-                      aria-label={ACTION_LABELS.changeRole}
-                      onClick={() => onChangeRole(params.row.id)}
-                    >
-                      <ManageAccountsOutlined fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                  <ActionIconButton
+                    icon={ManageAccountsOutlined}
+                    tooltip={ACTION_LABELS.changeRole}
+                    onClick={() => onChangeRole(params.row.id)}
+                  />
                 </Box>
               )}
             </Stack>
