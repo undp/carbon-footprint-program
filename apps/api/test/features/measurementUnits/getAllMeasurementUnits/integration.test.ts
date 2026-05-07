@@ -68,7 +68,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       const testUnit = body.find((u) => u.abbreviation === "kg");
       expect(testUnit).toBeDefined();
-      expect(testUnit!.name).toBe("Kilógramo");
+      expect(testUnit!.name).toBe("kilógramo");
       expect(testUnit!.magnitude).toBe("MASS");
       expect(testUnit!.abbreviation).toBe("kg");
       expect(testUnit!.baseFactor).toBe(1000);
