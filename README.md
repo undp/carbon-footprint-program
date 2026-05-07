@@ -203,7 +203,7 @@ az --version      # For deployments only
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/undp-huella-latam.git
+git clone https://github.com/in-ventures/undp-huella-latam.git
 cd undp-huella-latam
 ```
 
