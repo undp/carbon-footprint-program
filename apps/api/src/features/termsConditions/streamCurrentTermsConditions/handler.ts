@@ -1,4 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+import { RestError } from "@azure/storage-blob";
 import {
   FileNotFoundError,
   StorageNotConfiguredError,
@@ -37,7 +38,19 @@ export const streamCurrentTermsConditionsHandler = async (
   if (!file) throw new FileNotFoundError("current");
 
   const blobClient = blobStorage.getBlobClient(file.blobPath);
-  const downloadResponse = await blobClient.download();
+  // The DB row may exist while the blob is gone (manual cleanup, container
+  // restored from a partial backup, etc). Translate Azure's 404 into the
+  // public 404 this endpoint already documents instead of leaking it as a
+  // 500 from the SDK.
+  let downloadResponse;
+  try {
+    downloadResponse = await blobClient.download();
+  } catch (err) {
+    if (err instanceof RestError && err.statusCode === 404) {
+      throw new FileNotFoundError("current");
+    }
+    throw err;
+  }
   const stream = downloadResponse.readableStreamBody;
 
   // Defensive: the Azure SDK types `readableStreamBody` as optional.
