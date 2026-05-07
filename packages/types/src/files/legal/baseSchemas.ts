@@ -8,9 +8,9 @@ import { z } from "zod";
  */
 export const LegalOriginalNameSchema = z
   .string()
+  .trim()
   .min(1)
   .max(255)
-  .trim()
   .regex(/^[ -~]+$/, "File name must only contain printable ASCII characters")
   .refine(
     (name) => !/[/\\:]/.test(name),
