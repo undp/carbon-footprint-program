@@ -3,7 +3,7 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
-import { LandingFooter } from "./components/LandingFooter";
+import { TermsAlert } from "./components/TermsAlert";
 import { VOCAB } from "@/config/vocab";
 
 export const LandingScreen: FC = () => {
@@ -14,10 +14,11 @@ export const LandingScreen: FC = () => {
   return (
     <Box
       component="main"
-      className="flex h-screen grow flex-col"
+      className="flex grow flex-col"
       sx={{
         position: "relative",
-        background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%), 
+        minHeight: "100vh",
+        background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%),
         linear-gradient(293deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
       }}
     >
@@ -35,7 +36,8 @@ export const LandingScreen: FC = () => {
         }}
       />
       <Header />
-      <Container className="flex flex-col justify-center gap-12">
+      <Container className="my-4 flex flex-col justify-center gap-10">
+        <TermsAlert />
         <Box className="flex flex-col items-center justify-center gap-4">
           <Typography variant="h4" color="white">
             Te damos la bienvenida a
@@ -50,7 +52,6 @@ export const LandingScreen: FC = () => {
         </Box>
         <CreateInventoryOptions />
       </Container>
-      <LandingFooter />
     </Box>
   );
 };
