@@ -5,8 +5,8 @@ This folder collects governance and DPG-compliance artefacts for the Huella Lata
 ## Contents
 
 - [`principles-for-digital-development.md`](./principles-for-digital-development.md) — Mapping of the nine Principles for Digital Development to concrete practices and artefacts in this codebase. This is the primary evidence document for DPGA Standard v1.1.6 Indicator 8 (Standards and Best Practices).
-- `acceptable-use.md` — Content policy, prohibited uses, and the takedown process for country deployments (planned).
-- `governance-summary.md` — Public, evaluator-facing summary of the DPG self-assessment across all nine DPGA indicators (planned).
+- [`acceptable-use.md`](./acceptable-use.md) — Content policy, prohibited content categories, the report-and-takedown workflow, response SLAs and the country-addendum framework. Primary evidence document for DPGA Standard v1.1.6 Indicator 9B (Inappropriate and Illegal Content).
+- [`governance-summary.md`](./governance-summary.md) — Public, evaluator-facing summary of the DPG self-assessment across all nine DPGA indicators, with status, primary evidence and a transparent roadmap of known gaps.
 
 ## Cross-references
 

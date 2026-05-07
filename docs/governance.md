@@ -19,15 +19,43 @@ Practical consequences of this status:
 
 ## License
 
-The root `README.md` currently declares the project as **MIT**. A formal `LICENSE` file at the repository root should be added to make the license unambiguous for adopters and contributors.
+The project is licensed under the **MIT License**. The full license
+text lives at [`/LICENSE`](../LICENSE) at the repository root, naming
+the **United Nations Development Programme (UNDP)** as the copyright
+holder.
 
-**Recommended action:**
+The MIT licence was selected because it is OSI-approved (a hard
+requirement for DPGA Standard v1.1.6 Indicator 2 — Open Licensing),
+imposes minimal obligations on country deployers, and is broadly
+compatible with the licences of the third-party dependencies the
+project relies on.
 
-1. Add a `LICENSE` file at the repository root with the full MIT license text, naming the copyright holder (e.g., "United Nations Development Programme" or the delivery organization).
-2. Confirm that all current contributors have licensed their contributions compatibly.
-3. If any country-level adopter produces local extensions, the license of those extensions should be compatible (MIT, Apache-2.0, BSD).
+A `pnpm licenses list` report can be produced at any time to audit
+the licences of bundled dependencies.
 
-If the project's licensing intent differs from MIT (e.g., Apache-2.0 for patent grant, or a more restrictive license), this should be clarified by the project owners before the first official release.
+If a country-level adopter produces local extensions, the license of
+those extensions should be compatible (MIT, Apache-2.0, BSD-3-Clause).
+
+## Copyright and Trademark
+
+Per the project Terms of Reference (UNDP Project 01000983 — Climate
+Hub, section K), **all background compiled and deliverables produced
+under the project are the property of UNDP**. The codebase is
+released to the public under the MIT licence pursuant to UNDP's
+Digital Public Good policy, but copyright is retained by UNDP.
+
+The `LICENSE` file at the repository root therefore reads:
+
+> Copyright (c) 2024-2026 United Nations Development Programme (UNDP)
+
+The use of the **name, emblem and official seal** of the United
+Nations and of UNDP is reserved and may not be used by licensees,
+contributors, or country deployments to imply endorsement without the
+prior written authorisation of UNDP. This reservation is included as
+an addendum in the `LICENSE` file and reproduced in `NOTICE`.
+
+Country deployments may publish their own brand alongside, but not
+in place of, the upstream attribution. See `NOTICE`.
 
 ---
 
@@ -81,13 +109,20 @@ See [Contributing Guide](./development/contributing.md) for the technical workfl
 
 ## Code Ownership and Security Contacts
 
-Sensitive areas of the codebase (authentication, data encryption, key management) should have **designated maintainers** whose review is required before merging changes. A `CODEOWNERS` file at the repository root is recommended to enforce this automatically via GitHub PR review rules.
+Sensitive areas of the codebase (authentication, data encryption,
+key management, file uploads, the Prisma schema, infrastructure-as-
+code) have designated reviewers configured at
+[`.github/CODEOWNERS`](../.github/CODEOWNERS). GitHub branch
+protection enforces that at least one code owner reviews every pull
+request that touches paths under their ownership.
 
-Security vulnerabilities should be reported **privately** to the maintainer team — not via public GitHub issues. A `SECURITY.md` file at the repository root is recommended, describing:
+The active maintainer team and its area assignments are documented
+publicly at [`MAINTAINERS.md`](../MAINTAINERS.md).
 
-- Where to report vulnerabilities (a dedicated email address).
-- Expected response time.
-- Coordinated disclosure policy.
+Security vulnerabilities are reported **privately** through the
+process documented at [`SECURITY.md`](../SECURITY.md) — primarily
+through GitHub Private Vulnerability Reporting, with a fallback email
+address for users who cannot reach GitHub.
 
 ---
 
@@ -99,20 +134,71 @@ Security vulnerabilities should be reported **privately** to the maintainer team
 
 ---
 
-## Recommended Root-Level Files
+## Root-Level Files
 
-For a mature open-source digital public good, the repository root should contain:
+For a mature open-source digital public good, the repository root
+contains the following governance files:
 
-| File                            | Purpose                                                            | Currently present?                     |
-| ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
-| `LICENSE`                       | License text                                                       | ❌ Missing (README declares MIT)       |
-| `CODE_OF_CONDUCT.md`            | Community standards                                                | ❌ Missing                             |
-| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ❌ Missing at root                     |
-| `SECURITY.md`                   | Security reporting process                                         | ❌ Missing                             |
-| `CODEOWNERS`                    | PR review assignments                                              | ❌ Missing                             |
-| `CHANGELOG.md` or release notes | Version history                                                    | ❌ Missing (releases in Git tags only) |
+| File                 | Purpose                                                               | Currently present? |
+| -------------------- | --------------------------------------------------------------------- | ------------------ |
+| `LICENSE`            | MIT licence text with UNDP copyright                                  | Yes                |
+| `NOTICE`             | Attribution to UNDP Project 01000983 / Climate Promise                | Yes                |
+| `AUTHORS`            | Public statement of project ownership                                 | Yes                |
+| `MAINTAINERS.md`     | Active maintainer team and review areas                               | Yes                |
+| `.github/CODEOWNERS` | Path-based PR review routing                                          | Yes                |
+| `CONTRIBUTING.md`    | DPG-aligned entry point linking to `docs/development/contributing.md` | Yes                |
+| `CODE_OF_CONDUCT.md` | Community standards (Contributor Covenant 2.1)                        | Yes                |
+| `SECURITY.md`        | Responsible-disclosure policy                                         | Yes                |
+| `PRIVACY.md`         | Public privacy notice (DPGA Standard Indicator 7 + 9A)                | Yes                |
+| `CHANGELOG.md`       | Version history (Keep a Changelog 1.1.0)                              | Yes                |
 
-Adding these files is a prerequisite for acceptance into the [Digital Public Goods Alliance](https://digitalpublicgoods.net/) registry, if that is a goal for the project.
+These artefacts collectively address DPGA Standard v1.1.6 indicators
+2, 3, 5 and 7. The DPG-specific evidence documents live under
+[`./governance/`](./governance/):
+
+- `principles-for-digital-development.md` — Indicator 8.
+- `acceptable-use.md` — Indicator 9B.
+- `governance-summary.md` — public, evaluator-facing self-assessment.
+
+The SDG-relevance evidence (Indicator 1) lives at
+[`./overview/sdg-alignment.md`](./overview/sdg-alignment.md).
+
+## DPGA Indicator 9C — Anti-Harassment (Not Applicable)
+
+DPGA Standard v1.1.6 Indicator 9C requires that platforms which
+**facilitate interactions between users** establish processes to
+protect users against harassment, abuse and hostile behaviour,
+including specific safeguards for users who are minors.
+
+Huella Latam does **not** facilitate user-to-user social
+interactions. The platform does not offer:
+
+- Public chat, forums or comment threads.
+- Direct messaging between users.
+- User-generated profiles visible to other users beyond
+  organisational role information.
+- Public broadcast or follow features.
+
+The interaction model is a structured **organisation ↔ administrator**
+workflow: a reporting organisation submits an inventory or project,
+and a competent administrator reviews and decides on it. All
+communication between these parties happens through the workflow's
+explicit fields and through the audit log.
+
+Because the platform does not facilitate user-to-user interactions,
+Indicator 9C is documented here as **Not Applicable**, with the
+above rationale provided as evidence to the DPGA evaluator.
+
+If a future version of the platform introduces direct user-to-user
+interactions (for example, a public discussion feature for country
+implementers), this assessment will be revisited and the appropriate
+anti-harassment controls will be designed and documented before the
+feature is released.
+
+The anti-harassment expectations that **do** apply to this project's
+own contributor community are addressed by `CODE_OF_CONDUCT.md` (the
+Contributor Covenant 2.1) — see that file for the reporting and
+enforcement model.
 
 ---
 
