@@ -1,8 +1,6 @@
 import { FC, ReactNode, useState } from "react";
 import {
   Box,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -21,6 +19,7 @@ import {
   KeyboardArrowDownOutlined,
   TuneOutlined,
 } from "@mui/icons-material";
+import { ActionIconButton } from "@/components/ActionIconButton";
 
 interface ActionButtonProps {
   isActiveRow: boolean;
@@ -84,96 +83,77 @@ export const ActionButtons: FC<ActionButtonProps> = ({
     <>
       <Box className="flex justify-end gap-1">
         {isEditing && onStopEditCells && (
-          <Tooltip title="Guardar cambios">
-            <IconButton size="small" onClick={onStopEditCells}>
-              <SaveOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            icon={SaveOutlined}
+            tooltip="Guardar cambios"
+            onClick={onStopEditCells}
+          />
         )}
         {isEditing && onCancelEdit && (
-          <Tooltip title="Cancelar edición">
-            <IconButton size="small" onClick={onCancelEdit}>
-              <CloseOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            icon={CloseOutlined}
+            tooltip="Cancelar edición"
+            onClick={onCancelEdit}
+          />
         )}
         {onEdit && !isActiveRow && !isEditing && (
-          <Tooltip title="Editar alcances">
-            <IconButton size="small" onClick={onEdit}>
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            icon={EditOutlined}
+            tooltip="Editar alcances"
+            onClick={onEdit}
+          />
         )}
         {onView && isActiveRow && (
-          <Tooltip title="Ver alcances">
-            <IconButton size="small" onClick={onView}>
-              <VisibilityOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            icon={VisibilityOutlined}
+            tooltip="Ver alcances"
+            onClick={onView}
+          />
         )}
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-            }}
-          >
-            {!isEditing && onMoveUp && (
-              <Tooltip title="Mover arriba">
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={onMoveUp}
-                    disabled={moveUpDisabled}
-                  >
-                    <KeyboardArrowUpOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            )}
-            {!isEditing && onMoveDown && (
-              <Tooltip title="Mover abajo">
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={onMoveDown}
-                    disabled={moveDownDisabled}
-                  >
-                    <KeyboardArrowDownOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            )}
-          </Box>
-        </>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          {!isEditing && onMoveUp && (
+            <ActionIconButton
+              icon={KeyboardArrowUpOutlined}
+              tooltip="Mover arriba"
+              onClick={onMoveUp}
+              disabled={moveUpDisabled}
+            />
+          )}
+          {!isEditing && onMoveDown && (
+            <ActionIconButton
+              icon={KeyboardArrowDownOutlined}
+              tooltip="Mover abajo"
+              onClick={onMoveDown}
+              disabled={moveDownDisabled}
+            />
+          )}
+        </Box>
         {!isEditing && onConfigureVariables && !isActiveRow && (
-          <Tooltip title="Configurar variables">
-            <span className="content-center">
-              <IconButton size="small" onClick={onConfigureVariables}>
-                <TuneOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <ActionIconButton
+            icon={TuneOutlined}
+            tooltip="Configurar variables"
+            onClick={onConfigureVariables}
+          />
         )}
         {!isEditing && onDuplicate && (
-          <Tooltip title="Duplicar">
-            <IconButton size="small" onClick={onDuplicate}>
-              <ContentCopyOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <ActionIconButton
+            icon={ContentCopyOutlined}
+            tooltip="Duplicar"
+            onClick={onDuplicate}
+          />
         )}
         {!isEditing && onDelete && (
-          <Tooltip title={resolvedDeleteTooltipTitle}>
-            <span className="content-center">
-              <IconButton
-                size="small"
-                onClick={() => setDeleteOpen(true)}
-                disabled={isDeleteDisabled}
-              >
-                <DeleteOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <ActionIconButton
+            icon={DeleteOutlined}
+            tooltip={resolvedDeleteTooltipTitle}
+            onClick={() => setDeleteOpen(true)}
+            disabled={isDeleteDisabled}
+          />
         )}
       </Box>
 

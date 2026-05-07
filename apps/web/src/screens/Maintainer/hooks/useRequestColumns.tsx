@@ -1,8 +1,9 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { IconButton, Stack, useTheme } from "@mui/material";
+import { Stack, useTheme } from "@mui/material";
 import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
 import { RequestStatusChip } from "../components/RequestStatusChip";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
 import {
   GetAllAdminRequestsResponse,
@@ -110,30 +111,23 @@ export const useRequestColumns = ({
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        renderCell: (params) => (
-          <Stack
-            direction="row"
-            spacing={0.5}
-            alignItems="center"
-            justifyContent="center"
-          >
-            <IconButton
-              size="small"
-              aria-label={
-                params.row.status === RequestStatus.PENDING
-                  ? "Editar solicitud"
-                  : "Ver solicitud"
-              }
-              onClick={() => handleView(params.row)}
+        renderCell: (params) => {
+          const isPending = params.row.status === RequestStatus.PENDING;
+          return (
+            <Stack
+              direction="row"
+              spacing={0.5}
+              alignItems="center"
+              justifyContent="center"
             >
-              {params.row.status === RequestStatus.PENDING ? (
-                <EditOutlined fontSize="small" />
-              ) : (
-                <VisibilityOutlined fontSize="small" />
-              )}
-            </IconButton>
-          </Stack>
-        ),
+              <ActionIconButton
+                icon={isPending ? EditOutlined : VisibilityOutlined}
+                tooltip={isPending ? "Editar solicitud" : "Ver solicitud"}
+                onClick={() => handleView(params.row)}
+              />
+            </Stack>
+          );
+        },
       },
     ],
     [theme, handleView]

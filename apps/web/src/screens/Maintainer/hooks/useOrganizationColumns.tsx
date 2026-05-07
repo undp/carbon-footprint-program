@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { IconButton, Stack, Tooltip } from "@mui/material";
+import { Stack } from "@mui/material";
 import {
   VisibilityOutlined,
   HistoryOutlined,
@@ -8,6 +8,7 @@ import {
   LockOpenOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
 import { capitalize } from "lodash-es";
@@ -126,51 +127,28 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <Tooltip
-                title={`Ver detalles de ${VOCAB.organization.noun.singular}`}
-              >
-                <IconButton
-                  size="small"
-                  aria-label={`Ver detalles de ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onView(params.row.id)}
-                >
-                  <VisibilityOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip
-                title={`Ver historial de ${VOCAB.organization.noun.singular}`}
-              >
-                <IconButton
-                  size="small"
-                  aria-label={`Ver historial de ${VOCAB.organization.noun.singular}`}
-                  onClick={() => onViewHistory(params.row.id)}
-                >
-                  <HistoryOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              <ActionIconButton
+                icon={VisibilityOutlined}
+                tooltip={`Ver detalles de ${VOCAB.organization.noun.singular}`}
+                onClick={() => onView(params.row.id)}
+              />
+              <ActionIconButton
+                icon={HistoryOutlined}
+                tooltip={`Ver historial de ${VOCAB.organization.noun.singular}`}
+                onClick={() => onViewHistory(params.row.id)}
+              />
               {isBlocked ? (
-                <Tooltip
-                  title={`Desbloquear ${VOCAB.organization.noun.singular}`}
-                >
-                  <IconButton
-                    size="small"
-                    aria-label={`Desbloquear ${VOCAB.organization.noun.singular}`}
-                    onClick={() => onUnblock(params.row.id)}
-                  >
-                    <LockOpenOutlined fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <ActionIconButton
+                  icon={LockOpenOutlined}
+                  tooltip={`Desbloquear ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onUnblock(params.row.id)}
+                />
               ) : (
-                <Tooltip title={`Bloquear ${VOCAB.organization.noun.singular}`}>
-                  <IconButton
-                    size="small"
-                    aria-label={`Bloquear ${VOCAB.organization.noun.singular}`}
-                    onClick={() => onBlock(params.row.id)}
-                  >
-                    <BlockOutlined fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <ActionIconButton
+                  icon={BlockOutlined}
+                  tooltip={`Bloquear ${VOCAB.organization.noun.singular}`}
+                  onClick={() => onBlock(params.row.id)}
+                />
               )}
             </Stack>
           );

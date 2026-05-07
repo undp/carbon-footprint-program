@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
-import { Chip, IconButton, Tooltip } from "@mui/material";
+import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";
@@ -161,17 +162,12 @@ export const useSectorProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <Tooltip title="Restaurar">
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => onRestore(params.row)}
-                    disabled={restoreDisabled || anyEditing}
-                  >
-                    <RestoreOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              <ActionIconButton
+                icon={RestoreOutlined}
+                tooltip="Restaurar"
+                onClick={() => onRestore(params.row)}
+                disabled={restoreDisabled || anyEditing}
+              />
             );
           }
 

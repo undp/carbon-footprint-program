@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from "react";
-import { Chip, IconButton, Tooltip } from "@mui/material";
+import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { OrganizationMainActivityStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const MainActivityRowSchema = z.object({
@@ -249,17 +250,12 @@ export const useMainActivityProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <Tooltip title="Restaurar">
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => onRestore(params.row)}
-                    disabled={restoreDisabled || anyEditing}
-                  >
-                    <RestoreOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              <ActionIconButton
+                icon={RestoreOutlined}
+                tooltip="Restaurar"
+                onClick={() => onRestore(params.row)}
+                disabled={restoreDisabled || anyEditing}
+              />
             );
           }
 
