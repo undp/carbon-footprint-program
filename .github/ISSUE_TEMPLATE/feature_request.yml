@@ -1,0 +1,65 @@
+name: Feature request
+description: Propose a new feature or enhancement for Huella Latam.
+title: "[Feature] "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature.
+
+        Huella Latam is a country-agnostic platform. Features that
+        only make sense for a single country must be expressed
+        through configuration, seed data or system parameters — not
+        through hard-coded country-specific code.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user problem does this feature solve? Who is affected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What change to the platform would solve the problem?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider, and why is the proposed solution preferred?
+
+  - type: textarea
+    id: country-agnosticism
+    attributes:
+      label: Country-agnosticism
+      description: Explain how this feature stays country-agnostic. If it requires per-country variation, describe how that variation will be expressed (configuration, seed data, system parameters).
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sdg
+    attributes:
+      label: Primary SDG alignment
+      description: Which Sustainable Development Goal does this feature most directly support? See docs/overview/sdg-alignment.md.
+      options:
+        - SDG 13 — Climate Action
+        - SDG 12 — Responsible Consumption and Production
+        - SDG 11 — Sustainable Cities and Communities
+        - SDG 17 — Partnerships for the Goals
+        - SDG 9 — Industry, Innovation and Infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Mockups, links to related issues, references to relevant standards (GHG Protocol, ISO 14064, etc.).

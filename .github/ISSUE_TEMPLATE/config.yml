@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/in-ventures/undp-huella-latam/security/advisories/new
+    about: Please report security vulnerabilities privately. Do not open a public issue. See SECURITY.md.
+  - name: Privacy or data-protection concern
+    url: mailto:privacy@huella-latam.undp.org
+    about: For privacy or data-protection issues with the upstream codebase. For a specific country deployment, contact that deployment's data-protection officer.
+  - name: General question
+    url: https://github.com/in-ventures/undp-huella-latam/discussions
+    about: Use GitHub Discussions for questions about how to use, deploy, configure, or extend the platform.
+  - name: Country-deployment operational support
+    url: https://github.com/in-ventures/undp-huella-latam/discussions
+    about: Operational support for a live deployment is the responsibility of the country team. Use Discussions to find the right contact.
