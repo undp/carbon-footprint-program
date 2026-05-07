@@ -1,17 +1,8 @@
 import { z } from "zod";
+import { LegalOriginalNameSchema } from "../baseSchemas.js";
 
 export const RequestLegalUploadBodySchema = z.object({
-  originalName: z
-    .string()
-    .min(1)
-    .max(255)
-    .trim()
-    .regex(/^[ -~]+$/, "File name must only contain printable ASCII characters")
-    .refine(
-      (name) => !/[/\\:]/.test(name),
-      "File name must not contain path separators or colons"
-    )
-    .describe("The original file name"),
+  originalName: LegalOriginalNameSchema.describe("The original file name"),
 });
 
 export const RequestLegalUploadResponseSchema = z.object({
