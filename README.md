@@ -5,6 +5,8 @@ Full-stack monorepo for the Huella Latam project, built with modern web technolo
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Sustainable Development Goals](#-sustainable-development-goals)
+- [Digital Public Good](#-digital-public-good)
 - [Tech Stack](#-tech-stack)
 - [Monorepo Structure](#-monorepo-structure)
 - [Prerequisites](#-prerequisites)
@@ -20,7 +22,7 @@ Full-stack monorepo for the Huella Latam project, built with modern web technolo
 
 ## 🌟 Overview
 
-Huella Latam is a full-stack application designed to track and manage environmental impact data. The project uses a monorepo structure to share code efficiently between the frontend, backend, and infrastructure components.
+Huella Latam is a country-agnostic, full-stack platform for measuring, managing and reducing organisational carbon footprints in Latin America and the Caribbean. The codebase is centrally maintained and independently deployed by each adopting country on its own infrastructure. Country-specific variation is expressed through configuration, seed data and system parameters — never through code forks. The project was developed by the United Nations Development Programme (UNDP) under Project 01000983 (Climate Hub) in support of the [UNDP Climate Promise](https://climatepromise.undp.org/) initiative.
 
 ### Key Features
 
@@ -30,6 +32,37 @@ Huella Latam is a full-stack application designed to track and manage environmen
 - 🏗️ **Infrastructure as Code** - Azure Bicep for reproducible deployments
 - 🧪 **Testing** - Vitest for unit and integration tests
 - 📚 **Auto-Generated Docs** - Swagger/OpenAPI documentation
+
+## 🌎 Sustainable Development Goals
+
+Huella Latam is designed and maintained as a contribution to the **UN 2030 Agenda**. It is anchored in the **Paris Agreement**, in countries' **Nationally Determined Contributions (NDCs)**, and in national **MRV** (Measurement, Reporting and Verification) systems.
+
+- **Primary goal — SDG 13 (Climate Action)**: targets 13.2 (integrate climate measures into national policies), 13.3 (climate awareness and capacity), 13.b (capacity for climate-change planning and management).
+- **Secondary goals**: SDG 12 (Responsible Consumption and Production, target 12.6 — corporate sustainability reporting), SDG 17 (Partnerships, targets 17.16, 17.17, 17.18 — multi-stakeholder partnerships and high-quality disaggregated data), SDG 11 (Sustainable Cities, target 11.6) and SDG 9 (Innovation and Infrastructure, targets 9.1 and 9.4) as enabling cross-cutting goals.
+
+The full mapping with target-by-target evidence and KPIs lives at [`docs/overview/sdg-alignment.md`](./docs/overview/sdg-alignment.md).
+
+## 🌐 Digital Public Good
+
+The project is being prepared for submission to the [Digital Public Goods Alliance (DPGA)](https://digitalpublicgoods.net/) registry against the **DPGA Standard v1.1.6**. Evidence per indicator:
+
+| #   | Indicator                         | Primary evidence                                                                                                   |
+| --- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | SDG Relevance                     | [`docs/overview/sdg-alignment.md`](./docs/overview/sdg-alignment.md)                                               |
+| 2   | Open Licensing                    | [`LICENSE`](./LICENSE) (MIT, OSI-approved)                                                                         |
+| 3   | Clear Ownership                   | [`AUTHORS`](./AUTHORS), [`MAINTAINERS.md`](./MAINTAINERS.md), [`NOTICE`](./NOTICE)                                 |
+| 4   | Platform Independence             | [`docs/governance.md`](./docs/governance.md) (roadmap)                                                             |
+| 5   | Documentation                     | [`docs/`](./docs/), Swagger/OpenAPI                                                                                |
+| 6   | Data Extraction (non-PII)         | [`docs/development/data-export.md`](./docs/development/data-export.md)                                             |
+| 7   | Privacy and Applicable Laws       | [`PRIVACY.md`](./PRIVACY.md), [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md)               |
+| 8   | Standards and Best Practices      | [`docs/governance/principles-for-digital-development.md`](./docs/governance/principles-for-digital-development.md) |
+| 9A  | Privacy and Security of PII       | [`docs/security/`](./docs/security/), [`PRIVACY.md`](./PRIVACY.md)                                                 |
+| 9B  | Inappropriate and Illegal Content | [`docs/governance/acceptable-use.md`](./docs/governance/acceptable-use.md)                                         |
+| 9C  | Anti-Harassment                   | [`docs/governance.md`](./docs/governance.md) (Not Applicable, justified)                                           |
+
+Governance overview: [`docs/governance.md`](./docs/governance.md).
+Code of conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+Security disclosure: [`SECURITY.md`](./SECURITY.md).
 
 ## 🛠 Tech Stack
 
