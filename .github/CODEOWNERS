@@ -1,0 +1,55 @@
+# Code owners for Huella Latam
+#
+# Every pull request must be reviewed by at least one code owner of the
+# files it touches. This file is the authoritative source of those
+# rules; the social structure behind them is documented in
+# `MAINTAINERS.md`.
+#
+# GitHub team and user handles are placeholders that must be replaced
+# by the actual handles before this file becomes effective. Until then
+# this file documents intent only — branch protection rules in GitHub
+# are what enforce ownership at merge time.
+
+# Default owners — at least one maintainer must review every PR.
+*                       @in-ventures/huella-latam-maintainers
+
+# Backend
+/apps/api/              @in-ventures/huella-latam-backend
+/packages/database/     @in-ventures/huella-latam-backend
+/packages/types/        @in-ventures/huella-latam-backend
+
+# Frontend
+/apps/web/              @in-ventures/huella-latam-frontend
+
+# Shared utilities and constants — reviewed by both backend and frontend.
+/packages/utils/        @in-ventures/huella-latam-backend @in-ventures/huella-latam-frontend
+/packages/constants/    @in-ventures/huella-latam-backend @in-ventures/huella-latam-frontend
+/packages/ui/           @in-ventures/huella-latam-frontend
+
+# Infrastructure-as-code and CI/CD
+/infra/                 @in-ventures/huella-latam-platform
+/.github/               @in-ventures/huella-latam-platform
+/docker-compose.yml     @in-ventures/huella-latam-platform
+
+# Methodology / climate-science content
+/load_methodologies/    @in-ventures/huella-latam-methodology
+
+# Security-sensitive paths require an explicit security review.
+/apps/api/src/plugins/                    @in-ventures/huella-latam-security
+/apps/api/src/plugins/app/                @in-ventures/huella-latam-security
+/apps/api/src/services/blobService.ts     @in-ventures/huella-latam-security
+/packages/database/prisma/schema.prisma   @in-ventures/huella-latam-security
+/docs/security/                           @in-ventures/huella-latam-security
+
+# Governance, licensing, and DPG-required documents.
+/LICENSE                @in-ventures/huella-latam-maintainers
+/NOTICE                 @in-ventures/huella-latam-maintainers
+/AUTHORS                @in-ventures/huella-latam-maintainers
+/MAINTAINERS.md         @in-ventures/huella-latam-maintainers
+/CODE_OF_CONDUCT.md     @in-ventures/huella-latam-maintainers
+/CONTRIBUTING.md        @in-ventures/huella-latam-maintainers
+/SECURITY.md            @in-ventures/huella-latam-security
+/PRIVACY.md             @in-ventures/huella-latam-security
+/CHANGELOG.md           @in-ventures/huella-latam-maintainers
+/docs/governance.md     @in-ventures/huella-latam-maintainers
+/docs/governance/       @in-ventures/huella-latam-maintainers

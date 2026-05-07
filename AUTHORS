@@ -1,0 +1,32 @@
+# Authors and Contributors
+
+Huella Latam is a Digital Public Good developed by the United Nations
+Development Programme (UNDP) under Project 01000983 — Climate Hub.
+
+Copyright (c) 2024-2026 United Nations Development Programme (UNDP).
+All deliverables produced under the project are the property of UNDP,
+licensed to the public under the MIT License (see `LICENSE`).
+
+This file lists the parties whose contributions are reflected in the
+codebase. Contributions are recognised regardless of role.
+
+## Project owner
+
+- United Nations Development Programme (UNDP) — Climate Promise
+
+## Maintainers
+
+See `MAINTAINERS.md` for the active maintainer team and review
+ownership.
+
+## Contributors
+
+A complete machine-generated contributor list can be obtained at any
+time with:
+
+    git shortlog -sne
+
+External contributors are welcome via the process described in
+`CONTRIBUTING.md`. Each contributor retains the copyright on their
+contributions, which they license to the project under the same MIT
+terms by submitting a pull request.

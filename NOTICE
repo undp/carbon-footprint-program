@@ -1,0 +1,28 @@
+Huella Latam
+Copyright (c) 2024-2026 United Nations Development Programme (UNDP)
+
+This product was developed under UNDP Project 01000983 — Climate Hub —
+in support of the UNDP Climate Promise initiative, with the explicit goal
+of being released as a Digital Public Good (DPG) aligned with the
+Digital Public Goods Alliance (DPGA) Standard v1.1.6.
+
+The platform is designed to be country-agnostic. Country-specific
+adaptations are expected to be implemented through configuration, seed
+data, and system parameters — not through code forks.
+
+This product includes software and documentation distributed under the
+MIT License (see LICENSE), and may bundle or reference third-party
+components distributed under their own respective open-source licenses.
+A license report can be produced at any time with `pnpm licenses list`.
+
+Methodology content shipped under `load_methodologies/` may cite or
+reference public sources such as the Greenhouse Gas Protocol, IPCC
+Assessment Reports, IEA emission factors, and country-level inventories
+maintained by adopting governments. Each adopting country is responsible
+for ensuring the legality and accuracy of the methodology data it
+deploys, and for citing the original sources of any factors it loads.
+
+The use of the name, emblem, or official seal of the United Nations or
+of UNDP is reserved and may not be used by licensees, contributors, or
+country deployments to imply endorsement without the prior written
+authorization of UNDP.
