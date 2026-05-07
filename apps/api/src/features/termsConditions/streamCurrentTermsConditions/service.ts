@@ -25,7 +25,7 @@ export const resolveCurrentTermsConditionsBlob = async (
   );
   if (!fileUuid) return null;
 
-  const file = await prisma.file.findUnique({
+  const file = await prisma.file.findFirst({
     where: { uuid: fileUuid, status: FileStatus.ACTIVE },
     select: { blobPath: true, mimeType: true, originalName: true },
   });

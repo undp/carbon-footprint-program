@@ -48,7 +48,7 @@ export async function seedTermsConditions(
   });
 
   if (currentParam?.value) {
-    const existingFile = await prisma.file.findUnique({
+    const existingFile = await prisma.file.findFirst({
       where: { uuid: currentParam.value, status: FileStatus.ACTIVE },
       select: { uuid: true },
     });

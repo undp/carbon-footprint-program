@@ -39,7 +39,7 @@ export const getCurrentTermsConditionsService = async (
 
   // Defensive: the SystemParameter could point at a File that has since been
   // soft-deleted. Treat that as "no current T&C" rather than 500ing.
-  const file = await prisma.file.findUnique({
+  const file = await prisma.file.findFirst({
     where: { uuid: fileUuid, status: FileStatus.ACTIVE },
     select: { originalName: true },
   });
