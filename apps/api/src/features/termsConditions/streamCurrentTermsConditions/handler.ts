@@ -65,11 +65,31 @@ export const streamCurrentTermsConditionsHandler = async (
     throw new Error("Failed to obtain a readable stream from Azure");
   }
 
-  reply.header("Content-Type", file.mimeType);
+  // Force application/pdf rather than trusting persisted metadata: the
+  // legal upload helper already rejects non-PDFs at confirm time, and
+  // pinning the response Content-Type plus X-Content-Type-Options=nosniff
+  // means a stale or tampered mimeType column cannot trick a browser into
+  // inline-rendering arbitrary content under the public T&C URL.
+  reply.header("Content-Type", "application/pdf");
+  reply.header("X-Content-Type-Options", "nosniff");
+
+  // Build a Content-Disposition header per RFC 6266 / RFC 5987:
+  //   - filename="..."    : ASCII-only fallback for older clients. We
+  //                         strip non-ASCII, quotes, and backslashes so the
+  //                         quoted-string form is well-formed.
+  //   - filename*=UTF-8''...: percent-encoded UTF-8 form preferred by
+  //                           modern clients; preserves accents and
+  //                           non-ASCII characters in the original name.
+  // Using encodeURIComponent inside a quoted filename (the previous
+  // implementation) leaked literal %XX sequences into the saved filename.
+  const asciiFileName = file.originalName
+    .replace(/[^\x20-\x7E]/g, "_")
+    .replace(/["\\]/g, "_");
   reply.header(
     "Content-Disposition",
-    `inline; filename="${encodeURIComponent(file.originalName)}"`
+    `inline; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(file.originalName)}`
   );
+
   if (downloadResponse.contentLength != null) {
     reply.header("Content-Length", downloadResponse.contentLength);
   }
