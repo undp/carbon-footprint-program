@@ -14,10 +14,17 @@ const TERMS_CONDITIONS_FILE_NAME = "terms_conditions.pdf";
 const TERMS_CONDITIONS_MIME_TYPE = "application/pdf";
 const TERMS_CONDITIONS_GROUP_KEY = "terms-conditions";
 const TERMS_CONDITIONS_SYSTEM_PARAMETER_KEY = "TERMS_CONDITIONS_FILE_UUID";
+// MUST stay in sync with the runtime helper apps/api/src/features/files/legal/
+// helpers (FileType.LEGAL + LEGAL_TERMS_CONDITIONS_GROUP_KEY). The
+// persistLegalFileRecord transaction soft-deletes previous ACTIVE T&C rows
+// by `blobPath: { startsWith: "LEGAL/terms-conditions/" }`, so a seeded file
+// stored under a mismatched prefix would never get retired by a subsequent
+// admin upload and would leave an extra ACTIVE legal row behind.
+const LEGAL_BLOB_PREFIX = "LEGAL";
 
 function buildLegalBlobPath(uuid: string, name: string): string {
   const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `/${TERMS_CONDITIONS_GROUP_KEY}/${uuid}-${sanitizedName}`;
+  return `${LEGAL_BLOB_PREFIX}/${TERMS_CONDITIONS_GROUP_KEY}/${uuid}-${sanitizedName}`;
 }
 
 export async function seedTermsConditions(
