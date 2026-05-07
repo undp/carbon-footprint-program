@@ -44,7 +44,6 @@ export const RequestScreenKpiSection: FC = () => {
       [RequestStatus.PENDING]: theme.palette.warning.dark,
       [RequestStatus.APPROVED]: theme.palette.success.dark,
       [RequestStatus.REVIEWED]: theme.palette.error.dark,
-      [RequestStatus.REJECTED]: theme.palette.error.dark,
     }),
     [theme]
   );
