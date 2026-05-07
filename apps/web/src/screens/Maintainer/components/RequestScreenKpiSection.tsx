@@ -6,34 +6,33 @@ import {
   TaskOutlined,
   AccessTimeOutlined,
   CheckCircleOutlined,
-  CancelOutlined,
   DisabledVisibleOutlined,
 } from "@mui/icons-material";
 import { SubmissionStatus as RequestStatus } from "@repo/types";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 
-type FilteredRequestStatus = Exclude<RequestStatus, "APPROVED_AUTOMATICALLY">;
+type FilteredRequestStatus = Exclude<
+  RequestStatus,
+  "APPROVED_AUTOMATICALLY" | "REJECTED"
+>;
 
 const ICON_BY_STATUS: Record<FilteredRequestStatus, SvgIconComponent> = {
   [RequestStatus.PENDING]: AccessTimeOutlined,
   [RequestStatus.APPROVED]: CheckCircleOutlined,
   [RequestStatus.REVIEWED]: DisabledVisibleOutlined,
-  [RequestStatus.REJECTED]: CancelOutlined,
 };
 
 const LABEL_BY_STATUS: Record<FilteredRequestStatus, string> = {
   [RequestStatus.PENDING]: "Pendientes",
   [RequestStatus.APPROVED]: "Aprobadas",
   [RequestStatus.REVIEWED]: "Con observaciones",
-  [RequestStatus.REJECTED]: "Rechazadas",
 };
 
 const STATUS_ORDER: FilteredRequestStatus[] = [
   RequestStatus.PENDING,
   RequestStatus.APPROVED,
   RequestStatus.REVIEWED,
-  RequestStatus.REJECTED,
 ];
 
 export const RequestScreenKpiSection: FC = () => {
@@ -45,7 +44,6 @@ export const RequestScreenKpiSection: FC = () => {
       [RequestStatus.PENDING]: theme.palette.warning.dark,
       [RequestStatus.APPROVED]: theme.palette.success.dark,
       [RequestStatus.REVIEWED]: theme.palette.error.dark,
-      [RequestStatus.REJECTED]: theme.palette.error.dark,
     }),
     [theme]
   );
@@ -58,17 +56,24 @@ export const RequestScreenKpiSection: FC = () => {
       [RequestStatus.PENDING]: 0,
       [RequestStatus.APPROVED]: 0,
       [RequestStatus.REVIEWED]: 0,
-      [RequestStatus.REJECTED]: 0,
     };
     for (const kpi of counts) {
       if (kpi.status === RequestStatus.APPROVED_AUTOMATICALLY) {
         map[RequestStatus.APPROVED] += kpi.value;
         continue;
       }
+      if (kpi.status === RequestStatus.REJECTED) {
+        continue;
+      }
       map[kpi.status] += kpi.value;
     }
     return map;
   }, [kpisData]);
+
+  const total = useMemo(
+    () => Object.values(valueByStatus).reduce((sum, value) => sum + value, 0),
+    [valueByStatus]
+  );
 
   if (isLoading) {
     return (
@@ -86,7 +91,7 @@ export const RequestScreenKpiSection: FC = () => {
         label="Total"
         color={REQUESTS_TOTAL_COLOR}
         Icon={TaskOutlined}
-        value={kpisData?.total ?? 0}
+        value={total}
       />
       {STATUS_ORDER.map((status) => (
         <RequestScreenKpiCard
