@@ -71,7 +71,7 @@ file upload, secrets, or database queries. Tick "N/A" otherwise. -->
 ## Mandatory local checks
 
 ```sh
-pnpm format
+pnpm format:check
 pnpm lint
 pnpm type-check
 pnpm test
