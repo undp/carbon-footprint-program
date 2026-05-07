@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
-import { RouteIds, Routes } from "@/interfaces";
+import { Routes } from "@/interfaces";
 import { useReductionProject } from "@/api/query/reductionProjects";
 import { useMyOrganizations } from "@/api/query/organizations";
 import {
@@ -48,10 +48,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const isViewMode = mode === "view";
   const params = useParams({
     from: isCreateMode
-      ? RouteIds.REDUCTION_PROJECT_NEW
+      ? "/app/_fullscreen/reduction-projects/new"
       : isEditMode
-        ? RouteIds.REDUCTION_PROJECT_EDIT
-        : RouteIds.REDUCTION_PROJECT_DETAILS,
+        ? "/app/_fullscreen/reduction-projects/$id/edit"
+        : "/app/_fullscreen/reduction-projects/$id/details",
   });
 
   const id = isCreateMode ? undefined : (params as { id: string }).id;

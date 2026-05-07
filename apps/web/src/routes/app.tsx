@@ -2,9 +2,9 @@ import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
-import { RouteIds, Routes } from "@/interfaces";
+import { Routes } from "@/interfaces";
 
-export const Route = createFileRoute(RouteIds.APP)({
+export const Route = createFileRoute("/app")({
   beforeLoad: requireRole(
     [SystemRole.USER, SystemRole.ADMIN, SystemRole.SUPERADMIN],
     {

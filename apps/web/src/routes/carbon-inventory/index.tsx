@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { RouteIds, Routes } from "@/interfaces/routes";
+import { Routes } from "@/interfaces/routes";
 
-export const Route = createFileRoute(RouteIds.CARBON_INVENTORY_INDEX)({
+export const Route = createFileRoute("/carbon-inventory/")({
   beforeLoad: () => redirect({ to: Routes.CARBON_INVENTORIES }),
 });

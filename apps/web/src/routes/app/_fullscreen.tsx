@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { RouteIds } from "@/interfaces";
 
-export const Route = createFileRoute(RouteIds.APP_FULLSCREEN)({
+export const Route = createFileRoute("/app/_fullscreen")({
   component: () => <Outlet />,
 });
