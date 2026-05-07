@@ -1,10 +1,19 @@
 {
   "name": "huella-latam",
   "version": "0.0.0",
-  "description": "Huella Latam monorepo",
+  "description": "Huella Latam monorepo — country-agnostic carbon-footprint platform developed by UNDP as a Digital Public Good.",
   "private": true,
   "packageManager": "pnpm@10.23.0",
   "license": "MIT",
+  "author": "United Nations Development Programme (UNDP) — Climate Promise",
+  "homepage": "https://github.com/in-ventures/undp-huella-latam#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/in-ventures/undp-huella-latam.git"
+  },
+  "bugs": {
+    "url": "https://github.com/in-ventures/undp-huella-latam/issues"
+  },
   "engines": {
     "node": ">=24.0.0"
   },

@@ -6,6 +6,15 @@
   "type": "module",
   "main": "dist/server.js",
   "license": "MIT",
+  "author": "United Nations Development Programme (UNDP) — Climate Promise",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/in-ventures/undp-huella-latam.git",
+    "directory": "apps/api"
+  },
+  "bugs": {
+    "url": "https://github.com/in-ventures/undp-huella-latam/issues"
+  },
   "engines": {
     "node": ">=24.0.0"
   },
