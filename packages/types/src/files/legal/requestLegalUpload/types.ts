@@ -1,5 +1,5 @@
 import { z } from "zod";
-import {
+import type {
   RequestLegalUploadBodySchema,
   RequestLegalUploadResponseSchema,
 } from "./schemas.js";
