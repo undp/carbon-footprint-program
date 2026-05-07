@@ -10,8 +10,8 @@ body:
         [DPGA Standard v1.1.6](https://digitalpublicgoods.net/standard/).
 
         The project's public self-assessment lives at
-        `docs/governance/governance-summary.md` (when published) and
-        the indicator-specific evidence lives in `docs/governance/`,
+        `docs/governance/governance-summary.md` and the indicator-
+        specific evidence lives in `docs/governance/`,
         `docs/overview/sdg-alignment.md`, `PRIVACY.md` and
         `SECURITY.md`.
 
