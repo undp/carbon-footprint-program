@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
-const DELETE_URL = "/api/chatbot/conversations/me";
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
@@ -53,7 +52,7 @@ export const useChatStream = () => {
   const lastEventIdRef = useRef<string | undefined>(undefined);
   // Tracks the index of the in-flight assistant message inside `messages` so
   // updateLastAssistant can target it directly instead of scanning backward
-  // on every delta. Reset to -1 between turns and after deleteHistory.
+  // on every delta. Reset to -1 between turns and on new conversation.
   const inFlightAssistantIndexRef = useRef<number>(-1);
   // Monotonic counter used to mint locally unique React keys for each
   // message bubble. `Date.now()` collisions (mocked timers, two turns
@@ -314,25 +313,17 @@ export const useChatStream = () => {
     [consumeStream, nextMessageId, updateLastAssistant]
   );
 
-  const deleteHistory = useCallback(async (): Promise<void> => {
-    try {
-      const response = await fetch(DELETE_URL, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (response.status === 204) {
-        setMessages([]);
-        setState("empty");
-        lastEventIdRef.current = undefined;
-        consecutiveFailuresRef.current = 0;
-        inFlightAssistantIndexRef.current = -1;
-      } else {
-        setState("error");
-      }
-    } catch {
-      setState("error");
-    }
+  // Frontend-only conversation reset: clears the visible thread and per-turn
+  // refs without notifying the server. Prior turns remain persisted in the
+  // backend conversation store — this is intentional, the user is starting
+  // a NEW client-side thread, not deleting history.
+  const startNewConversation = useCallback((): void => {
+    setMessages([]);
+    setState("empty");
+    lastEventIdRef.current = undefined;
+    consecutiveFailuresRef.current = 0;
+    inFlightAssistantIndexRef.current = -1;
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory };
+  return { state, messages, sendMessage, startNewConversation };
 };

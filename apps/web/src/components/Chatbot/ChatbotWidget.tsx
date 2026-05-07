@@ -66,7 +66,8 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, deleteHistory } = useChatStream();
+  const { state, messages, sendMessage, startNewConversation } =
+    useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
@@ -155,14 +156,20 @@ export function ChatbotWidget() {
     // committed the user message + assistant placeholder appended by
     // sendMessage. Done BEFORE awaiting the SSE stream because the turn
     // may take many seconds — we want the active bubble in view from
-    // the first delta, not after the stream completes.
+    // the first delta, not after the stream completes. Restoring focus
+    // in the same frame keeps the keyboard ready for the next message
+    // even though the TextField is briefly disabled while busy.
     requestAnimationFrame(() => {
       listRef.current?.scrollTo({
         top: listRef.current.scrollHeight,
         behavior: "smooth",
       });
+      inputRef.current?.focus();
     });
     await sendMessage(content);
+    // Re-focus once the turn ends — the disabled prop on the TextField
+    // can pull focus away while the request is in flight.
+    inputRef.current?.focus();
   };
 
   return (
@@ -234,7 +241,7 @@ export function ChatbotWidget() {
             onClick={() => {
               if (isBusy) return;
               markIntroduced();
-              void deleteHistory();
+              startNewConversation();
               // Return focus to the input so the user can immediately
               // start a new message; the click would otherwise leave
               // focus on this IconButton.
