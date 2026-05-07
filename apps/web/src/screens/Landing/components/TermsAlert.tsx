@@ -3,13 +3,13 @@ import { Alert, AlertTitle, alpha, Box, Link, useTheme } from "@mui/material";
 import { useCurrentTermsConditions } from "@/api/query/termsConditions";
 import { TERMS_CONDITIONS_FILE_URL } from "@/config/constants";
 
-export const LandingFooter: FC = () => {
+export const TermsAlert: FC = () => {
   const theme = useTheme();
   const { data, isLoading } = useCurrentTermsConditions();
   const hasTerms = !!data?.fileName;
 
   return (
-    <Box sx={{ mt: "auto", px: 3, pb: 3, position: "relative", zIndex: 1 }}>
+    <Box sx={{ px: 3, position: "relative", zIndex: 1 }}>
       <Alert
         icon={false}
         role="region"
