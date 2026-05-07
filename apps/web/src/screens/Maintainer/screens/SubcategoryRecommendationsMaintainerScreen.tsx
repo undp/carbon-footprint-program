@@ -8,10 +8,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -33,7 +29,7 @@ import { AppHttpError } from "@/api/http/errors";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
-import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
+import { MethodologySelector } from "../components/MethodologySelector";
 import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
 import type { SubcategoryOption } from "../components/SubcategoryTransferListDialog";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
@@ -522,34 +518,13 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           />
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
-            <InputLabel id="methodology-select-label">
-              {SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
-            </InputLabel>
-            <Select
-              labelId="methodology-select-label"
-              label={SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
-              value={selectedMethodologyId ?? ""}
-              onChange={(e) => handleMethodologyChange(e.target.value)}
-              disabled={!methodologies || methodologies.length === 0}
-            >
-              {(methodologies ?? []).map((m) => (
-                <MenuItem key={m.id} value={m.id}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      width: "100%",
-                    }}
-                  >
-                    <span>{m.name}</span>
-                    <MethodologyStatusChip status={m.status} />
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <MethodologySelector
+            methodologies={methodologies ?? []}
+            value={selectedMethodologyId}
+            onChange={handleMethodologyChange}
+            label={SUBCATEGORY_RECOMMENDATIONS_LABELS.methodologyLabel}
+            minWidth={240}
+          />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
