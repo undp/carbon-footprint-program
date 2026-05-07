@@ -180,18 +180,27 @@ export const useMethodologyColumns = ({
         headerAlign: "center",
         align: "right",
         cellClassName,
-        renderCell: (params: GridRenderCellParams<Methodology>) => (
-          <ActionButtons
-            isActiveRow={params.row.status === "PUBLISHED"}
-            isEditing={isEditing(params.row.id)}
-            onStopEditCells={onStopEditRow}
-            onCancelEdit={onCancelEditRow}
-            onEdit={() => onEdit(params.row)}
-            onView={() => onView(params.row)}
-            onDuplicate={() => onDuplicate(params.row)}
-            onDelete={() => onDelete(params.row)}
-          />
-        ),
+        renderCell: (params: GridRenderCellParams<Methodology>) => {
+          const isPublished = params.row.status === "PUBLISHED";
+          return (
+            <ActionButtons
+              isActiveRow={editingRowId !== null && !isEditing(params.row.id)}
+              isEditing={isEditing(params.row.id)}
+              onStopEditCells={onStopEditRow}
+              onCancelEdit={onCancelEditRow}
+              onEdit={() => onEdit(params.row)}
+              onView={() => onView(params.row)}
+              onDuplicate={() => onDuplicate(params.row)}
+              onDelete={() => onDelete(params.row)}
+              deleteDisabled={isPublished}
+              deleteTooltipTitle={
+                isPublished
+                  ? "No se puede eliminar una metodología activa"
+                  : undefined
+              }
+            />
+          );
+        },
       },
     ],
     [
