@@ -77,7 +77,7 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 - The **country-agnosticism principle** prevents the codebase from fragmenting into country-specific forks that diverge over time and cannot be merged back. All country variation goes through seed data and system parameters. Backward compatibility is an explicit acceptance criterion: schema migrations must preserve existing data, and breaking API changes require a deprecation path (`docs/governance.md`).
 - The project uses **Conventional Commits** and modular commit policy to keep the Git history readable and reviewable. This reduces the onboarding cost for new maintainers and makes bisecting regressions tractable. The commit convention and branch workflow are documented at [`docs/development/contributing.md`](../development/contributing.md).
 - **CI quality gates** run automatically on every pull request: ESLint with zero-warnings enforcement, TypeScript type-check, Prettier format-check, integration test suite, and production build. These gates prevent regressions from entering `main` and ensure the codebase remains deployable at all times (`.github/workflows/ci.yml`).
-- Security-sensitive areas of the codebase (authentication, authorization, file upload, database queries) require an explicit security review by a maintainer before merging, per the acceptance criteria in `docs/governance.md`. A `CODEOWNERS` file is recommended (documented as a planned root-level file) to enforce this automatically via GitHub required-review rules.
+- Security-sensitive areas of the codebase (authentication, authorization, file upload, database queries) require an explicit security review by a maintainer before merging, per the acceptance criteria in `docs/governance.md`. The [`.github/CODEOWNERS`](../../.github/CODEOWNERS) file (added in Sprint 1) routes pull requests in those paths to the security reviewer team and is the technical mechanism that, together with branch protection rules, enforces four-eyes review on critical code.
 - The versioned release process uses semantic versioning with Git tags, and breaking changes are announced in release notes with migration paths for country deployers (`docs/release/versioning.md`).
 - Security patches are released promptly without waiting for a scheduled release cycle, per the release governance documented in `docs/governance.md`.
 
@@ -85,7 +85,7 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 
 - No formal long-term stewardship commitment (a signed memorandum of understanding or service-level agreement) from adopting governments is yet in place. This is a policy-level prerequisite for long-term sustainability rather than a technical one.
 - Community channels (GitHub Discussions, a mailing list, or a Slack workspace for country deployers) have not been established. A communication channel for country implementation teams to share lessons learned and coordinate on shared improvements is planned.
-- The `CODEOWNERS`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `CONTRIBUTING.md` root-level files are documented as missing in `docs/governance.md` and are prerequisite for DPGA acceptance. Adding them is a tracked pre-submission task.
+- The placeholder GitHub team handles in [`.github/CODEOWNERS`](../../.github/CODEOWNERS) (`@in-ventures/huella-latam-*`) must be replaced with real team handles once the corresponding GitHub teams are created and branch protection rules are enabled.
 
 ---
 
@@ -116,7 +116,7 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 
 ### How we apply it
 
-- The codebase is released under the **MIT License** (declared in `README.md`; a formal `LICENSE` file at the repository root is a tracked pre-submission task per `docs/governance.md`). MIT is an OSI-approved permissive license that allows any country or organization to adopt, modify, and deploy the platform without royalty obligations.
+- The codebase is released under the **MIT License**. The full text lives at [`LICENSE`](../../LICENSE) at the repository root with copyright held by the United Nations Development Programme (UNDP); the licence reservation regarding the use of the UN name and emblem is included as an addendum. MIT is an OSI-approved permissive licence that allows any country or organisation to adopt, modify and deploy the platform without royalty obligations.
 - The API contract is described using **OpenAPI 3.0**, auto-generated from Zod route schemas via `@fastify/swagger`. The live spec is served at `/api/docs/json` and `/api/docs/yaml` in every deployment environment, making the API surface inspectable by any standard OpenAPI tooling.
 - Authentication relies on **OAuth 2.0 / OpenID Connect** with standard JWT (RS256) token validation via the JWKS protocol. The platform is not locked to a single identity provider: any OIDC-compliant IdP that exposes a JWKS endpoint is supported via the `AUTH_PROVIDER=jwks` configuration (`docs/integrations.md`).
 - Data transport uses **HTTPS/TLS 1.2+** throughout (client to API, API to PostgreSQL, API to Blob Storage, client to Blob Storage via SAS URLs). There are no proprietary transport protocols.
@@ -126,8 +126,7 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 ### Gaps and roadmap
 
 - A formal data-licence declaration for the methodology content (emission factor tables and category hierarchies seeded into the platform) has not been published. The intent is to release this under CC-BY 4.0 or ODbL; this requires legal review by UNDP. It is a tracked pre-submission task.
-- A published `standards-compliance.md` matrix mapping the platform's data model to international reporting frameworks (GRI Standards, ESRS, SBTi, CDP disclosure) is planned for a later sprint. This would make it easier for organizations to use the platform's output to feed into broader ESG reporting.
-- The `LICENSE` file at the repository root is documented as missing in `docs/governance.md` and must be added before the DPGA submission.
+- A published `standards-compliance.md` matrix mapping the platform's data model to international reporting frameworks (GRI Standards, ESRS, SBTi, CDP disclosure) is planned for a later sprint. This would make it easier for organisations to use the platform's output to feed into broader ESG reporting.
 
 ---
 
@@ -170,7 +169,7 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 - **File MIME-type validation and antivirus scanning** for uploaded documents are tracked as open remediation items. Currently the API verifies blob existence and reads the MIME type from Azure's storage metadata, but does not independently validate the content against the declared type or scan for malware.
 - **Application Insights SDK** has not been instrumented, leaving the platform without distributed request tracing or custom security-event telemetry.
 - **Field-level encryption** for PII fields (`email`, `taxId`, `representativeTaxId`) is not implemented. Protection relies on platform-level AES-256 encryption and network controls. For high-sensitivity deployments, Prisma middleware encryption is recommended in `docs/security/sensitive-data.md`.
-- A public `PRIVACY.md` file at the repository root and a privacy notice in the frontend UI are documented as planned in `docs/governance.md`. These are prerequisites for regulatory compliance in all target countries.
+- A privacy notice page in the frontend UI (rendered to end users on first login and from the application footer) is still planned. The public [`PRIVACY.md`](../../PRIVACY.md) was added in Sprint 1 and serves as the upstream baseline that country deployments customise in their own addenda.
 
 ---
 
@@ -182,8 +181,8 @@ Each principle section contains three parts: a **Statement** quoting the canonic
 
 - The repository is publicly hosted under the `in-ventures/undp-huella-latam` GitHub organization. Pull requests, issues, and the full commit history are visible to anyone. The open-repository model is the primary mechanism for collaborative development.
 - `CONTRIBUTING.md` (at the repository root, linking to the full guide at [`docs/development/contributing.md`](../development/contributing.md)) documents the branch workflow, commit conventions, code review expectations, and the step-by-step process for adding a new feature. Lowering the onboarding cost for new contributors is an explicit design goal.
-- `CODE_OF_CONDUCT.md` based on the **Contributor Covenant 2.1** establishes community standards for respectful collaboration. It is documented as a planned root-level file in `docs/governance.md`.
-- **CODEOWNERS** routing ensures that changes to security-sensitive paths require review from designated maintainers, making review responsibilities transparent and enforcing four-eyes on critical code. It is documented as a planned root-level file.
+- [`CODE_OF_CONDUCT.md`](../../CODE_OF_CONDUCT.md) (added in Sprint 1) adopts the **Contributor Covenant 2.1** by reference and establishes community standards for respectful collaboration; the project enforcement contacts and operational fallback are documented in that file.
+- The [`.github/CODEOWNERS`](../../.github/CODEOWNERS) routing file (added in Sprint 1) ensures that changes to security-sensitive paths require review from designated maintainers, making review responsibilities transparent and enforcing four-eyes on critical code.
 - The **modular commit policy** (one commit per logical change, Conventional Commits format, subject line under 72 characters) makes the history reviewable and every change attributable. PR authors address reviewer comments in dedicated follow-up commits with explanations, making the review dialogue traceable.
 - Documentation in `docs/` is updated as part of the definition of done for every new feature or significant change. Architecture decisions, security controls, data model structure, and operational runbooks are all maintained alongside the code they describe.
 - The **CodeRabbit** automated PR reviewer provides a second-opinion layer on every pull request, commenting on style, potential bugs, and missing test coverage. Contributors are expected to engage with and address its comments.
