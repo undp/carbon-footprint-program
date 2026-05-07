@@ -42,37 +42,46 @@ export async function persistLegalFileRecord(
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
-      await tx.file.updateMany({
-        where: {
-          blobPath: { startsWith: `${FileType.LEGAL}/terms-conditions/` },
-          status: FileStatus.ACTIVE,
-        },
-        data: {
-          status: FileStatus.DELETED,
-          deletedAt: new Date(),
-        },
-      });
+    // Serializable isolation guarantees that two concurrent confirms cannot
+    // both observe the same set of ACTIVE legal files, both soft-delete it,
+    // and both insert their own ACTIVE row — which under the default
+    // READ_COMMITTED level would leave multiple ACTIVE T&C files in the DB
+    // even though SystemParameter only points at one. Mirrors the pattern
+    // used in activateBadgeService for the same single-current invariant.
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.file.updateMany({
+          where: {
+            blobPath: { startsWith: `${FileType.LEGAL}/terms-conditions/` },
+            status: FileStatus.ACTIVE,
+          },
+          data: {
+            status: FileStatus.DELETED,
+            deletedAt: new Date(),
+          },
+        });
 
-      await tx.file.create({
-        data: {
-          uuid: params.uuid,
-          originalName: params.originalName,
-          mimeType,
-          sizeBytes,
-          blobPath: params.blobPath,
-          createdById: params.userId ? BigInt(params.userId) : null,
-        },
-      });
+        await tx.file.create({
+          data: {
+            uuid: params.uuid,
+            originalName: params.originalName,
+            mimeType,
+            sizeBytes,
+            blobPath: params.blobPath,
+            createdById: params.userId ? BigInt(params.userId) : null,
+          },
+        });
 
-      await tx.systemParameter.update({
-        where: { key: SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID },
-        data: {
-          value: params.uuid,
-          updatedById: params.userId ? BigInt(params.userId) : null,
-        },
-      });
-    });
+        await tx.systemParameter.update({
+          where: { key: SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID },
+          data: {
+            value: params.uuid,
+            updatedById: params.userId ? BigInt(params.userId) : null,
+          },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
