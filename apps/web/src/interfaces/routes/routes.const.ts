@@ -1,31 +1,25 @@
 export const Routes = {
+  // Root and top-level routes
   LANDING: "/",
+  ABOUT_US: "/about",
+  CAPINAUT: "/capinaut",
+  TRANSPARENCY: "/transparency",
+  SIGN_IN: "/sign-in",
+
+  // Carbon inventory layout + nested routes
+  CARBON_INVENTORY: "/carbon-inventory",
   CARBON_INVENTORY_BUSINESS_PROFILING:
     "/carbon-inventory/$inventoryId/business-profiling",
   CARBON_INVENTORY_SUBCATEGORY_PRESELECTION:
     "/carbon-inventory/$inventoryId/subcategory-preselection",
   CARBON_INVENTORY_EMISSION_CAPTURE:
     "/carbon-inventory/$inventoryId/emission-capture",
-  CARBON_INVENTORIES: "/app/carbon-inventories",
   CARBON_INVENTORY_EMISSION_SUMMARY:
     "/carbon-inventory/$inventoryId/emission-summary",
   CARBON_INVENTORY_EMISSION_RESULTS:
     "/carbon-inventory/$inventoryId/emission-results",
-  APP: "/app",
-  HOME: "/app/home",
-  MY_ORGANIZATION: "/app/my-organization",
-  CARBON_INVENTORY: "/carbon-inventory",
-  REDUCTION_PROJECTS: "/app/reduction-projects",
-  REDUCTION_PROJECT_EDIT: "/app/reduction-projects/$id/edit",
-  REDUCTION_PROJECT_DETAILS: "/app/reduction-projects/$id/details",
-  REDUCTION_PROJECT_NEW: "/app/reduction-projects/new",
-  REDUCTION_PLAN: "/app/reduction-plan",
-  RECOGNITIONS: "/app/recognitions",
-  USER_FORM: "/app/user/form",
-  ABOUT_US: "/about",
-  TRANSPARENCY: "/transparency",
-  CAPINAUT: "/capinaut",
-  SIGN_IN: "/sign-in",
+
+  // Admin layout + nested routes
   ADMIN: "/admin",
   ADMIN_DASHBOARD: "/admin/dashboard",
   ADMIN_METHODOLOGIES: "/admin/methodologies",
@@ -47,6 +41,23 @@ export const Routes = {
   ADMIN_EXPLANATIONS: "/admin/explanations",
   ADMIN_USERS: "/admin/users",
   ADMIN_CHANGE_HISTORY: "/admin/change-history",
+
+  // App layout
+  APP: "/app",
+
+  // App shell routes
+  HOME: "/app/home",
+  MY_ORGANIZATION: "/app/my-organization",
+  CARBON_INVENTORIES: "/app/carbon-inventories",
+  REDUCTION_PLAN: "/app/reduction-plan",
+  RECOGNITIONS: "/app/recognitions",
+  REDUCTION_PROJECTS: "/app/reduction-projects",
+  USER_FORM: "/app/user/form",
+
+  // App fullscreen routes
+  REDUCTION_PROJECT_NEW: "/app/reduction-projects/new",
+  REDUCTION_PROJECT_DETAILS: "/app/reduction-projects/$id/details",
+  REDUCTION_PROJECT_EDIT: "/app/reduction-projects/$id/edit",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
