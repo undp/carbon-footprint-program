@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Routes } from "@/interfaces/routes";
+import { RouteIds } from "@/interfaces/routes";
 import { AdminRequestsScreen } from "@/screens/Maintainer/screens/AdminRequestsScreen";
 
 // No beforeLoad guard needed — ADMIN/SUPERADMIN role check is enforced
 // in the parent route (admin.tsx), which wraps all child routes via its Outlet.
-export const Route = createFileRoute(Routes.ADMIN_REQUESTS)({
+export const Route = createFileRoute(RouteIds.ADMIN_REQUESTS)({
   component: AdminRequestsScreen,
 });

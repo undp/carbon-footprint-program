@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { Routes } from "@/interfaces";
+import { RouteIds } from "@/interfaces";
 import { AdminDashboardScreen } from "@/screens/AdminDashboard/AdminDashboardScreen";
 
 const dashboardSearchSchema = z.object({
@@ -17,7 +17,7 @@ const dashboardSearchSchema = z.object({
 
 // No beforeLoad guard needed — ADMIN/SUPERADMIN role check is enforced
 // in the parent route (admin.tsx), which wraps all child routes via its Outlet.
-export const Route = createFileRoute(Routes.ADMIN_DASHBOARD)({
+export const Route = createFileRoute(RouteIds.ADMIN_DASHBOARD)({
   validateSearch: dashboardSearchSchema,
   component: AdminDashboardScreen,
 });
