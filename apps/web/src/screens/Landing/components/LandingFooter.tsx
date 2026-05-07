@@ -12,6 +12,8 @@ export const LandingFooter: FC = () => {
     <Box sx={{ mt: "auto", px: 3, pb: 3, position: "relative", zIndex: 1 }}>
       <Alert
         icon={false}
+        role="region"
+        aria-label="Aviso de ambiente de demostración"
         sx={{
           bgcolor: alpha(theme.palette.primary.main, 0.5),
           border: "2px solid",
