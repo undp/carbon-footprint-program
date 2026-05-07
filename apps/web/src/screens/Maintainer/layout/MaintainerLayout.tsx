@@ -150,7 +150,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   {
     text: "Historial de cambios",
     icon: <HistoryOutlined />,
-    path: "#",
+    path: Routes.ADMIN_CHANGE_HISTORY,
   },
 ];
 

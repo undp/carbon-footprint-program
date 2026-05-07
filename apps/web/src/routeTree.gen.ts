@@ -42,6 +42,7 @@ import { Route as AdminExplanationsRouteImport } from './routes/admin/explanatio
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
 import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminChangeHistoryRouteImport } from './routes/admin/change-history'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
 import { Route as AppReductionProjectsIndexRouteImport } from './routes/app/reduction-projects/index'
@@ -223,6 +224,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminChangeHistoryRoute = AdminChangeHistoryRouteImport.update({
+  id: '/change-history',
+  path: '/change-history',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/change-history': typeof AdminChangeHistoryRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/change-history': typeof AdminChangeHistoryRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/change-history': typeof AdminChangeHistoryRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
+    | '/admin/change-history'
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
+    | '/admin/change-history'
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
+    | '/admin/change-history'
     | '/admin/dashboard'
     | '/admin/dimensions'
     | '/admin/emission-factors'
@@ -824,6 +836,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/change-history': {
+      id: '/admin/change-history'
+      path: '/change-history'
+      fullPath: '/admin/change-history'
+      preLoaderRoute: typeof AdminChangeHistoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -921,6 +940,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminBadgesRoute: typeof AdminBadgesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminChangeHistoryRoute: typeof AdminChangeHistoryRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDimensionsRoute: typeof AdminDimensionsRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
@@ -944,6 +964,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBadgesRoute: AdminBadgesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminChangeHistoryRoute: AdminChangeHistoryRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDimensionsRoute: AdminDimensionsRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
