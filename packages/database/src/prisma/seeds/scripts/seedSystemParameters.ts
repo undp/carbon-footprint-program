@@ -20,7 +20,7 @@ const __dirname = dirname(__filename);
  */
 const SystemParameterSeedSchema = z.object({
   key: z.string().min(1),
-  value: z.string().min(1),
+  value: z.string(),
   description: z.string().min(1),
   type: z.string().min(1),
   options: z.array(z.string()).optional(),
