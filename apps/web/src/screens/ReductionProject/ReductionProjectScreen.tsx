@@ -32,7 +32,8 @@ import {
 } from "@repo/types";
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
-import { isReductionProjectEditable } from "@repo/utils";
+import { useReductionProjectRouteGuard } from "./hooks/useReductionProjectRouteGuard";
+import { useReductionProjectAccess } from "@/hooks";
 
 interface Props {
   mode: "create" | "edit" | "view";
@@ -88,10 +89,8 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const hasError = hasProjectInformationError || hasSelectorsError;
 
   const status = isEditMode || isViewMode ? project?.status : undefined;
-  const isFormDisabled =
-    isViewMode || Boolean(status && !isReductionProjectEditable(status));
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
-  const showFileUpload = isCreateMode || isReviewed;
+  const showFileUpload = isCreateMode || (isReviewed && !isViewMode);
 
   // Form
   const form = useReductionProjectForm({ project, showFileUpload });
@@ -101,7 +100,28 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     setValue,
     selectedOrganizationId,
     selectedCarbonInventoryId,
+    formState: { isSubmitting: isFormSubmitting, isSubmitSuccessful },
   } = form;
+
+  // Guard only fires in edit mode; view/create pass undefined so the hook is
+  // a no-op and never redirects. Suppress it while submitting and after a
+  // successful save: the mutation invalidates the access query and a status
+  // transition (e.g. REVIEWED→SUBMITTED) would otherwise fire a stale
+  // "no edit" snackbar before the screen unmounts.
+  const { canEdit, mustNavigateAway } = useReductionProjectRouteGuard(
+    isEditMode ? id : undefined,
+    !isFormSubmitting && !isSubmitSuccessful
+  );
+  const isFormDisabled =
+    isViewMode || (!isCreateMode && Boolean(status) && !canEdit);
+
+  // In view mode an admin (no organization membership) reaches the screen via
+  // the admin tools; the "Volver" button would route them to the user-facing
+  // projects list, which is not where they came from. Hide it for that case.
+  const { hasMembership } = useReductionProjectAccess(
+    isViewMode ? id : undefined
+  );
+  const hideBackButton = isViewMode && !hasMembership;
 
   // Derived: carbon inventory detail for methodology + year
   const { data: inventoryDetail } = useCarbonInventory(
@@ -115,6 +135,39 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   );
 
   const hasInventorySelected = !!selectedCarbonInventoryId;
+
+  // In view mode the user may not be a member of the project's organization
+  // (admin reviewing). The selector data sources (useMyOrganizations,
+  // useCarbonInventoriesMinimalData) are scoped to the user's own data, so
+  // the project's referenced entities may be missing from those lists.
+  // Use the embedded `organization` and `carbonInventory` objects from the
+  // project response as a single-element fallback so disabled selectors
+  // render meaningful labels.
+  const formOrganizations = useMemo(() => {
+    if (!isViewMode || !project) return organizations;
+    return [
+      {
+        id: project.organization.id,
+        name:
+          project.organization.name ??
+          capitalize(VOCAB.organization.noun.singular),
+      },
+    ];
+  }, [isViewMode, project, organizations]);
+
+  const formVerifiedInventories = useMemo(() => {
+    if (!isViewMode || !project) return verifiedInventories;
+    return [
+      {
+        id: project.carbonInventory.id,
+        organizationId: project.organization.id,
+        organizationName: project.organization.name,
+        name: project.carbonInventory.name,
+        year: project.carbonInventory.year,
+        status: CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+      },
+    ];
+  }, [isViewMode, project, verifiedInventories]);
 
   const projectName = useWatch({ control, name: "name" });
 
@@ -162,7 +215,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         },
       };
 
-  const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
+  const footerButtons = [
+    ...(hideBackButton ? [] : [backButton]),
+    ...(saveButton ? [saveButton] : []),
+  ];
 
   const layoutProps = {
     headerProps: {
@@ -178,7 +234,12 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     throw new Error("Error al cargar la información del proyecto de reducción");
   }
 
-  if (!isLoadingOrgs && organizations.length === 0) {
+  if (
+    !isViewMode &&
+    !mustNavigateAway &&
+    !isLoadingOrgs &&
+    organizations.length === 0
+  ) {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
@@ -193,7 +254,12 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     );
   }
 
-  if (!isLoadingInventories && verifiedInventories.length === 0) {
+  if (
+    !isViewMode &&
+    !mustNavigateAway &&
+    !isLoadingInventories &&
+    verifiedInventories.length === 0
+  ) {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
@@ -239,9 +305,9 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         <ReductionProjectFormFields
           control={control}
           disabled={isFormDisabled}
-          organizations={organizations}
+          organizations={formOrganizations}
           isLoadingOrgs={isLoadingOrgs}
-          verifiedInventories={verifiedInventories}
+          verifiedInventories={formVerifiedInventories}
           isLoadingInventories={isLoadingInventories}
           selectedOrganizationId={selectedOrganizationId}
           subcategories={subcategories}

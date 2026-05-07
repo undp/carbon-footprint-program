@@ -30,7 +30,11 @@ export const getCarbonInventoryMethodologyRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
-      preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          canAdminsBypass: true,
+        }),
+      ],
     },
     getCarbonInventoryMethodologyHandler
   );

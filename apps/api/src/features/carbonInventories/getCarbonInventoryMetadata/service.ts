@@ -20,11 +20,7 @@ export const getCarbonInventoryMetadataService = async (
       methodologyVersionId: true,
       organization: {
         select: {
-          summary: {
-            select: {
-              name: true,
-            },
-          },
+          summary: { select: { name: true } },
         },
       },
       ...carbonInventoryWithSubmissionsMinimalSelect,

@@ -87,6 +87,8 @@ const ReductionProjectFooter: FC<ReductionProjectFooterProps> = ({
     (button) => button.align === "right"
   );
 
+  if (!buttons.length) return null;
+
   return (
     <AppBar
       position="sticky"

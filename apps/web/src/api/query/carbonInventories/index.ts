@@ -13,6 +13,7 @@ export * from "./useSuggestedReductionPlan";
 export * from "./useEmissionsDetailedSummary";
 export * from "./useEmissionFactors";
 export * from "./useCarbonInventoryMetadata";
+export * from "./useCarbonInventoryAccessQuery";
 export * from "./useRequestCalculation";
 export * from "./useRequestVerification";
 export * from "./useCarbonInventoryBadges";

@@ -17,7 +17,7 @@ import {
 } from "@test/factories/reductionProjectSeeder.js";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { SubmissionStatus } from "@repo/database";
-import { OrganizationRole } from "@repo/database/enums";
+import { OrganizationRole, SystemRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
@@ -190,30 +190,42 @@ describe("GET /api/reduction-projects/:id - Integration Tests", () => {
   });
 
   describe("Authorization errors", () => {
-    it("should return 403 when user is not member of organization", async () => {
+    it("should return 403 when non-admin user is not a member of the organization", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const originalRole = testUser.role;
       const { organization, carbonInventory, subcategory, membership } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
+      try {
+        const project = await createTestReductionProject(prisma, {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        });
 
-      // Remove membership
-      await prisma.userOrganizationMembership.delete({
-        where: { id: membership.id },
-      });
+        await prisma.userOrganizationMembership.delete({
+          where: { id: membership.id },
+        });
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: SystemRole.USER },
+        });
 
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/reduction-projects/${project.id}`,
-      });
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/reduction-projects/${project.id}`,
+        });
 
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
+        expect(response.statusCode).toBe(403);
+        const body = JSON.parse(response.body) as ApiErrorResponse;
+        expect(body.code).toBe("FORBIDDEN");
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: originalRole },
+        });
+      }
     });
 
     it("should return 403 for non-existent project ID (prevent enumeration)", async () => {
@@ -248,6 +260,44 @@ describe("GET /api/reduction-projects/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe("Admin bypass", () => {
+    it("allows ADMIN system role to read project of an organization without membership", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const originalRole = testUser.role;
+      const { organization, carbonInventory, subcategory, membership } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      try {
+        const project = await createTestReductionProject(prisma, {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        });
+
+        await prisma.userOrganizationMembership.delete({
+          where: { id: membership.id },
+        });
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: SystemRole.ADMIN },
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/reduction-projects/${project.id}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: originalRole },
+        });
+      }
     });
   });
 

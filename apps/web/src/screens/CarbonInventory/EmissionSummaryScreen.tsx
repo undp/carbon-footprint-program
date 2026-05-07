@@ -26,12 +26,12 @@ import {
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
-import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
+import { useCarbonInventoryAccess } from "@/hooks";
 
 const EMISSION_SUMMARY_EXPLANATION_SLUGS = {
   MAIN: "emission-summary",
@@ -89,8 +89,12 @@ export const EmissionSummaryScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
-  const isEditBlocked =
-    metadataData?.status && !isCarbonInventoryEditable(metadataData.status);
+  const { canEdit, hasMembership } = useCarbonInventoryAccess(inventoryId);
+  const isEditBlocked = metadataData?.status ? !canEdit : false;
+  // Admin viewing an inventory they don't belong to: hide the user-facing
+  // navigation (back + "Ir a mis huellas") since admins reach this screen
+  // through the admin tools, not the user inventories list.
+  const hideOwnerNavigation = isEditBlocked && !hasMembership;
 
   const { download, isDownloading } = useDownloadCarbonInventory();
   const totalEmissions = summaryData?.totalEmissions ?? 0;
@@ -117,11 +121,9 @@ export const EmissionSummaryScreen: FC = () => {
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
-      disabled: isEditBlocked,
+      disabled: isEditBlocked || isMetadataLoading,
     },
-    tooltipTitle: isEditBlocked
-      ? "La huella no es editable actualmente"
-      : undefined,
+    tooltipTitle: isEditBlocked ? "No puedes editar esta huella" : undefined,
   };
 
   const nextButton: FooterButton = {
@@ -134,11 +136,15 @@ export const EmissionSummaryScreen: FC = () => {
     },
   };
 
+  const footerButtons: FooterButton[] = hideOwnerNavigation
+    ? [nextButton]
+    : [backButton, nextButton];
+
   return (
     <CarbonInventoryLayout
       headerProps={{
         title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
-        action: (
+        action: hideOwnerNavigation ? undefined : (
           <CarbonInventoryNavigationButton
             type={user ? "inventories" : "landing"}
             buttonProps={{
@@ -148,7 +154,7 @@ export const EmissionSummaryScreen: FC = () => {
         ),
       }}
       footerProps={{
-        buttons: [backButton, nextButton],
+        buttons: footerButtons,
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-6">

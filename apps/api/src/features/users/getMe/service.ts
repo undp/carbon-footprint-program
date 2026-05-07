@@ -9,12 +9,9 @@ export const getMeService = async (
   }
 ): Promise<GetMeResponse> => {
   if (!data.idpUserId) {
-    // TODO: For now, return null as per requirements
-    // In the future, this will create an anonymous user or session
     return null;
   }
 
-  // Try to find user by idpUserId or email
   const user = await prismaClient.user.findFirst({
     where: {
       idpUserId: data.idpUserId,
@@ -22,8 +19,6 @@ export const getMeService = async (
   });
 
   if (!user) {
-    // TODO: For now, return null as per requirements
-    // In the future, this will create an anonymous user or session
     return null;
   }
 

@@ -4,6 +4,7 @@ import {
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
+import { OrganizationRole } from "@repo/database/enums";
 import {
   type GetAllCategoriesResponse,
   IconName,
@@ -25,6 +26,49 @@ import {
 } from "@repo/types";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { RECOGNITION_SUBMISSION_TYPES } from "@repo/types";
+
+const CARBON_INVENTORY_EDIT_ROLES: OrganizationRole[] = [
+  OrganizationRole.CONTRIBUTOR,
+  OrganizationRole.ADMIN,
+];
+
+/**
+ * Resolves whether the current request can edit a carbon inventory.
+ * Assumes the caller already passed `requireCarbonInventoryAccess`.
+ *
+ * - Anonymous-via-uuid grants (userId === null) are treated as the creator.(prehandler already made sure that the inventory is accessible)
+ * - Standalone inventories (no organizationId) require the user to be the creator.
+ * - Org inventories require an active membership with CONTRIBUTOR or ADMIN role.
+ *   System admins reading via the bypass have no such membership and get false.
+ *
+ * The status check is folded in: a non-editable status yields false even when
+ * the role check passes.
+ *
+ * `currentUserMemberships` must be the result of including
+ * `organization.memberships` on the inventory query, filtered by the current
+ * userId and ACTIVE status. Pure synchronous logic — no DB calls.
+ */
+export function resolveCarbonInventoryEditAccess(
+  inventory: {
+    createdById: bigint | null;
+    organizationId: bigint | null;
+    status: CarbonInventoryDisplayStatus;
+  },
+  userId: bigint | null,
+  currentUserMemberships: { role: OrganizationRole }[]
+): boolean {
+  if (!isCarbonInventoryEditable(inventory.status)) {
+    return false;
+  }
+  if (userId === null) {
+    return true;
+  }
+  if (!inventory.organizationId) {
+    return inventory.createdById === userId;
+  }
+  const membership = currentUserMemberships[0];
+  return !!membership && CARBON_INVENTORY_EDIT_ROLES.includes(membership.role);
+}
 
 export const carbonInventoryBaseSelect = {
   id: true,

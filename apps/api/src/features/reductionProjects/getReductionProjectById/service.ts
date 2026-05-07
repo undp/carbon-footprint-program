@@ -16,6 +16,15 @@ export const getReductionProjectByIdService = async (
     },
     include: {
       subcategory: { select: { id: true, name: true } },
+      organization: {
+        select: {
+          id: true,
+          summary: { select: { name: true } },
+        },
+      },
+      carbonInventory: {
+        select: { id: true, name: true, year: true },
+      },
       submission: {
         include: {
           subject: {
@@ -38,8 +47,7 @@ export const getReductionProjectByIdService = async (
     throw new ReductionProjectNotFoundError(id);
   }
 
-  return mapReductionProjectToGetByIdResponse(
-    row,
-    calculateReductionProjectDisplayStatus(row)
-  );
+  const displayStatus = calculateReductionProjectDisplayStatus(row);
+
+  return mapReductionProjectToGetByIdResponse(row, displayStatus);
 };

@@ -21,6 +21,7 @@ import {
   CarbonInventoryDisplayStatusEnum,
   CarbonInventoryLineStatus,
 } from "@repo/types";
+import { SystemRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
@@ -281,6 +282,94 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.year).toBe(2022);
       expect(body.year).toBeGreaterThanOrEqual(2000);
       expect(body.year).toBeLessThanOrEqual(2100);
+    });
+  });
+
+  describe("Admin bypass", () => {
+    it("allows ADMIN system role to read inventory of an organization without membership", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const originalRole = testUser.role;
+      const otherCreator = await prisma.user.create({
+        data: {
+          email: `creator-${Date.now()}@test.example.com`,
+          idpUserId: `test-idp-creator-${Date.now()}`,
+          firstName: "Other",
+          lastName: "Creator",
+        },
+      });
+      const organization = await createTestOrganization(prisma);
+
+      try {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: SystemRole.ADMIN },
+        });
+
+        const inventory = await createInventoryFromPattern(
+          prisma,
+          carbonInventoryPatterns.simplifiedDraft,
+          {
+            organizationId: organization.id,
+            createdById: otherCreator.id,
+          }
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/carbon-inventories/${inventory.id}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: originalRole },
+        });
+        await prisma.user.delete({ where: { id: otherCreator.id } });
+      }
+    });
+
+    it("returns 403 for a regular USER with no membership and not the creator", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const originalRole = testUser.role;
+      const otherCreator = await prisma.user.create({
+        data: {
+          email: `creator-${Date.now()}@test.example.com`,
+          idpUserId: `test-idp-creator-${Date.now()}`,
+          firstName: "Other",
+          lastName: "Creator",
+        },
+      });
+      const organization = await createTestOrganization(prisma);
+
+      try {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: SystemRole.USER },
+        });
+
+        const inventory = await createInventoryFromPattern(
+          prisma,
+          carbonInventoryPatterns.simplifiedDraft,
+          {
+            organizationId: organization.id,
+            createdById: otherCreator.id,
+          }
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/carbon-inventories/${inventory.id}`,
+        });
+
+        expect(response.statusCode).toBe(403);
+      } finally {
+        await prisma.user.update({
+          where: { id: testUser.id },
+          data: { role: originalRole },
+        });
+        await prisma.user.delete({ where: { id: otherCreator.id } });
+      }
     });
   });
 
