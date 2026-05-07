@@ -1,6 +1,6 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { Box } from "@mui/material";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -19,7 +19,7 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
-import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
+import { MethodologySelector } from "../components/MethodologySelector";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
 import {
   useReductionPlanInitiativesForm,
@@ -327,37 +327,12 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
     subcategories: subcategoryOptions,
   });
 
-  const selectedMethodology = methodologies.find(
-    (m) => m.id === selectedMethodologyVersionId
-  );
-
   const methodologySelector = (
-    <FormControl sx={{ minHeight: 40, minWidth: 280 }} size="small">
-      <InputLabel id="methodology-select-label">Metodología</InputLabel>
-      <Select
-        labelId="methodology-select-label"
-        label="Metodología"
-        value={selectedMethodologyVersionId ?? ""}
-        onChange={(e) => handleMethodologyChange(e.target.value)}
-        renderValue={() =>
-          selectedMethodology ? (
-            <Box className="flex items-center gap-2">
-              <span>{selectedMethodology.name}</span>
-              <MethodologyStatusChip status={selectedMethodology.status} />
-            </Box>
-          ) : null
-        }
-      >
-        {methodologies.map((m) => (
-          <MenuItem key={m.id} value={m.id}>
-            <Box className="flex w-full items-center justify-between gap-2">
-              <span>{m.name}</span>
-              <MethodologyStatusChip status={m.status} />
-            </Box>
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <MethodologySelector
+      methodologies={methodologies}
+      value={selectedMethodologyVersionId}
+      onChange={handleMethodologyChange}
+    />
   );
 
   return (

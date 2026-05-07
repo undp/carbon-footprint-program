@@ -1,5 +1,4 @@
 import { ReactNode, useMemo } from "react";
-import { Box, MenuItem, Select, Typography } from "@mui/material";
 import { useMethodologies } from "@/api/query/maintainer";
 import { useMaintainerStore } from "./useMaintainerStore";
 import {
@@ -7,6 +6,7 @@ import {
   MethodologyVersionStatus,
 } from "@repo/types";
 import type { MaintainerState } from "../types";
+import { MethodologySelector } from "../components/MethodologySelector";
 
 export type ScopedMethodologyContext = {
   isViewOnly: boolean;
@@ -49,35 +49,21 @@ export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
   const methodologyVersionId = targetMethodology?.id;
 
   const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
-      <Select
-        size="small"
-        value={effectiveMethodologyId ?? ""}
-        disabled={!!editingMethodology}
-        onChange={(e) => {
-          const methodology = methodologies.find(
-            (m) => m.id === e.target.value
-          );
-          if (methodology) {
-            selectMethodology({
-              id: methodology.id,
-              name: methodology.name,
-              regulation: methodology.regulation,
-            });
-          }
-        }}
-        sx={{ minWidth: 220 }}
-      >
-        {methodologies.map((methodology) => (
-          <MenuItem key={methodology.id} value={methodology.id}>
-            {methodology.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
+    <MethodologySelector
+      methodologies={methodologies}
+      value={effectiveMethodologyId}
+      disabled={!!editingMethodology}
+      onChange={(id) => {
+        const methodology = methodologies.find((m) => m.id === id);
+        if (methodology) {
+          selectMethodology({
+            id: methodology.id,
+            name: methodology.name,
+            regulation: methodology.regulation,
+          });
+        }
+      }}
+    />
   );
 
   return {
