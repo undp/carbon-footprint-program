@@ -13,6 +13,7 @@ import { seedReductionPlanInitiatives } from "./scripts/seedReductionPlanInitiat
 import { seedBadges } from "./scripts/seedBadges.js";
 import { seedSystemParameters } from "./scripts/seedSystemParameters.js";
 import { seedSubcategoryRecommendations } from "./scripts/seedSubcategoryRecommendations.js";
+import { seedTermsConditions } from "./scripts/seedTermsConditions.js";
 
 const prisma = new PrismaClient({
   adapter: generatePrismaAdapter(),
@@ -33,6 +34,7 @@ async function main() {
   await seedSubcategoryRecommendations(prisma, SEEDS_DATASET); // needs subcategories and sectors to be seeded first
   await seedReductionPlanInitiatives(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
   await seedBadges(prisma, SEEDS_DATASET);
+  await seedTermsConditions(prisma, SEEDS_DATASET); // needs TERMS_CONDITIONS_FILE_UUID system parameter row to exist
 }
 
 main()
