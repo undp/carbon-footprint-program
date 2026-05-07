@@ -11,7 +11,7 @@ import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 import {
   LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
-} from "@/features/files/legal/constants.js";
+} from "@repo/constants";
 import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
 
 export interface PersistLegalFileRecordParams {

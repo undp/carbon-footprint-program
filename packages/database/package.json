@@ -47,6 +47,7 @@
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
     "@prisma/client-runtime-utils": "^7.0.1",
+    "@repo/constants": "workspace:*",
     "zod": "catalog:shared"
   }
 }

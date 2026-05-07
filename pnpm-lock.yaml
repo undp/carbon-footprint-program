@@ -394,6 +394,9 @@ importers:
       '@prisma/client-runtime-utils':
         specifier: ^7.0.1
         version: 7.0.1
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../constants
       zod:
         specifier: catalog:shared
         version: 4.3.6

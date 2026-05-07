@@ -4,6 +4,11 @@ import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { DefaultAzureCredential } from "@azure/identity";
+import {
+  LEGAL_BLOB_PREFIX,
+  LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
+  LEGAL_TERMS_CONDITIONS_GROUP_KEY,
+} from "@repo/constants";
 import { FileStatus, type PrismaClient } from "../../../index.js";
 import type { SeedsDataset } from "../utils/index.js";
 
@@ -11,20 +16,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const TERMS_CONDITIONS_FILE_NAME = "terms_conditions.pdf";
-const TERMS_CONDITIONS_MIME_TYPE = "application/pdf";
-const TERMS_CONDITIONS_GROUP_KEY = "terms-conditions";
 const TERMS_CONDITIONS_SYSTEM_PARAMETER_KEY = "TERMS_CONDITIONS_FILE_UUID";
-// MUST stay in sync with the runtime helper apps/api/src/features/files/legal/
-// helpers (FileType.LEGAL + LEGAL_TERMS_CONDITIONS_GROUP_KEY). The
-// persistLegalFileRecord transaction soft-deletes previous ACTIVE T&C rows
-// by `blobPath: { startsWith: "LEGAL/terms-conditions/" }`, so a seeded file
-// stored under a mismatched prefix would never get retired by a subsequent
-// admin upload and would leave an extra ACTIVE legal row behind.
-const LEGAL_BLOB_PREFIX = "LEGAL";
 
 function buildLegalBlobPath(uuid: string, name: string): string {
   const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `${LEGAL_BLOB_PREFIX}/${TERMS_CONDITIONS_GROUP_KEY}/${uuid}-${sanitizedName}`;
+  return `${LEGAL_BLOB_PREFIX}/${LEGAL_TERMS_CONDITIONS_GROUP_KEY}/${uuid}-${sanitizedName}`;
 }
 
 export async function seedTermsConditions(
@@ -75,7 +71,9 @@ export async function seedTermsConditions(
   const blobPath = buildLegalBlobPath(uuid, TERMS_CONDITIONS_FILE_NAME);
 
   await containerClient.getBlockBlobClient(blobPath).uploadData(fileBuffer, {
-    blobHTTPHeaders: { blobContentType: TERMS_CONDITIONS_MIME_TYPE },
+    blobHTTPHeaders: {
+      blobContentType: LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
+    },
   });
 
   try {
@@ -84,7 +82,7 @@ export async function seedTermsConditions(
         data: {
           uuid,
           originalName: TERMS_CONDITIONS_FILE_NAME,
-          mimeType: TERMS_CONDITIONS_MIME_TYPE,
+          mimeType: LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
           sizeBytes,
           blobPath,
           status: FileStatus.ACTIVE,

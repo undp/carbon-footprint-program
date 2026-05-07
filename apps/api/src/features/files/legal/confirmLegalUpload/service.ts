@@ -7,7 +7,7 @@ import {
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { persistLegalFileRecord } from "../../helpers/persistLegalFileRecord.js";
-import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "../constants.js";
+import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
 
 type ConfirmLegalUploadInput = ConfirmLegalUploadBody & { userId?: string };
 
