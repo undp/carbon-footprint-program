@@ -38,7 +38,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Producción de Clinker",
     "subcategoryNames": [
       "Procesos industriales - Cemento",
@@ -53,7 +53,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Producción de Cemento - Molienda y mezcla",
     "subcategoryNames": [
       "Procesos industriales - Cemento",
@@ -68,7 +68,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Hormigón Premezclado",
     "subcategoryNames": [
       "Productos comprados",
@@ -80,7 +80,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Productos Prefabricados de Hormigón",
     "subcategoryNames": [
       "Productos comprados",
@@ -94,7 +94,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Cal y Yeso",
     "subcategoryNames": [
       "Emisiones provenientes de otras fuentes",
@@ -108,7 +108,7 @@
   },
   {
     "countryIsoCode": "PD",
-    "sectorName": "Industria del Cemento",
+    "sectorName": "Industria Cementera",
     "subsectorName": "Morteros y Aditivos",
     "subcategoryNames": [
       "Productos comprados",
