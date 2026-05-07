@@ -102,13 +102,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         icon: <StraightenOutlined fontSize="small" />,
         path: Routes.ADMIN_ORGANIZATION_SIZES,
       },
+      {
+        text: "Recomendaciones de Subcategorías",
+        icon: <RecommendOutlined fontSize="small" />,
+        path: Routes.ADMIN_SUBCATEGORY_RECOMMENDATIONS,
+      },
     ],
-  },
-  {
-    text: "Recomendaciones de Subcategorías",
-    icon: <RecommendOutlined />,
-    path: Routes.ADMIN_SUBCATEGORY_RECOMMENDATIONS,
-    requiredRoles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
   },
   {
     text: "Parámetros",
