@@ -33,6 +33,20 @@ const SystemParameterSeedDataSchema = z
   // Other parameter types can have an empty or omitted options array.
   .superRefine((arr, ctx) => {
     for (const [i, item] of arr.entries()) {
+      // Empty `value` is only legitimate for file-type parameters that act
+      // as pointers to an uploaded File row (e.g., TERMS_CONDITIONS_FILE_UUID
+      // before the bootstrap seed runs). For every other parameter an empty
+      // value is a configuration mistake and should fail the seed instead of
+      // silently writing "" into the database.
+      const allowsEmptyValue = item.type === "file";
+      if (!allowsEmptyValue && item.value.trim().length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: `System parameter "${item.key}" must have a non-empty value`,
+          path: [i, "value"],
+        });
+      }
+
       if (item.type === "selector") {
         if (!item.options || item.options.length === 0) {
           ctx.addIssue({
