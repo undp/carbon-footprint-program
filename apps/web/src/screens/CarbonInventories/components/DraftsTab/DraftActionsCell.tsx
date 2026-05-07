@@ -34,7 +34,7 @@ import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
-import { useDownloadCarbonInventory } from "../../hooks/useDownloadCarbonInventory";
+import { useDownloadCarbonInventory } from "@/hooks";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];

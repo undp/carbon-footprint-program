@@ -46,7 +46,7 @@ import {
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useNavigate } from "@tanstack/react-router";
-import { useDownloadCarbonInventory } from "../../hooks/useDownloadCarbonInventory";
+import { useDownloadCarbonInventory } from "@/hooks";
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
