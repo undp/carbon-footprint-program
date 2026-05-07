@@ -3,6 +3,7 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
+import { LandingFooter } from "./components/LandingFooter";
 import { VOCAB } from "@/config/vocab";
 
 export const LandingScreen: FC = () => {
@@ -49,6 +50,7 @@ export const LandingScreen: FC = () => {
         </Box>
         <CreateInventoryOptions />
       </Container>
+      <LandingFooter />
     </Box>
   );
 };

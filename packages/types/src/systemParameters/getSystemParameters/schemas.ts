@@ -5,6 +5,7 @@ export const SystemParameterKeySchema = z.enum([
   "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
   "SUBCATEGORY_RECOMMENDATION_MODE",
   "USER_INACTIVE_THRESHOLD_DAYS",
+  "TERMS_CONDITIONS_FILE_UUID",
 ]);
 
 export const SystemParameterKeyEnum = SystemParameterKeySchema.enum;
@@ -27,6 +28,8 @@ export const SubcategoryRecommendationModeEnum =
   SubcategoryRecommendationModeSchema.enum;
 
 export const UserInactiveThresholdDaysSchema = z.string().regex(/^\d+$/);
+
+export const TermsConditionsFileUuidSchema = z.union([z.uuid(), z.literal("")]);
 
 /**
  * IMPORTANT: Every system parameter key MUST have an entry in this discriminated union.
@@ -52,6 +55,10 @@ export const SystemParameterEntrySchema = z.discriminatedUnion("key", [
   z.object({
     key: z.literal(SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS),
     value: UserInactiveThresholdDaysSchema,
+  }),
+  z.object({
+    key: z.literal(SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID),
+    value: TermsConditionsFileUuidSchema,
   }),
 ]);
 
