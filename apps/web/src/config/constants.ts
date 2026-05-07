@@ -86,8 +86,14 @@ export const MAX_DISPLAY_DECIMALS = 6;
  * intentionally fixed: a new T&C upload swaps the underlying file behind it
  * without changing the URL itself, so this link never has to be updated when
  * the document is replaced.
+ *
+ * `API_BASE_URL` is sourced from an environment variable (`VITE_API_BASE_URL`)
+ * and may legitimately be configured with a trailing slash. We strip any
+ * trailing slashes before concatenation so the resulting URL never contains
+ * a `//` between the base and the path.
  */
-export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL}/terms-conditions/file`;
+const API_BASE_URL_NORMALIZED = API_BASE_URL.replace(/\/+$/, "");
+export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL_NORMALIZED}/terms-conditions/file`;
 
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";
