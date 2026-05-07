@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "./environment";
+
 /**
  * Default `staleTime` for TanStack Query hooks. Cached query data is considered
  * fresh for this long before TanStack will refetch on focus / mount.
@@ -75,6 +77,17 @@ export const DEFAULT_EMPTY_VALUE = "—";
  * `>-X` label so a tiny non-zero value isn't shown as `0`.
  */
 export const MAX_DISPLAY_DECIMALS = 6;
+
+/**
+ * Stable, never-expiring public URL that streams the current Terms & Conditions
+ * PDF directly from the API (which proxies the bytes from Azure Blob Storage).
+ *
+ * Rendered as the link target on the public landing page footer. The URL is
+ * intentionally fixed: a new T&C upload swaps the underlying file behind it
+ * without changing the URL itself, so this link never has to be updated when
+ * the document is replaced.
+ */
+export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL}/terms-conditions/file`;
 
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";
