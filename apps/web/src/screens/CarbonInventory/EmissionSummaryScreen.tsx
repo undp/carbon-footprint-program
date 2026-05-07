@@ -103,11 +103,13 @@ export const EmissionSummaryScreen: FC = () => {
 
   const downloadTooltip = isDownloading
     ? "Descargando..."
-    : !metadataData || isSummaryLoading
-      ? "Cargando datos"
-      : totalEmissions === 0
-        ? "Sin datos de emisiones"
-        : "Descargar huella";
+    : isMetadataError
+      ? "Error al cargar datos"
+      : isMetadataLoading || isSummaryLoading
+        ? "Cargando datos"
+        : totalEmissions === 0
+          ? "Sin datos de emisiones"
+          : "Descargar huella";
 
   const backButton: FooterButton = {
     text: "Volver",
