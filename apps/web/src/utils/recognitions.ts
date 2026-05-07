@@ -9,7 +9,7 @@ import {
   VerifiedOutlined,
   WorkspacePremiumOutlined,
 } from "@mui/icons-material";
-import { CarbonInventoryRecognitionsBadgeType } from "../screens/Recognitions/constants";
+import { CarbonInventoryRecognitionsBadgeType } from "@/screens/Recognitions/constants";
 
 export const RECOGNITION_TYPE_LABEL: Record<
   CarbonInventoryRecognitionsType,

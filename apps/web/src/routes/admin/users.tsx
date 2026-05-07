@@ -9,7 +9,7 @@ const searchSchema = z.object({
   tab: z.enum(["usuarios", "administradores"]).optional().catch(undefined),
 });
 
-export const Route = createFileRoute(Routes.ADMIN_USERS)({
+export const Route = createFileRoute("/admin/users")({
   validateSearch: searchSchema,
   beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], {
     redirectTo: Routes.HOME,

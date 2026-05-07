@@ -4,7 +4,7 @@ import { Routes } from "@/interfaces/routes";
 import { requireRole } from "@/utils/requireRole";
 import { EmissionFactorsMaintainerScreen } from "@/screens/Maintainer/screens/EmissionFactorsMaintainerScreen";
 
-export const Route = createFileRoute(Routes.ADMIN_EMISSION_FACTORS)({
+export const Route = createFileRoute("/admin/emission-factors")({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
     redirectTo: Routes.ADMIN_DASHBOARD,
   }),

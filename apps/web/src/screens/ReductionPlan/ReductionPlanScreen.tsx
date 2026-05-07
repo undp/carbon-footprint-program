@@ -27,7 +27,7 @@ export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
   const { openExplanationBySlug } = useExplanationDialog();
 
-  const Route = getRouteApi(Routes.REDUCTION_PLAN);
+  const Route = getRouteApi("/app/_shell/reduction-plan");
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null

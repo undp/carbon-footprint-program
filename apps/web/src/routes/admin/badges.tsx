@@ -4,7 +4,7 @@ import { Routes } from "@/interfaces/routes";
 import { requireRole } from "@/utils/requireRole";
 import { BadgesScreen } from "@/screens/Maintainer/screens/Badges/BadgesScreen";
 
-export const Route = createFileRoute(Routes.ADMIN_BADGES)({
+export const Route = createFileRoute("/admin/badges")({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
     redirectTo: Routes.ADMIN_DASHBOARD,
   }),

@@ -48,10 +48,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const isViewMode = mode === "view";
   const params = useParams({
     from: isCreateMode
-      ? Routes.REDUCTION_PROJECT_NEW
+      ? "/app/_fullscreen/reduction-projects/new"
       : isEditMode
-        ? Routes.REDUCTION_PROJECT_EDIT
-        : Routes.REDUCTION_PROJECT_DETAILS,
+        ? "/app/_fullscreen/reduction-projects/$id/edit"
+        : "/app/_fullscreen/reduction-projects/$id/details",
   });
 
   const id = isCreateMode ? undefined : (params as { id: string }).id;
