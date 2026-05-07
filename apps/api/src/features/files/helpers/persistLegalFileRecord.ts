@@ -8,7 +8,10 @@ import {
 } from "@repo/types";
 import { checkFileRecordExists } from "./persistFileRecord.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
-import { LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE } from "@/features/files/legal/constants.js";
+import {
+  LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
+  LEGAL_TERMS_CONDITIONS_GROUP_KEY,
+} from "@/features/files/legal/constants.js";
 import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
 
 export interface PersistLegalFileRecordParams {
@@ -52,7 +55,9 @@ export async function persistLegalFileRecord(
       async (tx) => {
         await tx.file.updateMany({
           where: {
-            blobPath: { startsWith: `${FileType.LEGAL}/terms-conditions/` },
+            blobPath: {
+              startsWith: `${FileType.LEGAL}/${LEGAL_TERMS_CONDITIONS_GROUP_KEY}/`,
+            },
             status: FileStatus.ACTIVE,
           },
           data: {
