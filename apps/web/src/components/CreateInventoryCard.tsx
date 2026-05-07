@@ -99,7 +99,7 @@ export const CreateInventoryCard: FC<Props> = ({
           </Avatar>
         }
       />
-      <CardContent sx={{ height: 152 }}>
+      <CardContent sx={{ padding: "8px", height: 152 }}>
         <Typography variant="subtitle1" fontWeight="600" color={txtColor}>
           {title}
         </Typography>
