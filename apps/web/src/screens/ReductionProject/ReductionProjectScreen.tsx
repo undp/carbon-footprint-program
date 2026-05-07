@@ -34,6 +34,7 @@ import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
 import { useReductionProjectRouteGuard } from "./hooks/useReductionProjectRouteGuard";
 import { useReductionProjectAccess } from "@/hooks";
+import { useSnackbar } from "notistack";
 
 interface Props {
   mode: "create" | "edit" | "view";
@@ -41,6 +42,7 @@ interface Props {
 
 export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const isCreateMode = mode === "create";
   const isEditMode = mode === "edit";
   const isViewMode = mode === "view";
@@ -280,7 +282,11 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         component="form"
         noValidate
         id="reduction-project-form"
-        onSubmit={handleSubmit(submit)}
+        onSubmit={handleSubmit(submit, (_) => {
+          enqueueSnackbar("Revisa los campos marcados en rojo", {
+            variant: "error",
+          });
+        })}
         className="flex min-h-0 flex-col gap-6 overflow-y-auto rounded-lg bg-white p-6"
       >
         {/* Content header with status chip */}
