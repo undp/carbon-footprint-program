@@ -148,15 +148,22 @@ state of the codebase and infrastructure:
   IP, configurable between 10 and 10,000 rpm. When Front Door is not deployed, the API's in-memory
   rate limiter provides a baseline protection.
 
-- **MIME-type validation** `(planned)` — No server-side MIME-type validation is currently performed
-  on uploaded files. The file's declared type and extension are not cross-checked against actual
-  binary content. This is a documented known gap in `docs/security/hardening.md` and is on the
-  remediation roadmap (see Roadmap Controls below).
+- **MIME-type validation** `(planned, Sprint 2)` — No server-side MIME-type validation is currently
+  performed on uploaded files. The file's declared type and extension are not cross-checked against
+  actual binary content. This is a documented known gap in
+  [`../security/hardening.md`](../security/hardening.md) and is tracked as a Sprint 2 remediation
+  item; the acceptance criteria (per-feature MIME allow-list, magic-byte verification, size cap)
+  are documented in the
+  [governance summary roadmap](./governance-summary.md#roadmap-and-known-gaps).
 
-- **HTTP security headers** `(planned)` — `@fastify/helmet` is declared as a dependency but the
-  plugin is not yet registered, meaning headers such as `X-Content-Type-Options`, `X-Frame-Options`,
-  and `Content-Security-Policy` are not currently set by the API. Registration is a documented
-  pre-production action item in `docs/security/hardening.md`.
+- **HTTP security headers** `(planned, Sprint 2)` — `@fastify/helmet` is declared as a dependency
+  but the plugin is not yet registered, meaning headers such as `X-Content-Type-Options`,
+  `X-Frame-Options` and `Content-Security-Policy` are not currently set by the API. Registration
+  is documented as a pre-production action item in
+  [`../security/hardening.md`](../security/hardening.md) and is tracked as a Sprint 2 remediation
+  item; the acceptance criteria (Helmet defaults plus a strict CSP for the Swagger UI route) are
+  documented in the
+  [governance summary roadmap](./governance-summary.md#roadmap-and-known-gaps).
 
 - **Explicit audit log for file uploads and data-access events** `(planned)` — File uploads,
   downloads, and read access to sensitive records do not currently produce explicit security log
