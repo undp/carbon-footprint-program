@@ -8,6 +8,8 @@ import {
 } from "@repo/types";
 import { checkFileRecordExists } from "./persistFileRecord.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
+import { LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE } from "@/features/files/legal/constants.js";
+import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
 
 export interface PersistLegalFileRecordParams {
   uuid: string;
@@ -26,6 +28,18 @@ export async function persistLegalFileRecord(
     params.blobPath,
     params.uuid
   );
+
+  // Reject anything that is not a PDF before promoting the blob to the
+  // current Terms & Conditions. Without this check the public stream
+  // endpoint could end up serving images, archives, or arbitrary uploads
+  // disguised as legal documents. The blob is also removed from storage so
+  // invalid uploads do not accumulate.
+  if (mimeType !== LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE) {
+    await blobStorage.getBlockBlobClient(params.blobPath).deleteIfExists();
+    throw new LegalUploadValidationError(
+      `unsupported file type "${mimeType}". Allowed: ${LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE}`
+    );
+  }
 
   try {
     await prisma.$transaction(async (tx) => {
