@@ -70,6 +70,11 @@ export const RequestScreenKpiSection: FC = () => {
     return map;
   }, [kpisData]);
 
+  const total = useMemo(
+    () => Object.values(valueByStatus).reduce((sum, value) => sum + value, 0),
+    [valueByStatus]
+  );
+
   if (isLoading) {
     return (
       <Stack direction="row" spacing={2}>
@@ -86,7 +91,7 @@ export const RequestScreenKpiSection: FC = () => {
         label="Total"
         color={REQUESTS_TOTAL_COLOR}
         Icon={TaskOutlined}
-        value={kpisData?.total ?? 0}
+        value={total}
       />
       {STATUS_ORDER.map((status) => (
         <RequestScreenKpiCard
