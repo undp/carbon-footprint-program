@@ -49,7 +49,8 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
             idpUserId: authUser.idpUserId,
             email: authUser.email,
             idpName: authUser.idpName,
-            role: SystemRole.USER,
+            // TODO: remove when finishing the demo
+            role: SystemRole.SUPERADMIN,
             updatedAt: null,
           },
         });
