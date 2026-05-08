@@ -15,6 +15,7 @@ import { MaintainerToolbar } from "./MaintainerToolbar";
 export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   fuseOptions: IFuseOptions<T>;
   placeholder?: string;
+  fileName?: string;
 }
 
 interface MaintainerDataGridProps extends StylizedDataGridProps {
@@ -88,16 +89,24 @@ export const MaintainerDataGrid = ({
   );
 
   const mergedSlotProps = useMemo(() => {
-    if (!searchable) return slotProps;
+    if (!searchable)
+      return {
+        ...slotProps,
+        toolbar: {
+          ...slots?.toolbar,
+          showQuickFilter: false,
+        },
+      };
     return {
       ...slotProps,
       toolbar: {
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,
         searchPlaceholder: searchable.placeholder,
+        fileName: searchable.fileName,
       } as unknown as GridSlotProps["toolbar"],
     };
-  }, [slotProps, searchable, searchQuery]);
+  }, [searchable, slotProps, slots?.toolbar, searchQuery]);
 
   const sxArray: SxArrayItem[] = isSxArray(sx)
     ? [...sx]
