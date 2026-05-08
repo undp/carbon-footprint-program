@@ -63,6 +63,8 @@ export const useMeasurementUnitColumns = ({
         headerName: "Magnitud",
         minWidth: 180,
         flex: 0.5,
+        valueGetter: (_, row: MeasurementUnitsFormRow) =>
+          MAGNITUDE_LABELS[row.magnitude as Magnitude] ?? row.magnitude,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -243,6 +245,8 @@ export const useMeasurementUnitColumns = ({
         minWidth: 130,
         headerAlign: "center",
         align: "center",
+        valueGetter: (_, row: MeasurementUnitsFormRow) =>
+          row.isBase ? "Sí" : "No",
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -295,6 +299,7 @@ export const useMeasurementUnitColumns = ({
         minWidth: 130,
         sortable: false,
         filterable: false,
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const editing = isEditing(params.row.id);
           const protected_ = isProtectedRow(params.row);

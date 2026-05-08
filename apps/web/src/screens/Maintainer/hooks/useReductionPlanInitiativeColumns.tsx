@@ -54,6 +54,8 @@ export const useReductionPlanInitiativeColumns = ({
         headerName: "Subcategoría",
         flex: 0.25,
         minWidth: 200,
+        valueGetter: (_, row: ReductionPlanInitiativeFormRow) =>
+          subcategories.find((sc) => sc.id === row.subcategoryId)?.name ?? "",
         renderCell: (
           params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
         ) => {
@@ -159,6 +161,7 @@ export const useReductionPlanInitiativeColumns = ({
         width: 130,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center" as const,
         align: "center" as const,
         renderCell: (

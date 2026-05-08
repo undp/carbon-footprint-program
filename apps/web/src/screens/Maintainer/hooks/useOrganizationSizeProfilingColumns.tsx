@@ -173,6 +173,7 @@ export const useOrganizationSizeProfilingColumns = ({
         width: 140,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center",
         align: "center",
         disableColumnMenu: true,

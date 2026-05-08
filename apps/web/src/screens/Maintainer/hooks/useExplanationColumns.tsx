@@ -37,9 +37,8 @@ export const useExplanationColumns = ({
         filterable: false,
         disableColumnMenu: true,
         sortable: false,
+        disableExport: true,
         width: 140,
-        valueGetter: (_value, row: ExplanationRow) =>
-          row.description?.slice(0, 10),
         renderCell: (params: GridRenderCellParams<ExplanationRow>) => (
           <Button
             size="small"
