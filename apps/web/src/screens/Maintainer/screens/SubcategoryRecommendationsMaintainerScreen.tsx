@@ -8,9 +8,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { MethodologyVersionStatus } from "@repo/types";
@@ -26,8 +29,7 @@ import {
 } from "@/api/query/maintainer";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { AppHttpError } from "@/api/http/errors";
-import { InfoButton } from "@/components";
-import { useExplanationDialog } from "@/contexts";
+import AddIcon from "@mui/icons-material/Add";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { MethodologySelector } from "../components/MethodologySelector";
 import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
@@ -45,6 +47,9 @@ import {
   findSectorAndSubsectorNames,
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 import { arraysEqualUnordered } from "@repo/utils";
+import { InfoButton } from "../../../components";
+import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
+import { useExplanationDialog } from "../../../contexts";
 
 const SUBCATEGORY_RECOMMENDATIONS_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "subcategory-recommendations-maintainer",
@@ -545,7 +550,15 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
           {SUBCATEGORY_RECOMMENDATIONS_LABELS.description}
         </Typography>
         <MaintainerDataGrid
-          editingRowId={null}
+          editingRowId={editingRowId}
+          searchable={{
+            fuseOptions: {
+              keys: ["sectorName", "subsectorName"],
+            },
+            placeholder: "Buscar recomendación...",
+            fileName: "recomendaciones-subcategoria",
+          }}
+          showToolbar
           loading={isLoading}
           columns={columns}
           rows={rows}

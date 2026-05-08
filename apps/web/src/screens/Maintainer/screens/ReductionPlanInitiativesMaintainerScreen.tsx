@@ -342,7 +342,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null || !selectedMethodologyVersionId}
         addLabel="Agregar fila"
-        showDownload={false}
         extra={methodologySelector}
         explanationSlug={
           REDUCTION_PLAN_INITIATIVES_MAINTAINER_EXPLANATION_SLUGS.MAIN
@@ -354,6 +353,14 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
             <MaintainerDataGrid
               apiRef={apiRef}
               editingRowId={editingRowId}
+              searchable={{
+                fuseOptions: {
+                  keys: ["title", "description"],
+                },
+                placeholder: "Buscar iniciativa...",
+                fileName: "iniciativas-reduccion",
+              }}
+              showToolbar
               columns={columns}
               rows={currentRows}
               loading={isLoading}
