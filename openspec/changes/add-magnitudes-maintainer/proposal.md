@@ -1,0 +1,40 @@
+## Why
+
+The `Magnitude` enum (`MASS`, `VOLUME`, `DISTANCE`, `TIME`, `ANIMALS`, `AREA`, `POWER`, `ENERGY`, `DISTANCE_MASS`, `ROOMS`) is hardcoded in `packages/database/src/prisma/schema.prisma` and referenced from `MeasurementUnit.magnitude`. Per Huella Latam's country-agnosticism principle, country deployments must be able to extend the platform's reference data through seed/configuration — never code forks. Magnitudes are reference data, but today there is no in-app path to add country-specific magnitudes or to translate the existing labels (the Spanish labels live in `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/constants.ts`, with a literal `// TODO: we should handle this magnitudes in a database table`).
+
+Converting the enum into a model also unblocks the broader UX shuffle in the maintainer area: a future change introduces a "Tasas" read-only screen and a final change collapses Magnitudes, Unidades, and Tasas into a single "Unidades" sidebar group. This proposal is the first step.
+
+## What Changes
+
+- Replace the Prisma `Magnitude` enum with a `Magnitude` model: `{ id, code, name, isSystem, status, createdAt, updatedAt }`. The `code` is a stable identifier (e.g. `MASS`, `VOLUME`, …) that platform code may reference by string; the `name` is the admin-editable Spanish display label.
+- Migrate `MeasurementUnit.magnitude` (`Magnitude` enum) → `MeasurementUnit.magnitudeId` (FK to `Magnitude`).
+- Seed system magnitudes from the existing enum values, using the current Spanish labels (`MASS → "Masa"`, `VOLUME → "Volumen"`, `DISTANCE → "Distancia"`, `TIME → "Tiempo"`, `ANIMALS → "Animales"`, `AREA → "Área"`, `POWER → "Potencia"`, `ENERGY → "Energía"`, `DISTANCE_MASS → "Distancia · Masa"`, `ROOMS → "Habitaciones"`) and `isSystem = true`. The `code` for system magnitudes equals the old enum value verbatim, preserving any place in code that wants to refer to a magnitude semantically.
+- Introduce soft-delete on `Magnitude` via the existing `MeasurementUnitStatus` enum (`ACTIVE`, `DELETED`), reusing the pattern established by `MeasurementUnit` and `RateMeasurementUnit`. System magnitudes (`isSystem = true`) cannot be soft-deleted.
+- Field-locking: `code` is immutable on every magnitude (system or custom) once created — it is the stable identifier. `name` is editable always. `isSystem` is set at creation only by the seed script; the maintainer endpoints SHALL never set it.
+- Custom magnitudes (created by admins via the new screen): `code` SHALL match the regex `^[a-z][a-z0-9_]*$` (lowercase snake_case), `isSystem = false`. They are deletable when no MU references them; otherwise they are blocked from soft-delete.
+- Add API endpoints under `apps/api/src/features/magnitudes/`: `getAllMagnitudes` (list with `referenceCount`), `createMagnitude`, `updateMagnitude`, `deleteMagnitude` (soft-delete).
+- Add a maintainer screen at `/admin/magnitudes` mirroring the inline-edit `StylizedDataGrid` pattern from `MeasurementUnitsScreen`. Sidebar entry: a new top-level "Magnitudes" item alongside the existing "Unidades" entry (the future `regroup-units-sidebar` change will collapse them into a single group).
+- Update the Measurement Units maintainer screen so the magnitude column reads from the new API instead of the hardcoded `MAGNITUDE_LABELS` constant. Delete `MAGNITUDE_LABELS` from `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/constants.ts` and the matching entry in `apps/web/src/config/vocab.ts` (the existing maintainer change added it there too).
+- Update all backend code that referenced `Magnitude.X` enum values: replace with lookups by `code`. The known sites are `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/MeasurementUnitsScreen.tsx:243` (`Magnitude.ANIMALS` used as a default for the new-row form template) and `apps/web/src/screens/Maintainer/screens/MeasurementUnitsScreen/hooks/useMeasurementUnitsForm.ts` (Zod `z.enum(Magnitude)`). The new-row default becomes "first ACTIVE magnitude returned by the API"; the Zod validator becomes `z.coerce.bigint()` (FK id) rather than an enum member.
+- Authorization: `[SUPERADMIN, ADMIN]` on both client (`requireRole` in `beforeLoad`) and server (`fastify.requireRoles`) for the maintainer endpoints; the list endpoint stays publicly accessible because every authenticated user (any role) needs to render historical MU data with magnitude labels.
+
+## Capabilities
+
+### New Capabilities
+
+- `magnitude-management`: Backend CRUD + soft-delete + system-protection for `Magnitude`. Includes the database migration (Prisma enum → model + FK on `MeasurementUnit`), the seed update, and the cross-cutting refactor that swaps `Magnitude.X` enum references for `code`-based lookups.
+- `magnitudes-maintainer-screen`: Frontend admin screen at `/admin/magnitudes` providing the inline-edit DataGrid UI for magnitude management, plus the new top-level sidebar entry "Magnitudes".
+
+### Modified Capabilities
+
+- `measurement-unit-management`: `MeasurementUnit.magnitude` (string enum) becomes `MeasurementUnit.magnitudeId` (FK). The list endpoint joins `magnitude` to return both `magnitudeId` and the resolved `{ id, code, name }`. The "one base unit per magnitude" invariant continues to hold, now keyed on `magnitudeId` instead of the enum string.
+- `measurement-units-maintainer-screen`: The magnitude column renders from the API-resolved `magnitude.name` instead of the local `MAGNITUDE_LABELS` constant; the create/edit form's magnitude picker is populated from `useMagnitudes()` (filtered to `status: ACTIVE`).
+
+## Impact
+
+- **Database**: New `Magnitude` model with columns `(id, code, name, isSystem, status, createdAt, updatedAt)`. New `magnitudeId` FK column on `MeasurementUnit`; the old `magnitude` enum column is dropped. The Prisma `Magnitude` enum is removed. Schema additions are folded into the original base migration (`20251211144312_base/migration.sql`) per the convention established by `add-measurement-units-maintainer` — no new migration file. The seed script (`seedMeasurementUnits.ts`) is updated to insert the system magnitudes before MUs and to resolve `magnitudeId` per MU by code lookup. No data is destroyed: every existing MU's magnitude string maps 1:1 to a seeded magnitude `code`.
+- **API**: New feature folder `apps/api/src/features/magnitudes/` containing `getAllMagnitudes`, `createMagnitude`, `updateMagnitude`, `deleteMagnitude`. The existing `getAllMeasurementUnits` service is updated to `include: { magnitude: true }` and to map the response with the joined fields. `getCarbonInventoryMethodology/helper.ts:272` (which uses `magnitude` as a grouping key — `${num.magnitude}-${den.magnitude}`) is updated to key on `magnitudeId` (BigInt) instead. The "magnitude already has a base unit" validator in `createMeasurementUnit` and `updateMeasurementUnit` keys on `magnitudeId` instead of the enum string.
+- **Types**: `Magnitude` Prisma enum removed from `@repo/types`. New schemas under `packages/types/src/magnitudes/`: base schema, list response, admin create/update/delete schemas. `MeasurementUnitBaseSchema` updates: `magnitude: z.nativeEnum(Magnitude)` → `magnitudeId: IdSchema`, plus a joined `magnitude: MagnitudeBaseSchema` on response shapes only.
+- **Frontend**: New `MagnitudesScreen` at `apps/web/src/screens/Maintainer/screens/MagnitudesScreen/`, new query hooks under `apps/web/src/api/query/maintainer/magnitudes/`, new route at `apps/web/src/routes/admin/magnitudes.tsx`. `MaintainerLayout.tsx` gets a new top-level "Magnitudes" entry near the existing "Unidades". `MeasurementUnitsScreen` is updated to consume `useMagnitudes()` for the magnitude column and form picker; `MAGNITUDE_LABELS` and the corresponding `vocab.ts` entry are removed.
+- **Cross-cutting**: Any code that imports `Magnitude` from `@repo/types` is updated to either remove the import (if it was only used as a type) or to depend on the new `Magnitude` model. The known sites are listed in `tasks.md`.
+- **Dependencies**: None. Uses existing `StylizedDataGrid`, MUI v7, React Hook Form + Zod, TanStack Query.
