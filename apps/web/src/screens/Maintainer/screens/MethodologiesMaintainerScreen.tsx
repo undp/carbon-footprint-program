@@ -17,10 +17,10 @@ import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { MethodologyVersionStatus, MethodologyVersionForm } from "@repo/types";
-import { StylizedDataGrid } from "@components";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 
 const METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "methodologies-maintainer",
@@ -390,15 +390,16 @@ export const MethodologiesMaintainerScreen: FC = () => {
         </Typography>
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
+            <MaintainerDataGrid
+              editingRowId={editingRowId}
+              searchable={{
+                fuseOptions: {
+                  keys: ["name", "description", "regulation", "version"],
                 },
-                "& .MuiDataGrid-cell .MuiTextField-root": {
-                  alignSelf: "center",
-                },
-              })}
+                placeholder: "Buscar metodología...",
+                fileName: "metodologias",
+              }}
+              showToolbar
               loading={isLoading}
               columns={columns}
               rows={currentRows}

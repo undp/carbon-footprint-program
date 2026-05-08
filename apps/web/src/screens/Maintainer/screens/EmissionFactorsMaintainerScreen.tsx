@@ -551,6 +551,20 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       <MaintainerDataGrid
         editingRowId={editingRowId}
         cellMaxHeight={60}
+        searchable={{
+          fuseOptions: {
+            keys: [
+              "subcategoryName",
+              "rateMeasurementUnitName",
+              "dimensionValue1Name",
+              "dimensionValue2Name",
+              "source",
+            ],
+          },
+          placeholder: "Buscar factor de emisión...",
+          fileName: "factores-de-emision",
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady}

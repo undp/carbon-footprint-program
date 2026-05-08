@@ -380,6 +380,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             searchable={{
               fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
               placeholder: "Buscar actividades...",
+              fileName: "actividades-principales",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

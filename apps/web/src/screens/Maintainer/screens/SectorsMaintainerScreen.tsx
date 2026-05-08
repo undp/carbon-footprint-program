@@ -272,6 +272,7 @@ export const SectorsMaintainerScreen: FC = () => {
             searchable={{
               fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
               placeholder: "Buscar rubros...",
+              fileName: "rubros",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

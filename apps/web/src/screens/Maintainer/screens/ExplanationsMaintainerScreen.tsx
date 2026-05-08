@@ -63,7 +63,6 @@ export const ExplanationsMaintainerScreen: FC = () => {
     <>
       <MaintainerPageHeader
         title="Explicaciones"
-        showDownload={false}
         explanationSlug={EXPLANATIONS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
@@ -74,6 +73,13 @@ export const ExplanationsMaintainerScreen: FC = () => {
         ) : (
           <MaintainerDataGrid
             editingRowId={null}
+            searchable={{
+              fuseOptions: {
+                keys: ["name", "description"],
+              },
+              placeholder: "Buscar explicación...",
+              fileName: "explicaciones",
+            }}
             loading={isLoading}
             columns={columns}
             rows={rows}

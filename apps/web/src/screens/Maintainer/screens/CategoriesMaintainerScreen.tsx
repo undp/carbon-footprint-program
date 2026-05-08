@@ -31,7 +31,7 @@ import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
 import { CategoryForm } from "@repo/types";
-import { StylizedDataGrid } from "@components";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
@@ -518,28 +518,22 @@ export const CategoriesMaintainerScreen: FC = () => {
         </Typography>
         <form id="categories-form" noValidate>
           <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
+            <MaintainerDataGrid
+              editingRowId={editingRowId}
+              cellMaxHeight={70}
+              searchable={{
+                fuseOptions: {
+                  keys: ["name", "description", "synonyms"],
                 },
-                "& .MuiDataGrid-cell": {
-                  display: "flex",
-                  maxHeight: 70,
-                  alignItems: "center",
-                },
-                "& .MuiDataGrid-row.row--editing": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-              })}
+                placeholder: "Buscar categoría...",
+                fileName: "categorias",
+              }}
+              showToolbar
               loading={isLoading || isLoadingMethodologies}
               columns={columns}
               rows={currentRows}
               rowHeight={70}
               getRowId={(row: CategoryForm) => row.id}
-              getRowClassName={({ id }) =>
-                String(id) === editingRowId ? "row--editing" : ""
-              }
             />
           </Box>
         </form>

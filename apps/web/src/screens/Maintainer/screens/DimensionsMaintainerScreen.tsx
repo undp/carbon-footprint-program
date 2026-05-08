@@ -541,6 +541,14 @@ export const DimensionsMaintainerScreen: FC = () => {
     >
       <MaintainerDataGrid
         editingRowId={editingRowId}
+        searchable={{
+          fuseOptions: {
+            keys: ["name", "subcategoryName"],
+          },
+          placeholder: "Buscar dimensión...",
+          fileName: "dimensiones",
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady || scope.isLoadingMethodologies}
