@@ -3,7 +3,6 @@ import { Box, Button, Paper, Typography } from "@mui/material";
 import { AddOutlined } from "@mui/icons-material";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import { DownloadMenu } from "../components/DownloadMenu";
 
 interface Props {
   title: string;
@@ -12,7 +11,6 @@ interface Props {
   addLabel?: string;
   addDisabled?: boolean;
   extra?: ReactNode;
-  showDownload?: boolean;
   explanationSlug?: string;
 }
 
@@ -23,7 +21,6 @@ export const MaintainerPageHeader: FC<Props> = ({
   addLabel = "Agregar",
   addDisabled,
   extra,
-  showDownload = true,
   explanationSlug,
 }) => {
   const { openExplanationBySlug } = useExplanationDialog();
@@ -71,7 +68,6 @@ export const MaintainerPageHeader: FC<Props> = ({
           }}
         >
           {extra}
-          {showDownload && <DownloadMenu />}
           {onAddRow && (
             <Button
               variant="contained"

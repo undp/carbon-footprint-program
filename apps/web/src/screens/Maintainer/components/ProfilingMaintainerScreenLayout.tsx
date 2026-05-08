@@ -58,7 +58,6 @@ export const ProfilingMaintainerScreenLayout = ({
       addDisabled={addDisabled}
       onAddRow={onAddRow}
       extra={statusFilter}
-      showDownload={false}
       explanationSlug={explanationSlug}
     />
     <Box className="rounded-sm bg-white p-3">
