@@ -95,9 +95,9 @@ The update body SHALL accept only `name`; sending `code`, `isSystem`, or `status
 - **WHEN** an admin sends a PATCH request with a body containing `code`, `isSystem`, or `status` (regardless of value)
 - **THEN** the system SHALL respond with HTTP 400 (the update body schema rejects unknown fields)
 
-### Requirement: List endpoint is publicly accessible and exposes reference count
+### Requirement: List endpoint requires admin authentication and exposes reference count
 
-The endpoint `GET /api/magnitudes` SHALL filter `where: { status: "ACTIVE" }`, default-order `[{ isSystem: "desc" }, { name: "asc" }]`, and return each row with its `referenceCount`. The endpoint SHALL be accessible to any authenticated user (no admin role required), because the measurement-unit list endpoint joins magnitudes and is consumed by every authenticated role via the `EmissionEditor` flow.
+The endpoint `GET /api/magnitudes` SHALL filter `where: { status: "ACTIVE" }`, default-order `[{ isSystem: "desc" }, { name: "asc" }]`, and return each row with its `referenceCount`. The endpoint SHALL be accessible only to authenticated users with system role `ADMIN` or `SUPERADMIN`. Non-admin users that need to render magnitude labels SHALL obtain them from endpoints that already join `magnitude` (e.g., `getAllMeasurementUnits`), not from this endpoint.
 
 #### Scenario: Soft-deleted magnitudes excluded from list
 
@@ -109,18 +109,18 @@ The endpoint `GET /api/magnitudes` SHALL filter `where: { status: "ACTIVE" }`, d
 - **WHEN** the `getAllMagnitudes` endpoint returns mixed system and custom magnitudes
 - **THEN** all `isSystem = true` rows SHALL appear before any `isSystem = false` row, and within each group rows SHALL be ordered by `name` ASC
 
-### Requirement: Maintainer mutation endpoints require admin authentication
+### Requirement: All magnitudes endpoints require admin authentication
 
-The endpoints `POST /api/magnitudes`, `PATCH /api/magnitudes/:id`, and `DELETE /api/magnitudes/:id` SHALL be accessible only to authenticated users with system role `ADMIN` or `SUPERADMIN`.
+Every endpoint under `/api/magnitudes` — `GET /api/magnitudes`, `POST /api/magnitudes`, `PATCH /api/magnitudes/:id`, `DELETE /api/magnitudes/:id` — SHALL be accessible only to authenticated users with system role `ADMIN` or `SUPERADMIN`. There is no public/non-admin path into this feature.
 
-#### Scenario: Unauthenticated mutation request
+#### Scenario: Unauthenticated request to any magnitudes endpoint
 
-- **WHEN** any maintainer mutation endpoint receives a request without a valid authentication token
+- **WHEN** any magnitudes endpoint receives a request without a valid authentication token
 - **THEN** the system SHALL respond with HTTP 401
 
 #### Scenario: Authenticated user without admin role
 
-- **WHEN** any maintainer mutation endpoint receives a request from a user with system role `USER`
+- **WHEN** any magnitudes endpoint receives a request from a user with system role `USER`
 - **THEN** the system SHALL respond with HTTP 403
 
 ### Requirement: Picker reads filter status, display reads do not
