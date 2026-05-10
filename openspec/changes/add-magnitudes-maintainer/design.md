@@ -155,12 +155,12 @@ vs. the prior `where: { magnitude: body.magnitude, ... }`.
 
 ### 9. Authorization
 
-**Decision**: Magnitudes maintainer mutations require `[SUPERADMIN, ADMIN]`. The list endpoint (`GET /api/magnitudes`) is publicly accessible to any authenticated user, because the measurement-unit list is also public (used by the `EmissionEditor` flow), and the MU list now joins magnitudes — so non-admin users need to be able to fetch magnitude rows to render them.
+**Decision**: Every magnitudes endpoint — list, create, update, delete — requires `[SUPERADMIN, ADMIN]`. There is no public/non-admin path into the magnitudes feature. Non-admin users render magnitude labels indirectly through endpoints that already join `magnitude` (e.g. `getAllMeasurementUnits`), so they never need to call `GET /api/magnitudes` directly.
 
 - **Client-side**: `beforeLoad: requireRole([SystemRole.SUPERADMIN, SystemRole.ADMIN], { redirectTo: Routes.ADMIN_DASHBOARD })` on the `/admin/magnitudes` route only.
-- **Server-side**: split-scope registration mirroring `apps/api/src/routes/api/measurement-units/index.ts` — list at the outer scope, mutations inside a child scope with `requireAuth + requireRoles`.
+- **Server-side**: a single scope wrapping all four routes with `requireAuth` (onRequest) + `requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` (preHandler). No split-scope — list and mutations share the same admin guard.
 
-**Rationale**: Mirrors the established pattern.
+**Rationale**: This is a maintainer-only feature. The MU pattern of an outer-scope public list is a precedent we deliberately _don't_ mirror here, because the magnitudes feature has no consumer outside the admin screen — non-admin code paths read joined magnitude data through MU/related endpoints.
 
 ### 10. UI: inline-edit `StylizedDataGrid` + new top-level sidebar entry
 

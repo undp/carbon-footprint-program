@@ -76,7 +76,7 @@
 
 ## 5. API — List Endpoint
 
-- [ ] 5.1 Create `apps/api/src/features/magnitudes/getAllMagnitudes/route.ts`. GET `/magnitudes`. No role guard at this scope — list is publicly accessible to authenticated users (per Decision 9). Wire it under the same module/scope split as `measurement-units` (see task 9 below).
+- [ ] 5.1 Create `apps/api/src/features/magnitudes/getAllMagnitudes/route.ts`. GET `/magnitudes`. The route itself declares no auth hooks — they are applied by the parent scope in task 9, which gates the entire magnitudes module behind `[SUPERADMIN, ADMIN]` (per Decision 9, including the list endpoint).
 - [ ] 5.2 Create `handler.ts` and `service.ts`:
   - Filter `where: { status: "ACTIVE" }`, default order `[{ isSystem: "desc" }, { name: "asc" }]` (system magnitudes pinned to the top).
   - Compute `referenceCount` for all rows in a single pass: `tx.measurementUnit.groupBy({ by: ["magnitudeId"], _count: { _all: true } })`. Merge into a `Map<magnitudeId, number>` and attach to each row. The number of queries is fixed at two (magnitudes + groupBy) regardless of row count.
@@ -114,9 +114,9 @@
 
 ## 9. API — Route Registration
 
-- [ ] 9.1 Create `apps/api/src/routes/api/magnitudes/index.ts` mirroring `apps/api/src/routes/api/measurement-units/index.ts`:
-  - Outer scope: `getAllMagnitudesRoute(fastify)` (no auth/role hooks — public read).
-  - Child scope: `requireAuth` (onRequest) + `requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` (preHandler). Inside, register `createMagnitudeRoute`, `updateMagnitudeRoute`, `deleteMagnitudeRoute`.
+- [ ] 9.1 Create `apps/api/src/routes/api/magnitudes/index.ts`. Single scope wrapping all four routes — there is no public list, so no split-scope is needed:
+  - Register `requireAuth` (onRequest) + `requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` (preHandler) at the top of the function.
+  - Register `getAllMagnitudesRoute`, `createMagnitudeRoute`, `updateMagnitudeRoute`, `deleteMagnitudeRoute` after the hooks. All four inherit the admin guard.
 - [ ] 9.2 Wire the new `magnitudes` module into the API root route registry (`apps/api/src/routes/api/index.ts` or wherever `measurement-units` is registered). Confirm the OpenAPI docs at `/docs` show the new endpoints after start-up.
 
 ## 10. API — Update Existing MU Endpoints
@@ -182,7 +182,7 @@
 
 ## 18. Testing — API
 
-- [ ] 18.1 Integration test for `getAllMagnitudes`: returns only ACTIVE rows, default order pins system magnitudes, every row carries `referenceCount`, public access works for non-admin users.
+- [ ] 18.1 Integration test for `getAllMagnitudes`: returns only ACTIVE rows, default order pins system magnitudes, every row carries `referenceCount`, and the endpoint enforces the admin guard (401 unauthenticated, 403 for non-admin authenticated users, 200 for ADMIN/SUPERADMIN).
 - [ ] 18.2 Integration test for `createMagnitude`: happy-path create with a valid lowercase `code`, code-collision (ACTIVE) → 409, restore-after-delete path, validation errors (uppercase code, invalid characters, name too long), auth checks (401, 403).
 - [ ] 18.3 Integration test for `updateMagnitude`: rename succeeds for system and custom magnitudes, attempt to send `code` or `isSystem` in body → 400 (route schema rejection), 404 path, auth checks.
 - [ ] 18.4 Integration test for `deleteMagnitude`: happy-path soft-delete of a custom magnitude with no MU references, blocked when `referenceCount > 0` → 422, blocked when `isSystem = true` → 422, 404 path, auth checks. Verify the magnitude row remains queryable when status filter is excluded.
@@ -193,7 +193,7 @@
 ## 19. Testing — Frontend
 
 - [ ] 19.1 Smoke-test the magnitudes screen in the dev server: create, edit, delete a custom magnitude; rename a system magnitude; attempt to delete a system magnitude (verify the action is hidden); attempt to delete a magnitude in use (verify the action is disabled).
-- [ ] 19.2 Smoke-test the measurement units screen: the magnitude column renders from the API, the form picker is populated, the new-row default selects a sane initial value.
+- [ ] 19.2 Smoke-test the measurement units screen: the magnitude column renders from the API, the form picker is populated from the screen-level `useMagnitudes()` query, the new-row default has `magnitudeId: null` (no preselection), the row cannot be saved until the user picks a magnitude, and the validation error is displayed in Spanish.
 
 ## 20. Documentation
 
