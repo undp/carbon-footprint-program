@@ -16,10 +16,10 @@ The local `MAGNITUDE_LABELS` constant in `apps/web/src/screens/Maintainer/screen
 - **WHEN** the admin opens the create/edit form for a measurement unit
 - **THEN** the magnitude picker SHALL list options from `useMagnitudes()` (filtered to `status: ACTIVE`), with the option label being the magnitude's `name` and the option value being its `id` as a string
 
-#### Scenario: New-row default is the first available magnitude
+#### Scenario: New-row magnitude requires explicit selection
 
-- **WHEN** the admin clicks "Add row" and the magnitudes list is non-empty
-- **THEN** the new row's `magnitudeId` SHALL default to the id of the first ACTIVE magnitude returned by `useMagnitudes()`
+- **WHEN** the admin clicks "Add row" and `useMagnitudes()` returns a non-empty list
+- **THEN** the new row's `magnitudeId` SHALL be initialized to an empty value (no preselected magnitude) and the magnitude picker SHALL require explicit user selection before the row can be saved
 
 #### Scenario: New-row default with empty magnitudes list
 
