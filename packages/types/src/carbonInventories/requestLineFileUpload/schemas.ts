@@ -8,9 +8,9 @@ export const RequestLineFileUploadParamsSchema = z.object({
 export const RequestLineFileUploadBodySchema = z.object({
   originalName: z
     .string()
+    .trim()
     .min(1)
     .max(255)
-    .trim()
     .regex(/^[ -~]+$/, "File name must only contain printable ASCII characters")
     .refine(
       (name) => !/[/\\:]/.test(name),
