@@ -15,17 +15,22 @@ export const updateMagnitudeService = async (
   _user: User | null
 ): Promise<UpdateMagnitudeResponse> => {
   return await prismaClient.$transaction(async (tx) => {
-    const target = await tx.magnitude.findUnique({
-      where: { id: BigInt(id) },
+    const magnitudeId = BigInt(id);
+
+    const { count } = await tx.magnitude.updateMany({
+      where: {
+        id: magnitudeId,
+        status: { not: MagnitudeStatus.DELETED },
+      },
+      data: { name: body.name },
     });
 
-    if (!target || target.status === MagnitudeStatus.DELETED) {
+    if (count === 0) {
       throw new MagnitudeNotFoundError(id);
     }
 
-    const updated = await tx.magnitude.update({
-      where: { id: target.id },
-      data: { name: body.name },
+    const updated = await tx.magnitude.findUniqueOrThrow({
+      where: { id: magnitudeId },
     });
 
     const referenceCount = await getMagnitudeReferenceCount(tx, updated.id);
