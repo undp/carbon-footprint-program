@@ -1,4 +1,4 @@
-import { type PrismaClient } from "@repo/database";
+import { type PrismaClient, MagnitudeStatus } from "@repo/database";
 import type {
   UpdateMagnitudeBody,
   UpdateMagnitudeResponse,
@@ -19,7 +19,7 @@ export const updateMagnitudeService = async (
       where: { id: BigInt(id) },
     });
 
-    if (!target) {
+    if (!target || target.status === MagnitudeStatus.DELETED) {
       throw new MagnitudeNotFoundError(id);
     }
 

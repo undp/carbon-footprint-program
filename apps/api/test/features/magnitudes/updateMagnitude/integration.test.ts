@@ -241,5 +241,29 @@ describe("PATCH /api/magnitudes/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it("should return 404 when the magnitude has been soft-deleted", async () => {
+      const target = await createCustomMagnitude();
+      await prisma.magnitude.update({
+        where: { id: BigInt(target.id) },
+        data: { status: MagnitudeStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/magnitudes/${target.id}`,
+        payload: { name: "Should not apply" },
+      });
+
+      expect(response.statusCode).toBe(404);
+
+      const stored = await prisma.magnitude.findUnique({
+        where: { id: BigInt(target.id) },
+      });
+      expect(stored?.name).toBe(
+        `Test Update ${target.code.replace("test_", "")}`
+      );
+      expect(stored?.status).toBe(MagnitudeStatus.DELETED);
+    });
   });
 });
