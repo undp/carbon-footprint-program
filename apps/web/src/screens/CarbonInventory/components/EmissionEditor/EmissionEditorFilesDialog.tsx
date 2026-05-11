@@ -28,8 +28,8 @@ import {
 import { FileUpload } from "@/components/FileUpload";
 import { formatFileSize } from "@/utils/files";
 import { useUploadCarbonInventoryLineFiles } from "@/api/query/carbonInventories/useUploadCarbonInventoryLineFiles";
-import { useDeleteFile } from "@/api/query/files/useDeleteFile";
-import { usePreviewFile } from "@/api/query/files/usePreviewFile";
+import { useDeleteCarbonInventoryLineFile } from "@/api/query/carbonInventories/useDeleteCarbonInventoryLineFile";
+import { usePreviewCarbonInventoryLineFile } from "@/api/query/carbonInventories/usePreviewCarbonInventoryLineFile";
 import {
   EmissionCaptureFormValues,
   LineFileSummary,
@@ -99,8 +99,9 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
 
   const { preUploadFiles, isUploading } =
     useUploadCarbonInventoryLineFiles(inventoryId);
-  const { mutateAsync: deleteFile, isPending: isDeleting } = useDeleteFile();
-  const { getPreviewUrl } = usePreviewFile();
+  const { mutateAsync: deleteFile, isPending: isDeleting } =
+    useDeleteCarbonInventoryLineFile(inventoryId);
+  const { getPreviewUrl } = usePreviewCarbonInventoryLineFile(inventoryId);
 
   const handleFilesPicked = useCallback(
     async (picked: File[]) => {
