@@ -249,31 +249,38 @@ describe("GET /api/measurement-units - Integration Tests", () => {
     // status directly in the database to reach this state.
     it("should still return the joined magnitude when its status is DELETED", async () => {
       const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-      const customMagnitude = await prisma.magnitude.create({
-        data: {
-          code: `test_${suffix}`,
-          name: `Test Display ${suffix}`,
-          isSystem: false,
-          status: MagnitudeStatus.ACTIVE,
-        },
-      });
-
-      const customMu = await prisma.measurementUnit.create({
-        data: {
-          name: `Test MU ${suffix}`,
-          abbreviation: `test_${suffix}`,
-          magnitudeId: customMagnitude.id,
-          baseFactor: 1,
-          isBase: true,
-        },
-      });
-
-      await prisma.magnitude.update({
-        where: { id: customMagnitude.id },
-        data: { status: MagnitudeStatus.DELETED },
-      });
+      let customMagnitude:
+        | Awaited<ReturnType<typeof prisma.magnitude.create>>
+        | undefined;
+      let customMu:
+        | Awaited<ReturnType<typeof prisma.measurementUnit.create>>
+        | undefined;
 
       try {
+        customMagnitude = await prisma.magnitude.create({
+          data: {
+            code: `test_${suffix}`,
+            name: `Test Display ${suffix}`,
+            isSystem: false,
+            status: MagnitudeStatus.ACTIVE,
+          },
+        });
+
+        customMu = await prisma.measurementUnit.create({
+          data: {
+            name: `Test MU ${suffix}`,
+            abbreviation: `test_${suffix}`,
+            magnitudeId: customMagnitude.id,
+            baseFactor: 1,
+            isBase: true,
+          },
+        });
+
+        await prisma.magnitude.update({
+          where: { id: customMagnitude.id },
+          data: { status: MagnitudeStatus.DELETED },
+        });
+
         const response = await app.inject({
           method: "GET",
           url: "/api/measurement-units",
@@ -283,21 +290,25 @@ describe("GET /api/measurement-units - Integration Tests", () => {
         const body = JSON.parse(
           response.body
         ) as GetAllMeasurementUnitsResponse;
-        const row = body.find((u) => u.id === customMu.id.toString());
+        const row = body.find((u) => u.id === customMu!.id.toString());
         expect(row).toBeDefined();
         expect(row!.magnitude.id).toBe(customMagnitude.id.toString());
         expect(row!.magnitude.code).toBe(customMagnitude.code);
         expect(row!.magnitude.status).toBe(MagnitudeStatus.DELETED);
       } finally {
-        await prisma.measurementUnit.update({
-          where: { id: customMu.id },
-          data: { status: MeasurementUnitStatus.DELETED },
-        });
-        await prisma.rateMeasurementUnit.deleteMany({
-          where: { denominatorMeasurementUnitId: customMu.id },
-        });
-        await prisma.measurementUnit.delete({ where: { id: customMu.id } });
-        await prisma.magnitude.delete({ where: { id: customMagnitude.id } });
+        if (customMu) {
+          await prisma.measurementUnit.update({
+            where: { id: customMu.id },
+            data: { status: MeasurementUnitStatus.DELETED },
+          });
+          await prisma.rateMeasurementUnit.deleteMany({
+            where: { denominatorMeasurementUnitId: customMu.id },
+          });
+          await prisma.measurementUnit.delete({ where: { id: customMu.id } });
+        }
+        if (customMagnitude) {
+          await prisma.magnitude.delete({ where: { id: customMagnitude.id } });
+        }
       }
     });
   });
