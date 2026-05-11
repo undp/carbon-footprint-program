@@ -5,6 +5,7 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
 import { MissingFilesError } from "@/features/files/errors.js";
+import { CrossInventoryFileLinkingError } from "../errors.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -136,10 +137,15 @@ export async function createLineResult(
 /**
  * Links a set of files (by UUID) to a carbon inventory line.
  *
- * Validates each file belongs to the given inventory by enforcing the
- * `CARBON_INVENTORY/{inventoryId}/LINES/` blob path prefix — any UUID that
- * doesn't resolve to an ACTIVE file with this prefix is rejected. This is
- * how cross-inventory linking is prevented.
+ * Validates each file in two steps:
+ *  1. The UUID must resolve to an ACTIVE `File` row — otherwise we throw
+ *     `MissingFilesError` (404). This covers typos, already-deleted files,
+ *     and unknown UUIDs.
+ *  2. The resolved file's `blobPath` must start with
+ *     `CARBON_INVENTORY/{inventoryId}/LINES/` — otherwise we throw
+ *     `CrossInventoryFileLinkingError` (422). The prefix is set at upload
+ *     time and is tamper-resistant, so it blocks a user with access to
+ *     inventory A from linking a file uploaded to inventory B.
  *
  * Junction inserts are idempotent (`skipDuplicates: true`) so retries don't
  * fail on existing rows.
@@ -153,21 +159,29 @@ export async function linkFilesToCarbonInventoryLine(
 ): Promise<void> {
   if (fileUuids.length === 0) return;
 
-  const expectedPrefix = `${FileType.CARBON_INVENTORY}/${carbonInventoryId.toString()}/LINES/`;
-
   const files = await tx.file.findMany({
     where: {
       uuid: { in: fileUuids },
       status: FileStatus.ACTIVE,
-      blobPath: { startsWith: expectedPrefix },
     },
-    select: { id: true, uuid: true },
+    select: { id: true, uuid: true, blobPath: true },
   });
 
   if (files.length !== fileUuids.length) {
     const found = new Set(files.map((file) => file.uuid));
     const missing = fileUuids.filter((uuid) => !found.has(uuid));
     throw new MissingFilesError(missing.join(", "));
+  }
+
+  const expectedPrefix = `${FileType.CARBON_INVENTORY}/${carbonInventoryId.toString()}/LINES/`;
+  const crossInventory = files.filter(
+    (file) => !file.blobPath.startsWith(expectedPrefix)
+  );
+  if (crossInventory.length > 0) {
+    throw new CrossInventoryFileLinkingError(
+      carbonInventoryId.toString(),
+      crossInventory.map((file) => file.uuid).join(", ")
+    );
   }
 
   await tx.carbonInventoryLineFile.createMany({
