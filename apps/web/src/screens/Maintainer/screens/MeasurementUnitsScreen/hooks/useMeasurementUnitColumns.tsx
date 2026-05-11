@@ -29,6 +29,7 @@ interface UseMeasurementUnitColumnsParams {
   onDelete: (row: MeasurementUnitsFormRow) => void;
   rows: MeasurementUnitsFormRow[];
   magnitudeOptions: MagnitudeOption[];
+  magnitudeNameById: ReadonlyMap<string, string>;
 }
 
 const isProtectedRow = (row: MeasurementUnitsFormRow): boolean =>
@@ -43,6 +44,7 @@ export const useMeasurementUnitColumns = ({
   onDelete,
   rows,
   magnitudeOptions,
+  magnitudeNameById,
 }: UseMeasurementUnitColumnsParams): GridColDef<MeasurementUnitsFormRow>[] => {
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
@@ -52,11 +54,6 @@ export const useMeasurementUnitColumns = ({
   const isEditing = useCallback(
     (rowId: string) => editingRowId === rowId,
     [editingRowId]
-  );
-
-  const magnitudeNameById = useMemo(
-    () => new Map(magnitudeOptions.map((m) => [m.id, m.name])),
-    [magnitudeOptions]
   );
 
   return useMemo<GridColDef<MeasurementUnitsFormRow>[]>(
@@ -103,6 +100,7 @@ export const useMeasurementUnitColumns = ({
               rowIndex={rowIndex}
               isEditing={editing}
               options={magnitudeOptions}
+              labelById={magnitudeNameById}
               onChange={(value: string) =>
                 onCellChange(rowIndex, "magnitudeId", value)
               }

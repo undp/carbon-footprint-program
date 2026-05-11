@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { MenuItem, Select, Typography } from "@mui/material";
+import { MenuItem, Select, Typography, useTheme } from "@mui/material";
 import { getNestedError } from "./cellUtils";
 
 interface MagnitudeOption {
@@ -13,6 +13,7 @@ interface MagnitudeSelectCellProps {
   rowIndex: number;
   isEditing: boolean;
   options: MagnitudeOption[];
+  labelById?: ReadonlyMap<string, string>;
   onChange: (value: string) => void;
   onClick?: () => void;
 }
@@ -22,9 +23,11 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
   rowIndex,
   isEditing,
   options,
+  labelById,
   onChange,
   onClick,
 }) => {
+  const theme = useTheme();
   const formPath = `${formArrayName}.${rowIndex}.magnitudeId`;
   const { control } = useFormContext();
   const magnitudeId = useWatch({ name: formPath }) as string;
@@ -36,8 +39,10 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
     "magnitudeId"
   );
 
-  const labelById = new Map(options.map((m) => [m.id, m.name]));
-  const label = magnitudeId ? (labelById.get(magnitudeId) ?? magnitudeId) : "";
+  const optionLabelById = new Map(options.map((m) => [m.id, m.name]));
+  const resolveLabel = (id: string): string =>
+    labelById?.get(id) ?? optionLabelById.get(id) ?? id;
+  const label = magnitudeId ? resolveLabel(magnitudeId) : "";
   const isCurrentInOptions = magnitudeId
     ? options.some((o) => o.id === magnitudeId)
     : true;
@@ -47,6 +52,7 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
       <Typography
         onClick={onClick}
         sx={{
+          color: !isCurrentInOptions ? theme.palette.grey[400] : undefined,
           px: 1,
           py: 0.5,
           borderRadius: 1,
@@ -56,6 +62,7 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
         }}
       >
         {label}
+        {!isCurrentInOptions ? " (Eliminado)" : ""}
       </Typography>
     );
   }
@@ -78,7 +85,7 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
       )}
       {magnitudeId && !isCurrentInOptions && (
         <MenuItem value={magnitudeId} disabled>
-          {label}
+          {label} (Eliminado)
         </MenuItem>
       )}
       {options.map((mag) => (

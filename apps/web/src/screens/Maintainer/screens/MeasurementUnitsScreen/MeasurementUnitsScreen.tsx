@@ -51,6 +51,17 @@ export const MeasurementUnitsScreen: FC = () => {
     [magnitudes]
   );
 
+  // Display lookup that merges names from the MU payload (which includes
+  // joined names for soft-deleted magnitudes) with the active-magnitudes list
+  // (picker). MU payload wins so it stays in sync with the latest server data.
+  const magnitudeNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of magnitudes ?? []) map.set(m.id, m.name);
+    for (const mu of measurementUnits ?? [])
+      map.set(mu.magnitude.id, mu.magnitude.name);
+    return map;
+  }, [magnitudes, measurementUnits]);
+
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const addMutation = useAddMeasurementUnit();
@@ -319,6 +330,7 @@ export const MeasurementUnitsScreen: FC = () => {
     onDelete: handleDelete,
     rows: currentRows,
     magnitudeOptions,
+    magnitudeNameById,
   });
 
   const sortModel = useMemo(
