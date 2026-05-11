@@ -568,6 +568,88 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     });
   });
 
+  describe("Magnitude-pair grouping", () => {
+    // The methodology helper groups RMUs by `${numMagnitudeId}-${denMagnitudeId}`
+    // and uses that map to derive converted factors. This test verifies the
+    // FK-based key still yields correct buckets: every converted factor must
+    // hang off an original factor whose RMU shares the same magnitude pair.
+    it("should keep converted factors within the same magnitude pair as their original", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      const allFactors = body.categories
+        .flatMap((cat) => cat.subcategories)
+        .flatMap((sub) => sub.emissionFactors);
+
+      // Pre-build a lookup of rateMeasurementUnit -> { numMagId, denMagId }
+      // so we can verify every converted factor's RMU agrees on magnitudes
+      // with its original.
+      const rateUnitIds = new Set<string>(
+        allFactors.map((ef) => ef.rateMeasurementUnitId)
+      );
+      const rateUnits = await prisma.rateMeasurementUnit.findMany({
+        where: { id: { in: [...rateUnitIds].map((id) => BigInt(id)) } },
+        select: {
+          id: true,
+          numeratorMeasurementUnit: { select: { magnitudeId: true } },
+          denominatorMeasurementUnit: { select: { magnitudeId: true } },
+        },
+      });
+      const magnitudePairByRateUnitId = new Map<string, string>(
+        rateUnits.map((ru) => [
+          ru.id.toString(),
+          `${ru.numeratorMeasurementUnit.magnitudeId.toString()}-${ru.denominatorMeasurementUnit.magnitudeId.toString()}`,
+        ])
+      );
+
+      const originalFactorById = new Map(
+        allFactors
+          .filter((ef) => ef.originalEmissionFactorId === null)
+          .map((ef) => [ef.id, ef])
+      );
+
+      const convertedFactors = allFactors.filter(
+        (ef) => ef.originalEmissionFactorId !== null
+      );
+
+      // The test is only meaningful if the inventory actually produces
+      // converted factors — fail loudly otherwise so the pattern can be
+      // adjusted if the seed data ever changes.
+      expect(convertedFactors.length).toBeGreaterThan(0);
+
+      for (const converted of convertedFactors) {
+        const original = originalFactorById.get(
+          converted.originalEmissionFactorId!
+        );
+        expect(original).toBeDefined();
+
+        const originalPair = magnitudePairByRateUnitId.get(
+          original!.rateMeasurementUnitId
+        );
+        const convertedPair = magnitudePairByRateUnitId.get(
+          converted.rateMeasurementUnitId
+        );
+        expect(originalPair).toBeDefined();
+        expect(convertedPair).toBeDefined();
+        expect(convertedPair).toBe(originalPair);
+      }
+    });
+  });
+
   describe("Error cases", () => {
     // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
     // resource ID enumeration (security-by-obscurity).

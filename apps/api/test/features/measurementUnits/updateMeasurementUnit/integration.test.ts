@@ -274,4 +274,45 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
     });
   });
+
+  describe("Magnitude state", () => {
+    // The update endpoint must refuse re-pointing an MU at a soft-deleted
+    // magnitude. Enforcement is service-level (the route schema only
+    // validates id shape, not DB state), so this test expects a 400.
+    it("should return 400 when magnitudeId references a DELETED magnitude", async () => {
+      const created = await createUnit();
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const deletedMagnitude = await prisma.magnitude.create({
+        data: {
+          code: `test_${suffix}`,
+          name: `Test Deleted ${suffix}`,
+          isSystem: false,
+          status: "DELETED",
+        },
+      });
+
+      try {
+        const response = await app.inject({
+          method: "PATCH",
+          url: `/api/measurement-units/${created.id}`,
+          payload: { magnitudeId: deletedMagnitude.id.toString() },
+        });
+        expect(response.statusCode).toBe(400);
+      } finally {
+        // Reassign the MU off the DELETED magnitude before tearing it down,
+        // in case the service accepted the request (FK is ON DELETE RESTRICT).
+        const orphans = await prisma.measurementUnit.findMany({
+          where: { magnitudeId: deletedMagnitude.id },
+          select: { id: true },
+        });
+        if (orphans.length > 0) {
+          await prisma.measurementUnit.updateMany({
+            where: { id: { in: orphans.map((o) => o.id) } },
+            data: { magnitudeId: BigInt(magnitudeIdByCode.mass) },
+          });
+        }
+        await prisma.magnitude.delete({ where: { id: deletedMagnitude.id } });
+      }
+    });
+  });
 });

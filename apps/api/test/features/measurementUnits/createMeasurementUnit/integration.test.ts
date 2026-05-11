@@ -383,5 +383,54 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       });
       expect(response.statusCode).toBe(400);
     });
+
+    // The create endpoint must refuse measurement units that reference a
+    // soft-deleted magnitude. The chosen enforcement layer is service-level
+    // validation (the route schema only validates id shape, not DB state),
+    // so this test expects a 400 returned from the service.
+    it("should return 400 when magnitudeId references a DELETED magnitude", async () => {
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const deletedMagnitude = await prisma.magnitude.create({
+        data: {
+          code: `test_${suffix}`,
+          name: `Test Deleted Magnitude ${suffix}`,
+          isSystem: false,
+          status: "DELETED",
+        },
+      });
+
+      try {
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/measurement-units",
+          payload: buildPayload({
+            magnitudeId: deletedMagnitude.id.toString(),
+          }),
+        });
+        expect(response.statusCode).toBe(400);
+      } finally {
+        // Tear down any MU that may have been created against this magnitude
+        // before deleting the magnitude row (FK is ON DELETE RESTRICT).
+        const orphans = await prisma.measurementUnit.findMany({
+          where: { magnitudeId: deletedMagnitude.id },
+          select: { id: true },
+        });
+        if (orphans.length > 0) {
+          const orphanIds = orphans.map((o) => o.id);
+          await prisma.rateMeasurementUnit.deleteMany({
+            where: {
+              OR: [
+                { numeratorMeasurementUnitId: { in: orphanIds } },
+                { denominatorMeasurementUnitId: { in: orphanIds } },
+              ],
+            },
+          });
+          await prisma.measurementUnit.deleteMany({
+            where: { id: { in: orphanIds } },
+          });
+        }
+        await prisma.magnitude.delete({ where: { id: deletedMagnitude.id } });
+      }
+    });
   });
 });

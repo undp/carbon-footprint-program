@@ -12,6 +12,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { MagnitudeStatus, MeasurementUnitStatus } from "@repo/database";
 
 const MAGNITUDES = [
   "mass",
@@ -153,10 +154,17 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
+      // Postgres orders by code-point (binary) under the default UTF-8
+      // collation: accented Latin chars like `Á` (U+00C1) come after `V`
+      // (U+0056), not next to `A` as `localeCompare()` would place them.
+      // Mirror the same comparison here so the expected order matches the
+      // server's response.
+      const byCodePoint = (a: string, b: string) =>
+        a < b ? -1 : a > b ? 1 : 0;
       const sorted = [...body].sort((a, b) => {
-        const magnitudeOrder = a.magnitude.name.localeCompare(b.magnitude.name);
+        const magnitudeOrder = byCodePoint(a.magnitude.name, b.magnitude.name);
         if (magnitudeOrder !== 0) return magnitudeOrder;
-        return a.name.localeCompare(b.name);
+        return byCodePoint(a.name, b.name);
       });
       expect(body).toEqual(sorted);
     });
@@ -231,6 +239,66 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const uniqueIds = new Set(ids);
 
       expect(uniqueIds.size).toBe(ids.length);
+    });
+  });
+
+  describe("Soft-deleted magnitude on display reads", () => {
+    // Display-context reads must keep showing the joined magnitude even when
+    // it has been soft-deleted. Soft-deleting a referenced magnitude is not
+    // possible through the API (MagnitudeReferencedError), so we set the
+    // status directly in the database to reach this state.
+    it("should still return the joined magnitude when its status is DELETED", async () => {
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const customMagnitude = await prisma.magnitude.create({
+        data: {
+          code: `test_${suffix}`,
+          name: `Test Display ${suffix}`,
+          isSystem: false,
+          status: MagnitudeStatus.ACTIVE,
+        },
+      });
+
+      const customMu = await prisma.measurementUnit.create({
+        data: {
+          name: `Test MU ${suffix}`,
+          abbreviation: `test_${suffix}`,
+          magnitudeId: customMagnitude.id,
+          baseFactor: 1,
+          isBase: true,
+        },
+      });
+
+      await prisma.magnitude.update({
+        where: { id: customMagnitude.id },
+        data: { status: MagnitudeStatus.DELETED },
+      });
+
+      try {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/measurement-units",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(
+          response.body
+        ) as GetAllMeasurementUnitsResponse;
+        const row = body.find((u) => u.id === customMu.id.toString());
+        expect(row).toBeDefined();
+        expect(row!.magnitude.id).toBe(customMagnitude.id.toString());
+        expect(row!.magnitude.code).toBe(customMagnitude.code);
+        expect(row!.magnitude.status).toBe(MagnitudeStatus.DELETED);
+      } finally {
+        await prisma.measurementUnit.update({
+          where: { id: customMu.id },
+          data: { status: MeasurementUnitStatus.DELETED },
+        });
+        await prisma.rateMeasurementUnit.deleteMany({
+          where: { denominatorMeasurementUnitId: customMu.id },
+        });
+        await prisma.measurementUnit.delete({ where: { id: customMu.id } });
+        await prisma.magnitude.delete({ where: { id: customMagnitude.id } });
+      }
     });
   });
 });
