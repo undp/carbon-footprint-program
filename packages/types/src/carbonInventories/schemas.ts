@@ -1,4 +1,20 @@
 import { z } from "zod";
+import { IdSchema } from "../zod.js";
+
+export const LineFileSummarySchema = z
+  .object({
+    id: IdSchema.describe("The file ID"),
+    uuid: z.uuid().describe("The file UUID"),
+    originalName: z.string().describe("The original file name"),
+    mimeType: z.string().describe("The MIME type of the file"),
+    sizeBytes: z
+      .number()
+      .int()
+      .nonnegative()
+      .describe("The file size in bytes"),
+    createdAt: z.iso.datetime().describe("The upload date"),
+  })
+  .strict();
 
 export const CarbonInventoryDisplayStatusSchema = z.enum([
   "DRAFT",

@@ -5,7 +5,10 @@ import {
   SubmissionTypeSchema,
 } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
-import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
+import {
+  CarbonInventoryDisplayStatusSchema,
+  LineFileSummarySchema,
+} from "../schemas.js";
 import { SubmissionType } from "../../enums.js";
 export const GetCarbonInventoryByIdParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
@@ -42,6 +45,10 @@ const LineItemSchema = z
       .number()
       .nullable()
       .describe("Manual total emissions value"),
+    files: z
+      .array(LineFileSummarySchema)
+      .default([])
+      .describe("The files attached to this line"),
   })
   .strict();
 

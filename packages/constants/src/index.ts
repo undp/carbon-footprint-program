@@ -5,3 +5,4 @@ export * from "./explanations.js";
 export * from "./measurementUnit.js";
 export * from "./magnitude.js";
 export * from "./legal.js";
+export * from "./file.js";
