@@ -30,6 +30,13 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     for (const m of magnitudes) {
       magnitudeIdByCode[m.code] = m.id.toString();
     }
+    const requiredCodes = ["mass", "volume"];
+    const missing = requiredCodes.filter((c) => !magnitudeIdByCode[c]);
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required seed magnitudes: ${missing.join(", ")}. Ensure the database seed has been applied before running this suite.`
+      );
+    }
   });
 
   afterAll(async () => {
