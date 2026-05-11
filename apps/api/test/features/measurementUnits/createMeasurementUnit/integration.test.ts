@@ -14,7 +14,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MeasurementUnitStatus } from "@repo/database";
+import { MeasurementUnitStatus, MagnitudeStatus } from "@repo/database";
 
 describe("POST /api/measurement-units - Integration Tests", () => {
   let app: FastifyInstance;
@@ -402,7 +402,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
           code: `test_${suffix}`,
           name: `Test Deleted Magnitude ${suffix}`,
           isSystem: false,
-          status: "DELETED",
+          status: MagnitudeStatus.DELETED,
         },
       });
 

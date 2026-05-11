@@ -188,7 +188,7 @@ describe("PATCH /api/magnitudes/:id - Integration Tests", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/api/magnitudes/${target.id}`,
-        payload: { name: "Some name", status: "DELETED" },
+        payload: { name: "Some name", status: MagnitudeStatus.DELETED },
       });
 
       expect(response.statusCode).toBe(400);
