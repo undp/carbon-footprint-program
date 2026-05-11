@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { deleteMagnitudeHandler } from "./handler.js";
 import { DeleteMagnitudeParamsSchema } from "@repo/types";
@@ -14,6 +15,7 @@ export const deleteMagnitudeRoute = (fastify: FastifyZodInstance) => {
           "Soft-deletes a custom magnitude with no measurement-unit references. System magnitudes and referenced magnitudes are rejected.",
         params: DeleteMagnitudeParamsSchema,
         response: {
+          200: z.null().describe("Successfully soft-deleted"),
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
