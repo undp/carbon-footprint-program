@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const INVENTORY_UUID_PREFIX = "carbon-inventory-uuid:";
@@ -25,13 +26,16 @@ export function useAuthorizationHeader(inventoryId: string): {
 } {
   const { isAuthenticated } = useAuth();
 
-  const headers: Record<string, string> = {};
-  if (!isAuthenticated) {
-    const uuid = getInventoryUuidFromLocalStorage(inventoryId);
-    if (uuid) {
-      headers["x-carbon-inventory-uuid"] = uuid;
+  const headers = useMemo<Record<string, string>>(() => {
+    const h: Record<string, string> = {};
+    if (!isAuthenticated) {
+      const uuid = getInventoryUuidFromLocalStorage(inventoryId);
+      if (uuid) {
+        h["x-carbon-inventory-uuid"] = uuid;
+      }
     }
-  }
+    return h;
+  }, [isAuthenticated, inventoryId]);
 
   return { isAuthenticated, headers };
 }
