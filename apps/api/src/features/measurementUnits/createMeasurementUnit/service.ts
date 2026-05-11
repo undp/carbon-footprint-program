@@ -1,4 +1,8 @@
-import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  MagnitudeStatus,
+  MeasurementUnitStatus,
+} from "@repo/database";
 import {
   type CreateMeasurementUnitBody,
   type CreateMeasurementUnitResponse,
@@ -13,6 +17,7 @@ import {
 } from "../helpers.js";
 import {
   MagnitudeAlreadyHasBaseUnitError,
+  MagnitudeInactiveError,
   MeasurementUnitAbbreviationAlreadyExistsError,
   BaseUnitMustHaveBaseFactorOneError,
   BaseFactorOneReservedForBaseUnitError,
@@ -26,6 +31,14 @@ export const createMeasurementUnitService = async (
 ): Promise<CreateMeasurementUnitResponse> => {
   return await prismaClient.$transaction(async (tx) => {
     const kg = await resolveKgMeasurementUnit(tx);
+
+    const magnitude = await tx.magnitude.findUnique({
+      where: { id: BigInt(body.magnitudeId) },
+      select: { id: true, status: true },
+    });
+    if (!magnitude || magnitude.status !== MagnitudeStatus.ACTIVE) {
+      throw new MagnitudeInactiveError(body.magnitudeId);
+    }
 
     if (body.isBase) {
       if (body.baseFactor !== 1) {

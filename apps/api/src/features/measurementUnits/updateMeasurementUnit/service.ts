@@ -1,6 +1,7 @@
 import {
   type PrismaClient,
   Prisma,
+  MagnitudeStatus,
   MeasurementUnitStatus,
 } from "@repo/database";
 import type {
@@ -23,6 +24,7 @@ import {
   BaseUnitToggleNotAllowedError,
   MeasurementUnitFieldsLockedError,
   BaseFactorOneReservedForBaseUnitError,
+  MagnitudeInactiveError,
   MeasurementUnitAbbreviationAlreadyExistsError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
@@ -46,6 +48,19 @@ export const updateMeasurementUnitService = async (
 
     if (body.isBase !== undefined && body.isBase !== target.isBase) {
       throw new BaseUnitToggleNotAllowedError();
+    }
+
+    if (
+      body.magnitudeId !== undefined &&
+      BigInt(body.magnitudeId) !== target.magnitudeId
+    ) {
+      const magnitude = await tx.magnitude.findUnique({
+        where: { id: BigInt(body.magnitudeId) },
+        select: { id: true, status: true },
+      });
+      if (!magnitude || magnitude.status !== MagnitudeStatus.ACTIVE) {
+        throw new MagnitudeInactiveError(body.magnitudeId);
+      }
     }
 
     const hasStructuralChange =

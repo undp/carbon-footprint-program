@@ -1,4 +1,8 @@
-import { type PrismaClient, MagnitudeStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  MagnitudeStatus,
+  MeasurementUnitStatus,
+} from "@repo/database";
 import type { GetAllMagnitudesResponse } from "@repo/types";
 import { mapMagnitudeWithReferenceCount } from "../mappers.js";
 
@@ -12,6 +16,7 @@ export const getAllMagnitudesService = async (
     }),
     prismaClient.measurementUnit.groupBy({
       by: ["magnitudeId"],
+      where: { status: MeasurementUnitStatus.ACTIVE },
       _count: { _all: true },
     }),
   ]);
