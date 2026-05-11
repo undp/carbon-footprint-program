@@ -157,6 +157,7 @@ export const useMagnitudeColumns = ({
         minWidth: 140,
         sortable: false,
         filterable: false,
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => {
           const editing = isEditing(params.row.id);
           const isSystem = params.row.isSystem;
