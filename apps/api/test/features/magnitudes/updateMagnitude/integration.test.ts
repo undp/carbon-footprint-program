@@ -242,6 +242,16 @@ describe("PATCH /api/magnitudes/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it("should return 400 when the magnitude id is not numeric", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/magnitudes/not-a-number",
+        payload: { name: "Doesn't matter" },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it("should return 404 when the magnitude has been soft-deleted", async () => {
       const target = await createCustomMagnitude();
       await prisma.magnitude.update({
