@@ -372,19 +372,25 @@ model UserAccessLog {
   @@map("user_access_log")
 }
 
-enum Magnitude {
-  MASS
-  VOLUME
-  DISTANCE
-  TIME
-  ANIMALS
-  AREA
-  POWER
-  ENERGY
-  DISTANCE_MASS
-  ROOMS
+enum MagnitudeStatus {
+  ACTIVE
+  DELETED
 
-  @@map("Magnitude")
+  @@map("magnitude_status")
+}
+
+model Magnitude {
+  id        BigInt          @id @default(autoincrement())
+  code      String          @unique
+  name      String
+  isSystem  Boolean         @default(false) @map("is_system")
+  status    MagnitudeStatus @default(ACTIVE)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  measurementUnits MeasurementUnit[]
+
+  @@map("magnitude")
 }
 
 enum MeasurementUnitStatus {
@@ -397,16 +403,18 @@ enum MeasurementUnitStatus {
 model MeasurementUnit {
   id                          BigInt                       @id @default(autoincrement())
   name                        String
-  magnitude                   Magnitude
+  magnitudeId                 BigInt                       @map("magnitude_id")
   abbreviation                String                       @unique
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
   status                      MeasurementUnitStatus        @default(ACTIVE)
+  magnitude                   Magnitude                    @relation(fields: [magnitudeId], references: [id], onDelete: Restrict)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
   lineInputs                  CarbonInventoryLineInput[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
+  @@index([magnitudeId])
   @@map("measurement_unit")
 }
 
