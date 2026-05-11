@@ -47,6 +47,11 @@ export const useReductionPlanInitiativeColumns = ({
     [editingRowId]
   );
 
+  const subcategoryNameById = useMemo(
+    () => new Map(subcategories.map((sc) => [sc.id, sc.name])),
+    [subcategories]
+  );
+
   return useMemo<GridColDef<ReductionPlanInitiativeFormRow>[]>(
     () => [
       {
@@ -55,7 +60,7 @@ export const useReductionPlanInitiativeColumns = ({
         flex: 0.25,
         minWidth: 200,
         valueGetter: (_, row: ReductionPlanInitiativeFormRow) =>
-          subcategories.find((sc) => sc.id === row.subcategoryId)?.name ?? "",
+          subcategoryNameById.get(row.subcategoryId) ?? "",
         renderCell: (
           params: GridRenderCellParams<ReductionPlanInitiativeFormRow>
         ) => {
@@ -78,9 +83,9 @@ export const useReductionPlanInitiativeColumns = ({
             );
           }
 
-          const name =
-            subcategories.find((sc) => sc.id === row?.subcategoryId)?.name ??
-            "";
+          const name = row?.subcategoryId
+            ? (subcategoryNameById.get(row.subcategoryId) ?? "")
+            : "";
           return (
             <Typography
               variant="body2"
@@ -191,6 +196,7 @@ export const useReductionPlanInitiativeColumns = ({
       onCancelEditRow,
       onDelete,
       subcategories,
+      subcategoryNameById,
       rows,
       editingRowId,
       newRowId,
