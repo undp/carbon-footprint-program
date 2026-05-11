@@ -43,6 +43,14 @@ export const useMagnitudesForm = (reservedCodes: Set<string>) => {
     () =>
       z.object({
         magnitudes: z.array(magnitudeFormRowSchema).superRefine((rows, ctx) => {
+          const tempCodeCounts = new Map<string, number>();
+          rows.forEach((row) => {
+            if (!row.id.startsWith("temp_")) return;
+            const code = row.code.trim();
+            if (!code) return;
+            tempCodeCounts.set(code, (tempCodeCounts.get(code) ?? 0) + 1);
+          });
+
           rows.forEach((row, index) => {
             if (!row.id.startsWith("temp_")) return;
 
@@ -53,6 +61,15 @@ export const useMagnitudesForm = (reservedCodes: Set<string>) => {
               ctx.addIssue({
                 code: "custom",
                 message: "Ya existe una magnitud con este código.",
+                path: [index, "code"],
+              });
+              return;
+            }
+
+            if ((tempCodeCounts.get(code) ?? 0) > 1) {
+              ctx.addIssue({
+                code: "custom",
+                message: "Este código está duplicado en las filas nuevas.",
                 path: [index, "code"],
               });
             }
