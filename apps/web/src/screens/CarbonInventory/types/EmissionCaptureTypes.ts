@@ -6,7 +6,20 @@ import type {
   CarbonInventoryLine,
 } from "./index";
 
-export type EmissionCaptureFormLine = CarbonInventoryLine & {
+/**
+ * Derived from the canonical API response so the form line stays in sync
+ * with the server contract.
+ */
+export type LineFileSummary =
+  GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number]["files"][number] & {
+    /**
+     * Client-only marker for files uploaded inside the dialog but not yet
+     * linked to the line on the server. Cleared after a successful sync.
+     */
+    isPending?: boolean;
+  };
+
+export type EmissionCaptureFormLine = Omit<CarbonInventoryLine, "files"> & {
   baseFactorId: string | null;
   lineId: string;
   /**
@@ -19,6 +32,17 @@ export type EmissionCaptureFormLine = CarbonInventoryLine & {
    * Deleted lines are hidden from the UI but tracked for deletion on submit.
    */
   isDeleted?: boolean;
+  /**
+   * Files attached to this line. Includes both server-linked files and
+   * pending uploads (`isPending: true`). Replaces server-linked files only
+   * after a successful sync.
+   */
+  files: LineFileSummary[];
+  /**
+   * IDs of currently-linked files the user has marked for deletion. Sent
+   * to the API on the next sync to unlink + soft-delete in one transaction.
+   */
+  removedFileIds: string[];
 };
 
 export interface LineValidationState {

@@ -15,6 +15,8 @@ interface EmissionEditorActionsCellProps {
   categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
+  hasPendingFiles?: boolean;
+  hasLinkedFiles?: boolean;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -25,6 +27,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   categoryColor,
   disabled = false,
   hasComment = false,
+  hasPendingFiles = false,
+  hasLinkedFiles = false,
 }) => {
   const categoryColorPalette = categoryColor
     ? getColorPalette(categoryColor)
@@ -46,14 +50,30 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   return (
     <Box className="flex justify-center gap-1">
       {uploadFiles && (
-        <IconButton
-          sx={iconSx}
-          aria-label="uploadFiles"
-          onClick={() => uploadFiles(rowId)}
-          disabled={disabled}
+        <Badge
+          variant="dot"
+          invisible={!hasPendingFiles && !hasLinkedFiles}
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+              backgroundColor: (theme) =>
+                hasPendingFiles
+                  ? theme.palette.warning.main
+                  : theme.palette.primary.main,
+            },
+          }}
         >
-          <SourceOutlined fontSize="inherit" />
-        </IconButton>
+          <IconButton
+            sx={iconSx}
+            aria-label="uploadFiles"
+            onClick={() => uploadFiles(rowId)}
+            disabled={disabled}
+          >
+            <SourceOutlined fontSize="inherit" />
+          </IconButton>
+        </Badge>
       )}
       {updateComment && (
         <Badge
