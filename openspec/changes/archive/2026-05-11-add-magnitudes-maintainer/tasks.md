@@ -130,7 +130,7 @@
   - Replace the lock check `(body.magnitude !== undefined && body.magnitude !== target.magnitude)` with `(body.magnitudeId !== undefined && body.magnitudeId !== target.magnitudeId)`.
   - Replace the "second base for the same magnitude" check (`effectiveMagnitude = body.magnitude ?? target.magnitude`) with `effectiveMagnitudeId = body.magnitudeId ?? target.magnitudeId`, and update the `where` clause similarly.
   - Replace `if (body.magnitude !== undefined) updateData.magnitude = body.magnitude;` with `if (body.magnitudeId !== undefined) updateData.magnitudeId = body.magnitudeId;`.
-- [x] 10.4 `apps/api/src/features/measurementUnits/getAllRateMeasurementUnits/service.ts`: where the response mapper currently exposes `magnitude: item.numeratorMeasurementUnit.magnitude`, change to `magnitude: item.numeratorMeasurementUnit.magnitude` (now the joined object via `include`). Update the `select`/`include` to fetch the joined magnitude. Mirror for the denominator.
+- [x] 10.4 `apps/api/src/features/measurementUnits/getAllRateMeasurementUnits/service.ts`: extend the Prisma query so `numeratorMeasurementUnit` and `denominatorMeasurementUnit` are included with `{ include: { magnitude: true } }`, and update the response mapper to project the joined `magnitude` row as `{ id, code, name, isSystem, status }` (instead of the previous scalar enum value). Mirror for the denominator.
 - [x] 10.5 `apps/api/src/features/measurementUnits/mappers.ts`: update the mapper that emits `magnitude: mu.magnitude` to project the joined `magnitude` object instead of an enum string.
 
 ## 11. API — Methodology Helper
