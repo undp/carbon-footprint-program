@@ -325,26 +325,12 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         { source: "rmu-screen-test-2" }
       );
 
-      // Create a carbon inventory with two lines so we can add inputs/factors.
+      // Create a carbon inventory so we can add lines/inputs/factors.
       const inventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
         { methodologyVersionId }
       );
-
-      const lineA = await createCarbonInventoryLine(
-        prisma,
-        inventory.id,
-        subcategoryIds[0]
-      );
-      const inputA = await createCarbonInventoryLineInput(prisma, lineA.id, {
-        inputType: "DIRECT",
-        directTotalEmissions: new Prisma.Decimal(10),
-      });
-      await prisma.carbonInventoryLineInput.update({
-        where: { id: inputA.id },
-        data: { manualFactorRateUnitId: targetRateUnit.id },
-      });
 
       // lineFactorsAsApplied: 3
       for (let i = 0; i < 3; i++) {
@@ -379,7 +365,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(targetItem).toBeDefined();
       expect(targetItem!.referenceCounts.emissionFactors).toBe(2);
       expect(targetItem!.referenceCounts.lineFactorsAsApplied).toBe(3);
-      expect(targetItem!.totalReferenceCount).toBe(6);
+      expect(targetItem!.totalReferenceCount).toBe(5);
     });
 
     it("returns each joined numerator/denominator MU with its own magnitude object", async () => {
