@@ -16,10 +16,17 @@ import { MeasurementUnitStatus } from "@repo/database";
 describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
   });
 
   afterAll(async () => {
@@ -50,7 +57,7 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.MASS,
       baseFactor: 500,
       isBase: false,
     };

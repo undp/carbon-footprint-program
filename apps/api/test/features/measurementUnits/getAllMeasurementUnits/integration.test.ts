@@ -69,7 +69,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const testUnit = body.find((u) => u.abbreviation === "kg");
       expect(testUnit).toBeDefined();
       expect(testUnit!.name).toBe("kilógramo");
-      expect(testUnit!.magnitude).toBe("MASS");
+      expect(testUnit!.magnitude.code).toBe("MASS");
       expect(testUnit!.abbreviation).toBe("kg");
       expect(testUnit!.baseFactor).toBe(1000);
       expect(testUnit!.isBase).toBe(false);
@@ -86,7 +86,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
 
-      const magnitudes = new Set(body.map((u) => u.magnitude));
+      const magnitudes = new Set(body.map((u) => u.magnitude.code));
 
       expect(magnitudes).toEqual(new Set(MAGNITUDES));
     });
@@ -121,7 +121,9 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
 
       MAGNITUDES.forEach((mag) => {
-        const baseUnits = body.filter((u) => u.magnitude === mag && u.isBase);
+        const baseUnits = body.filter(
+          (u) => u.magnitude.code === mag && u.isBase
+        );
         expect(baseUnits).toHaveLength(1);
       });
     });
@@ -152,8 +154,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
       const sorted = [...body].sort((a, b) => {
-        const magnitudeOrder =
-          MAGNITUDES.indexOf(a.magnitude) - MAGNITUDES.indexOf(b.magnitude);
+        const magnitudeOrder = a.magnitude.name.localeCompare(b.magnitude.name);
         if (magnitudeOrder !== 0) return magnitudeOrder;
         return a.name.localeCompare(b.name);
       });
@@ -176,7 +177,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(cubicMeter).toBeDefined();
       expect(cubicMeter!.abbreviation).toBe("m3");
       expect(cubicMeter!.abbreviation).toContain("3");
-      expect(cubicMeter!.magnitude).toBe("VOLUME");
+      expect(cubicMeter!.magnitude.code).toBe("VOLUME");
 
       // Check for any other units with superscripts
       const unitsWithSuperscripts = body.filter((u) =>

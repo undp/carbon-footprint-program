@@ -19,10 +19,17 @@ import { MeasurementUnitStatus } from "@repo/database";
 describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
   });
 
   afterAll(async () => {
@@ -46,7 +53,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.MASS,
       baseFactor: 500,
       isBase: false,
       ...overrides,
@@ -87,17 +94,23 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
     });
 
     it("should update magnitude and baseFactor when referenceCount is 0", async () => {
-      const created = await createUnit({ magnitude: "MASS", baseFactor: 100 });
+      const created = await createUnit({
+        magnitudeId: magnitudeIdByCode.MASS,
+        baseFactor: 100,
+      });
 
       const response = await app.inject({
         method: "PATCH",
         url: `/api/measurement-units/${created.id}`,
-        payload: { magnitude: "VOLUME", baseFactor: 999 },
+        payload: {
+          magnitudeId: magnitudeIdByCode.VOLUME,
+          baseFactor: 999,
+        },
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateMeasurementUnitResponse;
-      expect(body.magnitude).toBe("VOLUME");
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.VOLUME);
       expect(body.baseFactor).toBe(999);
     });
   });
@@ -151,13 +164,15 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
       expect(baseUnit).not.toBeNull();
 
       // Pick a magnitude different from the base unit's current one
-      const differentMagnitude =
-        baseUnit!.magnitude === "VOLUME" ? "DISTANCE" : "VOLUME";
+      const differentMagnitudeId =
+        baseUnit!.magnitudeId.toString() === magnitudeIdByCode.VOLUME
+          ? magnitudeIdByCode.DISTANCE
+          : magnitudeIdByCode.VOLUME;
 
       const response = await app.inject({
         method: "PATCH",
         url: `/api/measurement-units/${baseUnit!.id}`,
-        payload: { magnitude: differentMagnitude },
+        payload: { magnitudeId: differentMagnitudeId },
       });
 
       expect(response.statusCode).toBe(422);
@@ -187,7 +202,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         const response = await app.inject({
           method: "PATCH",
           url: `/api/measurement-units/${created.id}`,
-          payload: { magnitude: "VOLUME" },
+          payload: { magnitudeId: magnitudeIdByCode.VOLUME },
         });
 
         expect(response.statusCode).toBe(422);

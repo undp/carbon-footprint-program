@@ -19,10 +19,17 @@ import { MeasurementUnitStatus } from "@repo/database";
 describe("POST /api/measurement-units - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
   });
 
   afterAll(async () => {
@@ -47,7 +54,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     return {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.MASS,
       baseFactor: 500,
       isBase: false,
       ...overrides,
@@ -69,7 +76,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.id).toBeTruthy();
       expect(body.name).toBe(payload.name);
       expect(body.abbreviation).toBe(payload.abbreviation);
-      expect(body.magnitude).toBe("MASS");
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.MASS);
       expect(body.baseFactor).toBe(500);
       expect(body.isBase).toBe(false);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
@@ -133,7 +140,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const payload = buildPayload({
         isBase: true,
         baseFactor: 1,
-        magnitude: "MASS",
+        magnitudeId: magnitudeIdByCode.MASS,
       });
 
       const response = await app.inject({
@@ -178,7 +185,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitude: "VOLUME",
+        magnitudeId: magnitudeIdByCode.VOLUME,
         baseFactor: 999,
       };
 
@@ -193,7 +200,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.action).toBe(MeasurementUnitCreationResultEnum.fullyRestored);
       expect(body.id).toBe(created.id); // same row, restored
       expect(body.name).toBe(restorePayload.name);
-      expect(body.magnitude).toBe("VOLUME");
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.VOLUME);
       expect(body.baseFactor).toBe(999);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
 
@@ -246,7 +253,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitude: "VOLUME",
+        magnitudeId: magnitudeIdByCode.VOLUME,
         baseFactor: 999,
       };
 
@@ -265,7 +272,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.name).toBe(restorePayload.name);
       expect(body.abbreviation).toBe(payload.abbreviation);
       // Structural fields must remain unchanged in the labels-only branch.
-      expect(body.magnitude).toBe(payload.magnitude);
+      expect(body.magnitudeId).toBe(payload.magnitudeId);
       expect(body.baseFactor).toBe(payload.baseFactor);
       expect(body.isBase).toBe(payload.isBase);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
@@ -323,11 +330,11 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 for an invalid magnitude enum value", async () => {
+    it("should return 400 for a missing magnitudeId", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/measurement-units",
-        payload: buildPayload({ magnitude: "NOT_A_MAGNITUDE" }),
+        payload: buildPayload({ magnitudeId: undefined }),
       });
       expect(response.statusCode).toBe(400);
     });
