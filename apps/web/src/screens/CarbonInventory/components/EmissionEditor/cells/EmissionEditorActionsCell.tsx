@@ -15,8 +15,9 @@ interface EmissionEditorActionsCellProps {
   categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
-  hasPendingFiles?: boolean;
-  hasLinkedFiles?: boolean;
+  isCommentPending?: boolean;
+  pendingFilesCount?: number;
+  linkedFilesCount?: number;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -27,9 +28,12 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   categoryColor,
   disabled = false,
   hasComment = false,
-  hasPendingFiles = false,
-  hasLinkedFiles = false,
+  isCommentPending = false,
+  pendingFilesCount = 0,
+  linkedFilesCount = 0,
 }) => {
+  const totalFilesCount = pendingFilesCount + linkedFilesCount;
+  const hasPendingFiles = pendingFilesCount > 0;
   const categoryColorPalette = categoryColor
     ? getColorPalette(categoryColor)
     : undefined;
@@ -51,8 +55,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
     <Box className="flex justify-center gap-1">
       {uploadFiles && (
         <Badge
-          variant="dot"
-          invisible={!hasPendingFiles && !hasLinkedFiles}
+          badgeContent={totalFilesCount}
+          invisible={totalFilesCount === 0}
           overlap="circular"
           sx={{
             "& .MuiBadge-badge": {
@@ -62,6 +66,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
                 hasPendingFiles
                   ? theme.palette.warning.main
                   : theme.palette.primary.main,
+              color: (theme) => theme.palette.common.white,
             },
           }}
         >
@@ -78,13 +83,16 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       {updateComment && (
         <Badge
           variant="dot"
-          color="primary"
           invisible={!hasComment}
           overlap="circular"
           sx={{
             "& .MuiBadge-badge": {
               top: 2,
               right: 2,
+              backgroundColor: (theme) =>
+                isCommentPending
+                  ? theme.palette.warning.main
+                  : theme.palette.primary.main,
             },
           }}
         >

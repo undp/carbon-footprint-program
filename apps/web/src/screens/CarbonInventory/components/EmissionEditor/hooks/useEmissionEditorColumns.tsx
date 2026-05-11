@@ -1,8 +1,10 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { useFormContext, useFormState } from "react-hook-form";
 import { UsageMode } from "@repo/types";
 import {
   EmissionCaptureFormLine,
+  EmissionCaptureFormValues,
   LineId,
 } from "../../../types/EmissionCaptureTypes";
 import {
@@ -56,6 +58,22 @@ export const useEmissionEditorColumns = ({
   inventoryUsageMode,
   isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
+  const { control, getFieldState } =
+    useFormContext<EmissionCaptureFormValues>();
+  const formState = useFormState({
+    control,
+    name: `subcategories.${subcategory.id}.lines`,
+  });
+
+  const isCommentDirty = useCallback(
+    (lineId: LineId): boolean =>
+      getFieldState(
+        `subcategories.${subcategory.id}.lines.${lineId}.comment`,
+        formState
+      ).isDirty,
+    [getFieldState, formState, subcategory.id]
+  );
+
   const displayedUnits = useMemo(() => {
     if (subcategory.allowedMeasurementUnitIds.length === 0)
       return measurementUnits || [];
@@ -272,25 +290,30 @@ export const useEmissionEditorColumns = ({
         minWidth: 157,
         flex: 1,
         cellClassName: "content-center",
-        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => (
-          <EmissionEditorActionsCell
-            rowId={params.id}
-            categoryColor={categoryColor}
-            uploadFiles={() => onUploadFiles(params.id.toString())}
-            updateComment={() =>
-              onUpdateComment(params.id.toString(), params.row.comment || "")
-            }
-            deleteSource={() => onDeleteLine(params.id.toString())}
-            disabled={isManualModeLoading}
-            hasComment={Boolean(params.row.comment)}
-            hasPendingFiles={(params.row.files ?? []).some(
-              (file) => file.isPending
-            )}
-            hasLinkedFiles={(params.row.files ?? []).some(
-              (file) => !file.isPending
-            )}
-          />
-        ),
+        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => {
+          const files = params.row.files ?? [];
+          const pendingFilesCount = files.filter((f) => f.isPending).length;
+          const linkedFilesCount = files.length - pendingFilesCount;
+          const isCommentPending = Boolean(
+            params.row.isNew || isCommentDirty(params.row.lineId)
+          );
+          return (
+            <EmissionEditorActionsCell
+              rowId={params.id}
+              categoryColor={categoryColor}
+              uploadFiles={() => onUploadFiles(params.id.toString())}
+              updateComment={() =>
+                onUpdateComment(params.id.toString(), params.row.comment || "")
+              }
+              deleteSource={() => onDeleteLine(params.id.toString())}
+              disabled={isManualModeLoading}
+              hasComment={Boolean(params.row.comment)}
+              isCommentPending={isCommentPending}
+              pendingFilesCount={pendingFilesCount}
+              linkedFilesCount={linkedFilesCount}
+            />
+          );
+        },
       },
     ];
   }, [
@@ -306,5 +329,6 @@ export const useEmissionEditorColumns = ({
     onUploadFiles,
     isManualModeLoading,
     subcategory.id,
+    isCommentDirty,
   ]);
 };
