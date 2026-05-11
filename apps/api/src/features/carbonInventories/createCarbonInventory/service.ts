@@ -1,4 +1,4 @@
-import { type PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import {
   type CreateCarbonInventoryRequest,
   type CreateCarbonInventoryResponse,
@@ -7,6 +7,7 @@ import {
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { NoActiveMethodologyError } from "../errors.js";
+import { buildOrganizationDataSnapshot } from "./helpers.js";
 
 export const createCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -32,6 +33,12 @@ export const createCarbonInventoryService = async (
 
   const userId = user?.id ?? null;
 
+  // Snapshot the linked organization's canonical fields so the profiling form is
+  // prefilled on first visit. The snapshot is frozen at creation time.
+  const organizationDataSnapshot = data.organizationId
+    ? await buildOrganizationDataSnapshot(prismaClient, data.organizationId)
+    : null;
+
   const item = await prismaClient.carbonInventory.create({
     data: {
       usageMode: data.usageMode,
@@ -39,6 +46,9 @@ export const createCarbonInventoryService = async (
       organizationId: data.organizationId ? BigInt(data.organizationId) : null,
       createdById: userId ? BigInt(userId) : null,
       updatedAt: null,
+      organizationData: organizationDataSnapshot
+        ? (organizationDataSnapshot as unknown as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
     },
   });
 
