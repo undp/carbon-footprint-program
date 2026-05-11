@@ -29,6 +29,19 @@ export const DASHBOARD_YEARS_RANGE_FROM_CURRENT = 10;
 export const SIDEBAR_WIDTH = 280;
 export const SIDEBAR_MINI_WIDTH = 72;
 
+/**
+ * Default and minimum dimensions of the floating chatbot panel.
+ *
+ * The widget is anchored to the bottom-right corner and resized from the
+ * top-left handle. Persisted user sizes are clamped to the min bounds below
+ * on read and to the live viewport on render — see `useChatbotSize`.
+ */
+export const CHATBOT_WIDGET_DEFAULT_WIDTH = 360;
+export const CHATBOT_WIDGET_DEFAULT_HEIGHT = 480;
+export const CHATBOT_WIDGET_MIN_WIDTH = 320;
+export const CHATBOT_WIDGET_MIN_HEIGHT = 400;
+export const CHATBOT_SIZE_KEY = "huella-latam:chatbot-size";
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 
