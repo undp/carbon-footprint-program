@@ -12,6 +12,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const SYSTEM_MAGNITUDE_CODES = new Set(["mass"]);
+
 const MagnitudeDataSchema = z.array(
   z.object({
     code: z.string().min(1),
@@ -43,13 +45,16 @@ export async function seedMagnitudes(
       create: {
         code,
         name,
-        isSystem: true,
+        isSystem: SYSTEM_MAGNITUDE_CODES.has(code),
         status: "ACTIVE",
       },
     });
   }
 
+  const systemCount = magnitudesData.filter((m) =>
+    SYSTEM_MAGNITUDE_CODES.has(m.code)
+  ).length;
   console.log(
-    `✓ Ensured ${magnitudesData.length} system magnitudes exist: ${magnitudesData.map((m) => m.code).join(", ")} for dataset ${dataset}`
+    `✓ Ensured ${magnitudesData.length} magnitudes exist (${systemCount} system, ${magnitudesData.length - systemCount} non-system): ${magnitudesData.map((m) => m.code).join(", ")} for dataset ${dataset}`
   );
 }

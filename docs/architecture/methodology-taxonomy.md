@@ -286,7 +286,7 @@ model RateMeasurementUnit {
 }
 ```
 
-`Magnitude` classifies the physical dimension of a unit; the platform seeds ten system magnitudes (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) and admins may add country-specific ones. `baseFactor` enables unit conversions (e.g., 1 ton = 1000 × baseFactor of kg). `RateMeasurementUnit` expresses the shape of an emission factor (mass-per-volume, mass-per-distance, etc.).
+`Magnitude` classifies the physical dimension of a unit; the platform seeds ten magnitudes (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) and admins may add country-specific ones. Only `mass` is created with `isSystem = true` (the engine normalizes every emission to `kg`); the rest are seeded with `isSystem = false` and are freely relabeled or soft-deleted by admins. `baseFactor` enables unit conversions (e.g., 1 ton = 1000 × baseFactor of kg). `RateMeasurementUnit` expresses the shape of an emission factor (mass-per-volume, mass-per-distance, etc.).
 
 ---
 

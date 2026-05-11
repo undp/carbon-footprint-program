@@ -7,7 +7,7 @@ The system SHALL define a `Magnitude` Prisma model with the following columns: `
 #### Scenario: Existing rows after schema change
 
 - **WHEN** the base migration (which now includes the `Magnitude` table and the `MeasurementUnit.magnitudeId` column) is applied and the seed script runs
-- **THEN** ten system magnitudes SHALL be present (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) with `isSystem = true` and the canonical Spanish labels, AND every seeded `MeasurementUnit` SHALL have a `magnitudeId` resolved from its `magnitudeCode` in the seed JSON
+- **THEN** ten magnitudes SHALL be present (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) with the canonical Spanish labels — `mass` SHALL have `isSystem = true` and every other seeded magnitude SHALL have `isSystem = false` — AND every seeded `MeasurementUnit` SHALL have a `magnitudeId` resolved from its `magnitudeCode` in the seed JSON
 
 #### Scenario: Code is immutable after creation
 
@@ -16,7 +16,7 @@ The system SHALL define a `Magnitude` Prisma model with the following columns: `
 
 ### Requirement: System magnitudes are protected from soft-delete
 
-The system SHALL refuse any soft-delete operation targeting a `Magnitude` with `isSystem = true`, regardless of `referenceCount`. System magnitudes ARE editable on the `name` field but never on `code`, `isSystem`, or `status`. The seed script is the only writer of `isSystem = true`.
+The system SHALL refuse any soft-delete operation targeting a `Magnitude` with `isSystem = true`, regardless of `referenceCount`. System magnitudes ARE editable on the `name` field but never on `code`, `isSystem`, or `status`. The seed script is the only writer of `isSystem = true`, and it currently sets the flag exclusively for `mass` — every other seeded magnitude is created with `isSystem = false` and follows the non-system lifecycle.
 
 #### Scenario: Soft-delete of a system magnitude
 

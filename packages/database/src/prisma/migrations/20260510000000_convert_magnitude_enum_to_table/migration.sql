@@ -18,21 +18,24 @@ CREATE TABLE "magnitude" (
 
 CREATE UNIQUE INDEX "magnitude_code_key" ON "magnitude"("code");
 
--- 2. Seed the ten system magnitudes with the canonical Spanish labels so existing
---    measurement_unit rows can be backfilled. Codes follow the same lowercase
---    convention validated for user-defined magnitudes (^[a-z][a-z0-9_]*$).
---    Idempotent by `code` so re-applying after a partial run is safe.
+-- 2. Seed the ten platform magnitudes with the canonical Spanish labels so existing
+--    measurement_unit rows can be backfilled. Only `mass` is system-protected
+--    (`is_system = true`); the rest are admin-managed and may be relabeled,
+--    soft-deleted, or replaced by country deployments through the maintainer
+--    screen. Codes follow the same lowercase convention validated for
+--    user-defined magnitudes (^[a-z][a-z0-9_]*$). Idempotent by `code` so
+--    re-applying after a partial run is safe.
 INSERT INTO "magnitude" ("code", "name", "is_system", "status", "updated_at") VALUES
-    ('mass',          'Masa',             true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('volume',        'Volumen',          true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('distance',      'Distancia',        true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('time',          'Tiempo',           true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('animals',       'Animales',         true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('area',          'Área',             true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('power',         'Potencia',         true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('energy',        'Energía',          true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('distance_mass', 'Distancia · Masa', true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('rooms',         'Habitaciones',     true, 'ACTIVE', CURRENT_TIMESTAMP)
+    ('mass',          'Masa',             true,  'ACTIVE', CURRENT_TIMESTAMP),
+    ('volume',        'Volumen',          false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('distance',      'Distancia',        false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('time',          'Tiempo',           false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('animals',       'Animales',         false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('area',          'Área',             false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('power',         'Potencia',         false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('energy',        'Energía',          false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('distance_mass', 'Distancia · Masa', false, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('rooms',         'Habitaciones',     false, 'ACTIVE', CURRENT_TIMESTAMP)
 ON CONFLICT ("code") DO NOTHING;
 
 -- 3. Add the new FK column to `measurement_unit` (nullable for the backfill step).

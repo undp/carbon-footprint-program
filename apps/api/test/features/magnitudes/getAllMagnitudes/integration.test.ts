@@ -109,7 +109,7 @@ describe("GET /api/magnitudes - Integration Tests", () => {
       expect(body.some((m) => m.id === inactive.id.toString())).toBe(false);
     });
 
-    it("should include all ten seeded system magnitudes", async () => {
+    it("should include all ten seeded magnitudes with only `mass` flagged as system", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/magnitudes",
@@ -117,13 +117,10 @@ describe("GET /api/magnitudes - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMagnitudesResponse;
-      const systemCodes = body
-        .filter((m) => m.isSystem)
-        .map((m) => m.code)
-        .sort();
+      const seededCodes = body.map((m) => m.code);
 
-      expect(systemCodes).toEqual(
-        [
+      expect(seededCodes).toEqual(
+        expect.arrayContaining([
           "animals",
           "area",
           "distance",
@@ -134,8 +131,17 @@ describe("GET /api/magnitudes - Integration Tests", () => {
           "rooms",
           "time",
           "volume",
-        ].sort()
+        ])
       );
+
+      const systemCodes = body
+        .filter((m) => m.isSystem)
+        .map((m) => m.code)
+        .sort();
+
+      // Only `mass` is system-protected; the remaining seeded magnitudes are
+      // admin-managed and may be relabeled or soft-deleted per deployment.
+      expect(systemCodes).toEqual(["mass"]);
     });
 
     it("should pin system magnitudes first then sort by name ascending", async () => {
@@ -177,10 +183,13 @@ describe("GET /api/magnitudes - Integration Tests", () => {
       const firstCustomIndex = body.findIndex((m) => !m.isSystem);
       expect(lastSystemIndex).toBeLessThan(firstCustomIndex);
 
-      // Within the custom block, names sort ascending.
+      // Within the custom block, names sort ascending by Spanish locale —
+      // mirror the collator the service uses so the assertion is independent
+      // of the database's default text collation.
+      const spanishCollator = new Intl.Collator("es");
       const customNames = customBlock.map((m) => m.name);
       const sortedCustomNames = [...customNames].sort((a, b) =>
-        a.localeCompare(b)
+        spanishCollator.compare(a, b)
       );
       expect(customNames).toEqual(sortedCustomNames);
     });

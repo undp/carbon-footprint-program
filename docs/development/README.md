@@ -22,7 +22,7 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 | [Packages and Monorepo Internals](./packages.md)     | Shared packages (`@repo/types`, `@repo/database`, `@repo/utils`), dependency graph, Turborepo pipeline, and schema-change propagation                                                                                                    |
 | [Data Export and Reporting](./data-export.md)        | Excel exports (inventory, reduction project, reduction plan), file downloads via SAS URL, and what is not yet supported                                                                                                                  |
 | [Profiling Maintainers](./maintainers/profiling.md)  | Admin maintainers for `country_sector` / `country_subsector` / `organization_main_activity` / `country_organization_size`: soft-delete lifecycle, blocking matrix, partial unique indexes, in-use warning dialog, selector union helper. |
-| [Magnitudes Maintainer](./maintainers/magnitudes.md) | Country-extensibility recipe for `magnitude`: seed path for system magnitudes vs. admin screen for custom magnitudes, and the protections that follow from the `isSystem` flag.                                                          |
+| [Magnitudes Maintainer](./maintainers/magnitudes.md) | Country-extensibility recipe for `magnitude`: seed path vs. admin screen, and the protections that follow from the `isSystem` flag — currently set only on `mass`, with every other seeded magnitude admin-managed.                      |
 
 ## Configuration and operations
 

@@ -1,6 +1,6 @@
 # Magnitudes
 
-Magnitudes classify the physical dimension of a `MeasurementUnit` (mass, volume, distance, …). They are reference data: a set of system magnitudes is seeded at deployment time, and country deployments may add more at runtime via the admin maintainer screen.
+Magnitudes classify the physical dimension of a `MeasurementUnit` (mass, volume, distance, …). They are reference data: a starter set of magnitudes is seeded at deployment time, but only `mass` is system-protected — every other seeded magnitude is admin-managed and country deployments may relabel, soft-delete, or extend the catalog at runtime via the admin maintainer screen.
 
 For the data model (fields, soft-delete rules, system protections, reference count), see [`docs/data-model/measurement-units.md`](../../data-model/measurement-units.md#magnitude).
 
@@ -8,9 +8,9 @@ For the data model (fields, soft-delete rules, system protections, reference cou
 
 There are two distinct ways to introduce a magnitude into a country deployment. The choice depends on whether the magnitude is part of the platform contract or a country-local extension.
 
-### A) Add a system magnitude via seed
+### A) Add a magnitude via seed
 
-Use this path when the magnitude is part of the platform's standard taxonomy and must exist before any admin logs in (typically because seeded measurement units or methodology factors reference it).
+Use this path when the magnitude is part of the platform's starter taxonomy and must exist before any admin logs in (typically because seeded measurement units or methodology factors reference it).
 
 1. Edit `packages/database/src/prisma/seeds/data/base/magnitudes.json` and append a new entry:
 
@@ -27,16 +27,16 @@ Use this path when the magnitude is part of the platform's standard taxonomy and
    pnpm --filter=@repo/database dev:seed
    ```
 
-   The seed script (`packages/database/src/prisma/seeds/scripts/seedMagnitudes.ts`) `upsert`s by `code` with `isSystem: true` and `status: ACTIVE`. The `update: {}` clause is intentional: re-running the seed will **not** overwrite a `name` that an admin has since edited through the maintainer screen.
+   The seed script (`packages/database/src/prisma/seeds/scripts/seedMagnitudes.ts`) `upsert`s by `code` with `status: ACTIVE`. `isSystem` is set to `true` only for the hardcoded allow-list inside the script (currently just `mass`); every other seeded entry is created with `isSystem: false`. The `update: {}` clause is intentional: re-running the seed will **not** overwrite a `name` that an admin has since edited through the maintainer screen.
 
 3. If the new magnitude needs a base measurement unit, also add the corresponding row to `measurement_units.json` referencing the new `code`.
 
-**Properties of system magnitudes:**
+**Properties of seeded magnitudes:**
 
-- `isSystem = true`, set only by the seed script.
-- `code` is locked: PATCH rejects any attempt to change it.
-- `name` is editable through the admin screen (the seed will not clobber the edit on subsequent runs).
-- DELETE is refused with HTTP 422 (`MagnitudeIsSystemError`) regardless of reference count.
+- `isSystem = true` for `mass` only — it is the lone system-protected magnitude because the carbon-accounting pipeline (CO₂e in `kg`) is hard-wired to it. Every other seeded magnitude is created with `isSystem = false` and is admin-managed from then on.
+- For every magnitude (system or not), `code` is locked: PATCH rejects any attempt to change it.
+- For every magnitude, `name` is editable through the admin screen (the seed will not clobber edits on subsequent runs).
+- DELETE is refused for system magnitudes with HTTP 422 (`MagnitudeIsSystemError`) regardless of reference count. Non-system seeded magnitudes follow the standard reference-count rule.
 
 ### B) Add a custom magnitude via the admin screen
 
@@ -64,4 +64,4 @@ Use this path when a country needs a magnitude beyond the seeded ones (for examp
 | Does the platform team need to review/approve the addition?               | A — Seed (via PR) |
 | Does a country admin need to add it without a code change or redeploy?    | B — Admin screen  |
 
-Both paths produce rows in the same `magnitude` table — the only persistent distinction is the `isSystem` flag and the protections that follow from it.
+Both paths produce rows in the same `magnitude` table. The `isSystem` flag is reserved for `mass` — the platform pins it to `true` because emissions are denominated in `kg` and removing/renaming that magnitude would break the calculation pipeline. Every other magnitude (seeded or admin-created) is `isSystem = false` and shares the same admin-managed lifecycle.
