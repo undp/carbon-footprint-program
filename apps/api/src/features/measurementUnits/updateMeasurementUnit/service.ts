@@ -35,129 +35,134 @@ export const updateMeasurementUnitService = async (
   body: UpdateMeasurementUnitBody,
   _user: User | null
 ): Promise<UpdateMeasurementUnitResponse> => {
-  return await prismaClient.$transaction(async (tx) => {
-    const target = await tx.measurementUnit.findUnique({
-      where: { id: BigInt(id) },
-    });
-
-    if (!target || target.status === MeasurementUnitStatus.DELETED) {
-      throw new MeasurementUnitNotFoundError(id);
-    }
-
-    assertNotKgMu(target);
-
-    if (body.isBase !== undefined && body.isBase !== target.isBase) {
-      throw new BaseUnitToggleNotAllowedError();
-    }
-
-    if (
-      body.magnitudeId !== undefined &&
-      BigInt(body.magnitudeId) !== target.magnitudeId
-    ) {
-      const magnitude = await tx.magnitude.findUnique({
-        where: { id: BigInt(body.magnitudeId) },
-        select: { id: true, status: true },
+  return await prismaClient.$transaction(
+    async (tx) => {
+      const target = await tx.measurementUnit.findUnique({
+        where: { id: BigInt(id) },
       });
-      if (!magnitude || magnitude.status !== MagnitudeStatus.ACTIVE) {
-        throw new MagnitudeInactiveError(body.magnitudeId);
+
+      if (!target || target.status === MeasurementUnitStatus.DELETED) {
+        throw new MeasurementUnitNotFoundError(id);
       }
-    }
 
-    const hasStructuralChange =
-      (body.magnitudeId !== undefined &&
-        BigInt(body.magnitudeId) !== target.magnitudeId) ||
-      (body.abbreviation !== undefined &&
-        body.abbreviation !== target.abbreviation) ||
-      (body.baseFactor !== undefined && body.baseFactor !== target.baseFactor);
+      assertNotKgMu(target);
 
-    if (target.isBase && hasStructuralChange) {
-      throw new MeasurementUnitFieldsLockedError();
-    }
-
-    const refCount = await getReferenceCount(tx, target.id);
-
-    if (refCount > 0 && hasStructuralChange) {
-      throw new MeasurementUnitFieldsLockedError();
-    }
-
-    if (
-      body.baseFactor !== undefined &&
-      body.baseFactor === 1 &&
-      !target.isBase
-    ) {
-      const effectiveMagnitudeId =
-        body.magnitudeId !== undefined
-          ? BigInt(body.magnitudeId)
-          : target.magnitudeId;
-      const existingBase = await tx.measurementUnit.findFirst({
-        where: {
-          magnitudeId: effectiveMagnitudeId,
-          isBase: true,
-          status: MeasurementUnitStatus.ACTIVE,
-          id: { not: target.id },
-        },
-        select: { id: true },
-      });
-      if (existingBase) {
-        throw new BaseFactorOneReservedForBaseUnitError();
+      if (body.isBase !== undefined && body.isBase !== target.isBase) {
+        throw new BaseUnitToggleNotAllowedError();
       }
-    }
 
-    const updateData: Prisma.MeasurementUnitUncheckedUpdateInput = {};
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.abbreviation !== undefined)
-      updateData.abbreviation = body.abbreviation;
-    if (body.magnitudeId !== undefined)
-      updateData.magnitudeId = BigInt(body.magnitudeId);
-    if (body.baseFactor !== undefined) updateData.baseFactor = body.baseFactor;
-    if (body.isBase !== undefined) updateData.isBase = body.isBase;
-
-    let updatedMu;
-    try {
-      updatedMu = await tx.measurementUnit.update({
-        where: { id: target.id },
-        data: updateData,
-        include: { magnitude: true },
-      });
-    } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
+        body.magnitudeId !== undefined &&
+        BigInt(body.magnitudeId) !== target.magnitudeId
       ) {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("abbreviation")) {
-          throw new MeasurementUnitAbbreviationAlreadyExistsError();
+        const magnitude = await tx.magnitude.findUnique({
+          where: { id: BigInt(body.magnitudeId) },
+          select: { id: true, status: true },
+        });
+        if (!magnitude || magnitude.status !== MagnitudeStatus.ACTIVE) {
+          throw new MagnitudeInactiveError(body.magnitudeId);
         }
       }
-      throw error;
-    }
 
-    const nameChanged = body.name !== undefined && body.name !== target.name;
-    const abbreviationChanged =
-      body.abbreviation !== undefined &&
-      body.abbreviation !== target.abbreviation;
+      const hasStructuralChange =
+        (body.magnitudeId !== undefined &&
+          BigInt(body.magnitudeId) !== target.magnitudeId) ||
+        (body.abbreviation !== undefined &&
+          body.abbreviation !== target.abbreviation) ||
+        (body.baseFactor !== undefined &&
+          body.baseFactor !== target.baseFactor);
 
-    if (nameChanged || abbreviationChanged) {
-      const kg = await resolveKgMeasurementUnit(tx);
-      const canonicalRmu = await tx.rateMeasurementUnit.findFirst({
-        where: {
-          numeratorMeasurementUnitId: kg.id,
-          denominatorMeasurementUnitId: target.id,
-        },
-      });
-
-      if (!canonicalRmu) {
-        throw new DataIntegrityError(
-          `No canonical RMU found for MeasurementUnit id=${target.id} abbreviation="${target.abbreviation}" during update`
-        );
+      if (target.isBase && hasStructuralChange) {
+        throw new MeasurementUnitFieldsLockedError();
       }
 
-      await tx.rateMeasurementUnit.update({
-        where: { id: canonicalRmu.id },
-        data: buildCanonicalRmuFields(updatedMu),
-      });
-    }
+      const refCount = await getReferenceCount(tx, target.id);
 
-    return mapMeasurementUnitToResponse(updatedMu, refCount);
-  });
+      if (refCount > 0 && hasStructuralChange) {
+        throw new MeasurementUnitFieldsLockedError();
+      }
+
+      if (
+        body.baseFactor !== undefined &&
+        body.baseFactor === 1 &&
+        !target.isBase
+      ) {
+        const effectiveMagnitudeId =
+          body.magnitudeId !== undefined
+            ? BigInt(body.magnitudeId)
+            : target.magnitudeId;
+        const existingBase = await tx.measurementUnit.findFirst({
+          where: {
+            magnitudeId: effectiveMagnitudeId,
+            isBase: true,
+            status: MeasurementUnitStatus.ACTIVE,
+            id: { not: target.id },
+          },
+          select: { id: true },
+        });
+        if (existingBase) {
+          throw new BaseFactorOneReservedForBaseUnitError();
+        }
+      }
+
+      const updateData: Prisma.MeasurementUnitUncheckedUpdateInput = {};
+      if (body.name !== undefined) updateData.name = body.name;
+      if (body.abbreviation !== undefined)
+        updateData.abbreviation = body.abbreviation;
+      if (body.magnitudeId !== undefined)
+        updateData.magnitudeId = BigInt(body.magnitudeId);
+      if (body.baseFactor !== undefined)
+        updateData.baseFactor = body.baseFactor;
+      if (body.isBase !== undefined) updateData.isBase = body.isBase;
+
+      let updatedMu;
+      try {
+        updatedMu = await tx.measurementUnit.update({
+          where: { id: target.id },
+          data: updateData,
+          include: { magnitude: true },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+          if (duplicatedFields.includes("abbreviation")) {
+            throw new MeasurementUnitAbbreviationAlreadyExistsError();
+          }
+        }
+        throw error;
+      }
+
+      const nameChanged = body.name !== undefined && body.name !== target.name;
+      const abbreviationChanged =
+        body.abbreviation !== undefined &&
+        body.abbreviation !== target.abbreviation;
+
+      if (nameChanged || abbreviationChanged) {
+        const kg = await resolveKgMeasurementUnit(tx);
+        const canonicalRmu = await tx.rateMeasurementUnit.findFirst({
+          where: {
+            numeratorMeasurementUnitId: kg.id,
+            denominatorMeasurementUnitId: target.id,
+          },
+        });
+
+        if (!canonicalRmu) {
+          throw new DataIntegrityError(
+            `No canonical RMU found for MeasurementUnit id=${target.id} abbreviation="${target.abbreviation}" during update`
+          );
+        }
+
+        await tx.rateMeasurementUnit.update({
+          where: { id: canonicalRmu.id },
+          data: buildCanonicalRmuFields(updatedMu),
+        });
+      }
+
+      return mapMeasurementUnitToResponse(updatedMu, refCount);
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+  );
 };
