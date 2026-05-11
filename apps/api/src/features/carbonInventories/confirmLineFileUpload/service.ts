@@ -55,9 +55,6 @@ export const confirmLineFileUploadService = async (
     );
   }
 
-  // P2002 (unique constraint) bubbles up to the global error handler,
-  // which normalizes it to 409 DATABASE_UNIQUE_CONSTRAINT — no try/catch
-  // needed here.
   const created = await prisma.file.create({
     data: {
       uuid,
