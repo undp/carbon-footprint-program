@@ -113,6 +113,7 @@ export const MaintainerDataGrid = <
     return {
       ...slotProps,
       toolbar: {
+        ...slotProps?.toolbar,
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,
         searchPlaceholder: searchable.placeholder,
