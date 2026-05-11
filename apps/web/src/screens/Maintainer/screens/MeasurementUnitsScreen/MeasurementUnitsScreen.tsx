@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import {
   useMaintainerMeasurementUnits,
@@ -341,30 +341,6 @@ export const MeasurementUnitsScreen: FC = () => {
     []
   );
 
-  if (isError || isMagnitudesError) {
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Unidades de medida"
-          addDisabled
-          explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          {isError && (
-            <Typography variant="body2" color="text.secondary">
-              No fue posible cargar las unidades de medida.
-            </Typography>
-          )}
-          {isMagnitudesError && (
-            <Typography variant="body2" color="text.secondary">
-              No fue posible cargar las magnitudes.
-            </Typography>
-          )}
-        </Box>
-      </>
-    );
-  }
-
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
@@ -377,6 +353,13 @@ export const MeasurementUnitsScreen: FC = () => {
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
         <MaintainerDataGrid<MeasurementUnitsFormRow>
+          errorMessage={
+            isError
+              ? "Ocurrió un problema al cargar las unidades de medida"
+              : isMagnitudesError
+                ? "Ocurrió un problema al cargar las magnitudes"
+                : undefined
+          }
           editingRowId={editingRowId}
           searchable={{
             fuseOptions: {

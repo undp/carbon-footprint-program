@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import {
   useMagnitudes,
@@ -263,19 +263,6 @@ export const MagnitudesScreen: FC = () => {
     rows: currentRows,
   });
 
-  if (isError) {
-    return (
-      <>
-        <MaintainerPageHeader title="Magnitudes" addDisabled />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            No fue posible cargar las magnitudes.
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
@@ -288,6 +275,9 @@ export const MagnitudesScreen: FC = () => {
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
         <MaintainerDataGrid<MagnitudesFormRow>
+          errorMessage={
+            isError ? "Ocurrió un problema al cargar las magnitudes" : undefined
+          }
           editingRowId={editingRowId}
           searchable={{
             fuseOptions: {

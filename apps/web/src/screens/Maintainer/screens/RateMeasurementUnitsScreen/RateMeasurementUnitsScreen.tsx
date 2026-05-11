@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import type { GridSortModel } from "@mui/x-data-grid";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 import { useRateMeasurementUnits } from "@/api/query/measurementUnits";
@@ -22,19 +22,6 @@ export const RateMeasurementUnitsScreen: FC = () => {
 
   const columns = useRateMeasurementUnitColumns();
 
-  if (isError) {
-    return (
-      <>
-        <MaintainerPageHeader title="Tasas" showDownload={false} />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            No fue posible cargar las tasas.
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
   return (
     <>
       <MaintainerPageHeader
@@ -46,6 +33,9 @@ export const RateMeasurementUnitsScreen: FC = () => {
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
         <MaintainerDataGrid
+          errorMessage={
+            isError ? "Ocurrió un problema al cargar las tasas" : undefined
+          }
           editingRowId={null}
           getRowHeight={() => 50}
           loading={isLoading}
