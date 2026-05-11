@@ -1,7 +1,11 @@
 import type { Prisma } from "@repo/database";
 import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
-import { OrganizationDataFieldSchema, UsageMode } from "@repo/types";
+import {
+  FileStatus,
+  OrganizationDataFieldSchema,
+  UsageMode,
+} from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
 import { toNumberOrNull, kgToTon } from "@/utils/number.js";
@@ -98,7 +102,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
     rawManualTotalEmissions !== null ? kgToTon(rawManualTotalEmissions) : null;
 
   const files = (line.files ?? [])
-    .filter((entry) => entry.file?.status === "ACTIVE")
+    .filter((entry) => entry.file?.status === FileStatus.ACTIVE)
     .map((entry) => ({
       id: entry.file.id.toString(),
       uuid: entry.file.uuid,
