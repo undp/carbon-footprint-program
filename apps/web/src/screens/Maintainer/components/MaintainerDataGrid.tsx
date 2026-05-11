@@ -97,7 +97,7 @@ export const MaintainerDataGrid = <
       return {
         ...slotProps,
         toolbar: {
-          ...slots?.toolbar,
+          ...slotProps?.toolbar,
           showQuickFilter: false,
         },
       };
@@ -110,7 +110,7 @@ export const MaintainerDataGrid = <
         fileName: searchable.downloadFileName,
       } as unknown as GridSlotProps["toolbar"],
     };
-  }, [searchable, slotProps, slots?.toolbar, searchQuery]);
+  }, [searchable, slotProps, searchQuery]);
 
   const sxArray: SxArrayItem[] = isSxArray(sx)
     ? [...sx]
