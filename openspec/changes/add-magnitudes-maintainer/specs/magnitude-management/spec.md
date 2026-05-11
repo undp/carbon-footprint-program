@@ -2,7 +2,7 @@
 
 ### Requirement: Magnitudes are a database model with a stable code and editable name
 
-The system SHALL define a `Magnitude` Prisma model with the following columns: `id` (BigInt, autoincrement, primary key), `code` (string, unique), `name` (string), `isSystem` (boolean, default `false`), `status` (`MeasurementUnitStatus`, default `ACTIVE`), `createdAt`, `updatedAt`. The Prisma `Magnitude` enum SHALL be removed. `MeasurementUnit.magnitude` (enum) SHALL be replaced by `MeasurementUnit.magnitudeId` (BigInt, foreign key to `Magnitude.id`, `ON DELETE RESTRICT`).
+The system SHALL define a `Magnitude` Prisma model with the following columns: `id` (BigInt, autoincrement, primary key), `code` (string, unique), `name` (string), `isSystem` (boolean, default `false`), `status` (`MagnitudeStatus`, mapped to the SQL enum `magnitude_status`, default `ACTIVE`), `createdAt`, `updatedAt`. `MagnitudeStatus` is a dedicated enum for magnitudes and is distinct from `MeasurementUnitStatus` (which continues to govern `MeasurementUnit.status`). The Prisma `Magnitude` enum SHALL be removed. `MeasurementUnit.magnitude` (enum) SHALL be replaced by `MeasurementUnit.magnitudeId` (BigInt, foreign key to `Magnitude.id`, `ON DELETE RESTRICT`).
 
 #### Scenario: Existing rows after schema change
 
