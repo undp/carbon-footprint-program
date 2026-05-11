@@ -47,6 +47,7 @@ export const RateMeasurementUnitsScreen: FC = () => {
       <Box className="flex w-full rounded-sm bg-white p-3">
         <MaintainerDataGrid
           editingRowId={null}
+          getRowHeight={() => 50}
           loading={isLoading}
           columns={columns}
           rows={rateUnits ?? []}
