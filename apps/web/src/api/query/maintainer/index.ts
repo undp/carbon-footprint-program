@@ -8,10 +8,6 @@ export {
 } from "./useMethodologies";
 export { useGetMethodologyById } from "./useGetMethodologyById";
 export {
-  useGetMethodologyExport,
-  methodologyExportKey,
-} from "./useGetMethodologyExport";
-export {
   useCategories,
   useAddCategory,
   useUpdateCategory,
