@@ -108,12 +108,19 @@ Dimensions (e.g., "Fuel Type") and their values (e.g., "Diesel", "Gasoline") let
 ### `MeasurementUnit` and `RateMeasurementUnit`
 
 ```prisma
+model Magnitude {
+  id       BigInt  @id @default(autoincrement())
+  code     String  @unique // lowercase, e.g. mass | volume | distance | time | area | power | energy | ...
+  name     String           // admin-editable Spanish label
+  isSystem Boolean @default(false)
+}
+
 model MeasurementUnit {
-  name       String
+  name         String
   abbreviation String
-  magnitude  Magnitude  // MASS | VOLUME | DISTANCE | TIME | AREA | POWER | ENERGY | ...
-  baseFactor Decimal    // conversion factor to the base unit of this magnitude
-  isBase     Boolean
+  magnitudeId  BigInt   // FK → Magnitude
+  baseFactor   Decimal  // conversion factor to the base unit of this magnitude
+  isBase       Boolean
 }
 
 model RateMeasurementUnit {
