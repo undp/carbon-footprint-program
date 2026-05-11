@@ -16,6 +16,7 @@ export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   fuseOptions: IFuseOptions<T>;
   placeholder?: string;
   downloadFileName?: string;
+  disableExport?: boolean;
 }
 
 interface MaintainerDataGridProps<
@@ -118,6 +119,7 @@ export const MaintainerDataGrid = <
         onSearchChange: setSearchQuery,
         searchPlaceholder: searchable.placeholder,
         fileName: searchable.downloadFileName,
+        disableExport: searchable.disableExport,
       } as unknown as GridSlotProps["toolbar"],
     };
   }, [searchable, slotProps, searchQuery]);

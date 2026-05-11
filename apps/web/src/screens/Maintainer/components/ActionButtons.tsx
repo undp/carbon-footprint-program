@@ -7,6 +7,8 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   EditOutlined,
@@ -18,6 +20,7 @@ import {
   KeyboardArrowUpOutlined,
   KeyboardArrowDownOutlined,
   TuneOutlined,
+  FileDownloadOutlined,
 } from "@mui/icons-material";
 import { ActionIconButton } from "@/components/ActionIconButton";
 
@@ -33,8 +36,11 @@ interface ActionButtonProps {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onConfigureVariables?: () => void;
+  onDownloadExcel?: () => void;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
+  downloadExcelDisabled?: boolean;
+  downloadExcelTooltipTitle?: string;
   deleteDisabled?: boolean;
   deleteTooltipTitle?: string;
   deleteConfirmMessage?: string;
@@ -63,8 +69,11 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onMoveUp,
   onMoveDown,
   onConfigureVariables,
+  onDownloadExcel,
   moveUpDisabled = false,
   moveDownDisabled = false,
+  downloadExcelDisabled = false,
+  downloadExcelTooltipTitle = "Descargar",
   deleteDisabled = false,
   deleteTooltipTitle,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
@@ -146,6 +155,19 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             tooltip="Duplicar"
             onClick={onDuplicate}
           />
+        )}
+        {!isEditing && onDownloadExcel && (
+          <Tooltip title={downloadExcelTooltipTitle}>
+            <span className="content-center">
+              <IconButton
+                size="small"
+                onClick={onDownloadExcel}
+                disabled={downloadExcelDisabled}
+              >
+                <FileDownloadOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
         )}
         {!isEditing && onDelete && (
           <ActionIconButton
