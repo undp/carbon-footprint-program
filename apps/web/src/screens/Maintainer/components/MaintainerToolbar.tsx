@@ -8,7 +8,7 @@ import {
 } from "@mui/x-data-grid";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
-import { formatDateToDDMMYYYY } from "@repo/utils";
+import { formatDateForFileName } from "@repo/utils";
 import { SearchBar } from "@/components";
 
 interface MaintainerToolbarProps {
@@ -84,9 +84,7 @@ export const MaintainerToolbar: FC<MaintainerToolbarProps> = ({
           options={{
             utf8WithBom: true,
             fileName: fileName
-              ? `${fileName}_${formatDateToDDMMYYYY(
-                  new Date().toISOString()
-                ).replaceAll("/", "-")}`
+              ? `${fileName}_${formatDateForFileName()}`
               : undefined,
           }}
           render={<MenuItem onClick={closeExportMenu} />}
