@@ -26,7 +26,7 @@
   - Before inserting MUs, build a `Map<code, magnitudeId>` from the magnitudes table. Resolve each MU's `magnitudeCode` to a `magnitudeId`; throw a descriptive error if a code is not found.
   - Keep the existing canonical-RMU coverage check.
 - [x] 1.6 Run `pnpm prisma generate` to regenerate the Prisma client.
-- [ ] 1.7 Run `pnpm test --filter=database -- seedMeasurementUnits --coverage=false` (if a seed unit test exists) and `pnpm exec prisma migrate reset --force` against a local DB to confirm the seed runs cleanly.
+- [x] 1.7 Run `pnpm test --filter=database -- seedMeasurementUnits --coverage=false` (if a seed unit test exists) and `pnpm exec prisma migrate reset --force` against a local DB to confirm the seed runs cleanly.
 
 ## 2. Types — Shared Schemas (`packages/types`)
 
@@ -136,7 +136,7 @@
 ## 11. API — Methodology Helper
 
 - [x] 11.1 `apps/api/src/features/carbonInventories/getCarbonInventoryMethodology/helper.ts:272`: update the grouping key from `${num.magnitude}-${den.magnitude}` to `${num.magnitudeId}-${den.magnitudeId}` (BigInt → string via template literal). Update the `select`/`include` shapes (lines 14, 21, 43, 50, 252, 259) so the `magnitude` field on numerator/denominator returns the joined `Magnitude` row instead of the enum string. Confirm the consumer at line 189 / 191 still receives an addressable magnitude — adjust the `select` to `magnitude: { select: { id: true, code: true, name: true } }` if it currently selects only the scalar.
-- [ ] 11.2 Re-run the methodology integration tests to confirm grouping correctness is preserved.
+- [x] 11.2 Re-run the methodology integration tests to confirm grouping correctness is preserved.
 
 ## 12. API — Cross-cutting Picker Audit
 
