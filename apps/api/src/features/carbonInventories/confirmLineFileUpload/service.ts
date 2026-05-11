@@ -57,7 +57,7 @@ export const confirmLineFileUploadService = async (
   }
 
   try {
-    await prisma.file.create({
+    const created = await prisma.file.create({
       data: {
         uuid,
         originalName,
@@ -66,7 +66,24 @@ export const confirmLineFileUploadService = async (
         blobPath,
         createdById: userId ? BigInt(userId) : null,
       },
+      select: {
+        id: true,
+        uuid: true,
+        originalName: true,
+        mimeType: true,
+        sizeBytes: true,
+        createdAt: true,
+      },
     });
+
+    return {
+      id: created.id.toString(),
+      uuid: created.uuid,
+      originalName: created.originalName,
+      mimeType: created.mimeType,
+      sizeBytes: created.sizeBytes,
+      createdAt: created.createdAt.toISOString(),
+    };
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -76,6 +93,4 @@ export const confirmLineFileUploadService = async (
     }
     throw error;
   }
-
-  return { uuid };
 };

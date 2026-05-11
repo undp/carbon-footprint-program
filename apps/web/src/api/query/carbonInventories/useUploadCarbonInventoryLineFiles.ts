@@ -1,17 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { apiClient } from "@/api/http/client";
 import type {
-  RequestLineFileUploadResponse,
   ConfirmLineFileUploadResponse,
+  RequestLineFileUploadResponse,
 } from "@repo/types";
 
-export interface UploadedLineFile {
-  uuid: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  createdAt: string;
-}
+export type UploadedLineFile = ConfirmLineFileUploadResponse;
 
 const uploadOneFile = async (
   inventoryId: string,
@@ -38,27 +32,23 @@ const uploadOneFile = async (
     );
   }
 
-  await apiClient
+  return apiClient
     .post(`carbon-inventories/${inventoryId}/files/confirm-upload`, {
       json: { uuid, originalName: file.name },
     })
     .json<ConfirmLineFileUploadResponse>();
-
-  return {
-    uuid,
-    originalName: file.name,
-    mimeType: file.type || "application/octet-stream",
-    sizeBytes: file.size,
-    createdAt: new Date().toISOString(),
-  };
 };
 
 export const useUploadCarbonInventoryLineFiles = (inventoryId: string) => {
   const [isUploading, setIsUploading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Tracks concurrent invocations so a fast-finishing call doesn't flip
+  // `isUploading` to false while a slower sibling call is still in flight.
+  const inFlightCountRef = useRef(0);
 
   const preUploadFiles = useCallback(
     async (files: File[]): Promise<UploadedLineFile[]> => {
+      inFlightCountRef.current += 1;
       setIsUploading(true);
       setHasError(false);
       try {
@@ -69,7 +59,8 @@ export const useUploadCarbonInventoryLineFiles = (inventoryId: string) => {
         setHasError(true);
         throw error;
       } finally {
-        setIsUploading(false);
+        inFlightCountRef.current -= 1;
+        if (inFlightCountRef.current === 0) setIsUploading(false);
       }
     },
     [inventoryId]
