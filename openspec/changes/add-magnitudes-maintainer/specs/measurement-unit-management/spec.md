@@ -18,7 +18,7 @@ The "one base per magnitude" check SHALL key on `magnitudeId` (the FK introduced
 
 #### Scenario: Updating a base unit
 
-- **WHEN** an admin sends a PATCH request targeting an MU with `isBase = true` (and abbreviation other than `kg`)
+- **WHEN** an admin sends a PATCH request targeting an MU with `isBase = true`
 - **THEN** the system SHALL respond with HTTP 422 and the `BaseUnitImmutableError` code
 
 #### Scenario: Soft-deleting a base unit
