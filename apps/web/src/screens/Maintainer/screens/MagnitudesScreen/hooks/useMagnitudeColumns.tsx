@@ -116,10 +116,13 @@ export const useMagnitudeColumns = ({
         minWidth: 130,
         flex: 0.4,
         sortable: false,
-        renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => {
-          if (!params.row.isSystem) return null;
-          return <Chip label="Sistema" size="small" color="info" />;
-        },
+        renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => (
+          <Chip
+            label={params.row.isSystem ? "Sistema" : "Usuario"}
+            size="small"
+            color={params.row.isSystem ? "info" : "success"}
+          />
+        ),
       },
       {
         field: "referenceCount",
