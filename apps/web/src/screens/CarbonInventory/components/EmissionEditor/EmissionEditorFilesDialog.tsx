@@ -290,7 +290,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
           onClick={handleSave}
           disabled={isUploading || isDeleting}
         >
-          Guardar
+          Actualizar
         </Button>
       </DialogActions>
     </Dialog>
