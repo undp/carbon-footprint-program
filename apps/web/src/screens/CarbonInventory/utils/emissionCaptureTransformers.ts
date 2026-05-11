@@ -29,6 +29,12 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
   };
 }
 
+function getPendingFileUuids(line: EmissionCaptureFormLine): string[] {
+  return (line.files ?? [])
+    .filter((file) => file.isPending)
+    .map((file) => file.uuid);
+}
+
 /**
  * Maps a single line to the create request format (for new lines)
  */
@@ -38,6 +44,7 @@ function mapLineToCreateRequest(
   return {
     ...mapCommonFields(line),
     subcategoryId: line.subcategoryId,
+    addFileUuids: getPendingFileUuids(line),
   };
 }
 
@@ -50,6 +57,8 @@ function mapLineToUpdateRequest(
   return {
     ...mapCommonFields(line),
     id: line.lineId,
+    addFileUuids: getPendingFileUuids(line),
+    removeFileIds: line.removedFileIds ?? [],
   };
 }
 

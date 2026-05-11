@@ -1,9 +1,10 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
+import { EmissionEditorFilesDialog } from "./EmissionEditorFilesDialog";
 import {
   useEmissionEditorData,
   useEmissionEditorForm,
@@ -19,12 +20,14 @@ interface EmissionEditorProps {
   inventoryUsageMode: UsageMode;
   subcategory: SubcategoryWithLines;
   categoryColor: string;
+  inventoryId: string;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   inventoryUsageMode,
   subcategory,
   categoryColor,
+  inventoryId,
 }) => {
   const { measurementUnits, rateMeasurementUnits, dimensions } =
     useEmissionEditorData({ subcategory });
@@ -52,6 +55,12 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategoryId: subcategory.id,
   });
 
+  const [filesDialog, setFilesDialog] = useState<{ lineId: string } | null>(
+    null
+  );
+
+  const closeFilesDialog = useCallback(() => setFilesDialog(null), []);
+
   const categoryColorPalette = useMemo(
     () => getColorPalette(categoryColor),
     [categoryColor]
@@ -68,9 +77,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     onFactorSourceChange: handleFactorSourceChange,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
-    onUploadFiles: () => {
-      // TODO: Implement upload files functionality
-    },
+    onUploadFiles: (lineId) => setFilesDialog({ lineId: lineId.toString() }),
   });
 
   // Handlers for manual mode line actions
@@ -160,6 +167,15 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       </Collapse>
 
       <EmissionEditorCommentDialog {...commentDialogProps} />
+      {filesDialog && (
+        <EmissionEditorFilesDialog
+          open
+          onClose={closeFilesDialog}
+          lineId={filesDialog.lineId}
+          subcategoryId={subcategory.id}
+          inventoryId={inventoryId}
+        />
+      )}
     </Box>
   );
 };
