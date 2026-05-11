@@ -92,17 +92,17 @@ Custom magnitudes (`isSystem = false`) follow the standard reference-count rule:
 
 - **Keep `magnitude` as a denormalized string column synced to `Magnitude.code`**: introduces a sync hazard (the helper `getCarbonInventoryMethodology` keys on this string) and adds storage with no real benefit. Rejected.
 
-### 4. The seed change is folded into the base migration
+### 4. A dedicated migration converts the enum into the new table
 
-**Decision**: The schema additions (new `Magnitude` model, new `MeasurementUnit.magnitudeId` column, removal of the `Magnitude` enum and `MeasurementUnit.magnitude` column) are folded into the original base migration (`packages/database/src/prisma/migrations/20251211144312_base/migration.sql`). No new migration file is added.
+**Decision**: The schema changes ship as a new migration file, `packages/database/src/prisma/migrations/20260510000000_convert_magnitude_enum_to_table/migration.sql` — they are **not** folded into the base migration (which still owns the legacy `Magnitude` enum and `measurement_unit.magnitude` column). The migration runs in-order: (1) create the `magnitude_status` enum and `magnitude` table, (2) seed the ten platform magnitudes with their canonical Spanish labels (idempotent via `ON CONFLICT (code) DO NOTHING`), (3) add a nullable `measurement_unit.magnitude_id` column and backfill it by joining on `LOWER(measurement_unit.magnitude::text) = magnitude.code`, (4) verify zero rows have a NULL `magnitude_id` (fail loudly with a diagnostic if not), then enforce `NOT NULL` and add the FK + supporting index, and (5) drop the legacy enum column on `measurement_unit` and the `Magnitude` enum type itself.
 
-`seedMeasurementUnits.ts` is reordered: insert the system magnitudes first, then resolve `magnitudeId` per MU by `code` lookup before creating MUs. The current `magnitude: z.enum(Magnitude)` validation in the seed script becomes `magnitudeCode: z.string()`.
+Fresh installs use a dedicated `seedMagnitudes.ts` (run before `seedMeasurementUnits.ts`) that upserts the platform magnitudes by `code`. `seedMeasurementUnits.ts` then resolves `magnitudeId` per MU via a `magnitudeCode` lookup; its seed-data validator becomes `magnitudeCode: z.string()` (replacing the prior `magnitude: z.enum(Magnitude)`).
 
-**Rationale**: This change has not been applied to any production deployment yet (`add-measurement-units-maintainer` was archived 2026-05-08, same date as this proposal's creation; the base migration has been rewritten before). Editing the base migration keeps the migration history clean. Country deployments that are already running an older base migration will receive both changes together when they upgrade.
+**Rationale**: A dedicated migration with an explicit nullable → backfill → assert → NOT NULL + FK → drop pipeline is the safe shape for any environment that has already applied the prior base migration. Folding the change into the base migration would require existing environments to be torn down and re-initialized, which is incompatible with deployments that already host data. The assertion in step (4) means the column drop only executes once every legacy enum value has a matching seeded `code`, so the conversion is a single forward step with no row loss.
 
 **Alternatives considered**:
 
-- **New migration file with online backfill**: required if any production deployment runs the prior base migration. Rejected based on the same reasoning as the prior `add-measurement-units-maintainer` change (which folded that schema into the same base migration).
+- **Fold the changes into the base migration**: rejected because environments already running the prior base migration would require a destructive re-init. The dedicated migration plus the idempotent magnitude seed lets new and existing deployments converge on the same end state.
 
 ### 5. Admin-created custom magnitude `code` validation
 
