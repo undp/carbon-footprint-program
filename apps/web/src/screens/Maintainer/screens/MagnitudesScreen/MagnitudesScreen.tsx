@@ -258,14 +258,6 @@ export const MagnitudesScreen: FC = () => {
     rows: currentRows,
   });
 
-  const sortModel = useMemo(
-    () => [
-      { field: "isSystem", sort: "desc" as const },
-      { field: "name", sort: "asc" as const },
-    ],
-    []
-  );
-
   if (isError) {
     return (
       <>
@@ -304,7 +296,6 @@ export const MagnitudesScreen: FC = () => {
             pagination
             pageSizeOptions={[10, 25, 50, 100]}
             initialState={{
-              sorting: { sortModel },
               pagination: { paginationModel: { pageSize: 25 } },
             }}
             disableDensitySelector
