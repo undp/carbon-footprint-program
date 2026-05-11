@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, IconButton, Paper, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
@@ -23,7 +23,30 @@ export function ChatbotWidget() {
   const [draft, setDraft] = useState("");
   const { state, messages, sendMessage, deleteHistory } = useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
+
+  // Focus the input and place the caret at the end of any preserved draft.
+  // Plain `.focus()` would put the caret at position 0 when the textarea
+  // already has text — surprising when reopening the widget after typing.
+  const focusInputAtEnd = useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
+  }, []);
+
+  // Focus the input every time the widget opens so the user can start
+  // typing without an extra click. The TextField mounts fresh on each
+  // open (the `Paper` tree is fully unmounted in the collapsed branch),
+  // so this effect catches both the very first open and every reopen
+  // after the X button.
+  useEffect(() => {
+    if (open) {
+      focusInputAtEnd();
+    }
+  }, [open, focusInputAtEnd]);
 
   if (!open) {
     return (
@@ -110,6 +133,10 @@ export function ChatbotWidget() {
             onClick={() => {
               if (isBusy) return;
               void deleteHistory();
+              // Return focus to the input so the user can immediately
+              // start a new message; the click would otherwise leave
+              // focus on this IconButton.
+              focusInputAtEnd();
             }}
             disabled={isBusy}
             aria-disabled={isBusy}
@@ -182,7 +209,15 @@ export function ChatbotWidget() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Escribe tu pregunta…"
-            disabled={isBusy || state === "degraded"}
+            // Only disabled when the assistant is permanently unavailable.
+            // Keeping the field enabled while streaming preserves keyboard
+            // focus across the send cycle — disabling it would blur the
+            // input, and the browser does not restore focus when the field
+            // re-enables, so the next keystroke would land nowhere. Double-
+            // sends are still blocked by the `isBusy` guard in handleSend
+            // and by the send button being disabled.
+            disabled={state === "degraded"}
+            inputRef={inputRef}
             inputProps={{ maxLength: CHATBOT_MAX_USER_INPUT_CHARS }}
             onKeyDown={(e) => {
               // Skip Enter when an IME composition is in progress — otherwise
