@@ -77,7 +77,7 @@ Constraints:
 
 **Decision**: New `CarbonInventoryLineFile (lineId, fileId, createdAt, createdById)` with `@@id([lineId, fileId])` and `onDelete: Cascade` from `CarbonInventoryLine`. Unlinking a file in the form unlinks the junction row **and** soft-deletes the `File` (`status=DELETED, deletedAt=now`) atomically inside the sync transaction. Idempotent (`updateMany` with `status: ACTIVE` filter).
 
-**Rationale**: Mirrors `SubmissionFile`. Cascade is defensive — `CarbonInventoryLine` is soft-deleted, so cascade should never fire in practice, but having it guarantees no orphan junction rows if a hard delete ever happens. Coupling unlink + soft-delete prevents the file from being relinked by another inventory while preserving an audit trail.
+**Rationale**: Mirrors `SubmissionFile`. The `onDelete: Cascade` from `CarbonInventoryLine` to `CarbonInventoryLineFile` only applies to **hard** (physical) deletes — in normal flows lines are soft-deleted (see Decision 7) and the cascade never fires. The cascade is a defensive safeguard against any future code path that hard-deletes lines, guaranteeing no orphan junction rows. Coupling unlink + soft-delete prevents the file from being relinked by another inventory while preserving an audit trail.
 
 ### 7. Soft-deleted line keeps its junction + blobs
 
@@ -121,6 +121,7 @@ Constraints:
 - **Mime/size validated only at confirm time** → Mitigation: blob metadata is fetched from Azure (`checkFileRecordExists`), so we validate the real upload, not the client's claim. Client is a UX hint only.
 - **Cascade on `CarbonInventoryLine` could in theory hard-delete junction rows** → Mitigation: lines are only soft-deleted in normal flows; cascade is defensive against future code paths that might hard-delete.
 - **Form-state divergence between dialog and rest of form** → Mitigation: snapshot on dialog open, restore on cancel. All state lives in `useFormContext`, so the submit hook always sees the canonical shape.
+- **Files cannot be reused across lines** → By design, unlinking a file in the sync transaction soft-deletes the `File` row (`status=DELETED`). This preserves the audit trail and prevents an unlinked file from being silently relinked to another line or inventory. The trade-off is that an accidentally-unlinked file must be re-uploaded — there is no "re-attach" path. A future enhancement could introduce a "copy" or "reference" mechanism if user feedback shows this is painful.
 
 ## Migration Plan
 
