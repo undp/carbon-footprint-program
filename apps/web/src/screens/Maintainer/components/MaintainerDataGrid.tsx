@@ -18,10 +18,12 @@ export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   downloadFileName?: string;
 }
 
-interface MaintainerDataGridProps extends StylizedDataGridProps {
+interface MaintainerDataGridProps<
+  T extends GridValidRowModel = GridValidRowModel,
+> extends StylizedDataGridProps {
   editingRowId: string | null;
   cellMaxHeight?: number;
-  searchable?: MaintainerDataGridSearchable<GridValidRowModel>;
+  searchable?: MaintainerDataGridSearchable<T>;
 }
 
 type SxArrayItem = Extract<SxProps<Theme>, readonly unknown[]>[number];
@@ -30,7 +32,9 @@ const isSxArray = (
   value: SxProps<Theme> | undefined
 ): value is Extract<SxProps<Theme>, readonly unknown[]> => Array.isArray(value);
 
-export const MaintainerDataGrid = ({
+export const MaintainerDataGrid = <
+  T extends GridValidRowModel = GridValidRowModel,
+>({
   editingRowId,
   cellMaxHeight = 100,
   sx,
@@ -41,30 +45,30 @@ export const MaintainerDataGrid = ({
   slots,
   slotProps,
   ...props
-}: MaintainerDataGridProps) => {
+}: MaintainerDataGridProps<T>) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const rowsArray = useMemo<GridValidRowModel[]>(
-    () => (rows ? Array.from(rows as readonly GridValidRowModel[]) : []),
+  const rowsArray = useMemo<T[]>(
+    () => (rows ? Array.from(rows as readonly T[]) : []),
     [rows]
   );
 
-  const { results } = useFuzzySearch(rowsArray, {
+  const { results } = useFuzzySearch<T>(rowsArray, {
     query: searchable ? searchQuery : undefined,
     fuseOptions: searchable?.fuseOptions,
   });
 
-  const displayRows = useMemo<GridValidRowModel[]>(() => {
+  const displayRows = useMemo<T[]>(() => {
     if (!searchable || searchQuery.trim() === "") return rowsArray;
     if (editingRowId === null) return results;
 
     const editingRowInResults = results.some(
-      (row) => String((row as { id: unknown }).id) === editingRowId
+      (row) => String((row as unknown as { id: unknown }).id) === editingRowId
     );
     if (editingRowInResults) return results;
 
     const editingRow = rowsArray.find(
-      (row) => String((row as { id: unknown }).id) === editingRowId
+      (row) => String((row as unknown as { id: unknown }).id) === editingRowId
     );
     return editingRow ? [editingRow, ...results] : results;
   }, [searchable, searchQuery, rowsArray, results, editingRowId]);

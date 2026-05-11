@@ -8,10 +8,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   Typography,
 } from "@mui/material";
 import { useBlocker } from "@tanstack/react-router";
@@ -48,7 +44,6 @@ import {
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 import { arraysEqualUnordered } from "@repo/utils";
 import { InfoButton } from "../../../components";
-import { MethodologyStatusChip } from "../components/MethodologyStatusChip";
 import { useExplanationDialog } from "../../../contexts";
 
 const SUBCATEGORY_RECOMMENDATIONS_MAINTAINER_EXPLANATION_SLUGS = {

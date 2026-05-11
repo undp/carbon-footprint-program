@@ -1,7 +1,6 @@
 import { FC, useMemo, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useRequestColumns } from "../hooks/useRequestColumns";
 import { useAdminRequests } from "@/api/query/requests/useAdminRequests";
@@ -91,10 +90,10 @@ export const RequestScreenTable: FC = () => {
   return (
     <Box className="rounded-sm bg-white p-3">
       <Box className="flex w-full">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<GetAllAdminRequestsResponse[number]>
           editingRowId={null}
           searchable={{
-            fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+            fuseOptions,
             placeholder: "Buscar solicitud...",
             downloadFileName: "solicitudes",
           }}

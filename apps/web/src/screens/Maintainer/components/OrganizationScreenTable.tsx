@@ -2,7 +2,6 @@ import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
 import { enqueueSnackbar } from "notistack";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
 import { useOrganizationDisplayStatus } from "../hooks/useOrganizationDisplayStatus";
@@ -174,10 +173,10 @@ export const OrganizationScreenTable: FC = () => {
   return (
     <Box className="rounded-sm bg-white p-3">
       <Box className="flex w-full">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<OrganizationRow>
           editingRowId={null}
           searchable={{
-            fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+            fuseOptions,
             placeholder: "Buscar organización...",
             downloadFileName: "organizaciones",
           }}

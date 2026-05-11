@@ -1,6 +1,6 @@
 import { FC, useMemo } from "react";
 import type { IFuseOptions } from "fuse.js";
-import type { GridColDef, GridValidRowModel } from "@mui/x-data-grid";
+import type { GridColDef } from "@mui/x-data-grid";
 import type { GetAllUsersResponse } from "@repo/types";
 import { MaintainerDataGrid } from "../../../components/MaintainerDataGrid";
 import { ROLE_LABELS } from "../constants";
@@ -62,10 +62,10 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
   return (
     <Box className="rounded-sm bg-white p-3">
       <Box className="flex w-full">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<UserRow>
           editingRowId={null}
           searchable={{
-            fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+            fuseOptions,
             placeholder: "Buscar usuario...",
             downloadFileName: "usuarios",
           }}
