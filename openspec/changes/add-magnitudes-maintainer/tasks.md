@@ -175,7 +175,7 @@
 
 ## 17. Frontend — Update Measurement Units Screen
 
-- [x] 17.1 In `MeasurementUnitsScreen/MeasurementUnitsScreen.tsx`, replace the new-row default `magnitude: Magnitude.ANIMALS` (line ~243) with the first ACTIVE magnitude returned by `useMagnitudes()` (or the user's last-selected magnitude held in component state). If the magnitudes list is empty (e.g., first deploy before seed runs), block the "Add row" action and show an explanatory snackbar.
+- [x] 17.1 In `MeasurementUnitsScreen/MeasurementUnitsScreen.tsx`, replace the new-row default `magnitude: Magnitude.ANIMALS` (line ~243) with an empty `magnitudeId` (no preselection) so the user must pick a magnitude before the row can be saved. If `useMagnitudes()` returns an empty list (e.g., first deploy before seed runs), block the "Add row" action — disable the button and surface an explanatory snackbar that seeding is required.
 - [x] 17.2 In `MeasurementUnitsScreen/hooks/useMeasurementUnitsForm.ts`, replace `magnitude: z.enum(Magnitude, ...)` with `magnitudeId: IdSchema` matching the new request body shape.
 - [x] 17.3 Update the magnitude column rendering: read `row.magnitude.name` (joined from API) instead of `MAGNITUDE_LABELS[row.magnitude]`.
 - [x] 17.4 Update the magnitude form picker (Autocomplete or Select): options come from `useMagnitudes()`, value is `magnitudeId` (string). Disable the picker entirely on rows where `referenceCount > 0` (existing field-locking rule from `add-measurement-units-maintainer`).
@@ -193,7 +193,7 @@
 ## 19. Testing — Frontend
 
 - [x] 19.1 Smoke-test the magnitudes screen in the dev server: create, edit, delete a custom magnitude; rename a system magnitude; attempt to delete a system magnitude (verify the action is hidden); attempt to delete a magnitude in use (verify the action is disabled).
-- [x] 19.2 Smoke-test the measurement units screen: the magnitude column renders from the API, the form picker is populated from the screen-level `useMagnitudes()` query, the new-row default has `magnitudeId: null` (no preselection), the row cannot be saved until the user picks a magnitude, and the validation error is displayed in Spanish.
+- [x] 19.2 Smoke-test the measurement units screen: the magnitude column renders from the API, the form picker is populated from the screen-level `useMagnitudes()` query, the new-row default `magnitudeId` is empty (no preselection), the row cannot be saved until the user picks a magnitude (Spanish validation error is displayed), and when `useMagnitudes()` returns an empty list the "Agregar unidad" button is disabled and an explanatory snackbar surfaces that seeding is required.
 
 ## 20. Documentation
 
