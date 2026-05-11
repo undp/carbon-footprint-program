@@ -146,10 +146,15 @@ export const useMagnitudeColumns = ({
           const isSystem = params.row.isSystem;
           const isReferenced = params.row.referenceCount > 0;
 
-          const deleteDisabled = editing || isReferenced;
-          const deleteTooltipTitle = isReferenced
-            ? "Esta magnitud está en uso por unidades de medida. Elimina o reasigna esas unidades primero."
-            : "Eliminar";
+          const deleteDisabled = editing || isSystem || isReferenced;
+          let deleteTooltipTitle = "Eliminar";
+          if (isSystem) {
+            deleteTooltipTitle =
+              "Esta magnitud fue creada por el sistema y no puede ser borrada";
+          } else if (isReferenced) {
+            deleteTooltipTitle =
+              "Esta magnitud está en uso por unidades de medida. Elimina o reasigna esas unidades primero.";
+          }
 
           return (
             <ActionButtons
@@ -157,15 +162,9 @@ export const useMagnitudeColumns = ({
               isEditing={editing}
               onStopEditCells={() => void onStopEditRow()}
               onCancelEdit={onCancelEditRow}
-              onDelete={
-                isSystem || editing ? undefined : () => onDelete(params.row)
-              }
+              onDelete={editing ? undefined : () => onDelete(params.row)}
               deleteDisabled={deleteDisabled}
-              deleteTooltipTitle={
-                isSystem
-                  ? "Las magnitudes del sistema no se pueden eliminar."
-                  : deleteTooltipTitle
-              }
+              deleteTooltipTitle={deleteTooltipTitle}
               deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta magnitud?"
             />
           );
