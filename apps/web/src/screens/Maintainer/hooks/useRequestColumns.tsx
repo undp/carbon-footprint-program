@@ -110,6 +110,7 @@ export const useRequestColumns = ({
         flex: 0.5,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (params) => {
           const isPending = params.row.status === RequestStatus.PENDING;

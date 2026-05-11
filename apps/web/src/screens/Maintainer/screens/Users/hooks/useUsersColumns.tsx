@@ -6,7 +6,12 @@ import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { UserRoleChip } from "../components/UserRoleChip";
 import { ActionIconButton } from "@/components/ActionIconButton";
-import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
+import {
+  ACTION_LABELS,
+  COLUMN_HEADERS,
+  ROLE_LABELS,
+  type TabKey,
+} from "../constants";
 import { ORGANIZATION_ROLE_LABELS } from "@/labels";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -106,6 +111,7 @@ export const useUsersColumns = ({
               headerName: COLUMN_HEADERS.role,
               cellClassName,
               flex: 0.9,
+              valueGetter: (_, row) => ROLE_LABELS[row.role],
               renderCell: (params: { row: UserRow }) => (
                 <UserRoleChip role={params.row.role} />
               ),
@@ -129,6 +135,7 @@ export const useUsersColumns = ({
         flex: showChangeRole ? 0.8 : 0.6,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (params) => {
           const isOwnRow = params.row.id === viewerId;

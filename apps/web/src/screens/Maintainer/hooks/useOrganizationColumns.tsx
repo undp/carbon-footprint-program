@@ -122,6 +122,7 @@ export const useOrganizationColumns = ({
         flex: 0.7,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (params) => {
           const isBlocked = params.row.status === "BLOCKED";
