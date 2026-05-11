@@ -155,6 +155,11 @@
     "description": "Texto de ayuda mostrado en el mantenedor de tamaños de organización."
   },
   {
+    "slug": "magnitudes-maintainer",
+    "name": "Mantenedor de magnitudes",
+    "description": "Texto de ayuda mostrado en el mantenedor de magnitudes."
+  },
+  {
     "slug": "measurement-units-maintainer",
     "name": "Mantenedor de unidades de medida",
     "description": "Texto de ayuda mostrado en el mantenedor de unidades de medida."

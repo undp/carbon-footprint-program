@@ -357,34 +357,30 @@ export const MeasurementUnitsScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Unidades de medida"
+        subtitle="Gestiona las unidades de medida. Haz clic en editar para modificar una fila"
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null || isMagnitudesLoading}
         addLabel="Agregar unidad"
         explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
-      <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          Gestiona las unidades de medida. Haz clic en editar para modificar una
-          fila.
-        </Typography>
-        <Box className="flex w-full">
-          <MaintainerDataGrid
-            editingRowId={editingRowId}
-            loading={isLoading || isMagnitudesLoading}
-            columns={columns}
-            rows={currentRows}
-            getRowId={(row: MeasurementUnitsFormRow) => row.id}
-            disableColumnSorting={false}
-            hideFooter={false}
-            pagination
-            pageSizeOptions={[10, 25, 50, 100]}
-            initialState={{
-              sorting: { sortModel },
-              pagination: { paginationModel: { pageSize: 25 } },
-            }}
-            disableDensitySelector
-          />
-        </Box>
+      <Box className="flex w-full rounded-sm bg-white p-3">
+        <MaintainerDataGrid
+          editingRowId={editingRowId}
+          loading={isLoading || isMagnitudesLoading}
+          columns={columns}
+          rows={currentRows}
+          getRowId={(row: MeasurementUnitsFormRow) => row.id}
+          disableColumnSorting={false}
+          hideFooter={false}
+          showToolbar
+          pagination
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            sorting: { sortModel },
+            pagination: { paginationModel: { pageSize: 25 } },
+          }}
+          disableDensitySelector
+        />
       </Box>
       <UnsavedChangesDialog
         open={status === "blocked"}

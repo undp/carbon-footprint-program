@@ -26,6 +26,10 @@ import type { MagnitudesFormRow } from "./hooks/useMagnitudesForm";
 import { useMagnitudesForm } from "./hooks/useMagnitudesForm";
 import { useMagnitudeColumns } from "./hooks/useMagnitudeColumns";
 
+const MAGNITUDES_MAINTAINER_EXPLANATION_SLUGS = {
+  MAIN: "magnitudes-maintainer",
+} as const;
+
 export const MagnitudesScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -275,32 +279,29 @@ export const MagnitudesScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Magnitudes"
+        subtitle="Gestiona las magnitudes utilizadas por las unidades de medida. Las magnitudes del sistema solo permiten editar su nombre."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar magnitud"
+        explanationSlug={MAGNITUDES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
-      <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          Gestiona las magnitudes utilizadas por las unidades de medida. Las
-          magnitudes del sistema solo permiten editar su nombre.
-        </Typography>
-        <Box className="flex w-full">
-          <MaintainerDataGrid
-            editingRowId={editingRowId}
-            loading={isLoading}
-            columns={columns}
-            rows={currentRows}
-            getRowId={(row: MagnitudesFormRow) => row.id}
-            disableColumnSorting={false}
-            hideFooter={false}
-            pagination
-            pageSizeOptions={[10, 25, 50, 100]}
-            initialState={{
-              pagination: { paginationModel: { pageSize: 25 } },
-            }}
-            disableDensitySelector
-          />
-        </Box>
+      <Box className="flex w-full rounded-sm bg-white p-3">
+        <MaintainerDataGrid
+          editingRowId={editingRowId}
+          loading={isLoading}
+          columns={columns}
+          rows={currentRows}
+          getRowId={(row: MagnitudesFormRow) => row.id}
+          disableColumnSorting={false}
+          hideFooter={false}
+          showToolbar
+          pagination
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 25 } },
+          }}
+          disableDensitySelector
+        />
       </Box>
       <UnsavedChangesDialog
         open={status === "blocked"}
