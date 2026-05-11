@@ -32,6 +32,7 @@ interface EmissionEditorHeaderProps
   isManualModeLoading?: boolean;
   hasManualModeLine?: boolean;
   manualModeLineHasComment?: boolean;
+  manualModeLineIsCommentPending?: boolean;
   onManualModeLineDelete?: () => void;
   onManualModeLineComment?: () => void;
   hasEmissionFactors?: boolean;
@@ -52,6 +53,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   isManualModeLoading = false,
   hasManualModeLine = false,
   manualModeLineHasComment = false,
+  manualModeLineIsCommentPending = false,
   onManualModeLineDelete,
   onManualModeLineComment,
   hasEmissionFactors,
@@ -193,6 +195,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             categoryColor={categoryColor}
             disabled={isManualModeLoading}
             hasComment={manualModeLineHasComment}
+            isCommentPending={manualModeLineIsCommentPending}
             uploadFiles={() => null}
             updateComment={onManualModeLineComment}
             deleteSource={onManualModeLineDelete}
