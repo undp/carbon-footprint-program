@@ -1,126 +1,126 @@
 [
   {
     "name": "gramo",
-    "magnitude": "MASS",
+    "magnitudeCode": "MASS",
     "abbreviation": "g",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "kilógramo",
-    "magnitude": "MASS",
+    "magnitudeCode": "MASS",
     "abbreviation": "kg",
     "baseFactor": 1000.0,
     "isBase": false
   },
   {
     "name": "tonelada",
-    "magnitude": "MASS",
+    "magnitudeCode": "MASS",
     "abbreviation": "ton",
     "baseFactor": 1000000.0,
     "isBase": false
   },
   {
     "name": "litro",
-    "magnitude": "VOLUME",
+    "magnitudeCode": "VOLUME",
     "abbreviation": "L",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "metros cúbicos",
-    "magnitude": "VOLUME",
+    "magnitudeCode": "VOLUME",
     "abbreviation": "m3",
     "baseFactor": 1000.0,
     "isBase": false
   },
   {
     "name": "galón",
-    "magnitude": "VOLUME",
+    "magnitudeCode": "VOLUME",
     "abbreviation": "gal",
     "baseFactor": 3.78541,
     "isBase": false
   },
   {
     "name": "metro",
-    "magnitude": "DISTANCE",
+    "magnitudeCode": "DISTANCE",
     "abbreviation": "m",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "kilómetro",
-    "magnitude": "DISTANCE",
+    "magnitudeCode": "DISTANCE",
     "abbreviation": "km",
     "baseFactor": 1000.0,
     "isBase": false
   },
   {
     "name": "milla",
-    "magnitude": "DISTANCE",
+    "magnitudeCode": "DISTANCE",
     "abbreviation": "mi",
     "baseFactor": 1609.34,
     "isBase": false
   },
   {
     "name": "hora",
-    "magnitude": "TIME",
+    "magnitudeCode": "TIME",
     "abbreviation": "h",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "día",
-    "magnitude": "TIME",
+    "magnitudeCode": "TIME",
     "abbreviation": "d",
     "baseFactor": 24.0,
     "isBase": false
   },
   {
     "name": "cantidad de animales",
-    "magnitude": "ANIMALS",
+    "magnitudeCode": "ANIMALS",
     "abbreviation": "cant anim",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "hectáreas",
-    "magnitude": "AREA",
+    "magnitudeCode": "AREA",
     "abbreviation": "ha",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "megawatt hora",
-    "magnitude": "POWER",
+    "magnitudeCode": "POWER",
     "abbreviation": "MWh",
     "baseFactor": 1000.0,
     "isBase": false
   },
   {
     "name": "kilowatt hora",
-    "magnitude": "POWER",
+    "magnitudeCode": "POWER",
     "abbreviation": "kWh",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "giga joule",
-    "magnitude": "ENERGY",
+    "magnitudeCode": "ENERGY",
     "abbreviation": "GJ",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "kilómetro tonelada",
-    "magnitude": "DISTANCE_MASS",
+    "magnitudeCode": "DISTANCE_MASS",
     "abbreviation": "km-ton",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
     "name": "piezas arrendadas",
-    "magnitude": "ROOMS",
+    "magnitudeCode": "ROOMS",
     "abbreviation": "pieza arre",
     "baseFactor": 1.0,
     "isBase": true

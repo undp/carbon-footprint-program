@@ -1,0 +1,12 @@
+[
+  { "code": "MASS", "name": "Masa" },
+  { "code": "VOLUME", "name": "Volumen" },
+  { "code": "DISTANCE", "name": "Distancia" },
+  { "code": "TIME", "name": "Tiempo" },
+  { "code": "ANIMALS", "name": "Animales" },
+  { "code": "AREA", "name": "Área" },
+  { "code": "POWER", "name": "Potencia" },
+  { "code": "ENERGY", "name": "Energía" },
+  { "code": "DISTANCE_MASS", "name": "Distancia · Masa" },
+  { "code": "ROOMS", "name": "Habitaciones" }
+]
