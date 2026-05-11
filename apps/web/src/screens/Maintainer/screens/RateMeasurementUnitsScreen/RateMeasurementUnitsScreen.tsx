@@ -61,6 +61,7 @@ export const RateMeasurementUnitsScreen: FC = () => {
             sorting: { sortModel: DEFAULT_SORT_MODEL },
             pagination: { paginationModel: { pageSize: 25 } },
           }}
+          getCellClassName={() => "text-base"}
           disableDensitySelector
         />
       </Box>
