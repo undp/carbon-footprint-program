@@ -163,6 +163,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
                 size="small"
                 onClick={onDownloadExcel}
                 disabled={downloadExcelDisabled}
+                aria-label={downloadExcelTooltipTitle}
               >
                 <FileDownloadOutlined fontSize="small" />
               </IconButton>
