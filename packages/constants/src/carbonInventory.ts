@@ -24,7 +24,8 @@ export type CarbonInventoryLineFileMimeType =
   (typeof CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES)[number];
 
 /** Maximum allowed file size for any carbon-inventory line attachment (10 MB). */
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+export const CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 /** Same limit expressed in MB for UI hints (e.g. `FileUpload.maxSizeMB`). */
-export const MAX_FILE_SIZE_MB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
+export const CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB =
+  CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES / (1024 * 1024);

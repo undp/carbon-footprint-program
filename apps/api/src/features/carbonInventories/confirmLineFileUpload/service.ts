@@ -3,7 +3,7 @@ import type { ContainerClient } from "@azure/storage-blob";
 import { FileType, type ConfirmLineFileUploadResponse } from "@repo/types";
 import {
   CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES,
-  MAX_FILE_SIZE_BYTES,
+  CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES,
 } from "@repo/constants";
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "@/features/files/helpers/persistFileRecord.js";
@@ -48,10 +48,10 @@ export const confirmLineFileUploadService = async (
     );
   }
 
-  if (sizeBytes > MAX_FILE_SIZE_BYTES) {
+  if (sizeBytes > CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES) {
     await blobStorage.getBlockBlobClient(blobPath).deleteIfExists();
     throw new LineFileUploadValidationError(
-      `file size ${sizeBytes} bytes exceeds maximum allowed ${MAX_FILE_SIZE_BYTES} bytes`
+      `file size ${sizeBytes} bytes exceeds maximum allowed ${CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES} bytes`
     );
   }
 
