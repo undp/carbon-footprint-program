@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
@@ -365,7 +364,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             No hay actividades principales para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<MainActivityFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -378,8 +377,9 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar actividades...",
+              downloadFileName: "actividades-principales",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

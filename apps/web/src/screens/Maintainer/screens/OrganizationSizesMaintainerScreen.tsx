@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountryOrganizationSizeStatus,
   type AdminCountryOrganizationSize,
@@ -317,7 +316,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             No hay tamaños para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<OrganizationSizeFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -330,8 +329,9 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar tamaños...",
+              downloadFileName: "tamanos-organizacion",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

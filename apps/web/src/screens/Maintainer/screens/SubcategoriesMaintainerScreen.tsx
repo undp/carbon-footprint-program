@@ -434,8 +434,16 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<SubcategoryForm>
         editingRowId={editingRowId}
+        searchable={{
+          fuseOptions: {
+            keys: ["name", "description"],
+          },
+          placeholder: "Buscar subcategoría...",
+          downloadFileName: "subcategorias",
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady || scope.isLoadingMethodologies}

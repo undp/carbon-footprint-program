@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
@@ -296,7 +295,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
             No hay subrubros para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<SubsectorFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -309,8 +308,9 @@ export const SubsectorsMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar subrubros...",
+              downloadFileName: "subrubros",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

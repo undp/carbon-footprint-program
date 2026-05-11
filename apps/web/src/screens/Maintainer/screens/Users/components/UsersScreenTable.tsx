@@ -1,7 +1,13 @@
-import { FC } from "react";
-import { StylizedDataGrid } from "@components";
-import type { GetAllUsersResponse } from "@repo/types";
+import { FC, useMemo } from "react";
+import type { IFuseOptions } from "fuse.js";
 import type { GridColDef } from "@mui/x-data-grid";
+import type { GetAllUsersResponse } from "@repo/types";
+import { MaintainerDataGrid } from "../../../components/MaintainerDataGrid";
+import { ROLE_LABELS } from "../constants";
+import { formatter } from "@/utils/formatting";
+import Box from "@mui/material/Box";
+
+type UserRow = GetAllUsersResponse[number];
 
 interface UsersScreenTableProps {
   rows: GetAllUsersResponse;
@@ -13,37 +19,58 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
   rows,
   columns,
   isLoading,
-}) => (
-  <StylizedDataGrid
-    sx={(theme) => ({
-      backgroundColor: "background.paper",
-      border: "none",
-      boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-      "& .MuiDataGrid-main": {
-        padding: "16px !important",
-      },
-      "& .MuiDataGrid-columnHeader": {
-        backgroundColor: theme.palette.background.default,
-      },
-      "& .MuiDataGrid-cell": {
-        minHeight: "65px",
-        padding: "10px",
-      },
-    })}
-    loading={isLoading}
-    disableColumnMenu={false}
-    disableColumnFilter={false}
-    showToolbar
-    columns={columns}
-    rows={rows}
-    getRowHeight={() => "auto"}
-    getRowId={(row: GetAllUsersResponse[number]) => row.id}
-    disableColumnSorting={false}
-    hideFooter={false}
-    pagination
-    pageSizeOptions={[10, 25, 50, 100]}
-    initialState={{
-      pagination: { paginationModel: { pageSize: 10 } },
-    }}
-  />
-);
+}) => {
+  const fuseOptions = useMemo<IFuseOptions<UserRow>>(
+    () => ({
+      keys: [
+        "email",
+        { name: "role", getFn: (row) => ROLE_LABELS[row.role] },
+        {
+          name: "organizations",
+          getFn: (row) =>
+            row.organizations
+              .map(({ organizationName }) => organizationName)
+              .join(" "),
+        },
+        {
+          name: "createdAt",
+          getFn: (row) => formatter.dateLong(row.createdAt, { ifEmpty: "" }),
+        },
+        {
+          name: "lastAccessAt",
+          getFn: (row) => formatter.dateLong(row.lastAccessAt, { ifEmpty: "" }),
+        },
+      ],
+      threshold: 0.3,
+    }),
+    []
+  );
+
+  return (
+    <Box className="flex w-full rounded-sm bg-white p-3">
+      <MaintainerDataGrid<UserRow>
+        editingRowId={null}
+        searchable={{
+          fuseOptions,
+          placeholder: "Buscar usuario...",
+          downloadFileName: "usuarios",
+        }}
+        loading={isLoading}
+        disableColumnMenu={false}
+        disableColumnFilter={false}
+        showToolbar
+        columns={columns}
+        rows={rows}
+        getRowHeight={() => "auto"}
+        getRowId={(row: UserRow) => row.id}
+        disableColumnSorting={false}
+        hideFooter={false}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
+        }}
+      />
+    </Box>
+  );
+};

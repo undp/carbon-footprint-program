@@ -439,6 +439,7 @@ export const useEmissionFactorColumns = ({
         width: 140,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
@@ -527,6 +528,7 @@ export const useEmissionFactorColumns = ({
               width: 100,
               sortable: false,
               filterable: false,
+              disableExport: true,
               headerAlign: "center" as const,
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<EmissionFactor>) => {

@@ -63,7 +63,6 @@ export const ExplanationsMaintainerScreen: FC = () => {
     <>
       <MaintainerPageHeader
         title="Explicaciones"
-        showDownload={false}
         explanationSlug={EXPLANATIONS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
@@ -72,8 +71,15 @@ export const ExplanationsMaintainerScreen: FC = () => {
             No fue posible cargar las explicaciones.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<ExplanationRow>
             editingRowId={null}
+            searchable={{
+              fuseOptions: {
+                keys: ["name", "description"],
+              },
+              placeholder: "Buscar explicación...",
+              downloadFileName: "explicaciones",
+            }}
             loading={isLoading}
             columns={columns}
             rows={rows}

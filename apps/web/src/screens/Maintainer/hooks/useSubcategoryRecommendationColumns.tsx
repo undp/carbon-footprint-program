@@ -210,6 +210,12 @@ export const useSubcategoryRecommendationColumns = ({
         flex: 3,
         minWidth: 320,
         sortable: false,
+        valueGetter: (_, row: SubcategoryRecommendationRow) =>
+          row.subcategoryIds
+            .map((id) => subcategoriesById.get(id)?.name)
+            .filter((name): name is string => !!name)
+            .sort((a, b) => a.localeCompare(b))
+            .join(", "),
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
@@ -295,6 +301,7 @@ export const useSubcategoryRecommendationColumns = ({
         width: 120,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>

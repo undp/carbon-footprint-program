@@ -11,6 +11,7 @@ import {
 } from "../components/cells";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
+import { METHODOLOGY_STATUS_LABELS } from "../constants";
 
 type Methodology = GetAllMethodologiesResponse[number];
 
@@ -163,6 +164,8 @@ export const useMethodologyColumns = ({
         cellClassName,
         headerAlign: "center",
         align: "center",
+        valueGetter: (_, row: Methodology) =>
+          METHODOLOGY_STATUS_LABELS[row.status],
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ToggleCell
             value={params.row.status === "PUBLISHED"}
@@ -177,6 +180,7 @@ export const useMethodologyColumns = ({
         width: 160,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center",
         align: "right",
         cellClassName,

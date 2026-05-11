@@ -185,6 +185,7 @@ export const useSubsectorProfilingColumns = ({
       },
       {
         field: "actions",
+        disableExport: true,
         headerName: "Acciones",
         width: 140,
         sortable: false,

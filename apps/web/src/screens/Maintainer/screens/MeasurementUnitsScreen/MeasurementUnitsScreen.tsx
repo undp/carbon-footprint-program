@@ -376,15 +376,30 @@ export const MeasurementUnitsScreen: FC = () => {
         explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<MeasurementUnitsFormRow>
           editingRowId={editingRowId}
+          searchable={{
+            fuseOptions: {
+              keys: [
+                {
+                  name: "magnitudeId",
+                  getFn: (row) =>
+                    magnitudeNameById.get(row.magnitudeId) ?? row.magnitudeId,
+                },
+                "name",
+                "abbreviation",
+              ],
+            },
+            placeholder: "Buscar unidad...",
+            downloadFileName: "unidades-de-medida",
+          }}
+          showToolbar
           loading={isLoading || isMagnitudesLoading}
           columns={columns}
           rows={currentRows}
           getRowId={(row: MeasurementUnitsFormRow) => row.id}
           disableColumnSorting={false}
           hideFooter={false}
-          showToolbar
           pagination
           pageSizeOptions={[10, 25, 50, 100]}
           initialState={{

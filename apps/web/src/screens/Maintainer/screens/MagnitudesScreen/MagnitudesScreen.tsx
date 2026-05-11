@@ -287,8 +287,16 @@ export const MagnitudesScreen: FC = () => {
         explanationSlug={MAGNITUDES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<MagnitudesFormRow>
           editingRowId={editingRowId}
+          searchable={{
+            fuseOptions: {
+              keys: ["name", "code"],
+            },
+            placeholder: "Buscar magnitud...",
+            downloadFileName: "magnitudes",
+          }}
+          showToolbar
           getRowHeight={() => 50}
           loading={isLoading}
           columns={columns}
@@ -296,7 +304,6 @@ export const MagnitudesScreen: FC = () => {
           getRowId={(row: MagnitudesFormRow) => row.id}
           disableColumnSorting={false}
           hideFooter={false}
-          showToolbar
           pagination
           pageSizeOptions={[10, 25, 50, 100]}
           initialState={{

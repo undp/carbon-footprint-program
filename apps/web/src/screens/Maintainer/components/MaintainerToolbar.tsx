@@ -8,18 +8,21 @@ import {
 } from "@mui/x-data-grid";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
+import { formatter } from "@/utils/formatting";
 import { SearchBar } from "@/components";
 
 interface MaintainerToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
+  fileName?: string;
 }
 
 export const MaintainerToolbar: FC<MaintainerToolbarProps> = ({
   searchValue,
   onSearchChange,
   searchPlaceholder,
+  fileName,
 }) => {
   const [exportAnchorEl, setExportAnchorEl] =
     useState<HTMLButtonElement | null>(null);
@@ -77,7 +80,15 @@ export const MaintainerToolbar: FC<MaintainerToolbarProps> = ({
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <ExportCsv render={<MenuItem onClick={closeExportMenu} />}>
+        <ExportCsv
+          options={{
+            utf8WithBom: true,
+            fileName: fileName
+              ? `${fileName}_${formatter.dateForFileName()}`
+              : undefined,
+          }}
+          render={<MenuItem onClick={closeExportMenu} />}
+        >
           Descargar como CSV
         </ExportCsv>
       </Menu>

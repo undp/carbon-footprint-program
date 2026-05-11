@@ -10,7 +10,6 @@ import {
   DialogTitle,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { MethodologyVersionStatus } from "@repo/types";
@@ -26,8 +25,7 @@ import {
 } from "@/api/query/maintainer";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { AppHttpError } from "@/api/http/errors";
-import { InfoButton } from "@/components";
-import { useExplanationDialog } from "@/contexts";
+import AddIcon from "@mui/icons-material/Add";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { MethodologySelector } from "../components/MethodologySelector";
 import { SubcategoryTransferListDialog } from "../components/SubcategoryTransferListDialog";
@@ -45,6 +43,8 @@ import {
   findSectorAndSubsectorNames,
 } from "./SubcategoryRecommendationsMaintainerScreen.helpers";
 import { arraysEqualUnordered } from "@repo/utils";
+import { InfoButton } from "../../../components";
+import { useExplanationDialog } from "../../../contexts";
 
 const SUBCATEGORY_RECOMMENDATIONS_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "subcategory-recommendations-maintainer",
@@ -544,8 +544,16 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {SUBCATEGORY_RECOMMENDATIONS_LABELS.description}
         </Typography>
-        <MaintainerDataGrid
-          editingRowId={null}
+        <MaintainerDataGrid<SubcategoryRecommendationRow>
+          editingRowId={editingRowId}
+          searchable={{
+            fuseOptions: {
+              keys: ["sectorName", "subsectorName"],
+            },
+            placeholder: "Buscar recomendación...",
+            downloadFileName: "recomendaciones-subcategoria",
+          }}
+          showToolbar
           loading={isLoading}
           columns={columns}
           rows={rows}

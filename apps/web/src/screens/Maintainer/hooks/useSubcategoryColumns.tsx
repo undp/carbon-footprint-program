@@ -63,6 +63,7 @@ export const useSubcategoryColumns = ({
         width: 60,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -93,6 +94,12 @@ export const useSubcategoryColumns = ({
         headerName: "Categoría / Alcance",
         flex: 0.22,
         minWidth: 135,
+        valueGetter: (_, row: Subcategory) => {
+          const formRow = rows[getRowIndex(row.id)];
+          return (
+            categories.find((c) => c.id === formRow?.categoryId)?.name ?? ""
+          );
+        },
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -168,6 +175,14 @@ export const useSubcategoryColumns = ({
         headerName: "Unidades aceptadas",
         width: 250,
         display: "flex",
+        valueGetter: (_, row: Subcategory) => {
+          const formRow = rows[getRowIndex(row.id)];
+          const ids = formRow?.measurementUnitIds ?? [];
+          return allMeasurementUnits
+            .filter((u) => ids.includes(u.id))
+            .map((u) => u.name)
+            .join(", ");
+        },
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
           const rowId = params.row.id;
           const rowIndex = getRowIndex(rowId);
@@ -194,6 +209,7 @@ export const useSubcategoryColumns = ({
         width: 120,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
           const rowIndex = getRowIndex(params.row.id);
           const hasContent = !!params.row.explanation;
@@ -226,6 +242,7 @@ export const useSubcategoryColumns = ({
         width: viewOnly ? 90 : 130,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center" as const,
         align: "center" as const,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {

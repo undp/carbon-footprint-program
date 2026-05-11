@@ -160,6 +160,10 @@ export const useDimensionColumns = ({
         headerName: "Sub-categoría",
         flex: 0.3,
         minWidth: 200,
+        valueGetter: (_, row: DimensionFormRow) => {
+          const formRow = rows[getRowIndex(String(row.id))];
+          return formRow?.subcategoryName ?? "";
+        },
         renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
@@ -270,6 +274,10 @@ export const useDimensionColumns = ({
         width: 100,
         headerAlign: "center",
         align: "center",
+        valueGetter: (_, row: DimensionFormRow) => {
+          const formRow = rows[getRowIndex(String(row.id))];
+          return formRow?.isRequired ? "Sí" : "No";
+        },
         renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
@@ -306,6 +314,7 @@ export const useDimensionColumns = ({
         align: "center",
         sortable: false,
         filterable: false,
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
@@ -332,6 +341,7 @@ export const useDimensionColumns = ({
         width: 120,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
