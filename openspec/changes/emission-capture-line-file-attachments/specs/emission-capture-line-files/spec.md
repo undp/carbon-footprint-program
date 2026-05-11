@@ -35,6 +35,19 @@ The system SHALL upload selected files immediately upon selection by calling the
 - **WHEN** the user selects multiple files at once
 - **THEN** the client uploads them in parallel and each appears in the list as it confirms
 
+#### Scenario: Upload fails during SAS PUT
+
+- **WHEN** the PUT request to the SAS URL fails or times out
+- **THEN** the client surfaces an error and the file is NOT added to the dialog list
+- **AND** no `File` row is created and the user can retry the upload
+
+#### Scenario: confirm-upload fails after a successful PUT
+
+- **WHEN** `POST /carbon-inventories/:id/files/confirm-upload` fails (e.g., validation error, network issue)
+- **THEN** no `File` row is created and the file is NOT added to the dialog list
+- **AND** the blob may remain at `CARBON_INVENTORY/{inventoryId}/LINES/{uuid}-{originalName}` until the orphan-sweep job reclaims it
+- **AND** the client surfaces an error and the user can retry the upload
+
 ### Requirement: Server-side mime and size validation
 
 The confirm-upload endpoint SHALL reject files whose real (blob-storage-reported) `mimeType` is not in `CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES` or whose `sizeBytes` exceeds `MAX_FILE_SIZE_BYTES`.
@@ -42,12 +55,14 @@ The confirm-upload endpoint SHALL reject files whose real (blob-storage-reported
 #### Scenario: Disallowed mime type
 
 - **WHEN** the client confirms an upload whose real mime type is outside the allowlist
-- **THEN** the API responds with 422 and the `File` row is not created
+- **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `LINE_FILE_UPLOAD_VALIDATION_ERROR`
+- **AND** the `File` row is not created and the blob is deleted from storage
 
 #### Scenario: Oversized file
 
 - **WHEN** the client confirms an upload whose real size exceeds `MAX_FILE_SIZE_BYTES`
-- **THEN** the API responds with 422 and the `File` row is not created
+- **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `LINE_FILE_UPLOAD_VALIDATION_ERROR`
+- **AND** the `File` row is not created and the blob is deleted from storage
 
 ### Requirement: Authorization on inventory-scoped upload endpoints
 
@@ -119,8 +134,14 @@ The sync handler SHALL reject any `addFileUuids` whose corresponding `File.blobP
 #### Scenario: Attempt to link a file from another inventory
 
 - **WHEN** a user with access to inventory A submits `addFileUuids` referencing a file uploaded to inventory B
-- **THEN** the API responds with 422
-- **AND** no line or junction is created or modified
+- **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `CROSS_INVENTORY_FILE_LINKING`
+- **AND** no line or junction is created or modified (the transaction is rolled back)
+
+#### Scenario: Attempt to link a file that does not exist
+
+- **WHEN** the request submits an `addFileUuids` value that does not resolve to an ACTIVE `File`
+- **THEN** the API responds with 404 and an `ApiErrorResponse` whose error code is `MISSING_FILES`
+- **AND** no line or junction is created or modified (the transaction is rolled back)
 
 ### Requirement: `getCarbonInventoryById` returns files per ACTIVE line
 
