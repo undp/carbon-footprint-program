@@ -13,7 +13,7 @@ export const getAllRateMeasurementUnitsRoute = (
         tags: ["measurement-units"],
         summary: "Get all rate measurement units",
         description:
-          "Retrieves all rate measurement units with their numerator and denominator units",
+          "Retrieves all ACTIVE rate measurement units with their numerator and denominator units. Each item includes a per-category reference count breakdown and a derived total. The full list is returned in a single response; consumers that need filtering apply it client-side.",
         response: {
           200: GetAllRateMeasurementUnitsResponseSchema,
           404: ApiErrorResponseSchema,
