@@ -759,7 +759,7 @@ model CarbonInventoryLineFile {
   createdById BigInt?  @map("created_by_id")
 
   line    CarbonInventoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  file    File                @relation(fields: [fileId], references: [id])
+  file    File                @relation(fields: [fileId], references: [id], onDelete: Restrict)
   creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id])
 
   @@id([lineId, fileId])
