@@ -26,7 +26,7 @@ export const RateMeasurementUnitsScreen: FC = () => {
     <>
       <MaintainerPageHeader
         title="Tasas"
-        subtitle="Inspecciona las tasas (unidades por unidad) derivadas de las unidades de medida y los factores de emisión. Esta vista es de solo lectura."
+        subtitle="Inspecciona las tasas derivadas de las unidades de medida y su uso en los factores de emisión. Esta vista es de solo lectura."
         explanationSlug={
           RATE_MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN
         }
