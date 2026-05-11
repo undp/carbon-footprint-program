@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -398,11 +398,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         explanationSlug={METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mb: 2 }}
-        ></Typography>
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
             <MaintainerDataGrid<MethodologyVersionForm>
