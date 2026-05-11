@@ -1,15 +1,21 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Box, IconButton, Paper, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useTheme } from "@mui/material/styles";
+import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
+import { APP_LOCALE } from "@/config/constants";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
 
 const PANEL_WIDTH = 360;
 const PANEL_HEIGHT = 480;
+// Counter stays hidden during normal use; appears once the draft approaches
+// the cap so the user is not surprised by a hard stop.
+const COUNTER_VISIBILITY_THRESHOLD = 0.8;
+const COUNTER_WARNING_THRESHOLD = 0.95;
 
 export function ChatbotWidget() {
   const theme = useTheme();
@@ -17,6 +23,7 @@ export function ChatbotWidget() {
   const [draft, setDraft] = useState("");
   const { state, messages, sendMessage, deleteHistory } = useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
 
   if (!open) {
     return (
@@ -34,6 +41,16 @@ export function ChatbotWidget() {
   }
 
   const isBusy = state === "loading" || state === "streaming";
+
+  const draftLength = draft.length;
+  const draftRatio = draftLength / CHATBOT_MAX_USER_INPUT_CHARS;
+  const showCounter = draftRatio >= COUNTER_VISIBILITY_THRESHOLD;
+  const counterColor =
+    draftLength >= CHATBOT_MAX_USER_INPUT_CHARS
+      ? "error.main"
+      : draftRatio >= COUNTER_WARNING_THRESHOLD
+        ? "warning.main"
+        : "text.secondary";
 
   const handleSend = async () => {
     // Guard against double-sends when the user mashes Enter or the send
@@ -117,6 +134,7 @@ export function ChatbotWidget() {
         sx={{
           flex: 1,
           overflowY: "auto",
+          overflowX: "hidden",
           px: 1.5,
           py: 1,
           bgcolor: theme.palette.background.default,
@@ -151,46 +169,62 @@ export function ChatbotWidget() {
 
       <Box
         sx={{
-          display: "flex",
-          gap: 1,
-          alignItems: "flex-end",
           p: 1,
           borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <TextField
-          fullWidth
-          size="small"
-          multiline
-          maxRows={3}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Escribe tu pregunta…"
-          disabled={isBusy || state === "degraded"}
-          onKeyDown={(e) => {
-            // Skip Enter when an IME composition is in progress — otherwise
-            // confirming a kana / pinyin candidate with Enter would also
-            // submit the message. nativeEvent.isComposing covers older
-            // browsers; keyCode 229 is the legacy in-composition signal.
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey &&
-              !e.nativeEvent.isComposing &&
-              e.keyCode !== 229
-            ) {
-              e.preventDefault();
-              void handleSend();
-            }
-          }}
-        />
-        <IconButton
-          color="primary"
-          onClick={() => void handleSend()}
-          disabled={!draft.trim() || isBusy || state === "degraded"}
-          aria-label="Enviar mensaje"
-        >
-          <SendIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
+          <TextField
+            fullWidth
+            size="small"
+            multiline
+            maxRows={3}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Escribe tu pregunta…"
+            disabled={isBusy || state === "degraded"}
+            inputProps={{ maxLength: CHATBOT_MAX_USER_INPUT_CHARS }}
+            onKeyDown={(e) => {
+              // Skip Enter when an IME composition is in progress — otherwise
+              // confirming a kana / pinyin candidate with Enter would also
+              // submit the message. nativeEvent.isComposing covers older
+              // browsers; keyCode 229 is the legacy in-composition signal.
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing &&
+                e.keyCode !== 229
+              ) {
+                e.preventDefault();
+                void handleSend();
+              }
+            }}
+          />
+          <IconButton
+            color="primary"
+            onClick={() => void handleSend()}
+            disabled={!draft.trim() || isBusy || state === "degraded"}
+            aria-label="Enviar mensaje"
+          >
+            <SendIcon />
+          </IconButton>
+        </Box>
+        {showCounter ? (
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              textAlign: "right",
+              mt: 0.5,
+              color: counterColor,
+              fontVariantNumeric: "tabular-nums",
+            }}
+            aria-live="polite"
+          >
+            {numberFormatter.format(draftLength)} /{" "}
+            {numberFormatter.format(CHATBOT_MAX_USER_INPUT_CHARS)}
+          </Typography>
+        ) : null}
       </Box>
     </Paper>
   );

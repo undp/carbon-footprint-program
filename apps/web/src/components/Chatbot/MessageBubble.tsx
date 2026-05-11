@@ -35,6 +35,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           borderRadius: 2,
           px: 1.5,
           py: 1,
+          // Break long unbroken strings (e.g. URLs or `aaaa…` test input)
+          // mid-token instead of letting them overflow the bubble and force a
+          // horizontal scrollbar on the panel.
+          overflowWrap: "anywhere",
         }}
       >
         {isUser ? (

@@ -4,7 +4,7 @@ import { z } from "zod";
 // apps/api/src/config/constants.ts. Kept as a literal here because
 // packages/types is consumed by both the API and the web app and cannot import
 // from apps/api.
-const CHATBOT_MAX_USER_INPUT_CHARS = 16000;
+export const CHATBOT_MAX_USER_INPUT_CHARS = 16000;
 
 export const SendMessageRequestBodySchema = z
   .object({
