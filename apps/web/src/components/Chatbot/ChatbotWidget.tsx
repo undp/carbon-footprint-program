@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Box,
   IconButton,
@@ -13,7 +20,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
-import { APP_LOCALE } from "@/config/constants";
+import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
 import { ActionIconButton } from "@/components/ActionIconButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
@@ -25,9 +32,39 @@ import { useChatbotSize } from "./useChatbotSize";
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
 
+const hasBeenIntroduced = (): boolean => {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.localStorage.getItem(CHATBOT_INTRODUCED_KEY) === "true";
+  } catch {
+    // Storage disabled — treat as introduced so we never spam the auto-open.
+    return true;
+  }
+};
+
+const markIntroduced = (): void => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CHATBOT_INTRODUCED_KEY, "true");
+  } catch {
+    // Quota / disabled — ignore; worst case the user sees the auto-open
+    // again next visit.
+  }
+};
+
 export function ChatbotWidget() {
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+  // Tracks whether `open` started as `true` via the first-visit auto-open
+  // path (vs. an explicit user click). The focus effect consumes this flag
+  // to skip stealing focus from the landing on the very first paint. The
+  // ref is *initialized* to false here and mirrored to the auto-open
+  // decision in the layout effect below — refs are off-limits inside the
+  // state initializer per `react-hooks/refs`.
+  const autoOpenedRef = useRef(false);
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.location.pathname === "/" && !hasBeenIntroduced();
+  });
   const [draft, setDraft] = useState("");
   const { state, messages, sendMessage, deleteHistory } = useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -49,15 +86,32 @@ export function ChatbotWidget() {
     el.setSelectionRange(end, end);
   }, []);
 
+  // Mirror the auto-open decision to the ref before the focus effect runs.
+  // Layout effects fire after commit but BEFORE the regular `useEffect`
+  // that consumes the ref, so the ordering is deterministic on first
+  // mount. Reading `window` here (instead of trusting `open` as a proxy)
+  // keeps this effect independent of the open-state lineage.
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const onLanding = window.location.pathname === "/";
+    if (onLanding && !hasBeenIntroduced()) {
+      autoOpenedRef.current = true;
+    }
+  }, []);
+
   // Focus the input every time the widget opens so the user can start
   // typing without an extra click. The TextField mounts fresh on each
   // open (the `Paper` tree is fully unmounted in the collapsed branch),
   // so this effect catches both the very first open and every reopen
-  // after the X button.
+  // after the X button. The auto-open path is exempted so we do not
+  // steal focus from the landing on first paint.
   useEffect(() => {
-    if (open) {
-      focusInputAtEnd();
+    if (!open) return;
+    if (autoOpenedRef.current) {
+      autoOpenedRef.current = false;
+      return;
     }
+    focusInputAtEnd();
   }, [open, focusInputAtEnd]);
 
   if (!open) {
@@ -95,6 +149,7 @@ export function ChatbotWidget() {
     if (isBusy || state === "degraded") return;
     const content = draft.trim();
     if (!content) return;
+    markIntroduced();
     setDraft("");
     // Schedule the scroll for the next frame so it runs after React has
     // committed the user message + assistant placeholder appended by
@@ -178,6 +233,7 @@ export function ChatbotWidget() {
             disabled={isBusy}
             onClick={() => {
               if (isBusy) return;
+              markIntroduced();
               void deleteHistory();
               // Return focus to the input so the user can immediately
               // start a new message; the click would otherwise leave
@@ -189,7 +245,10 @@ export function ChatbotWidget() {
             icon={MinimizeIcon}
             tooltip="Minimizar"
             color="inherit"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              markIntroduced();
+              setOpen(false);
+            }}
           />
         </Box>
       </Box>

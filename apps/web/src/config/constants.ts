@@ -42,6 +42,14 @@ export const CHATBOT_WIDGET_MIN_WIDTH = 320;
 export const CHATBOT_WIDGET_MIN_HEIGHT = 400;
 export const CHATBOT_SIZE_KEY = "huella-latam:chatbot-size";
 
+/**
+ * Flips to `"true"` the first time the user acknowledges the chatbot
+ * (minimizing it, sending a message, or starting a new conversation). The
+ * landing page auto-opens the assistant on first ever visit; once this flag
+ * is set, the auto-open is suppressed on subsequent visits.
+ */
+export const CHATBOT_INTRODUCED_KEY = "huella-latam:chatbot-introduced";
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 
