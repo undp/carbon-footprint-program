@@ -27,6 +27,11 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     for (const m of magnitudes) {
       magnitudeIdByCode[m.code] = m.id.toString();
     }
+    if (!magnitudeIdByCode.mass) {
+      throw new Error(
+        "required magnitude 'mass' not found in seed data. Ensure the database seed has been applied before running this suite."
+      );
+    }
   });
 
   afterAll(async () => {
