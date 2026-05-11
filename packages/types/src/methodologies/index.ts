@@ -8,5 +8,7 @@ export * from "./getAllMethodologies/schemas.js";
 export * from "./getAllMethodologies/types.js";
 export * from "./getMethodologyById/schemas.js";
 export * from "./getMethodologyById/types.js";
+export * from "./getMethodologyExport/schemas.js";
+export * from "./getMethodologyExport/types.js";
 export * from "./updateMethodology/schemas.js";
 export * from "./updateMethodology/types.js";
