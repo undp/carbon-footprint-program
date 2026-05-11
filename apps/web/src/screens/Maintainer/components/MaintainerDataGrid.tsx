@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SxProps, Theme } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
 import type {
@@ -39,6 +39,7 @@ export const MaintainerDataGrid = <
   cellMaxHeight = 100,
   sx,
   getRowClassName,
+  getRowId,
   rows,
   columns,
   searchable,
@@ -58,20 +59,28 @@ export const MaintainerDataGrid = <
     fuseOptions: searchable?.fuseOptions,
   });
 
+  const resolveRowId = useCallback(
+    (row: T): string =>
+      typeof getRowId === "function"
+        ? String(getRowId(row))
+        : String((row as unknown as { id: unknown }).id),
+    [getRowId]
+  );
+
   const displayRows = useMemo<T[]>(() => {
     if (!searchable || searchQuery.trim() === "") return rowsArray;
     if (editingRowId === null) return results;
 
     const editingRowInResults = results.some(
-      (row) => String((row as unknown as { id: unknown }).id) === editingRowId
+      (row) => resolveRowId(row) === editingRowId
     );
     if (editingRowInResults) return results;
 
     const editingRow = rowsArray.find(
-      (row) => String((row as unknown as { id: unknown }).id) === editingRowId
+      (row) => resolveRowId(row) === editingRowId
     );
     return editingRow ? [editingRow, ...results] : results;
-  }, [searchable, searchQuery, rowsArray, results, editingRowId]);
+  }, [searchable, searchQuery, rowsArray, results, editingRowId, resolveRowId]);
 
   const wrappedColumns = useMemo(() => {
     if (editingRowId === null || !columns) return columns;
@@ -146,6 +155,7 @@ export const MaintainerDataGrid = <
         getRowClassName ??
         (({ id }) => (String(id) === editingRowId ? "row--editing" : ""))
       }
+      getRowId={getRowId}
       rows={displayRows}
       columns={wrappedColumns ?? columns}
       slots={mergedSlots}
