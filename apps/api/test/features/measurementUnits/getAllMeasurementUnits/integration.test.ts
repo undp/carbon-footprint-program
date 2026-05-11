@@ -146,7 +146,12 @@ describe("GET /api/measurement-units - Integration Tests", () => {
   });
 
   describe("Ordering", () => {
-    it("should return units ordered by magnitude & name", async () => {
+    // The endpoint sorts in JS with Spanish-locale collation so order is
+    // identical across deployments regardless of DB collation. Accented chars
+    // (`Á`, `é`, `í`, `ó`, `ú`) sort next to their base letters — e.g. `Área`
+    // sorts between `Animales` and `Distancia`, not after `Volumen` as binary
+    // code-point ordering would place it.
+    it("should return units ordered by magnitude & name (Spanish locale)", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/measurement-units",
@@ -154,19 +159,36 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
-      // Postgres orders by code-point (binary) under the default UTF-8
-      // collation: accented Latin chars like `Á` (U+00C1) come after `V`
-      // (U+0056), not next to `A` as `localeCompare()` would place them.
-      // Mirror the same comparison here so the expected order matches the
-      // server's response.
-      const byCodePoint = (a: string, b: string) =>
-        a < b ? -1 : a > b ? 1 : 0;
       const sorted = [...body].sort((a, b) => {
-        const magnitudeOrder = byCodePoint(a.magnitude.name, b.magnitude.name);
+        const magnitudeOrder = a.magnitude.name.localeCompare(
+          b.magnitude.name,
+          "es"
+        );
         if (magnitudeOrder !== 0) return magnitudeOrder;
-        return byCodePoint(a.name, b.name);
+        return a.name.localeCompare(b.name, "es");
       });
       expect(body).toEqual(sorted);
+    });
+
+    it("should place accented magnitude names with their base letter, not at the end", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
+      const magnitudeOrder: string[] = [];
+      for (const unit of body) {
+        if (magnitudeOrder.at(-1) !== unit.magnitude.name) {
+          magnitudeOrder.push(unit.magnitude.name);
+        }
+      }
+      const areaIndex = magnitudeOrder.indexOf("Área");
+      const volumenIndex = magnitudeOrder.indexOf("Volumen");
+      expect(areaIndex).toBeGreaterThan(-1);
+      expect(volumenIndex).toBeGreaterThan(-1);
+      expect(areaIndex).toBeLessThan(volumenIndex);
     });
   });
 
