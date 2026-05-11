@@ -43,7 +43,10 @@ Both endpoints are auth-gated by `requireCarbonInventoryAccess` requiring `CONTR
 
 Junction rows are only mutated inside the existing `syncCarbonInventoryLines` transaction:
 
-- `addFileUuids` (on create and update items): resolved to `File.id` via `findMany` filtered by `status = ACTIVE` **and** `blobPath` starts with `CARBON_INVENTORY/{inventoryId}/LINES/`. This **prefix invariant** is what blocks cross-inventory linking — a user with access to inventory A cannot link a uuid uploaded against inventory B. If any uuid fails to resolve, the transaction is rolled back with `MissingFilesError` (404).
+- `addFileUuids` (on create and update items): the helper validates in two steps inside the transaction:
+  1. Resolve each UUID against `File` rows with `status = ACTIVE`. A UUID that does not resolve raises `MissingFilesError` (HTTP **404**, code `MISSING_FILES`).
+  2. Check each resolved file's `blobPath` starts with `CARBON_INVENTORY/{inventoryId}/LINES/`. This **prefix invariant** is what blocks cross-inventory linking — a user with access to inventory A cannot link a uuid uploaded against inventory B. A failed prefix check raises `CrossInventoryFileLinkingError` (HTTP **422**, code `CROSS_INVENTORY_FILE_LINKING`).
+     In both cases the transaction is rolled back before any line or junction is mutated.
 - `removeFileIds` (on update items): deletes matching junction rows and soft-deletes the `File` (`status = DELETED, deletedAt = now`). Idempotent — re-applying the same `removeFileIds` is a no-op.
 - Soft-deleted lines keep their junction rows and `File` rows untouched. `getCarbonInventoryById` filters lines to `status = ACTIVE` and `file.status = ACTIVE`, so deleted lines / deleted files are not surfaced.
 
