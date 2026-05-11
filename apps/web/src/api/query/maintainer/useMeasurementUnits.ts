@@ -31,6 +31,10 @@ export const useAddMeasurementUnit = () => {
         queryKey: maintainerKeys.measurementUnits.all,
         exact: true,
       });
+      void queryClient.invalidateQueries({
+        queryKey: maintainerKeys.magnitudes.all,
+        exact: true,
+      });
     },
   });
 };
@@ -54,6 +58,10 @@ export const useUpdateMeasurementUnit = () => {
         queryKey: maintainerKeys.measurementUnits.all,
         exact: true,
       });
+      void queryClient.invalidateQueries({
+        queryKey: maintainerKeys.magnitudes.all,
+        exact: true,
+      });
     },
   });
 };
@@ -66,6 +74,10 @@ export const useDeleteMeasurementUnit = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.measurementUnits.all,
+        exact: true,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: maintainerKeys.magnitudes.all,
         exact: true,
       });
     },
