@@ -313,6 +313,7 @@ model User {
   emissionFactorsUpdated               EmissionFactor[]               @relation("emission_factor_updated_by")
   carbonInventoryLinesCreated          CarbonInventoryLine[]          @relation("carbon_inventory_line_created_by")
   carbonInventoryLinesUpdated          CarbonInventoryLine[]          @relation("carbon_inventory_line_updated_by")
+  carbonInventoryLineFilesCreated      CarbonInventoryLineFile[]      @relation("carbon_inventory_line_file_created_by")
   carbonInventoryLineInputsCreated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_created_by")
   carbonInventoryLineInputsUpdated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_updated_by")
   carbonInventoryLineFactorsCreated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_created_by")
@@ -748,8 +749,24 @@ model CarbonInventoryLine {
   creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
   updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
   inputs            CarbonInventoryLineInput[]
+  files             CarbonInventoryLineFile[]
 
   @@map("carbon_inventory_line")
+}
+
+model CarbonInventoryLineFile {
+  lineId      BigInt   @map("line_id")
+  fileId      BigInt   @map("file_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById BigInt?  @map("created_by_id")
+
+  line    CarbonInventoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  file    File                @relation(fields: [fileId], references: [id])
+  creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id])
+
+  @@id([lineId, fileId])
+  @@index([fileId])
+  @@map("carbon_inventory_line_file")
 }
 
 /// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
@@ -993,9 +1010,10 @@ model File {
   deletedAt    DateTime?  @map("deleted_at")
   createdById  BigInt?    @map("created_by_id")
 
-  createdBy       User?            @relation("file_created_by", fields: [createdById], references: [id])
-  submissionFiles SubmissionFile[]
-  badge           Badge?           @relation("badge_file")
+  createdBy                User?                     @relation("file_created_by", fields: [createdById], references: [id])
+  submissionFiles          SubmissionFile[]
+  badge                    Badge?                    @relation("badge_file")
+  carbonInventoryLineFiles CarbonInventoryLineFile[]
 
   @@map("file")
 }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
+import { LineFileSummarySchema } from "../schemas.js";
 
 import { InputType } from "../../enums.js";
 
@@ -36,6 +37,10 @@ const LineItemSchema = z
       .number()
       .nullable()
       .describe("Manual total emissions value"),
+    files: z
+      .array(LineFileSummarySchema)
+      .default([])
+      .describe("The files attached to this line"),
   })
   .strict();
 
@@ -59,6 +64,10 @@ export const SyncCreateLineItemSchema = z
       LineItemSchema.shape.factorRateMeasurementUnitId,
     manualTotalEmissions: LineItemSchema.shape.manualTotalEmissions,
     comment: LineItemSchema.shape.comment,
+    addFileUuids: z
+      .array(z.uuid())
+      .default([])
+      .describe("UUIDs of files to link to the line on creation"),
   })
   .strict();
 
@@ -83,6 +92,14 @@ export const SyncUpdateLineItemSchema = LineItemSchema.pick({
     appliedFactorValue: LineItemSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       LineItemSchema.shape.factorRateMeasurementUnitId,
+    addFileUuids: z
+      .array(z.uuid())
+      .default([])
+      .describe("UUIDs of files to link to the line"),
+    removeFileIds: z
+      .array(IdSchema)
+      .default([])
+      .describe("IDs of currently-linked files to unlink and soft-delete"),
   })
   .strict();
 

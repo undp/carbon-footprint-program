@@ -3,6 +3,7 @@
 The Emission Capture screen lets users record measured emissions per subcategory. Each emission line currently exposes a folder icon (`SourceOutlined`) wired to a no-op `onUploadFiles` callback at `apps/web/src/screens/CarbonInventory/components/EmissionEditor/EmissionEditor.tsx:71-73`. The platform already has well-established file infrastructure: an `apps/api/src/features/files/*` domain with `request-upload`/`confirm-upload`/`preview`/`download`/`delete` endpoints, a `buildBlobPath` helper, an Azure Blob `blobService` exposing SAS URLs, and a reusable web `FileUpload` component used by submissions and reduction projects. Submissions already use a `SubmissionFile` junction model.
 
 Constraints:
+
 - Country-agnostic: no country-specific code paths; all configurable values (mime allowlist, max size) live in `packages/constants` so each deployment shares the same defaults but can override via seed/system parameters in the future.
 - Tests are out of scope per user feedback.
 - Migrations are run manually by the user (no auto `prisma migrate`).
@@ -38,8 +39,9 @@ Constraints:
 **Rationale**: Users need to preview/delete uploads without waiting for form submit (matches the UX of submissions). Tying the link to the sync transaction keeps line + link consistent — if line creation fails, the junction is rolled back; if the user abandons the form, files exist as orphans (cleaned up by a future sweep job).
 
 **Alternatives considered**:
-- *Two-phase upload* (temp blob path → copy to final on submit): rejected — `inventoryId` is known at upload time (route param), so we can write directly to the final path. Avoids a copy step and dual-blob lifecycle.
-- *Eager link with self-cleanup on cancel*: rejected — would require a separate "discard" endpoint and complicates client state.
+
+- _Two-phase upload_ (temp blob path → copy to final on submit): rejected — `inventoryId` is known at upload time (route param), so we can write directly to the final path. Avoids a copy step and dual-blob lifecycle.
+- _Eager link with self-cleanup on cancel_: rejected — would require a separate "discard" endpoint and complicates client state.
 
 ### 2. Inventory-scoped, line-agnostic blob path
 
@@ -62,7 +64,8 @@ Constraints:
 **Rationale**: Mirrors the existing per-domain pattern (`files/badge/{badgeType}/...`). Co-locating with the inventory feature lets us inject `:id` into the auth check and the blob path in one place. Keeps the generic `/files/*` endpoints free of inventory-specific concerns.
 
 **Alternatives considered**:
-- *Generic `/files/request-upload?type=CARBON_INVENTORY&groupKey=:id`*: rejected — auth would have to dispatch on body shape, and the inventory check requires a route-param extractor.
+
+- _Generic `/files/request-upload?type=CARBON_INVENTORY&groupKey=:id`_: rejected — auth would have to dispatch on body shape, and the inventory check requires a route-param extractor.
 
 ### 5. Cross-inventory linking guard
 
@@ -97,6 +100,7 @@ Constraints:
 ### 10. Badge dot color states
 
 **Decision**: Action-cell badge:
+
 - `theme.palette.warning.main` if any pending (unsaved) files.
 - `theme.palette.primary.main` if only linked files.
 - No badge if no files and no removals.
