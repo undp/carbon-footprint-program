@@ -247,6 +247,7 @@ export const MeasurementUnitsScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
+    if (isMagnitudesLoading) return;
     if (magnitudeOptions.length === 0) {
       void enqueueSnackbar({
         message:
@@ -267,7 +268,7 @@ export const MeasurementUnitsScreen: FC = () => {
     };
     fieldArray.prepend(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray, magnitudeOptions, enqueueSnackbar]);
+  }, [fieldArray, magnitudeOptions, isMagnitudesLoading, enqueueSnackbar]);
 
   const handleDelete = useCallback(
     async (row: MeasurementUnitsFormRow) => {
@@ -357,7 +358,7 @@ export const MeasurementUnitsScreen: FC = () => {
       <MaintainerPageHeader
         title="Unidades de medida"
         onAddRow={handleAddRow}
-        addDisabled={editingRowId !== null}
+        addDisabled={editingRowId !== null || isMagnitudesLoading}
         addLabel="Agregar unidad"
         explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
