@@ -3,6 +3,7 @@ import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus, FileType } from "@repo/types";
 import type { PreviewLineFileResponse } from "@repo/types";
 import { FileNotFoundError } from "@/features/files/errors.js";
+import { buildBlobPathPrefix } from "@/features/files/helpers/buildBlobPath.js";
 import { CrossInventoryFileLinkingError } from "../errors.js";
 import { generateReadSasUrl } from "@/services/blobService.js";
 
@@ -27,8 +28,11 @@ export const previewLineFileService = async (
     throw new FileNotFoundError(uuid);
   }
 
-  // Tamper-resistant ownership check via the blob path prefix.
-  const expectedPrefix = `${FileType.CARBON_INVENTORY}/${carbonInventoryId}/LINES/`;
+  const expectedPrefix = buildBlobPathPrefix({
+    fileType: FileType.CARBON_INVENTORY,
+    groupKey: carbonInventoryId,
+    subPath: "LINES",
+  });
   if (!file.blobPath.startsWith(expectedPrefix)) {
     throw new CrossInventoryFileLinkingError(carbonInventoryId, uuid);
   }

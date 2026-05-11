@@ -27,3 +27,20 @@ export function buildBlobPath({
 
   return `${fileType}/${uuid}-${sanitizedName}`;
 }
+
+interface BuildBlobPathPrefixParams {
+  fileType: FileType;
+  groupKey: string;
+  subPath?: string;
+}
+
+export function buildBlobPathPrefix({
+  fileType,
+  groupKey,
+  subPath,
+}: BuildBlobPathPrefixParams): string {
+  if (subPath) {
+    return `${fileType}/${groupKey}/${subPath}/`;
+  }
+  return `${fileType}/${groupKey}/`;
+}
