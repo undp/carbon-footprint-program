@@ -200,6 +200,7 @@ export const MagnitudesScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
+    if (isLoading || !magnitudes) return;
     const tempId = `temp_${Date.now()}`;
     const newRow: MagnitudesFormRow = {
       id: tempId,
@@ -210,7 +211,7 @@ export const MagnitudesScreen: FC = () => {
     };
     fieldArray.prepend(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, isLoading, magnitudes]);
 
   const handleDelete = useCallback(
     async (row: MagnitudesFormRow) => {
@@ -281,7 +282,7 @@ export const MagnitudesScreen: FC = () => {
         title="Magnitudes"
         subtitle="Gestiona las magnitudes utilizadas por las unidades de medida. Las magnitudes ya creadas solo permiten editar su nombre. La masa está protegida."
         onAddRow={handleAddRow}
-        addDisabled={editingRowId !== null}
+        addDisabled={editingRowId !== null || isLoading || !magnitudes}
         addLabel="Agregar magnitud"
         explanationSlug={MAGNITUDES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
