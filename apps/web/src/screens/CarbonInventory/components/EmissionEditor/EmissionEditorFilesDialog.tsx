@@ -23,7 +23,7 @@ import {
 } from "@mui/icons-material";
 import {
   CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES,
-  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_MB,
 } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
 import { formatFileSize } from "@/utils/files";
@@ -51,8 +51,6 @@ const acceptMap: Record<string, string[]> =
     acc[mime] = [];
     return acc;
   }, {});
-
-const MAX_FILE_SIZE_MB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
 
 export const EmissionEditorFilesDialog: FC<Props> = ({
   open,
