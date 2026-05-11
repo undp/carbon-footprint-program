@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, IconButton, Paper, TextField, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import MinimizeIcon from "@mui/icons-material/Minimize";
 import SendIcon from "@mui/icons-material/Send";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
 import { APP_LOCALE } from "@/config/constants";
+import { ActionIconButton } from "@/components/ActionIconButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
@@ -127,9 +128,12 @@ export function ChatbotWidget() {
         }}
       >
         <Typography variant="subtitle1">Asistente Huella Latam</Typography>
-        <Box>
-          <IconButton
-            size="small"
+        <Box sx={{ color: "inherit" }}>
+          <ActionIconButton
+            icon={AddIcon}
+            tooltip="Nueva conversación"
+            color="inherit"
+            disabled={isBusy}
             onClick={() => {
               if (isBusy) return;
               void deleteHistory();
@@ -138,21 +142,13 @@ export function ChatbotWidget() {
               // focus on this IconButton.
               focusInputAtEnd();
             }}
-            disabled={isBusy}
-            aria-disabled={isBusy}
-            aria-label="Borrar historial"
-            sx={{ color: "inherit" }}
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
+          />
+          <ActionIconButton
+            icon={MinimizeIcon}
+            tooltip="Minimizar"
+            color="inherit"
             onClick={() => setOpen(false)}
-            aria-label="Cerrar asistente"
-            sx={{ color: "inherit" }}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
+          />
         </Box>
       </Box>
 
