@@ -9,7 +9,7 @@ CREATE TABLE "carbon_inventory_line_file" (
 );
 
 -- CreateIndex
-CREATE INDEX "carbon_inventory_line_file_file_id_idx" ON "carbon_inventory_line_file"("file_id");
+CREATE UNIQUE INDEX "carbon_inventory_line_file_file_id_key" ON "carbon_inventory_line_file"("file_id");
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line_file" ADD CONSTRAINT "carbon_inventory_line_file_line_id_fkey" FOREIGN KEY ("line_id") REFERENCES "carbon_inventory_line"("id") ON DELETE CASCADE ON UPDATE CASCADE;
