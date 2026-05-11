@@ -15,7 +15,7 @@ import { MaintainerToolbar } from "./MaintainerToolbar";
 export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   fuseOptions: IFuseOptions<T>;
   placeholder?: string;
-  fileName?: string;
+  downloadFileName?: string;
 }
 
 interface MaintainerDataGridProps extends StylizedDataGridProps {
@@ -103,7 +103,7 @@ export const MaintainerDataGrid = ({
         searchValue: searchQuery,
         onSearchChange: setSearchQuery,
         searchPlaceholder: searchable.placeholder,
-        fileName: searchable.fileName,
+        fileName: searchable.downloadFileName,
       } as unknown as GridSlotProps["toolbar"],
     };
   }, [searchable, slotProps, slots?.toolbar, searchQuery]);

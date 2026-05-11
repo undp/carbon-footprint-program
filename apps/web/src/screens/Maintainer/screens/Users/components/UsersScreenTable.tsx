@@ -67,7 +67,7 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
           searchable={{
             fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
             placeholder: "Buscar usuario...",
-            fileName: "usuarios",
+            downloadFileName: "usuarios",
           }}
           loading={isLoading}
           disableColumnMenu={false}

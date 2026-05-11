@@ -179,7 +179,7 @@ export const OrganizationScreenTable: FC = () => {
           searchable={{
             fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
             placeholder: "Buscar organización...",
-            fileName: "organizaciones",
+            downloadFileName: "organizaciones",
           }}
           disableColumnMenu={false}
           disableColumnFilter={false}

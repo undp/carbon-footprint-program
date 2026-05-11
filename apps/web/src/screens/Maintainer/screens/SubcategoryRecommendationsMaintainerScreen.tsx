@@ -556,7 +556,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
               keys: ["sectorName", "subsectorName"],
             },
             placeholder: "Buscar recomendación...",
-            fileName: "recomendaciones-subcategoria",
+            downloadFileName: "recomendaciones-subcategoria",
           }}
           showToolbar
           loading={isLoading}

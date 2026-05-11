@@ -332,7 +332,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             searchable={{
               fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
               placeholder: "Buscar tamaños...",
-              fileName: "tamanos-organizacion",
+              downloadFileName: "tamanos-organizacion",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

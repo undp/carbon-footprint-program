@@ -397,7 +397,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
                   keys: ["name", "description", "regulation", "version"],
                 },
                 placeholder: "Buscar metodología...",
-                fileName: "metodologias",
+                downloadFileName: "metodologias",
               }}
               showToolbar
               loading={isLoading}

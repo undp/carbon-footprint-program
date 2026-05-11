@@ -96,7 +96,7 @@ export const RequestScreenTable: FC = () => {
           searchable={{
             fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
             placeholder: "Buscar solicitud...",
-            fileName: "solicitudes",
+            downloadFileName: "solicitudes",
           }}
           disableColumnSorting={false}
           disableColumnMenu={false}

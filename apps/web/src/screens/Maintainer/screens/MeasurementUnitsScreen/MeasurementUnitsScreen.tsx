@@ -383,7 +383,7 @@ export const MeasurementUnitsScreen: FC = () => {
               keys: ["name", "abbreviation"],
             },
             placeholder: "Buscar unidad...",
-            fileName: "unidades-de-medida",
+            downloadFileName: "unidades-de-medida",
           }}
           showToolbar
           loading={isLoading || isMagnitudesLoading}

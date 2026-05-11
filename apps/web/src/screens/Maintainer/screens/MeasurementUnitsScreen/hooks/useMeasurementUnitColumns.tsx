@@ -64,7 +64,7 @@ export const useMeasurementUnitColumns = ({
         minWidth: 180,
         flex: 0.5,
         valueGetter: (_, row: MeasurementUnitsFormRow) =>
-          MAGNITUDE_LABELS[row.magnitude as Magnitude] ?? row.magnitude,
+          magnitudeNameById.get(row.magnitudeId) ?? row.magnitudeId,
         renderCell: (params: GridRenderCellParams<MeasurementUnitsFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);

@@ -311,7 +311,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
             searchable={{
               fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
               placeholder: "Buscar subrubros...",
-              fileName: "subrubros",
+              downloadFileName: "subrubros",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

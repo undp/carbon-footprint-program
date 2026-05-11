@@ -358,7 +358,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
                   keys: ["title", "description"],
                 },
                 placeholder: "Buscar iniciativa...",
-                fileName: "iniciativas-reduccion",
+                downloadFileName: "iniciativas-reduccion",
               }}
               showToolbar
               columns={columns}

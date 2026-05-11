@@ -526,7 +526,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                   keys: ["name", "description", "synonyms"],
                 },
                 placeholder: "Buscar categoría...",
-                fileName: "categorias",
+                downloadFileName: "categorias",
               }}
               showToolbar
               loading={isLoading || isLoadingMethodologies}

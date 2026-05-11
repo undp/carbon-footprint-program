@@ -78,7 +78,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
                 keys: ["name", "description"],
               },
               placeholder: "Buscar explicación...",
-              fileName: "explicaciones",
+              downloadFileName: "explicaciones",
             }}
             loading={isLoading}
             columns={columns}
