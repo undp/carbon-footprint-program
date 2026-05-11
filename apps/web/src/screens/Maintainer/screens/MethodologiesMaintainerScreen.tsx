@@ -3,20 +3,29 @@ import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useMethodologies,
   useUpdateMethodology,
   useAddMethodology,
   useDeleteMethodology,
   useDuplicateMethodology,
+  methodologyExportKey,
 } from "@/api/query/maintainer";
+import { apiClient } from "@/api/http";
 import { Routes } from "@/interfaces/routes";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { exportMethodologyToExcel } from "@/utils/exportMethodologyToExcel";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
-import { MethodologyVersionStatus, MethodologyVersionForm } from "@repo/types";
+import {
+  MethodologyVersionStatus,
+  MethodologyVersionForm,
+  type GetMethodologyExportResponse,
+} from "@repo/types";
+import { STALE_TIME_MS } from "@/config/constants";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
@@ -29,8 +38,10 @@ const METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS = {
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [downloadingRowId, setDownloadingRowId] = useState<string | null>(null);
 
   // --- Data fetching ---
   const { data: methodologies = [], isLoading } = useMethodologies();
@@ -359,6 +370,35 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   // --- Column definitions via hook ---
 
+  const handleDownloadExcel = useCallback(
+    async (row: MethodologyVersionForm) => {
+      if (downloadingRowId !== null) return;
+      setDownloadingRowId(row.id);
+      try {
+        const data = await queryClient.fetchQuery({
+          queryKey: methodologyExportKey(row.id),
+          queryFn: () =>
+            apiClient
+              .get(`methodologies/${row.id}/export`)
+              .json<GetMethodologyExportResponse>(),
+          staleTime: STALE_TIME_MS,
+        });
+        await exportMethodologyToExcel(data);
+      } catch (error) {
+        void enqueueSnackbar({
+          message: getApiErrorMessage(
+            error,
+            "Error al generar el archivo Excel"
+          ),
+          variant: "error",
+        });
+      } finally {
+        setDownloadingRowId(null);
+      }
+    },
+    [downloadingRowId, queryClient, enqueueSnackbar]
+  );
+
   const columns = useMethodologyColumns({
     editingRowId,
     onCellChange: handleCellChange,
@@ -370,6 +410,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onView: handleView,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,
+    onDownloadExcel: handleDownloadExcel,
+    downloadingRowId,
     rows: currentRows,
   });
 
@@ -397,7 +439,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
                   keys: ["name", "description", "regulation", "version"],
                 },
                 placeholder: "Buscar metodología...",
-                downloadFileName: "metodologias",
+                disableExport: true,
               }}
               showToolbar
               loading={isLoading}

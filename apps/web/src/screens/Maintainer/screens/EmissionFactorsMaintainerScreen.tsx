@@ -580,7 +580,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
             ],
           },
           placeholder: "Buscar factor de emisión...",
-          downloadFileName: "factores-de-emision",
+          disableExport: true,
         }}
         showToolbar
         columns={columns}

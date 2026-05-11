@@ -546,7 +546,7 @@ export const DimensionsMaintainerScreen: FC = () => {
             keys: ["name", "subcategoryName"],
           },
           placeholder: "Buscar dimensión...",
-          downloadFileName: "dimensiones",
+          disableExport: true,
         }}
         showToolbar
         columns={columns}

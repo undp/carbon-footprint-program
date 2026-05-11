@@ -527,6 +527,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                 },
                 placeholder: "Buscar categoría...",
                 downloadFileName: "categorias",
+                disableExport: true,
               }}
               showToolbar
               loading={isLoading || isLoadingMethodologies}
