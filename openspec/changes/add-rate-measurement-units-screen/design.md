@@ -50,12 +50,11 @@ There is no admin path to mutate RMUs directly today (correctly so — direct ed
 ```ts
 referenceCounts: {
   emissionFactors: number;
-  lineInputsAsManualFactor: number;
   lineFactorsAsApplied: number;
 }
 ```
 
-…plus a derived `totalReferenceCount: number = emissionFactors + lineInputsAsManualFactor + lineFactorsAsApplied`.
+…plus a derived `totalReferenceCount: number = emissionFactors + lineFactorsAsApplied`.
 
 **Rationale**: Admins inspecting "why is this RMU referenced 47 times?" benefit from knowing whether the references are emission-factor definitions (configurable by SUPERADMIN), inventory line inputs (created by every user), or applied factors (created at calculation time). The breakdown answers triage questions; the total drives the default sort.
 

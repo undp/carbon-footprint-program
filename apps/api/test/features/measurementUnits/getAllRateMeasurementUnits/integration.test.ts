@@ -289,14 +289,10 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         expect(item.referenceCounts).toBeDefined();
         expect(item.referenceCounts.emissionFactors).toBeGreaterThanOrEqual(0);
         expect(
-          item.referenceCounts.lineInputsAsManualFactor
-        ).toBeGreaterThanOrEqual(0);
-        expect(
           item.referenceCounts.lineFactorsAsApplied
         ).toBeGreaterThanOrEqual(0);
         expect(item.totalReferenceCount).toBe(
           item.referenceCounts.emissionFactors +
-            item.referenceCounts.lineInputsAsManualFactor +
             item.referenceCounts.lineFactorsAsApplied
         );
       }
@@ -336,7 +332,6 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         { methodologyVersionId }
       );
 
-      // lineInputsAsManualFactor: 1
       const lineA = await createCarbonInventoryLine(
         prisma,
         inventory.id,
@@ -383,7 +378,6 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       );
       expect(targetItem).toBeDefined();
       expect(targetItem!.referenceCounts.emissionFactors).toBe(2);
-      expect(targetItem!.referenceCounts.lineInputsAsManualFactor).toBe(1);
       expect(targetItem!.referenceCounts.lineFactorsAsApplied).toBe(3);
       expect(targetItem!.totalReferenceCount).toBe(6);
     });

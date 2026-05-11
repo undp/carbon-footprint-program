@@ -21,13 +21,6 @@ const RateMeasurementUnitReferenceCountsSchema = z.object({
     .int()
     .nonnegative()
     .describe("Count of EmissionFactor rows referencing this rate unit."),
-  lineInputsAsManualFactor: z
-    .number()
-    .int()
-    .nonnegative()
-    .describe(
-      "Count of CarbonInventoryLineInput rows with manualFactorRateUnitId set to this rate unit."
-    ),
   lineFactorsAsApplied: z
     .number()
     .int()

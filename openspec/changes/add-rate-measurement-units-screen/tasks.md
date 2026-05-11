@@ -1,7 +1,7 @@
 ## 1. Types — Shared Schemas (`packages/types`)
 
 - [x] 1.1 Update `packages/types/src/measurementUnits/getAllRateMeasurementUnits/schemas.ts`:
-  - Update each response item to include `referenceCounts: { emissionFactors: z.number().int().nonnegative(), lineInputsAsManualFactor: z.number().int().nonnegative(), lineFactorsAsApplied: z.number().int().nonnegative() }` and `totalReferenceCount: z.number().int().nonnegative()`.
+  - Update each response item to include `referenceCounts: { emissionFactors: z.number().int().nonnegative(), lineFactorsAsApplied: z.number().int().nonnegative() }` and `totalReferenceCount: z.number().int().nonnegative()`.
   - Each response item already exposes joined `numeratorMeasurementUnit` and `denominatorMeasurementUnit` — confirm they include the joined `magnitude: MagnitudeBaseSchema` per the response shape established by `add-magnitudes-maintainer`.
   - No querystring schema is added.
 
@@ -15,7 +15,7 @@
     - `tx.emissionFactor.groupBy({ by: ["rateMeasurementUnitId"], _count: { _all: true } })`
     - `tx.carbonInventoryLineInput.groupBy({ by: ["manualFactorRateUnitId"], where: { manualFactorRateUnitId: { not: null } }, _count: { _all: true } })`
     - `tx.carbonInventoryLineFactor.groupBy({ by: ["appliedFactorRateUnitId"], _count: { _all: true } })`
-  - Merge the three count maps into a single `Map<rmuId, { emissionFactors, lineInputsAsManualFactor, lineFactorsAsApplied }>`. Default missing entries to zeros.
+  - Merge the three count maps into a single `Map<rmuId, { emissionFactors, lineFactorsAsApplied }>`. Default missing entries to zeros.
   - For each row in the `findMany` result, attach `referenceCounts` and the derived `totalReferenceCount`. Map the joined numerator/denominator MUs (with their joined magnitudes) onto the response shape.
   - The number of queries is fixed at four (one main + three counts) regardless of row count.
 - [x] 2.4 Projection is inlined in `service.ts` (no dedicated rate-unit mapper exists); it now includes `referenceCounts` and `totalReferenceCount`.
@@ -34,7 +34,7 @@
   - `denominatorMeasurementUnit.abbreviation` (e.g., `km`).
   - `denominatorMeasurementUnit.magnitude.name` (e.g., `Distancia`).
   - `totalReferenceCount` (sortable; default sort DESC).
-  - A tooltip on the count column that breaks down the three categories (`emissionFactors`, `lineInputsAsManualFactor`, `lineFactorsAsApplied`).
+  - A tooltip on the count column that breaks down the three categories (`emissionFactors`, `lineFactorsAsApplied`).
 - [x] 4.2 Disable row selection (`disableRowSelectionOnClick` is provided by `StylizedDataGrid`), do NOT render an actions column, do NOT implement `processRowUpdate`. The grid is purely read-only.
 - [x] 4.3 No filter controls. The screen renders the full ACTIVE list returned by the API.
 - [x] 4.4 Default sort model: `[{ field: "totalReferenceCount", sort: "desc" }]`. Native column header sorting is enabled for all sortable columns.

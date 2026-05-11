@@ -9,7 +9,7 @@ This is the second of three sequential proposals that reshape the "Unidades" mai
 ## What Changes
 
 - Extend `GET /api/measurement-units/rates`:
-  - Per item, include `referenceCounts: { emissionFactors: number, lineInputsAsManualFactor: number, lineFactorsAsApplied: number }`. The response item also exposes a derived `totalReferenceCount` (the sum) for convenient sorting on the client.
+  - Per item, include `referenceCounts: { emissionFactors: number, lineFactorsAsApplied: number }`. The response item also exposes a derived `totalReferenceCount` (the sum) for convenient sorting on the client.
   - Filter `status: ACTIVE` (consistent with the picker-vs-display rule from `measurement-unit-management`).
   - No new querystring parameters — the endpoint contract gains response fields only.
 - Add a maintainer screen at `/admin/rate-measurement-units` (a top-level "Tasas" sidebar entry) that renders a paginated list of rate units with columns: `abbreviation`, `numerator` (e.g., "kg"), `numerator.magnitude.name`, `denominator` (e.g., "km"), `denominator.magnitude.name`, `totalReferenceCount`. The screen renders the full ACTIVE list as returned by the API; sorting is done by the DataGrid client-side.

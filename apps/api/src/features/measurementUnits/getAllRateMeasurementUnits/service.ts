@@ -4,45 +4,31 @@ import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllRateMeasurementUnitsResponse> => {
-  const [
-    rateMeasurementUnits,
-    emissionFactorGroups,
-    lineInputManualGroups,
-    lineFactorAppliedGroups,
-  ] = await Promise.all([
-    prismaClient.rateMeasurementUnit.findMany({
-      where: { status: MeasurementUnitStatus.ACTIVE },
-      include: {
-        numeratorMeasurementUnit: { include: { magnitude: true } },
-        denominatorMeasurementUnit: { include: { magnitude: true } },
-      },
-      orderBy: { name: "asc" },
-    }),
-    prismaClient.emissionFactor.groupBy({
-      by: ["rateMeasurementUnitId"],
-      _count: { _all: true },
-    }),
-    prismaClient.carbonInventoryLineInput.groupBy({
-      by: ["manualFactorRateUnitId"],
-      where: { manualFactorRateUnitId: { not: null } },
-      _count: { _all: true },
-    }),
-    prismaClient.carbonInventoryLineFactor.groupBy({
-      by: ["appliedFactorRateUnitId"],
-      _count: { _all: true },
-    }),
-  ]);
+  const [rateMeasurementUnits, emissionFactorGroups, lineFactorAppliedGroups] =
+    await Promise.all([
+      prismaClient.rateMeasurementUnit.findMany({
+        where: { status: MeasurementUnitStatus.ACTIVE },
+        include: {
+          numeratorMeasurementUnit: { include: { magnitude: true } },
+          denominatorMeasurementUnit: { include: { magnitude: true } },
+        },
+        orderBy: { name: "asc" },
+      }),
+      prismaClient.emissionFactor.groupBy({
+        by: ["rateMeasurementUnitId"],
+        _count: { _all: true },
+      }),
+      prismaClient.carbonInventoryLineFactor.groupBy({
+        by: ["appliedFactorRateUnitId"],
+        _count: { _all: true },
+      }),
+    ]);
 
   const emissionFactorCountByRmuId = new Map(
     emissionFactorGroups.map((g) => [
       g.rateMeasurementUnitId.toString(),
       g._count._all,
     ])
-  );
-  const lineInputManualCountByRmuId = new Map(
-    lineInputManualGroups
-      .filter((g) => g.manualFactorRateUnitId !== null)
-      .map((g) => [g.manualFactorRateUnitId!.toString(), g._count._all])
   );
   const lineFactorAppliedCountByRmuId = new Map(
     lineFactorAppliedGroups.map((g) => [
@@ -54,11 +40,8 @@ export const getAllRateMeasurementUnitsService = async (
   return rateMeasurementUnits.map((item) => {
     const idStr = item.id.toString();
     const emissionFactors = emissionFactorCountByRmuId.get(idStr) ?? 0;
-    const lineInputsAsManualFactor =
-      lineInputManualCountByRmuId.get(idStr) ?? 0;
     const lineFactorsAsApplied = lineFactorAppliedCountByRmuId.get(idStr) ?? 0;
-    const totalReferenceCount =
-      emissionFactors + lineInputsAsManualFactor + lineFactorsAsApplied;
+    const totalReferenceCount = emissionFactors + lineFactorsAsApplied;
 
     return {
       id: item.id.toString(),
@@ -93,7 +76,6 @@ export const getAllRateMeasurementUnitsService = async (
       },
       referenceCounts: {
         emissionFactors,
-        lineInputsAsManualFactor,
         lineFactorsAsApplied,
       },
       totalReferenceCount,

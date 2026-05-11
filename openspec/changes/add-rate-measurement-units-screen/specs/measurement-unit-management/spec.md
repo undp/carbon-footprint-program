@@ -9,7 +9,6 @@ Each response item SHALL include a `referenceCounts` object and a derived `total
 ```ts
 {
   emissionFactors: number; // EmissionFactor.rateMeasurementUnitId
-  lineInputsAsManualFactor: number; // CarbonInventoryLineInput.manualFactorRateUnitId
   lineFactorsAsApplied: number; // CarbonInventoryLineFactor.appliedFactorRateUnitId
 }
 ```
@@ -26,7 +25,7 @@ This requirement modifies the prior list-rates requirement to add the per-row co
 #### Scenario: Reference counts are accurate per category
 
 - **WHEN** the endpoint returns a row for rate unit `R` and the database contains `e` `EmissionFactor` rows with `rateMeasurementUnitId = R.id`, `m` `CarbonInventoryLineInput` rows with `manualFactorRateUnitId = R.id`, and `a` `CarbonInventoryLineFactor` rows with `appliedFactorRateUnitId = R.id`
-- **THEN** the response item SHALL have `referenceCounts.emissionFactors = e`, `referenceCounts.lineInputsAsManualFactor = m`, `referenceCounts.lineFactorsAsApplied = a`, and `totalReferenceCount = e + m + a`
+- **THEN** the response item SHALL have `referenceCounts.emissionFactors = e`, `referenceCounts.lineFactorsAsApplied = a`, and `totalReferenceCount = e + a`
 
 #### Scenario: Endpoint remains publicly readable
 

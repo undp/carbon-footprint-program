@@ -6,9 +6,8 @@ import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 type RateMeasurementUnit = GetAllRateMeasurementUnitsResponse[number];
 
 const REFERENCE_COUNT_LABELS = {
-  emissionFactors: "Factores de emisión",
-  lineInputsAsManualFactor: "Inputs manuales",
-  lineFactorsAsApplied: "Factores aplicados",
+  emissionFactors: "En factores de emisión de metodologías",
+  lineFactorsAsApplied: "En fuentes de emisión de Huellas",
 } as const;
 
 export const useRateMeasurementUnitColumns =
@@ -75,10 +74,6 @@ export const useRateMeasurementUnitColumns =
                 <Typography variant="caption" component="div">
                   {REFERENCE_COUNT_LABELS.emissionFactors}:{" "}
                   {referenceCounts.emissionFactors}
-                </Typography>
-                <Typography variant="caption" component="div">
-                  {REFERENCE_COUNT_LABELS.lineInputsAsManualFactor}:{" "}
-                  {referenceCounts.lineInputsAsManualFactor}
                 </Typography>
                 <Typography variant="caption" component="div">
                   {REFERENCE_COUNT_LABELS.lineFactorsAsApplied}:{" "}

@@ -73,7 +73,7 @@ Rate units represent ratios of two measurement units (e.g. `kg/km`, `t CO₂e/kW
 | `abbreviation`                    | Derived as `<num_abbr>/<denom_abbr>` |
 | `status`                          | `ACTIVE` or `DELETED` (soft-delete)  |
 
-**Operator-facing inspector:** `/admin/rate-measurement-units` (sidebar entry "Tasas", SUPERADMIN-only) is the read-only screen for browsing the derived RMU table. It surfaces each ACTIVE rate unit with its joined numerator/denominator measurement units, the magnitude of each side, and a per-category breakdown of references (`emissionFactors`, `lineInputsAsManualFactor`, `lineFactorsAsApplied`) plus the derived total. The screen has no filter controls and no mutation affordances — RMUs are always managed indirectly via the measurement-unit cascade described under _Soft-Delete Semantics_.
+**Operator-facing inspector:** `/admin/rate-measurement-units` (sidebar entry "Tasas", SUPERADMIN-only) is the read-only screen for browsing the derived RMU table. It surfaces each ACTIVE rate unit with its joined numerator/denominator measurement units, the magnitude of each side, and a per-category breakdown of references (`emissionFactors`, `lineFactorsAsApplied`) plus the derived total. The screen has no filter controls and no mutation affordances — RMUs are always managed indirectly via the measurement-unit cascade described under _Soft-Delete Semantics_.
 
 ## Soft-Delete Semantics
 
