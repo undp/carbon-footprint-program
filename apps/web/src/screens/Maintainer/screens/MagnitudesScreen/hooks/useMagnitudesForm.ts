@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -32,21 +32,40 @@ const magnitudeFormRowSchema = z.object({
   referenceCount: z.number(),
 });
 
-const magnitudesFormSchema = z.object({
-  magnitudes: z.array(magnitudeFormRowSchema),
-});
-
 export type MagnitudesFormValues = {
   magnitudes: z.input<typeof magnitudeFormRowSchema>[];
 };
 
 export type MagnitudesFormRow = MagnitudesFormValues["magnitudes"][number];
 
-export const useMagnitudesForm = () => {
+export const useMagnitudesForm = (reservedCodes: Set<string>) => {
+  const schema = useMemo(
+    () =>
+      z.object({
+        magnitudes: z.array(magnitudeFormRowSchema).superRefine((rows, ctx) => {
+          rows.forEach((row, index) => {
+            if (!row.id.startsWith("temp_")) return;
+
+            const code = row.code.trim();
+            if (!code) return;
+
+            if (reservedCodes.has(code)) {
+              ctx.addIssue({
+                code: "custom",
+                message: "Ya existe una magnitud con este código.",
+                path: [index, "code"],
+              });
+            }
+          });
+        }),
+      }),
+    [reservedCodes]
+  );
+
   const form = useForm<MagnitudesFormValues>({
     defaultValues: { magnitudes: [] },
     mode: "onBlur",
-    resolver: zodResolver(magnitudesFormSchema),
+    resolver: zodResolver(schema),
   });
 
   const fieldArray = useFieldArray({

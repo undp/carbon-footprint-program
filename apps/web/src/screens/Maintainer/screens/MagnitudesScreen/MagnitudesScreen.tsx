@@ -37,7 +37,16 @@ export const MagnitudesScreen: FC = () => {
   const updateMutation = useUpdateMagnitude();
   const deleteMutation = useDeleteMagnitude();
 
-  const { form, fieldArray, handleCellChange } = useMagnitudesForm();
+  const reservedCodes = useMemo(() => {
+    const set = new Set<string>();
+    if (magnitudes) {
+      for (const m of magnitudes) set.add(m.code);
+    }
+    return set;
+  }, [magnitudes]);
+
+  const { form, fieldArray, handleCellChange } =
+    useMagnitudesForm(reservedCodes);
   const currentRows = form.watch("magnitudes");
 
   const editingRowIdRef = useRef(editingRowId);
