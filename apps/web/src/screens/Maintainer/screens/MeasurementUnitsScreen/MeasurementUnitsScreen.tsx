@@ -376,11 +376,19 @@ export const MeasurementUnitsScreen: FC = () => {
         explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="flex w-full rounded-sm bg-white p-3">
-        <MaintainerDataGrid
+        <MaintainerDataGrid<MeasurementUnitsFormRow>
           editingRowId={editingRowId}
           searchable={{
             fuseOptions: {
-              keys: ["name", "abbreviation"],
+              keys: [
+                {
+                  name: "magnitudeId",
+                  getFn: (row) =>
+                    magnitudeNameById.get(row.magnitudeId) ?? row.magnitudeId,
+                },
+                "name",
+                "abbreviation",
+              ],
             },
             placeholder: "Buscar unidad...",
             downloadFileName: "unidades-de-medida",
