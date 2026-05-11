@@ -7,8 +7,8 @@ export const getAllRateMeasurementUnitsService = async (
   const data = await prismaClient.rateMeasurementUnit.findMany({
     where: { status: MeasurementUnitStatus.ACTIVE },
     include: {
-      numeratorMeasurementUnit: true,
-      denominatorMeasurementUnit: true,
+      numeratorMeasurementUnit: { include: { magnitude: true } },
+      denominatorMeasurementUnit: { include: { magnitude: true } },
     },
     orderBy: {
       name: "asc",
@@ -23,14 +23,28 @@ export const getAllRateMeasurementUnitsService = async (
     numeratorUnit: {
       id: item.numeratorMeasurementUnit.id.toString(),
       name: item.numeratorMeasurementUnit.name,
-      magnitude: item.numeratorMeasurementUnit.magnitude,
+      magnitudeId: item.numeratorMeasurementUnit.magnitudeId.toString(),
       abbreviation: item.numeratorMeasurementUnit.abbreviation,
+      magnitude: {
+        id: item.numeratorMeasurementUnit.magnitude.id.toString(),
+        code: item.numeratorMeasurementUnit.magnitude.code,
+        name: item.numeratorMeasurementUnit.magnitude.name,
+        isSystem: item.numeratorMeasurementUnit.magnitude.isSystem,
+        status: item.numeratorMeasurementUnit.magnitude.status,
+      },
     },
     denominatorUnit: {
       id: item.denominatorMeasurementUnit.id.toString(),
       name: item.denominatorMeasurementUnit.name,
-      magnitude: item.denominatorMeasurementUnit.magnitude,
+      magnitudeId: item.denominatorMeasurementUnit.magnitudeId.toString(),
       abbreviation: item.denominatorMeasurementUnit.abbreviation,
+      magnitude: {
+        id: item.denominatorMeasurementUnit.magnitude.id.toString(),
+        code: item.denominatorMeasurementUnit.magnitude.code,
+        name: item.denominatorMeasurementUnit.magnitude.name,
+        isSystem: item.denominatorMeasurementUnit.magnitude.isSystem,
+        status: item.denominatorMeasurementUnit.magnitude.status,
+      },
     },
   }));
 };

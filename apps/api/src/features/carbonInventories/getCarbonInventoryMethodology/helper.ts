@@ -11,14 +11,14 @@ type RateMeasurementUnitWithMagnitudes = Prisma.RateMeasurementUnitGetPayload<{
     numeratorMeasurementUnit: {
       select: {
         id: true;
-        magnitude: true;
+        magnitudeId: true;
         baseFactor: true;
       };
     };
     denominatorMeasurementUnit: {
       select: {
         id: true;
-        magnitude: true;
+        magnitudeId: true;
         baseFactor: true;
       };
     };
@@ -40,14 +40,14 @@ type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
         numeratorMeasurementUnit: {
           select: {
             id: true;
-            magnitude: true;
+            magnitudeId: true;
             baseFactor: true;
           };
         };
         denominatorMeasurementUnit: {
           select: {
             id: true;
-            magnitude: true;
+            magnitudeId: true;
             baseFactor: true;
           };
         };
@@ -185,11 +185,11 @@ export const generateConvertedEmissionFactors = (
     return result;
   }
 
-  const numeratorMagnitude =
-    originalRateUnit.numeratorMeasurementUnit.magnitude;
-  const denominatorMagnitude =
-    originalRateUnit.denominatorMeasurementUnit.magnitude;
-  const key = `${numeratorMagnitude}-${denominatorMagnitude}`;
+  const numeratorMagnitudeId =
+    originalRateUnit.numeratorMeasurementUnit.magnitudeId;
+  const denominatorMagnitudeId =
+    originalRateUnit.denominatorMeasurementUnit.magnitudeId;
+  const key = `${numeratorMagnitudeId}-${denominatorMagnitudeId}`;
 
   const compatibleRateUnits = rateUnitsByMagnitude.get(key) ?? [];
 
@@ -249,14 +249,14 @@ export const buildRateUnitsByMagnitudeMap = async (
         numeratorMeasurementUnit: {
           select: {
             id: true,
-            magnitude: true,
+            magnitudeId: true,
             baseFactor: true,
           },
         },
         denominatorMeasurementUnit: {
           select: {
             id: true,
-            magnitude: true,
+            magnitudeId: true,
             baseFactor: true,
           },
         },
@@ -269,7 +269,7 @@ export const buildRateUnitsByMagnitudeMap = async (
   >();
 
   for (const rateUnit of allRateMeasurementUnits) {
-    const key = `${rateUnit.numeratorMeasurementUnit.magnitude}-${rateUnit.denominatorMeasurementUnit.magnitude}`;
+    const key = `${rateUnit.numeratorMeasurementUnit.magnitudeId}-${rateUnit.denominatorMeasurementUnit.magnitudeId}`;
     if (!rateUnitsByMagnitude.has(key)) {
       rateUnitsByMagnitude.set(key, []);
     }

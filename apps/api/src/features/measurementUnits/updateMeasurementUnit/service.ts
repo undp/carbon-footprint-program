@@ -49,7 +49,8 @@ export const updateMeasurementUnitService = async (
     }
 
     const hasStructuralChange =
-      (body.magnitude !== undefined && body.magnitude !== target.magnitude) ||
+      (body.magnitudeId !== undefined &&
+        BigInt(body.magnitudeId) !== target.magnitudeId) ||
       (body.abbreviation !== undefined &&
         body.abbreviation !== target.abbreviation) ||
       (body.baseFactor !== undefined && body.baseFactor !== target.baseFactor);
@@ -69,10 +70,13 @@ export const updateMeasurementUnitService = async (
       body.baseFactor === 1 &&
       !target.isBase
     ) {
-      const effectiveMagnitude = body.magnitude ?? target.magnitude;
+      const effectiveMagnitudeId =
+        body.magnitudeId !== undefined
+          ? BigInt(body.magnitudeId)
+          : target.magnitudeId;
       const existingBase = await tx.measurementUnit.findFirst({
         where: {
-          magnitude: effectiveMagnitude,
+          magnitudeId: effectiveMagnitudeId,
           isBase: true,
           status: MeasurementUnitStatus.ACTIVE,
           id: { not: target.id },
@@ -88,7 +92,8 @@ export const updateMeasurementUnitService = async (
     if (body.name !== undefined) updateData.name = body.name;
     if (body.abbreviation !== undefined)
       updateData.abbreviation = body.abbreviation;
-    if (body.magnitude !== undefined) updateData.magnitude = body.magnitude;
+    if (body.magnitudeId !== undefined)
+      updateData.magnitudeId = BigInt(body.magnitudeId);
     if (body.baseFactor !== undefined) updateData.baseFactor = body.baseFactor;
     if (body.isBase !== undefined) updateData.isBase = body.isBase;
 
@@ -97,6 +102,7 @@ export const updateMeasurementUnitService = async (
       updatedMu = await tx.measurementUnit.update({
         where: { id: target.id },
         data: updateData,
+        include: { magnitude: true },
       });
     } catch (error) {
       if (

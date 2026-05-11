@@ -34,7 +34,7 @@ export const createMeasurementUnitService = async (
 
       const existingBase = await tx.measurementUnit.findFirst({
         where: {
-          magnitude: body.magnitude,
+          magnitudeId: BigInt(body.magnitudeId),
           isBase: true,
           status: MeasurementUnitStatus.ACTIVE,
         },
@@ -46,7 +46,7 @@ export const createMeasurementUnitService = async (
     if (!body.isBase && body.baseFactor === 1) {
       const existingBase = await tx.measurementUnit.findFirst({
         where: {
-          magnitude: body.magnitude,
+          magnitudeId: BigInt(body.magnitudeId),
           isBase: true,
           status: MeasurementUnitStatus.ACTIVE,
         },
@@ -66,10 +66,11 @@ export const createMeasurementUnitService = async (
         data: {
           name: body.name,
           abbreviation: body.abbreviation,
-          magnitude: body.magnitude,
+          magnitudeId: BigInt(body.magnitudeId),
           baseFactor: body.baseFactor,
           isBase: body.isBase,
         },
+        include: { magnitude: true },
       });
 
       await tx.rateMeasurementUnit.create({
@@ -103,7 +104,7 @@ export const createMeasurementUnitService = async (
         : {
             name: body.name,
             abbreviation: body.abbreviation,
-            magnitude: body.magnitude,
+            magnitudeId: BigInt(body.magnitudeId),
             baseFactor: body.baseFactor,
             isBase: body.isBase,
           };
@@ -111,6 +112,7 @@ export const createMeasurementUnitService = async (
     const updatedMu = await tx.measurementUnit.update({
       where: { id: existing.id },
       data: { ...updateData, status: MeasurementUnitStatus.ACTIVE },
+      include: { magnitude: true },
     });
 
     // Restore the canonical RMU

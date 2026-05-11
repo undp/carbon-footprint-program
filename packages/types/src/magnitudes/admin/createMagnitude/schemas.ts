@@ -27,9 +27,14 @@ export const CreateMagnitudeBodySchema = z.object({
     }),
 });
 
-export const CreateMagnitudeActionSchema = z.enum(["created", "fullyRestored"]);
+export const MagnitudeCreationActionSchema = z.enum([
+  "created",
+  "fullyRestored",
+]);
+
+export const MagnitudeCreationActionEnum = MagnitudeCreationActionSchema.enum;
 
 export const CreateMagnitudeResponseSchema = MagnitudeBaseSchema.extend({
   referenceCount: z.number().int().nonnegative(),
-  action: CreateMagnitudeActionSchema,
+  action: MagnitudeCreationActionSchema,
 });

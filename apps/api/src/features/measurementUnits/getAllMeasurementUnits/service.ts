@@ -7,7 +7,8 @@ export const getAllMeasurementUnitsService = async (
 ): Promise<GetAllMeasurementUnitsResponse> => {
   const measurementUnits = await prismaClient.measurementUnit.findMany({
     where: { status: MeasurementUnitStatus.ACTIVE },
-    orderBy: [{ magnitude: "asc" }, { name: "asc" }],
+    orderBy: [{ magnitude: { name: "asc" } }, { name: "asc" }],
+    include: { magnitude: true },
   });
 
   if (measurementUnits.length === 0) return [];
