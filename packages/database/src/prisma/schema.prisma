@@ -754,7 +754,7 @@ model CarbonInventoryLine {
 
 model CarbonInventoryLineFile {
   lineId      BigInt   @map("line_id")
-  fileId      BigInt   @map("file_id")
+  fileId      BigInt   @unique @map("file_id")
   createdAt   DateTime @default(now()) @map("created_at")
   createdById BigInt?  @map("created_by_id")
 
@@ -763,7 +763,6 @@ model CarbonInventoryLineFile {
   creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id])
 
   @@id([lineId, fileId])
-  @@index([fileId])
   @@map("carbon_inventory_line_file")
 }
 
