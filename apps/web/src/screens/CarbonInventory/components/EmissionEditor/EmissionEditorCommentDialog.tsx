@@ -31,7 +31,7 @@ export const EmissionEditorCommentDialog = ({
       disableAutoFocus={false}
       disableEnforceFocus={false}
     >
-      <DialogTitle>Agrega un comentario</DialogTitle>
+      <DialogTitle>Información adicional</DialogTitle>
       <DialogContent
         sx={{
           display: "flex",
