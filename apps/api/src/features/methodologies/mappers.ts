@@ -5,7 +5,7 @@ import type {
   GetAllMethodologiesResponse,
   GetMethodologyExportResponse,
 } from "@repo/types";
-import { GasDetailsSchema } from "@repo/types";
+import { parseGasDetails } from "../emissionFactors/mappers.js";
 
 // Prisma type for methodology with country and counts
 type MethodologyWithCountryAndCounts = Prisma.MethodologyVersionGetPayload<{
@@ -151,7 +151,7 @@ function mapEmissionFactorExport(
     id: factor.id.toString(),
     source: factor.source,
     value: factor.value.toString(),
-    gasDetails: GasDetailsSchema.parse(factor.gasDetails),
+    gasDetails: parseGasDetails(factor.gasDetails, factor.id),
     dimensionValue1: factor.dimensionValue1
       ? {
           id: factor.dimensionValue1.id.toString(),
