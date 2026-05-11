@@ -43,13 +43,13 @@ model Magnitude {
   code      String                @unique
   name      String
   isSystem  Boolean               @default(false)
-  status    MeasurementUnitStatus @default(ACTIVE)
+  status    MagnitudeStatus       @default(ACTIVE)
   createdAt DateTime              @default(now())
   updatedAt DateTime              @updatedAt
 
   measurementUnits MeasurementUnit[]
 
-  @@map("Magnitude")
+  @@map("magnitude")
 }
 ```
 
