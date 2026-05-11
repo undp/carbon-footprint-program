@@ -1,0 +1,1 @@
+export { MagnitudesScreen } from "./MagnitudesScreen";

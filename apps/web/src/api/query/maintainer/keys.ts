@@ -30,4 +30,8 @@ export const maintainerKeys = {
     all: ["maintainer", "measurementUnits"] as const,
     detail: (id: string) => ["maintainer", "measurementUnits", id] as const,
   },
+  magnitudes: {
+    all: ["maintainer", "magnitudes"] as const,
+    detail: (id: string) => ["maintainer", "magnitudes", id] as const,
+  },
 };

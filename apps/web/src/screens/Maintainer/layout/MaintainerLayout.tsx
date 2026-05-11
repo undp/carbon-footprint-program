@@ -74,6 +74,11 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
+    text: "Magnitudes",
+    icon: <StraightenOutlined />,
+    path: Routes.ADMIN_MAGNITUDES,
+  },
+  {
     text: "Unidades",
     icon: <SquareFootOutlined />,
     path: Routes.ADMIN_UNITS,

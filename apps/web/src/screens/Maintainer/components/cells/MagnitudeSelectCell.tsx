@@ -1,15 +1,19 @@
 import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { MenuItem, Select, Typography } from "@mui/material";
-import { Magnitude } from "@repo/types";
-import { MAGNITUDE_LABELS } from "../../screens/MeasurementUnitsScreen/constants.js";
 import { getNestedError } from "./cellUtils";
+
+interface MagnitudeOption {
+  id: string;
+  name: string;
+}
 
 interface MagnitudeSelectCellProps {
   formArrayName: string;
   rowIndex: number;
   isEditing: boolean;
-  onChange: (value: Magnitude) => void;
+  options: MagnitudeOption[];
+  onChange: (value: string) => void;
   onClick?: () => void;
 }
 
@@ -17,21 +21,23 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
   formArrayName,
   rowIndex,
   isEditing,
+  options,
   onChange,
   onClick,
 }) => {
-  const formPath = `${formArrayName}.${rowIndex}.magnitude`;
+  const formPath = `${formArrayName}.${rowIndex}.magnitudeId`;
   const { control } = useFormContext();
-  const magnitude = useWatch({ name: formPath }) as Magnitude;
+  const magnitudeId = useWatch({ name: formPath }) as string;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
     errors as unknown as Record<string, unknown>,
     formArrayName,
     rowIndex,
-    "magnitude"
+    "magnitudeId"
   );
 
-  const label = MAGNITUDE_LABELS[magnitude] ?? magnitude;
+  const labelById = new Map(options.map((m) => [m.id, m.name]));
+  const label = magnitudeId ? (labelById.get(magnitudeId) ?? magnitudeId) : "";
 
   if (!isEditing) {
     return (
@@ -55,19 +61,23 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
     <Select
       fullWidth
       size="small"
-      value={magnitude}
-      onChange={(e) => onChange(e.target.value as Magnitude)}
+      value={magnitudeId}
+      onChange={(e) => onChange(e.target.value)}
       error={!!fieldError}
       onKeyDown={(e) => e.stopPropagation()}
       sx={{ backgroundColor: "white" }}
+      displayEmpty
     >
-      {Object.values(Magnitude)
-        .sort((a, b) => a.localeCompare(b))
-        .map((mag) => (
-          <MenuItem key={mag} value={mag}>
-            {MAGNITUDE_LABELS[mag]}
-          </MenuItem>
-        ))}
+      {!magnitudeId && (
+        <MenuItem value="" disabled>
+          Selecciona una magnitud
+        </MenuItem>
+      )}
+      {options.map((mag) => (
+        <MenuItem key={mag.id} value={mag.id}>
+          {mag.name}
+        </MenuItem>
+      ))}
     </Select>
   );
 };
