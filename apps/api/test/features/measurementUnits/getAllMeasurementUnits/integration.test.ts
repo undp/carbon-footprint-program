@@ -165,7 +165,9 @@ describe("GET /api/measurement-units - Integration Tests", () => {
           "es"
         );
         if (magnitudeOrder !== 0) return magnitudeOrder;
-        return a.name.localeCompare(b.name, "es");
+        const nameOrder = a.name.localeCompare(b.name, "es");
+        if (nameOrder !== 0) return nameOrder;
+        return Number(a.id) - Number(b.id);
       });
       expect(body).toEqual(sorted);
     });

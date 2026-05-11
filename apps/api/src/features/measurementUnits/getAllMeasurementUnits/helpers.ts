@@ -13,5 +13,7 @@ export const compareMeasurementUnitsForDisplay = (
     b.magnitude.name
   );
   if (byMagnitude !== 0) return byMagnitude;
-  return spanishCollator.compare(a.name, b.name);
+  const byName = spanishCollator.compare(a.name, b.name);
+  if (byName !== 0) return byName;
+  return Number(a.id) - Number(b.id);
 };
