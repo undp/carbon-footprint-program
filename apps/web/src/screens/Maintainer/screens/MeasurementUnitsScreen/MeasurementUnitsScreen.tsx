@@ -16,6 +16,7 @@ import {
   useAddMeasurementUnit,
   useUpdateMeasurementUnit,
   useDeleteMeasurementUnit,
+  useMagnitudes,
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../../layout/MaintainerPageHeader";
 import { MaintainerDataGrid } from "../../components/MaintainerDataGrid";
@@ -24,7 +25,7 @@ import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
 import type { MeasurementUnitsFormRow } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitsForm } from "./hooks/useMeasurementUnitsForm";
 import { useMeasurementUnitColumns } from "./hooks/useMeasurementUnitColumns";
-import { Magnitude, MeasurementUnitCreationResultEnum } from "@repo/types";
+import { MeasurementUnitCreationResultEnum } from "@repo/types";
 
 const MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "measurement-units-maintainer",
@@ -39,6 +40,13 @@ export const MeasurementUnitsScreen: FC = () => {
     isError,
   } = useMaintainerMeasurementUnits();
 
+  const { data: magnitudes, isLoading: isMagnitudesLoading } = useMagnitudes();
+
+  const magnitudeOptions = useMemo(
+    () => (magnitudes ?? []).map((m) => ({ id: m.id, name: m.name })),
+    [magnitudes]
+  );
+
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   const addMutation = useAddMeasurementUnit();
@@ -49,7 +57,7 @@ export const MeasurementUnitsScreen: FC = () => {
     const set = new Set<string>();
     if (measurementUnits) {
       for (const mu of measurementUnits) {
-        if (mu.isBase) set.add(mu.magnitude);
+        if (mu.isBase) set.add(mu.magnitudeId);
       }
     }
     return set;
@@ -73,7 +81,7 @@ export const MeasurementUnitsScreen: FC = () => {
         id: mu.id,
         name: mu.name,
         abbreviation: mu.abbreviation,
-        magnitude: mu.magnitude,
+        magnitudeId: mu.magnitudeId,
         baseFactor: mu.baseFactor,
         isBase: mu.isBase,
         referenceCount: mu.referenceCount,
@@ -106,7 +114,7 @@ export const MeasurementUnitsScreen: FC = () => {
         const result = await addMutation.mutateAsync({
           name: row.name,
           abbreviation: row.abbreviation,
-          magnitude: row.magnitude,
+          magnitudeId: row.magnitudeId,
           baseFactor: row.baseFactor!,
           isBase: row.isBase,
         });
@@ -115,7 +123,7 @@ export const MeasurementUnitsScreen: FC = () => {
           id: result.id,
           name: result.name,
           abbreviation: result.abbreviation,
-          magnitude: result.magnitude,
+          magnitudeId: result.magnitudeId,
           baseFactor: result.baseFactor,
           isBase: result.isBase,
           referenceCount: result.referenceCount,
@@ -153,7 +161,7 @@ export const MeasurementUnitsScreen: FC = () => {
         const updateData: {
           name?: string;
           abbreviation?: string;
-          magnitude?: MeasurementUnitsFormRow["magnitude"];
+          magnitudeId?: string;
           baseFactor?: number;
           isBase?: boolean;
         } = {};
@@ -162,8 +170,8 @@ export const MeasurementUnitsScreen: FC = () => {
           updateData.name = row.name;
         if (dirtyFields.measurementUnits?.[rowIndex]?.abbreviation)
           updateData.abbreviation = row.abbreviation;
-        if (dirtyFields.measurementUnits?.[rowIndex]?.magnitude)
-          updateData.magnitude = row.magnitude;
+        if (dirtyFields.measurementUnits?.[rowIndex]?.magnitudeId)
+          updateData.magnitudeId = row.magnitudeId;
         if (dirtyFields.measurementUnits?.[rowIndex]?.baseFactor)
           updateData.baseFactor = row.baseFactor!;
         if (dirtyFields.measurementUnits?.[rowIndex]?.isBase)
@@ -211,7 +219,7 @@ export const MeasurementUnitsScreen: FC = () => {
           id: original.id,
           name: original.name,
           abbreviation: original.abbreviation,
-          magnitude: original.magnitude,
+          magnitudeId: original.magnitudeId,
           baseFactor: original.baseFactor,
           isBase: original.isBase,
           referenceCount: original.referenceCount,
@@ -235,19 +243,27 @@ export const MeasurementUnitsScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
+    if (magnitudeOptions.length === 0) {
+      void enqueueSnackbar({
+        message:
+          "No hay magnitudes disponibles. Crea al menos una magnitud antes de agregar una unidad.",
+        variant: "warning",
+      });
+      return;
+    }
     const tempId = `temp_${Date.now()}`;
     const newRow: MeasurementUnitsFormRow = {
       id: tempId,
       name: "",
       abbreviation: "",
-      magnitude: Magnitude.ANIMALS,
+      magnitudeId: "",
       baseFactor: null,
       isBase: false,
       referenceCount: 0,
     };
     fieldArray.prepend(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, magnitudeOptions, enqueueSnackbar]);
 
   const handleDelete = useCallback(
     async (row: MeasurementUnitsFormRow) => {
@@ -297,11 +313,12 @@ export const MeasurementUnitsScreen: FC = () => {
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     rows: currentRows,
+    magnitudeOptions,
   });
 
   const sortModel = useMemo(
     () => [
-      { field: "magnitude", sort: "asc" as const },
+      { field: "magnitudeId", sort: "asc" as const },
       { field: "name", sort: "asc" as const },
     ],
     []
@@ -341,7 +358,7 @@ export const MeasurementUnitsScreen: FC = () => {
         <Box className="flex w-full">
           <MaintainerDataGrid
             editingRowId={editingRowId}
-            loading={isLoading}
+            loading={isLoading || isMagnitudesLoading}
             columns={columns}
             rows={currentRows}
             getRowId={(row: MeasurementUnitsFormRow) => row.id}

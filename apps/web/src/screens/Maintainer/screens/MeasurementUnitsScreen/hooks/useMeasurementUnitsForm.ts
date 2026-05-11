@@ -7,7 +7,6 @@ import {
   MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH,
   ABBREVIATION_REGEX,
 } from "@repo/constants";
-import { Magnitude } from "@repo/types";
 
 const measurementUnitFormRowSchema = z.object({
   id: z.string(),
@@ -29,9 +28,7 @@ const measurementUnitFormRowSchema = z.object({
       message:
         "La abreviatura no puede contener barras (/) ni caracteres de control.",
     }),
-  magnitude: z.enum(Magnitude, {
-    message: "La magnitud seleccionada no es válida.",
-  }),
+  magnitudeId: z.string().min(1, { message: "La magnitud es obligatoria." }),
   baseFactor: z
     .number({
       error: "El factor base debe ser un número válido.",
@@ -68,7 +65,7 @@ export const useMeasurementUnitsForm = (
       if (
         !row.isBase &&
         row.baseFactor === 1 &&
-        magnitudesWithBaseUnit.has(row.magnitude)
+        magnitudesWithBaseUnit.has(row.magnitudeId)
       ) {
         ctx.addIssue({
           code: "custom",
@@ -88,7 +85,7 @@ export const useMeasurementUnitsForm = (
             (other, otherIndex) =>
               otherIndex !== index &&
               other.isBase &&
-              other.magnitude === row.magnitude
+              other.magnitudeId === row.magnitudeId
           );
 
           if (conflictsWithAnotherRow) {
