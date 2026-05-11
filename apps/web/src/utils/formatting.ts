@@ -21,6 +21,7 @@ export class Formatter {
   private readonly dateFmt: Intl.DateTimeFormat;
   private readonly dateLongFmt: Intl.DateTimeFormat;
   private readonly dateNumericFmt: Intl.DateTimeFormat;
+  private readonly dateDDMMYYYYFmt: Intl.DateTimeFormat;
   private readonly dateTimeFmt: Intl.DateTimeFormat;
 
   constructor(
@@ -76,6 +77,12 @@ export class Formatter {
       month: "2-digit",
       year: "numeric",
     });
+    // Locale-stable DD/MM/YYYY (en-GB always emits day/month/year with /).
+    this.dateDDMMYYYYFmt = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
     this.dateTimeFmt = new Intl.DateTimeFormat(locale, {
       day: "2-digit",
       month: "2-digit",
@@ -120,6 +127,30 @@ export class Formatter {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
     return this.dateNumericFmt.format(date);
+  }
+
+  /**
+   * Returns the date in `DD/MM/YYYY` format regardless of the app locale.
+   */
+  dateDDMMYYYY(
+    dateStr: string | null | undefined,
+    options?: { ifEmpty?: string }
+  ): string {
+    if (dateStr == null || dateStr === "") {
+      return options?.ifEmpty ?? this.defaultEmptyValue;
+    }
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return this.dateDDMMYYYYFmt.format(date);
+  }
+
+  /**
+   * Returns the date in `DD-MM-YYYY` format, suitable for use as a
+   * filename suffix (no characters that collide with path separators).
+   * Defaults to "now" if no date is provided.
+   */
+  dateForFileName(date: Date = new Date()): string {
+    return this.dateDDMMYYYYFmt.format(date).replaceAll("/", "-");
   }
 
   dateTime(

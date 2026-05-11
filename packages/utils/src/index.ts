@@ -12,5 +12,4 @@ export {
   isReductionProjectEditable,
   canRequestReductionProjectVerification,
 } from "./reductionProject.js";
-export { formatDateToDDMMYYYY, formatDateForFileName } from "./date.js";
 export { arraysEqualUnordered } from "./arrays.js";
