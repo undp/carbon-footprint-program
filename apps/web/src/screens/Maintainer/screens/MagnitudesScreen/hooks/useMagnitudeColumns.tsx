@@ -31,9 +31,17 @@ export const useMagnitudeColumns = ({
   onDelete,
   rows,
 }: UseMagnitudeColumnsParams): GridColDef<MagnitudesFormRow>[] => {
+  const idToIndex = useMemo(() => {
+    const map: Record<string, number> = {};
+    rows.forEach((r, i) => {
+      map[r.id] = i;
+    });
+    return map;
+  }, [rows]);
+
   const getRowIndex = useCallback(
-    (rowId: string) => rows.findIndex((r) => r.id === rowId),
-    [rows]
+    (rowId: string) => idToIndex[rowId] ?? -1,
+    [idToIndex]
   );
 
   const isEditing = useCallback(
