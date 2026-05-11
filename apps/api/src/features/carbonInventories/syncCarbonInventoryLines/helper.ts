@@ -5,7 +5,10 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
 import { MissingFilesError } from "@/features/files/errors.js";
-import { CrossInventoryFileLinkingError } from "../errors.js";
+import {
+  CrossInventoryFileLinkingError,
+  FileAlreadyLinkedError,
+} from "../errors.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -159,17 +162,21 @@ export async function linkFilesToCarbonInventoryLine(
 ): Promise<void> {
   if (fileUuids.length === 0) return;
 
+  // Dedupe before counting matches so a payload that lists the same UUID
+  // twice doesn't trip the "missing" check.
+  const uniqueFileUuids = [...new Set(fileUuids)];
+
   const files = await tx.file.findMany({
     where: {
-      uuid: { in: fileUuids },
+      uuid: { in: uniqueFileUuids },
       status: FileStatus.ACTIVE,
     },
     select: { id: true, uuid: true, blobPath: true },
   });
 
-  if (files.length !== fileUuids.length) {
+  if (files.length !== uniqueFileUuids.length) {
     const found = new Set(files.map((file) => file.uuid));
-    const missing = fileUuids.filter((uuid) => !found.has(uuid));
+    const missing = uniqueFileUuids.filter((uuid) => !found.has(uuid));
     throw new MissingFilesError(missing.join(", "));
   }
 
@@ -182,6 +189,25 @@ export async function linkFilesToCarbonInventoryLine(
       carbonInventoryId.toString(),
       crossInventory.map((file) => file.uuid).join(", ")
     );
+  }
+
+  // Enforce the one-file-per-line invariant in code as a safety net. A
+  // unique constraint on `file_id` in the junction table is the
+  // authoritative guarantee (see migration), but checking here lets us
+  // return a meaningful error instead of a raw `P2002`.
+  const candidateFileIds = files.map((file) => file.id);
+  const alreadyLinkedElsewhere = await tx.carbonInventoryLineFile.findMany({
+    where: { fileId: { in: candidateFileIds }, NOT: { lineId } },
+    select: { fileId: true },
+  });
+  if (alreadyLinkedElsewhere.length > 0) {
+    const otherIds = new Set(
+      alreadyLinkedElsewhere.map((row) => row.fileId.toString())
+    );
+    const conflicting = files
+      .filter((file) => otherIds.has(file.id.toString()))
+      .map((file) => file.uuid);
+    throw new FileAlreadyLinkedError(conflicting.join(", "));
   }
 
   await tx.carbonInventoryLineFile.createMany({
@@ -199,6 +225,11 @@ export async function linkFilesToCarbonInventoryLine(
  * soft-deletes the corresponding `File` rows. Idempotent — re-running with
  * the same ids is a no-op (missing junction rows or already-DELETED files
  * are silently skipped).
+ *
+ * The unlink + soft-delete is **scoped to the given `lineId`** — we only
+ * touch `File` rows that actually have a junction row pointing at the
+ * target line. This prevents a crafted `removeFileIds` payload from
+ * soft-deleting files attached to other lines/inventories.
  */
 export async function unlinkFilesFromCarbonInventoryLine(
   tx: Prisma.TransactionClient,
@@ -207,14 +238,21 @@ export async function unlinkFilesFromCarbonInventoryLine(
 ): Promise<void> {
   if (fileIds.length === 0) return;
 
-  const fileIdBigints = fileIds.map((id) => BigInt(id));
+  const fileIdBigints = [...new Set(fileIds.map((id) => BigInt(id)))];
+
+  const linkedRows = await tx.carbonInventoryLineFile.findMany({
+    where: { lineId, fileId: { in: fileIdBigints } },
+    select: { fileId: true },
+  });
+  const linkedFileIds = linkedRows.map((row) => row.fileId);
+  if (linkedFileIds.length === 0) return;
 
   await tx.carbonInventoryLineFile.deleteMany({
-    where: { lineId, fileId: { in: fileIdBigints } },
+    where: { lineId, fileId: { in: linkedFileIds } },
   });
 
   await tx.file.updateMany({
-    where: { id: { in: fileIdBigints }, status: FileStatus.ACTIVE },
+    where: { id: { in: linkedFileIds }, status: FileStatus.ACTIVE },
     data: { status: FileStatus.DELETED, deletedAt: new Date() },
   });
 }

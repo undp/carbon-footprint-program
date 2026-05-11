@@ -34,6 +34,7 @@ export const confirmLineFileUploadRoute: StandardRouteSignature = (
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },

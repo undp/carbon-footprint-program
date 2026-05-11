@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import type { PrismaClient } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import { FileType, type ConfirmLineFileUploadResponse } from "@repo/types";
 import {
@@ -7,7 +7,6 @@ import {
 } from "@repo/constants";
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "@/features/files/helpers/persistFileRecord.js";
-import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 import { LineFileUploadValidationError } from "./errors.js";
 
 interface ConfirmLineFileUploadInput {
@@ -56,41 +55,34 @@ export const confirmLineFileUploadService = async (
     );
   }
 
-  try {
-    const created = await prisma.file.create({
-      data: {
-        uuid,
-        originalName,
-        mimeType,
-        sizeBytes,
-        blobPath,
-        createdById: userId ? BigInt(userId) : null,
-      },
-      select: {
-        id: true,
-        uuid: true,
-        originalName: true,
-        mimeType: true,
-        sizeBytes: true,
-        createdAt: true,
-      },
-    });
+  // P2002 (unique constraint) bubbles up to the global error handler,
+  // which normalizes it to 409 DATABASE_UNIQUE_CONSTRAINT — no try/catch
+  // needed here.
+  const created = await prisma.file.create({
+    data: {
+      uuid,
+      originalName,
+      mimeType,
+      sizeBytes,
+      blobPath,
+      createdById: userId ? BigInt(userId) : null,
+    },
+    select: {
+      id: true,
+      uuid: true,
+      originalName: true,
+      mimeType: true,
+      sizeBytes: true,
+      createdAt: true,
+    },
+  });
 
-    return {
-      id: created.id.toString(),
-      uuid: created.uuid,
-      originalName: created.originalName,
-      mimeType: created.mimeType,
-      sizeBytes: created.sizeBytes,
-      createdAt: created.createdAt.toISOString(),
-    };
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      throw new DatabaseUniqueConstraintViolationError();
-    }
-    throw error;
-  }
+  return {
+    id: created.id.toString(),
+    uuid: created.uuid,
+    originalName: created.originalName,
+    mimeType: created.mimeType,
+    sizeBytes: created.sizeBytes,
+    createdAt: created.createdAt.toISOString(),
+  };
 };
