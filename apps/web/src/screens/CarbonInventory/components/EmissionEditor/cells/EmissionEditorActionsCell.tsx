@@ -52,7 +52,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   };
 
   return (
-    <Box className="flex justify-center gap-1">
+    <Box className="flex justify-center gap-3">
       {uploadFiles && (
         <Badge
           badgeContent={totalFilesCount}
