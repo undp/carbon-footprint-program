@@ -4,16 +4,19 @@ import type {
   ConfirmLineFileUploadResponse,
   RequestLineFileUploadResponse,
 } from "@repo/types";
+import { useAuthorizationHeader } from "./authHeaders";
 
 export type UploadedLineFile = ConfirmLineFileUploadResponse;
 
 const uploadOneFile = async (
   inventoryId: string,
-  file: File
+  file: File,
+  headers: Record<string, string>
 ): Promise<UploadedLineFile> => {
   const { uuid, uploadUrl } = await apiClient
     .post(`carbon-inventories/${inventoryId}/files/request-upload`, {
       json: { originalName: file.name },
+      headers,
     })
     .json<RequestLineFileUploadResponse>();
 
@@ -35,6 +38,7 @@ const uploadOneFile = async (
   return apiClient
     .post(`carbon-inventories/${inventoryId}/files/confirm-upload`, {
       json: { uuid, originalName: file.name },
+      headers,
     })
     .json<ConfirmLineFileUploadResponse>();
 };
@@ -45,6 +49,7 @@ export const useUploadCarbonInventoryLineFiles = (inventoryId: string) => {
   // Tracks concurrent invocations so a fast-finishing call doesn't flip
   // `isUploading` to false while a slower sibling call is still in flight.
   const inFlightCountRef = useRef(0);
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   const preUploadFiles = useCallback(
     async (files: File[]): Promise<UploadedLineFile[]> => {
@@ -53,7 +58,7 @@ export const useUploadCarbonInventoryLineFiles = (inventoryId: string) => {
       setHasError(false);
       try {
         return await Promise.all(
-          files.map((file) => uploadOneFile(inventoryId, file))
+          files.map((file) => uploadOneFile(inventoryId, file, headers))
         );
       } catch (error) {
         setHasError(true);
@@ -63,7 +68,7 @@ export const useUploadCarbonInventoryLineFiles = (inventoryId: string) => {
         if (inFlightCountRef.current === 0) setIsUploading(false);
       }
     },
-    [inventoryId]
+    [inventoryId, headers]
   );
 
   return { preUploadFiles, isUploading, hasError };
