@@ -23,7 +23,7 @@ import {
 } from "@mui/icons-material";
 import {
   CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES,
-  MAX_FILE_SIZE_MB,
+  CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB,
 } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
 import { formatFileSize } from "@/utils/files";
@@ -276,7 +276,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
             value={[]}
             onChange={handleFilesPicked}
             accept={acceptMap}
-            maxSizeMB={MAX_FILE_SIZE_MB}
+            maxSizeMB={CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB}
             disabled={disabled || isUploading}
           />
         </Stack>
