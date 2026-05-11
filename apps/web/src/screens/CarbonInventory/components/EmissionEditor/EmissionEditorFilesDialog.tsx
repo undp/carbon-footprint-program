@@ -1,5 +1,6 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
+import { useSnackbar } from "notistack";
 import {
   Box,
   Button,
@@ -63,27 +64,27 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
 }) => {
   const { control, getValues, setValue } =
     useFormContext<EmissionCaptureFormValues>();
+  const { enqueueSnackbar } = useSnackbar();
 
   const filesPath =
     `subcategories.${subcategoryId}.lines.${lineId}.files` as const;
   const removedFileIdsPath =
     `subcategories.${subcategoryId}.lines.${lineId}.removedFileIds` as const;
 
-  const [snapshot, setSnapshot] = useState<{
+  // Stored in a ref because the snapshot is read only on cancel — no
+  // need to re-render the dialog when it's re-captured on open.
+  const snapshotRef = useRef<{
     files: LineFileSummary[];
     removedFileIds: string[];
   } | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setSnapshot({
+    snapshotRef.current = {
       files: getValues(filesPath) ?? [],
       removedFileIds: getValues(removedFileIdsPath) ?? [],
-    });
-    // We intentionally snapshot only when the dialog opens — subsequent
-    // form changes are the in-flight edits the snapshot is meant to undo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    };
+  }, [open, filesPath, removedFileIdsPath, getValues]);
 
   const watchedFiles = useWatch({ control, name: filesPath });
   const watchedRemoved = useWatch({ control, name: removedFileIdsPath });
@@ -104,40 +105,56 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
   const handleFilesPicked = useCallback(
     async (picked: File[]) => {
       if (picked.length === 0) return;
-      const uploaded = await preUploadFiles(picked);
-      const next = [
-        ...(getValues(filesPath) ?? []),
-        ...uploaded.map<LineFileSummary>((file) => ({
-          id: file.uuid,
-          uuid: file.uuid,
-          originalName: file.originalName,
-          mimeType: file.mimeType,
-          sizeBytes: file.sizeBytes,
-          createdAt: file.createdAt,
-          isPending: true,
-        })),
-      ];
-      setValue(filesPath, next, { shouldDirty: true });
+      try {
+        const uploaded = await preUploadFiles(picked);
+        const next = [
+          ...(getValues(filesPath) ?? []),
+          ...uploaded.map<LineFileSummary>((file) => ({
+            id: file.id,
+            uuid: file.uuid,
+            originalName: file.originalName,
+            mimeType: file.mimeType,
+            sizeBytes: file.sizeBytes,
+            createdAt: file.createdAt,
+            isPending: true,
+          })),
+        ];
+        setValue(filesPath, next, { shouldDirty: true });
+      } catch {
+        enqueueSnackbar("Error al subir los archivos", { variant: "error" });
+      }
     },
-    [preUploadFiles, getValues, filesPath, setValue]
+    [preUploadFiles, getValues, filesPath, setValue, enqueueSnackbar]
   );
 
   const handlePreview = useCallback(
     async (file: LineFileSummary) => {
-      const url = await getPreviewUrl(file.uuid);
-      window.open(url, "_blank", "noopener,noreferrer");
+      try {
+        const url = await getPreviewUrl(file.uuid);
+        window.open(url, "_blank", "noopener,noreferrer");
+      } catch {
+        enqueueSnackbar("Error al previsualizar el archivo", {
+          variant: "error",
+        });
+      }
     },
-    [getPreviewUrl]
+    [getPreviewUrl, enqueueSnackbar]
   );
 
   const handleDelete = useCallback(
     async (file: LineFileSummary) => {
       if (file.isPending) {
-        await deleteFile({ uuid: file.uuid });
-        const next = (getValues(filesPath) ?? []).filter(
-          (entry) => entry.uuid !== file.uuid
-        );
-        setValue(filesPath, next, { shouldDirty: true });
+        try {
+          await deleteFile({ uuid: file.uuid });
+          const next = (getValues(filesPath) ?? []).filter(
+            (entry) => entry.uuid !== file.uuid
+          );
+          setValue(filesPath, next, { shouldDirty: true });
+        } catch {
+          enqueueSnackbar("Error al eliminar el archivo", {
+            variant: "error",
+          });
+        }
         return;
       }
 
@@ -147,10 +164,18 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
         shouldDirty: true,
       });
     },
-    [deleteFile, getValues, filesPath, removedFileIdsPath, setValue]
+    [
+      deleteFile,
+      getValues,
+      filesPath,
+      removedFileIdsPath,
+      setValue,
+      enqueueSnackbar,
+    ]
   );
 
   const handleCancel = useCallback(() => {
+    const snapshot = snapshotRef.current;
     if (snapshot) {
       setValue(filesPath, snapshot.files, { shouldDirty: true });
       setValue(removedFileIdsPath, snapshot.removedFileIds, {
@@ -158,7 +183,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
       });
     }
     onClose();
-  }, [snapshot, filesPath, removedFileIdsPath, setValue, onClose]);
+  }, [filesPath, removedFileIdsPath, setValue, onClose]);
 
   const handleSave = useCallback(() => {
     onClose();
