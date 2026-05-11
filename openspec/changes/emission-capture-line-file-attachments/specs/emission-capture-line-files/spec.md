@@ -78,19 +78,31 @@ The two new endpoints (`POST /carbon-inventories/:id/files/request-upload` and `
 - **WHEN** an unauthenticated request hits either endpoint
 - **THEN** the API responds with 401
 
-### Requirement: Real-time preview and delete of pending files
+### Requirement: Inventory-scoped preview and delete endpoints
 
-The dialog SHALL allow previewing any uploaded file via the existing `GET /files/:uuid/preview` endpoint and deleting a pending (not-yet-linked) file via the existing `DELETE /files/:uuid` endpoint.
+The system SHALL expose `GET /carbon-inventories/:id/files/:uuid/preview` (auth: any inventory member) and `DELETE /carbon-inventories/:id/files/:uuid` (auth: CONTRIBUTOR/ADMIN) so authorization is checked at the inventory level instead of reusing the generic `/files/*` endpoints which only check authentication.
+
+Both endpoints SHALL reject requests whose file `blobPath` does not start with `CARBON_INVENTORY/{id}/LINES/` — this prevents a user with access to inventory A from previewing or deleting a file owned by inventory B even if they know its uuid.
 
 #### Scenario: Preview a pending file
 
 - **WHEN** the user clicks the preview action on a pending file
-- **THEN** the SAS URL returned by `/files/:uuid/preview` is opened in a new tab
+- **THEN** the dialog calls `GET /carbon-inventories/:id/files/:uuid/preview` and opens the returned SAS URL in a new tab
 
 #### Scenario: Delete a pending file
 
 - **WHEN** the user clicks the delete action on a pending file
-- **THEN** `DELETE /files/:uuid` soft-deletes the `File` and the row is removed from the dialog list
+- **THEN** the dialog calls `DELETE /carbon-inventories/:id/files/:uuid`; the API soft-deletes the `File` and the row is removed from the dialog list
+
+#### Scenario: Preview a file owned by another inventory
+
+- **WHEN** a user with access to inventory A requests a preview for a `File` whose `blobPath` does not start with `CARBON_INVENTORY/A/LINES/`
+- **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `CROSS_INVENTORY_FILE_LINKING`
+
+#### Scenario: Delete a file owned by another inventory
+
+- **WHEN** a user with access to inventory A submits `DELETE /carbon-inventories/A/files/:uuid` for a `File` whose `blobPath` does not start with `CARBON_INVENTORY/A/LINES/`
+- **THEN** the API responds with 422 and the file is not modified
 
 ### Requirement: Deferred unlink of already-linked files
 

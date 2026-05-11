@@ -28,16 +28,24 @@ The path is built via the existing `buildBlobPath` helper with `fileType: "CARBO
 
 ## Endpoints
 
-Both endpoints are auth-gated by `requireCarbonInventoryAccess` requiring `CONTRIBUTOR` or `ADMIN` organization role.
+All endpoints are auth-gated by `requireCarbonInventoryAccess`. Write endpoints require `CONTRIBUTOR` or `ADMIN`; the preview endpoint is open to any inventory member (matching the read-access pattern of `getCarbonInventoryById`).
 
-- `POST /carbon-inventories/:id/files/request-upload`
+- `POST /carbon-inventories/:id/files/request-upload` (CONTRIBUTOR/ADMIN)
   - Body: `{ originalName }`
   - Returns `{ uuid, uploadUrl, expiresAt }` for a direct PUT to Azure Blob.
-- `POST /carbon-inventories/:id/files/confirm-upload`
+- `POST /carbon-inventories/:id/files/confirm-upload` (CONTRIBUTOR/ADMIN)
   - Body: `{ uuid, originalName }`
   - Reads the real `mimeType` and `sizeBytes` from blob metadata, validates against `CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES` and `MAX_FILE_SIZE_BYTES` (both in `@repo/constants`).
   - On validation failure: deletes the blob and responds with **422**.
-  - On success: creates the `File` row with `status = ACTIVE`, returns `{ uuid }`.
+  - On success: creates the `File` row with `status = ACTIVE`, returns the persisted `LineFileSummary`.
+- `GET /carbon-inventories/:id/files/:uuid/preview` (any inventory member)
+  - Returns `{ url, expiresAt }` for a temporary read SAS URL.
+  - Rejects with `CrossInventoryFileLinkingError` (422) if the file's `blobPath` does not start with `CARBON_INVENTORY/{id}/LINES/`.
+- `DELETE /carbon-inventories/:id/files/:uuid` (CONTRIBUTOR/ADMIN)
+  - Soft-deletes the `File` (`status=DELETED, deletedAt=now`); the junction row is left untouched, so existing line associations remain auditable.
+  - Same cross-inventory check via the blob-path prefix.
+
+The inventory-scoped delete/preview endpoints exist specifically so authorization is enforced at the inventory level — the generic `/files/*` endpoints only check `requireRoles`, which would let any authenticated user delete or preview a `CARBON_INVENTORY` file by UUID.
 
 ## Link / unlink semantics
 
