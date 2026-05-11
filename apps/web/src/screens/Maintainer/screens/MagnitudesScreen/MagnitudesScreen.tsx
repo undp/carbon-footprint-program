@@ -267,7 +267,7 @@ export const MagnitudesScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Magnitudes"
-        subtitle="Gestiona las magnitudes utilizadas por las unidades de medida. Las magnitudes ya creadas solo permiten editar su nombre. La masa está protegida."
+        subtitle="Gestiona las magnitudes utilizadas por las unidades de medida. Solo el nombre es editable. La masa está protegida."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null || isLoading || !magnitudes}
         addLabel="Agregar magnitud"
