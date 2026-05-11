@@ -40,7 +40,11 @@ export const MeasurementUnitsScreen: FC = () => {
     isError,
   } = useMaintainerMeasurementUnits();
 
-  const { data: magnitudes, isLoading: isMagnitudesLoading } = useMagnitudes();
+  const {
+    data: magnitudes,
+    isLoading: isMagnitudesLoading,
+    isError: isMagnitudesError,
+  } = useMagnitudes();
 
   const magnitudeOptions = useMemo(
     () => (magnitudes ?? []).map((m) => ({ id: m.id, name: m.name })),
@@ -324,7 +328,7 @@ export const MeasurementUnitsScreen: FC = () => {
     []
   );
 
-  if (isError) {
+  if (isError || isMagnitudesError) {
     return (
       <>
         <MaintainerPageHeader
@@ -333,9 +337,16 @@ export const MeasurementUnitsScreen: FC = () => {
           explanationSlug={MEASUREMENT_UNITS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
         />
         <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            No fue posible cargar las unidades de medida.
-          </Typography>
+          {isError && (
+            <Typography variant="body2" color="text.secondary">
+              No fue posible cargar las unidades de medida.
+            </Typography>
+          )}
+          {isMagnitudesError && (
+            <Typography variant="body2" color="text.secondary">
+              No fue posible cargar las magnitudes.
+            </Typography>
+          )}
         </Box>
       </>
     );
