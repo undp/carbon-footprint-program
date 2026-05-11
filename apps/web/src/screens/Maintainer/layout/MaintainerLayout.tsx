@@ -23,6 +23,7 @@ import {
   AutoAwesomeMotionOutlined,
   StraightenOutlined,
   PeopleOutlined,
+  PercentOutlined,
 } from "@mui/icons-material";
 import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
 import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
@@ -85,7 +86,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   },
   {
     text: "Tasas",
-    icon: <SquareFootOutlined />,
+    icon: <PercentOutlined />,
     path: Routes.ADMIN_RATE_MEASUREMENT_UNITS,
     requiredRoles: [SystemRole.SUPERADMIN],
   },
