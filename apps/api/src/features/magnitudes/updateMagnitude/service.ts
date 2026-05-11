@@ -20,7 +20,7 @@ export const updateMagnitudeService = async (
     const { count } = await tx.magnitude.updateMany({
       where: {
         id: magnitudeId,
-        status: { not: MagnitudeStatus.DELETED },
+        status: MagnitudeStatus.ACTIVE,
       },
       data: { name: body.name },
     });
