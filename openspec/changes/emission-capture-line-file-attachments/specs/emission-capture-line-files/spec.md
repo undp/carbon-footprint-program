@@ -143,6 +143,17 @@ The sync handler SHALL reject any `addFileUuids` whose corresponding `File.blobP
 - **THEN** the API responds with 404 and an `ApiErrorResponse` whose error code is `MISSING_FILES`
 - **AND** no line or junction is created or modified (the transaction is rolled back)
 
+#### Scenario: Attempt to link a file already attached to another line
+
+- **WHEN** the request submits an `addFileUuids` value referencing a `File` that is already linked to a different line
+- **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `FILE_ALREADY_LINKED`
+- **AND** no line or junction is created or modified (the transaction is rolled back)
+
+#### Scenario: Attempt to remove a file not linked to the target line
+
+- **WHEN** the request submits a `removeFileIds` value referencing a `File` whose junction row points at a different line (or no line at all)
+- **THEN** the unlink helper silently skips the unlinked id — only files actually linked to the target line are unlinked and soft-deleted, so the request cannot affect attachments of other lines or inventories
+
 ### Requirement: `getCarbonInventoryById` returns files per ACTIVE line
 
 The `GET /carbon-inventories/:id` response SHALL expose `files: LineFileSummary[]` on each ACTIVE line. The summary SHALL contain `id, uuid, originalName, mimeType, sizeBytes, createdAt`. Files of soft-deleted lines SHALL NOT be returned.

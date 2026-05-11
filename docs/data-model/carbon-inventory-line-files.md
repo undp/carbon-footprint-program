@@ -6,15 +6,15 @@ Per-emission-line file attachments for the Emission Capture screen. Lets users u
 
 The `CarbonInventoryLineFile` table is a junction between `CarbonInventoryLine` and `File`. One file is attached to exactly one line; one line can have many files.
 
-| Column          | Type        | Notes                                                                                          |
-| --------------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `line_id`       | `bigint`    | FK → `carbon_inventory_line.id`. `ON DELETE CASCADE` to prevent orphan rows on hard delete.    |
-| `file_id`       | `bigint`    | FK → `file.id`. `ON DELETE RESTRICT` — the junction is the source of truth for attached state. |
-| `created_at`    | `timestamp` | Defaults to `now()`. Audit only.                                                               |
-| `created_by_id` | `bigint?`   | FK → `user.id`. Nullable for backfills / system-created links.                                 |
+| Column          | Type        | Notes                                                                                                                                                                                  |
+| --------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `line_id`       | `bigint`    | FK → `carbon_inventory_line.id`. `ON DELETE CASCADE` to prevent orphan rows on hard delete.                                                                                            |
+| `file_id`       | `bigint`    | FK → `file.id`. `ON DELETE RESTRICT` — the junction is the source of truth for attached state. Has a **unique** constraint to enforce the one-file-per-line invariant at the DB level. |
+| `created_at`    | `timestamp` | Defaults to `now()`. Audit only.                                                                                                                                                       |
+| `created_by_id` | `bigint?`   | FK → `user.id`. Nullable for backfills / system-created links.                                                                                                                         |
 
 - **Primary key**: composite `(line_id, file_id)` — idempotency for `createMany({ skipDuplicates: true })`.
-- **Secondary index**: `(file_id)` — supports reverse lookups (e.g. "where is this file attached?").
+- **Unique index**: `(file_id)` — guarantees a `File` can only be linked to one line. The application checks this before insert and raises `FileAlreadyLinkedError` (422); the unique constraint makes the invariant non-bypassable at the DB level.
 
 ## File-type and blob path
 
@@ -43,11 +43,12 @@ Both endpoints are auth-gated by `requireCarbonInventoryAccess` requiring `CONTR
 
 Junction rows are only mutated inside the existing `syncCarbonInventoryLines` transaction:
 
-- `addFileUuids` (on create and update items): the helper validates in two steps inside the transaction:
-  1. Resolve each UUID against `File` rows with `status = ACTIVE`. A UUID that does not resolve raises `MissingFilesError` (HTTP **404**, code `MISSING_FILES`).
+- `addFileUuids` (on create and update items): the helper dedupes the input, then validates in three steps inside the transaction:
+  1. Resolve each unique UUID against `File` rows with `status = ACTIVE`. A UUID that does not resolve raises `MissingFilesError` (HTTP **404**, code `MISSING_FILES`).
   2. Check each resolved file's `blobPath` starts with `CARBON_INVENTORY/{inventoryId}/LINES/`. This **prefix invariant** is what blocks cross-inventory linking — a user with access to inventory A cannot link a uuid uploaded against inventory B. A failed prefix check raises `CrossInventoryFileLinkingError` (HTTP **422**, code `CROSS_INVENTORY_FILE_LINKING`).
-     In both cases the transaction is rolled back before any line or junction is mutated.
-- `removeFileIds` (on update items): deletes matching junction rows and soft-deletes the `File` (`status = DELETED, deletedAt = now`). Idempotent — re-applying the same `removeFileIds` is a no-op.
+  3. Check that none of the resolved files are already linked to a different line. If any are, raise `FileAlreadyLinkedError` (HTTP **422**, code `FILE_ALREADY_LINKED`). The DB-level unique constraint on `file_id` is the authoritative guarantee; this check just produces a meaningful error instead of a raw P2002.
+     In all three cases the transaction is rolled back before any line or junction is mutated.
+- `removeFileIds` (on update items): scoped to the target `lineId` — the helper first finds the intersection of `removeFileIds` with junction rows that actually point at this line, then deletes those junction rows and soft-deletes the corresponding `File` rows. A crafted payload referencing files attached to other lines (or no line) is a silent no-op for those ids. Idempotent — re-applying the same `removeFileIds` is a no-op.
 - Soft-deleted lines keep their junction rows and `File` rows untouched. `getCarbonInventoryById` filters lines to `status = ACTIVE` and `file.status = ACTIVE`, so deleted lines / deleted files are not surfaced.
 
 Orphan blobs (uploads that never get linked, e.g. user closed the tab) are not actively cleaned up. A future sweep job will reclaim them by walking the `CARBON_INVENTORY/{inventoryId}/LINES/` prefix and filtering out files with junction rows.
