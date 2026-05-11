@@ -16,7 +16,7 @@ Within a magnitude, every non-base unit's `baseFactor` SHALL be calibrated relat
 - **WHEN** the seed script runs from the `base` or `testing` dataset
 - **THEN** the seeded rows SHALL include `W` with `magnitudeCode = "power"`, `baseFactor = 1.0`, `isBase = true`, AND `kW` with `magnitudeCode = "power"`, `baseFactor = 1000.0`, `isBase = false`
 
-#### Scenario: Cross-magnitude conversion between energy rate units becomes possible
+#### Scenario: Conversion between energy rate units within the energy magnitude
 
 - **WHEN** an emission factor stored as `kg/kWh` is requested in a methodology context that expresses the same factor as `kg/GJ` (or vice versa, or `kg/MWh`)
-- **THEN** the methodology helper SHALL convert the value correctly using the calibrated `baseFactor` values within the shared `energy` magnitude — this conversion was impossible before the reclassification because the units lived in different magnitudes
+- **THEN** the methodology helper at `apps/api/src/features/carbonInventories/getCarbonInventoryMethodology/helper.ts` SHALL convert the value correctly using the calibrated `baseFactor` values of the denominator units within the shared `energy` magnitude — this conversion was impossible before the reclassification because `kWh` and `MWh` were classified under a different magnitude than `GJ`, so the helper's magnitude-keyed grouping never paired them together
