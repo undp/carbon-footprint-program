@@ -3,6 +3,7 @@ import {
   EmissionFactorDimensionStatus,
   type GetCarbonInventoryByIdResponse,
   CarbonInventoryLineStatus,
+  FileStatus,
 } from "@repo/types";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { map, uniq } from "lodash-es";
@@ -33,6 +34,22 @@ export const getCarbonInventoryByIdService = async (
               factor: true,
             },
             take: 1, // Only get the active input
+          },
+          files: {
+            where: { file: { status: FileStatus.ACTIVE } },
+            include: {
+              file: {
+                select: {
+                  id: true,
+                  uuid: true,
+                  originalName: true,
+                  mimeType: true,
+                  sizeBytes: true,
+                  createdAt: true,
+                  status: true,
+                },
+              },
+            },
           },
         },
       },

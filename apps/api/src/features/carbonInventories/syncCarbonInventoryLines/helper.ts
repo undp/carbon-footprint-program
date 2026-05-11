@@ -1,8 +1,10 @@
+import { FileStatus, FileType } from "@repo/types";
 import { InputType, type Prisma } from "@repo/database";
 import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
+import { MissingFilesError } from "@/features/files/errors.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -129,4 +131,76 @@ export async function createLineResult(
       },
     });
   }
+}
+
+/**
+ * Links a set of files (by UUID) to a carbon inventory line.
+ *
+ * Validates each file belongs to the given inventory by enforcing the
+ * `CARBON_INVENTORY/{inventoryId}/LINES/` blob path prefix — any UUID that
+ * doesn't resolve to an ACTIVE file with this prefix is rejected. This is
+ * how cross-inventory linking is prevented.
+ *
+ * Junction inserts are idempotent (`skipDuplicates: true`) so retries don't
+ * fail on existing rows.
+ */
+export async function linkFilesToCarbonInventoryLine(
+  tx: Prisma.TransactionClient,
+  lineId: bigint,
+  fileUuids: string[],
+  userId: bigint | null,
+  carbonInventoryId: bigint
+): Promise<void> {
+  if (fileUuids.length === 0) return;
+
+  const expectedPrefix = `${FileType.CARBON_INVENTORY}/${carbonInventoryId.toString()}/LINES/`;
+
+  const files = await tx.file.findMany({
+    where: {
+      uuid: { in: fileUuids },
+      status: FileStatus.ACTIVE,
+      blobPath: { startsWith: expectedPrefix },
+    },
+    select: { id: true, uuid: true },
+  });
+
+  if (files.length !== fileUuids.length) {
+    const found = new Set(files.map((file) => file.uuid));
+    const missing = fileUuids.filter((uuid) => !found.has(uuid));
+    throw new MissingFilesError(missing.join(", "));
+  }
+
+  await tx.carbonInventoryLineFile.createMany({
+    data: files.map((file) => ({
+      lineId,
+      fileId: file.id,
+      createdById: userId,
+    })),
+    skipDuplicates: true,
+  });
+}
+
+/**
+ * Unlinks a set of files (by id) from a carbon inventory line and
+ * soft-deletes the corresponding `File` rows. Idempotent — re-running with
+ * the same ids is a no-op (missing junction rows or already-DELETED files
+ * are silently skipped).
+ */
+export async function unlinkFilesFromCarbonInventoryLine(
+  tx: Prisma.TransactionClient,
+  lineId: bigint,
+  fileIds: string[]
+): Promise<void> {
+  if (fileIds.length === 0) return;
+
+  const fileIdBigints = fileIds.map((id) => BigInt(id));
+
+  await tx.carbonInventoryLineFile.deleteMany({
+    where: { lineId, fileId: { in: fileIdBigints } },
+  });
+
+  await tx.file.updateMany({
+    where: { id: { in: fileIdBigints }, status: FileStatus.ACTIVE },
+    data: { status: FileStatus.DELETED, deletedAt: new Date() },
+  });
 }

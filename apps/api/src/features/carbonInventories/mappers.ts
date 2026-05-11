@@ -6,7 +6,7 @@ import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
 import { toNumberOrNull, kgToTon } from "@/utils/number.js";
 
-// Prisma type for carbon inventory with lines, inputs, and factors
+// Prisma type for carbon inventory with lines, inputs, factors, and files
 // Note: subcategories are fetched separately to avoid duplication
 type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
   include: {
@@ -15,6 +15,21 @@ type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
         inputs: {
           include: {
             factor: true;
+          };
+        };
+        files: {
+          include: {
+            file: {
+              select: {
+                id: true;
+                uuid: true;
+                originalName: true;
+                mimeType: true;
+                sizeBytes: true;
+                createdAt: true;
+                status: true;
+              };
+            };
           };
         };
       };
@@ -82,6 +97,17 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
   const manualTotalEmissions =
     rawManualTotalEmissions !== null ? kgToTon(rawManualTotalEmissions) : null;
 
+  const files = (line.files ?? [])
+    .filter((entry) => entry.file?.status === "ACTIVE")
+    .map((entry) => ({
+      id: entry.file.id.toString(),
+      uuid: entry.file.uuid,
+      originalName: entry.file.originalName,
+      mimeType: entry.file.mimeType,
+      sizeBytes: entry.file.sizeBytes,
+      createdAt: entry.file.createdAt.toISOString(),
+    }));
+
   return {
     id: String(line.id),
     subcategoryId: line.subcategoryId.toString(),
@@ -95,6 +121,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
     factorRateMeasurementUnitId,
     comment,
     manualTotalEmissions,
+    files,
   };
 }
 
