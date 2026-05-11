@@ -19,6 +19,7 @@ export class Formatter {
   private readonly labelFmt: Intl.NumberFormat;
   private readonly percentFmt: Intl.NumberFormat;
   private readonly dateFmt: Intl.DateTimeFormat;
+  private readonly dateLongFmt: Intl.DateTimeFormat;
   private readonly dateNumericFmt: Intl.DateTimeFormat;
   private readonly dateTimeFmt: Intl.DateTimeFormat;
 
@@ -65,6 +66,11 @@ export class Formatter {
       month: "short",
       year: "numeric",
     });
+    this.dateLongFmt = new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     this.dateNumericFmt = new Intl.DateTimeFormat(locale, {
       day: "2-digit",
       month: "2-digit",
@@ -90,6 +96,18 @@ export class Formatter {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
     return this.dateFmt.format(date);
+  }
+
+  dateLong(
+    dateStr: string | null | undefined,
+    options?: { ifEmpty?: string }
+  ): string {
+    if (dateStr == null || dateStr === "") {
+      return options?.ifEmpty ?? this.defaultEmptyValue;
+    }
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return this.dateLongFmt.format(date);
   }
 
   dateNumeric(

@@ -171,55 +171,53 @@ export const OrganizationScreenTable: FC = () => {
   }
 
   return (
-    <Box className="rounded-sm bg-white p-3">
-      <Box className="flex w-full">
-        <MaintainerDataGrid<OrganizationRow>
-          editingRowId={null}
-          searchable={{
-            fuseOptions,
-            placeholder: "Buscar organización...",
-            downloadFileName: "organizaciones",
-          }}
-          disableColumnMenu={false}
-          disableColumnFilter={false}
-          showToolbar
-          columns={columns}
-          rows={organizations}
-          rowHeight={65}
-          getRowId={(row: OrganizationRow) => row.id}
-          disableColumnSorting={false}
-          hideFooter={false}
-          pagination
-          pageSizeOptions={[10, 25, 50, 100]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-        />
-        <BlockOrganizationDialog
-          open={blockOrgId !== null}
-          organizationName={blockOrg?.name ?? ""}
-          onClose={handleCloseBlockDialog}
-          onConfirm={handleConfirmBlock}
-          isLoading={blockMutation.isPending}
-        />
-        <UnblockOrganizationDialog
-          open={unblockOrgId !== null}
-          organizationName={unblockOrg?.name ?? ""}
-          onClose={handleCloseUnblockDialog}
-          onConfirm={handleConfirmUnblock}
-          isLoading={unblockMutation.isPending}
-        />
-        <OrganizationProfileDialog
-          open={viewOrgId !== null}
-          organizationId={viewOrgId}
-          onClose={handleCloseView}
-        />
-        <ViewSubmissionDialog
-          open={historyOrgId !== null}
-          organizationId={historyOrgId ?? undefined}
-          onClose={handleCloseHistory}
-        />
-      </Box>
+    <Box className="flex w-full rounded-sm bg-white p-3">
+      <MaintainerDataGrid<OrganizationRow>
+        editingRowId={null}
+        searchable={{
+          fuseOptions,
+          placeholder: "Buscar organización...",
+          downloadFileName: "organizaciones",
+        }}
+        disableColumnMenu={false}
+        disableColumnFilter={false}
+        showToolbar
+        columns={columns}
+        rows={organizations}
+        rowHeight={65}
+        getRowId={(row: OrganizationRow) => row.id}
+        disableColumnSorting={false}
+        hideFooter={false}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
+        }}
+      />
+      <BlockOrganizationDialog
+        open={blockOrgId !== null}
+        organizationName={blockOrg?.name ?? ""}
+        onClose={handleCloseBlockDialog}
+        onConfirm={handleConfirmBlock}
+        isLoading={blockMutation.isPending}
+      />
+      <UnblockOrganizationDialog
+        open={unblockOrgId !== null}
+        organizationName={unblockOrg?.name ?? ""}
+        onClose={handleCloseUnblockDialog}
+        onConfirm={handleConfirmUnblock}
+        isLoading={unblockMutation.isPending}
+      />
+      <OrganizationProfileDialog
+        open={viewOrgId !== null}
+        organizationId={viewOrgId}
+        onClose={handleCloseView}
+      />
+      <ViewSubmissionDialog
+        open={historyOrgId !== null}
+        organizationId={historyOrgId ?? undefined}
+        onClose={handleCloseHistory}
+      />
     </Box>
   );
 };

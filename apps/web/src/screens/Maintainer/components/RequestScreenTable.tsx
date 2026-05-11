@@ -88,31 +88,29 @@ export const RequestScreenTable: FC = () => {
   }
 
   return (
-    <Box className="rounded-sm bg-white p-3">
-      <Box className="flex w-full">
-        <MaintainerDataGrid<GetAllAdminRequestsResponse[number]>
-          editingRowId={null}
-          searchable={{
-            fuseOptions,
-            placeholder: "Buscar solicitud...",
-            downloadFileName: "solicitudes",
-          }}
-          disableColumnSorting={false}
-          disableColumnMenu={false}
-          disableColumnFilter={false}
-          showToolbar
-          columns={columns}
-          rows={requests}
-          rowHeight={65}
-          getRowId={(row: GetAllAdminRequestsResponse[number]) => row.id}
-          hideFooter={false}
-          pagination
-          pageSizeOptions={[10, 25, 50, 100]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-        />
-      </Box>
+    <Box className="flex w-full rounded-sm bg-white p-3">
+      <MaintainerDataGrid<GetAllAdminRequestsResponse[number]>
+        editingRowId={null}
+        searchable={{
+          fuseOptions,
+          placeholder: "Buscar solicitud...",
+          downloadFileName: "solicitudes",
+        }}
+        disableColumnSorting={false}
+        disableColumnMenu={false}
+        disableColumnFilter={false}
+        showToolbar
+        columns={columns}
+        rows={requests}
+        rowHeight={65}
+        getRowId={(row: GetAllAdminRequestsResponse[number]) => row.id}
+        hideFooter={false}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
+        }}
+      />
       <ViewSubmissionDialog
         open={dialogState !== null}
         carbonInventoryId={dialogState?.carbonInventoryId}
