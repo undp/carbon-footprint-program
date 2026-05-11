@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { Box, Chip, Tooltip, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 import { LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { EditableTextCell } from "../../../components/cells";
@@ -51,11 +51,16 @@ export const useMagnitudeColumns = ({
         renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const isSystem = params.row.isSystem;
           const isNew = isNewRow(params.row.id);
 
-          if (!isNew) {
+          const tooltipMessage = isSystem
+            ? "Esta magnitud fue creada por el sistema y no puede modificarse"
+            : "El código no puede modificarse luego de la creación";
+
+          if ((!isNew && editing) || isSystem) {
             return (
-              <Tooltip title="El código no puede modificarse luego de la creación.">
+              <Tooltip title={tooltipMessage}>
                 <Box
                   sx={{
                     display: "flex",
@@ -66,7 +71,7 @@ export const useMagnitudeColumns = ({
                   }}
                 >
                   <LockOutlined sx={{ fontSize: 14 }} />
-                  <Typography variant="body2">{params.row.code}</Typography>
+                  <Typography variant="body1">{params.row.code}</Typography>
                 </Box>
               </Tooltip>
             );
@@ -80,7 +85,9 @@ export const useMagnitudeColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "code", value)}
               onClick={
-                !editing ? () => onStartEditRow(params.row.id) : undefined
+                !editing && !isSystem
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
               }
               placeholder="Ej: vehicles"
               autoFocus
@@ -96,6 +103,27 @@ export const useMagnitudeColumns = ({
         renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const isSystem = params.row.isSystem;
+
+          if (isSystem) {
+            return (
+              <Tooltip title="Esta magnitud fue creada por el sistema y no puede modificarse">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    color: "text.disabled",
+                    cursor: "default",
+                  }}
+                >
+                  <LockOutlined sx={{ fontSize: 14 }} />
+                  <Typography variant="body1">{params.row.name}</Typography>
+                </Box>
+              </Tooltip>
+            );
+          }
+
           return (
             <EditableTextCell
               formArrayName="magnitudes"
@@ -104,25 +132,13 @@ export const useMagnitudeColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "name", value)}
               onClick={
-                !editing ? () => onStartEditRow(params.row.id) : undefined
+                !editing && !params.row.isSystem
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
               }
             />
           );
         },
-      },
-      {
-        field: "isSystem",
-        headerName: "Origen",
-        minWidth: 130,
-        flex: 0.4,
-        sortable: false,
-        renderCell: (params: GridRenderCellParams<MagnitudesFormRow>) => (
-          <Chip
-            label={params.row.isSystem ? "Sistema" : "Usuario"}
-            size="small"
-            color={params.row.isSystem ? "info" : "success"}
-          />
-        ),
       },
       {
         field: "referenceCount",
@@ -145,6 +161,13 @@ export const useMagnitudeColumns = ({
           const editing = isEditing(params.row.id);
           const isSystem = params.row.isSystem;
           const isReferenced = params.row.referenceCount > 0;
+
+          if (!editing && isSystem)
+            return (
+              <Tooltip title="Esta magnitud fue creada por el sistema y no puede ser borrada">
+                <LockOutlined sx={{ fontSize: 18 }} />
+              </Tooltip>
+            );
 
           const deleteDisabled = editing || isSystem || isReferenced;
           let deleteTooltipTitle = "Eliminar";
