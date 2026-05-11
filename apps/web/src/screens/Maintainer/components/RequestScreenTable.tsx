@@ -70,7 +70,7 @@ export const RequestScreenTable: FC = () => {
   >(
     () => ({
       keys: [
-        { name: "organizationName", getFn: (row) => row.organizationName },
+        "organizationName",
         { name: "type", getFn: (row) => REQUEST_TYPE_LABEL[row.type] },
         { name: "status", getFn: (row) => REQUEST_STATUS_LABEL[row.status] },
         {

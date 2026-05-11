@@ -22,7 +22,7 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
   const fuseOptions = useMemo<IFuseOptions<UserRow>>(
     () => ({
       keys: [
-        { name: "email", getFn: (row) => row.email ?? "" },
+        "email",
         { name: "role", getFn: (row) => ROLE_LABELS[row.role] },
         {
           name: "organizations",

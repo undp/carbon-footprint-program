@@ -145,10 +145,10 @@ export const OrganizationScreenTable: FC = () => {
   const fuseOptions = useMemo<IFuseOptions<OrganizationRow>>(
     () => ({
       keys: [
-        { name: "name", getFn: (row) => row.name },
-        { name: "sectorName", getFn: (row) => row.sectorName ?? "" },
-        { name: "subsectorName", getFn: (row) => row.subsectorName ?? "" },
-        { name: "sizeName", getFn: (row) => row.sizeName ?? "" },
+        "name",
+        "sectorName",
+        "subsectorName",
+        "sizeName",
         {
           name: "status",
           getFn: (row) =>
