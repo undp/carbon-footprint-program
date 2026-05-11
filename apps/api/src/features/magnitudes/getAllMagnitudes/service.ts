@@ -5,6 +5,7 @@ import {
 } from "@repo/database";
 import type { GetAllMagnitudesResponse } from "@repo/types";
 import { mapMagnitudeWithReferenceCount } from "../mappers.js";
+import { compareMagnitudesForDisplay } from "./helpers.js";
 
 export const getAllMagnitudesService = async (
   prismaClient: PrismaClient
@@ -12,7 +13,6 @@ export const getAllMagnitudesService = async (
   const [magnitudes, referenceCounts] = await Promise.all([
     prismaClient.magnitude.findMany({
       where: { status: MagnitudeStatus.ACTIVE },
-      orderBy: [{ isSystem: "desc" }, { name: "asc" }],
     }),
     prismaClient.measurementUnit.groupBy({
       by: ["magnitudeId"],
@@ -25,10 +25,12 @@ export const getAllMagnitudesService = async (
     referenceCounts.map((row) => [row.magnitudeId.toString(), row._count._all])
   );
 
-  return magnitudes.map((magnitude) =>
-    mapMagnitudeWithReferenceCount(
-      magnitude,
-      referenceCountByMagnitudeId.get(magnitude.id.toString()) ?? 0
+  return magnitudes
+    .map((magnitude) =>
+      mapMagnitudeWithReferenceCount(
+        magnitude,
+        referenceCountByMagnitudeId.get(magnitude.id.toString()) ?? 0
+      )
     )
-  );
+    .sort(compareMagnitudesForDisplay);
 };
