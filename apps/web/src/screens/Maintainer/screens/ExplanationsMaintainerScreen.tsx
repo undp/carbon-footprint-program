@@ -71,7 +71,7 @@ export const ExplanationsMaintainerScreen: FC = () => {
             No fue posible cargar las explicaciones.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<ExplanationRow>
             editingRowId={null}
             searchable={{
               fuseOptions: {

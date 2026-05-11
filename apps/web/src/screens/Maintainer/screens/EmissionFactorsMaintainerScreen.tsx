@@ -548,7 +548,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<EmissionFactorForm>
         editingRowId={editingRowId}
         cellMaxHeight={60}
         searchable={{

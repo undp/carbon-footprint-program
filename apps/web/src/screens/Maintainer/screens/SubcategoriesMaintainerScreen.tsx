@@ -434,7 +434,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<SubcategoryForm>
         editingRowId={editingRowId}
         searchable={{
           fuseOptions: {

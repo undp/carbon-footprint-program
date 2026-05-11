@@ -390,7 +390,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         </Typography>
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
-            <MaintainerDataGrid
+            <MaintainerDataGrid<MethodologyVersionForm>
               editingRowId={editingRowId}
               searchable={{
                 fuseOptions: {

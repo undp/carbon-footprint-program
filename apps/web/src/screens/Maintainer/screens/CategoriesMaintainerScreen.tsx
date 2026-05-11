@@ -518,7 +518,7 @@ export const CategoriesMaintainerScreen: FC = () => {
         </Typography>
         <form id="categories-form" noValidate>
           <Box className="flex w-full">
-            <MaintainerDataGrid
+            <MaintainerDataGrid<CategoryForm>
               editingRowId={editingRowId}
               cellMaxHeight={70}
               searchable={{

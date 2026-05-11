@@ -539,7 +539,7 @@ export const DimensionsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<DimensionFormRow>
         editingRowId={editingRowId}
         searchable={{
           fuseOptions: {

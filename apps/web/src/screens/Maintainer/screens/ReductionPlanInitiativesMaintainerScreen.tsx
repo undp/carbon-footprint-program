@@ -350,7 +350,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       <Box className="rounded-sm bg-white p-3">
         <form id="reduction-plan-initiatives-form" noValidate>
           <Box className="flex w-full">
-            <MaintainerDataGrid
+            <MaintainerDataGrid<ReductionPlanInitiativeFormRow>
               apiRef={apiRef}
               editingRowId={editingRowId}
               searchable={{

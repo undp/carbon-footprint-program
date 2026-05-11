@@ -544,7 +544,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {SUBCATEGORY_RECOMMENDATIONS_LABELS.description}
         </Typography>
-        <MaintainerDataGrid
+        <MaintainerDataGrid<SubcategoryRecommendationRow>
           editingRowId={editingRowId}
           searchable={{
             fuseOptions: {
