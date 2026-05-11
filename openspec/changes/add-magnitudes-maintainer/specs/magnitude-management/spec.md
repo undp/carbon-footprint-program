@@ -7,7 +7,7 @@ The system SHALL define a `Magnitude` Prisma model with the following columns: `
 #### Scenario: Existing rows after schema change
 
 - **WHEN** the base migration (which now includes the `Magnitude` table and the `MeasurementUnit.magnitudeId` column) is applied and the seed script runs
-- **THEN** ten system magnitudes SHALL be present (`MASS`, `VOLUME`, `DISTANCE`, `TIME`, `ANIMALS`, `AREA`, `POWER`, `ENERGY`, `DISTANCE_MASS`, `ROOMS`) with `isSystem = true` and the canonical Spanish labels, AND every seeded `MeasurementUnit` SHALL have a `magnitudeId` resolved from its `magnitudeCode` in the seed JSON
+- **THEN** ten system magnitudes SHALL be present (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) with `isSystem = true` and the canonical Spanish labels, AND every seeded `MeasurementUnit` SHALL have a `magnitudeId` resolved from its `magnitudeCode` in the seed JSON
 
 #### Scenario: Code is immutable after creation
 
@@ -65,7 +65,7 @@ The create endpoint SHALL look up an existing magnitude by `code` including `DEL
 
 The create endpoint and the update endpoint SHALL validate inputs via Zod schemas declared in `packages/types/src/magnitudes/admin/{createMagnitude,updateMagnitude}/schemas.ts` and passed to Fastify's `schema` option. The rules are:
 
-- `code` (create only): non-empty string matching `^[a-z][a-z0-9_]*$`, length ≤ `MAGNITUDE_CODE_MAX_LENGTH`. The pattern enforces lowercase snake_case starting with a letter; uppercase legacy codes (`MASS`, `VOLUME`, …) are reserved for system magnitudes seeded by the script.
+- `code` (create only): non-empty string matching `^[a-z][a-z0-9_]*$`, length ≤ `MAGNITUDE_CODE_MAX_LENGTH`. The pattern enforces lowercase snake_case starting with a letter and applies uniformly to both system and admin-created magnitudes.
 - `name` (create and update): non-empty string, trimmed, length ≤ `MAGNITUDE_NAME_MAX_LENGTH`.
 
 The update body SHALL accept only `name`; sending `code`, `isSystem`, or `status` SHALL be rejected at validation time. The `MAGNITUDE_*_MAX_LENGTH` constants SHALL live in `packages/constants/`.
