@@ -45,10 +45,29 @@ SET "magnitude_id" = m."id"
 FROM "magnitude" m
 WHERE m."code" = LOWER(mu."magnitude"::text);
 
--- 5. Enforce NOT NULL once every row has been backfilled.
+-- 5. Verify every measurement_unit row was backfilled before enforcing NOT NULL.
+--    A non-zero count means a legacy magnitude enum value has no matching
+--    magnitude.code seeded above — fail loudly with a clear diagnostic so the
+--    operator can inspect the offending rows before the ALTER COLUMN runs.
+DO $$
+DECLARE
+    unmatched_count BIGINT;
+BEGIN
+    SELECT COUNT(*) INTO unmatched_count
+    FROM "measurement_unit"
+    WHERE "magnitude_id" IS NULL;
+
+    IF unmatched_count > 0 THEN
+        RAISE EXCEPTION
+            'magnitude backfill incomplete: % measurement_unit row(s) have NULL magnitude_id after joining on magnitude.code. Inspect the legacy measurement_unit.magnitude enum values for entries that do not map to a seeded magnitude.code before running ALTER TABLE "measurement_unit" ALTER COLUMN "magnitude_id" SET NOT NULL.',
+            unmatched_count;
+    END IF;
+END $$;
+
+-- 6. Enforce NOT NULL once every row has been backfilled.
 ALTER TABLE "measurement_unit" ALTER COLUMN "magnitude_id" SET NOT NULL;
 
--- 6. Add the FK constraint and supporting index.
+-- 7. Add the FK constraint and supporting index.
 ALTER TABLE "measurement_unit"
     ADD CONSTRAINT "measurement_unit_magnitude_id_fkey"
     FOREIGN KEY ("magnitude_id") REFERENCES "magnitude"("id")
@@ -56,6 +75,6 @@ ALTER TABLE "measurement_unit"
 
 CREATE INDEX "measurement_unit_magnitude_id_idx" ON "measurement_unit"("magnitude_id");
 
--- 7. Drop the legacy enum column and the enum type itself.
+-- 8. Drop the legacy enum column and the enum type itself.
 ALTER TABLE "measurement_unit" DROP COLUMN "magnitude";
 DROP TYPE "Magnitude";
