@@ -288,6 +288,7 @@ export const MagnitudesScreen: FC = () => {
       <Box className="flex w-full rounded-sm bg-white p-3">
         <MaintainerDataGrid
           editingRowId={editingRowId}
+          getRowHeight={() => 50}
           loading={isLoading}
           columns={columns}
           rows={currentRows}
