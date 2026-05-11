@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, IconButton, Paper, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Paper,
+  TextField,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 import MinimizeIcon from "@mui/icons-material/Minimize";
 import SendIcon from "@mui/icons-material/Send";
 import AddIcon from "@mui/icons-material/Add";
+import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
 import { APP_LOCALE } from "@/config/constants";
@@ -10,9 +18,8 @@ import { ActionIconButton } from "@/components/ActionIconButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
+import { useChatbotSize } from "./useChatbotSize";
 
-const PANEL_WIDTH = 360;
-const PANEL_HEIGHT = 480;
 // Counter stays hidden during normal use; appears once the draft approaches
 // the cap so the user is not surprised by a hard stop.
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
@@ -26,6 +33,10 @@ export function ChatbotWidget() {
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
+  // Resize is gated on viewport width — on phones the default size already
+  // fills most of the screen and dragging a tiny corner is impractical.
+  const isResizeCapable = useMediaQuery(theme.breakpoints.up("sm"));
+  const { size, startResize } = useChatbotSize(isResizeCapable);
 
   // Focus the input and place the caret at the end of any preserved draft.
   // Plain `.focus()` would put the caret at position 0 when the textarea
@@ -108,14 +119,45 @@ export function ChatbotWidget() {
         position: "fixed",
         bottom: 16,
         right: 16,
-        width: PANEL_WIDTH,
-        height: PANEL_HEIGHT,
+        width: size.width,
+        height: size.height,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         zIndex: theme.zIndex.modal + 1,
       }}
     >
+      {isResizeCapable ? (
+        <Box
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Cambiar tamaño del asistente"
+          onPointerDown={startResize}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: 18,
+            height: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "nwse-resize",
+            color: theme.palette.primary.contrastText,
+            opacity: 0.45,
+            transition: theme.transitions.create("opacity", {
+              duration: theme.transitions.duration.shortest,
+            }),
+            // Block native touch scroll so the drag is interpreted as a
+            // resize gesture instead of a page scroll on touch devices.
+            touchAction: "none",
+            zIndex: 2,
+            "&:hover": { opacity: 1 },
+          }}
+        >
+          <DragHandleIcon sx={{ fontSize: 16, transform: "rotate(-45deg)" }} />
+        </Box>
+      ) : null}
       <Box
         sx={{
           display: "flex",
