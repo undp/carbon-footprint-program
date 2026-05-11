@@ -59,7 +59,7 @@ export const EmissionEditorCommentDialog = ({
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
         <Button color="primary" variant="contained" onClick={onSave}>
-          Guardar
+          Actualizar
         </Button>
       </DialogActions>
     </Dialog>
