@@ -32,14 +32,26 @@ The `totalReferenceCount` column SHALL render the integer total. On hover, a too
 - **WHEN** the admin hovers over the `totalReferenceCount` cell of any row
 - **THEN** the tooltip SHALL show the three category counts using the Spanish labels above
 
-### Requirement: Sidebar entry "Tasas"
+### Requirement: Sidebar entry lives under the "Unidades" group
 
-`MaintainerLayout.tsx` SHALL include a new top-level sidebar entry "Tasas" linked to `/admin/rate-measurement-units`. The entry SHALL be placed adjacent to "Magnitudes" and "Unidades". (A future change, `regroup-units-sidebar`, will collapse all three into a "Unidades" group.)
+`MaintainerLayout.tsx` SHALL render the entry for `/admin/rate-measurement-units` as a child of a collapsible "Unidades" group (alongside "Magnitudes" and "Unidades de medida"), with the leaf label "Tasas" — replacing the prior top-level entry labelled "Tasas".
 
-#### Scenario: Sidebar surfaces the new entry
+The route path (`/admin/rate-measurement-units`) and the route constant (`Routes.ADMIN_RATE_MEASUREMENT_UNITS`) SHALL be unchanged. The route's existing `beforeLoad` role guard (`[SUPERADMIN]`) SHALL be unchanged. The group itself SHALL be visible to any user reaching the admin layout; non-SUPERADMIN users who click "Tasas" continue to be redirected by the route's own guard.
 
-- **WHEN** a SUPERADMIN user opens the sidebar
-- **THEN** a "Tasas" entry SHALL be visible, linking to `Routes.ADMIN_RATE_MEASUREMENT_UNITS`
+#### Scenario: Sidebar surfaces the entry under the group
+
+- **WHEN** a SUPERADMIN user opens the sidebar and expands the "Unidades" group
+- **THEN** a child entry "Tasas" SHALL be visible, linking to `Routes.ADMIN_RATE_MEASUREMENT_UNITS`, rendered as the third (last) child in the group
+
+#### Scenario: Auto-expand when active
+
+- **WHEN** the user navigates to `/admin/rate-measurement-units`
+- **THEN** the "Unidades" parent group SHALL render in its expanded state and the "Tasas" child SHALL render with the active-child highlight
+
+#### Scenario: Group remains visible for non-SUPERADMIN admins
+
+- **WHEN** a user with system role `ADMIN` opens the sidebar
+- **THEN** the "Unidades" group and the "Tasas" child SHALL still be rendered (consistent with the existing pattern where role enforcement happens at the route level, not the sidebar level); clicking "Tasas" SHALL trigger the route's `beforeLoad` redirect
 
 ### Requirement: All UI text is in Spanish
 

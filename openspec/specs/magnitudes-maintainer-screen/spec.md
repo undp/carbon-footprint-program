@@ -46,14 +46,21 @@ The grid SHALL disable (but render) the delete control for any non-system row wh
 - **WHEN** the grid renders a row whose `isSystem` is `false` and `referenceCount` is greater than zero
 - **THEN** the actions column for that row SHALL render a disabled delete button with the explanatory tooltip
 
-### Requirement: Sidebar entry under the existing top-level "Maintenance" group
+### Requirement: Sidebar entry lives under the "Unidades" group
 
-`MaintainerLayout.tsx` SHALL include a new top-level sidebar entry "Magnitudes" linked to `/admin/magnitudes`. The entry SHALL be placed adjacent to the existing "Unidades" entry. (A future change, `regroup-units-sidebar`, will collapse Magnitudes, Unidades, and Tasas into a single "Unidades" group; this proposal does NOT introduce that group.)
+`MaintainerLayout.tsx` SHALL render the entry for `/admin/magnitudes` as a child of a collapsible "Unidades" group (alongside "Unidades de medida" and "Tasas"), with the leaf label "Magnitudes" — replacing the prior top-level entry labelled "Magnitudes".
 
-#### Scenario: Sidebar surfaces the new entry
+The route path (`/admin/magnitudes`) and the route constant (`Routes.ADMIN_MAGNITUDES`) SHALL be unchanged. The route's existing `beforeLoad` role guard (`[ADMIN, SUPERADMIN]`) SHALL be unchanged.
 
-- **WHEN** an admin user opens the sidebar
-- **THEN** a "Magnitudes" entry SHALL be visible, with no nested children, linking to `Routes.ADMIN_MAGNITUDES`
+#### Scenario: Sidebar surfaces the entry under the group
+
+- **WHEN** an admin user opens the sidebar and expands the "Unidades" group
+- **THEN** a child entry "Magnitudes" SHALL be visible, linking to `Routes.ADMIN_MAGNITUDES`, rendered as the first child in the group
+
+#### Scenario: Auto-expand when active
+
+- **WHEN** the user navigates to `/admin/magnitudes`
+- **THEN** the "Unidades" parent group SHALL render in its expanded state and the "Magnitudes" child SHALL render with the active-child highlight
 
 ### Requirement: All UI text is in Spanish
 
