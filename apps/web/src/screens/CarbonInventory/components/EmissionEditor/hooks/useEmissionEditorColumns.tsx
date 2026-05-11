@@ -291,9 +291,14 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center",
         renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => {
-          const files = params.row.files ?? [];
-          const pendingFilesCount = files.filter((f) => f.isPending).length;
-          const linkedFilesCount = files.length - pendingFilesCount;
+          const removedFileIds = params.row.removedFileIds ?? [];
+          const visibleFiles = (params.row.files ?? []).filter(
+            (f) => !removedFileIds.includes(f.id)
+          );
+          const pendingFilesCount = visibleFiles.filter(
+            (f) => f.isPending
+          ).length;
+          const linkedFilesCount = visibleFiles.length - pendingFilesCount;
           const isCommentPending = Boolean(
             params.row.isNew || isCommentDirty(params.row.lineId)
           );
