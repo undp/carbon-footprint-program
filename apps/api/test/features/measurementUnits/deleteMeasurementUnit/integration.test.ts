@@ -57,7 +57,7 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitudeId: magnitudeIdByCode.MASS,
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
     };

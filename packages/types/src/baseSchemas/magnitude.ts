@@ -9,7 +9,7 @@ export const MagnitudeBaseSchema = z.object({
   code: z
     .string()
     .describe(
-      "Stable symbolic identifier for the magnitude (e.g. MASS). Immutable after creation."
+      "Stable symbolic identifier for the magnitude (e.g. mass). Immutable after creation."
     ),
   name: z.string().describe("Admin-editable display label for the magnitude."),
   isSystem: z

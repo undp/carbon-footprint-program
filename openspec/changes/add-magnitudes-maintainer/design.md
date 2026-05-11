@@ -106,16 +106,14 @@ Custom magnitudes (`isSystem = false`) follow the standard reference-count rule:
 
 ### 5. Admin-created custom magnitude `code` validation
 
-**Decision**: For magnitudes created via the maintainer endpoint, `code` SHALL match `^[a-z][a-z0-9_]*$` (lowercase snake_case, starting with a letter). System magnitudes seeded by the script use uppercase legacy codes (`MASS`, `VOLUME`, `DISTANCE_MASS`, …); the asymmetry is intentional and visually signals system-vs-custom origin.
+**Decision**: All magnitude codes — both system-seeded and admin-created — SHALL match `^[a-z][a-z0-9_]*$` (lowercase snake_case, starting with a letter). System magnitudes use the lowercased legacy enum values (`mass`, `volume`, `distance_mass`, …).
 
-**Rationale**: A strict slug pattern keeps custom codes URL-safe, log-safe, and visually distinct from labels. Uppercase legacy codes preserve the old enum values verbatim, which is what any backfill or country-specific seed script will look up.
-
-The asymmetry is documented in the maintainer screen UI ("Codes are lowercase identifiers like `vehicles` or `bottles`") and in the deployment runbook.
+**Rationale**: A strict slug pattern keeps codes URL-safe, log-safe, and visually distinct from labels. Applying the same convention to system and custom magnitudes keeps the code field consistent — any seed script or platform lookup uses the same shape regardless of origin. The `isSystem` flag (not the casing) is what marks a magnitude as platform-seeded.
 
 **Alternatives considered**:
 
 - **Auto-generate `code` from `name`**: brittle for non-ASCII Spanish (`"Área"` → `"area"`?), and the slug becomes a tightly-coupled invariant. Rejected.
-- **Allow uppercase admin codes too**: blurs the system-vs-custom distinction; admins could create a `code = "MASS"` collision attempt. The `@unique` on `code` would catch it, but rejecting the slug pattern up front is friendlier. Rejected.
+- **Keep system codes uppercase (legacy enum values)**: created an asymmetry between system and custom codes that had to be justified at every touch point (UI copy, runbook, deployment notes). Rejected in favor of a uniform convention.
 
 ### 6. Field-locking based on reference count
 

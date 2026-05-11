@@ -19,29 +19,31 @@ CREATE TABLE "magnitude" (
 CREATE UNIQUE INDEX "magnitude_code_key" ON "magnitude"("code");
 
 -- 2. Seed the ten system magnitudes with the canonical Spanish labels so existing
---    measurement_unit rows can be backfilled. Codes match the legacy enum values
---    verbatim. Idempotent by `code` so re-applying after a partial run is safe.
+--    measurement_unit rows can be backfilled. Codes follow the same lowercase
+--    convention validated for user-defined magnitudes (^[a-z][a-z0-9_]*$).
+--    Idempotent by `code` so re-applying after a partial run is safe.
 INSERT INTO "magnitude" ("code", "name", "is_system", "status", "updated_at") VALUES
-    ('MASS',          'Masa',             true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('VOLUME',        'Volumen',          true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('DISTANCE',      'Distancia',        true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('TIME',          'Tiempo',           true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('ANIMALS',       'Animales',         true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('AREA',          'Área',             true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('POWER',         'Potencia',         true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('ENERGY',        'Energía',          true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('DISTANCE_MASS', 'Distancia · Masa', true, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('ROOMS',         'Habitaciones',     true, 'ACTIVE', CURRENT_TIMESTAMP)
+    ('mass',          'Masa',             true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('volume',        'Volumen',          true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('distance',      'Distancia',        true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('time',          'Tiempo',           true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('animals',       'Animales',         true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('area',          'Área',             true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('power',         'Potencia',         true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('energy',        'Energía',          true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('distance_mass', 'Distancia · Masa', true, 'ACTIVE', CURRENT_TIMESTAMP),
+    ('rooms',         'Habitaciones',     true, 'ACTIVE', CURRENT_TIMESTAMP)
 ON CONFLICT ("code") DO NOTHING;
 
 -- 3. Add the new FK column to `measurement_unit` (nullable for the backfill step).
 ALTER TABLE "measurement_unit" ADD COLUMN "magnitude_id" BIGINT;
 
 -- 4. Backfill `magnitude_id` from the legacy enum value by joining on the seeded code.
+--    Legacy enum values are uppercase, so lowercase them to match the new code convention.
 UPDATE "measurement_unit" mu
 SET "magnitude_id" = m."id"
 FROM "magnitude" m
-WHERE m."code" = mu."magnitude"::text;
+WHERE m."code" = LOWER(mu."magnitude"::text);
 
 -- 5. Enforce NOT NULL once every row has been backfilled.
 ALTER TABLE "measurement_unit" ALTER COLUMN "magnitude_id" SET NOT NULL;

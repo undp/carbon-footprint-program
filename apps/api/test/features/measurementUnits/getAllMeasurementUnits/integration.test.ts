@@ -14,16 +14,16 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
 const MAGNITUDES = [
-  "MASS",
-  "VOLUME",
-  "DISTANCE",
-  "TIME",
-  "ANIMALS",
-  "AREA",
-  "POWER",
-  "ENERGY",
-  "DISTANCE_MASS",
-  "ROOMS",
+  "mass",
+  "volume",
+  "distance",
+  "time",
+  "animals",
+  "area",
+  "power",
+  "energy",
+  "distance_mass",
+  "rooms",
 ] as const;
 
 describe("GET /api/measurement-units - Integration Tests", () => {
@@ -69,7 +69,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const testUnit = body.find((u) => u.abbreviation === "kg");
       expect(testUnit).toBeDefined();
       expect(testUnit!.name).toBe("kilógramo");
-      expect(testUnit!.magnitude.code).toBe("MASS");
+      expect(testUnit!.magnitude.code).toBe("mass");
       expect(testUnit!.abbreviation).toBe("kg");
       expect(testUnit!.baseFactor).toBe(1000);
       expect(testUnit!.isBase).toBe(false);
@@ -177,7 +177,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(cubicMeter).toBeDefined();
       expect(cubicMeter!.abbreviation).toBe("m3");
       expect(cubicMeter!.abbreviation).toContain("3");
-      expect(cubicMeter!.magnitude.code).toBe("VOLUME");
+      expect(cubicMeter!.magnitude.code).toBe("volume");
 
       // Check for any other units with superscripts
       const unitsWithSuperscripts = body.filter((u) =>

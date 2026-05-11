@@ -53,7 +53,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitudeId: magnitudeIdByCode.MASS,
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
       ...overrides,
@@ -95,7 +95,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
 
     it("should update magnitude and baseFactor when referenceCount is 0", async () => {
       const created = await createUnit({
-        magnitudeId: magnitudeIdByCode.MASS,
+        magnitudeId: magnitudeIdByCode.mass,
         baseFactor: 100,
       });
 
@@ -103,14 +103,14 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         method: "PATCH",
         url: `/api/measurement-units/${created.id}`,
         payload: {
-          magnitudeId: magnitudeIdByCode.VOLUME,
+          magnitudeId: magnitudeIdByCode.volume,
           baseFactor: 999,
         },
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateMeasurementUnitResponse;
-      expect(body.magnitudeId).toBe(magnitudeIdByCode.VOLUME);
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
       expect(body.baseFactor).toBe(999);
     });
   });
@@ -165,9 +165,9 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
 
       // Pick a magnitude different from the base unit's current one
       const differentMagnitudeId =
-        baseUnit!.magnitudeId.toString() === magnitudeIdByCode.VOLUME
-          ? magnitudeIdByCode.DISTANCE
-          : magnitudeIdByCode.VOLUME;
+        baseUnit!.magnitudeId.toString() === magnitudeIdByCode.volume
+          ? magnitudeIdByCode.distance
+          : magnitudeIdByCode.volume;
 
       const response = await app.inject({
         method: "PATCH",
@@ -202,7 +202,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         const response = await app.inject({
           method: "PATCH",
           url: `/api/measurement-units/${created.id}`,
-          payload: { magnitudeId: magnitudeIdByCode.VOLUME },
+          payload: { magnitudeId: magnitudeIdByCode.volume },
         });
 
         expect(response.statusCode).toBe(422);

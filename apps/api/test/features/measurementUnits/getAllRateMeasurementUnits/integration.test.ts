@@ -118,17 +118,17 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       const kgPerLiter = body.find((ru) => ru.name === "kg por litro");
       expect(kgPerLiter).toBeDefined();
       expect(kgPerLiter!.numeratorUnit.name).toBe("kilógramo");
-      expect(kgPerLiter!.numeratorUnit.magnitude.code).toBe("MASS");
+      expect(kgPerLiter!.numeratorUnit.magnitude.code).toBe("mass");
       expect(kgPerLiter!.denominatorUnit.name).toBe("litro");
-      expect(kgPerLiter!.denominatorUnit.magnitude.code).toBe("VOLUME");
+      expect(kgPerLiter!.denominatorUnit.magnitude.code).toBe("volume");
 
       // Check kg por hora has correct nested units
       const kgPerHour = body.find((ru) => ru.name === "kg por hora");
       expect(kgPerHour).toBeDefined();
       expect(kgPerHour!.numeratorUnit.name).toBe("kilógramo");
-      expect(kgPerHour!.numeratorUnit.magnitude.code).toBe("MASS");
+      expect(kgPerHour!.numeratorUnit.magnitude.code).toBe("mass");
       expect(kgPerHour!.denominatorUnit.name).toBe("hora");
-      expect(kgPerHour!.denominatorUnit.magnitude.code).toBe("TIME");
+      expect(kgPerHour!.denominatorUnit.magnitude.code).toBe("time");
     });
 
     it("should have different magnitude combinations across rate units", async () => {
@@ -142,9 +142,9 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
 
-      // All numerators should be MASS (kg)
+      // All numerators should be mass (kg)
       body.forEach((rateUnit) => {
-        expect(rateUnit.numeratorUnit.magnitude.code).toBe("MASS");
+        expect(rateUnit.numeratorUnit.magnitude.code).toBe("mass");
         expect(rateUnit.numeratorUnit.abbreviation).toBe("kg");
       });
 

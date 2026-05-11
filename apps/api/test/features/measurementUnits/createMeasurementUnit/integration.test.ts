@@ -54,7 +54,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     return {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitudeId: magnitudeIdByCode.MASS,
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
       ...overrides,
@@ -76,7 +76,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.id).toBeTruthy();
       expect(body.name).toBe(payload.name);
       expect(body.abbreviation).toBe(payload.abbreviation);
-      expect(body.magnitudeId).toBe(magnitudeIdByCode.MASS);
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.mass);
       expect(body.baseFactor).toBe(500);
       expect(body.isBase).toBe(false);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
@@ -140,7 +140,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const payload = buildPayload({
         isBase: true,
         baseFactor: 1,
-        magnitudeId: magnitudeIdByCode.MASS,
+        magnitudeId: magnitudeIdByCode.mass,
       });
 
       const response = await app.inject({
@@ -149,7 +149,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload,
       });
 
-      // MASS already has a base unit (g) from seed data
+      // mass already has a base unit (g) from seed data
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("MAGNITUDE_ALREADY_HAS_BASE_UNIT");
@@ -185,7 +185,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitudeId: magnitudeIdByCode.VOLUME,
+        magnitudeId: magnitudeIdByCode.volume,
         baseFactor: 999,
       };
 
@@ -200,7 +200,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.action).toBe(MeasurementUnitCreationResultEnum.fullyRestored);
       expect(body.id).toBe(created.id); // same row, restored
       expect(body.name).toBe(restorePayload.name);
-      expect(body.magnitudeId).toBe(magnitudeIdByCode.VOLUME);
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
       expect(body.baseFactor).toBe(999);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
 
@@ -253,7 +253,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitudeId: magnitudeIdByCode.VOLUME,
+        magnitudeId: magnitudeIdByCode.volume,
         baseFactor: 999,
       };
 
