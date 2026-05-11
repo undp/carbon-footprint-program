@@ -89,3 +89,9 @@ export const CarbonInventoryAlreadyHasOrganizationError = createError(
   "Carbon inventory %s already has an associated organization",
   422
 );
+
+export const CrossInventoryFileLinkingError = createError(
+  "CROSS_INVENTORY_FILE_LINKING",
+  "One or more files do not belong to carbon inventory %s: %s",
+  422
+);
