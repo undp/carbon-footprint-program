@@ -441,7 +441,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             keys: ["name", "description"],
           },
           placeholder: "Buscar subcategoría...",
-          downloadFileName: "subcategorias",
+          disableExport: true,
         }}
         showToolbar
         columns={columns}

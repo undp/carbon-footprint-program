@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { useDownloadMethodology } from "@/hooks/useDownloadMethodology";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
@@ -38,6 +39,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const updateMutation = useUpdateMethodology();
   const deleteMutation = useDeleteMethodology();
   const duplicateMutation = useDuplicateMethodology();
+  const { download: downloadMethodology, downloadingId: downloadingRowId } =
+    useDownloadMethodology();
 
   // --- Form setup ---
   const { form, fieldArray, handleCellChange } =
@@ -359,6 +362,13 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   // --- Column definitions via hook ---
 
+  const handleDownloadExcel = useCallback(
+    (row: MethodologyVersionForm) => {
+      void downloadMethodology(row.id);
+    },
+    [downloadMethodology]
+  );
+
   const columns = useMethodologyColumns({
     editingRowId,
     onCellChange: handleCellChange,
@@ -370,6 +380,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onView: handleView,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,
+    onDownloadExcel: handleDownloadExcel,
+    downloadingRowId,
     rows: currentRows,
   });
 
@@ -377,17 +389,15 @@ export const MethodologiesMaintainerScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Metodologías"
+        subtitle="Gestiona las metodologías de cálculo. Haz clic en Editar para
+          modificar alcances, subcategorías y factores de emisión. Siempre debe
+          existir una única metodología activa."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
         explanationSlug={METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
       <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa.
-        </Typography>
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
             <MaintainerDataGrid<MethodologyVersionForm>
@@ -397,7 +407,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
                   keys: ["name", "description", "regulation", "version"],
                 },
                 placeholder: "Buscar metodología...",
-                downloadFileName: "metodologias",
+                disableExport: true,
               }}
               showToolbar
               loading={isLoading}

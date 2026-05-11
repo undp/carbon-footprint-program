@@ -501,6 +501,11 @@ export const CategoriesMaintainerScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Categorías / Alcances"
+        subtitle={
+          isViewOnly
+            ? "Vista de solo lectura de las categorías y alcances de esta metodología."
+            : "Gestiona las categorías y alcances de esta metodología. Haz clic en una fila para editarla."
+        }
         onAddRow={isViewOnly ? undefined : handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
@@ -511,11 +516,6 @@ export const CategoriesMaintainerScreen: FC = () => {
         className="rounded-sm bg-white p-3"
         sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
       >
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          {isViewOnly
-            ? "Vista de solo lectura de las categorías y alcances de esta metodología."
-            : "Gestiona las categorías y alcances de esta metodología. Haz clic en una fila para editarla."}
-        </Typography>
         <form id="categories-form" noValidate>
           <Box className="flex w-full">
             <MaintainerDataGrid<CategoryForm>
@@ -527,6 +527,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                 },
                 placeholder: "Buscar categoría...",
                 downloadFileName: "categorias",
+                disableExport: true,
               }}
               showToolbar
               loading={isLoading || isLoadingMethodologies}

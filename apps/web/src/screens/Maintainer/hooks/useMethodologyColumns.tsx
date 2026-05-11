@@ -30,6 +30,8 @@ interface UseMethodologyColumnsParams {
   onView: (row: MethodologyVersionForm) => void;
   onDuplicate: (row: MethodologyVersionForm) => void;
   onDelete: (row: MethodologyVersionForm) => void;
+  onDownloadExcel: (row: MethodologyVersionForm) => void;
+  downloadingRowId: string | null;
   rows: MethodologyVersionForm[];
 }
 
@@ -44,6 +46,8 @@ export const useMethodologyColumns = ({
   onView,
   onDuplicate,
   onDelete,
+  onDownloadExcel,
+  downloadingRowId,
   rows,
 }: UseMethodologyColumnsParams): GridColDef<Methodology>[] => {
   const getRowIndex = useCallback(
@@ -195,6 +199,13 @@ export const useMethodologyColumns = ({
               onEdit={() => onEdit(params.row)}
               onView={() => onView(params.row)}
               onDuplicate={() => onDuplicate(params.row)}
+              onDownloadExcel={() => onDownloadExcel(params.row)}
+              downloadExcelDisabled={downloadingRowId === params.row.id}
+              downloadExcelTooltipTitle={
+                downloadingRowId === params.row.id
+                  ? "Generando archivo..."
+                  : "Descargar"
+              }
               onDelete={() => onDelete(params.row)}
               deleteDisabled={isPublished}
               deleteTooltipTitle={
@@ -220,6 +231,8 @@ export const useMethodologyColumns = ({
       onView,
       onDuplicate,
       onDelete,
+      onDownloadExcel,
+      downloadingRowId,
     ]
   );
 };
