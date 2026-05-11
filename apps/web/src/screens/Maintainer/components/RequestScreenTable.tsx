@@ -1,10 +1,13 @@
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
-import { StylizedDataGrid } from "@components";
+import type { IFuseOptions } from "fuse.js";
+import type { GridValidRowModel } from "@mui/x-data-grid";
+import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useRequestColumns } from "../hooks/useRequestColumns";
 import { useAdminRequests } from "@/api/query/requests/useAdminRequests";
 import { GetAllAdminRequestsResponse, SubmissionType } from "@repo/types";
 import { ViewSubmissionDialog } from "@/components/dialogs";
+import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL } from "@/utils/submissions";
 
 const TABLE_ROW_COUNT = 6;
 
@@ -63,26 +66,38 @@ export const RequestScreenTable: FC = () => {
 
   const columns = useRequestColumns({ onView: handleView });
 
+  const fuseOptions = useMemo<
+    IFuseOptions<GetAllAdminRequestsResponse[number]>
+  >(
+    () => ({
+      keys: [
+        { name: "organizationName", getFn: (row) => row.organizationName },
+        { name: "type", getFn: (row) => REQUEST_TYPE_LABEL[row.type] },
+        { name: "status", getFn: (row) => REQUEST_STATUS_LABEL[row.status] },
+        {
+          name: "year",
+          getFn: (row) => (row.year != null ? String(row.year) : ""),
+        },
+      ],
+      threshold: 0.3,
+    }),
+    []
+  );
+
   if (isLoading) {
     return <TableSkeleton />;
   }
 
   return (
-    <>
+    <Box className="rounded-sm bg-white p-3">
       <Box className="flex w-full">
-        <StylizedDataGrid
-          sx={(theme) => ({
-            backgroundColor: "background.paper",
-            border: "none",
-            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-            "& .MuiDataGrid-columnHeader": {
-              backgroundColor: theme.palette.background.default,
-            },
-            "& .MuiDataGrid-cell": {
-              minHeight: "65px",
-              padding: "10px",
-            },
-          })}
+        <MaintainerDataGrid
+          editingRowId={null}
+          searchable={{
+            fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+            placeholder: "Buscar solicitud...",
+            fileName: "solicitudes",
+          }}
           disableColumnSorting={false}
           disableColumnMenu={false}
           disableColumnFilter={false}
@@ -107,6 +122,6 @@ export const RequestScreenTable: FC = () => {
         onClose={() => setDialogState(null)}
         isAdmin
       />
-    </>
+    </Box>
   );
 };

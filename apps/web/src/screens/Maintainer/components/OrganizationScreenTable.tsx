@@ -1,8 +1,11 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
 import { enqueueSnackbar } from "notistack";
-import { StylizedDataGrid } from "@components";
+import type { IFuseOptions } from "fuse.js";
+import type { GridValidRowModel } from "@mui/x-data-grid";
+import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
+import { useOrganizationDisplayStatus } from "../hooks/useOrganizationDisplayStatus";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
 import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";
 import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrganization";
@@ -42,8 +45,11 @@ const TableSkeleton: FC = () => (
   </Box>
 );
 
+type OrganizationRow = GetAllOrganizationsResponse["data"][number];
+
 export const OrganizationScreenTable: FC = () => {
   const { data, isLoading } = useAdminOrganizations();
+  const { getDisplayStatus, STATUS_LABEL } = useOrganizationDisplayStatus();
   const blockMutation = useBlockOrganization();
   const unblockMutation = useUnblockOrganization();
   const [blockOrgId, setBlockOrgId] = useState<string | null>(null);
@@ -137,67 +143,84 @@ export const OrganizationScreenTable: FC = () => {
     onUnblock: handleUnblockClick,
   });
 
+  const fuseOptions = useMemo<IFuseOptions<OrganizationRow>>(
+    () => ({
+      keys: [
+        { name: "name", getFn: (row) => row.name },
+        { name: "sectorName", getFn: (row) => row.sectorName ?? "" },
+        { name: "subsectorName", getFn: (row) => row.subsectorName ?? "" },
+        { name: "sizeName", getFn: (row) => row.sizeName ?? "" },
+        {
+          name: "status",
+          getFn: (row) =>
+            STATUS_LABEL[
+              getDisplayStatus(
+                row.status,
+                row.isAccredited,
+                row.hasCarbonInventories
+              )
+            ],
+        },
+      ],
+      threshold: 0.3,
+    }),
+    [STATUS_LABEL, getDisplayStatus]
+  );
+
   if (isLoading) {
     return <TableSkeleton />;
   }
 
   return (
-    <Box>
-      <StylizedDataGrid
-        sx={(theme) => ({
-          backgroundColor: "background.paper",
-          border: "none",
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-          "& .MuiDataGrid-main": {
-            padding: "16px !important",
-          },
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: theme.palette.background.default,
-          },
-          "& .MuiDataGrid-cell": {
-            minHeight: "65px",
-            padding: "10px",
-          },
-        })}
-        disableColumnMenu={false}
-        disableColumnFilter={false}
-        showToolbar
-        columns={columns}
-        rows={organizations}
-        rowHeight={65}
-        getRowId={(row: GetAllOrganizationsResponse["data"][number]) => row.id}
-        disableColumnSorting={false}
-        hideFooter={false}
-        pagination
-        pageSizeOptions={[10, 25, 50, 100]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
-        }}
-      />
-      <BlockOrganizationDialog
-        open={blockOrgId !== null}
-        organizationName={blockOrg?.name ?? ""}
-        onClose={handleCloseBlockDialog}
-        onConfirm={handleConfirmBlock}
-        isLoading={blockMutation.isPending}
-      />
-      <UnblockOrganizationDialog
-        open={unblockOrgId !== null}
-        organizationName={unblockOrg?.name ?? ""}
-        onClose={handleCloseUnblockDialog}
-        onConfirm={handleConfirmUnblock}
-        isLoading={unblockMutation.isPending}
-      />
-      <OrganizationProfileDialog
-        open={viewOrgId !== null}
-        organizationId={viewOrgId}
-        onClose={handleCloseView}
-      />
-      <ViewSubmissionDialog
-        open={historyOrgId !== null}
-        organizationId={historyOrgId ?? undefined}
-        onClose={handleCloseHistory}
-      />
+    <Box className="rounded-sm bg-white p-3">
+      <Box className="flex w-full">
+        <MaintainerDataGrid
+          editingRowId={null}
+          searchable={{
+            fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+            placeholder: "Buscar organización...",
+            fileName: "organizaciones",
+          }}
+          disableColumnMenu={false}
+          disableColumnFilter={false}
+          showToolbar
+          columns={columns}
+          rows={organizations}
+          rowHeight={65}
+          getRowId={(row: OrganizationRow) => row.id}
+          disableColumnSorting={false}
+          hideFooter={false}
+          pagination
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 10 } },
+          }}
+        />
+        <BlockOrganizationDialog
+          open={blockOrgId !== null}
+          organizationName={blockOrg?.name ?? ""}
+          onClose={handleCloseBlockDialog}
+          onConfirm={handleConfirmBlock}
+          isLoading={blockMutation.isPending}
+        />
+        <UnblockOrganizationDialog
+          open={unblockOrgId !== null}
+          organizationName={unblockOrg?.name ?? ""}
+          onClose={handleCloseUnblockDialog}
+          onConfirm={handleConfirmUnblock}
+          isLoading={unblockMutation.isPending}
+        />
+        <OrganizationProfileDialog
+          open={viewOrgId !== null}
+          organizationId={viewOrgId}
+          onClose={handleCloseView}
+        />
+        <ViewSubmissionDialog
+          open={historyOrgId !== null}
+          organizationId={historyOrgId ?? undefined}
+          onClose={handleCloseHistory}
+        />
+      </Box>
     </Box>
   );
 };

@@ -1,6 +1,5 @@
 import { FC } from "react";
-import { Box, Button, Card, Stack, Typography } from "@mui/material";
-import { FileDownloadOutlined } from "@mui/icons-material";
+import { Box, Card, Stack, Typography } from "@mui/material";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { RequestScreenKpiSection } from "../components/RequestScreenKpiSection";
@@ -44,16 +43,6 @@ export const AdminRequestsScreen: FC = () => {
               Gestión de solicitudes de reconocimientos, inscripciones y accesos
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1}>
-            {/* TODO: implement callback for this button */}
-            <Button
-              variant="outlined"
-              startIcon={<FileDownloadOutlined />}
-              size="small"
-            >
-              Exportar
-            </Button>
-          </Stack>
         </Stack>
       </Card>
 
