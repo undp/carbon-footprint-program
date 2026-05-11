@@ -31,6 +31,8 @@ import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCar
 import { assignOrganizationToCarbonInventoryRoute } from "@/features/carbonInventories/assignOrganizationToCarbonInventory/route.js";
 import { requestLineFileUploadRoute } from "@/features/carbonInventories/requestLineFileUpload/route.js";
 import { confirmLineFileUploadRoute } from "@/features/carbonInventories/confirmLineFileUpload/route.js";
+import { deleteLineFileRoute } from "@/features/carbonInventories/deleteLineFile/route.js";
+import { previewLineFileRoute } from "@/features/carbonInventories/previewLineFile/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -68,6 +70,8 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   syncCarbonInventoryLinesRoute(fastify, { public: true });
   requestLineFileUploadRoute(fastify, { public: true });
   confirmLineFileUploadRoute(fastify, { public: true });
+  deleteLineFileRoute(fastify, { public: true });
+  previewLineFileRoute(fastify, { public: true });
 
   /* GETTERS */
   getCarbonInventoriesMinimalRoute(fastify);
