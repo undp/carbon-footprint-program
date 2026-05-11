@@ -62,6 +62,10 @@ export const useMagnitudeColumns = ({
           const isSystem = params.row.isSystem;
           const isNew = isNewRow(params.row.id);
 
+          if (rowIndex === -1) {
+            return <Typography variant="body1">{params.row.code}</Typography>;
+          }
+
           const tooltipMessage = isSystem
             ? "Esta magnitud fue creada por el sistema y no puede modificarse"
             : "El código no puede modificarse luego de la creación";
@@ -112,6 +116,10 @@ export const useMagnitudeColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const isSystem = params.row.isSystem;
+
+          if (rowIndex === -1) {
+            return <Typography variant="body1">{params.row.name}</Typography>;
+          }
 
           if (isSystem) {
             return (
