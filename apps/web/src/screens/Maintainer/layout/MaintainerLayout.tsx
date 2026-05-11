@@ -84,6 +84,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     path: Routes.ADMIN_UNITS,
   },
   {
+    text: "Tasas",
+    icon: <SquareFootOutlined />,
+    path: Routes.ADMIN_RATE_MEASUREMENT_UNITS,
+    requiredRoles: [SystemRole.SUPERADMIN],
+  },
+  {
     text: "Perfilamiento",
     icon: <BusinessCenterOutlined />,
     children: [
