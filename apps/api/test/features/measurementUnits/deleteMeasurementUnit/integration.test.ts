@@ -16,10 +16,22 @@ import { MeasurementUnitStatus } from "@repo/database";
 describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
+    if (!magnitudeIdByCode.mass) {
+      throw new Error(
+        "required magnitude 'mass' not found in seed data. Ensure the database seed has been applied before running this suite."
+      );
+    }
   });
 
   afterAll(async () => {
@@ -50,7 +62,7 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
     };

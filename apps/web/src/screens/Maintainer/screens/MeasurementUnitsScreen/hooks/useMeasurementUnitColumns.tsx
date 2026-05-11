@@ -2,8 +2,6 @@ import { useMemo, useCallback } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import { LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Magnitude } from "@repo/types";
-import { MAGNITUDE_LABELS } from "../constants.js";
 import {
   EditableTextCell,
   EditableNumberCell,
@@ -12,6 +10,11 @@ import {
 import { ActionButtons } from "../../../components/ActionButtons";
 import { ToggleCell } from "../../../components/ToggleCell";
 import type { MeasurementUnitsFormRow } from "./useMeasurementUnitsForm.js";
+
+interface MagnitudeOption {
+  id: string;
+  name: string;
+}
 
 interface UseMeasurementUnitColumnsParams {
   editingRowId: string | null;
@@ -25,6 +28,8 @@ interface UseMeasurementUnitColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: MeasurementUnitsFormRow) => void;
   rows: MeasurementUnitsFormRow[];
+  magnitudeOptions: MagnitudeOption[];
+  magnitudeNameById: ReadonlyMap<string, string>;
 }
 
 const isProtectedRow = (row: MeasurementUnitsFormRow): boolean =>
@@ -38,6 +43,8 @@ export const useMeasurementUnitColumns = ({
   onCancelEditRow,
   onDelete,
   rows,
+  magnitudeOptions,
+  magnitudeNameById,
 }: UseMeasurementUnitColumnsParams): GridColDef<MeasurementUnitsFormRow>[] => {
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
@@ -52,7 +59,7 @@ export const useMeasurementUnitColumns = ({
   return useMemo<GridColDef<MeasurementUnitsFormRow>[]>(
     () => [
       {
-        field: "magnitude",
+        field: "magnitudeId",
         headerName: "Magnitud",
         minWidth: 180,
         flex: 0.5,
@@ -64,8 +71,8 @@ export const useMeasurementUnitColumns = ({
 
           if (editing && isLocked) {
             const label =
-              MAGNITUDE_LABELS[params.row.magnitude as Magnitude] ??
-              params.row.magnitude;
+              magnitudeNameById.get(params.row.magnitudeId) ??
+              params.row.magnitudeId;
             const tooltip = params.row.isBase
               ? "No se puede cambiar la magnitud porque es una unidad base."
               : "No se puede cambiar la magnitud porque la unidad ya tiene datos asociados.";
@@ -92,8 +99,10 @@ export const useMeasurementUnitColumns = ({
               formArrayName="measurementUnits"
               rowIndex={rowIndex}
               isEditing={editing}
-              onChange={(value: Magnitude) =>
-                onCellChange(rowIndex, "magnitude", value)
+              options={magnitudeOptions}
+              labelById={magnitudeNameById}
+              onChange={(value: string) =>
+                onCellChange(rowIndex, "magnitudeId", value)
               }
               onClick={
                 !editing ? () => onStartEditRow(params.row.id) : undefined
@@ -300,9 +309,6 @@ export const useMeasurementUnitColumns = ({
               isEditing={editing}
               onStopEditCells={() => void onStopEditRow()}
               onCancelEdit={onCancelEditRow}
-              // onEdit={
-              //   !editing ? () => onStartEditRow(params.row.id) : undefined
-              // }
               onDelete={!editing ? () => onDelete(params.row) : undefined}
               deleteDisabled={disableDelete}
               deleteTooltipTitle={deleteTooltipTitle}
@@ -320,6 +326,8 @@ export const useMeasurementUnitColumns = ({
       onStopEditRow,
       onCancelEditRow,
       onDelete,
+      magnitudeOptions,
+      magnitudeNameById,
     ]
   );
 };

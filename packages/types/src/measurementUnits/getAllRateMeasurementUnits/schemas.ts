@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import {
+  MagnitudeBaseSchema,
   MeasurementUnitBaseSchema,
   MeasurementUnitStatusSchema,
 } from "../../baseSchemas/index.js";
@@ -8,8 +9,10 @@ import {
 const NestedMeasurementUnitSchema = MeasurementUnitBaseSchema.pick({
   id: true,
   name: true,
-  magnitude: true,
+  magnitudeId: true,
   abbreviation: true,
+}).extend({
+  magnitude: MagnitudeBaseSchema,
 });
 
 const RateMeasurementUnitItemSchema = z.object({

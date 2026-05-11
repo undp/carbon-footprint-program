@@ -29,7 +29,8 @@ erDiagram
 	%% Any value expected to evolve (statuses, workflows) is stored in catalog tables to avoid schema migrations.
 	
 	%% 	6.	Stable physical concepts may use ENUMs
-	%% Concepts that are scientifically stable (e.g. unit magnitude, usage mode) may use database ENUMs for safety and clarity.
+	%% Concepts that are scientifically stable (e.g. usage mode) may use database ENUMs for safety and clarity.
+	%% Note: unit magnitudes were originally an ENUM but were promoted to a `magnitude` table so country deployments can add custom magnitudes via seed/admin UI.
 
 	%% ⸻
 
@@ -308,14 +309,22 @@ erDiagram
 		%% UNIQUE(country_subsector_id, subcategory_id)
 	}
 
+	magnitude {
+		BIGINT id PK ""
+		string code  "lowercase, ^[a-z][a-z0-9_]*$"
+		string name  ""
+		boolean is_system  ""
+		enum status  "ACTIVE|DELETED"
+	}
+
 	measurement_unit {
-		BIGINT id PK ""  
-		enum magnitude  "MASS|VOLUME|..."  
-		string name  ""  
-		string abbreviation  ""  
-		numeric base_factor  ""  
-		boolean is_base  ""  
-		%% Enforce UNIQUE (magnitude) WHERE is_base = true
+		BIGINT id PK ""
+		BIGINT magnitude_id FK ""
+		string name  ""
+		string abbreviation  ""
+		numeric base_factor  ""
+		boolean is_base  ""
+		%% Enforce UNIQUE (magnitude_id) WHERE is_base = true
 	}
 
 	rate_measurement_unit {
@@ -793,6 +802,9 @@ subcategory
 	subcategory ||--o{ subsector_profiling: "could appear at"
 	subcategory ||--o{ carbon_inventory_line: "could have many"
 	subcategory ||--o{ subcategory_measurement_unit: "accepts"
+
+magnitude
+	magnitude ||--o{ measurement_unit: "classifies"
 
 measurement_unit
 	measurement_unit ||--o{ subcategory_measurement_unit: "allowed in"

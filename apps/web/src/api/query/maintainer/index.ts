@@ -45,3 +45,9 @@ export {
   useUpdateMeasurementUnit,
   useDeleteMeasurementUnit,
 } from "./useMeasurementUnits";
+export {
+  useMagnitudes,
+  useAddMagnitude,
+  useUpdateMagnitude,
+  useDeleteMagnitude,
+} from "./useMagnitudes";

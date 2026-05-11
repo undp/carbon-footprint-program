@@ -1,13 +1,14 @@
 import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
 import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
+import { compareMeasurementUnitsForDisplay } from "./helpers.js";
 
 export const getAllMeasurementUnitsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllMeasurementUnitsResponse> => {
   const measurementUnits = await prismaClient.measurementUnit.findMany({
     where: { status: MeasurementUnitStatus.ACTIVE },
-    orderBy: [{ magnitude: "asc" }, { name: "asc" }],
+    include: { magnitude: true },
   });
 
   if (measurementUnits.length === 0) return [];
@@ -103,18 +104,20 @@ export const getAllMeasurementUnitsService = async (
     ])
   );
 
-  return measurementUnits.map((mu) => {
-    const muIdStr = mu.id.toString();
-    const rmuId = rmuIdByMuId.get(muIdStr);
-    const rmuIdStr = rmuId?.toString() ?? "";
+  return measurementUnits
+    .map((mu) => {
+      const muIdStr = mu.id.toString();
+      const rmuId = rmuIdByMuId.get(muIdStr);
+      const rmuIdStr = rmuId?.toString() ?? "";
 
-    const referenceCount =
-      (lineInputCountByMuId.get(muIdStr) ?? 0) +
-      (subcategoryCountByMuId.get(muIdStr) ?? 0) +
-      (emissionFactorCountByRmuId.get(rmuIdStr) ?? 0) +
-      (manualFactorCountByRmuId.get(rmuIdStr) ?? 0) +
-      (appliedFactorCountByRmuId.get(rmuIdStr) ?? 0);
+      const referenceCount =
+        (lineInputCountByMuId.get(muIdStr) ?? 0) +
+        (subcategoryCountByMuId.get(muIdStr) ?? 0) +
+        (emissionFactorCountByRmuId.get(rmuIdStr) ?? 0) +
+        (manualFactorCountByRmuId.get(rmuIdStr) ?? 0) +
+        (appliedFactorCountByRmuId.get(rmuIdStr) ?? 0);
 
-    return mapMeasurementUnitToResponse(mu, referenceCount);
-  });
+      return mapMeasurementUnitToResponse(mu, referenceCount);
+    })
+    .sort(compareMeasurementUnitsForDisplay);
 };

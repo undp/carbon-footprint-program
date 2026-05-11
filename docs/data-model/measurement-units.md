@@ -13,12 +13,54 @@ Measurement units represent physical quantities (mass, volume, distance, etc.) u
 | `id`           | `bigint`                  | Primary key                                  |
 | `name`         | `text`                    | Human-readable name                          |
 | `abbreviation` | `text`                    | Symbol (e.g. `kg`, `m³`), unique             |
-| `magnitude`    | `Magnitude` enum          | Physical dimension (MASS, VOLUME, etc.)      |
+| `magnitude_id` | `bigint`                  | FK → `magnitude` (physical dimension)        |
 | `base_factor`  | `double precision`        | Conversion factor to the base unit           |
 | `is_base`      | `boolean`                 | True for the SI-like base unit per magnitude |
 | `status`       | `measurement_unit_status` | `ACTIVE` or `DELETED` (soft-delete)          |
 
-There is exactly one base unit per magnitude (e.g. `g` for MASS, `L` for VOLUME). The `kg` unit is additionally system-protected and can never be modified or deleted.
+There is exactly one base unit per magnitude (e.g. `g` for `mass`, `L` for `volume`). The `kg` unit is additionally system-protected and can never be modified or deleted.
+
+### `magnitude`
+
+Magnitudes classify the physical dimension of a measurement unit. They are reference data: ten magnitudes are seeded (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`), and country deployments may add more via the admin maintainer screen. Only `mass` is system-protected (`is_system = true`); every other seeded magnitude is admin-managed.
+
+| Column      | Type               | Notes                                                                                                              |
+| ----------- | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `id`        | `bigint`           | Primary key                                                                                                        |
+| `code`      | `text`             | Stable lowercase identifier matching `^[a-z][a-z0-9_]*$`, unique, immutable                                        |
+| `name`      | `text`             | Admin-editable Spanish display label                                                                               |
+| `is_system` | `boolean`          | `true` only for `mass` (set by the seed script); `false` for every other row, including the rest of the seeded set |
+| `status`    | `magnitude_status` | `ACTIVE` or `DELETED` (soft-delete)                                                                                |
+
+System magnitudes (`is_system = true`) can be relabeled but never soft-deleted or have their `code` changed. Only `mass` is system-protected; every other magnitude (seeded or admin-created) has `is_system = false` and is soft-deletable when no `measurement_unit` references it.
+
+#### Seeded magnitudes
+
+The platform seeds the following ten magnitudes (source: `packages/database/src/prisma/seeds/data/base/magnitudes.json`). Only `mass` is created with `is_system = true`; the remaining nine are seeded with `is_system = false` and behave like admin-managed magnitudes from then on:
+
+| `code`          | `name` (Spanish) | Base unit    | `is_system` | Notes                                                         |
+| --------------- | ---------------- | ------------ | ----------- | ------------------------------------------------------------- |
+| `mass`          | Masa             | `g`          | `true`      | `kg` is system-protected — never modifiable or deletable      |
+| `volume`        | Volumen          | `L`          | `false`     |                                                               |
+| `distance`      | Distancia        | `m`          | `false`     |                                                               |
+| `time`          | Tiempo           | `h`          | `false`     |                                                               |
+| `animals`       | Animales         | `cant anim`  | `false`     |                                                               |
+| `area`          | Área             | `ha`         | `false`     |                                                               |
+| `power`         | Potencia         | `kWh`        | `false`     |                                                               |
+| `energy`        | Energía          | `GJ`         | `false`     |                                                               |
+| `distance_mass` | Distancia · Masa | `km-ton`     | `false`     | Composed magnitude for transport activities                   |
+| `rooms`         | Habitaciones     | `pieza arre` | `false`     | Hospitality occupancy (renamed locally per country if needed) |
+
+`mass` is pinned as the lone system magnitude because the calculation pipeline normalizes every emission to `kg` (CO₂e), so removing or relabeling the `mass` magnitude would break the engine. The other nine codes are conventions, not invariants, and country deployments may evolve them freely.
+
+**Protection rules:**
+
+- `is_system = true` is set only by the seed script — never by API endpoints — and currently applies only to `mass`.
+- `code` is immutable for every magnitude (system and non-system). Country deployments that need a different display label SHALL edit `name`, not `code`.
+- The DELETE endpoint refuses any system magnitude with HTTP 422 (`MagnitudeIsSystemError`) regardless of reference count.
+- The PATCH endpoint accepts only `name` for system magnitudes; sending `code`, `is_system`, or `status` is rejected at validation time.
+
+**Country adaptation:** countries that need a magnitude beyond the seeded ten (e.g. `vehicles`, `persons`) create it via the maintainer screen at `/admin/magnitudes` with `is_system = false`. Non-system magnitudes — both the nine seeded with `is_system = false` and any admin-created ones — follow the standard reference-count rule for deletion.
 
 ### `rate_measurement_unit`
 
@@ -48,7 +90,7 @@ When a measurement unit has `referenceCount > 0` (at least one `CarbonInventoryL
 - `baseFactor`
 - `isBase`
 
-Attempting to modify these fields via the PATCH endpoint returns HTTP 422 with error code `MEASUREMENT_UNIT_FIELDS_LOCKED`.
+Attempting to modify these fields via the PATCH endpoint returns HTTP 422 with error code `MEASUREMENT_UNIT_FIELDS_LOCKED`. The locked `magnitude` field is the FK `magnitude_id`.
 
 ## Reference Count Computation
 

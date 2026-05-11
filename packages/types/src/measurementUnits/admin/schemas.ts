@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { Magnitude } from "@repo/database/enums";
 import {
   MEASUREMENT_UNIT_NAME_MAX_LENGTH,
   MEASUREMENT_UNIT_ABBREVIATION_MAX_LENGTH,
   ABBREVIATION_REGEX,
 } from "@repo/constants";
+import { IdSchema } from "../../zod.js";
 
 export const MeasurementUnitMutationSchema = z.object({
   name: z
@@ -25,9 +25,9 @@ export const MeasurementUnitMutationSchema = z.object({
       message:
         "Abbreviation must not contain slashes (/) or control characters.",
     }),
-  magnitude: z.enum(Magnitude, {
-    message: "The selected magnitude is not valid.",
-  }),
+  magnitudeId: IdSchema.describe(
+    "The id of the magnitude this measurement unit belongs to."
+  ),
   baseFactor: z
     .number()
     .positive({ message: "Base factor must be greater than zero." }),

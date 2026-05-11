@@ -59,3 +59,9 @@ export const MeasurementUnitNotFoundError = createError(
   "Measurement unit not found (ID: %s)",
   404
 );
+
+export const MagnitudeInactiveError = createError(
+  "MAGNITUDE_INACTIVE",
+  "The referenced magnitude is not active (ID: %s).",
+  400
+);

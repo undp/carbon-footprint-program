@@ -7,9 +7,12 @@ import { MethodologyVersionStatus, PrismaClient } from "@repo/database";
 export async function getTestMethodologyVersionId(
   prisma: PrismaClient
 ): Promise<bigint> {
-  // There is only one methodology version in the testing database, so we can just return the first one
+  // Return the seeded methodology (lowest id) — tests may have created extra
+  // methodology versions via createEmptyMethodologyVersion that aren't cleaned
+  // up between tests, so we can't rely on findFirst without an explicit order.
   const methodologyVersion = await prisma.methodologyVersion.findFirst({
     select: { id: true },
+    orderBy: { id: "asc" },
   });
 
   if (!methodologyVersion) {

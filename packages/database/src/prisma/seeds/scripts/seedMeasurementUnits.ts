@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma, Magnitude } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,14 +12,14 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type MeasurementUnitData = Pick<
+type MeasurementUnitData = (Pick<
   Prisma.MeasurementUnitCreateInput,
-  "magnitude" | "name" | "abbreviation" | "baseFactor" | "isBase"
->[];
+  "name" | "abbreviation" | "baseFactor" | "isBase"
+> & { magnitudeCode: string })[];
 
 const MeasurementUnitDataSchema: z.ZodType<MeasurementUnitData> = z.array(
   z.object({
-    magnitude: z.enum(Magnitude),
+    magnitudeCode: z.string().min(1),
     name: z.string().min(1),
     abbreviation: z.string().min(1),
     baseFactor: z.number(),
@@ -46,6 +46,13 @@ export async function seedMeasurementUnits(
 ) {
   console.log("Seeding measurement units...");
 
+  // Build code → id map. seedMagnitudes (called earlier in seed.ts) must have
+  // already populated the magnitude table.
+  const magnitudes = await prisma.magnitude.findMany({
+    select: { id: true, code: true },
+  });
+  const magnitudeIdByCode = new Map(magnitudes.map((m) => [m.code, m.id]));
+
   // Read measurement units
   const measurementUnitsData = MeasurementUnitDataSchema.parse(
     JSON.parse(
@@ -60,13 +67,21 @@ export async function seedMeasurementUnits(
   checkForDuplicates(measurementUnitsData, ["abbreviation"]);
 
   // Prepare measurement units data
-  const measurementUnitsToCreate = measurementUnitsData.map((mu) => ({
-    magnitude: mu.magnitude.toUpperCase() as Magnitude,
-    name: mu.name,
-    abbreviation: mu.abbreviation,
-    baseFactor: mu.baseFactor,
-    isBase: mu.isBase,
-  }));
+  const measurementUnitsToCreate = measurementUnitsData.map((mu) => {
+    const magnitudeId = magnitudeIdByCode.get(mu.magnitudeCode);
+    if (!magnitudeId) {
+      throw new Error(
+        `Unknown magnitudeCode '${mu.magnitudeCode}' for measurement unit '${mu.abbreviation}' in dataset ${dataset}. Add it to SYSTEM_MAGNITUDES or seed it explicitly.`
+      );
+    }
+    return {
+      magnitudeId,
+      name: mu.name,
+      abbreviation: mu.abbreviation,
+      baseFactor: mu.baseFactor,
+      isBase: mu.isBase,
+    };
+  });
 
   // Batch create measurement units (skips duplicates)
   await prisma.measurementUnit.createMany({

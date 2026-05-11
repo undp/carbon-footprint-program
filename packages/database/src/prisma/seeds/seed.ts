@@ -1,5 +1,6 @@
 import { PrismaClient, generatePrismaAdapter } from "../../index.js";
 import { SEEDS_DATASET } from "../../environment.js";
+import { seedMagnitudes } from "./scripts/seedMagnitudes.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
 import { seedCountries } from "./scripts/seedCountries.js";
@@ -21,7 +22,8 @@ const prisma = new PrismaClient({
 
 async function main() {
   await prisma.$connect();
-  await seedMeasurementUnits(prisma, SEEDS_DATASET);
+  await seedMagnitudes(prisma, SEEDS_DATASET);
+  await seedMeasurementUnits(prisma, SEEDS_DATASET); // needs the magnitudes to be seeded first
   await seedSystemParameters(prisma, SEEDS_DATASET);
   await seedCountries(prisma, SEEDS_DATASET);
   await seedCountryJobPositions(prisma, SEEDS_DATASET); // needs the countries to be seeded first

@@ -159,14 +159,14 @@ export const getCarbonInventoryMethodologyService = async (
                       numeratorMeasurementUnit: {
                         select: {
                           id: true,
-                          magnitude: true,
+                          magnitudeId: true,
                           baseFactor: true,
                         },
                       },
                       denominatorMeasurementUnit: {
                         select: {
                           id: true,
-                          magnitude: true,
+                          magnitudeId: true,
                           baseFactor: true,
                         },
                       },

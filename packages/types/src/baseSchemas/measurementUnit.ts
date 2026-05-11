@@ -1,14 +1,15 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { Magnitude, MeasurementUnitStatus } from "@repo/database/enums";
+import { MeasurementUnitStatus } from "@repo/database/enums";
 
-export const MagnitudeSchema = z.enum(Magnitude);
 export const MeasurementUnitStatusSchema = z.enum(MeasurementUnitStatus);
 
 export const MeasurementUnitBaseSchema = z.object({
   id: IdSchema.describe("The unique identifier for the measurement unit."),
   name: z.string().describe("The name of the measurement unit."),
-  magnitude: MagnitudeSchema.describe("The magnitude of the measurement unit."),
+  magnitudeId: IdSchema.describe(
+    "The id of the magnitude this measurement unit belongs to."
+  ),
   abbreviation: z
     .string()
     .describe("The abbreviation of the measurement unit."),
