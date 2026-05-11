@@ -38,6 +38,9 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
 
   const labelById = new Map(options.map((m) => [m.id, m.name]));
   const label = magnitudeId ? (labelById.get(magnitudeId) ?? magnitudeId) : "";
+  const isCurrentInOptions = magnitudeId
+    ? options.some((o) => o.id === magnitudeId)
+    : true;
 
   if (!isEditing) {
     return (
@@ -71,6 +74,11 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
       {!magnitudeId && (
         <MenuItem value="" disabled>
           Selecciona una magnitud
+        </MenuItem>
+      )}
+      {magnitudeId && !isCurrentInOptions && (
+        <MenuItem value={magnitudeId} disabled>
+          {label}
         </MenuItem>
       )}
       {options.map((mag) => (
