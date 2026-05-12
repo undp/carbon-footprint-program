@@ -84,21 +84,29 @@ const SystemParameterSeedDataSchema = z
             path: [i, "min"],
           });
         }
-        if (item.type === "number" && /^-?\d+$/.test(item.value)) {
-          const numericValue = Number(item.value);
-          if (hasMin && numericValue < item.min!) {
+        if (item.type === "number") {
+          if (!/^-?\d+$/.test(item.value)) {
             ctx.addIssue({
               code: "custom",
-              message: `Parameter "${item.key}" value (${numericValue}) is less than min (${item.min})`,
+              message: `Parameter "${item.key}" declares min/max bounds but value "${item.value}" is not a valid integer`,
               path: [i, "value"],
             });
-          }
-          if (hasMax && numericValue > item.max!) {
-            ctx.addIssue({
-              code: "custom",
-              message: `Parameter "${item.key}" value (${numericValue}) is greater than max (${item.max})`,
-              path: [i, "value"],
-            });
+          } else {
+            const numericValue = Number(item.value);
+            if (hasMin && numericValue < item.min!) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Parameter "${item.key}" value (${numericValue}) is less than min (${item.min})`,
+                path: [i, "value"],
+              });
+            }
+            if (hasMax && numericValue > item.max!) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Parameter "${item.key}" value (${numericValue}) is greater than max (${item.max})`,
+                path: [i, "value"],
+              });
+            }
           }
         }
       }
