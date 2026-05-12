@@ -6,13 +6,11 @@ export const LineFileSummarySchema = z
     id: IdSchema.describe("The file ID"),
     uuid: z.uuid().describe("The file UUID"),
     originalName: z.string().describe("The original file name"),
-    mimeType: z.string().describe("The MIME type of the file"),
     sizeBytes: z
       .number()
       .int()
       .nonnegative()
       .describe("The file size in bytes"),
-    createdAt: z.iso.datetime().describe("The upload date"),
   })
   .strict();
 
