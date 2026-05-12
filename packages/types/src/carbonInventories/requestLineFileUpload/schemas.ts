@@ -1,22 +1,13 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
+import { LineFileOriginalNameSchema } from "../schemas.js";
 
 export const RequestLineFileUploadParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
 export const RequestLineFileUploadBodySchema = z.object({
-  originalName: z
-    .string()
-    .trim()
-    .min(1)
-    .max(255)
-    .regex(/^[ -~]+$/, "File name must only contain printable ASCII characters")
-    .refine(
-      (name) => !/[/\\:]/.test(name),
-      "File name must not contain path separators or colons"
-    )
-    .describe("The original file name"),
+  originalName: LineFileOriginalNameSchema,
 });
 
 export const RequestLineFileUploadResponseSchema = z.object({
