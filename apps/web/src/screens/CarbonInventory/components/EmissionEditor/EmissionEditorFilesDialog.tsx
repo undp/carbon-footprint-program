@@ -112,9 +112,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
             id: file.id,
             uuid: file.uuid,
             originalName: file.originalName,
-            mimeType: file.mimeType,
             sizeBytes: file.sizeBytes,
-            createdAt: file.createdAt,
             isPending: true,
           })),
         ];

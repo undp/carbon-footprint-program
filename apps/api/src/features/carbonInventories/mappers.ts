@@ -28,9 +28,7 @@ type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
                 id: true;
                 uuid: true;
                 originalName: true;
-                mimeType: true;
                 sizeBytes: true;
-                createdAt: true;
                 status: true;
               };
             };
@@ -107,9 +105,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
       id: entry.file.id.toString(),
       uuid: entry.file.uuid,
       originalName: entry.file.originalName,
-      mimeType: entry.file.mimeType,
       sizeBytes: entry.file.sizeBytes,
-      createdAt: entry.file.createdAt.toISOString(),
     }));
 
   return {

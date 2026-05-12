@@ -68,9 +68,7 @@ export const confirmLineFileUploadService = async (
       id: true,
       uuid: true,
       originalName: true,
-      mimeType: true,
       sizeBytes: true,
-      createdAt: true,
     },
   });
 
@@ -78,8 +76,6 @@ export const confirmLineFileUploadService = async (
     id: created.id.toString(),
     uuid: created.uuid,
     originalName: created.originalName,
-    mimeType: created.mimeType,
     sizeBytes: created.sizeBytes,
-    createdAt: created.createdAt.toISOString(),
   };
 };
