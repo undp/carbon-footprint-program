@@ -492,7 +492,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await prisma.carbonInventory.create({
         data: {
           organizationId: org.id,
-          year: new Date().getFullYear() - 2,
+          year: new Date().getFullYear(),
           usageMode: "SIMPLIFIED",
           methodologyVersionId,
           updatedAt: null,

@@ -5,7 +5,7 @@ INSERT INTO "system_parameter" ("key", "value", "description", "type", "options"
 VALUES (
   'MEASURING_ORGANIZATIONS_YEAR_RANGE',
   '2',
-  'Number of years subtracted from the current year when filtering carbon inventories considered as ''recent measurements'' in the organization summary view and admin dashboard KPIs. Larger values widen the measurement window.',
+  'Number of years (including the current year) considered as ''recent measurements'' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.',
   'number',
   '{}'
 )
@@ -93,7 +93,7 @@ organization_carbon_inventories_summary AS (
   WHERE ci.organization_id IS NOT NULL
   AND ci.status NOT IN ('DELETED')
   AND ci.year IS NOT NULL
-  AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - COALESCE(
+  AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - (COALESCE(
     (SELECT CASE
         WHEN value ~ '^[0-9]+$'
          AND length(value) <= 10
@@ -102,7 +102,7 @@ organization_carbon_inventories_summary AS (
       END
      FROM system_parameter WHERE key = 'MEASURING_ORGANIZATIONS_YEAR_RANGE'),
     2
-  )
+  ) - 1)
   GROUP BY ci.organization_id
 )
 
