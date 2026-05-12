@@ -66,3 +66,7 @@ export * from "./deleteLineFile/schemas.js";
 export * from "./deleteLineFile/types.js";
 export * from "./previewLineFile/schemas.js";
 export * from "./previewLineFile/types.js";
+export * from "./getCarbonInventoryFilesManifest/schemas.js";
+export * from "./getCarbonInventoryFilesManifest/types.js";
+export * from "./getCarbonInventoryMethodologyExport/schemas.js";
+export * from "./getCarbonInventoryMethodologyExport/types.js";
