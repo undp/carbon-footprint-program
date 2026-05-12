@@ -305,6 +305,35 @@ export const AZURE_OPENAI_API_VERSION =
 export const AZURE_OPENAI_API_KEY = trimEnv(process.env.AZURE_OPENAI_API_KEY);
 
 /**
+ * Optional reasoning effort hint propagated to `chat.completions.create` as
+ * `reasoning_effort`. Applies only to reasoning models (gpt-5 family,
+ * o-series); for chat with streaming, `"minimal"` is the recommended value
+ * (higher levels push TTFT past 30 s and the widget's streaming UX breaks).
+ * For non-reasoning chat models (gpt-4.1, gpt-4o) leave this unset — the
+ * SDK may reject the parameter.
+ */
+export type AzureOpenAIReasoningEffort = "minimal" | "low" | "medium" | "high";
+
+export const AZURE_OPENAI_REASONING_EFFORT:
+  | AzureOpenAIReasoningEffort
+  | undefined = (() => {
+  const raw = trimEnv(process.env.AZURE_OPENAI_REASONING_EFFORT);
+  if (!raw) return undefined;
+  const valid: AzureOpenAIReasoningEffort[] = [
+    "minimal",
+    "low",
+    "medium",
+    "high",
+  ];
+  if (!valid.includes(raw as AzureOpenAIReasoningEffort)) {
+    throw new Error(
+      `Invalid AZURE_OPENAI_REASONING_EFFORT value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+    );
+  }
+  return raw as AzureOpenAIReasoningEffort;
+})();
+
+/**
  * Embedding deployment name — required when EMBEDDING_PROVIDER=azure-openai.
  * Distinct from the chat deployment because embeddings use a separate model
  * (text-embedding-3-large).

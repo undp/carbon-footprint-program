@@ -416,6 +416,10 @@ If the underlying model is unchanged (only the deployment name rotated), operato
 
 Production deployments SHALL leave `AZURE_OPENAI_API_KEY` unset. The chat and embeddings clients fall back to `DefaultAzureCredential` (managed identity), which is the auditable, key-less path. Setting the key in production silently bypasses managed identity — chats still work, but the security posture degrades. The deployment manifest is the right place to enforce absence.
 
+**Reasoning models y `AZURE_OPENAI_REASONING_EFFORT`:**
+
+Cuando el chat deployment es de la familia gpt-5 o de la serie o (modelos de razonamiento), `AZURE_OPENAI_REASONING_EFFORT` SHALL ser seteado a `"minimal"`. Sin la variable, el modelo razona en el nivel default (~medium effort), el TTFT crece a decenas de segundos y el streaming SSE del widget se ve como una pantalla congelada — el usuario asume que el chat está roto y abandona. Para chat con streaming la recomendación operativa es `"minimal"`; subir a `"low"` o `"medium"` solo si se mide que la calidad de las respuestas mejora lo suficiente como para justificar el costo de UX. Para modelos non-reasoning (gpt-4.1, gpt-4o) la variable SHALL quedar **unset** — el SDK puede rechazar el parámetro y romper el endpoint.
+
 **Test fixture:**
 
 Integration tests reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` — ~5 pages of GHG Protocol Corporate Standard fair-use excerpt, parseable by `pdf-parse`, with at least one section heading and one definition paragraph. The binary is committed during the implementation phase and rebuilt by the operator if the canonical PDF revs.

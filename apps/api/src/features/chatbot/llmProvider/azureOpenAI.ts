@@ -13,6 +13,7 @@ import {
   AZURE_OPENAI_API_VERSION,
   AZURE_OPENAI_DEPLOYMENT_NAME,
   AZURE_OPENAI_ENDPOINT,
+  AZURE_OPENAI_REASONING_EFFORT,
 } from "@/config/environment.js";
 import type {
   LLMProvider,
@@ -127,6 +128,13 @@ export const azureOpenAIProvider: LLMProvider = {
         stream: true,
         stream_options: { include_usage: true },
         ...(tools ? { tools, tool_choice: "auto" as const } : {}),
+        // Reasoning models (gpt-5 family, o-series) reduce TTFT dramatically
+        // when `reasoning_effort: "minimal"` is set. Per-deployment knob via
+        // env var — non-reasoning chat models leave it unset because the
+        // SDK may reject the field there.
+        ...(AZURE_OPENAI_REASONING_EFFORT && {
+          reasoning_effort: AZURE_OPENAI_REASONING_EFFORT,
+        }),
       },
       { signal: options.signal }
     );
