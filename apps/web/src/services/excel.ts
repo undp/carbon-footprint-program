@@ -49,6 +49,15 @@ export const downloadWorkbook = async (
   filename: string
 ) => {
   const buffer = await workbook.xlsx.writeBuffer();
+  await downloadBuffer(buffer as ArrayBuffer, filename);
+};
+
+/**
+ * Triggers a browser download for a pre-built workbook buffer. Lets the
+ * inventory and methodology workbook builders share the same download
+ * primitive without reassembling the workbook.
+ */
+export const downloadBuffer = async (buffer: ArrayBuffer, filename: string) => {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
@@ -57,7 +66,6 @@ export const downloadWorkbook = async (
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  // Defer revocation to ensure download starts
   setTimeout(() => window.URL.revokeObjectURL(url), 100);
   anchor.remove();
 };
