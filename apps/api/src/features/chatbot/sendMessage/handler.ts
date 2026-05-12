@@ -307,6 +307,23 @@ export const sendMessageHandler = async (
         code: "EXTERNAL_SERVICE_ERROR",
         message: CHATBOT_GENERIC_ERROR_MESSAGE,
       });
+      // Per chatbot-message-streaming spec scenario "Oversized RAG context
+      // aborts the second round": the assistant row SHALL be marked
+      // truncated=true. The disconnect-finalizer's `if
+      // (reply.raw.writableEnded) return` short-circuits after
+      // reply.raw.end() below — so the mark must be applied here
+      // explicitly. `content` captures whatever streamed before this abort
+      // point (0 chars in the current flow because the first round
+      // terminated on tool_call without emitting deltas; defensive in
+      // case the flow changes).
+      try {
+        await prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId}`;
+      } catch (err) {
+        request.log.error(
+          { err, assistantRowId: assistantRowIdString },
+          "chatbot oversized-RAG truncated-mark UPDATE failed"
+        );
+      }
       reply.raw.end();
       return;
     }
