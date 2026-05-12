@@ -94,7 +94,8 @@ organization_carbon_inventories_summary AS (
   AND ci.status NOT IN ('DELETED')
   AND ci.year IS NOT NULL
   AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - COALESCE(
-    (SELECT value::int FROM system_parameter WHERE key = 'MEASURING_ORGANIZATIONS_YEAR_RANGE'),
+    (SELECT CASE WHEN value ~ '^[0-9]+$' THEN value::int END
+     FROM system_parameter WHERE key = 'MEASURING_ORGANIZATIONS_YEAR_RANGE'),
     2
   )
   GROUP BY ci.organization_id
