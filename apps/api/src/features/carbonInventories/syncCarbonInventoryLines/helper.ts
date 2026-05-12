@@ -1,4 +1,4 @@
-import { FileStatus, FileType } from "@repo/types";
+import { FileStatus } from "@repo/types";
 import { InputType, type Prisma } from "@repo/database";
 import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
@@ -9,6 +9,7 @@ import {
   CrossInventoryFileLinkingError,
   FileAlreadyLinkedError,
 } from "../errors.js";
+import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -180,7 +181,9 @@ export async function linkFilesToCarbonInventoryLine(
     throw new MissingFilesError(missing.join(", "));
   }
 
-  const expectedPrefix = `${FileType.CARBON_INVENTORY}/${carbonInventoryId.toString()}/LINES/`;
+  const expectedPrefix = buildCarbonInventoryLineBlobPathPrefix(
+    carbonInventoryId.toString()
+  );
   const crossInventory = files.filter(
     (file) => !file.blobPath.startsWith(expectedPrefix)
   );
