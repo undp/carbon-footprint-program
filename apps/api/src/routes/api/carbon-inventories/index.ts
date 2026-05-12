@@ -5,6 +5,7 @@ import { getCarbonInventoryByIdRoute } from "@/features/carbonInventories/getCar
 import { createCarbonInventoryRoute } from "@/features/carbonInventories/createCarbonInventory/route.js";
 import { updateCarbonInventoryRoute } from "@/features/carbonInventories/updateCarbonInventory/route.js";
 import { getCarbonInventoryMethodologyRoute } from "@/features/carbonInventories/getCarbonInventoryMethodology/route.js";
+import { getCarbonInventoryMethodologyExportRoute } from "@/features/carbonInventories/getCarbonInventoryMethodologyExport/route.js";
 import { getCarbonInventorySubcategoriesSummaryRoute } from "@/features/carbonInventories/getCarbonInventorySubcategoriesSummary/route.js";
 import { addSubcategoriesToCarbonInventoryRoute } from "@/features/carbonInventories/addSubcategoriesToCarbonInventory/route.js";
 import { updateCarbonInventorySubcategoriesRoute } from "@/features/carbonInventories/updateCarbonInventorySubcategories/route.js";
@@ -45,6 +46,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
       createCarbonInventoryRoute,
       getCarbonInventoryByIdRoute,
       getCarbonInventoryMethodologyRoute,
+      getCarbonInventoryMethodologyExportRoute,
       getCarbonInventorySubcategoriesSummaryRoute,
       getEmissionsSummaryCategoriesRoute,
       getMainActivityEquivalenceRoute,
