@@ -54,7 +54,7 @@ const RateMeasurementUnitItemSchema = z.object({
     .int()
     .nonnegative()
     .describe(
-      "Sum of the three referenceCounts categories. Derived; used for default sort."
+      "Sum of the two referenceCounts categories (emissionFactors and lineFactorsAsApplied). Derived; used for default sort."
     ),
 });
 
