@@ -46,11 +46,16 @@ interface Props {
   disabled?: boolean;
 }
 
+const ZIP_MIME_TYPES = new Set<string>([
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
 const acceptMap: Record<string, string[]> =
   CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES.reduce<
     Record<string, string[]>
   >((acc, mime) => {
-    acc[mime] = [];
+    acc[mime] = ZIP_MIME_TYPES.has(mime) ? [".zip"] : [];
     return acc;
   }, {});
 
