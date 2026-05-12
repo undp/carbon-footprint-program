@@ -34,6 +34,13 @@ export const TermsConditionsFileUuidSchema = z.union([z.uuid(), z.literal("")]);
 
 export const MeasuringOrganizationsYearRangeSchema = z.string().regex(/^\d+$/);
 
+// Numeric bounds stored on the system_parameter row. Nullable when the
+// parameter has no numeric semantics (selectors, file-type pointers).
+const SystemParameterBoundsShape = {
+  minValue: z.number().int().nullable(),
+  maxValue: z.number().int().nullable(),
+};
+
 /**
  * IMPORTANT: Every system parameter key MUST have an entry in this discriminated union.
  * This is intentional — if the API returns a parameter whose key is not registered here,
@@ -50,22 +57,27 @@ export const SystemParameterEntrySchema = z.discriminatedUnion("key", [
       SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
     ),
     value: MeasurementRecognitionBehaviorSchema,
+    ...SystemParameterBoundsShape,
   }),
   z.object({
     key: z.literal(SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE),
     value: SubcategoryRecommendationModeSchema,
+    ...SystemParameterBoundsShape,
   }),
   z.object({
     key: z.literal(SystemParameterKeyEnum.USER_INACTIVE_THRESHOLD_DAYS),
     value: UserInactiveThresholdDaysSchema,
+    ...SystemParameterBoundsShape,
   }),
   z.object({
     key: z.literal(SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID),
     value: TermsConditionsFileUuidSchema,
+    ...SystemParameterBoundsShape,
   }),
   z.object({
     key: z.literal(SystemParameterKeyEnum.MEASURING_ORGANIZATIONS_YEAR_RANGE),
     value: MeasuringOrganizationsYearRangeSchema,
+    ...SystemParameterBoundsShape,
   }),
 ]);
 

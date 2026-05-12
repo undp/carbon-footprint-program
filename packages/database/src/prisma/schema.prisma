@@ -51,6 +51,8 @@ model SystemParameter {
   description String
   type        String
   options     String[]  @default([])
+  minValue    Int?      @map("min_value")
+  maxValue    Int?      @map("max_value")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")

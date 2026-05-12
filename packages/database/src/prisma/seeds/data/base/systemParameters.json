@@ -29,6 +29,7 @@
     "key": "MEASURING_ORGANIZATIONS_YEAR_RANGE",
     "value": "2",
     "description": "Number of years (including the current year) considered as 'recent measurements' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.",
-    "type": "number"
+    "type": "number",
+    "min": 1
   }
 ]

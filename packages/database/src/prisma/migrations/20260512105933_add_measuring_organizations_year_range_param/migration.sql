@@ -1,13 +1,14 @@
 -- Seed MEASURING_ORGANIZATIONS_YEAR_RANGE so the view's subquery resolves on first run.
 -- The seed pipeline (systemParameters.json) also lists this key; skipDuplicates on the
 -- seed side, ON CONFLICT here keep both paths idempotent.
-INSERT INTO "system_parameter" ("key", "value", "description", "type", "options")
+INSERT INTO "system_parameter" ("key", "value", "description", "type", "options", "min_value")
 VALUES (
   'MEASURING_ORGANIZATIONS_YEAR_RANGE',
   '2',
   'Number of years (including the current year) considered as ''recent measurements'' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.',
   'number',
-  '{}'
+  '{}',
+  1
 )
 ON CONFLICT ("key") DO NOTHING;
 
@@ -97,7 +98,7 @@ organization_carbon_inventories_summary AS (
     (SELECT CASE
         WHEN value ~ '^[0-9]+$'
          AND length(value) <= 10
-         AND value::bigint BETWEEN 0 AND 2147483647
+         AND value::bigint BETWEEN 1 AND 2147483647
         THEN value::int
       END
      FROM system_parameter WHERE key = 'MEASURING_ORGANIZATIONS_YEAR_RANGE'),
