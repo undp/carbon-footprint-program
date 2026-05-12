@@ -49,7 +49,7 @@ export const downloadWorkbook = async (
   filename: string
 ) => {
   const buffer = await workbook.xlsx.writeBuffer();
-  await downloadBuffer(buffer as ArrayBuffer, filename);
+  downloadBuffer(buffer as ArrayBuffer, filename);
 };
 
 /**
@@ -57,7 +57,7 @@ export const downloadWorkbook = async (
  * inventory and methodology workbook builders share the same download
  * primitive without reassembling the workbook.
  */
-export const downloadBuffer = async (buffer: ArrayBuffer, filename: string) => {
+export const downloadBuffer = (buffer: ArrayBuffer, filename: string): void => {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });

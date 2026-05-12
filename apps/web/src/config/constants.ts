@@ -95,5 +95,14 @@ export const MAX_DISPLAY_DECIMALS = 6;
 const API_BASE_URL_NORMALIZED = API_BASE_URL.replace(/\/+$/, "");
 export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL_NORMALIZED}/terms-conditions/file`;
 
+/** Folder name (within the carbon-inventory ZIP) that bundles line file attachments. */
+export const CARBON_INVENTORY_ZIP_FILES_DIR = "archivos";
+
+/** Filename of the inventory emissions workbook at the ZIP root. */
+export const CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME = "resumen-emisiones.xlsx";
+
+/** Filename of the methodology workbook at the ZIP root. */
+export const CARBON_INVENTORY_ZIP_METHODOLOGY_ENTRY_NAME = "metodologia.xlsx";
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";

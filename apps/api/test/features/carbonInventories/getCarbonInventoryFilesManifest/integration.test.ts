@@ -19,14 +19,16 @@ vi.mock("@/services/blobService.js", async () => {
   >("@/services/blobService.js");
   return {
     ...actual,
-    createReadSasUrlSigner: vi.fn(async () => {
+    createReadSasUrlSigner: vi.fn(() => {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-      return async (blobPath: string) => ({
-        url: `https://mock.blob.core.windows.net/test/${encodeURIComponent(
-          blobPath
-        )}?sig=mock`,
-        expiresAt,
-      });
+      const signer = (blobPath: string) =>
+        Promise.resolve({
+          url: `https://mock.blob.core.windows.net/test/${encodeURIComponent(
+            blobPath
+          )}?sig=mock`,
+          expiresAt,
+        });
+      return Promise.resolve(signer);
     }),
   };
 });

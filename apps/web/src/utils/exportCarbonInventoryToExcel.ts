@@ -242,5 +242,5 @@ export async function exportCarbonInventoryToExcel(
   const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
   const yearSuffix = year != null ? `-${year}` : "";
   const filename = `${safeName}${yearSuffix}-resumen-emisiones.xlsx`;
-  await downloadBuffer(buffer, filename);
+  downloadBuffer(buffer, filename);
 }
