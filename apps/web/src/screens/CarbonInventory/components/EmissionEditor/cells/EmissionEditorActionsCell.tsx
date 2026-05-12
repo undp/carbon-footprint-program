@@ -1,4 +1,4 @@
-import { Badge, Box, IconButton, SxProps, Theme } from "@mui/material";
+import { Badge, Box, SxProps, Theme } from "@mui/material";
 import {
   SourceOutlined,
   CommentOutlined,
@@ -6,6 +6,7 @@ import {
 } from "@mui/icons-material";
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
+import { ActionIconButton } from "@/components/ActionIconButton";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -70,14 +71,15 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <IconButton
-            sx={iconSx}
+          <ActionIconButton
+            icon={SourceOutlined}
+            tooltip="Agregar archivos"
             aria-label="uploadFiles"
             onClick={() => uploadFiles(rowId)}
             disabled={disabled}
-          >
-            <SourceOutlined fontSize="inherit" />
-          </IconButton>
+            size="medium"
+            sx={iconSx}
+          />
         </Badge>
       )}
       {updateComment && (
@@ -96,25 +98,27 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <IconButton
-            sx={iconSx}
+          <ActionIconButton
+            icon={CommentOutlined}
+            tooltip="Agregar información adicional"
             aria-label="addComment"
             onClick={() => updateComment(rowId)}
             disabled={disabled}
-          >
-            <CommentOutlined fontSize="inherit" />
-          </IconButton>
+            size="medium"
+            sx={iconSx}
+          />
         </Badge>
       )}
       {deleteSource && (
-        <IconButton
-          sx={iconSx}
+        <ActionIconButton
+          icon={DeleteOutlined}
+          tooltip="Eliminar fuente"
           aria-label="delete"
           onClick={() => deleteSource(rowId)}
           disabled={disabled}
-        >
-          <DeleteOutlined fontSize="inherit" />
-        </IconButton>
+          size="medium"
+          sx={iconSx}
+        />
       )}
     </Box>
   );
