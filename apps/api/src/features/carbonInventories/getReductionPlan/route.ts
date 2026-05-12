@@ -8,7 +8,10 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
-export const getReductionPlanRoute: StandardRouteSignature = (fastify) => {
+export const getReductionPlanRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get<{ Params: GetReductionPlanParams }>(
     "/:id/reduction-plan",
     {
@@ -23,6 +26,10 @@ export const getReductionPlanRoute: StandardRouteSignature = (fastify) => {
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
     },

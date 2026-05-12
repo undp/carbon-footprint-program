@@ -1,12 +1,13 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getEmissionFactorDimensionsHandler } from "./handler.js";
 import {
   GetEmissionFactorDimensionsQuerySchema,
   GetEmissionFactorDimensionsResponseSchema,
 } from "@repo/types";
 
-export const getEmissionFactorDimensionsRoute = (
-  fastify: FastifyZodInstance
+export const getEmissionFactorDimensionsRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/",
@@ -20,6 +21,10 @@ export const getEmissionFactorDimensionsRoute = (
         response: {
           200: GetEmissionFactorDimensionsResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getEmissionFactorDimensionsHandler

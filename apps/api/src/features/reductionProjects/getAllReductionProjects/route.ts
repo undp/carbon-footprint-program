@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getAllReductionProjectsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{ Querystring: GetAllReductionProjectsQuery }>(
     "/",
@@ -22,6 +22,10 @@ export const getAllReductionProjectsRoute: StandardRouteSignature = (
         response: {
           200: GetAllReductionProjectsResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllReductionProjectsHandler

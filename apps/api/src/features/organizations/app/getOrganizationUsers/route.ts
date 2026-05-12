@@ -12,7 +12,7 @@ import { organizationIdRequestExtractor } from "../../helpers.js";
 
 export const getOrganizationUsersRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{
     Params: GetOrganizationUsersParams;
@@ -32,6 +32,10 @@ export const getOrganizationUsersRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(organizationIdRequestExtractor, {

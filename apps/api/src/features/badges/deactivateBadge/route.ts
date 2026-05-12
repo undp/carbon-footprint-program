@@ -6,7 +6,10 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { deactivateBadgeHandler } from "./handler.js";
 
-export const deactivateBadgeRoute: StandardRouteSignature = (fastify) => {
+export const deactivateBadgeRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/:id/deactivate",
     {
@@ -22,6 +25,10 @@ export const deactivateBadgeRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deactivateBadgeHandler

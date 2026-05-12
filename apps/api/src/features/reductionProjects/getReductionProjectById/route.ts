@@ -9,7 +9,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 export const getReductionProjectByIdRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{ Params: GetReductionProjectByIdParams }>(
     "/:id",
@@ -23,6 +23,10 @@ export const getReductionProjectByIdRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireReductionProjectAccess({

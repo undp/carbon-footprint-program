@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { createMagnitudeHandler } from "./handler.js";
 import {
   CreateMagnitudeBodySchema,
@@ -6,7 +6,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const createMagnitudeRoute = (fastify: FastifyZodInstance) => {
+export const createMagnitudeRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/",
     {
@@ -24,6 +27,10 @@ export const createMagnitudeRoute = (fastify: FastifyZodInstance) => {
           409: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createMagnitudeHandler

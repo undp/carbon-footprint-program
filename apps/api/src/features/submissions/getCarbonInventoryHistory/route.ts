@@ -10,7 +10,8 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  options
 ) => {
   fastify.get<{ Params: GetCarbonInventoryHistoryParams }>(
     "/carbon-inventory/:id/history",
@@ -25,6 +26,10 @@ export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
           200: GetCarbonInventoryHistoryResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(idRequestExtractor, {

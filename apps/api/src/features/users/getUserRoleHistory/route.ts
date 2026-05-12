@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getUserRoleHistoryHandler } from "./handler.js";
 import {
   GetUserRoleHistoryParamsSchema,
@@ -9,7 +9,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getUserRoleHistoryRoute = (fastify: FastifyZodInstance) => {
+export const getUserRoleHistoryRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get<{
     Params: GetUserRoleHistoryParams;
     Reply: GetUserRoleHistoryResponse;
@@ -26,6 +29,10 @@ export const getUserRoleHistoryRoute = (fastify: FastifyZodInstance) => {
           200: GetUserRoleHistoryResponseSchema,
           403: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),

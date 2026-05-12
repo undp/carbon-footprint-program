@@ -1,6 +1,6 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { streamCurrentTermsConditionsHandler } from "./handler.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 /**
  * Public, stable URL that streams the current Terms & Conditions PDF.
@@ -9,13 +9,13 @@ import { streamCurrentTermsConditionsHandler } from "./handler.js";
  * declare a 200 response schema — fastify-type-provider-zod would otherwise
  * try to JSON-validate the binary body. Only error responses are validated.
  */
-export const streamCurrentTermsConditionsRoute = (
-  fastify: FastifyZodInstance
+export const streamCurrentTermsConditionsRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/file",
     {
-      config: { public: true },
       schema: {
         tags: ["terms-conditions"],
         summary: "Stream the current Terms & Conditions PDF",
@@ -25,6 +25,10 @@ export const streamCurrentTermsConditionsRoute = (
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     streamCurrentTermsConditionsHandler

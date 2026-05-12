@@ -5,7 +5,10 @@ import {
 } from "@repo/types";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getSystemParametersRoute: StandardRouteSignature = (fastify) => {
+export const getSystemParametersRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -18,6 +21,10 @@ export const getSystemParametersRoute: StandardRouteSignature = (fastify) => {
         response: {
           200: GetSystemParametersResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getSystemParametersHandler

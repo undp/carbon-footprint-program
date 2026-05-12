@@ -5,7 +5,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getAllRequestsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/",
@@ -18,6 +18,10 @@ export const getAllRequestsRoute: StandardRouteSignature = (
           200: GetAllAdminRequestsResponseSchema,
           400: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllRequestsHandler

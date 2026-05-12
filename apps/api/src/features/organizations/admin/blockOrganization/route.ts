@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const blockOrganizationRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.post(
     "/:id/block",
@@ -24,6 +24,10 @@ export const blockOrganizationRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     blockOrganizationHandler

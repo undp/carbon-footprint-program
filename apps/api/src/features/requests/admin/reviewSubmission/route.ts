@@ -10,7 +10,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 //TODO: Move this route to submissions routes and folder
 export const reviewSubmissionRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.post(
     "/:id/review",
@@ -27,6 +27,10 @@ export const reviewSubmissionRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     reviewSubmissionHandler

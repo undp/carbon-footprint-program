@@ -32,6 +32,7 @@ export const getAllOrganizationMainActivitiesRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllOrganizationMainActivitiesHandler

@@ -1,9 +1,12 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllMeasurementUnitsHandler } from "./handler.js";
 import { GetAllMeasurementUnitsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAllMeasurementUnitsRoute = (fastify: FastifyZodInstance) => {
+export const getAllMeasurementUnitsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -15,6 +18,10 @@ export const getAllMeasurementUnitsRoute = (fastify: FastifyZodInstance) => {
           200: GetAllMeasurementUnitsResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllMeasurementUnitsHandler

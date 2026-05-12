@@ -1,11 +1,14 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllEmissionFactorsHandler } from "./handler.js";
 import {
   GetAllEmissionFactorsQuerySchema,
   GetAllEmissionFactorsResponseSchema,
 } from "@repo/types";
 
-export const getAllEmissionFactorsRoute = (fastify: FastifyZodInstance) => {
+export const getAllEmissionFactorsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -18,6 +21,10 @@ export const getAllEmissionFactorsRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetAllEmissionFactorsResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllEmissionFactorsHandler

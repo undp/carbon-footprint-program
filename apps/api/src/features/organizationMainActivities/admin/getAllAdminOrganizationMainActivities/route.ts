@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   GetAllAdminOrganizationMainActivitiesQuerySchema,
   GetAllAdminOrganizationMainActivitiesResponseSchema,
@@ -6,22 +6,25 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { getAllAdminOrganizationMainActivitiesHandler } from "./handler.js";
 
-export const getAllAdminOrganizationMainActivitiesRoute = (
-  fastify: FastifyZodInstance
-) => {
-  fastify.get(
-    "/",
-    {
-      schema: {
-        tags: ["admin-organization-main-activities"],
-        summary: "Get all organization main activities (admin view)",
-        querystring: GetAllAdminOrganizationMainActivitiesQuerySchema,
-        response: {
-          200: GetAllAdminOrganizationMainActivitiesResponseSchema,
-          400: ApiErrorResponseSchema,
+export const getAllAdminOrganizationMainActivitiesRoute: StandardRouteSignature =
+  (fastify, options) => {
+    fastify.get(
+      "/",
+      {
+        schema: {
+          tags: ["admin-organization-main-activities"],
+          summary: "Get all organization main activities (admin view)",
+          querystring: GetAllAdminOrganizationMainActivitiesQuerySchema,
+          response: {
+            200: GetAllAdminOrganizationMainActivitiesResponseSchema,
+            400: ApiErrorResponseSchema,
+          },
+        },
+        config: {
+          public: options?.public ?? false,
+          allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
         },
       },
-    },
-    getAllAdminOrganizationMainActivitiesHandler
-  );
-};
+      getAllAdminOrganizationMainActivitiesHandler
+    );
+  };

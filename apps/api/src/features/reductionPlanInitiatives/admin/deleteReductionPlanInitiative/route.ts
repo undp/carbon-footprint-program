@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const deleteReductionPlanInitiativeRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.delete(
     "/:id",
@@ -24,6 +24,10 @@ export const deleteReductionPlanInitiativeRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteReductionPlanInitiativeHandler

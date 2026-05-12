@@ -1,10 +1,11 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllCountryOrganizationSizesHandler } from "./handler.js";
 import { GetAllCountryOrganizationSizesResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAllCountryOrganizationSizesRoute = (
-  fastify: FastifyZodInstance
+export const getAllCountryOrganizationSizesRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/",
@@ -18,6 +19,10 @@ export const getAllCountryOrganizationSizesRoute = (
           200: GetAllCountryOrganizationSizesResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllCountryOrganizationSizesHandler

@@ -55,10 +55,14 @@ const authorizationPlugin: FastifyPluginCallback = (fastify) => {
   fastify.decorate("requireRoles", function (allowedRoles: SystemRole[]) {
     return async function (request: FastifyRequest, reply: FastifyReply) {
       const log = request.log.child({ module: "authorization" });
-      const isPrivateRoute = !request.routeOptions?.config?.public;
+      const routeConfig = request.routeOptions?.config;
+      const isPrivateRoute =
+        !routeConfig?.public && !routeConfig?.allowAnonymousAccess;
 
       if (!isPrivateRoute) {
-        log.debug("Public route detected; skipping authorization checks");
+        log.debug(
+          "Public or anonymous-capable route detected; skipping authorization checks"
+        );
         return;
       }
 

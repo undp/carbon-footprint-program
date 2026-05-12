@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   GetAllSubcategoryRecommendationsQuerySchema,
   GetAllSubcategoryRecommendationsResponseSchema,
@@ -6,8 +6,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { getAllSubcategoryRecommendationsHandler } from "./handler.js";
 
-export const getAllSubcategoryRecommendationsRoute = (
-  fastify: FastifyZodInstance
+export const getAllSubcategoryRecommendationsRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/",
@@ -25,6 +26,10 @@ export const getAllSubcategoryRecommendationsRoute = (
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllSubcategoryRecommendationsHandler

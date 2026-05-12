@@ -9,7 +9,8 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const selfDeclareCarbonInventoryRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  options
 ) => {
   fastify.post(
     "/:id/self-declare",
@@ -25,6 +26,10 @@ export const selfDeclareCarbonInventoryRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(idRequestExtractor, {

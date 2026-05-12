@@ -3,12 +3,11 @@ import {
   GetBadgeFilesQuerySchema,
   GetBadgeFilesResponseSchema,
 } from "@repo/types";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { badgeGetFilesHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const badgeGetFilesRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance,
+  fastify,
   options
 ) => {
   fastify.get(
@@ -25,6 +24,7 @@ export const badgeGetFilesRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     badgeGetFilesHandler

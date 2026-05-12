@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getBadgePreviewsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/previews",
@@ -23,6 +23,10 @@ export const getBadgePreviewsRoute: StandardRouteSignature = (
           200: GetBadgePreviewsResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getBadgePreviewsHandler

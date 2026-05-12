@@ -1,9 +1,12 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllMagnitudesHandler } from "./handler.js";
 import { GetAllMagnitudesResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAllMagnitudesRoute = (fastify: FastifyZodInstance) => {
+export const getAllMagnitudesRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -18,6 +21,10 @@ export const getAllMagnitudesRoute = (fastify: FastifyZodInstance) => {
           403: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllMagnitudesHandler

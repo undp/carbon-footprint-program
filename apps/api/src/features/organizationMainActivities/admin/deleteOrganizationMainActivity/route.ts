@@ -1,11 +1,12 @@
 import { z } from "zod";
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { DeleteOrganizationMainActivityParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { deleteOrganizationMainActivityHandler } from "./handler.js";
 
-export const deleteOrganizationMainActivityRoute = (
-  fastify: FastifyZodInstance
+export const deleteOrganizationMainActivityRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.delete(
     "/:id",
@@ -18,6 +19,10 @@ export const deleteOrganizationMainActivityRoute = (
           200: z.null().describe("Successfully soft-deleted"),
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteOrganizationMainActivityHandler

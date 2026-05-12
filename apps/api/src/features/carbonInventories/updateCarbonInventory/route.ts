@@ -37,6 +37,7 @@ export const updateCarbonInventoryRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(idRequestExtractor, {

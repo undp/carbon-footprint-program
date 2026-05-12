@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteUserHandler } from "./handler.js";
 import {
   DeleteUserParams,
@@ -9,7 +9,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteUserRoute = (fastify: FastifyZodInstance) => {
+export const deleteUserRoute: StandardRouteSignature = (fastify, options) => {
   fastify.delete<{
     Params: DeleteUserParams;
     Reply: DeleteUserResponse;
@@ -25,6 +25,10 @@ export const deleteUserRoute = (fastify: FastifyZodInstance) => {
           200: DeleteUserResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),

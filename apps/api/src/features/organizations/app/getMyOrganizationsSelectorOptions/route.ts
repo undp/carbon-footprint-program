@@ -5,7 +5,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getMyOrganizationsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/me",
@@ -19,6 +19,10 @@ export const getMyOrganizationsRoute: StandardRouteSignature = (
           200: GetMyOrganizationsSelectorOptionsResponseSchema,
           401: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getMyOrganizationsHandler

@@ -1,10 +1,13 @@
 import { z } from "zod";
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { DeleteCountrySubsectorParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { deleteCountrySubsectorHandler } from "./handler.js";
 
-export const deleteCountrySubsectorRoute = (fastify: FastifyZodInstance) => {
+export const deleteCountrySubsectorRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.delete(
     "/:id",
     {
@@ -19,6 +22,10 @@ export const deleteCountrySubsectorRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteCountrySubsectorHandler

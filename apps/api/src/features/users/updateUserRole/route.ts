@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { updateUserRoleHandler } from "./handler.js";
 import {
   SystemRole,
@@ -11,7 +11,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const updateUserRoleRoute = (fastify: FastifyZodInstance) => {
+export const updateUserRoleRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch<{
     Params: UpdateUserRoleParams;
     Body: UpdateUserRoleBody;
@@ -34,6 +37,10 @@ export const updateUserRoleRoute = (fastify: FastifyZodInstance) => {
           409: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [fastify.requireRoles([SystemRole.SUPERADMIN])],
     },

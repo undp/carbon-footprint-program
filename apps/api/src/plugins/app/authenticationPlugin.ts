@@ -61,7 +61,9 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   fastify.decorate(
     "requireAuth",
     async function (request: FastifyRequest, reply: FastifyReply) {
-      const isPrivateRoute = !request.routeOptions?.config?.public;
+      const routeConfig = request.routeOptions?.config;
+      const isPrivateRoute =
+        !routeConfig?.public && !routeConfig?.allowAnonymousAccess;
       // Skip authentication if provider is none (development mode)
       if (!authService.isEnabled()) {
         request.log.debug(

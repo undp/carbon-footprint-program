@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { updateSubcategoryHandler } from "./handler.js";
 import {
   UpdateSubcategoryParamsSchema,
@@ -7,7 +7,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const updateSubcategoryRoute = (fastify: FastifyZodInstance) => {
+export const updateSubcategoryRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch(
     "/:id",
     {
@@ -24,6 +27,10 @@ export const updateSubcategoryRoute = (fastify: FastifyZodInstance) => {
           409: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateSubcategoryHandler

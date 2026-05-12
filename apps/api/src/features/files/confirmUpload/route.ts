@@ -6,13 +6,12 @@ import {
   SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { confirmUploadHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const confirmUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance,
-  _options
+  fastify,
+  options
 ) => {
   fastify.post<{
     Body: ConfirmUploadBody;
@@ -30,6 +29,10 @@ export const confirmUploadRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([

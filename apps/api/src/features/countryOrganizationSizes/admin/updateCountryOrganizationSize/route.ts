@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   UpdateCountryOrganizationSizeParamsSchema,
   UpdateCountryOrganizationSizeRequestSchema,
@@ -7,8 +7,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { updateCountryOrganizationSizeHandler } from "./handler.js";
 
-export const updateCountryOrganizationSizeRoute = (
-  fastify: FastifyZodInstance
+export const updateCountryOrganizationSizeRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.patch(
     "/:id",
@@ -24,6 +25,10 @@ export const updateCountryOrganizationSizeRoute = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateCountryOrganizationSizeHandler

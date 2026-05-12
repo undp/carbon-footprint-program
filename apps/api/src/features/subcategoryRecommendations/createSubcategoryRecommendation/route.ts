@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   CreateSubcategoryRecommendationRequestSchema,
   CreateSubcategoryRecommendationResponseSchema,
@@ -6,8 +6,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { createSubcategoryRecommendationHandler } from "./handler.js";
 
-export const createSubcategoryRecommendationRoute = (
-  fastify: FastifyZodInstance
+export const createSubcategoryRecommendationRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.post(
     "/",
@@ -25,6 +26,10 @@ export const createSubcategoryRecommendationRoute = (
           403: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createSubcategoryRecommendationHandler

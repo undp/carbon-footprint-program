@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { createUserHandler } from "./handler.js";
 import {
   CreateUserBody,
@@ -9,7 +9,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const createUserRoute = (fastify: FastifyZodInstance) => {
+export const createUserRoute: StandardRouteSignature = (fastify, options) => {
   fastify.post<{
     Body: CreateUserBody;
     Reply: CreateUserResponse;
@@ -27,6 +27,10 @@ export const createUserRoute = (fastify: FastifyZodInstance) => {
           409: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),

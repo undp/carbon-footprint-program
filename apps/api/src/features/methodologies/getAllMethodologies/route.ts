@@ -1,8 +1,11 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllMethodologiesHandler } from "./handler.js";
 import { GetAllMethodologiesResponseSchema } from "@repo/types";
 
-export const getAllMethodologiesRoute = (fastify: FastifyZodInstance) => {
+export const getAllMethodologiesRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -14,6 +17,10 @@ export const getAllMethodologiesRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetAllMethodologiesResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllMethodologiesHandler

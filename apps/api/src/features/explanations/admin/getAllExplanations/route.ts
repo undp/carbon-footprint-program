@@ -5,7 +5,7 @@ import { getAllExplanationsHandler } from "./handler.js";
 
 export const getAllExplanationsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/",
@@ -20,6 +20,10 @@ export const getAllExplanationsRoute: StandardRouteSignature = (
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllExplanationsHandler

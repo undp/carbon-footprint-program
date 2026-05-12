@@ -11,7 +11,7 @@ import type { CreateReductionProjectRequest } from "@repo/types";
 
 export const createReductionProjectRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.post<{ Body: CreateReductionProjectRequest }>(
     "/",
@@ -27,6 +27,10 @@ export const createReductionProjectRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(

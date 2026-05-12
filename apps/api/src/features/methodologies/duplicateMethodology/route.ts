@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { duplicateMethodologyHandler } from "./handler.js";
 import {
   DuplicateMethodologyParamsSchema,
@@ -6,7 +6,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const duplicateMethodologyRoute = (fastify: FastifyZodInstance) => {
+export const duplicateMethodologyRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/:id/duplicate",
     {
@@ -20,6 +23,10 @@ export const duplicateMethodologyRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     duplicateMethodologyHandler

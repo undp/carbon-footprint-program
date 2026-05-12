@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getAllReductionPlanInitiativesRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/",
@@ -25,6 +25,10 @@ export const getAllReductionPlanInitiativesRoute: StandardRouteSignature = (
           401: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllReductionPlanInitiativesHandler

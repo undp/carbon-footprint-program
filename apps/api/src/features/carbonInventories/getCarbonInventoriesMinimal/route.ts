@@ -24,6 +24,7 @@ export const getCarbonInventoriesMinimalRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getCarbonInventoriesMinimalHandler

@@ -186,7 +186,15 @@ declare module "fastify" {
     currentUser?: GetMeResponse | null;
   }
   interface FastifyContextConfig {
-    /** Marks a route as public (no authentication required) */
+    /** Marks a route as truly public — no authentication or credentials required. */
     public?: boolean;
+    /**
+     * Marks a route as supporting anonymous access via an alternative credential
+     * (e.g. the `x-carbon-inventory-uuid` header). The route still works for
+     * authenticated users, but does not 401 when no bearer token is present —
+     * the route's own preHandler is responsible for validating the alternative
+     * credential and granting access.
+     */
+    allowAnonymousAccess?: boolean;
   }
 }

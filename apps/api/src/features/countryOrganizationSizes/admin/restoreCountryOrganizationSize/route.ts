@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   RestoreCountryOrganizationSizeParamsSchema,
   RestoreCountryOrganizationSizeResponseSchema,
@@ -6,8 +6,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { restoreCountryOrganizationSizeHandler } from "./handler.js";
 
-export const restoreCountryOrganizationSizeRoute = (
-  fastify: FastifyZodInstance
+export const restoreCountryOrganizationSizeRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.post(
     "/:id/restore",
@@ -22,6 +23,10 @@ export const restoreCountryOrganizationSizeRoute = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     restoreCountryOrganizationSizeHandler

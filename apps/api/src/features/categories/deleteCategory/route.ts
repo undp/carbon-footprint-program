@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteCategoryHandler } from "./handler.js";
 import {
   DeleteCategoryParamsSchema,
@@ -6,7 +6,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteCategoryRoute = (fastify: FastifyZodInstance) => {
+export const deleteCategoryRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.delete(
     "/:id",
     {
@@ -19,6 +22,10 @@ export const deleteCategoryRoute = (fastify: FastifyZodInstance) => {
           200: DeleteCategoryResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteCategoryHandler

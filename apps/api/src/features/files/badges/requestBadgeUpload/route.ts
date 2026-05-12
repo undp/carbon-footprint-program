@@ -4,12 +4,11 @@ import {
   RequestBadgeUploadResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { badgeRequestUploadHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const badgeRequestUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance,
+  fastify,
   options
 ) => {
   fastify.post(
@@ -28,6 +27,7 @@ export const badgeRequestUploadRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     badgeRequestUploadHandler

@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getReductionProjectsMinimalRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{ Querystring: GetReductionProjectsMinimalParams }>(
     "/minimal",
@@ -22,6 +22,10 @@ export const getReductionProjectsMinimalRoute: StandardRouteSignature = (
         response: {
           200: GetReductionProjectsMinimalResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getReductionProjectsMinimalHandler

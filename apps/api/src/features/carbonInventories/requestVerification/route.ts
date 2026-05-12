@@ -11,7 +11,10 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
-export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
+export const requestVerificationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post<{
     Params: RequestVerificationParams;
     Body: RequestVerificationBody;
@@ -31,6 +34,10 @@ export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(idRequestExtractor, {

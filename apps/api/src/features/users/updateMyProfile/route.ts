@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { updateMyProfileHandler } from "./handler.js";
 import {
   UpdateMyProfileBody,
@@ -8,7 +8,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const updateMyProfileRoute = (fastify: FastifyZodInstance) => {
+export const updateMyProfileRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch<{
     Body: UpdateMyProfileBody;
     Reply: UpdateMyProfileResponse;
@@ -28,6 +31,10 @@ export const updateMyProfileRoute = (fastify: FastifyZodInstance) => {
           409: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateMyProfileHandler

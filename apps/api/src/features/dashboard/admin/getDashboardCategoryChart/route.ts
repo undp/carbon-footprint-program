@@ -8,7 +8,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getDashboardCategoryChartRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/category-chart",
@@ -26,6 +26,10 @@ export const getDashboardCategoryChartRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getDashboardCategoryChartHandler

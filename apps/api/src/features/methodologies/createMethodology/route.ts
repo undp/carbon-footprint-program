@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { createMethodologyHandler } from "./handler.js";
 import {
   CreateMethodologyRequestSchema,
@@ -6,7 +6,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const createMethodologyRoute = (fastify: FastifyZodInstance) => {
+export const createMethodologyRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/",
     {
@@ -20,6 +23,10 @@ export const createMethodologyRoute = (fastify: FastifyZodInstance) => {
           400: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createMethodologyHandler

@@ -9,7 +9,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteFileHandler } from "./handler.js";
 
-export const deleteFileRoute: StandardRouteSignature = (fastify) => {
+export const deleteFileRoute: StandardRouteSignature = (fastify, options) => {
   fastify.delete<{
     Params: DeleteFileParams;
     Reply: DeleteFileResponse;
@@ -24,6 +24,10 @@ export const deleteFileRoute: StandardRouteSignature = (fastify) => {
           200: DeleteFileResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([

@@ -10,7 +10,8 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getOrganizationHistoryRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  options
 ) => {
   fastify.get<{ Params: GetOrganizationHistoryParams }>(
     "/organization/:id/history",
@@ -25,6 +26,10 @@ export const getOrganizationHistoryRoute: StandardRouteSignature = (
           200: GetOrganizationHistoryResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(idRequestExtractor, {

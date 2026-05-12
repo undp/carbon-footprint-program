@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllUsersHandler } from "./handler.js";
 import {
   GetAllUsersResponse,
@@ -6,7 +6,7 @@ import {
   SystemRole,
 } from "@repo/types";
 
-export const getAllUsersRoute = (fastify: FastifyZodInstance) => {
+export const getAllUsersRoute: StandardRouteSignature = (fastify, options) => {
   fastify.get<{
     Reply: GetAllUsersResponse;
   }>(
@@ -19,6 +19,10 @@ export const getAllUsersRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetAllUsersResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),

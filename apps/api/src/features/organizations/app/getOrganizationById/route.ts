@@ -11,7 +11,7 @@ import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getOrganizationByIdRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{
     Params: GetOrganizationByIdParams;
@@ -29,6 +29,10 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(idRequestExtractor, {

@@ -12,7 +12,7 @@ import { getOrganizationFormFieldsHandler } from "./handler.js";
  */
 export const getOrganizationFormFieldsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{
     Reply: GetOrganizationFormFieldsResponse;
@@ -27,6 +27,10 @@ export const getOrganizationFormFieldsRoute: StandardRouteSignature = (
           200: GetOrganizationFormFieldsResponseSchema,
           400: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([

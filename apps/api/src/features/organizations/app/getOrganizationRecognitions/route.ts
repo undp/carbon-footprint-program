@@ -11,7 +11,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getOrganizationRecognitionsRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{
     Params: GetOrganizationRecognitionsParams;
@@ -30,6 +30,10 @@ export const getOrganizationRecognitionsRoute: StandardRouteSignature = (
           200: GetOrganizationRecognitionsResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getOrganizationRecognitionsHandler

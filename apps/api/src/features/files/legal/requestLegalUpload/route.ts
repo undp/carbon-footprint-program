@@ -3,12 +3,12 @@ import {
   RequestLegalUploadResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { requestLegalUploadHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const requestLegalUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance
+  fastify,
+  options
 ) => {
   fastify.post(
     "/request-upload",
@@ -22,6 +22,10 @@ export const requestLegalUploadRoute: StandardRouteSignature = (
           200: RequestLegalUploadResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     requestLegalUploadHandler

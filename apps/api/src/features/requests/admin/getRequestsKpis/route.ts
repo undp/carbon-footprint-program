@@ -8,7 +8,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getRequestsKpisRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get(
     "/kpis",
@@ -26,6 +26,10 @@ export const getRequestsKpisRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getRequestsKpisHandler

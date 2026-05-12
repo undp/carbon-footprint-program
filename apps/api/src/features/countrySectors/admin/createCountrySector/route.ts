@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   CreateCountrySectorRequestSchema,
   CreateCountrySectorResponseSchema,
@@ -6,7 +6,10 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { createCountrySectorHandler } from "./handler.js";
 
-export const createCountrySectorRoute = (fastify: FastifyZodInstance) => {
+export const createCountrySectorRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/",
     {
@@ -21,6 +24,10 @@ export const createCountrySectorRoute = (fastify: FastifyZodInstance) => {
           400: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createCountrySectorHandler

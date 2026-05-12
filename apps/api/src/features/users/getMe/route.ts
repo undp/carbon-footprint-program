@@ -1,9 +1,9 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getMeHandler } from "./handler.js";
 import { GetMeResponse, GetMeResponseSchema, SystemRole } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getMeRoute = (fastify: FastifyZodInstance) => {
+export const getMeRoute: StandardRouteSignature = (fastify, options) => {
   fastify.get<{
     Reply: GetMeResponse;
   }>(
@@ -18,6 +18,10 @@ export const getMeRoute = (fastify: FastifyZodInstance) => {
           400: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([

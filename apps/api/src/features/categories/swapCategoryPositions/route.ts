@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { swapCategoryPositionsHandler } from "./handler.js";
 import {
   SwapCategoryPositionsRequestSchema,
@@ -6,7 +6,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const swapCategoryPositionsRoute = (fastify: FastifyZodInstance) => {
+export const swapCategoryPositionsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/swap-positions",
     {
@@ -21,6 +24,10 @@ export const swapCategoryPositionsRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     swapCategoryPositionsHandler

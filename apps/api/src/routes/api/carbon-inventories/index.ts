@@ -29,10 +29,6 @@ import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/se
 import { getSubcategoryRecommendationsRoute } from "@/features/carbonInventories/getSubcategoryRecommendations/route.js";
 import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCarbonInventory/route.js";
 import { assignOrganizationToCarbonInventoryRoute } from "@/features/carbonInventories/assignOrganizationToCarbonInventory/route.js";
-import { requestLineFileUploadRoute } from "@/features/carbonInventories/requestLineFileUpload/route.js";
-import { confirmLineFileUploadRoute } from "@/features/carbonInventories/confirmLineFileUpload/route.js";
-import { deleteLineFileRoute } from "@/features/carbonInventories/deleteLineFile/route.js";
-import { previewLineFileRoute } from "@/features/carbonInventories/previewLineFile/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -47,31 +43,33 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   );
 
   /* CALCULATOR ROUTES */
-  createCarbonInventoryRoute(fastify, { public: true });
-  getCarbonInventoryByIdRoute(fastify, { public: true });
-  getCarbonInventoryMethodologyRoute(fastify, { public: true });
-  getCarbonInventorySubcategoriesSummaryRoute(fastify, { public: true });
-  getEmissionsSummaryCategoriesRoute(fastify, { public: true });
-  getMainActivityEquivalenceRoute(fastify, { public: true });
-  getSubcategoriesRankingRoute(fastify, { public: true });
-  getSectorRankingRoute(fastify, { public: true });
-  getSuggestedReductionPlanRoute(fastify, { public: true });
+  createCarbonInventoryRoute(fastify, { allowAnonymousAccess: true });
+  getCarbonInventoryByIdRoute(fastify, { allowAnonymousAccess: true });
+  getCarbonInventoryMethodologyRoute(fastify, { allowAnonymousAccess: true });
+  getCarbonInventorySubcategoriesSummaryRoute(fastify, {
+    allowAnonymousAccess: true,
+  });
+  getEmissionsSummaryCategoriesRoute(fastify, { allowAnonymousAccess: true });
+  getMainActivityEquivalenceRoute(fastify, { allowAnonymousAccess: true });
+  getSubcategoriesRankingRoute(fastify, { allowAnonymousAccess: true });
+  getSectorRankingRoute(fastify, { allowAnonymousAccess: true });
+  getSuggestedReductionPlanRoute(fastify, { allowAnonymousAccess: true });
   getReductionPlanRoute(fastify);
-  getEmissionsDetailedSummaryRoute(fastify, { public: true });
-  getEmissionFactorsRoute(fastify, { public: true });
-  getCarbonInventoryMetadataRoute(fastify, { public: true });
-  getCarbonInventoryAccessRoute(fastify, { public: true });
-  getSubcategoryRecommendationsRoute(fastify, { public: true });
+  getEmissionsDetailedSummaryRoute(fastify, { allowAnonymousAccess: true });
+  getEmissionFactorsRoute(fastify, { allowAnonymousAccess: true });
+  getCarbonInventoryMetadataRoute(fastify, { allowAnonymousAccess: true });
+  getCarbonInventoryAccessRoute(fastify, { allowAnonymousAccess: true });
+  getSubcategoryRecommendationsRoute(fastify, { allowAnonymousAccess: true });
   // At the following routes, user needs at least CONTRIBUTOR org. role for this inventory
-  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
-  toggleManualTotalEmissionsRoute(fastify, { public: true });
-  syncCarbonInventoryLinesRoute(fastify, { public: true });
-  requestLineFileUploadRoute(fastify, { public: true });
-  confirmLineFileUploadRoute(fastify, { public: true });
-  deleteLineFileRoute(fastify, { public: true });
-  previewLineFileRoute(fastify, { public: true });
+  addSubcategoriesToCarbonInventoryRoute(fastify, {
+    allowAnonymousAccess: true,
+  });
+  updateCarbonInventoryRoute(fastify, { allowAnonymousAccess: true });
+  updateCarbonInventorySubcategoriesRoute(fastify, {
+    allowAnonymousAccess: true,
+  });
+  toggleManualTotalEmissionsRoute(fastify, { allowAnonymousAccess: true });
+  syncCarbonInventoryLinesRoute(fastify, { allowAnonymousAccess: true });
 
   /* GETTERS */
   getCarbonInventoriesMinimalRoute(fastify);

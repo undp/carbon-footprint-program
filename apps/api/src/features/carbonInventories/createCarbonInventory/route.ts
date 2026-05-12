@@ -26,6 +26,7 @@ export const createCarbonInventoryRoute: StandardRouteSignature = (
       },
       config: {
         public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createCarbonInventoryHandler

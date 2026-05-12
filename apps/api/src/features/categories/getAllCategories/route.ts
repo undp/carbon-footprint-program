@@ -1,11 +1,14 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllCategoriesHandler } from "./handler.js";
 import {
   GetAllCategoriesQuerySchema,
   GetAllCategoriesResponseSchema,
 } from "@repo/types";
 
-export const getAllCategoriesRoute = (fastify: FastifyZodInstance) => {
+export const getAllCategoriesRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -18,6 +21,10 @@ export const getAllCategoriesRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetAllCategoriesResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllCategoriesHandler

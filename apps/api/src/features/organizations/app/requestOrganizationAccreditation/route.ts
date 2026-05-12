@@ -13,7 +13,7 @@ import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.post<{
     Params: RequestOrganizationAccreditationParams;
@@ -34,6 +34,10 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(idRequestExtractor, {

@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getUserByIdHandler } from "./handler.js";
 import {
   GetUserByIdParams,
@@ -9,7 +9,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
+export const getUserByIdRoute: StandardRouteSignature = (fastify, options) => {
   fastify.get<{
     Params: GetUserByIdParams;
     Reply: GetUserByIdResponse;
@@ -25,6 +25,10 @@ export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
           200: GetUserByIdResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),

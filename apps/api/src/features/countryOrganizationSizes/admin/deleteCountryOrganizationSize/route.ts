@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   DeleteCountryOrganizationSizeParamsSchema,
   DeleteCountryOrganizationSizeResponseSchema,
@@ -6,8 +6,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { deleteCountryOrganizationSizeHandler } from "./handler.js";
 
-export const deleteCountryOrganizationSizeRoute = (
-  fastify: FastifyZodInstance
+export const deleteCountryOrganizationSizeRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.delete(
     "/:id",
@@ -20,6 +21,10 @@ export const deleteCountryOrganizationSizeRoute = (
           200: DeleteCountryOrganizationSizeResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteCountryOrganizationSizeHandler

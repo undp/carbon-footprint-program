@@ -13,7 +13,7 @@ import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const updateOrganizationRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.patch<{
     Params: UpdateOrganizationParams;
@@ -33,6 +33,10 @@ export const updateOrganizationRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(idRequestExtractor, {

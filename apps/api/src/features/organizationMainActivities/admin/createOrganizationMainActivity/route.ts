@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   CreateOrganizationMainActivityRequestSchema,
   CreateOrganizationMainActivityResponseSchema,
@@ -6,8 +6,9 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { createOrganizationMainActivityHandler } from "./handler.js";
 
-export const createOrganizationMainActivityRoute = (
-  fastify: FastifyZodInstance
+export const createOrganizationMainActivityRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.post(
     "/",
@@ -22,6 +23,10 @@ export const createOrganizationMainActivityRoute = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createOrganizationMainActivityHandler

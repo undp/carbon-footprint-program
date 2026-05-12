@@ -9,7 +9,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { downloadFileHandler } from "./handler.js";
 
-export const downloadFileRoute: StandardRouteSignature = (fastify) => {
+export const downloadFileRoute: StandardRouteSignature = (fastify, options) => {
   fastify.get<{
     Params: DownloadFileParams;
     Reply: DownloadFileResponse;
@@ -25,6 +25,10 @@ export const downloadFileRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireRoles([

@@ -2,7 +2,7 @@ import type { FastifyZodInstance } from "@/types/fastify.js";
 
 export type StandardRouteSignature = (
   fastify: FastifyZodInstance,
-  options?: { public?: boolean }
+  options?: { public?: boolean; allowAnonymousAccess?: boolean }
 ) => void;
 
 export default function apiRoutes(fastify: FastifyZodInstance) {

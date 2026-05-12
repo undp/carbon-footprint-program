@@ -28,6 +28,7 @@ export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature
         },
         config: {
           public: options?.public ?? false,
+          allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
         },
         preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
       },

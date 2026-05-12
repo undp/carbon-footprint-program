@@ -1,15 +1,17 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getTransparencyDataHandler } from "./handler.js";
 import {
   GetTransparencyDataQuerySchema,
   GetTransparencyDataResponseSchema,
 } from "@repo/types";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getTransparencyDataRoute = (fastify: FastifyZodInstance) => {
+export const getTransparencyDataRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
-      config: { public: true },
       schema: {
         tags: ["transparency"],
         summary: "Get transparency data",
@@ -19,6 +21,10 @@ export const getTransparencyDataRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetTransparencyDataResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getTransparencyDataHandler

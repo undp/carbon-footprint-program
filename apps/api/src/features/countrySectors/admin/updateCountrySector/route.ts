@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import {
   UpdateCountrySectorParamsSchema,
   UpdateCountrySectorRequestSchema,
@@ -7,7 +7,10 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { updateCountrySectorHandler } from "./handler.js";
 
-export const updateCountrySectorRoute = (fastify: FastifyZodInstance) => {
+export const updateCountrySectorRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch(
     "/:id",
     {
@@ -24,6 +27,10 @@ export const updateCountrySectorRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateCountrySectorHandler

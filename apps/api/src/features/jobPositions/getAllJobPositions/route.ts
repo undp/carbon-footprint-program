@@ -1,9 +1,12 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getAllJobPositionsHandler } from "./handler.js";
 import { GetAllJobPositionsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
+export const getAllJobPositionsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/",
     {
@@ -15,6 +18,10 @@ export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
           200: GetAllJobPositionsResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getAllJobPositionsHandler

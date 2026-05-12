@@ -1,6 +1,6 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { GetCurrentTermsConditionsResponseSchema } from "@repo/types";
 import { getCurrentTermsConditionsHandler } from "./handler.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 /**
  * Metadata about the current Terms & Conditions PDF (just `fileName`).
@@ -9,11 +9,13 @@ import { getCurrentTermsConditionsHandler } from "./handler.js";
  * endpoint exists only so the public landing page can decide whether a T&C
  * link should be rendered at all (graceful UX when none has been seeded yet).
  */
-export const getCurrentTermsConditionsRoute = (fastify: FastifyZodInstance) => {
+export const getCurrentTermsConditionsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/current",
     {
-      config: { public: true },
       schema: {
         tags: ["terms-conditions"],
         summary: "Get metadata about the current Terms & Conditions PDF",
@@ -22,6 +24,10 @@ export const getCurrentTermsConditionsRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetCurrentTermsConditionsResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getCurrentTermsConditionsHandler

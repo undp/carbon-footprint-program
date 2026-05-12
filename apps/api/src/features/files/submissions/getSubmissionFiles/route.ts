@@ -4,12 +4,12 @@ import {
   GetSubmissionFilesResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionGetFilesHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const submissionGetFilesRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance
+  fastify,
+  options
 ) => {
   fastify.get(
     "/:submissionId",
@@ -23,6 +23,10 @@ export const submissionGetFilesRoute: StandardRouteSignature = (
           200: GetSubmissionFilesResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     submissionGetFilesHandler

@@ -1,10 +1,13 @@
 import { z } from "zod";
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteMagnitudeHandler } from "./handler.js";
 import { DeleteMagnitudeParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteMagnitudeRoute = (fastify: FastifyZodInstance) => {
+export const deleteMagnitudeRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.delete(
     "/:id",
     {
@@ -22,6 +25,10 @@ export const deleteMagnitudeRoute = (fastify: FastifyZodInstance) => {
           422: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteMagnitudeHandler

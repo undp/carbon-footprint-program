@@ -9,7 +9,10 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
-export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
+export const requestCalculationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post<{ Params: RequestCalculationParams }>(
     "/:id/request-calculation",
     {
@@ -25,6 +28,10 @@ export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(idRequestExtractor, {

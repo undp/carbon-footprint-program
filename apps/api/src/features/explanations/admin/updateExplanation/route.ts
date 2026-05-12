@@ -9,7 +9,7 @@ import { updateExplanationHandler } from "./handler.js";
 
 export const updateExplanationRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.patch(
     "/:slug",
@@ -27,6 +27,10 @@ export const updateExplanationRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateExplanationHandler

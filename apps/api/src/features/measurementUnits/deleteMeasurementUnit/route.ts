@@ -1,9 +1,12 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteMeasurementUnitHandler } from "./handler.js";
 import { DeleteMeasurementUnitParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteMeasurementUnitRoute = (fastify: FastifyZodInstance) => {
+export const deleteMeasurementUnitRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.delete(
     "/:id",
     {
@@ -20,6 +23,10 @@ export const deleteMeasurementUnitRoute = (fastify: FastifyZodInstance) => {
           422: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteMeasurementUnitHandler

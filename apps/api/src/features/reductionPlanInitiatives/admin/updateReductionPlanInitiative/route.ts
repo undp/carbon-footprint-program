@@ -11,7 +11,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const updateReductionPlanInitiativeRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.patch<{
     Params: UpdateReductionPlanInitiativeParams;
@@ -32,6 +32,10 @@ export const updateReductionPlanInitiativeRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateReductionPlanInitiativeHandler

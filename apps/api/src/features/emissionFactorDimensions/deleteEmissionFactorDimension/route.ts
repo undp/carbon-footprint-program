@@ -1,10 +1,11 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteEmissionFactorDimensionHandler } from "./handler.js";
 import { DeleteEmissionFactorDimensionParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteEmissionFactorDimensionRoute = (
-  fastify: FastifyZodInstance
+export const deleteEmissionFactorDimensionRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.delete(
     "/:id",
@@ -18,6 +19,10 @@ export const deleteEmissionFactorDimensionRoute = (
         response: {
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     deleteEmissionFactorDimensionHandler

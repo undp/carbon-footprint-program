@@ -14,7 +14,7 @@ import { organizationIdRequestExtractor } from "../../helpers.js";
 
 export const updateOrganizationUserRoleRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.patch<{
     Params: UpdateOrganizationUserRoleParams;
@@ -36,6 +36,10 @@ export const updateOrganizationUserRoleRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
       preHandler: [
         fastify.requireOrganizationRole(organizationIdRequestExtractor, {

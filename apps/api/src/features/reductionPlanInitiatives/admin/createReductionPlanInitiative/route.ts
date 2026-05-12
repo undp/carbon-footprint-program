@@ -9,7 +9,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const createReductionPlanInitiativeRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.post<{ Body: CreateReductionPlanInitiativeRequest }>(
     "/",
@@ -26,6 +26,10 @@ export const createReductionPlanInitiativeRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     createReductionPlanInitiativeHandler

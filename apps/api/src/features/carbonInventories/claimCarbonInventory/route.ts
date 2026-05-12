@@ -7,7 +7,10 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const claimCarbonInventoryRoute: StandardRouteSignature = (fastify) => {
+export const claimCarbonInventoryRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post<{ Params: ClaimCarbonInventoryParams }>(
     "/:id/claim",
     {
@@ -22,6 +25,10 @@ export const claimCarbonInventoryRoute: StandardRouteSignature = (fastify) => {
           400: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     claimCarbonInventoryHandler

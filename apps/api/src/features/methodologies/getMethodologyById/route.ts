@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getMethodologyByIdHandler } from "./handler.js";
 import {
   GetMethodologyByIdParamsSchema,
@@ -7,7 +7,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getMethodologyByIdRoute = (fastify: FastifyZodInstance) => {
+export const getMethodologyByIdRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get<{
     Params: GetMethodologyByIdParams;
   }>(
@@ -23,6 +26,10 @@ export const getMethodologyByIdRoute = (fastify: FastifyZodInstance) => {
           200: GetMethodologyByIdResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     getMethodologyByIdHandler

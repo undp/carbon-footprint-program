@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 import { updateMeasurementUnitHandler } from "./handler.js";
 import {
   UpdateMeasurementUnitParamsSchema,
@@ -7,7 +7,10 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const updateMeasurementUnitRoute = (fastify: FastifyZodInstance) => {
+export const updateMeasurementUnitRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch(
     "/:id",
     {
@@ -28,6 +31,10 @@ export const updateMeasurementUnitRoute = (fastify: FastifyZodInstance) => {
           422: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
+        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
     updateMeasurementUnitHandler
