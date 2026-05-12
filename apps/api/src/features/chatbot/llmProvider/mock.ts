@@ -64,24 +64,6 @@ const isPlatformQuery = (text: string): boolean => {
   return platformCues.some((cue) => lower.includes(cue));
 };
 
-const isGreeting = (text: string): boolean => {
-  const lower = text.trim().toLowerCase();
-  const greetings = [
-    "hola",
-    "buenas",
-    "hi",
-    "hey",
-    "qué puedes hacer",
-    "que puedes hacer",
-    "ayuda",
-    "qué eres",
-    "que eres",
-    "en qué me ayudas",
-    "en que me ayudas",
-  ];
-  return greetings.some((g) => lower === g || lower.startsWith(`${g} `));
-};
-
 const splitIntoChunks = (text: string, minChunks: number): string[] => {
   const words = text.split(/(\s+)/).filter((part) => part.length > 0);
   if (words.length <= minChunks) return words;
@@ -95,9 +77,6 @@ const splitIntoChunks = (text: string, minChunks: number): string[] => {
 
 const REDIRECT_LITERAL =
   "Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono.";
-
-const WELCOME_RESPONSE =
-  "¡Hola! Puedo responder preguntas sobre metodología de huella de carbono, alcances 1, 2 y 3 y factores de emisión, citando fuentes verificadas como GHG Protocol e IPCC. La guía sobre el uso de la plataforma y la medición asistida llegarán en próximas versiones. ¿Quieres hacer una primera pregunta?";
 
 const findLatestToolMessage = (messages: LlmMessage[]): string | null => {
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -163,23 +142,6 @@ export const mockProvider: LLMProvider = {
         type: "usage",
         inputTokens: estimateTokens(joinedInput),
         outputTokens: estimateTokens(REDIRECT_LITERAL),
-      };
-      return;
-    }
-
-    // Modo C: greeting / orientation.
-    if (isGreeting(userMessage)) {
-      const chunks = splitIntoChunks(WELCOME_RESPONSE, 3);
-      for (const chunk of chunks) {
-        if (options.signal?.aborted) return;
-        await Promise.resolve();
-        yield { type: "delta", content: chunk };
-      }
-      if (options.signal?.aborted) return;
-      yield {
-        type: "usage",
-        inputTokens: estimateTokens(joinedInput),
-        outputTokens: estimateTokens(WELCOME_RESPONSE),
       };
       return;
     }
