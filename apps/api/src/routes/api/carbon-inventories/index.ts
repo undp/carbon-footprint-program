@@ -34,6 +34,7 @@ import { requestLineFileUploadRoute } from "@/features/carbonInventories/request
 import { confirmLineFileUploadRoute } from "@/features/carbonInventories/confirmLineFileUpload/route.js";
 import { deleteLineFileRoute } from "@/features/carbonInventories/deleteLineFile/route.js";
 import { previewLineFileRoute } from "@/features/carbonInventories/previewLineFile/route.js";
+import { getCarbonInventoryFilesManifestRoute } from "@/features/carbonInventories/getCarbonInventoryFilesManifest/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -66,6 +67,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
       confirmLineFileUploadRoute,
       deleteLineFileRoute,
       previewLineFileRoute,
+      getCarbonInventoryFilesManifestRoute,
 
       /* GETTERS */
       getCarbonInventoriesMinimalRoute,
