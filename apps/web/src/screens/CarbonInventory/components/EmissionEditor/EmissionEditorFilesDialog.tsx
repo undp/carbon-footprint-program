@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  LinearProgress,
   List,
   ListItem,
   ListItemText,
@@ -298,6 +299,15 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
             maxSizeMB={CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB}
             disabled={disabled || isUploading}
           />
+
+          {isUploading && (
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                Subiendo archivos...
+              </Typography>
+              <LinearProgress />
+            </Stack>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>
