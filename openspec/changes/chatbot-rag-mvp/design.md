@@ -116,6 +116,8 @@ The persistent foot-of-chat disclaimer (`"Huella usa IA y puede equivocarse. Ver
 
 **Rationale**: One tool, one corpus, simple educational queries don't need multi-round. Bounding rounds at one keeps latency, cost, and abuse surface predictable. Server-side `tool_call` preserves the foundation SSE contract verbatim.
 
+**Implementación auditada (2026-05-12)**: el restructure del handler para honrar el orden BEFORE hijack se aplicó en esta change. Trade-off latency en tool-round turns aceptado; si el TTFT post-tool excede expectativa en producción, revisitar acá explícitamente.
+
 ### 16. `searchKnowledge` tool signature: `{ query: string }` only
 
 **Decision**: Tool schema exposes `query: string` only. `topK` (8), `scope`, `sourceType` are server-side defaults.

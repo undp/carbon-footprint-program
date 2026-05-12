@@ -63,55 +63,13 @@ const buildLlmMessages = (
   { role: ChatMessageRole.USER, content: userContent },
 ];
 
-type ToolCallEvent = Extract<LlmStreamEvent, { type: "tool_call" }>;
-
-type StreamConsumeResult = {
-  buffer: string;
-  toolCall: ToolCallEvent | null;
-  usage: { inputTokens: number; outputTokens: number } | null;
-  firstChunkSeen: boolean;
-};
-
-const consumeStream = async (
-  stream: AsyncIterable<LlmStreamEvent>,
-  reply: FastifyReply,
-  assistantRowIdString: string,
-  signal: AbortSignal,
-  onDelta: (content: string) => void
-): Promise<StreamConsumeResult> => {
-  let buffer = "";
-  let toolCall: ToolCallEvent | null = null;
-  let usage: { inputTokens: number; outputTokens: number } | null = null;
-  let firstChunkSeen = false;
-  for await (const event of stream) {
-    if (signal.aborted) break;
-    if (event.type === "delta") {
-      if (!firstChunkSeen) firstChunkSeen = true;
-      buffer += event.content;
-      // Push the delta to the handler's outer assistantBuffer immediately so
-      // the disconnect finalizer's UPDATE captures everything sent to the
-      // client up to the disconnect point — not just whatever the most
-      // recent fully-resolved consumeStream() returned. Otherwise a mid-
-      // stream disconnect persists an empty / stale row even though the
-      // user already saw the partial reply on the wire.
-      onDelta(event.content);
-      writeSseEvent(
-        reply,
-        undefined,
-        { content: event.content },
-        { id: assistantRowIdString }
-      );
-    } else if (event.type === "tool_call") {
-      toolCall = event;
-    } else if (event.type === "usage") {
-      usage = {
-        inputTokens: event.inputTokens,
-        outputTokens: event.outputTokens,
-      };
-    }
-  }
-  return { buffer, toolCall, usage, firstChunkSeen };
-};
+// The handler peeks the first event of each stream before deciding whether
+// to hijack the response (per chatbot-message-streaming spec "Handler
+// executes a single round of tool calling server-side"). The previous
+// `consumeStream` helper expected a fully-async-iterable input AND
+// performed both the hijacked SSE write and the iteration loop in one pass,
+// so it could not express the peek-first / decide / drain pattern. Inline
+// iterator.next() loops replace it (see body of sendMessageHandler).
 
 export const sendMessageHandler = async (
   request: SendMessageRequest,
@@ -220,77 +178,75 @@ export const sendMessageHandler = async (
     throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
   }
 
-  // Hijack the response so we own the raw stream and Fastify won't try to
-  // serialize a JSON body for the 200 response schema.
-  reply.hijack();
-  writeSseHeaders(reply);
-
   const assistantRowIdString = assistantRowId.toString();
   const finalSources: SourceCitation[] = [];
-  // Mutated by consumeStream's onDelta callback so the disconnect finalizer
+  // Mutated as deltas arrive so the disconnect finalizer
   // (reply.raw.on("close")) reads the current partial content even if the
-  // stream is cut mid-flight before consumeStream() resolves.
+  // stream is cut mid-flight before the drain loop completes.
   const onDelta = (content: string): void => {
     assistantBuffer += content;
   };
 
-  let firstResult: StreamConsumeResult;
+  // Peek the first event of the first stream. Per chatbot-message-streaming
+  // spec ("Handler executes a single round of tool calling server-side"):
+  // the second round runs BEFORE reply.hijack() so its errors map to
+  // standard HTTP responses (503 / 500). The peek lets us know the turn
+  // shape — non-tool turns still hijack immediately to preserve delta-by-
+  // delta streaming; tool turns defer the hijack until the second-round
+  // outcome is known.
+  const firstIterator = firstStream[Symbol.asyncIterator]();
+  let firstPeek: IteratorResult<LlmStreamEvent>;
   try {
-    firstResult = await consumeStream(
-      firstStream,
-      reply,
-      assistantRowIdString,
-      abortController.signal,
-      onDelta
-    );
+    firstPeek = await firstIterator.next();
   } catch (err) {
     request.log.error(
-      {
-        err,
-        assistantRowId: assistantRowIdString,
-        firstChunkSeen: false,
-        round: 1,
-      },
-      "chatbot LLM provider stream errored"
+      { err, assistantRowId: assistantRowIdString, round: 1 },
+      "chatbot LLM provider first-round peek errored"
     );
-    writeSseEvent(reply, "error", {
-      code: "EXTERNAL_SERVICE_ERROR",
-      message: CHATBOT_GENERIC_ERROR_MESSAGE,
-    });
-    reply.raw.end();
-    return;
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+  }
+  if (firstPeek.done) {
+    request.log.error(
+      { assistantRowId: assistantRowIdString, round: 1 },
+      "chatbot LLM provider first-round stream produced no events"
+    );
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
   }
 
-  if (clientDisconnected || abortController.signal.aborted) {
-    return;
-  }
+  let usage: { inputTokens: number; outputTokens: number } | null = null;
+  const firstEvent = firstPeek.value;
 
-  let usage = firstResult.usage;
-  // assistantBuffer was already accumulated incrementally via the onDelta
-  // callback (so the disconnect finalizer captured it on early disconnect);
-  // overwriting it with firstResult.buffer here would be a no-op on the
-  // happy path AND would silently re-introduce stale state if the second
-  // round mutates assistantBuffer further.
+  if (firstEvent.type === "tool_call") {
+    // Tool round: execute server-side, then re-invoke once. Hijack stays
+    // deferred until either the RAG cap check fails (hijack + terminal
+    // SSE error event per spec) or the second round produces a streamable
+    // first event (hijack + stream). A second consecutive tool_call here
+    // throws ExternalServiceError pre-hijack — Fastify's error handler
+    // maps it to HTTP 503 per spec scenario "Second consecutive tool_call
+    // aborts the turn".
 
-  if (firstResult.toolCall) {
-    // Tool round: execute server-side, then re-invoke once.
+    // Drain anything left in the first iterator. Per chatbot-llm-provider
+    // spec scenario "Tool-call event terminates the stream", the next
+    // call to .next() returns done=true immediately — drain defensively
+    // so a provider that leaks events post-tool_call still releases its
+    // upstream resources.
+    let firstRemaining: IteratorResult<LlmStreamEvent>;
+    do {
+      firstRemaining = await firstIterator.next();
+    } while (!firstRemaining.done);
+
     let toolResult;
     try {
       toolResult = await executeSearchKnowledgeTool(
         prisma,
-        firstResult.toolCall.arguments
+        firstEvent.arguments
       );
     } catch (err) {
       request.log.error(
         { err, assistantRowId: assistantRowIdString, round: 1 },
         "chatbot searchKnowledge tool execution failed"
       );
-      writeSseEvent(reply, "error", {
-        code: "EXTERNAL_SERVICE_ERROR",
-        message: CHATBOT_GENERIC_ERROR_MESSAGE,
-      });
-      reply.raw.end();
-      return;
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
     }
 
     const toolMessageTokens = estimateTokens(toolResult.toolResultMessage);
@@ -303,19 +259,17 @@ export const sendMessageHandler = async (
         },
         "chatbot RAG context exceeds CHATBOT_MAX_RAG_CONTEXT_TOKENS"
       );
+      // Spec scenario "Oversized RAG context aborts the second round"
+      // mandates a terminal SSE error event AND truncated=true. Hijack
+      // now so the SSE wire is open, then emit the error and the explicit
+      // UPDATE before reply.raw.end() (the disconnect-finalizer's
+      // writableEnded short-circuit would otherwise skip the mark).
+      reply.hijack();
+      writeSseHeaders(reply);
       writeSseEvent(reply, "error", {
         code: "EXTERNAL_SERVICE_ERROR",
         message: CHATBOT_GENERIC_ERROR_MESSAGE,
       });
-      // Per chatbot-message-streaming spec scenario "Oversized RAG context
-      // aborts the second round": the assistant row SHALL be marked
-      // truncated=true. The disconnect-finalizer's `if
-      // (reply.raw.writableEnded) return` short-circuits after
-      // reply.raw.end() below — so the mark must be applied here
-      // explicitly. `content` captures whatever streamed before this abort
-      // point (0 chars in the current flow because the first round
-      // terminated on tool_call without emitting deltas; defensive in
-      // case the flow changes).
       try {
         await prisma.$executeRaw`UPDATE chatbot_chat_message SET truncated = true, content = ${assistantBuffer} WHERE id = ${assistantRowId}`;
       } catch (err) {
@@ -335,16 +289,16 @@ export const sendMessageHandler = async (
         content: "",
         toolCalls: [
           {
-            id: firstResult.toolCall.id,
-            name: firstResult.toolCall.name,
-            arguments: firstResult.toolCall.arguments,
+            id: firstEvent.id,
+            name: firstEvent.name,
+            arguments: firstEvent.arguments,
           },
         ],
       },
       {
         role: ChatMessageRole.TOOL,
         content: toolResult.toolResultMessage,
-        toolCallId: firstResult.toolCall.id,
+        toolCallId: firstEvent.id,
       },
     ];
 
@@ -360,23 +314,93 @@ export const sendMessageHandler = async (
         { err, assistantRowId: assistantRowIdString, round: 2 },
         "chatbot LLM provider second-round invocation failed"
       );
-      writeSseEvent(reply, "error", {
-        code: "EXTERNAL_SERVICE_ERROR",
-        message: CHATBOT_GENERIC_ERROR_MESSAGE,
-      });
-      reply.raw.end();
-      return;
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
     }
 
-    let secondResult: StreamConsumeResult;
+    // Peek the second stream's first event. A tool_call here violates
+    // the single-round invariant (spec scenario "Second consecutive
+    // tool_call aborts the turn") and SHALL be reported as HTTP 503 —
+    // throwing ExternalServiceError pre-hijack maps cleanly.
+    const secondIterator = secondStream[Symbol.asyncIterator]();
+    let secondPeek: IteratorResult<LlmStreamEvent>;
     try {
-      secondResult = await consumeStream(
-        secondStream,
-        reply,
-        assistantRowIdString,
-        abortController.signal,
-        onDelta
+      secondPeek = await secondIterator.next();
+    } catch (err) {
+      request.log.error(
+        { err, assistantRowId: assistantRowIdString, round: 2 },
+        "chatbot LLM provider second-round peek errored"
       );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+    if (secondPeek.done) {
+      request.log.error(
+        { assistantRowId: assistantRowIdString, round: 2 },
+        "chatbot LLM provider second-round stream produced no events"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+    const secondFirst = secondPeek.value;
+    if (secondFirst.type === "tool_call") {
+      request.log.error(
+        { assistantRowId: assistantRowIdString },
+        "chatbot LLM provider issued a second consecutive tool_call"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+
+    // Second round is going to stream — hijack now, emit the peeked
+    // event, drain the rest of the iterator into the wire.
+    reply.hijack();
+    writeSseHeaders(reply);
+
+    if (secondFirst.type === "delta") {
+      onDelta(secondFirst.content);
+      writeSseEvent(
+        reply,
+        undefined,
+        { content: secondFirst.content },
+        { id: assistantRowIdString }
+      );
+    } else if (secondFirst.type === "usage") {
+      usage = {
+        inputTokens: secondFirst.inputTokens,
+        outputTokens: secondFirst.outputTokens,
+      };
+    }
+
+    try {
+      let next = await secondIterator.next();
+      while (!next.done) {
+        if (abortController.signal.aborted) break;
+        const event = next.value;
+        if (event.type === "delta") {
+          onDelta(event.content);
+          writeSseEvent(
+            reply,
+            undefined,
+            { content: event.content },
+            { id: assistantRowIdString }
+          );
+        } else if (event.type === "usage") {
+          // Token accounting: per chatbot-message-streaming spec scenario
+          // "tokens_used on a tool turn uses the SECOND usage event", the
+          // persisted tokens_used SHALL come from the second (terminal)
+          // usage event ONLY — NOT a sum across both rounds. The first
+          // invocation terminates on tool_call (chatbot-llm-provider spec
+          // "Tool-call event terminates the stream") and provides no
+          // usage. Replace on each new usage event from this stream.
+          usage = {
+            inputTokens: event.inputTokens,
+            outputTokens: event.outputTokens,
+          };
+        }
+        // Per spec, tool_call SHALL NOT appear after deltas on the same
+        // stream. A misbehaving provider that emits one here would have
+        // its event ignored — we cannot revert the hijack at this point
+        // and the terminal `done`/`error` events are the only signal
+        // available.
+        next = await secondIterator.next();
+      }
     } catch (err) {
       request.log.error(
         { err, assistantRowId: assistantRowIdString, round: 2 },
@@ -394,10 +418,56 @@ export const sendMessageHandler = async (
       return;
     }
 
-    if (secondResult.toolCall) {
+    for (const validSource of toolResult.validSources) {
+      finalSources.push(validSource);
+    }
+  } else {
+    // firstEvent is delta | usage at this point (tool_call branch
+    // handled above). Non-tool turn — hijack now and stream the rest
+    // delta-by-delta.
+    reply.hijack();
+    writeSseHeaders(reply);
+
+    if (firstEvent.type === "delta") {
+      onDelta(firstEvent.content);
+      writeSseEvent(
+        reply,
+        undefined,
+        { content: firstEvent.content },
+        { id: assistantRowIdString }
+      );
+    } else if (firstEvent.type === "usage") {
+      usage = {
+        inputTokens: firstEvent.inputTokens,
+        outputTokens: firstEvent.outputTokens,
+      };
+    }
+
+    try {
+      let next = await firstIterator.next();
+      while (!next.done) {
+        if (abortController.signal.aborted) break;
+        const event = next.value;
+        if (event.type === "delta") {
+          onDelta(event.content);
+          writeSseEvent(
+            reply,
+            undefined,
+            { content: event.content },
+            { id: assistantRowIdString }
+          );
+        } else if (event.type === "usage") {
+          usage = {
+            inputTokens: event.inputTokens,
+            outputTokens: event.outputTokens,
+          };
+        }
+        next = await firstIterator.next();
+      }
+    } catch (err) {
       request.log.error(
-        { assistantRowId: assistantRowIdString },
-        "chatbot LLM provider issued a second consecutive tool_call"
+        { err, assistantRowId: assistantRowIdString, round: 1 },
+        "chatbot LLM provider first-round stream errored"
       );
       writeSseEvent(reply, "error", {
         code: "EXTERNAL_SERVICE_ERROR",
@@ -407,26 +477,8 @@ export const sendMessageHandler = async (
       return;
     }
 
-    // assistantBuffer is already up-to-date via onDelta; do NOT add
-    // secondResult.buffer here (that would double-count the second-round
-    // deltas because every delta was already pushed to assistantBuffer
-    // inside consumeStream).
-    //
-    // Token accounting: per chatbot-message-streaming spec scenario
-    // "tokens_used on a tool turn uses the SECOND usage event", the
-    // persisted tokens_used SHALL come from the second (terminal) usage
-    // event ONLY — NOT a sum across both rounds. The first invocation
-    // terminates on tool_call (chatbot-llm-provider spec scenario
-    // "Tool-call event terminates the stream") and provides no usage.
-    // Replace, do not accumulate.
-    if (secondResult.usage) {
-      usage = {
-        inputTokens: secondResult.usage.inputTokens,
-        outputTokens: secondResult.usage.outputTokens,
-      };
-    }
-    for (const validSource of toolResult.validSources) {
-      finalSources.push(validSource);
+    if (clientDisconnected || abortController.signal.aborted) {
+      return;
     }
   }
 
