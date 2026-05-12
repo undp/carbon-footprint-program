@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { PrismaClient } from "@repo/database";
+import { PrismaClient, generatePrismaAdapter } from "@repo/database";
 import { CorpusSourceStatus } from "@repo/database/enums";
 
 const USAGE = `\
@@ -43,7 +43,7 @@ const main = async (argv: string[]): Promise<number> => {
     throw err;
   }
 
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter: generatePrismaAdapter() });
   try {
     await prisma.$transaction(async (tx) => {
       const target = await tx.chatbotCorpusSource.findUnique({

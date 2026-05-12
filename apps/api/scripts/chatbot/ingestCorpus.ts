@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { Prisma, PrismaClient } from "@repo/database";
+import { Prisma, PrismaClient, generatePrismaAdapter } from "@repo/database";
 import {
   CorpusSourceScope,
   CorpusSourceStatus,
@@ -140,7 +140,7 @@ const main = async (argv: string[]): Promise<number> => {
     throw err;
   }
 
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ adapter: generatePrismaAdapter() });
   try {
     // Pre-flight: re-ingest collision check on existing DRAFT.
     const existing = await prisma.chatbotCorpusSource.findFirst({
