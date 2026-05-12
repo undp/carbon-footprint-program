@@ -21,8 +21,13 @@ export async function getSystemParameterIntValue(
     throw new ApplicationConfigError(`${key} is not set`);
   }
 
-  const parsed = Number(param.value);
-  if (!Number.isInteger(parsed)) {
+  if (!/^[+-]?\d+$/.test(param.value)) {
+    throw new ApplicationConfigError(
+      `${key} has non-integer value "${param.value}"`
+    );
+  }
+  const parsed = Number.parseInt(param.value, 10);
+  if (Number.isNaN(parsed)) {
     throw new ApplicationConfigError(
       `${key} has non-integer value "${param.value}"`
     );
