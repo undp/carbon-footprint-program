@@ -42,9 +42,10 @@ export const Group: FC<SidebarGroupProps> = ({
   const location = useLocation();
 
   const isActive = location.pathname === path;
-  const isChildActive = children.some(
+  const activeChildPath = children.find(
     (child) => location.pathname === child.path
-  );
+  )?.path;
+  const isChildActive = activeChildPath !== undefined;
 
   const [isOpen, setIsOpen] = useState(isChildActive);
 
@@ -60,8 +61,8 @@ export const Group: FC<SidebarGroupProps> = ({
   // Auto-expand when navigation lands on a child route
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (isChildActive) setIsOpen(true);
-  }, [isChildActive]);
+    if (activeChildPath !== undefined) setIsOpen(true);
+  }, [activeChildPath]);
 
   const handleToggleGroup = useCallback((event: React.MouseEvent) => {
     event.stopPropagation();
