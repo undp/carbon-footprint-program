@@ -13,7 +13,7 @@ Each response item SHALL include a `referenceCounts` object and a derived `total
 }
 ```
 
-`totalReferenceCount` SHALL equal the sum of the three category counts. The implementation SHALL compute the counts via three parallel `groupBy` queries (one per referencing column), regardless of the number of rate units in the result. The number of database queries per request SHALL be fixed at four (one main `findMany` + three `groupBy`).
+`totalReferenceCount` SHALL equal the sum of the two category counts. The implementation SHALL compute the counts via two parallel `groupBy` queries (one per referencing column present in `referenceCounts`: `emissionFactors` and `lineFactorsAsApplied`), regardless of the number of rate units in the result. The number of database queries per request SHALL be fixed at three (one main `findMany` + two `groupBy`).
 
 This requirement modifies the prior list-rates requirement to add the per-row counts. No filtering, search, or pagination querystring fields are added — the endpoint returns the full ACTIVE list.
 
