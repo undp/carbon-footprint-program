@@ -395,20 +395,17 @@ export const sendMessageHandler = async (
     // deltas because every delta was already pushed to assistantBuffer
     // inside consumeStream).
     //
-    // Token accounting: the spec wants `tokens_used = sum across rounds`
-    // for accurate per-turn cost. The OpenAI SDK's per-call usage covers
-    // ONLY that call, so on a tool turn we must add round-1 + round-2.
-    // Keep `usage` pointing at the SECOND round (the terminal round
-    // closing the assistant turn) for the `done` SSE payload — but
-    // accumulate inputTokens/outputTokens across both rounds for the
-    // persisted `tokens_used` below.
+    // Token accounting: per chatbot-message-streaming spec scenario
+    // "tokens_used on a tool turn uses the SECOND usage event", the
+    // persisted tokens_used SHALL come from the second (terminal) usage
+    // event ONLY — NOT a sum across both rounds. The first invocation
+    // terminates on tool_call (chatbot-llm-provider spec scenario
+    // "Tool-call event terminates the stream") and provides no usage.
+    // Replace, do not accumulate.
     if (secondResult.usage) {
-      const round1 = usage;
       usage = {
-        inputTokens:
-          (round1?.inputTokens ?? 0) + secondResult.usage.inputTokens,
-        outputTokens:
-          (round1?.outputTokens ?? 0) + secondResult.usage.outputTokens,
+        inputTokens: secondResult.usage.inputTokens,
+        outputTokens: secondResult.usage.outputTokens,
       };
     }
     for (const validSource of toolResult.validSources) {

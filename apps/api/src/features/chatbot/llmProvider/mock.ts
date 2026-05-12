@@ -147,7 +147,12 @@ export const mockProvider: LLMProvider = {
     }
 
     // Modo A: emit tool_call when the user message matches a documented keyword
-    // and the model has tools available.
+    // and the model has tools available. Per chatbot-llm-provider spec scenario
+    // "Tool-call event terminates the stream", no further events SHALL be
+    // yielded after tool_call — the previous trailing usage yield violated
+    // that contract and produced a stale round-1 usage value the handler
+    // double-counted in tokens_used (see chatbot-message-streaming spec
+    // scenario "tokens_used on a tool turn uses the SECOND usage event").
     const toolsAvailable = (options.tools?.length ?? 0) > 0;
     if (toolsAvailable && matchesToolKeyword) {
       toolCallCounter += 1;
@@ -156,11 +161,6 @@ export const mockProvider: LLMProvider = {
         id: `mock-call-${toolCallCounter}`,
         name: "searchKnowledge",
         arguments: JSON.stringify({ query: userMessage }),
-      };
-      yield {
-        type: "usage",
-        inputTokens: estimateTokens(joinedInput),
-        outputTokens: 0,
       };
       return;
     }
