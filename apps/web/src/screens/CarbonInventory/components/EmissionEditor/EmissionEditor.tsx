@@ -113,6 +113,25 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     }
   }, [manualModeLine, handleDeleteLine]);
 
+  const handleManualModeLineUploadFiles = useCallback(() => {
+    if (manualModeLine) {
+      setFilesDialog({ lineId: manualModeLine.lineId });
+    }
+  }, [manualModeLine]);
+
+  const { manualModeLinePendingFilesCount, manualModeLineLinkedFilesCount } =
+    useMemo(() => {
+      const removedFileIds = manualModeLine?.removedFileIds ?? [];
+      const visibleFiles = (manualModeLine?.files ?? []).filter(
+        (f) => !removedFileIds.includes(f.id)
+      );
+      const pending = visibleFiles.filter((f) => f.isPending).length;
+      return {
+        manualModeLinePendingFilesCount: pending,
+        manualModeLineLinkedFilesCount: visibleFiles.length - pending,
+      };
+    }, [manualModeLine]);
+
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
@@ -135,6 +154,9 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         manualModeLineIsCommentPending={manualModeLineIsCommentPending}
         onManualModeLineDelete={handleManualModeLineDelete}
         onManualModeLineComment={handleManualModeLineComment}
+        onManualModeLineUploadFiles={handleManualModeLineUploadFiles}
+        manualModeLinePendingFilesCount={manualModeLinePendingFilesCount}
+        manualModeLineLinkedFilesCount={manualModeLineLinkedFilesCount}
         hasEmissionFactors={subcategory.emissionFactors.length > 0}
       />
 

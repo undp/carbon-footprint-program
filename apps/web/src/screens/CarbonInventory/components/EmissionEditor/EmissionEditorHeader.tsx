@@ -35,6 +35,9 @@ interface EmissionEditorHeaderProps
   manualModeLineIsCommentPending?: boolean;
   onManualModeLineDelete?: () => void;
   onManualModeLineComment?: () => void;
+  onManualModeLineUploadFiles?: () => void;
+  manualModeLinePendingFilesCount?: number;
+  manualModeLineLinkedFilesCount?: number;
   hasEmissionFactors?: boolean;
 }
 
@@ -56,6 +59,9 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   manualModeLineIsCommentPending = false,
   onManualModeLineDelete,
   onManualModeLineComment,
+  onManualModeLineUploadFiles,
+  manualModeLinePendingFilesCount = 0,
+  manualModeLineLinkedFilesCount = 0,
   hasEmissionFactors,
 }) => {
   const { openExplanationContent } = useExplanationDialog();
@@ -196,9 +202,11 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             disabled={isManualModeLoading}
             hasComment={manualModeLineHasComment}
             isCommentPending={manualModeLineIsCommentPending}
-            uploadFiles={() => null}
+            uploadFiles={onManualModeLineUploadFiles}
             updateComment={onManualModeLineComment}
             deleteSource={onManualModeLineDelete}
+            pendingFilesCount={manualModeLinePendingFilesCount}
+            linkedFilesCount={manualModeLineLinkedFilesCount}
           />
         </Box>
       )}
