@@ -27,6 +27,7 @@ import {
 } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
 import { formatFileSize } from "@/utils/files";
+import { validateLineFileOriginalName } from "@/utils/validateLineFileOriginalName";
 import { useUploadCarbonInventoryLineFiles } from "@/api/query/carbonInventories/useUploadCarbonInventoryLineFiles";
 import { useDeleteCarbonInventoryLineFile } from "@/api/query/carbonInventories/useDeleteCarbonInventoryLineFile";
 import { usePreviewCarbonInventoryLineFile } from "@/api/query/carbonInventories/usePreviewCarbonInventoryLineFile";
@@ -104,8 +105,23 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
   const handleFilesPicked = useCallback(
     async (picked: File[]) => {
       if (picked.length === 0) return;
+
+      const valid: File[] = [];
+      for (const file of picked) {
+        const result = validateLineFileOriginalName(file.name);
+        if (result.ok) {
+          valid.push(file);
+        } else {
+          enqueueSnackbar(`"${file.name}": ${result.reason}`, {
+            variant: "error",
+          });
+        }
+      }
+
+      if (valid.length === 0) return;
+
       try {
-        const uploaded = await preUploadFiles(picked);
+        const uploaded = await preUploadFiles(valid);
         const next = [
           ...(getValues(filesPath) ?? []),
           ...uploaded.map<LineFileSummary>((file) => ({
