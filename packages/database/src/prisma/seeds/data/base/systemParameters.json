@@ -24,5 +24,11 @@
     "value": "",
     "description": "UUID of the File row used as the current Terms & Conditions PDF on the public landing page. Empty when no T&C has been uploaded yet.",
     "type": "file"
+  },
+  {
+    "key": "MEASURING_ORGANIZATIONS_YEAR_RANGE",
+    "value": "2",
+    "description": "Number of years subtracted from the current year when filtering carbon inventories considered as 'recent measurements' in the organization summary view and admin dashboard KPIs. Larger values widen the measurement window.",
+    "type": "number"
   }
 ]
