@@ -50,6 +50,26 @@ export const mockEmbeddingProvider: EmbeddingProvider = {
     texts: string[],
     options?: EmbedOptions
   ): Promise<EmbeddingResult> {
+    // Test-only mechanism for asserting CLI behavior on embedding
+    // failure (regression guard for chatbot-corpus-ingest spec scenario
+    // "Audit row persists on failure with NULL completed_at"). Requires
+    // NODE_ENV=test as a second-layer guard so an accidental env-var
+    // set in staging is a no-op. The ingest CLI runs in a subprocess
+    // (execSync), so vi.spyOn from the test process cannot reach this
+    // module — an env var crossing the process boundary is the
+    // simplest mechanism.
+    //
+    // DO NOT use this mechanism in any production code path.
+    // See apps/api/test/features/chatbot/ingest/integration.test.ts.
+    if (
+      process.env.__TEST_FORCE_EMBEDDING_FAILURE === "true" &&
+      process.env.NODE_ENV === "test"
+    ) {
+      throw new Error(
+        "Mock embedding provider forced to fail via __TEST_FORCE_EMBEDDING_FAILURE (test-only)"
+      );
+    }
+
     const vectors: number[][] = [];
     let inputTokens = 0;
     for (const text of texts) {

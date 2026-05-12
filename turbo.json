@@ -38,7 +38,8 @@
     "AZURE_OPENAI_EMBEDDING_API_VERSION",
     "EMBEDDING_PROVIDER",
     "USER",
-    "USERNAME"
+    "USERNAME",
+    "__TEST_FORCE_EMBEDDING_FAILURE"
   ],
   "tasks": {
     "clean": {
