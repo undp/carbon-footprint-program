@@ -22,7 +22,12 @@ export const previewLineFileService = async (
 
   const file = await prisma.file.findUnique({
     where: { uuid },
-    select: { status: true, blobPath: true, mimeType: true },
+    select: {
+      status: true,
+      blobPath: true,
+      mimeType: true,
+      originalName: true,
+    },
   });
   if (!file || file.status !== FileStatus.ACTIVE) {
     throw new FileNotFoundError(uuid);
@@ -34,11 +39,16 @@ export const previewLineFileService = async (
     throw new CrossInventoryFileLinkingError(carbonInventoryId, uuid);
   }
 
+  const encodedName = encodeURIComponent(file.originalName);
+
   const { url, expiresAt } = await generateReadSasUrl(
     blobServiceClient,
     containerName,
     file.blobPath,
-    { contentType: file.mimeType }
+    {
+      contentType: file.mimeType,
+      contentDisposition: `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`,
+    }
   );
 
   return { url, expiresAt: expiresAt.toISOString() };
