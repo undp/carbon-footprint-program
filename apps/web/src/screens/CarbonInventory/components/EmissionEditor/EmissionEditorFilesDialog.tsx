@@ -26,6 +26,7 @@ import {
   CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB,
 } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
+import { OverflowTooltipText } from "@/components/OverflowTooltipText";
 import { formatFileSize } from "@/utils/files";
 import { validateLineFileOriginalName } from "@/utils/validateLineFileOriginalName";
 import { useUploadCarbonInventoryLineFiles } from "@/api/query/carbonInventories/useUploadCarbonInventoryLineFiles";
@@ -222,57 +223,56 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                     borderRadius: 1,
                     px: 1,
                     mb: 0.5,
+                    gap: 1,
                   }}
-                  secondaryAction={
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      <IconButton
-                        size="small"
-                        aria-label={`Previsualizar ${file.originalName}`}
-                        onClick={() => handlePreview(file)}
-                        disabled={disabled}
-                      >
-                        <VisibilityOutlined fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        aria-label={`Eliminar ${file.originalName}`}
-                        onClick={() => handleDelete(file)}
-                        disabled={disabled || isDeleting}
-                      >
-                        <DeleteOutlined fontSize="small" color="error" />
-                      </IconButton>
-                    </Box>
-                  }
                 >
                   <InsertDriveFileOutlined
                     fontSize="small"
-                    sx={{ mr: 1, color: "text.secondary" }}
+                    sx={{ color: "text.secondary", flexShrink: 0 }}
                   />
                   <ListItemText
+                    sx={{ minWidth: 0, my: 0, flex: 1 }}
                     primary={
                       <Box
                         sx={{
                           display: "flex",
                           alignItems: "center",
                           gap: 1,
+                          minWidth: 0,
                         }}
                       >
-                        <Typography
-                          variant="body2"
-                          noWrap
-                          title={file.originalName}
-                          sx={{ fontWeight: 500, minWidth: 0 }}
+                        <OverflowTooltipText
+                          sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
                         >
                           {file.originalName}
-                        </Typography>
+                        </OverflowTooltipText>
                         {file.isPending && (
                           <Chip
                             label="Pendiente de guardar"
                             size="small"
                             color="warning"
                             variant="outlined"
+                            sx={{ flexShrink: 0 }}
                           />
                         )}
+                        <Box sx={{ display: "flex", flexShrink: 0 }}>
+                          <IconButton
+                            size="small"
+                            aria-label={`Previsualizar ${file.originalName}`}
+                            onClick={() => handlePreview(file)}
+                            disabled={disabled}
+                          >
+                            <VisibilityOutlined fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            aria-label={`Eliminar ${file.originalName}`}
+                            onClick={() => handleDelete(file)}
+                            disabled={disabled || isDeleting}
+                          >
+                            <DeleteOutlined fontSize="small" color="error" />
+                          </IconButton>
+                        </Box>
                       </Box>
                     }
                     secondary={formatFileSize(file.sizeBytes)}
