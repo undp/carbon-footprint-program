@@ -16,7 +16,7 @@ import { resolveCurrentTermsConditionsBlob } from "./service.js";
  * the same managed-identity-backed ContainerClient used by the upload flow,
  * and pipes the bytes straight back as the HTTP response body.
  *
- * Auth: this route is mounted with `config.public = true` because the T&C is
+ * Auth: this route is mounted with `config.allowPublicAccess = true` because the T&C is
  * meant to be discoverable by anyone visiting the landing page.
  */
 export const streamCurrentTermsConditionsHandler = async (

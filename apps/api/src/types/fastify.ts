@@ -187,7 +187,7 @@ declare module "fastify" {
   }
   interface FastifyContextConfig {
     /** Marks a route as truly public — no authentication or credentials required. */
-    public?: boolean;
+    allowPublicAccess?: boolean;
     /**
      * Marks a route as supporting anonymous access via an alternative credential
      * (e.g. the `x-carbon-inventory-uuid` header). The route still works for

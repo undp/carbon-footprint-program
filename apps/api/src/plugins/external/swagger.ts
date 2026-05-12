@@ -34,7 +34,7 @@ export const autoConfig: FastifyDynamicSwaggerOptions = {
   transform: ({ schema, url, route, ...rest }) => {
     const config = route.config;
     let security: Array<Record<string, string[]>>;
-    if (config?.public === true) {
+    if (config?.allowPublicAccess === true) {
       security = [];
     } else if (config?.allowAnonymousAccess === true) {
       security = [{ bearerAuth: [] }, { inventoryUuid: [] }];

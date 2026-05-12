@@ -43,7 +43,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   );
 
   /* CALCULATOR ROUTES */
-  createCarbonInventoryRoute(fastify, { allowAnonymousAccess: true });
+  createCarbonInventoryRoute(fastify, { allowPublicAccess: true });
   getCarbonInventoryByIdRoute(fastify, { allowAnonymousAccess: true });
   getCarbonInventoryMethodologyRoute(fastify, { allowAnonymousAccess: true });
   getCarbonInventorySubcategoriesSummaryRoute(fastify, {

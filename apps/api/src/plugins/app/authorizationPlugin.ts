@@ -57,7 +57,7 @@ const authorizationPlugin: FastifyPluginCallback = (fastify) => {
       const log = request.log.child({ module: "authorization" });
       const routeConfig = request.routeOptions?.config;
       const isPrivateRoute =
-        !routeConfig?.public && !routeConfig?.allowAnonymousAccess;
+        !routeConfig?.allowPublicAccess && !routeConfig?.allowAnonymousAccess;
 
       if (!isPrivateRoute) {
         log.debug(

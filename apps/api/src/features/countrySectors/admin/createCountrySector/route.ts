@@ -26,7 +26,7 @@ export const createCountrySectorRoute: StandardRouteSignature = (
         },
       },
       config: {
-        public: options?.public ?? false,
+        allowPublicAccess: options?.allowPublicAccess ?? false,
         allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
       },
     },
