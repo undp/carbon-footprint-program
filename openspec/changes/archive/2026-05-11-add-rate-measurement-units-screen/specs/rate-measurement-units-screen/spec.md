@@ -2,7 +2,7 @@
 
 ### Requirement: Rate measurement units screen at `/admin/rate-measurement-units`
 
-The system SHALL expose an admin maintainer screen at the route `/admin/rate-measurement-units`, accessible only to users with system role `SUPERADMIN`. The screen SHALL render a paginated `StylizedDataGrid` of ACTIVE rate measurement units returned by `GET /api/measurement-units/rates`, with no mutation affordances (no edit toggle, no row actions, no add button).
+The system SHALL expose an admin maintainer screen at the route `/admin/rate-measurement-units`, accessible only to users with system role `SUPERADMIN`. The screen SHALL render a paginated `StylizedDataGrid` of ACTIVE rate measurement units returned by `GET /api/measurement-units/rates`, with no mutation affordances (no edit toggle, no row actions, no add button) and no filter controls.
 
 #### Scenario: Non-superadmin access
 
@@ -13,25 +13,6 @@ The system SHALL expose an admin maintainer screen at the route `/admin/rate-mea
 
 - **WHEN** the screen mounts and `useRateMeasurementUnits()` resolves
 - **THEN** the grid SHALL render columns `abbreviation`, numerator's `abbreviation`, numerator's `magnitude.name`, denominator's `abbreviation`, denominator's `magnitude.name`, and `totalReferenceCount`, sorted by `totalReferenceCount` DESC by default
-
-### Requirement: URL-driven filter state
-
-The screen SHALL expose three optional filters whose state lives in the URL search params: `numeratorMagnitudeId`, `denominatorMagnitudeId`, and `search`. The query hook SHALL read these filters from `useSearch` (TanStack Router) and forward them to the API.
-
-#### Scenario: Filter writes update URL
-
-- **WHEN** the admin selects a numerator magnitude in the header filter strip
-- **THEN** the URL SHALL be updated with `?numeratorMagnitudeId=<id>` and the API call SHALL include the same filter
-
-#### Scenario: Search input is debounced
-
-- **WHEN** the admin types into the search field
-- **THEN** the URL update and the resulting API call SHALL be debounced (300ms via the existing debounce constant in `apps/web/src/config/constants.ts`); rapid typing produces a single eventual API call, not one per keystroke
-
-#### Scenario: URL state persists across reloads
-
-- **WHEN** an admin loads `/admin/rate-measurement-units?numeratorMagnitudeId=…&denominatorMagnitudeId=…&search=…`
-- **THEN** the screen SHALL apply all three filters on first render and the filter controls SHALL reflect the values
 
 ### Requirement: Read-only grid with no mutation affordances
 
@@ -62,9 +43,9 @@ The `totalReferenceCount` column SHALL render the integer total. On hover, a too
 
 ### Requirement: All UI text is in Spanish
 
-The screen, its column headers, filter labels, placeholders, tooltips, and empty-state messages SHALL be in Spanish, consistent with the rest of the app.
+The screen, its column headers, tooltips, and empty-state messages SHALL be in Spanish, consistent with the rest of the app.
 
-#### Scenario: Column headers and filter labels are in Spanish
+#### Scenario: Column headers and tooltips are in Spanish
 
 - **WHEN** a SUPERADMIN user opens `/admin/rate-measurement-units`
-- **THEN** every visible column header, filter label, placeholder, and empty-state message SHALL be rendered in Spanish
+- **THEN** every visible column header, tooltip label, and empty-state message SHALL be rendered in Spanish

@@ -9,9 +9,20 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  cleanupCarbonInventoryTestData,
+  carbonInventoryPatterns,
+  createInventoryFromPattern,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+  createCarbonInventoryLineFactor,
+  getSubcategoryIds,
+} from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { createTestEmissionFactor } from "@test/factories/emissionFactorFactory.js";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 
 describe("GET /api/measurement-units/rates - Integration Tests", () => {
   let app: FastifyInstance;
@@ -247,6 +258,139 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       const uniqueAbbreviations = new Set(abbreviations);
 
       expect(uniqueAbbreviations.size).toBe(abbreviations.length);
+    });
+  });
+
+  describe("Reference counts and response shape", () => {
+    afterEach(async () => {
+      // Remove any references created during the test so subsequent tests
+      // get a clean reference-count picture.
+      await cleanupCarbonInventoryTestData(prisma);
+      // Remove any test emission factors created during the test (others may
+      // exist in seed data and are left alone).
+      await prisma.emissionFactor.deleteMany({
+        where: { source: { startsWith: "rmu-screen-test" } },
+      });
+    });
+
+    it("returns referenceCounts and totalReferenceCount for each ACTIVE rate unit", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units/rates",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllRateMeasurementUnitsResponse;
+
+      expect(body.length).toBeGreaterThan(0);
+      for (const item of body) {
+        expect(item.referenceCounts).toBeDefined();
+        expect(item.referenceCounts.emissionFactors).toBeGreaterThanOrEqual(0);
+        expect(
+          item.referenceCounts.lineFactorsAsApplied
+        ).toBeGreaterThanOrEqual(0);
+        expect(item.totalReferenceCount).toBe(
+          item.referenceCounts.emissionFactors +
+            item.referenceCounts.lineFactorsAsApplied
+        );
+      }
+    });
+
+    it("reports accurate per-category reference counts and totals", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+
+      // Pick a rate unit deterministically (kg/L is a stable canonical RMU).
+      const targetRateUnit = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: "kg/L" },
+      });
+
+      // Insert known counts of references against the target RMU.
+      // emissionFactors: 2
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        targetRateUnit.id,
+        { source: "rmu-screen-test-1" }
+      );
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        targetRateUnit.id,
+        { source: "rmu-screen-test-2" }
+      );
+
+      // Create a carbon inventory so we can add lines/inputs/factors.
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      // lineFactorsAsApplied: 3
+      for (let i = 0; i < 3; i++) {
+        const line = await createCarbonInventoryLine(
+          prisma,
+          inventory.id,
+          subcategoryIds[0]
+        );
+        const input = await createCarbonInventoryLineInput(prisma, line.id, {
+          inputType: "DIRECT",
+          directTotalEmissions: new Prisma.Decimal(20),
+        });
+        await createCarbonInventoryLineFactor(prisma, input.id, {
+          appliedFactorValue: new Prisma.Decimal(1.5),
+          appliedFactorRateUnitId: targetRateUnit.id,
+          appliedFactorSource: "rmu-screen-test-applied",
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units/rates",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllRateMeasurementUnitsResponse;
+
+      const targetItem = body.find(
+        (i) => i.id === targetRateUnit.id.toString()
+      );
+      expect(targetItem).toBeDefined();
+      expect(targetItem!.referenceCounts.emissionFactors).toBe(2);
+      expect(targetItem!.referenceCounts.lineFactorsAsApplied).toBe(3);
+      expect(targetItem!.totalReferenceCount).toBe(5);
+    });
+
+    it("returns each joined numerator/denominator MU with its own magnitude object", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units/rates",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllRateMeasurementUnitsResponse;
+      expect(body.length).toBeGreaterThan(0);
+
+      for (const item of body) {
+        for (const magnitude of [
+          item.numeratorUnit.magnitude,
+          item.denominatorUnit.magnitude,
+        ]) {
+          expect(typeof magnitude.id).toBe("string");
+          expect(typeof magnitude.code).toBe("string");
+          expect(typeof magnitude.name).toBe("string");
+          expect(typeof magnitude.isSystem).toBe("boolean");
+          expect(typeof magnitude.status).toBe("string");
+        }
+      }
     });
   });
 });

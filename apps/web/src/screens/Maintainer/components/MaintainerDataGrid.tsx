@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { SxProps, Theme } from "@mui/material";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { SxProps, Theme, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
 import type {
   GridColDef,
@@ -11,6 +11,7 @@ import { StylizedDataGrid, type StylizedDataGridProps } from "@components";
 import { useFuzzySearch } from "@/hooks";
 import { pinEditingRowColumn } from "@/utils/dataGridPinEditingRow";
 import { MaintainerToolbar } from "./MaintainerToolbar";
+import { useSnackbar } from "notistack";
 
 export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   fuseOptions: IFuseOptions<T>;
@@ -25,6 +26,7 @@ interface MaintainerDataGridProps<
   editingRowId: string | null;
   cellMaxHeight?: number;
   searchable?: MaintainerDataGridSearchable<T>;
+  errorMessage?: string;
 }
 
 type SxArrayItem = Extract<SxProps<Theme>, readonly unknown[]>[number];
@@ -38,6 +40,7 @@ export const MaintainerDataGrid = <
 >({
   editingRowId,
   cellMaxHeight = 100,
+  errorMessage,
   sx,
   getRowClassName,
   getRowId,
@@ -48,6 +51,7 @@ export const MaintainerDataGrid = <
   slotProps,
   ...props
 }: MaintainerDataGridProps<T>) => {
+  const { enqueueSnackbar } = useSnackbar();
   const [searchQuery, setSearchQuery] = useState("");
 
   const rowsArray = useMemo<T[]>(
@@ -129,6 +133,21 @@ export const MaintainerDataGrid = <
     : sx
       ? [sx as SxArrayItem]
       : [];
+
+  useEffect(() => {
+    if (errorMessage)
+      enqueueSnackbar({
+        message: errorMessage,
+        variant: "error",
+      });
+  }, [errorMessage, enqueueSnackbar]);
+
+  if (errorMessage)
+    return (
+      <Typography variant="body2" color="error">
+        {errorMessage}
+      </Typography>
+    );
 
   return (
     <StylizedDataGrid

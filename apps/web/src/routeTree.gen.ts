@@ -28,6 +28,7 @@ import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcatego
 import { Route as AdminSectorsRouteImport } from './routes/admin/sectors'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
 import { Route as AdminReductionPlanInitiativesRouteImport } from './routes/admin/reduction-plan-initiatives'
+import { Route as AdminRateMeasurementUnitsRouteImport } from './routes/admin/rate-measurement-units'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminOrganizationSizesRouteImport } from './routes/admin/organization-sizes'
@@ -153,6 +154,12 @@ const AdminReductionPlanInitiativesRoute =
   AdminReductionPlanInitiativesRouteImport.update({
     id: '/reduction-plan-initiatives',
     path: '/reduction-plan-initiatives',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminRateMeasurementUnitsRoute =
+  AdminRateMeasurementUnitsRouteImport.update({
+    id: '/rate-measurement-units',
+    path: '/rate-measurement-units',
     getParentRoute: () => AdminRoute,
   } as any)
 const AdminParametersRoute = AdminParametersRouteImport.update({
@@ -344,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/rate-measurement-units': typeof AdminRateMeasurementUnitsRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/sectors': typeof AdminSectorsRoute
@@ -392,6 +400,7 @@ export interface FileRoutesByTo {
   '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/rate-measurement-units': typeof AdminRateMeasurementUnitsRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/sectors': typeof AdminSectorsRoute
@@ -441,6 +450,7 @@ export interface FileRoutesById {
   '/admin/organization-sizes': typeof AdminOrganizationSizesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/rate-measurement-units': typeof AdminRateMeasurementUnitsRoute
   '/admin/reduction-plan-initiatives': typeof AdminReductionPlanInitiativesRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/sectors': typeof AdminSectorsRoute
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/rate-measurement-units'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/sectors'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/rate-measurement-units'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/sectors'
@@ -591,6 +603,7 @@ export interface FileRouteTypes {
     | '/admin/organization-sizes'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/rate-measurement-units'
     | '/admin/reduction-plan-initiatives'
     | '/admin/requests'
     | '/admin/sectors'
@@ -766,6 +779,13 @@ declare module '@tanstack/react-router' {
       path: '/reduction-plan-initiatives'
       fullPath: '/admin/reduction-plan-initiatives'
       preLoaderRoute: typeof AdminReductionPlanInitiativesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rate-measurement-units': {
+      id: '/admin/rate-measurement-units'
+      path: '/rate-measurement-units'
+      fullPath: '/admin/rate-measurement-units'
+      preLoaderRoute: typeof AdminRateMeasurementUnitsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/parameters': {
@@ -1002,6 +1022,7 @@ interface AdminRouteChildren {
   AdminOrganizationSizesRoute: typeof AdminOrganizationSizesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminParametersRoute: typeof AdminParametersRoute
+  AdminRateMeasurementUnitsRoute: typeof AdminRateMeasurementUnitsRoute
   AdminReductionPlanInitiativesRoute: typeof AdminReductionPlanInitiativesRoute
   AdminRequestsRoute: typeof AdminRequestsRoute
   AdminSectorsRoute: typeof AdminSectorsRoute
@@ -1027,6 +1048,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOrganizationSizesRoute: AdminOrganizationSizesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminParametersRoute: AdminParametersRoute,
+  AdminRateMeasurementUnitsRoute: AdminRateMeasurementUnitsRoute,
   AdminReductionPlanInitiativesRoute: AdminReductionPlanInitiativesRoute,
   AdminRequestsRoute: AdminRequestsRoute,
   AdminSectorsRoute: AdminSectorsRoute,

@@ -40,12 +40,14 @@ export const Group: FC<SidebarGroupProps> = ({
 }) => {
   const theme = useTheme();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
 
   const isActive = location.pathname === path;
-  const isChildActive = children.some(
+  const activeChildPath = children.find(
     (child) => location.pathname === child.path
-  );
+  )?.path;
+  const isChildActive = activeChildPath !== undefined;
+
+  const [isOpen, setIsOpen] = useState(isChildActive);
 
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
@@ -55,6 +57,12 @@ export const Group: FC<SidebarGroupProps> = ({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isExpanded) setIsOpen(false);
   }, [isExpanded]);
+
+  // Auto-expand when navigation lands on a child route
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeChildPath !== undefined) setIsOpen(true);
+  }, [activeChildPath]);
 
   const handleToggleGroup = useCallback((event: React.MouseEvent) => {
     event.stopPropagation();

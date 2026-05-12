@@ -29,6 +29,7 @@ export const Routes = {
   ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
   ADMIN_UNITS: "/admin/units",
   ADMIN_MAGNITUDES: "/admin/magnitudes",
+  ADMIN_RATE_MEASUREMENT_UNITS: "/admin/rate-measurement-units",
   ADMIN_PARAMETERS: "/admin/parameters",
   ADMIN_SECTORS: "/admin/sectors",
   ADMIN_SUBSECTORS: "/admin/subsectors",
