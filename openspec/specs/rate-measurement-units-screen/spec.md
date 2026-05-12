@@ -25,12 +25,12 @@ The grid SHALL render with `disableRowSelectionOnClick`, no `processRowUpdate`, 
 
 ### Requirement: Reference count tooltip surfaces breakdown
 
-The `totalReferenceCount` column SHALL render the integer total. On hover, a tooltip SHALL show the breakdown across the three categories using Spanish labels (e.g., "Factores de emisión: 47 / Inputs manuales: 3 / Factores aplicados: 12").
+The `totalReferenceCount` column SHALL render the integer total. On hover, a tooltip SHALL show the breakdown across the two categories using Spanish labels (e.g., "Factores de emisión: 47 / Factores aplicados: 12").
 
 #### Scenario: Tooltip renders breakdown
 
 - **WHEN** the admin hovers over the `totalReferenceCount` cell of any row
-- **THEN** the tooltip SHALL show the three category counts using the Spanish labels above
+- **THEN** the tooltip SHALL show the two category counts using the Spanish labels above
 
 ### Requirement: Sidebar entry lives under the "Unidades" group
 
