@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import { FileStatus, FileType } from "@repo/types";
+import { FileStatus } from "@repo/types";
 import type { DeleteLineFileResponse } from "@repo/types";
 import { FileNotFoundError } from "@/features/files/errors.js";
-import { buildBlobPathPrefix } from "@/features/files/helpers/buildBlobPath.js";
 import { CrossInventoryFileLinkingError } from "../errors.js";
+import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
 interface DeleteLineFileInput {
   carbonInventoryId: string;
@@ -28,11 +28,8 @@ export const deleteLineFileService = async (
     throw new FileNotFoundError(uuid);
   }
 
-  const expectedPrefix = buildBlobPathPrefix({
-    fileType: FileType.CARBON_INVENTORY,
-    groupKey: carbonInventoryId,
-    subPath: "LINES",
-  });
+  const expectedPrefix =
+    buildCarbonInventoryLineBlobPathPrefix(carbonInventoryId);
   if (!file.blobPath.startsWith(expectedPrefix)) {
     throw new CrossInventoryFileLinkingError(carbonInventoryId, uuid);
   }
