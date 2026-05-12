@@ -2,6 +2,7 @@
 
 This document covers the authentication system: how the API verifies caller identity, the four supported authentication providers, and how to configure each one.
 
+For the access modes a route can opt into (private / public / anonymous), see [Route Access Modes](./route-access-modes.md).
 For role-based access control (what authenticated users are allowed to do), see [RBAC and Authorization](./rbac.md).
 For the full Azure Entra ID / MSAL setup walkthrough, see [MSAL & Easy Auth Setup](../MSAL-EasyAuth-Setup.md).
 

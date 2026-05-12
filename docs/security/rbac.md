@@ -3,6 +3,7 @@
 This document covers the role-based access control (RBAC) model and the authorization plugin chain used to protect API routes.
 
 For how user identity is established before authorization runs, see [Authentication](./authentication.md).
+For the access modes a route can opt into (private / public / anonymous), see [Route Access Modes](./route-access-modes.md).
 
 ---
 

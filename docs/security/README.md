@@ -7,6 +7,7 @@ Security model, controls, and compliance considerations for the Huella Latam pla
 | Document                                       | Description                                                                                                                                             |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Authentication](./authentication.md)          | Authentication providers (`jwks`, `easy-auth`, `forced-user`, `none`), token validation, JWKS key caching, and provider selection guidance              |
+| [Route Access Modes](./route-access-modes.md)  | Per-route access mode flags — private (default), `allowPublicAccess`, `allowAnonymousAccess` — and when to use each                                     |
 | [RBAC and Authorization](./rbac.md)            | Role model (system roles + organization roles), authorization plugins (`requireAuth`, `requireRoles`, `requireOrganizationRole`), and permission matrix |
 | [Sensitive Data Handling](./sensitive-data.md) | PII inventory, encryption at rest and in transit, and Latin American data protection compliance considerations                                          |
 | [Secrets Management](./secrets.md)             | Managed identities, Key Vault integration, environment variable classification, and anti-patterns to avoid                                              |
