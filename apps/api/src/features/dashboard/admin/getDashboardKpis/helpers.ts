@@ -4,8 +4,12 @@ import {
   SubmissionType,
   SubmissionStatus,
 } from "@repo/database";
-import { RECOGNITION_SUBMISSION_TYPES } from "@repo/types";
-import { MEASURING_ORGANIZATIONS_YEAR_RANGE } from "@/config/constants.js";
+import {
+  RECOGNITION_SUBMISSION_TYPES,
+  SystemParameterKeyEnum,
+} from "@repo/types";
+import { ApplicationConfigError } from "@/errors/index.js";
+import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 import { kgToTon } from "@repo/utils";
 
 export async function getOrganizationKpis(
@@ -17,11 +21,26 @@ export async function getOrganizationKpis(
     ? { lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) }
     : undefined;
 
+  const yearRangeValue = await getSystemParameterValue(
+    prismaClient,
+    SystemParameterKeyEnum.MEASURING_ORGANIZATIONS_YEAR_RANGE
+  );
+
+  const measuringOrganizationsYearRange = Number(yearRangeValue);
+  if (
+    !Number.isInteger(measuringOrganizationsYearRange) ||
+    measuringOrganizationsYearRange < 0
+  ) {
+    throw new ApplicationConfigError(
+      `${SystemParameterKeyEnum.MEASURING_ORGANIZATIONS_YEAR_RANGE} is not set or is invalid`
+    );
+  }
+
   const inventoryYearFilter: { equals: number } | { gte: number; lte: number } =
     year
       ? { equals: year }
       : {
-          gte: currentYear - (MEASURING_ORGANIZATIONS_YEAR_RANGE - 1),
+          gte: currentYear - (measuringOrganizationsYearRange - 1),
           lte: currentYear,
         };
 

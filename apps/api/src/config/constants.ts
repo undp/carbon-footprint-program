@@ -17,6 +17,3 @@ export const BADGE_ALLOWED_MIME_TYPES = [
 
 /** Maximum badge file size in bytes (5 MB) */
 export const BADGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
-
-// Must match the value used in the organization_summary_view SQL migration
-export const MEASURING_ORGANIZATIONS_YEAR_RANGE = 2;
