@@ -137,7 +137,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
             .join(",");
 
           if (!accepts(file, acceptStr)) {
-            setDropError("Tipo de archivo no permitido.");
+            setDropError(`"${file.name}": tipo de archivo no permitido.`);
             hadRejections = true;
             return;
           }
@@ -145,7 +145,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
         if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
           setDropError(
-            `El archivo es demasiado grande. Tamaño máximo: ${maxSizeMB} MB`
+            `"${file.name}": excede el tamaño máximo (${maxSizeMB} MB).`
           );
           hadRejections = true;
           return;
@@ -166,16 +166,17 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
     multiple: true,
     disabled,
     onDropRejected: (rejections) => {
-      const code = rejections[0]?.errors[0]?.code as ErrorCode | undefined;
-      if (code === ErrorCode.FileTooLarge) {
-        setDropError(
-          `El archivo es demasiado grande. Tamaño máximo: ${maxSizeMB} MB`
-        );
-      } else if (code === ErrorCode.FileInvalidType) {
-        setDropError("Tipo de archivo no permitido.");
-      } else {
-        setDropError("Error al cargar el archivo.");
-      }
+      const messages = rejections.map((rejection) => {
+        const code = rejection.errors[0]?.code as ErrorCode | undefined;
+        const reason =
+          code === ErrorCode.FileTooLarge
+            ? `excede el tamaño máximo (${maxSizeMB} MB)`
+            : code === ErrorCode.FileInvalidType
+              ? "tipo de archivo no permitido"
+              : "no pudo cargarse";
+        return `"${rejection.file.name}": ${reason}.`;
+      });
+      setDropError(messages.join("\n"));
     },
   });
 
@@ -273,7 +274,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       {/* Error message */}
       {displayError && (
-        <FormHelperText error role="alert">
+        <FormHelperText error role="alert" sx={{ whiteSpace: "pre-line" }}>
           {displayError}
         </FormHelperText>
       )}

@@ -18,6 +18,8 @@ export const CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/csv",
   "text/plain",
+  "application/zip",
+  "application/x-zip-compressed",
 ] as const;
 
 export type CarbonInventoryLineFileMimeType =
