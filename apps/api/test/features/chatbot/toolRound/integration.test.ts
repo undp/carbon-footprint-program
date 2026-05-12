@@ -22,6 +22,7 @@ import { collectSseEvents } from "@test/helpers/sse.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
 import { mockProvider } from "@/features/chatbot/llmProvider/mock.js";
 import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
+import * as searchKnowledgeTools from "@/features/chatbot/tools/searchKnowledge/index.js";
 
 type WireSource = {
   source_id: string;
@@ -634,4 +635,240 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     // foundation-era regression where only outputTokens was persisted.
     expect(rowB!.tokensUsed).toBeGreaterThan(doneB.outputTokens);
   });
+
+  // Maps to chatbot-message-streaming spec scenario "Modo B response does
+  // not invoke searchKnowledge":
+  //   THEN the LLM SHALL classify the turn as Modo B and SHALL NOT emit
+  //   a tool_call event for searchKnowledge; the assistant turn SHALL
+  //   contain (and start with) the platform-redirect literal defined in
+  //   item 4 of the system-prompt requirement.
+  //
+  // Three sub-cases of platform-usage phrasings to assert the
+  // classification is robust, not over-fit to a single wording. Against
+  // the mock provider, isPlatformQuery() detects the platform cues
+  // ("cómo creo", "dónde veo", "cómo invito") and yields the redirect
+  // literal directly as deltas instead of a tool_call — so the handler's
+  // peek lands on a delta, takes the non-tool path, and never invokes
+  // executeSearchKnowledgeTool. The spy is the regression guard against
+  // a future implementation that calls the tool despite no upstream
+  // tool_call event.
+  const PLATFORM_REDIRECT_LITERAL =
+    "Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono.";
+
+  const PLATFORM_PHRASINGS = [
+    "¿cómo creo un inventario?",
+    "¿dónde veo los reportes?",
+    "¿cómo invito a un colega?",
+  ] as const;
+
+  it.each(PLATFORM_PHRASINGS)(
+    "Modo B platform question does NOT invoke searchKnowledge and responds with redirect literal: %s",
+    async (phrasing) => {
+      const executeToolSpy = vi.spyOn(
+        searchKnowledgeTools,
+        "executeSearchKnowledgeTool"
+      );
+
+      const { status, events } = await collectSseEvents(
+        app,
+        "/api/chatbot/message",
+        { content: phrasing },
+        { ownsApp: false }
+      );
+
+      expect(status).toBe(200);
+
+      // (a) Zero tool_call events leaked to the SSE wire AND the
+      // server-side spy confirms executeSearchKnowledgeTool was never
+      // invoked. Both checks are required by the task; the spy guards
+      // against an implementation drift where the handler calls the tool
+      // without a tool_call event upstream (which would be a spec bug).
+      expect(events.filter((e) => e.event === "tool_call")).toHaveLength(0);
+      expect(executeToolSpy).not.toHaveBeenCalled();
+
+      // (b) Assistant content CONTAINS AND STARTS WITH the redirect
+      // literal byte-for-byte. The spec scenario asserts both verbs:
+      // "the assistant turn SHALL contain (and start with) the
+      // platform-redirect literal". Against the mock the deltas join
+      // to exactly the literal, so both assertions trivially pass —
+      // they catch a regression that pads the response with leading
+      // tokens or paraphrases the redirect.
+      const deltas = events.filter((e) => !e.event);
+      const assistantContent = deltas
+        .map((e) => (e.data as { content: string }).content)
+        .join("");
+      expect(assistantContent).toContain(PLATFORM_REDIRECT_LITERAL);
+      expect(
+        assistantContent.startsWith(PLATFORM_REDIRECT_LITERAL)
+      ).toBe(true);
+
+      // (c) Assistant row's sources_cited is the empty array. The
+      // non-tool path never pushes into finalSources, so the persisted
+      // JSONB defaults to [] from the schema default.
+      const assistantRow = await prisma.chatbotChatMessage.findFirst({
+        where: { role: ChatMessageRole.ASSISTANT },
+        orderBy: { id: "desc" },
+      });
+      expect(assistantRow).not.toBeNull();
+      expect(assistantRow!.sourcesCited).toEqual([]);
+
+      // (d) The done event payload entirely omits the `sources` field.
+      // The handler's optional-field-when-non-empty contract means the
+      // key never reaches the wire when finalSources is empty.
+      const doneEvents = events.filter((e) => e.event === "done");
+      expect(doneEvents).toHaveLength(1);
+      expect(doneEvents[0].data).not.toHaveProperty("sources");
+    }
+  );
+
+  // Maps to chatbot-message-streaming spec scenario "Modo C response does
+  // not invoke searchKnowledge or open with the K=0 literal":
+  //   THEN the LLM SHALL classify the turn as Modo C and SHALL NOT emit a
+  //   tool_call event; the assistant turn SHALL be a brief, natural Spanish
+  //   response that does NOT start with the K=0 opener and does NOT
+  //   contain the platform-redirect literal — those wordings are reserved
+  //   for Modo A's no-source path and Modo B respectively.
+  //
+  // Sub-case (a) only: plain conversational ("gracias", "¿cómo estás?").
+  // Neither matches a tool keyword nor a platform cue in the mock, so the
+  // eco-template fallback fires — non-empty Spanish prose, no tool_call,
+  // no K=0 opener, no redirect literal. The Modo C welcome sub-case (b)
+  // is intentionally NOT implemented against the mock here; see the
+  // checkpoint report on its handling.
+  const K0_OPENER =
+    "No dispongo de fuentes verificadas en mi corpus para responder esto con precisión.";
+
+  const PLAIN_CONVERSATIONAL = ["gracias", "¿cómo estás?"] as const;
+
+  it.each(PLAIN_CONVERSATIONAL)(
+    "Modo C plain conversational does NOT invoke searchKnowledge and does NOT use opener/redirect: %s",
+    async (phrasing) => {
+      const { status, events } = await collectSseEvents(
+        app,
+        "/api/chatbot/message",
+        { content: phrasing },
+        { ownsApp: false }
+      );
+
+      expect(status).toBe(200);
+      // No tool_call event leaked to the wire.
+      expect(events.filter((e) => e.event === "tool_call")).toHaveLength(0);
+
+      const deltas = events.filter((e) => !e.event);
+      const assistantContent = deltas
+        .map((e) => (e.data as { content: string }).content)
+        .join("");
+
+      // Non-empty Spanish prose. The eco-template fallback yields
+      // "Recibí: <phrasing>. Esta es una respuesta de mock." against the
+      // mock — non-empty by construction.
+      expect(assistantContent.length).toBeGreaterThan(0);
+      // SHALL NOT start with the K=0 opener (reserved for Modo A no-source
+      // path) and SHALL NOT contain the Modo B redirect literal.
+      expect(assistantContent.startsWith(K0_OPENER)).toBe(false);
+      expect(assistantContent).not.toContain(PLATFORM_REDIRECT_LITERAL);
+    }
+  );
+
+  // 10.36(b) uses vi.spyOn to make the mock emit a hardcoded welcome
+  // string. The test validates handler/wire/DB plumbing for Modo C
+  // welcome turns (no tool invocation, no K=0 opener, no Modo B
+  // redirect literal, capability + roadmap content shape, 2-6 sentence
+  // window), NOT that the real LLM with the system prompt produces a
+  // valid welcome. The latter lives in Bloque E (smoke E2E task 12.4
+  // run against Azure OpenAI with the real prompt).
+  //
+  // Cross-reference: 10.35 uses the same pattern for Modo B redirect
+  // (the mock's isPlatformQuery() is a hardcoded fixture, not a real
+  // classifier). Both 10.35 and 10.36(b) are structural plumbing
+  // guards, not semantic validators — the mock cannot pretend to do
+  // what a real LLM does with the system prompt, and we don't try.
+  const METHODOLOGY_KEYWORDS = [
+    "metodología",
+    "huella de carbono",
+    "alcances",
+    "factores de emisión",
+  ] as const;
+
+  const ROADMAP_PHRASES = [
+    "próxima versión",
+    "próximas versiones",
+    "próximamente",
+  ] as const;
+
+  // 4 sentences, contains 4 of the 4 methodology keywords and 2 of the
+  // 3 roadmap phrases — robust against a future cosmetic edit that
+  // removes any single keyword/phrase. Sits in the middle of the
+  // sentence-count window (2-6) so adding or removing one sentence
+  // doesn't break the bound.
+  const STUBBED_WELCOME =
+    "¡Hola! Soy el Asistente de Huella Latam y en esta versión inicial puedo responder preguntas sobre metodología de huella de carbono y los alcances 1, 2 y 3, citando fuentes verificadas como GHG Protocol. La guía sobre el uso de la plataforma y la medición asistida llegarán en una próxima versión; próximamente también ampliaré el corpus. ¿Querés hacerme una pregunta sobre metodología o factores de emisión?";
+
+  const WELCOME_PHRASINGS = [
+    "hola",
+    "¿qué puedes hacer?",
+    "ayuda",
+  ] as const;
+
+  it.each(WELCOME_PHRASINGS)(
+    "Modo C welcome covers capabilities and roadmap: %s",
+    async (phrasing) => {
+      vi.spyOn(mockProvider, "streamCompletion").mockImplementation(
+        async function* () {
+          await Promise.resolve();
+          yield { type: "delta", content: STUBBED_WELCOME };
+          yield { type: "usage", inputTokens: 30, outputTokens: 70 };
+        }
+      );
+
+      const { status, events } = await collectSseEvents(
+        app,
+        "/api/chatbot/message",
+        { content: phrasing },
+        { ownsApp: false }
+      );
+
+      expect(status).toBe(200);
+
+      // (i) Zero tool_call events leaked to the SSE wire.
+      expect(events.filter((e) => e.event === "tool_call")).toHaveLength(0);
+
+      const deltas = events.filter((e) => !e.event);
+      const assistantContent = deltas
+        .map((e) => (e.data as { content: string }).content)
+        .join("");
+
+      // (ii) Does NOT start with the K=0 opener and does NOT contain
+      // the Modo B redirect literal.
+      expect(assistantContent.startsWith(K0_OPENER)).toBe(false);
+      expect(assistantContent).not.toContain(PLATFORM_REDIRECT_LITERAL);
+
+      // (iii) At least one methodology keyword present (case-insensitive
+      // per the spec scenario "Modo C welcome response covers capabilities
+      // and roadmap"). The stubbed welcome carries four of four, so a
+      // single refactor that removes one keyword does not break this
+      // assertion.
+      const lowerContent = assistantContent.toLowerCase();
+      const hasMethodologyKeyword = METHODOLOGY_KEYWORDS.some((kw) =>
+        lowerContent.includes(kw.toLowerCase())
+      );
+      expect(hasMethodologyKeyword).toBe(true);
+
+      // (iv) At least one roadmap phrase present (case-insensitive). The
+      // stubbed welcome carries two of three.
+      const hasRoadmapPhrase = ROADMAP_PHRASES.some((phrase) =>
+        lowerContent.includes(phrase.toLowerCase())
+      );
+      expect(hasRoadmapPhrase).toBe(true);
+
+      // (v) Response is between 2 and 6 sentences inclusive. Per the
+      // task: count `.`, `!`, `?` as sentence terminators excluding
+      // URL/decimal cases. The stubbed welcome has no URLs and no
+      // decimal numbers (uses "1, 2 y 3"), so a flat regex over the
+      // three punctuation marks is faithful to the contract.
+      const sentenceCount = (assistantContent.match(/[.!?]/g) ?? []).length;
+      expect(sentenceCount).toBeGreaterThanOrEqual(2);
+      expect(sentenceCount).toBeLessThanOrEqual(6);
+    }
+  );
 });
