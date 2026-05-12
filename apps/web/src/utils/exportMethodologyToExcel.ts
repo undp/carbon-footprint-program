@@ -250,5 +250,5 @@ export async function exportMethodologyToExcel(
   methodology: Methodology
 ): Promise<void> {
   const buffer = await buildMethodologyWorkbook(methodology);
-  await downloadBuffer(buffer, buildFilename(methodology.name));
+  downloadBuffer(buffer, buildFilename(methodology.name));
 }
