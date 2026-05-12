@@ -20,7 +20,7 @@ export const LineFileSummarySchema = z
   .object({
     id: IdSchema.describe("The file ID"),
     uuid: z.uuid().describe("The file UUID"),
-    originalName: z.string().describe("The original file name"),
+    originalName: LineFileOriginalNameSchema,
     sizeBytes: z
       .number()
       .int()
