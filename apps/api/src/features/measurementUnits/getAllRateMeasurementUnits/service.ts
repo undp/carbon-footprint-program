@@ -1,5 +1,6 @@
 import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
+import { buildCountMapFromGroups } from "./helpers.js";
 
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient
@@ -24,17 +25,13 @@ export const getAllRateMeasurementUnitsService = async (
       }),
     ]);
 
-  const emissionFactorCountByRmuId = new Map(
-    emissionFactorGroups.map((g) => [
-      g.rateMeasurementUnitId.toString(),
-      g._count._all,
-    ])
+  const emissionFactorCountByRmuId = buildCountMapFromGroups(
+    emissionFactorGroups,
+    (g) => g.rateMeasurementUnitId.toString()
   );
-  const lineFactorAppliedCountByRmuId = new Map(
-    lineFactorAppliedGroups.map((g) => [
-      g.appliedFactorRateUnitId.toString(),
-      g._count._all,
-    ])
+  const lineFactorAppliedCountByRmuId = buildCountMapFromGroups(
+    lineFactorAppliedGroups,
+    (g) => g.appliedFactorRateUnitId.toString()
   );
 
   return rateMeasurementUnits.map((item) => {
