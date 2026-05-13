@@ -201,87 +201,95 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
   }, [onClose]);
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleCancel}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{ paper: { sx: { height: "80vh", maxHeight: "80vh" } } }}
+    >
       <DialogTitle>Archivos adjuntos</DialogTitle>
       <DialogContent>
-        <Stack spacing={2} sx={{ width: "100%" }}>
-          {visibleFiles.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No hay archivos adjuntos a esta línea.
-            </Typography>
-          ) : (
-            <List dense disablePadding>
-              {visibleFiles.map((file) => (
-                <ListItem
-                  key={file.uuid}
-                  disableGutters
-                  sx={{
-                    backgroundColor: "action.hover",
-                    borderRadius: 1,
-                    px: 1,
-                    mb: 0.5,
-                    gap: 1,
-                  }}
-                >
-                  <InsertDriveFileOutlined
-                    fontSize="small"
-                    sx={{ color: "text.secondary", flexShrink: 0 }}
-                  />
-                  <ListItemText
-                    sx={{ minWidth: 0, my: 0, flex: 1 }}
-                    primary={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          minWidth: 0,
-                        }}
-                      >
-                        <OverflowTooltipText
-                          sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
-                        >
-                          {file.originalName}
-                        </OverflowTooltipText>
-                        {file.isPending && (
-                          <Chip
-                            label="Pendiente de guardar"
-                            size="small"
-                            color="warning"
-                            variant="outlined"
-                            sx={{ flexShrink: 0 }}
-                          />
-                        )}
-                        <Box sx={{ display: "flex", flexShrink: 0 }}>
-                          <IconButton
-                            size="small"
-                            aria-label={`Previsualizar ${file.originalName}`}
-                            onClick={() => handlePreview(file)}
-                            disabled={disabled}
-                          >
-                            <VisibilityOutlined fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            aria-label={`Eliminar ${file.originalName}`}
-                            onClick={() => handleDelete(file)}
-                            disabled={disabled || isDeleting}
-                          >
-                            <DeleteOutlined fontSize="small" color="error" />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                    }
-                    secondary={formatFileSize(file.sizeBytes)}
-                    slotProps={{
-                      primary: { component: "div" },
-                      secondary: { variant: "caption" },
+        <Stack spacing={2} sx={{ width: "100%", height: "100%" }}>
+          <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", pr: 0.5 }}>
+            {visibleFiles.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No hay archivos adjuntos a esta línea.
+              </Typography>
+            ) : (
+              <List dense disablePadding>
+                {visibleFiles.map((file) => (
+                  <ListItem
+                    key={file.uuid}
+                    disableGutters
+                    sx={{
+                      backgroundColor: "action.hover",
+                      borderRadius: 1,
+                      px: 1,
+                      mb: 0.5,
+                      gap: 1,
                     }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          )}
+                  >
+                    <InsertDriveFileOutlined
+                      fontSize="small"
+                      sx={{ color: "text.secondary", flexShrink: 0 }}
+                    />
+                    <ListItemText
+                      sx={{ minWidth: 0, my: 0, flex: 1 }}
+                      primary={
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          <OverflowTooltipText
+                            sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
+                          >
+                            {file.originalName}
+                          </OverflowTooltipText>
+                          {file.isPending && (
+                            <Chip
+                              label="Pendiente de guardar"
+                              size="small"
+                              color="warning"
+                              variant="outlined"
+                              sx={{ flexShrink: 0 }}
+                            />
+                          )}
+                          <Box sx={{ display: "flex", flexShrink: 0 }}>
+                            <IconButton
+                              size="small"
+                              aria-label={`Previsualizar ${file.originalName}`}
+                              onClick={() => handlePreview(file)}
+                              disabled={disabled}
+                            >
+                              <VisibilityOutlined fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              aria-label={`Eliminar ${file.originalName}`}
+                              onClick={() => handleDelete(file)}
+                              disabled={disabled || isDeleting}
+                            >
+                              <DeleteOutlined fontSize="small" color="error" />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      }
+                      secondary={formatFileSize(file.sizeBytes)}
+                      slotProps={{
+                        primary: { component: "div" },
+                        secondary: { variant: "caption" },
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Box>
 
           <FileUpload
             value={[]}
