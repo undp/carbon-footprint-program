@@ -68,7 +68,7 @@ describe("collectSecurityIssues", () => {
       );
       expect(issues).toContainEqual(
         expect.stringContaining(
-          "allowAnonymousAccess is true but the route has no preHandler"
+          "no tagged requireCarbonInventoryAccess preHandler"
         )
       );
     });
@@ -86,10 +86,10 @@ describe("collectSecurityIssues", () => {
       );
     });
 
-    it("tolerates anonymous + untagged preHandler (legacy / manually-registered)", () => {
-      // No tag means we have no signal about what the preHandler is — Phase 1
-      // invariants still apply (preHandler must be non-empty) but tag-specific
-      // checks are suppressed.
+    it("rejects anonymous + untagged preHandler (fail-closed)", () => {
+      // Untagged preHandlers give us no signal that the alternative credential
+      // is being validated. Manually-registered routes that bypass
+      // `defineRoute` must be rejected at boot.
       const issues = collectSecurityIssues(
         makeRoute({
           config: { allowAnonymousAccess: true },
@@ -97,7 +97,11 @@ describe("collectSecurityIssues", () => {
           preHandler: [makeHook()],
         })
       );
-      expect(issues).toEqual([]);
+      expect(issues).toContainEqual(
+        expect.stringContaining(
+          "no tagged requireCarbonInventoryAccess preHandler"
+        )
+      );
     });
   });
 

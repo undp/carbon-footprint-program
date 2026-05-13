@@ -88,17 +88,16 @@ export function collectSecurityIssues(routeOpts: RouteOptions): string[] {
   //    typed `defineRoute` API this is forced; the validator also guards
   //    against manually-registered routes that bypass the helper.
   if (isAnonymous) {
-    if (preHandlerCount === 0) {
+    if (preHandlerCount === 0 || preHandlerKinds.length === 0) {
+      // Fail closed: either no preHandler at all, or preHandler(s) exist but
+      // are untagged (manually-registered / bypassing `defineRoute`). Without
+      // a tagged `requireCarbonInventoryAccess` we cannot prove the alternative
+      // credential is being validated.
       issues.push(
-        "config.allowAnonymousAccess is true but the route has no preHandler — the alternative credential (e.g. x-carbon-inventory-uuid) cannot be validated"
+        "config.allowAnonymousAccess is true but the route has no tagged requireCarbonInventoryAccess preHandler — the alternative credential (e.g. x-carbon-inventory-uuid) cannot be validated"
       );
-    } else if (
-      preHandlerKinds.length > 0 &&
-      !preHandlerKinds.includes("requireCarbonInventoryAccess")
-    ) {
+    } else if (!preHandlerKinds.includes("requireCarbonInventoryAccess")) {
       // Tagged preHandlers exist but none is the carbon-inventory check.
-      // (When preHandlerKinds is empty we have no tag signal at all — that's
-      // the legacy / manually-registered case and we let it pass with check 2.)
       issues.push(
         "config.allowAnonymousAccess is true but the preHandler chain does not include requireCarbonInventoryAccess — the alternative credential cannot be validated"
       );
