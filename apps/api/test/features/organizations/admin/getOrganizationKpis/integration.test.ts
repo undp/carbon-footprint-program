@@ -526,5 +526,65 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       );
       expect(emptyBucket?.count).toBe(0);
     });
+
+    it("should only count orgs with inventory inside MEASURING_ORGANIZATIONS_YEAR_RANGE window", async () => {
+      const currentYear = new Date().getFullYear();
+      const orgs = await Promise.all([
+        createTestOrganization(prisma, { status: OrganizationStatus.ACTIVE }),
+        createTestOrganization(prisma, { status: OrganizationStatus.ACTIVE }),
+        createTestOrganization(prisma, { status: OrganizationStatus.ACTIVE }),
+      ]);
+
+      for (const org of orgs) {
+        const orgData = await createTestOrganizationData(prisma, org.id);
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id
+        );
+      }
+
+      // With MEASURING_ORGANIZATIONS_YEAR_RANGE=2, only currentYear and
+      // currentYear-1 fall inside the window. currentYear-2 is outside.
+      const inventoryYears = [currentYear, currentYear - 1, currentYear - 2];
+      for (let i = 0; i < orgs.length; i++) {
+        await prisma.carbonInventory.create({
+          data: {
+            organizationId: orgs[i].id,
+            year: inventoryYears[i],
+            usageMode: "SIMPLIFIED",
+            methodologyVersionId,
+            updatedAt: null,
+          },
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(3);
+
+      const withinWindow = body.counts.find(
+        (c) =>
+          c.status === OrganizationStatus.ACTIVE &&
+          c.accredited === true &&
+          c.withInventories === true
+      );
+      expect(withinWindow?.count).toBe(2);
+
+      const outsideWindow = body.counts.find(
+        (c) =>
+          c.status === OrganizationStatus.ACTIVE &&
+          c.accredited === true &&
+          c.withInventories === false
+      );
+      expect(outsideWindow?.count).toBe(1);
+    });
   });
 });
