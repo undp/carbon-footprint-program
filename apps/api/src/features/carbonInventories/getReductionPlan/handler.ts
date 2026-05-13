@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetReductionPlanParams } from "@repo/types";
 import { getReductionPlanService } from "./service.js";
 
 export const getReductionPlanHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetReductionPlanParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "reductionPlan" });

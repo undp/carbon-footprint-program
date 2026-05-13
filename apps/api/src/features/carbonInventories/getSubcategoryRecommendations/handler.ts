@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetSubcategoryRecommendationsParams } from "@repo/types";
 import { getSubcategoryRecommendationsService } from "./service.js";
 
 export const getSubcategoryRecommendationsHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetSubcategoryRecommendationsParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({
