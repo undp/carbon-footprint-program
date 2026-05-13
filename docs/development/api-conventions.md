@@ -84,22 +84,28 @@ await app.register(autoload, {
 });
 ```
 
-Inside `apps/api/src/routes/api/app/organizations/index.ts`, each route is explicitly imported and called:
+Each `route.ts` exports a `defineRoute(...)` value (not a function that mutates Fastify). The route's security spec lives on its own `access` field — authors never call `requireAuth` / `requireRoles` / `requireOrganizationRole` directly. The group's `index.ts` collects all the routes and hands them to `registerRoutes`, which translates `access` into the right hooks:
 
 ```typescript
-import createOrganizationRoute from "@/features/organizations/app/createOrganization/route.js";
-import getOrganizationByIdRoute from "@/features/organizations/app/getOrganizationById/route.js";
+// routes/api/admin/organizations/index.ts
+import type { FastifyZodInstance } from "@/types/fastify.js";
+import { registerRoutes } from "@/routing/defineRoute.js";
+import { getAllOrganizationsRoute } from "@/features/organizations/admin/getAllOrganizations/route.js";
+import { blockOrganizationRoute } from "@/features/organizations/admin/blockOrganization/route.js";
+import { SystemRole } from "@repo/database";
 
-export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
-  fastify.addHook("onRequest", fastify.requireAuth);
-  fastify.addHook("preHandler", fastify.requireRoles([...systemRoles]));
-
-  createOrganizationRoute(fastify);
-  getOrganizationByIdRoute(fastify);
+export default function adminOrganizationsRoutes(fastify: FastifyZodInstance) {
+  registerRoutes(
+    fastify,
+    [getAllOrganizationsRoute, blockOrganizationRoute /* ... */],
+    { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
+  );
 }
 ```
 
-Each `route.ts` exports a `StandardRouteSignature` function that registers a single endpoint on the Fastify instance.
+`defaultSystemRoles` is the group-level baseline for `private` routes that don't set their own `systemRoles`. `public` and `anonymous` routes ignore it.
+
+See **[Route Access Modes](../security/route-access-modes.md)** for the full author guide — the three modes, the `access` shape, declaration examples per mode, and the runtime hook chain each one produces.
 
 ---
 
@@ -121,47 +127,61 @@ Plugins are split into two folders:
 
 ### `plugins/app/` — custom plugins
 
-| Plugin                               | Decorates                                                               |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| `authenticationPlugin.ts`            | `fastify.requireAuth` — verifies the JWT                                |
-| `authorizationPlugin.ts`             | `fastify.requireRoles([...])` — system role check                       |
-| `organizationAuthorizationPlugin.ts` | `fastify.requireOrganizationRole(extractor, opts)` — per-org role check |
-| `userResolvePlugin.ts`               | Populates `request.currentUser` from the token claims                   |
-| `errorHandler.ts`                    | Unified error response formatting                                       |
-| `prisma.ts`                          | `fastify.prisma` — the shared Prisma client                             |
+| Plugin                                   | Decorates                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| `authenticationPlugin.ts`                | `fastify.requireAuth` — verifies the JWT                                             |
+| `authorizationPlugin.ts`                 | `fastify.requireRoles([...])` — system role check                                    |
+| `organizationAuthorizationPlugin.ts`     | `fastify.requireOrganizationRole(extractor, opts)` — per-org role check              |
+| `carbonInventoryAuthorizationPlugin.ts`  | `fastify.requireCarbonInventoryAccess(extractor, opts)` — per-inventory access check |
+| `reductionProjectAuthorizationPlugin.ts` | `fastify.requireReductionProjectAccess(opts)` — per-project access check             |
+| `userResolvePlugin.ts`                   | Populates `request.currentUser` from the token claims                                |
+| `routeSecurityValidatorPlugin.ts`        | Validates every route's security configuration at boot                               |
+| `errorHandler.ts`                        | Unified error response formatting                                                    |
+| `prisma.ts`                              | `fastify.prisma` — the shared Prisma client                                          |
+
+Routes do not call these decorators directly anymore. They declare an `access` field via `defineRoute`, and `registerRoutes` translates that into the correct hook chain — see [Route Access Modes](../security/route-access-modes.md).
 
 ---
 
 ## Authorization
 
+Authorization is expressed declaratively on each route's `access` field. See [Route Access Modes](../security/route-access-modes.md) for the full guide; the summary here is just the shape.
+
 ### System roles
 
-Roles from the `SystemRole` enum: `USER`, `ADMIN`, `SUPERADMIN`. Applied at the route-group level:
+Roles from the `SystemRole` enum: `USER`, `ADMIN`, `SUPERADMIN`. Set as the group's `defaultSystemRoles` (most routes inherit it), or per-route via `access.systemRoles` when a route needs to override:
 
 ```typescript
-fastify.addHook("preHandler", fastify.requireRoles([SystemRole.ADMIN]));
+// group-level baseline (routes/api/admin/<group>/index.ts)
+registerRoutes(fastify, [...], {
+  defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN],
+});
+
+// per-route override (route file)
+access: {
+  mode: "private",
+  systemRoles: { kind: "roles", roles: [SystemRole.SUPERADMIN] },
+}
 ```
 
 ### Organization roles
 
-Roles from `OrganizationRole`: `VIEWER`, `CONTRIBUTOR`, `ADMIN`. Applied per-route, with an `extractor` that pulls the organization ID from the request:
+Roles from `OrganizationRole`: `VIEWER`, `CONTRIBUTOR`, `ADMIN`. Set as a `domain` on the route's `access`. The default extractor reads `request.params.id`; pass `extractor` explicitly when the id lives elsewhere:
 
 ```typescript
-fastify.patch(
-  "/:id",
-  {
-    preHandler: [
-      fastify.requireOrganizationRole(idRequestExtractor, {
-        allowedRoles: [OrganizationRole.ADMIN],
-        canAdminsBypass: true, // System ADMINs bypass org checks
-      }),
-    ],
+access: {
+  mode: "private",
+  domain: {
+    kind: "organization",
+    organization: {
+      allowedRoles: [OrganizationRole.ADMIN],
+      canAdminsBypass: true, // System ADMINs bypass org checks
+    },
   },
-  handler
-);
+}
 ```
 
-`idRequestExtractor` reads the `:id` URL parameter. Custom extractors exist for body-based or nested paths.
+For routes that touch more than one resource at once (e.g. both `:organizationId` and `:carbonInventoryId`), pass an array to `domain` — every preHandler runs and the caller must satisfy all of them. Same story for `domain: { kind: "carbonInventory", … }` and `domain: { kind: "reductionProject", … }`.
 
 ---
 
@@ -253,37 +273,56 @@ Never wrap successful responses in `{ data: ... }`. The response schema in `@rep
    };
    ```
 
-4. **Create the route** at `route.ts`:
+4. **Create the route** at `route.ts` using `defineRoute`:
 
    ```typescript
-   export default function doSomethingRoute(fastify: FastifyZodInstance) {
-     fastify.post(
-       "/:id/action",
-       {
-         schema: {
-           params: IdParamsSchema,
-           body: DoSomethingBodySchema,
-           response: { 200: DoSomethingResponseSchema },
+   import { defineRoute } from "@/routing/defineRoute.js";
+   import { OrganizationRole } from "@repo/database/enums";
+   import { doSomethingHandler } from "./handler.js";
+   import {
+     DoSomethingBody,
+     DoSomethingBodySchema,
+     DoSomethingResponseSchema,
+     IdParams,
+     IdParamsSchema,
+   } from "@repo/types";
+
+   export const doSomethingRoute = defineRoute<{
+     Params: IdParams;
+     Body: DoSomethingBody;
+   }>({
+     method: "POST",
+     path: "/:id/action",
+     schema: {
+       params: IdParamsSchema,
+       body: DoSomethingBodySchema,
+       response: { 200: DoSomethingResponseSchema },
+     },
+     access: {
+       mode: "private",
+       domain: {
+         kind: "organization",
+         organization: {
+           allowedRoles: [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
          },
-         preHandler: [
-           fastify.requireOrganizationRole(idRequestExtractor, {
-             allowedRoles: [
-               OrganizationRole.CONTRIBUTOR,
-               OrganizationRole.ADMIN,
-             ],
-           }),
-         ],
        },
-       doSomethingHandler
-     );
-   }
+     },
+     handler: doSomethingHandler,
+   });
    ```
 
 5. **Register the route** in the appropriate `apps/api/src/routes/api/<scope>/<resource>/index.ts`:
 
    ```typescript
-   doSomethingRoute(fastify);
+   import { registerRoutes } from "@/routing/defineRoute.js";
+   import { doSomethingRoute } from "@/features/<resource>/<scope>/<action>/route.js";
+
+   export default function someResourceRoutes(fastify: FastifyZodInstance) {
+     registerRoutes(fastify, [doSomethingRoute /* ...other routes */]);
+   }
    ```
+
+   See [Route Access Modes](../security/route-access-modes.md) for the full `access` shape and the available modes (`public`, `anonymous`, `private`).
 
 6. **Add error classes** if needed at `apps/api/src/features/<resource>/errors.ts`.
 
