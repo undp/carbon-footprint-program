@@ -75,7 +75,12 @@ export const AssociateOrganizationDialog: FC<Props> = ({
         );
       }
     },
-    [assignOrganization, carbonInventory.id, handleClose, selectedOrganizationId]
+    [
+      assignOrganization,
+      carbonInventory.id,
+      handleClose,
+      selectedOrganizationId,
+    ]
   );
 
   const submitDisabled = isSubmitting || !selectedOrganizationId;
