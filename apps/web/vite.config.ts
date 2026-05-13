@@ -80,6 +80,18 @@ export default defineConfig(({ mode }) => {
               target: env.VITE_API_BASE_URL,
               changeOrigin: true,
               rewrite: (path) => path.replace(/^\/api/, ""),
+              // SSE streaming fix for the chatbot widget.
+              configure: (proxy) => {
+                proxy.on("proxyRes", (proxyRes, _req, res) => {
+                  const ct = proxyRes.headers["content-type"];
+                  if (
+                    typeof ct === "string" &&
+                    ct.includes("text/event-stream")
+                  ) {
+                    res.flushHeaders();
+                  }
+                });
+              },
             },
           }
         : undefined,
