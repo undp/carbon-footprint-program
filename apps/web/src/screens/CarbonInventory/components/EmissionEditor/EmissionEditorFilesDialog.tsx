@@ -207,6 +207,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                       backgroundColor: "action.hover",
                       borderRadius: 1,
                       px: 1,
+                      py: 0.25,
                       mb: 0.5,
                       gap: 1,
                     }}
@@ -239,6 +240,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                     >
                       <IconButton
                         size="small"
+                        sx={{ p: 0.5 }}
                         aria-label={`Previsualizar ${file.originalName}`}
                         onClick={() => handlePreview(file)}
                         disabled={disabled}
@@ -247,6 +249,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                       </IconButton>
                       <IconButton
                         size="small"
+                        sx={{ p: 0.5 }}
                         aria-label={`Eliminar ${file.originalName}`}
                         onClick={() => handleDelete(file)}
                         disabled={disabled || isDeleting}
