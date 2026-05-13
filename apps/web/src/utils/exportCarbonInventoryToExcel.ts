@@ -83,21 +83,6 @@ function buildDetailTableSheet(
       : category.name;
 
     for (const subcategory of category.subcategories) {
-      if (!subcategory.hasLines || subcategory.lines.length === 0) {
-        rows.push([
-          "-",
-          categoryLabel,
-          display(subcategory.name),
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          subcategory.subtotal,
-        ]);
-        continue;
-      }
-
       for (const line of subcategory.lines) {
         rows.push([
           line.lineId,

@@ -51,7 +51,9 @@ const SubcategorySummaryItemSchema = SubcategoryBaseSchema.pick({
       ),
     lines: z
       .array(EmissionLineItemSchema)
-      .describe("Emission lines, present only when hasLines=true"),
+      .describe(
+        "Emission lines under this subcategory. Factor-based subcategories populate the factor/quantity fields; DIRECT (manual mode) subcategories leave them null and carry only `lineId` + `emissions`. A subcategory is never mixed."
+      ),
     subtotal: z.number().nonnegative().describe("Subtotal emissions in tCO2e"),
     percentage: z
       .number()
