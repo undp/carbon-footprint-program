@@ -84,12 +84,6 @@ export const CarbonInventoryInvalidUuidError = createError(
   400
 );
 
-export const CarbonInventoryAlreadyHasOrganizationError = createError(
-  "CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION",
-  "Carbon inventory %s already has an associated organization",
-  422
-);
-
 export const CrossInventoryFileLinkingError = createError(
   "CROSS_INVENTORY_FILE_LINKING",
   "One or more files do not belong to carbon inventory %s: %s",
@@ -99,5 +93,11 @@ export const CrossInventoryFileLinkingError = createError(
 export const FileAlreadyLinkedError = createError(
   "FILE_ALREADY_LINKED",
   "One or more files are already linked to a different line: %s",
+  422
+);
+
+export const CarbonInventoryAlreadyHasOrganizationError = createError(
+  "CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION",
+  "Carbon inventory %s already has an associated organization",
   422
 );
