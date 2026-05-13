@@ -23,7 +23,7 @@ export interface ConfirmDialogProps {
   description?: string;
 
   // Customization
-  variant?: "warning" | "error" | "info" | "success";
+  variant?: "warning" | "error" | "info" | "success" | "primary";
   confirmLabel?: string;
   cancelLabel?: string;
 

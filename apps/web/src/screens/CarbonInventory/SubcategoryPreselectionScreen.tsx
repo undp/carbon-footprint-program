@@ -120,7 +120,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
         title: "¿Estás seguro de continuar?",
         message:
           "Quedan categorías sin fuentes seleccionadas. Al continuar, esas fuentes no se incluirán en el inventario.",
-        variant: "success",
+        variant: "primary",
         confirmLabel: "Continuar al siguiente paso",
         cancelLabel: "Revisar",
       });
