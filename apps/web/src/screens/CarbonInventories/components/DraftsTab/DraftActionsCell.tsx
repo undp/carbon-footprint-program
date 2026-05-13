@@ -60,7 +60,8 @@ export const DraftActionsCell: FC<Props> = ({
   const hasOrganization = carbonInventory.organizationId !== null;
 
   const { data: myOrganizations } = useMyOrganizations();
-  const hasNoOrganizationsToAssociate = (myOrganizations ?? []).length === 0;
+  const hasNoOrganizationsToAssociate =
+    myOrganizations !== undefined && myOrganizations.length === 0;
   const associateDisabled = hasOrganization || hasNoOrganizationsToAssociate;
 
   const isYearAlreadySelfDeclared = useMemo(
