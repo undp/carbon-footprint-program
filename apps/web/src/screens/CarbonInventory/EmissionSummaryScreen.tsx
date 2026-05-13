@@ -2,9 +2,11 @@ import { FC, useCallback, useEffect } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { ArrowRightAltRounded } from "@mui/icons-material";
+import {
+  ArrowRightAltRounded,
+  FileDownloadOutlined,
+} from "@mui/icons-material";
 import { useDownloadCarbonInventory } from "@/hooks";
-import { ExcelIcon } from "@/icons";
 import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import {
@@ -174,7 +176,7 @@ export const EmissionSummaryScreen: FC = () => {
                   onClick={onDownloadClick}
                   disabled={!canDownload || isDownloading}
                   loading={isDownloading}
-                  startIcon={<ExcelIcon fontSize="small" />}
+                  startIcon={<FileDownloadOutlined fontSize="small" />}
                   aria-label="Descargar huella"
                 >
                   Descargar
