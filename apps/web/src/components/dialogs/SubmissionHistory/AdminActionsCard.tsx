@@ -19,7 +19,7 @@ import {
   CheckCircleOutlined,
   WarningAmberOutlined,
   SendOutlined,
-  FileUploadOutlined,
+  UploadFileOutlined,
   WorkspacePremiumRounded,
 } from "@mui/icons-material";
 import {
@@ -308,7 +308,7 @@ export const AdminActionsCard: FC<Props> = ({
                   disabled={busy}
                 >
                   <Box className="flex w-full items-center justify-center gap-1 rounded p-3">
-                    <FileUploadOutlined />
+                    <UploadFileOutlined />
                     <Typography variant="subtitle2">
                       Adjuntar archivo
                     </Typography>

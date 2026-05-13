@@ -5,7 +5,7 @@ import type { SvgIconComponent } from "@mui/icons-material";
 interface ActionIconButtonProps
   extends Pick<
     IconButtonProps,
-    "onClick" | "disabled" | "color" | "className"
+    "onClick" | "disabled" | "color" | "className" | "sx" | "size"
   > {
   icon: SvgIconComponent;
   tooltip: string;
@@ -28,13 +28,13 @@ export const ActionIconButton: FC<ActionIconButtonProps> = ({
   <Tooltip title={tooltip}>
     <span className="content-center">
       <IconButton
-        size="small"
         aria-label={ariaLabel ?? tooltip}
         disabled={disabled}
         className={className}
+        size="small"
         {...rest}
       >
-        <Icon fontSize="small" />
+        <Icon fontSize="inherit" />
       </IconButton>
     </span>
   </Tooltip>

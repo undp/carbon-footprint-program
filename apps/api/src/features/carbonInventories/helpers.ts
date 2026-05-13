@@ -6,6 +6,7 @@ import {
 } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
 import {
+  FileType,
   type GetAllCategoriesResponse,
   IconName,
   IconNameSchema,
@@ -452,3 +453,12 @@ export const resolveInventoryOrganizationDataReferences = async (
       : null,
   };
 };
+
+/**
+ * Builds the blob-path prefix that scopes line-file blobs to a single inventory.
+ * The prefix is set at upload time and is tamper-resistant, so callers can use
+ * `startsWith` to validate that a file belongs to the inventory it claims to.
+ */
+export const buildCarbonInventoryLineBlobPathPrefix = (
+  carbonInventoryId: string
+): string => `${FileType.CARBON_INVENTORY}/${carbonInventoryId}/LINES/`;

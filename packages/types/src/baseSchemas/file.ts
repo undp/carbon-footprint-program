@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { FileStatus } from "../enums.js";
 
-export const RouteFileTypeSchema = z.enum(["SUBMISSION", "BADGE", "LEGAL"]);
+export const RouteFileTypeSchema = z.enum([
+  "SUBMISSION",
+  "BADGE",
+  "LEGAL",
+  "CARBON_INVENTORY",
+]);
 
 export const FileStatusSchema = z.enum(FileStatus);
 

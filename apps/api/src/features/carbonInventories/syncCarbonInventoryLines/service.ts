@@ -3,6 +3,7 @@ import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesResponse,
   CarbonInventoryLineStatus,
+  FileStatus,
   User,
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
@@ -10,6 +11,8 @@ import {
   createLineInput,
   createLineFactor,
   createLineResult,
+  linkFilesToCarbonInventoryLine,
+  unlinkFilesFromCarbonInventoryLine,
 } from "./helper.js";
 import {
   CarbonInventoryNotFoundError,
@@ -135,6 +138,16 @@ export const syncCarbonInventoryLinesService = async (
       );
       await createLineFactor(tx, newInput.id, createItem, userId);
       await createLineResult(tx, newInput.id, createItem, inputType, userId);
+
+      if (createItem.addFileUuids.length > 0) {
+        await linkFilesToCarbonInventoryLine(
+          tx,
+          line.id,
+          createItem.addFileUuids,
+          userId,
+          carbonInventoryId
+        );
+      }
     }
 
     // 2. UPDATE operations
@@ -158,6 +171,23 @@ export const syncCarbonInventoryLinesService = async (
       );
       await createLineFactor(tx, newInput.id, updateItem, userId);
       await createLineResult(tx, newInput.id, updateItem, inputType, userId);
+
+      if (updateItem.addFileUuids.length > 0) {
+        await linkFilesToCarbonInventoryLine(
+          tx,
+          lineId,
+          updateItem.addFileUuids,
+          userId,
+          carbonInventoryId
+        );
+      }
+      if (updateItem.removeFileIds.length > 0) {
+        await unlinkFilesFromCarbonInventoryLine(
+          tx,
+          lineId,
+          updateItem.removeFileIds
+        );
+      }
     }
 
     // 3. DELETE operations (soft delete)
@@ -185,6 +215,22 @@ export const syncCarbonInventoryLinesService = async (
           where: { isActive: true },
           include: { factor: true },
           take: 1,
+        },
+        files: {
+          where: { file: { status: FileStatus.ACTIVE } },
+          include: {
+            file: {
+              select: {
+                id: true,
+                uuid: true,
+                originalName: true,
+                mimeType: true,
+                sizeBytes: true,
+                createdAt: true,
+                status: true,
+              },
+            },
+          },
         },
       },
     });

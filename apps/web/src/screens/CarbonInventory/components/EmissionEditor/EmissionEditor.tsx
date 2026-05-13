@@ -1,9 +1,10 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
+import { EmissionEditorFilesDialog } from "./EmissionEditorFilesDialog";
 import {
   useEmissionEditorData,
   useEmissionEditorForm,
@@ -19,12 +20,14 @@ interface EmissionEditorProps {
   inventoryUsageMode: UsageMode;
   subcategory: SubcategoryWithLines;
   categoryColor: string;
+  inventoryId: string;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   inventoryUsageMode,
   subcategory,
   categoryColor,
+  inventoryId,
 }) => {
   const { measurementUnits, rateMeasurementUnits, dimensions } =
     useEmissionEditorData({ subcategory });
@@ -52,6 +55,12 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategoryId: subcategory.id,
   });
 
+  const [filesDialog, setFilesDialog] = useState<{ lineId: string } | null>(
+    null
+  );
+
+  const closeFilesDialog = useCallback(() => setFilesDialog(null), []);
+
   const categoryColorPalette = useMemo(
     () => getColorPalette(categoryColor),
     [categoryColor]
@@ -68,9 +77,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     onFactorSourceChange: handleFactorSourceChange,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
-    onUploadFiles: () => {
-      // TODO: Implement upload files functionality
-    },
+    onUploadFiles: (lineId) => setFilesDialog({ lineId: lineId.toString() }),
   });
 
   // Handlers for manual mode line actions
@@ -85,6 +92,25 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       handleDeleteLine(manualModeLine.lineId);
     }
   }, [manualModeLine, handleDeleteLine]);
+
+  const handleManualModeLineUploadFiles = useCallback(() => {
+    if (manualModeLine) {
+      setFilesDialog({ lineId: manualModeLine.lineId });
+    }
+  }, [manualModeLine]);
+
+  const { manualModeLinePendingFilesCount, manualModeLineLinkedFilesCount } =
+    useMemo(() => {
+      const removedFileIds = manualModeLine?.removedFileIds ?? [];
+      const visibleFiles = (manualModeLine?.files ?? []).filter(
+        (f) => !removedFileIds.includes(f.id)
+      );
+      const pending = visibleFiles.filter((f) => f.isPending).length;
+      return {
+        manualModeLinePendingFilesCount: pending,
+        manualModeLineLinkedFilesCount: visibleFiles.length - pending,
+      };
+    }, [manualModeLine]);
 
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
@@ -107,6 +133,9 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         manualModeLineHasComment={!!manualModeLine?.comment}
         onManualModeLineDelete={handleManualModeLineDelete}
         onManualModeLineComment={handleManualModeLineComment}
+        onManualModeLineUploadFiles={handleManualModeLineUploadFiles}
+        manualModeLinePendingFilesCount={manualModeLinePendingFilesCount}
+        manualModeLineLinkedFilesCount={manualModeLineLinkedFilesCount}
         hasEmissionFactors={subcategory.emissionFactors.length > 0}
       />
 
@@ -160,6 +189,15 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       </Collapse>
 
       <EmissionEditorCommentDialog {...commentDialogProps} />
+      {filesDialog && (
+        <EmissionEditorFilesDialog
+          open
+          onClose={closeFilesDialog}
+          lineId={filesDialog.lineId}
+          subcategoryId={subcategory.id}
+          inventoryId={inventoryId}
+        />
+      )}
     </Box>
   );
 };

@@ -42,6 +42,8 @@ const createNewLine = (
     baseFactorId: null,
     isNew: true,
     isDeleted: false,
+    files: [],
+    removedFileIds: [],
   };
 };
 
@@ -128,7 +130,13 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
         const linesRecord = serverLines.reduce(
           (acc, line) => {
-            acc[line.id] = { ...line, isNew: false, isDeleted: false };
+            acc[line.id] = {
+              ...line,
+              isNew: false,
+              isDeleted: false,
+              files: line.files ?? [],
+              removedFileIds: [],
+            };
             return acc;
           },
           {} as Record<LineId, EmissionCaptureFormLine>
@@ -149,6 +157,8 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
             ...line,
             isNew: false,
             isDeleted: true,
+            files: line.files ?? [],
+            removedFileIds: [],
           };
         });
 
@@ -291,11 +301,16 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
             return;
           }
 
-          // For lines that were new but are now saved, mark them as not new
+          // For lines that were new but are now saved, mark them as not new.
+          // Clear file-related client state — the server response will
+          // re-populate `files[]` on the next reconciliation, and
+          // `removedFileIds` was already consumed by the sync transaction.
           cleanedLines[lineId] = {
             ...line,
             isNew: false,
             isDeleted: false,
+            files: [],
+            removedFileIds: [],
           };
         });
 
