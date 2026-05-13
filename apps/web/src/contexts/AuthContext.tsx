@@ -69,6 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleLoginFailure = useCallback(async () => {
     if (hasHandledLoginFailureRef.current) return;
     hasHandledLoginFailureRef.current = true;
+    // clearCache is isolated: if it fails we still want to clear app
+    // state, redirect, and inform the user — otherwise a flaky MSAL
+    // call would strand the user in a half-broken session.
     try {
       // clearCache wipes the local MSAL session without redirecting to
       // Azure's logout endpoint, so the in-memory snackbar survives.
@@ -77,18 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         await instance.clearCache();
       }
-      // Drop the failed /users/me cache entry so the next login attempt
-      // refetches instead of replaying the cached error.
-      queryClient.removeQueries({ queryKey: userKeys.me });
-      clearUserStore();
-      await navigate({ to: "/" });
-      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-        variant: "error",
-      });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("Failed to handle login failure cleanup:", error);
+      console.error("MSAL clearCache failed during login recovery:", error);
     }
+    // Drop the failed /users/me cache entry so the next login attempt
+    // refetches instead of replaying the cached error.
+    queryClient.removeQueries({ queryKey: userKeys.me });
+    clearUserStore();
+    await navigate({ to: "/" });
+    enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
+      variant: "error",
+    });
   }, [account, instance, navigate, clearUserStore]);
 
   // Trigger the cleanup when MSAL is authenticated but /users/me failed.
