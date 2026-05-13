@@ -5,9 +5,9 @@ Users on the emission capture flow can today download a carbon inventory only as
 ## What Changes
 
 - Every existing "Descargar" action for a carbon inventory (Step 4 `EmissionSummaryScreen` button, row-level entries in `DraftActionsCell` and `InventoryActionsCell`) now produces a `.zip` instead of a bare `.xlsx`. All three callers share `useDownloadCarbonInventory` and gain the new behavior together. No new buttons.
-- ZIP layout: `resumen-emisiones.xlsx` (root) + `metodologia.xlsx` (root) + `archivos/{category}_{subcategory}_line-{lineId}_{originalName}` (flat folder, one entry per active line file).
+- ZIP layout: `resumen-emisiones.xlsx` (root) + `metodologia.xlsx` (root) + `archivos/{category}_{subcategory}_item-{lineId}_{originalName}` (flat folder, one entry per active line file).
 - ZIP filename: `{sanitize(inventoryName) || "huella"}-{year || "sin-anio"}.zip`. Mirrors the existing Excel-filename convention; the `sin-anio` fallback applies when `year` is null so otherwise-identical inventory names still produce distinct archives.
-- Excel detail sheet (`Detalle emisiones`) gains a leftmost **Line ID** column. Same Line ID is baked into every filename in `archivos/`, so the Excel acts as the manifest — no separate CSV.
+- Excel detail sheet (`Detalle emisiones`) gains a leftmost **Item ID** column. Same Item ID is baked into every filename in `archivos/`, so the Excel acts as the manifest — no separate CSV.
 - New API endpoint `GET /carbon-inventories/:id/files-manifest` returns signed SAS URLs + line context (one user-delegation-key call, all rows signed at once). SAS URLs expire after `CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES` (15 minutes) — long-running downloads that exceed the window fail-whole and the user retries. ZIP generation happens client-side via `client-zip` streaming; the API never proxies file bytes.
 - New API endpoint `GET /carbon-inventories/:id/methodology-export` mirrors the admin `GET /methodologies/:id/export` response shape but is scoped by inventory id and gated by `requireCarbonInventoryAccess` (anonymous calculator flow supported). Status filter matches admin: `PUBLISHED` or `UNPUBLISHED` only; `DELETED` → 404.
 - Methodology Prisma query (select tree + finder) extracted to `apps/api/src/features/methodologies/helpers.ts` and reused by both the admin and the new user-scoped service. Admin behavior unchanged.
@@ -27,7 +27,7 @@ Users on the emission capture flow can today download a carbon inventory only as
 
 ## Breaking Changes
 
-- **Excel format — `Detalle emisiones` sheet**: a new `Line ID` column is inserted at position 1 (leftmost). Every downstream column index shifts by +1. Consumers that parse this workbook by **column header** are unaffected; consumers that parse by **column index** must update their parsing logic. The platform itself does not have such consumers in-tree, so the impact is limited to external integrations / user scripts.
+- **Excel format — `Detalle emisiones` sheet**: a new `Item ID` column is inserted at position 1 (leftmost). Every downstream column index shifts by +1. Consumers that parse this workbook by **column header** are unaffected; consumers that parse by **column index** must update their parsing logic. The platform itself does not have such consumers in-tree, so the impact is limited to external integrations / user scripts.
 
 ## Impact
 
@@ -35,7 +35,7 @@ Users on the emission capture flow can today download a carbon inventory only as
 - **Shared types** (`packages/types`): two new endpoint modules under `carbonInventories/` (files-manifest, methodology-export). Methodology-export response schema re-exports the admin schema directly — no drift.
 - **Shared utils** (`packages/utils`): `sanitizeForFilename` added.
 - **Web**: new query hooks (imperative fetchers), `useDownloadCarbonInventory` rewritten as a zip orchestrator (signature unchanged), Excel builders split, `client-zip` added to `apps/web/package.json`, four new zip-naming constants in `apps/web/src/config/constants.ts`.
-- **Excel format**: detail emissions sheet gains a Line ID column at position 1 — downstream consumers that key by column index will need to shift +1.
+- **Excel format**: detail emissions sheet gains a Item ID column at position 1 — downstream consumers that key by column index will need to shift +1.
 - **Performance / cost**: API stays cheap (one Prisma query + one user-delegation-key call per manifest); Azure egress now flows browser→blob directly instead of going through the API.
 - **CORS**: Azure Blob CORS already permits browser SAS GETs (used by `previewLineFile`); no infra change required.
 - **No DB migrations.**

@@ -29,9 +29,9 @@ The ZIP filename SHALL be `{sanitize(inventoryName) || "huella"}-{year}.zip`, mi
 
 ### Requirement: ZIP archive layout
 
-The ZIP SHALL contain at minimum two files at root: `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_line-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
+The ZIP SHALL contain at minimum two files at root: `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_item-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
 
-Within the same line, same-filename collisions SHALL be disambiguated by appending `-2`, `-3`, … before the extension. Across-line collisions are impossible because `line-{lineId}` partitions the namespace.
+Within the same line, same-filename collisions SHALL be disambiguated by appending `-2`, `-3`, … before the extension. Across-line collisions are impossible because `item-{lineId}` partitions the namespace.
 
 #### Scenario: Inventory with attached files
 
@@ -49,22 +49,22 @@ Within the same line, same-filename collisions SHALL be disambiguated by appendi
 - **WHEN** a single line has two files with the same `originalName`
 - **THEN** the second entry in `archivos/` is suffixed `-2` before its extension (e.g., `factura.pdf` and `factura-2.pdf`)
 
-### Requirement: Emissions detail sheet includes Line ID column
+### Requirement: Emissions detail sheet includes Item ID column
 
-The `Detalle emisiones` sheet inside `resumen-emisiones.xlsx` SHALL include a `Line ID` column as the leftmost column. Each emission-line row SHALL place the line's database id (BigInt serialized to string) in that cell. Subcategory-only rows that have no associated line SHALL place `"-"` in that cell. The column SHALL participate in the sheet's filter (`filterButton: true`).
+The `Detalle emisiones` sheet inside `resumen-emisiones.xlsx` SHALL include a `Item ID` column as the leftmost column. Each emission-line row SHALL place the line's database id (BigInt serialized to string) in that cell. Subcategory-only rows that have no associated line SHALL place `"-"` in that cell. The column SHALL participate in the sheet's filter (`filterButton: true`).
 
-The Line ID rendered in the Excel SHALL be identical to the `line-{lineId}` segment used in the `archivos/` filenames, so users can cross-reference one with the other without an additional manifest file.
+The Item ID rendered in the Excel SHALL be identical to the `item-{lineId}` segment used in the `archivos/` filenames, so users can cross-reference one with the other without an additional manifest file.
 
 #### Scenario: Emission line with attached file
 
 - **WHEN** the user opens `resumen-emisiones.xlsx` → `Detalle emisiones`
-- **THEN** the first column is `Line ID` and shows the line's id as a string
-- **AND** the same id appears as the `line-{lineId}` segment in at least one `archivos/` entry
+- **THEN** the first column is `Item ID` and shows the line's id as a string
+- **AND** the same id appears as the `item-{lineId}` segment in at least one `archivos/` entry
 
 #### Scenario: Subcategory-only row
 
 - **WHEN** a row in `Detalle emisiones` is a subcategory header with no underlying line
-- **THEN** its `Line ID` cell shows `"-"`
+- **THEN** its `Item ID` cell shows `"-"`
 
 ### Requirement: Methodology workbook bundled
 

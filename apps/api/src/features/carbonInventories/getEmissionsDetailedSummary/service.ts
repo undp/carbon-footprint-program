@@ -117,8 +117,8 @@ export const getEmissionsDetailedSummaryService = async (
       // `hasLines` toggles the screen between the detailed lines table
       // (factor-based) and the manual-mode subtotal row, so it stays
       // factor-only. The `lines` payload itself emits every line — DIRECT
-      // included — so the Excel `Line ID` column matches every
-      // `line-{lineId}` filename in `archivos/`. A subcategory is uniformly
+      // included — so the Excel `Item ID` column matches every
+      // `item-{lineId}` filename in `archivos/`. A subcategory is uniformly
       // factor-based or manual, never mixed.
       const hasLines = subLines.some(
         (l) => l.inputs[0] && l.inputs[0].inputType !== "DIRECT"

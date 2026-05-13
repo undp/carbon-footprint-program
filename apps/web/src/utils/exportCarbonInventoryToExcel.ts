@@ -57,8 +57,9 @@ function buildDetailTableSheet(
 ) {
   const worksheet = workbook.addWorksheet("Detalle emisiones");
 
-  // Line ID column at index 0 — same id is embedded in `archivos/` filenames so
-  // users can cross-reference a row with its line files.
+  // Item ID column at index 0 — same id is embedded in `archivos/` filenames
+  // (as the `item-{lineId}` segment) so users can cross-reference a row with
+  // its files.
   worksheet.columns = [
     { width: 12 },
     { width: 28 },
@@ -115,7 +116,7 @@ function buildDetailTableSheet(
       showRowStripes: true,
     },
     columns: [
-      { name: "Line ID", filterButton: true },
+      { name: "Item ID", filterButton: true },
       { name: "Categoría", filterButton: true },
       { name: "Sub-categoría", filterButton: true },
       { name: "Fuente de emisión", filterButton: true },

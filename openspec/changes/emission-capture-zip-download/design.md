@@ -13,8 +13,8 @@ Constraints:
 
 **Goals:**
 
-- One ZIP bundling `resumen-emisiones.xlsx`, `metodologia.xlsx`, and `archivos/{cat}_{sub}_line-{lineId}_{originalName}` for every active line file, triggered by every existing "Descargar" action — no new buttons.
-- Discoverability: each file's owning line is identifiable from its filename and cross-referenced via a new leftmost `Line ID` column on the emissions detail sheet — no separate manifest CSV.
+- One ZIP bundling `resumen-emisiones.xlsx`, `metodologia.xlsx`, and `archivos/{cat}_{sub}_item-{lineId}_{originalName}` for every active line file, triggered by every existing "Descargar" action — no new buttons.
+- Discoverability: each file's owning line is identifiable from its filename and cross-referenced via a new leftmost `Item ID` column on the emissions detail sheet — no separate manifest CSV.
 - Single Azure user-delegation-key roundtrip per manifest, regardless of file count.
 - Methodology export schema reuse between admin and user-scoped endpoints (literal re-export of the response schema).
 - Fail-loud behavior: any failure in summary / factors / manifest / methodology / individual SAS file → whole zip aborts with a Spanish snackbar; no partial archives.
@@ -56,18 +56,18 @@ Constraints:
 - **Why**: OUTDATED / DELETED lines are not part of the inventory's current truth. Bundling their files would confuse cross-reference with the Excel (which only lists ACTIVE lines). Soft-deleted `File` rows are explicitly removed by the user — bundling them would resurrect deletions.
 - **Trade-off**: a user who deletes a file mid-flight then re-downloads gets a smaller archive — expected.
 
-### Discoverability: Line ID column in Excel + Line ID in archive filenames, no separate manifest
+### Discoverability: Item ID column in Excel + Item ID in archive filenames, no separate manifest
 
 - **Why**: a separate `manifest.csv` is dead weight when the Excel already enumerates every line. Embedding the same string ID in the filename and the leftmost column lets a user cross-reference with Ctrl-F.
-- **Excel impact**: prepend `{ name: "Line ID", filterButton: true }` at column 0 on the detail emissions sheet; shift downstream `getColumn(N)` calls by +1. Subcategory-only rows get `"-"`.
-- **Source of Line ID**: `CarbonInventoryLine.id` (BigInt) serialized to string. Already exposed by `getEmissionsDetailedSummary` (`service.ts:135`); no endpoint change.
+- **Excel impact**: prepend `{ name: "Item ID", filterButton: true }` at column 0 on the detail emissions sheet; shift downstream `getColumn(N)` calls by +1. Subcategory-only rows get `"-"`.
+- **Source of Item ID**: `CarbonInventoryLine.id` (BigInt) serialized to string. Already exposed by `getEmissionsDetailedSummary` (`service.ts:135`); no endpoint change.
 
 ### ZIP layout and naming
 
-- Top-level entries `resumen-emisiones.xlsx` and `metodologia.xlsx` at root. Files under `archivos/{sanitize(category)}_{sanitize(subcategory)}_line-{lineId}_{sanitize(stem(name))}{ext}`.
+- Top-level entries `resumen-emisiones.xlsx` and `metodologia.xlsx` at root. Files under `archivos/{sanitize(category)}_{sanitize(subcategory)}_item-{lineId}_{sanitize(stem(name))}{ext}`.
 - ZIP filename: `${sanitize(inventoryName) || "huella"}-{year}.zip`. Mirrors the existing Excel-filename convention (`exportCarbonInventoryToExcel.ts:221-223`). Uses inventory name, not organization name — organization name is null/junk for standalone and anonymous flows.
 - Sanitization: NFD normalize → strip diacritics → non-alphanumeric → `-` → trim `-`. Fallback when empty. New shared util `sanitizeForFilename` in `packages/utils/src/sanitize.ts`. The existing `apps/web/src/services/excel.ts::sanitizeFilenamePart` has different semantics — kept untouched.
-- Within-line same-filename collisions: append `-2`, `-3` before the extension. Across-line collisions can't exist because the `line-{lineId}` segment partitions the namespace.
+- Within-line same-filename collisions: append `-2`, `-3` before the extension. Across-line collisions can't exist because the `item-{lineId}` segment partitions the namespace.
 
 ### Excel builder split, shared with maintainer flow
 
@@ -90,10 +90,10 @@ Constraints:
 - **MethodologyVersion mid-flight DELETED** (PUBLISHED at page load, DELETED at click) → 404 → fail-whole snackbar. Acceptable; user retries. Documented edge case.
 - **Cross-inventory leak via stray `blobPath`** → the manifest service runs the same prefix guard as `previewLineFile` (compare `file.blobPath` to `buildCarbonInventoryLineBlobPathPrefix(inventoryId)` → `CARBON_INVENTORY/{inventoryId}/LINES/`). Mismatches are logged at WARN and the offending row is filtered out — never thrown. This guard fires regardless of `canAdminsBypass`, so admin access cannot escape its own inventory's prefix.
 - **Anonymous flow attack surface for methodology** → same shape as existing `getCarbonInventoryMethodology` (already `public: true`). No new exposure.
-- **Excel column-index drift** → adding Line ID at column 0 shifts all subsequent `getColumn(N)` calls by +1. Caught by visual review during verification step 5; no automated test covers cell formatting directly.
+- **Excel column-index drift** → adding Item ID at column 0 shifts all subsequent `getColumn(N)` calls by +1. Caught by visual review during verification step 5; no automated test covers cell formatting directly.
 
 ## Migration Plan
 
-- No data migration. Code is additive **except** for one format-breaking change: the `Detalle emisiones` sheet gains a `Line ID` column at position 1, shifting every existing column by +1. Consumers that parse the workbook by column header are unaffected; consumers that parse by column index need to update — surfaced explicitly in the proposal's _Breaking Changes_ section.
+- No data migration. Code is additive **except** for one format-breaking change: the `Detalle emisiones` sheet gains a `Item ID` column at position 1, shifting every existing column by +1. Consumers that parse the workbook by column header are unaffected; consumers that parse by column index need to update — surfaced explicitly in the proposal's _Breaking Changes_ section.
 - Rollback: revert the feature commits. No persisted state to undo.
 - Deploy order: API first (so the manifest + methodology-export endpoints exist when the web client looks for them); web second.

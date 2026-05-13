@@ -48,7 +48,7 @@ function buildArchiveFilename(
     sanitizeForFilename(entry.categoryName),
     "_",
     sanitizeForFilename(entry.subcategoryName),
-    "_line-",
+    "_item-",
     entry.lineId,
     "_",
     sanitizeForFilename(stem, "archivo"),
@@ -121,7 +121,7 @@ export function useDownloadCarbonInventory() {
         // different `originalName` values (e.g. `Año.pdf` and `Ano.pdf`) into
         // the same archive entry, so the dedup key is the sanitized archive
         // path — not the raw original name. Across-line collisions cannot
-        // exist because `line-{lineId}` partitions the namespace.
+        // exist because `item-{lineId}` partitions the namespace.
         const perEntryCount = new Map<string, number>();
         const entries: { name: string; input: Response | ArrayBuffer }[] = [
           {
