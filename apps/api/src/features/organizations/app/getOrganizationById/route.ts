@@ -6,7 +6,6 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { defineRoute } from "@/routing/defineRoute.js";
-import { OrganizationRole } from "@repo/database";
 
 export const getOrganizationByIdRoute = defineRoute<{
   Params: GetOrganizationByIdParams;
@@ -28,14 +27,7 @@ export const getOrganizationByIdRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
-        allowedRoles: [
-          OrganizationRole.ADMIN,
-          OrganizationRole.CONTRIBUTOR,
-          OrganizationRole.VIEWER,
-        ],
-        canAdminsBypass: true,
-      },
+      options: { canAdminsBypass: true },
     },
   },
   handler: getOrganizationByIdHandler,

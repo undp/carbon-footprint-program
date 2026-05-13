@@ -3,7 +3,7 @@
 Every API route falls into one of three access modes, declared in the route's `access` field via `defineRoute`:
 
 - `mode: "public"` — anyone can call it, no credentials checked.
-- `mode: "anonymous"` — callers may authenticate with a Bearer token **or** with an alternative credential (currently the `x-carbon-inventory-uuid` header). The type system requires a `carbonInventory` access block alongside, which becomes the preHandler that validates the alternative credential.
+- `mode: "anonymous"` — callers may authenticate with a Bearer token **or** with an alternative credential (currently the `x-carbon-inventory-uuid` header). The hook chain always includes `requireCarbonInventoryAccess`, which validates that credential; an optional `options` block tunes it.
 - `mode: "private"` — Bearer token required. System roles and domain-scoped checks are layered on top per route.
 
 This document is about the route-level access mode (what credentials the route accepts). For who can do what once authenticated, see [RBAC and Authorization](./rbac.md). For how identity is established, see [Authentication](./authentication.md).
@@ -12,11 +12,11 @@ This document is about the route-level access mode (what credentials the route a
 
 ## The Three Modes at a Glance
 
-| Mode          | `defineRoute` `access`                          | Bearer required? | Alternative credential | Typical use case                                       |
-| ------------- | ----------------------------------------------- | ---------------- | ---------------------- | ------------------------------------------------------ |
-| **Private**   | `{ mode: "private", … }`                        | Yes              | —                      | Anything that operates on a specific user's data       |
-| **Public**    | `{ mode: "public" }`                            | No               | None                   | Truly open content (T&C, transparency, explanations)   |
-| **Anonymous** | `{ mode: "anonymous", carbonInventory: { … } }` | No               | Inventory UUID header  | Calculator flow — operate on a specific inventory UUID |
+| Mode          | `defineRoute` `access`                | Bearer required? | Alternative credential | Typical use case                                       |
+| ------------- | ------------------------------------- | ---------------- | ---------------------- | ------------------------------------------------------ |
+| **Private**   | `{ mode: "private", … }`              | Yes              | —                      | Anything that operates on a specific user's data       |
+| **Public**    | `{ mode: "public" }`                  | No               | None                   | Truly open content (T&C, transparency, explanations)   |
+| **Anonymous** | `{ mode: "anonymous", options?: {} }` | No               | Inventory UUID header  | Calculator flow — operate on a specific inventory UUID |
 
 Routes are declared with `defineRoute` and collected per group via `registerRoutes`:
 
@@ -30,7 +30,7 @@ export const getCarbonInventoryByIdRoute = defineRoute<{
   schema: { ... },
   access: {
     mode: "anonymous",
-    carbonInventory: { canAdminsBypass: true },
+    options: { canAdminsBypass: true },
   },
   handler: getCarbonInventoryByIdHandler,
 });
@@ -48,6 +48,20 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
 ```
 
 `registerRoutes` translates each route's `access` into the right `onRequest`/`preHandler`/`config` triple — authors never call `requireAuth` / `requireRoles` / `requireOrganizationRole` directly. See [`defineRoute.ts`](#implementation-reference) for the translator.
+
+---
+
+## Default Behaviors
+
+Every field inside an `options` block is optional. Omitting a field selects its default, so routes that match the defaults can drop the `options` block entirely (e.g. `{ kind: "carbonInventory" }`).
+
+| Field                       | Default when omitted                                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `extractor`                 | Reads `request.params.id`.                                                                                                         |
+| `requiredOrganizationRoles` | Any active membership in the organization (or, for carbonInventory / reductionProject, the resource's organization) grants access. |
+| `canAdminsBypass`           | `false` — system ADMIN/SUPERADMIN must still satisfy the same check.                                                               |
+
+> **Rule of thumb.** If a route's check is "any active org member can access this", do **not** list every role explicitly — leave `requiredOrganizationRoles` out. The check still runs (membership is required); only the role-subset gate is skipped.
 
 ---
 
@@ -90,55 +104,72 @@ access: {
 },
 ```
 
-With organization-membership check (default `:id` extractor reads `request.params.id`):
+With an organization-membership check restricted to ADMINs (default `:id` extractor):
 
 ```typescript
 access: {
   mode: "private",
   domain: {
     kind: "organization",
-    organization: {
-      allowedRoles: [OrganizationRole.ADMIN],
+    options: {
+      requiredOrganizationRoles: [OrganizationRole.ADMIN],
     },
   },
 },
 ```
 
-With a custom extractor (when the org id lives somewhere other than `:id`):
+When any active org membership is enough (no role gate), drop `requiredOrganizationRoles`. Combined with `canAdminsBypass`, this is a common read-only pattern:
 
 ```typescript
 access: {
   mode: "private",
   domain: {
     kind: "organization",
-    organization: {
+    options: { canAdminsBypass: true },
+  },
+},
+```
+
+With a custom extractor (the org id lives in `:organizationId`, not `:id`):
+
+```typescript
+access: {
+  mode: "private",
+  domain: {
+    kind: "organization",
+    options: {
       extractor: organizationIdRequestExtractor, // reads :organizationId
-      allowedRoles: [OrganizationRole.ADMIN, OrganizationRole.CONTRIBUTOR, OrganizationRole.VIEWER],
     },
   },
+},
+```
+
+When the defaults match exactly (`:id` extractor, any active member, no admin bypass), the `options` block can be omitted entirely:
+
+```typescript
+access: {
+  mode: "private",
+  domain: { kind: "carbonInventory" },
 },
 ```
 
 ### Multiple domain checks
 
-A route that operates on more than one resource (e.g. a path that carries both `:organizationId` and `:carbonInventoryId`) passes an array of `DomainAccess` entries. Every preHandler runs; the caller must satisfy all of them.
+A route that operates on more than one resource (e.g. a path that carries both `:id` and `:organizationId`) passes an array of `DomainAccess` entries. Every preHandler runs; the caller must satisfy all of them.
 
 ```typescript
 access: {
   mode: "private",
   domain: [
+    { kind: "carbonInventory" }, // checks the inventory at :id
     {
       kind: "organization",
-      organization: {
+      options: {
         extractor: (req) => (req.params as { organizationId: string }).organizationId,
-        allowedRoles: [OrganizationRole.ADMIN, OrganizationRole.CONTRIBUTOR],
-      },
-    },
-    {
-      kind: "carbonInventory",
-      carbonInventory: {
-        extractor: (req) => (req.params as { carbonInventoryId: string }).carbonInventoryId,
-        requiredOrganizationRoles: [OrganizationRole.ADMIN, OrganizationRole.CONTRIBUTOR],
+        requiredOrganizationRoles: [
+          OrganizationRole.ADMIN,
+          OrganizationRole.CONTRIBUTOR,
+        ],
       },
     },
   ],
@@ -230,15 +261,21 @@ export const getCarbonInventoryByIdRoute = defineRoute<{
   schema: { ... },
   access: {
     mode: "anonymous",
-    carbonInventory: { canAdminsBypass: true },
+    options: { canAdminsBypass: true },
   },
   handler: getCarbonInventoryByIdHandler,
 });
 ```
 
+When the defaults are sufficient (no admin bypass, default `:id` extractor, any active org membership), the `options` block can be omitted:
+
+```typescript
+access: { mode: "anonymous" },
+```
+
 **Why this pattern exists:** the calculator flow lets a visitor create and edit a single inventory without signing up. The inventory's UUID is embedded in the URL the visitor uses; the frontend sends it back as a header so the API can authorize each request against that specific inventory.
 
-**Hard rule — enforced by the type system.** `mode: "anonymous"` syntactically requires the `carbonInventory` block; you cannot declare an anonymous route without it. The route-security validator additionally checks at boot that the generated preHandler chain contains `requireCarbonInventoryAccess`, catching any manually-registered routes that bypass `defineRoute`. `createCarbonInventory` is the only exception in the codebase: it has no inventory yet to authorize against, and is marked `mode: "public"` instead.
+**Hard rule — enforced by `defineRoute`.** Every `mode: "anonymous"` route automatically gets `requireCarbonInventoryAccess` in its preHandler chain. The route-security validator additionally checks at boot that the generated preHandler chain contains `requireCarbonInventoryAccess`, catching any manually-registered routes that bypass `defineRoute`. `createCarbonInventory` is the only exception in the codebase: it has no inventory yet to authorize against, and is marked `mode: "public"` instead.
 
 **Current callers:** all are under `apps/api/src/routes/api/carbon-inventories/index.ts`. Examples:
 
@@ -264,7 +301,7 @@ Does the route need any per-caller identity to function?
     │   a capability token (UUID) for?
     │       │
     │       ├── Yes → mode: "anonymous"
-    │       │         + carbonInventory: { ... }   (mandatory, type-enforced)
+    │       │         + options? (defaults to inventory at :id, any active member)
     │       │
     │       └── No  → mode: "private"
     │                 + systemRoles? + domain?   (as needed)
@@ -281,17 +318,17 @@ A few sanity checks before choosing a non-default mode:
 
 `buildHooks` (in [`defineRoute.ts`](#implementation-reference)) is the single translator from a `RouteAccess` value to the `(onRequest, preHandler, config)` triple Fastify uses. Each row below describes the output for a given access spec.
 
-| Access                                                                             | `config` flags               | `onRequest`            | `preHandler`                                          |
-| ---------------------------------------------------------------------------------- | ---------------------------- | ---------------------- | ----------------------------------------------------- |
-| `{ mode: "public" }`                                                               | `allowPublicAccess: true`    | `requireAuth` _(soft)_ | —                                                     |
-| `{ mode: "anonymous", carbonInventory: {…} }`                                      | `allowAnonymousAccess: true` | `requireAuth`          | `requireCarbonInventoryAccess(extractor, opts)`       |
-| `{ mode: "private" }` _(no systemRoles, no domain)_                                | —                            | `requireAuth`          | —                                                     |
-| `{ mode: "private", systemRoles: { kind: "roles", roles: [...] } }`                | —                            | `requireAuth`          | `requireRoles(roles)`                                 |
-| `{ mode: "private", domain: { kind: "organization", organization: {…} } }`         | —                            | `requireAuth`          | `requireOrganizationRole(extractor, opts)`            |
-| `{ mode: "private", domain: { kind: "carbonInventory", carbonInventory: {…} } }`   | —                            | `requireAuth`          | `requireCarbonInventoryAccess(extractor, opts)`       |
-| `{ mode: "private", domain: { kind: "reductionProject", reductionProject: {…} } }` | —                            | `requireAuth`          | `requireReductionProjectAccess(opts)`                 |
-| `{ mode: "private", domain: [d1, d2, …] }`                                         | —                            | `requireAuth`          | one preHandler per domain entry, in declaration order |
-| `{ mode: "private", systemRoles: {…}, domain: {…} }`                               | —                            | `requireAuth`          | `requireRoles(...)` followed by the domain hook(s)    |
+| Access                                                                     | `config` flags               | `onRequest`            | `preHandler`                                          |
+| -------------------------------------------------------------------------- | ---------------------------- | ---------------------- | ----------------------------------------------------- |
+| `{ mode: "public" }`                                                       | `allowPublicAccess: true`    | `requireAuth` _(soft)_ | —                                                     |
+| `{ mode: "anonymous", options?: {…} }`                                     | `allowAnonymousAccess: true` | `requireAuth`          | `requireCarbonInventoryAccess(extractor, opts)`       |
+| `{ mode: "private" }` _(no systemRoles, no domain)_                        | —                            | `requireAuth`          | —                                                     |
+| `{ mode: "private", systemRoles: { kind: "roles", roles: [...] } }`        | —                            | `requireAuth`          | `requireRoles(roles)`                                 |
+| `{ mode: "private", domain: { kind: "organization", options?: {…} } }`     | —                            | `requireAuth`          | `requireOrganizationRole(extractor, opts)`            |
+| `{ mode: "private", domain: { kind: "carbonInventory", options?: {…} } }`  | —                            | `requireAuth`          | `requireCarbonInventoryAccess(extractor, opts)`       |
+| `{ mode: "private", domain: { kind: "reductionProject", options?: {…} } }` | —                            | `requireAuth`          | `requireReductionProjectAccess(opts)`                 |
+| `{ mode: "private", domain: [d1, d2, …] }`                                 | —                            | `requireAuth`          | one preHandler per domain entry, in declaration order |
+| `{ mode: "private", systemRoles: {…}, domain: {…} }`                       | —                            | `requireAuth`          | `requireRoles(...)` followed by the domain hook(s)    |
 
 `requireAuth` on public routes is "soft": the auth plugin reads `allowPublicAccess` from the config and skips the 401 if no credential is present, but populates `request.currentUser` whenever a valid Bearer token _is_ present.
 

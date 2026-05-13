@@ -34,8 +34,8 @@ export const requestOrganizationAccreditationRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
-        allowedRoles: [OrganizationRole.ADMIN],
+      options: {
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
       },
     },
   },

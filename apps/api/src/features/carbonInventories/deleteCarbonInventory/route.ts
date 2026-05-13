@@ -29,7 +29,7 @@ export const deleteCarbonInventoryRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "carbonInventory",
-      carbonInventory: {
+      options: {
         requiredOrganizationRoles: [
           OrganizationRole.CONTRIBUTOR,
           OrganizationRole.ADMIN,

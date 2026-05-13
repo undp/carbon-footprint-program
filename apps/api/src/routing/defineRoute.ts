@@ -117,12 +117,12 @@ export function buildHooks(
   }
 
   if (access.mode === "anonymous") {
-    const extractor = access.carbonInventory.extractor ?? defaultIdExtractor;
+    const options = access.options ?? {};
+    const extractor = options.extractor ?? defaultIdExtractor;
     const inventoryHook = tagHook(
       fastify.requireCarbonInventoryAccess(extractor, {
-        requiredOrganizationRoles:
-          access.carbonInventory.requiredOrganizationRoles,
-        canAdminsBypass: access.carbonInventory.canAdminsBypass,
+        requiredOrganizationRoles: options.requiredOrganizationRoles,
+        canAdminsBypass: options.canAdminsBypass,
       }),
       "requireCarbonInventoryAccess"
     ) as preHandlerHookHandler;
@@ -157,14 +157,14 @@ export function buildHooks(
     for (const domain of domains) {
       switch (domain.kind) {
         case "organization": {
-          const { organization } = domain;
+          const options = domain.options ?? {};
           preHandler.push(
             tagHook(
               fastify.requireOrganizationRole(
-                organization.extractor ?? defaultIdExtractor,
+                options.extractor ?? defaultIdExtractor,
                 {
-                  allowedRoles: organization.allowedRoles,
-                  canAdminsBypass: organization.canAdminsBypass,
+                  requiredOrganizationRoles: options.requiredOrganizationRoles,
+                  canAdminsBypass: options.canAdminsBypass,
                 }
               ),
               "requireOrganizationRole"
@@ -173,15 +173,14 @@ export function buildHooks(
           break;
         }
         case "carbonInventory": {
-          const { carbonInventory } = domain;
+          const options = domain.options ?? {};
           preHandler.push(
             tagHook(
               fastify.requireCarbonInventoryAccess(
-                carbonInventory.extractor ?? defaultIdExtractor,
+                options.extractor ?? defaultIdExtractor,
                 {
-                  requiredOrganizationRoles:
-                    carbonInventory.requiredOrganizationRoles,
-                  canAdminsBypass: carbonInventory.canAdminsBypass,
+                  requiredOrganizationRoles: options.requiredOrganizationRoles,
+                  canAdminsBypass: options.canAdminsBypass,
                 }
               ),
               "requireCarbonInventoryAccess"
@@ -190,13 +189,12 @@ export function buildHooks(
           break;
         }
         case "reductionProject": {
-          const { reductionProject } = domain;
+          const options = domain.options ?? {};
           preHandler.push(
             tagHook(
               fastify.requireReductionProjectAccess({
-                requiredOrganizationRoles:
-                  reductionProject.requiredOrganizationRoles,
-                canAdminsBypass: reductionProject.canAdminsBypass,
+                requiredOrganizationRoles: options.requiredOrganizationRoles,
+                canAdminsBypass: options.canAdminsBypass,
               }),
               "requireReductionProjectAccess"
             ) as preHandlerHookHandler

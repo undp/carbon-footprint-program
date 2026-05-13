@@ -3,7 +3,6 @@ import {
   GetCarbonInventoryHistoryParams,
   GetCarbonInventoryHistoryParamsSchema,
   GetCarbonInventoryHistoryResponseSchema,
-  OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { defineRoute } from "@/routing/defineRoute.js";
@@ -28,14 +27,7 @@ export const getCarbonInventoryHistoryRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "carbonInventory",
-      carbonInventory: {
-        requiredOrganizationRoles: [
-          OrganizationRole.ADMIN,
-          OrganizationRole.CONTRIBUTOR,
-          OrganizationRole.VIEWER,
-        ],
-        canAdminsBypass: true,
-      },
+      options: { canAdminsBypass: true },
     },
   },
   handler: getCarbonInventoryHistoryHandler,

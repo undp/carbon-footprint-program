@@ -34,15 +34,15 @@ export const assignOrganizationToCarbonInventoryRoute = defineRoute<{
   access: {
     mode: "private",
     domain: [
-      {
-        kind: "carbonInventory",
-        carbonInventory: {},
-      },
+      { kind: "carbonInventory" },
       {
         kind: "organization",
-        organization: {
+        options: {
           extractor: organizationIdExtractor,
-          allowedRoles: [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
+          requiredOrganizationRoles: [
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.ADMIN,
+          ],
         },
       },
     ],

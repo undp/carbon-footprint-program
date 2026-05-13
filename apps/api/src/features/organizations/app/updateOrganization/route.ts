@@ -33,8 +33,8 @@ export const updateOrganizationRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
-        allowedRoles: [OrganizationRole.ADMIN],
+      options: {
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
       },
     },
   },

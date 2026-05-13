@@ -26,7 +26,7 @@ export const getMainActivityEquivalenceRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: { canAdminsBypass: true },
+    options: { canAdminsBypass: true },
   },
   handler: getMainActivityEquivalenceHandler,
 });

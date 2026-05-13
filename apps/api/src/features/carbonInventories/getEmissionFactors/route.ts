@@ -26,7 +26,7 @@ export const getEmissionFactorsRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: { canAdminsBypass: true },
+    options: { canAdminsBypass: true },
   },
   handler: getEmissionFactorsHandler,
 });

@@ -30,7 +30,7 @@ export const getSuggestedReductionPlanRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: { canAdminsBypass: true },
+    options: { canAdminsBypass: true },
   },
   handler: getSuggestedReductionPlanHandler,
 });

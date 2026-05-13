@@ -109,7 +109,7 @@ declare module "fastify" {
      * Must be used after requireAuth.
      *
      * @param organizationIdExtractor - Function to extract organization ID from request
-     * @param options.allowedRoles - Array of organization roles, user must have at least one
+     * @param options.requiredOrganizationRoles - When omitted, any active membership grants access. Otherwise, user must have one of these roles.
      * @param options.canAdminsBypass - When true, ADMIN and SUPERADMIN system roles bypass org checks
      * @returns Hook function for organization role-based authorization
      *
@@ -124,7 +124,7 @@ declare module "fastify" {
      *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
-     *       { allowedRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
+     *       { requiredOrganizationRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
      *     )
      *   ]
      * }, handler);

@@ -71,7 +71,11 @@ export type OrganizationIdExtractorFn = (
  * Options for the requireOrganizationRole function.
  */
 export type RequireOrganizationRoleOptions = {
-  allowedRoles: OrganizationRole[];
+  /**
+   * When omitted or empty, any active organization membership grants access.
+   * When set, the caller's membership role must be one of the listed roles.
+   */
+  requiredOrganizationRoles?: OrganizationRole[];
   /**
    * When true, users with ADMIN or SUPERADMIN system roles bypass
    * organization membership checks entirely.
@@ -93,7 +97,7 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    * within an organization.
    *
    * @param organizationIdExtractor - Function to extract organization ID from request
-   * @param allowedRoles - Array of organization roles, user must have at least one
+   * @param options.requiredOrganizationRoles - When omitted, any active membership grants access. Otherwise, the user must have at least one of these roles.
    * @returns Fastify hook function
    *
    * @example
@@ -118,7 +122,7 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
       organizationIdExtractor: OrganizationIdExtractorFn,
       options: RequireOrganizationRoleOptions
     ) {
-      const { allowedRoles, canAdminsBypass } = options;
+      const { requiredOrganizationRoles, canAdminsBypass } = options;
 
       return async function (request: FastifyRequest, reply: FastifyReply) {
         const log = request.log.child({ module: "organization-authorization" });
@@ -200,16 +204,20 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
           });
         }
 
-        // Check if user has one of the required roles
-        const hasRequiredRole = allowedRoles.includes(membership.role);
-
-        if (!hasRequiredRole) {
+        // Check role if a specific subset is required. When
+        // `requiredOrganizationRoles` is omitted or empty, any active membership
+        // grants access.
+        if (
+          requiredOrganizationRoles &&
+          requiredOrganizationRoles.length > 0 &&
+          !requiredOrganizationRoles.includes(membership.role)
+        ) {
           log.warn(
             {
               userId: request.currentUser.id,
               organizationId,
               userRole: membership.role,
-              requiredRoles: allowedRoles,
+              requiredRoles: requiredOrganizationRoles,
             },
             "Organization authorization failed: insufficient permissions"
           );

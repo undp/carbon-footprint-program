@@ -3,7 +3,6 @@ import {
   GetOrganizationHistoryParams,
   GetOrganizationHistoryParamsSchema,
   GetOrganizationHistoryResponseSchema,
-  OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { defineRoute } from "@/routing/defineRoute.js";
@@ -27,14 +26,7 @@ export const getOrganizationHistoryRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
-        allowedRoles: [
-          OrganizationRole.ADMIN,
-          OrganizationRole.CONTRIBUTOR,
-          OrganizationRole.VIEWER,
-        ],
-        canAdminsBypass: true,
-      },
+      options: { canAdminsBypass: true },
     },
   },
   handler: getOrganizationHistoryHandler,

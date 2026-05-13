@@ -1,4 +1,3 @@
-import { OrganizationRole } from "@repo/database/enums";
 import { getOrganizationUsersHandler } from "./handler.js";
 import {
   GetOrganizationUsersParams,
@@ -31,14 +30,7 @@ export const getOrganizationUsersRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
-        extractor: organizationIdRequestExtractor,
-        allowedRoles: [
-          OrganizationRole.ADMIN,
-          OrganizationRole.CONTRIBUTOR,
-          OrganizationRole.VIEWER,
-        ],
-      },
+      options: { extractor: organizationIdRequestExtractor },
     },
   },
   handler: getOrganizationUsersHandler,

@@ -100,7 +100,7 @@ type IdExtractor = (req: FastifyRequest) => string | bigint;
 
 type OrganizationAccess = {
   extractor?: IdExtractor;
-  allowedRoles: OrganizationRole[];
+  requiredOrganizationRoles?: OrganizationRole[];
   canAdminsBypass?: boolean;
 };
 

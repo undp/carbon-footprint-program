@@ -32,9 +32,9 @@ export const removeOrganizationUserRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
+      options: {
         extractor: organizationIdRequestExtractor,
-        allowedRoles: [OrganizationRole.ADMIN],
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
       },
     },
   },

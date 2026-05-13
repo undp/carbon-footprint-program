@@ -173,8 +173,8 @@ access: {
   mode: "private",
   domain: {
     kind: "organization",
-    organization: {
-      allowedRoles: [OrganizationRole.ADMIN],
+    options: {
+      requiredOrganizationRoles: [OrganizationRole.ADMIN],
       canAdminsBypass: true, // System ADMINs bypass org checks
     },
   },
@@ -302,8 +302,11 @@ Never wrap successful responses in `{ data: ... }`. The response schema in `@rep
        mode: "private",
        domain: {
          kind: "organization",
-         organization: {
-           allowedRoles: [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
+         options: {
+           requiredOrganizationRoles: [
+             OrganizationRole.CONTRIBUTOR,
+             OrganizationRole.ADMIN,
+           ],
          },
        },
      },

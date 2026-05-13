@@ -25,10 +25,7 @@ export const getCarbonInventoryBadgesRoute = defineRoute<{
   },
   access: {
     mode: "private",
-    domain: {
-      kind: "carbonInventory",
-      carbonInventory: {},
-    },
+    domain: { kind: "carbonInventory" },
   },
   handler: getCarbonInventoryBadgesHandler,
 });

@@ -33,7 +33,7 @@ export const updateCarbonInventorySubcategoriesRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: {
+    options: {
       requiredOrganizationRoles: [
         OrganizationRole.CONTRIBUTOR,
         OrganizationRole.ADMIN,

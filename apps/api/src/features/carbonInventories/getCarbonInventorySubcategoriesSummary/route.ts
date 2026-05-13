@@ -27,7 +27,6 @@ export const getCarbonInventorySubcategoriesSummaryRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: {},
   },
   handler: getCarbonInventorySubcategoriesSummaryHandler,
 });

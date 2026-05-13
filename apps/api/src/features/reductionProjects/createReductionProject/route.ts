@@ -30,9 +30,12 @@ export const createReductionProjectRoute = defineRoute<{
     mode: "private",
     domain: {
       kind: "organization",
-      organization: {
+      options: {
         extractor: reductionProjectOrganizationIdExtractor,
-        allowedRoles: [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
+        requiredOrganizationRoles: [
+          OrganizationRole.CONTRIBUTOR,
+          OrganizationRole.ADMIN,
+        ],
       },
     },
   },

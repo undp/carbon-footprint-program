@@ -26,10 +26,7 @@ export const getReductionPlanRoute = defineRoute<{
   },
   access: {
     mode: "private",
-    domain: {
-      kind: "carbonInventory",
-      carbonInventory: {},
-    },
+    domain: { kind: "carbonInventory" },
   },
   handler: getReductionPlanHandler,
 });

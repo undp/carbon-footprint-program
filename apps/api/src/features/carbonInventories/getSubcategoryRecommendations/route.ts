@@ -27,7 +27,6 @@ export const getSubcategoryRecommendationsRoute = defineRoute<{
   },
   access: {
     mode: "anonymous",
-    carbonInventory: {},
   },
   handler: getSubcategoryRecommendationsHandler,
 });

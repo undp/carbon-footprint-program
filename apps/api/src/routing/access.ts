@@ -19,9 +19,16 @@ export type SystemRolesRequirement =
   | { kind: "any" }
   | { kind: "roles"; roles: SystemRole[] };
 
+/**
+ * Per-domain access options. All fields are optional; omitting a field selects
+ * its default behavior:
+ * - `extractor` → reads `request.params.id`.
+ * - `requiredOrganizationRoles` → any active organization role suffices.
+ * - `canAdminsBypass` → `false`.
+ */
 export type OrganizationAccess = {
   extractor?: IdExtractor;
-  allowedRoles: OrganizationRole[];
+  requiredOrganizationRoles?: OrganizationRole[];
   canAdminsBypass?: boolean;
 };
 
@@ -37,9 +44,9 @@ export type ReductionProjectAccess = {
 };
 
 export type DomainAccess =
-  | { kind: "organization"; organization: OrganizationAccess }
-  | { kind: "carbonInventory"; carbonInventory: CarbonInventoryAccess }
-  | { kind: "reductionProject"; reductionProject: ReductionProjectAccess };
+  | { kind: "organization"; options?: OrganizationAccess }
+  | { kind: "carbonInventory"; options?: CarbonInventoryAccess }
+  | { kind: "reductionProject"; options?: ReductionProjectAccess };
 
 /**
  * Declarative security spec for a single route. The discriminated `mode` field
@@ -55,7 +62,7 @@ export type DomainAccess =
  */
 export type RouteAccess =
   | { mode: "public" }
-  | { mode: "anonymous"; carbonInventory: CarbonInventoryAccess }
+  | { mode: "anonymous"; options?: CarbonInventoryAccess }
   | {
       mode: "private";
       systemRoles?: SystemRolesRequirement;
