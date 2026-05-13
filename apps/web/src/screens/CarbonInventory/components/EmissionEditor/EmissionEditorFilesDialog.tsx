@@ -130,6 +130,12 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
           })),
         ];
         setValue(filesPath, next, { shouldDirty: true });
+        enqueueSnackbar(
+          uploaded.length === 1
+            ? "Archivo subido correctamente"
+            : `${uploaded.length} archivos subidos correctamente`,
+          { variant: "success" }
+        );
       } catch {
         enqueueSnackbar("Error al subir los archivos", { variant: "error" });
       }
