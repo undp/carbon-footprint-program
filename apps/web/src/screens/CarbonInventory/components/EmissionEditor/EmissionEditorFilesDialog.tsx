@@ -185,7 +185,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       slotProps={{ paper: { sx: { height: "80vh", maxHeight: "80vh" } } }}
     >
