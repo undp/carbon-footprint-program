@@ -31,6 +31,7 @@ export const assignOrganizationToCarbonInventoryRoute: StandardRouteSignature =
           params: AssignOrganizationToCarbonInventoryParamsSchema,
           response: {
             200: AssignOrganizationToCarbonInventoryResponseSchema,
+            400: ApiErrorResponseSchema,
             403: ApiErrorResponseSchema,
             404: ApiErrorResponseSchema,
             422: ApiErrorResponseSchema,
