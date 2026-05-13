@@ -27,7 +27,7 @@ Constraints:
 - No changes to the admin `/methodologies/:id/export` route signature or response.
 - No changes to `getCarbonInventoryMethodology` (different shape; serves calculator UI).
 - No partial-zip fallback, no retry-with-skip mode, no server-side zip assembly, no email-delivery mode.
-- No new emission summary endpoint — `getEmissionsDetailedSummary` already serializes `lineId` as string at `service.ts:135`; the Excel builder consumes it.
+- No new emission summary endpoint — `getEmissionsDetailedSummary` already serializes `lineId` as a string in its service; the Excel builder consumes it.
 - No country-specific labels or layouts — sanitization is locale-agnostic (strip diacritics; non-alphanumeric → `-`).
 
 ## Decisions
@@ -88,12 +88,12 @@ Constraints:
 - **Browser memory ceiling** (~hundreds of MB) → documented in code comment; revisit only if reports exceed it. Migration target: `streams-saver`.
 - **Helper extraction regression on admin export** → mitigated by re-running the admin integration test (`/getMethodologyExport/integration.test.ts`) as part of verification.
 - **MethodologyVersion mid-flight DELETED** (PUBLISHED at page load, DELETED at click) → 404 → fail-whole snackbar. Acceptable; user retries. Documented edge case.
-- **Cross-inventory leak via stray `blobPath`** → reuse the existing `previewLineFile` prefix safety check (log + skip mismatched rows) in the manifest service.
+- **Cross-inventory leak via stray `blobPath`** → the manifest service runs the same prefix guard as `previewLineFile` (compare `file.blobPath` to `buildCarbonInventoryLineBlobPathPrefix(inventoryId)` → `CARBON_INVENTORY/{inventoryId}/LINES/`). Mismatches are logged at WARN and the offending row is filtered out — never thrown. This guard fires regardless of `canAdminsBypass`, so admin access cannot escape its own inventory's prefix.
 - **Anonymous flow attack surface for methodology** → same shape as existing `getCarbonInventoryMethodology` (already `public: true`). No new exposure.
 - **Excel column-index drift** → adding Line ID at column 0 shifts all subsequent `getColumn(N)` calls by +1. Caught by visual review during verification step 5; no automated test covers cell formatting directly.
 
 ## Migration Plan
 
-- No data migration. Pure additive code change + one in-place Excel column shift.
+- No data migration. Code is additive **except** for one format-breaking change: the `Detalle emisiones` sheet gains a `Line ID` column at position 1, shifting every existing column by +1. Consumers that parse the workbook by column header are unaffected; consumers that parse by column index need to update — surfaced explicitly in the proposal's _Breaking Changes_ section.
 - Rollback: revert the feature commits. No persisted state to undo.
 - Deploy order: API first (so the manifest + methodology-export endpoints exist when the web client looks for them); web second.

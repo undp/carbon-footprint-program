@@ -6,9 +6,9 @@ Users on the emission capture flow can today download a carbon inventory only as
 
 - Every existing "Descargar" action for a carbon inventory (Step 4 `EmissionSummaryScreen` button, row-level entries in `DraftActionsCell` and `InventoryActionsCell`) now produces a `.zip` instead of a bare `.xlsx`. All three callers share `useDownloadCarbonInventory` and gain the new behavior together. No new buttons.
 - ZIP layout: `resumen-emisiones.xlsx` (root) + `metodologia.xlsx` (root) + `archivos/{category}_{subcategory}_line-{lineId}_{originalName}` (flat folder, one entry per active line file).
-- ZIP filename: `{sanitize(inventoryName) || "huella"}-{year}.zip`. Mirrors the existing Excel-filename convention.
+- ZIP filename: `{sanitize(inventoryName) || "huella"}-{year || "sin-anio"}.zip`. Mirrors the existing Excel-filename convention; the `sin-anio` fallback applies when `year` is null so otherwise-identical inventory names still produce distinct archives.
 - Excel detail sheet (`Detalle emisiones`) gains a leftmost **Line ID** column. Same Line ID is baked into every filename in `archivos/`, so the Excel acts as the manifest — no separate CSV.
-- New API endpoint `GET /carbon-inventories/:id/files-manifest` returns signed SAS URLs + line context (one user-delegation-key call, all rows signed at once). ZIP generation happens client-side via `client-zip` streaming; the API never proxies file bytes.
+- New API endpoint `GET /carbon-inventories/:id/files-manifest` returns signed SAS URLs + line context (one user-delegation-key call, all rows signed at once). SAS URLs expire after `CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES` (15 minutes) — long-running downloads that exceed the window fail-whole and the user retries. ZIP generation happens client-side via `client-zip` streaming; the API never proxies file bytes.
 - New API endpoint `GET /carbon-inventories/:id/methodology-export` mirrors the admin `GET /methodologies/:id/export` response shape but is scoped by inventory id and gated by `requireCarbonInventoryAccess` (anonymous calculator flow supported). Status filter matches admin: `PUBLISHED` or `UNPUBLISHED` only; `DELETED` → 404.
 - Methodology Prisma query (select tree + finder) extracted to `apps/api/src/features/methodologies/helpers.ts` and reused by both the admin and the new user-scoped service. Admin behavior unchanged.
 - Excel builders for inventory summary and methodology split into pure `buildXWorkbook(...) → ArrayBuffer` builders + thin download wrappers, so the zip orchestrator and the existing maintainer flow share workbook construction with zero drift.
@@ -24,6 +24,10 @@ Users on the emission capture flow can today download a carbon inventory only as
 ### Modified Capabilities
 
 - `emission-capture-line-files`: Existing line-file capability gains the manifest endpoint that exposes signed SAS URLs + per-line context for bulk download; previously line files were only reachable one-at-a-time via `previewLineFile`.
+
+## Breaking Changes
+
+- **Excel format — `Detalle emisiones` sheet**: a new `Line ID` column is inserted at position 1 (leftmost). Every downstream column index shifts by +1. Consumers that parse this workbook by **column header** are unaffected; consumers that parse by **column index** must update their parsing logic. The platform itself does not have such consumers in-tree, so the impact is limited to external integrations / user scripts.
 
 ## Impact
 
