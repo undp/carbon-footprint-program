@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetSectorRankingParams } from "@repo/types";
 import { getSectorRankingService } from "./service.js";
 
 export const getSectorRankingHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetSectorRankingParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "sectorRanking" });

@@ -1,39 +1,34 @@
 import { updateReductionPlanInitiativeHandler } from "./handler.js";
 import {
+  UpdateReductionPlanInitiativeParams,
   UpdateReductionPlanInitiativeParamsSchema,
+  UpdateReductionPlanInitiativeRequest,
   UpdateReductionPlanInitiativeRequestSchema,
   UpdateReductionPlanInitiativeResponseSchema,
-  type UpdateReductionPlanInitiativeParams,
-  type UpdateReductionPlanInitiativeRequest,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const updateReductionPlanInitiativeRoute: StandardRouteSignature = (
-  fastify,
-  _options
-) => {
-  fastify.patch<{
-    Params: UpdateReductionPlanInitiativeParams;
-    Body: UpdateReductionPlanInitiativeRequest;
-  }>(
-    "/:id",
-    {
-      schema: {
-        tags: ["admin-reduction-plan-initiatives"],
-        summary: "Update a reduction plan initiative",
-        params: UpdateReductionPlanInitiativeParamsSchema,
-        body: UpdateReductionPlanInitiativeRequestSchema,
-        response: {
-          200: UpdateReductionPlanInitiativeResponseSchema,
-          400: ApiErrorResponseSchema,
-          401: ApiErrorResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          409: ApiErrorResponseSchema,
-        },
-      },
+export const updateReductionPlanInitiativeRoute = defineRoute<{
+  Params: UpdateReductionPlanInitiativeParams;
+  Body: UpdateReductionPlanInitiativeRequest;
+}>({
+  method: "PATCH",
+  path: "/:id",
+  schema: {
+    tags: ["admin-reduction-plan-initiatives"],
+    summary: "Update a reduction plan initiative",
+    params: UpdateReductionPlanInitiativeParamsSchema,
+    body: UpdateReductionPlanInitiativeRequestSchema,
+    response: {
+      200: UpdateReductionPlanInitiativeResponseSchema,
+      400: ApiErrorResponseSchema,
+      401: ApiErrorResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
-    updateReductionPlanInitiativeHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: updateReductionPlanInitiativeHandler,
+});

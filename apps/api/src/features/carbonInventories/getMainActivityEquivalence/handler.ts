@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetMainActivityEquivalenceParams } from "@repo/types";
 import { getMainActivityEquivalenceService } from "./service.js";
 
 export const getMainActivityEquivalenceHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetMainActivityEquivalenceParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "mainActivityEquivalence" });

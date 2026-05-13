@@ -1,29 +1,24 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { getAllUsersHandler } from "./handler.js";
-import {
-  GetAllUsersResponse,
-  GetAllUsersResponseSchema,
-  SystemRole,
-} from "@repo/types";
+import { GetAllUsersResponseSchema, SystemRole } from "@repo/types";
 
-export const getAllUsersRoute = (fastify: FastifyZodInstance) => {
-  fastify.get<{
-    Reply: GetAllUsersResponse;
-  }>(
-    "/",
-    {
-      schema: {
-        tags: ["users"],
-        summary: "Get all users",
-        description: "Get all users ordered by creation date (newest first)",
-        response: {
-          200: GetAllUsersResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
-      ],
+export const getAllUsersRoute = defineRoute({
+  method: "GET",
+  path: "/",
+  schema: {
+    tags: ["users"],
+    summary: "Get all users",
+    description: "Get all users ordered by creation date (newest first)",
+    response: {
+      200: GetAllUsersResponseSchema,
     },
-    getAllUsersHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    systemRoles: {
+      kind: "roles",
+      roles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
+    },
+  },
+  handler: getAllUsersHandler,
+});

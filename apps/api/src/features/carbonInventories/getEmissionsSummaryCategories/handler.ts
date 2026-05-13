@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetEmissionsSummaryCategoriesParams } from "@repo/types";
 import { getEmissionsSummaryCategoriesService } from "./service.js";
 
 export const getEmissionsSummaryCategoriesHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetEmissionsSummaryCategoriesParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "emissionsSummaryCategories" });

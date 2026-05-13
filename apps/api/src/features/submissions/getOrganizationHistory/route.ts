@@ -3,40 +3,31 @@ import {
   GetOrganizationHistoryParams,
   GetOrganizationHistoryParamsSchema,
   GetOrganizationHistoryResponseSchema,
-  OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getOrganizationHistoryRoute: StandardRouteSignature = (
-  fastify
-) => {
-  fastify.get<{ Params: GetOrganizationHistoryParams }>(
-    "/organization/:id/history",
-    {
-      schema: {
-        tags: ["submissions"],
-        summary: "Get organization submission history",
-        description:
-          "Get the history of submissions for a specific organization.",
-        params: GetOrganizationHistoryParamsSchema,
-        response: {
-          200: GetOrganizationHistoryResponseSchema,
-          503: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireOrganizationRole(idRequestExtractor, {
-          allowedRoles: [
-            OrganizationRole.ADMIN,
-            OrganizationRole.CONTRIBUTOR,
-            OrganizationRole.VIEWER,
-          ],
-          canAdminsBypass: true,
-        }),
-      ],
+export const getOrganizationHistoryRoute = defineRoute<{
+  Params: GetOrganizationHistoryParams;
+}>({
+  method: "GET",
+  path: "/organization/:id/history",
+  schema: {
+    tags: ["submissions"],
+    summary: "Get organization submission history",
+    description: "Get the history of submissions for a specific organization.",
+    params: GetOrganizationHistoryParamsSchema,
+    response: {
+      200: GetOrganizationHistoryResponseSchema,
+      503: ApiErrorResponseSchema,
     },
-    getOrganizationHistoryHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    domain: {
+      kind: "organization",
+      options: { canAdminsBypass: true },
+    },
+  },
+  handler: getOrganizationHistoryHandler,
+});

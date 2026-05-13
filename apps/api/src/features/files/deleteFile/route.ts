@@ -1,38 +1,26 @@
 import {
-  DeleteFileResponseSchema,
-  DeleteFileParamsSchema,
-  SystemRole,
   DeleteFileParams,
-  DeleteFileResponse,
+  DeleteFileParamsSchema,
+  DeleteFileResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { deleteFileHandler } from "./handler.js";
 
-export const deleteFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.delete<{
-    Params: DeleteFileParams;
-    Reply: DeleteFileResponse;
-  }>(
-    "/:uuid",
-    {
-      schema: {
-        tags: ["files"],
-        summary: "Soft-delete a file",
-        params: DeleteFileParamsSchema,
-        response: {
-          200: DeleteFileResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireRoles([
-          SystemRole.USER,
-          SystemRole.ADMIN,
-          SystemRole.SUPERADMIN,
-        ]),
-      ],
+export const deleteFileRoute = defineRoute<{
+  Params: DeleteFileParams;
+}>({
+  method: "DELETE",
+  path: "/:uuid",
+  schema: {
+    tags: ["files"],
+    summary: "Soft-delete a file",
+    params: DeleteFileParamsSchema,
+    response: {
+      200: DeleteFileResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    deleteFileHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: deleteFileHandler,
+});

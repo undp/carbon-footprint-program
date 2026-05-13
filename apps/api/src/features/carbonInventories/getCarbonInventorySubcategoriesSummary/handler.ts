@@ -1,8 +1,11 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetCarbonInventorySubcategoriesSummaryParams } from "@repo/types";
 import { getCarbonInventorySubcategoriesSummaryService } from "./service.js";
 
 export const getCarbonInventorySubcategoriesSummaryHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{
+    Params: GetCarbonInventorySubcategoriesSummaryParams;
+  }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({

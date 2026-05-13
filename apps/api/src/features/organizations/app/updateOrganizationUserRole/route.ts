@@ -1,48 +1,45 @@
 import { OrganizationRole } from "@repo/database/enums";
 import { updateOrganizationUserRoleHandler } from "./handler.js";
 import {
-  UpdateOrganizationUserRoleParamsSchema,
-  UpdateOrganizationUserRoleBodySchema,
-  UpdateOrganizationUserRoleResponseSchema,
-  UpdateOrganizationUserRoleParams,
   UpdateOrganizationUserRoleBody,
-  UpdateOrganizationUserRoleResponse,
+  UpdateOrganizationUserRoleBodySchema,
+  UpdateOrganizationUserRoleParams,
+  UpdateOrganizationUserRoleParamsSchema,
+  UpdateOrganizationUserRoleResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { organizationIdRequestExtractor } from "../../helpers.js";
 
-export const updateOrganizationUserRoleRoute: StandardRouteSignature = (
-  fastify,
-  _options
-) => {
-  fastify.patch<{
-    Params: UpdateOrganizationUserRoleParams;
-    Body: UpdateOrganizationUserRoleBody;
-    Reply: UpdateOrganizationUserRoleResponse;
-  }>(
-    "/:organizationId/users/:organizationUserId",
-    {
-      schema: {
-        tags: ["organizations"],
-        summary: "Update user role in organization",
-        description:
-          "Update the role of a user within an organization. Users cannot update their own role.",
-        params: UpdateOrganizationUserRoleParamsSchema,
-        body: UpdateOrganizationUserRoleBodySchema,
-        response: {
-          200: UpdateOrganizationUserRoleResponseSchema,
-          400: ApiErrorResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireOrganizationRole(organizationIdRequestExtractor, {
-          allowedRoles: [OrganizationRole.ADMIN],
-        }),
-      ],
+export const updateOrganizationUserRoleRoute = defineRoute<{
+  Params: UpdateOrganizationUserRoleParams;
+  Body: UpdateOrganizationUserRoleBody;
+}>({
+  method: "PATCH",
+  path: "/:organizationId/users/:organizationUserId",
+  schema: {
+    tags: ["organizations"],
+    summary: "Update user role in organization",
+    description:
+      "Update the role of a user within an organization. Users cannot update their own role.",
+    params: UpdateOrganizationUserRoleParamsSchema,
+    body: UpdateOrganizationUserRoleBodySchema,
+    response: {
+      200: UpdateOrganizationUserRoleResponseSchema,
+      400: ApiErrorResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    updateOrganizationUserRoleHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    domain: {
+      kind: "organization",
+      options: {
+        extractor: organizationIdRequestExtractor,
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
+      },
+    },
+  },
+  handler: updateOrganizationUserRoleHandler,
+});

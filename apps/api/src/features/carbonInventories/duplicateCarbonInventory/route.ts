@@ -1,45 +1,41 @@
 import { duplicateCarbonInventoryHandler } from "./handler.js";
 import {
+  DuplicateCarbonInventoryParams,
   DuplicateCarbonInventoryParamsSchema,
   DuplicateCarbonInventoryResponseSchema,
-  type DuplicateCarbonInventoryParams,
 } from "@repo/types";
 import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.post<{ Params: DuplicateCarbonInventoryParams }>(
-    "/:id/duplicate",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Duplicate a carbon inventory",
-        description:
-          "Duplicates a carbon inventory and all its ACTIVE children (lines, inputs, factors, results). Submissions are not duplicated.",
-        params: DuplicateCarbonInventoryParamsSchema,
-        response: {
-          200: DuplicateCarbonInventoryResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        public: options?.public ?? false,
-      },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
-          requiredOrganizationRoles: [
-            OrganizationRole.CONTRIBUTOR,
-            OrganizationRole.ADMIN,
-          ],
-        }),
-      ],
+export const duplicateCarbonInventoryRoute = defineRoute<{
+  Params: DuplicateCarbonInventoryParams;
+}>({
+  method: "POST",
+  path: "/:id/duplicate",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Duplicate a carbon inventory",
+    description:
+      "Duplicates a carbon inventory and all its ACTIVE children (lines, inputs, factors, results). Submissions are not duplicated.",
+    params: DuplicateCarbonInventoryParamsSchema,
+    response: {
+      200: DuplicateCarbonInventoryResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    duplicateCarbonInventoryHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    domain: {
+      kind: "carbonInventory",
+      options: {
+        requiredOrganizationRoles: [
+          OrganizationRole.CONTRIBUTOR,
+          OrganizationRole.ADMIN,
+        ],
+      },
+    },
+  },
+  handler: duplicateCarbonInventoryHandler,
+});

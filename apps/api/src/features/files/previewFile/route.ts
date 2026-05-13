@@ -1,40 +1,28 @@
 import {
   PreviewFileParams,
   PreviewFileParamsSchema,
-  PreviewFileResponse,
   PreviewFileResponseSchema,
-  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { previewFileHandler } from "./handler.js";
 
-export const previewFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.get<{
-    Params: PreviewFileParams;
-    Reply: PreviewFileResponse;
-  }>(
-    "/:uuid/preview",
-    {
-      schema: {
-        tags: ["files"],
-        summary: "Get a temporary preview URL for a file",
-        params: PreviewFileParamsSchema,
-        response: {
-          200: PreviewFileResponseSchema,
-          401: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          503: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireRoles([
-          SystemRole.USER,
-          SystemRole.ADMIN,
-          SystemRole.SUPERADMIN,
-        ]),
-      ],
+export const previewFileRoute = defineRoute<{
+  Params: PreviewFileParams;
+}>({
+  method: "GET",
+  path: "/:uuid/preview",
+  schema: {
+    tags: ["files"],
+    summary: "Get a temporary preview URL for a file",
+    params: PreviewFileParamsSchema,
+    response: {
+      200: PreviewFileResponseSchema,
+      401: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      503: ApiErrorResponseSchema,
     },
-    previewFileHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: previewFileHandler,
+});

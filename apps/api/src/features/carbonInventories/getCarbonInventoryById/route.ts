@@ -5,36 +5,27 @@ import {
   GetCarbonInventoryByIdResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getCarbonInventoryByIdRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Params: GetCarbonInventoryByIdParams }>(
-    "/:id",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Get a carbon inventory by ID",
-        description: "Get a single carbon inventory by its ID",
-        params: GetCarbonInventoryByIdParamsSchema,
-        response: {
-          200: GetCarbonInventoryByIdResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        public: options?.public ?? false,
-      },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
-          canAdminsBypass: true,
-        }),
-      ],
+export const getCarbonInventoryByIdRoute = defineRoute<{
+  Params: GetCarbonInventoryByIdParams;
+}>({
+  method: "GET",
+  path: "/:id",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Get a carbon inventory by ID",
+    description: "Get a single carbon inventory by its ID",
+    params: GetCarbonInventoryByIdParamsSchema,
+    response: {
+      200: GetCarbonInventoryByIdResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getCarbonInventoryByIdHandler
-  );
-};
+  },
+  access: {
+    mode: "anonymous",
+    options: { canAdminsBypass: true },
+  },
+  handler: getCarbonInventoryByIdHandler,
+});

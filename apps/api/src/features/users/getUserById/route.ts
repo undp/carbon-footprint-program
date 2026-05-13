@@ -1,35 +1,34 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { getUserByIdHandler } from "./handler.js";
 import {
   GetUserByIdParams,
   GetUserByIdParamsSchema,
-  GetUserByIdResponse,
   GetUserByIdResponseSchema,
   SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
-  fastify.get<{
-    Params: GetUserByIdParams;
-    Reply: GetUserByIdResponse;
-  }>(
-    "/:id",
-    {
-      schema: {
-        tags: ["users"],
-        summary: "Get user by ID",
-        description: "Get a specific user by their ID",
-        params: GetUserByIdParamsSchema,
-        response: {
-          200: GetUserByIdResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
-      ],
+export const getUserByIdRoute = defineRoute<{
+  Params: GetUserByIdParams;
+}>({
+  method: "GET",
+  path: "/:id",
+  schema: {
+    tags: ["users"],
+    summary: "Get user by ID",
+    description: "Get a specific user by their ID",
+    params: GetUserByIdParamsSchema,
+    response: {
+      200: GetUserByIdResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getUserByIdHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    systemRoles: {
+      kind: "roles",
+      roles: [SystemRole.ADMIN, SystemRole.SUPERADMIN],
+    },
+  },
+  handler: getUserByIdHandler,
+});
