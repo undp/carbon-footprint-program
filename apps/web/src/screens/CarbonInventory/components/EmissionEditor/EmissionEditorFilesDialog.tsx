@@ -28,7 +28,7 @@ import {
 } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
 import { OverflowTooltipText } from "@/components/OverflowTooltipText";
-import { formatFileSize } from "@/utils/files";
+import { buildDropzoneAcceptMap, formatFileSize } from "@/utils/files";
 import { validateLineFileOriginalName } from "@/utils/validateLineFileOriginalName";
 import { useUploadCarbonInventoryLineFiles } from "@/api/query/carbonInventories/useUploadCarbonInventoryLineFiles";
 import { useDeleteCarbonInventoryLineFile } from "@/api/query/carbonInventories/useDeleteCarbonInventoryLineFile";
@@ -47,18 +47,9 @@ interface Props {
   disabled?: boolean;
 }
 
-const ZIP_MIME_TYPES = new Set<string>([
-  "application/zip",
-  "application/x-zip-compressed",
-]);
-
-const acceptMap: Record<string, string[]> =
-  CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES.reduce<
-    Record<string, string[]>
-  >((acc, mime) => {
-    acc[mime] = ZIP_MIME_TYPES.has(mime) ? [".zip"] : [];
-    return acc;
-  }, {});
+const acceptMap = buildDropzoneAcceptMap(
+  CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES
+);
 
 export const EmissionEditorFilesDialog: FC<Props> = ({
   open,
