@@ -151,53 +151,58 @@ export function buildHooks(
   }
 
   if (access.domain) {
-    switch (access.domain.kind) {
-      case "organization": {
-        const { organization } = access.domain;
-        preHandler.push(
-          tagHook(
-            fastify.requireOrganizationRole(
-              organization.extractor ?? defaultIdExtractor,
-              {
-                allowedRoles: organization.allowedRoles,
-                canAdminsBypass: organization.canAdminsBypass,
-              }
-            ),
-            "requireOrganizationRole"
-          ) as preHandlerHookHandler
-        );
-        break;
-      }
-      case "carbonInventory": {
-        const { carbonInventory } = access.domain;
-        preHandler.push(
-          tagHook(
-            fastify.requireCarbonInventoryAccess(
-              carbonInventory.extractor ?? defaultIdExtractor,
-              {
+    const domains = Array.isArray(access.domain)
+      ? access.domain
+      : [access.domain];
+    for (const domain of domains) {
+      switch (domain.kind) {
+        case "organization": {
+          const { organization } = domain;
+          preHandler.push(
+            tagHook(
+              fastify.requireOrganizationRole(
+                organization.extractor ?? defaultIdExtractor,
+                {
+                  allowedRoles: organization.allowedRoles,
+                  canAdminsBypass: organization.canAdminsBypass,
+                }
+              ),
+              "requireOrganizationRole"
+            ) as preHandlerHookHandler
+          );
+          break;
+        }
+        case "carbonInventory": {
+          const { carbonInventory } = domain;
+          preHandler.push(
+            tagHook(
+              fastify.requireCarbonInventoryAccess(
+                carbonInventory.extractor ?? defaultIdExtractor,
+                {
+                  requiredOrganizationRoles:
+                    carbonInventory.requiredOrganizationRoles,
+                  canAdminsBypass: carbonInventory.canAdminsBypass,
+                }
+              ),
+              "requireCarbonInventoryAccess"
+            ) as preHandlerHookHandler
+          );
+          break;
+        }
+        case "reductionProject": {
+          const { reductionProject } = domain;
+          preHandler.push(
+            tagHook(
+              fastify.requireReductionProjectAccess({
                 requiredOrganizationRoles:
-                  carbonInventory.requiredOrganizationRoles,
-                canAdminsBypass: carbonInventory.canAdminsBypass,
-              }
-            ),
-            "requireCarbonInventoryAccess"
-          ) as preHandlerHookHandler
-        );
-        break;
-      }
-      case "reductionProject": {
-        const { reductionProject } = access.domain;
-        preHandler.push(
-          tagHook(
-            fastify.requireReductionProjectAccess({
-              requiredOrganizationRoles:
-                reductionProject.requiredOrganizationRoles,
-              canAdminsBypass: reductionProject.canAdminsBypass,
-            }),
-            "requireReductionProjectAccess"
-          ) as preHandlerHookHandler
-        );
-        break;
+                  reductionProject.requiredOrganizationRoles,
+                canAdminsBypass: reductionProject.canAdminsBypass,
+              }),
+              "requireReductionProjectAccess"
+            ) as preHandlerHookHandler
+          );
+          break;
+        }
       }
     }
   }

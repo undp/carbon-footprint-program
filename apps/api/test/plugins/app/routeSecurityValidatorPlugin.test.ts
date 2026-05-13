@@ -139,8 +139,21 @@ describe("collectSecurityIssues", () => {
     });
   });
 
-  describe("cross-domain stacking", () => {
-    it("rejects routes with two domain-access preHandlers", () => {
+  describe("multiple domain-access preHandlers", () => {
+    it("accepts a single domain-access preHandler", () => {
+      const issues = collectSecurityIssues(
+        makeRoute({
+          onRequest: [makeHook("requireAuth")],
+          preHandler: [makeHook("requireReductionProjectAccess")],
+        })
+      );
+      expect(issues).toEqual([]);
+    });
+
+    it("accepts multiple domain-access preHandlers on the same route", () => {
+      // A route like `/organizations/:organizationId/inventories/:carbonInventoryId/...`
+      // legitimately needs both checks. The type system supports this via
+      // `domain: [...]` and the validator does not reject it.
       const issues = collectSecurityIssues(
         makeRoute({
           onRequest: [makeHook("requireAuth")],
@@ -148,18 +161,6 @@ describe("collectSecurityIssues", () => {
             makeHook("requireOrganizationRole"),
             makeHook("requireCarbonInventoryAccess"),
           ],
-        })
-      );
-      expect(issues).toContainEqual(
-        expect.stringContaining("stacks multiple domain-access preHandlers")
-      );
-    });
-
-    it("accepts a single domain-access preHandler", () => {
-      const issues = collectSecurityIssues(
-        makeRoute({
-          onRequest: [makeHook("requireAuth")],
-          preHandler: [makeHook("requireReductionProjectAccess")],
         })
       );
       expect(issues).toEqual([]);

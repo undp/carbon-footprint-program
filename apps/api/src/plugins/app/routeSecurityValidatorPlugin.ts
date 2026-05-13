@@ -119,17 +119,6 @@ export function collectSecurityIssues(routeOpts: RouteOptions): string[] {
     }
   }
 
-  // 4. Cross-domain stacking. The type system forbids this in `defineRoute`,
-  //    but the runtime check catches manual registrations that bypass the helper.
-  const domainHooksUsed = preHandlerKinds.filter((kind) =>
-    DOMAIN_ACCESS_KINDS.has(kind)
-  );
-  if (domainHooksUsed.length > 1) {
-    issues.push(
-      `route stacks multiple domain-access preHandlers (${domainHooksUsed.join(", ")}) — at most one is supported`
-    );
-  }
-
   // Suppress an unused-variable warning while keeping the hook list available
   // for future invariants without re-deriving it.
   void onRequestKinds;

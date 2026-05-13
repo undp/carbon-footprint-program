@@ -46,6 +46,12 @@ export type DomainAccess =
  * encodes the access mode (private / public / anonymous) and constrains which
  * additional fields are valid. See `docs/security/route-access-modes.md` for the
  * runtime behavior of each mode.
+ *
+ * `domain` accepts either a single `DomainAccess` or an array, for the rare
+ * case where a route operates on multiple resources at once (e.g. a path that
+ * carries both `:organizationId` and `:carbonInventoryId` and needs both
+ * checks). When multiple domains are specified, every preHandler runs and the
+ * caller must satisfy all of them.
  */
 export type RouteAccess =
   | { mode: "public" }
@@ -53,5 +59,5 @@ export type RouteAccess =
   | {
       mode: "private";
       systemRoles?: SystemRolesRequirement;
-      domain?: DomainAccess;
+      domain?: DomainAccess | DomainAccess[];
     };
