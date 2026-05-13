@@ -16,7 +16,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { DeleteOutlined, FileUploadOutlined } from "@mui/icons-material";
+import { DeleteOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
 import accepts from "attr-accept";
@@ -55,7 +55,7 @@ const defaultAcceptMessage = (maxFileSizeMB: number) =>
 
 const defaultChildren = (acceptMessage: string) => (
   <Box className="flex cursor-pointer flex-col items-center gap-2 p-8">
-    <FileUploadOutlined color="disabled" sx={{ fontSize: "40px" }} />
+    <UploadFileOutlined color="disabled" sx={{ fontSize: "40px" }} />
     <Typography variant="body2" fontWeight={500} color="text.primary">
       Adjuntar documentos
     </Typography>

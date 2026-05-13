@@ -1,6 +1,6 @@
 import { Badge, Box, SxProps, Theme } from "@mui/material";
 import {
-  FileUploadOutlined,
+  UploadFileOutlined,
   CommentOutlined,
   DeleteOutlined,
 } from "@mui/icons-material";
@@ -66,8 +66,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           }}
         >
           <ActionIconButton
-            icon={FileUploadOutlined}
-            tooltip="Agregar archivos"
+            icon={UploadFileOutlined}
+            tooltip="Adjuntar archivos"
             aria-label="uploadFiles"
             onClick={() => uploadFiles(rowId)}
             disabled={disabled}
