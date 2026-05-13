@@ -117,11 +117,11 @@ export const SubcategoryPreselectionScreen: FC = () => {
     if (hasUnselectedCategory()) {
       pendingActionRef.current = doSubmit;
       confirmDialog.openConfirm({
-        title: "Categorías sin subcategorías seleccionadas",
+        title: "¿Estás seguro de continuar?",
         message:
-          "Hay categorías donde no seleccionaste ninguna subcategoría. Si continúas, no se incluirán en el inventario.",
+          "Quedan categorías sin fuentes seleccionadas. Al continuar, esas fuentes no se incluirán en el inventario.",
         variant: "success",
-        confirmLabel: "Continuar",
+        confirmLabel: "Continuar al siguiente paso",
         cancelLabel: "Revisar",
       });
     } else {
