@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useRef } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useSnackbar } from "notistack";
 import {
@@ -66,21 +66,6 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
     `subcategories.${subcategoryId}.lines.${lineId}.files` as const;
   const removedFileIdsPath =
     `subcategories.${subcategoryId}.lines.${lineId}.removedFileIds` as const;
-
-  // Stored in a ref because the snapshot is read only on cancel — no
-  // need to re-render the dialog when it's re-captured on open.
-  const snapshotRef = useRef<{
-    files: LineFileSummary[];
-    removedFileIds: string[];
-  } | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    snapshotRef.current = {
-      files: getValues(filesPath) ?? [],
-      removedFileIds: getValues(removedFileIdsPath) ?? [],
-    };
-  }, [open, filesPath, removedFileIdsPath, getValues]);
 
   const watchedFiles = useWatch({ control, name: filesPath });
   const watchedRemoved = useWatch({ control, name: removedFileIdsPath });
@@ -196,25 +181,10 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
     ]
   );
 
-  const handleCancel = useCallback(() => {
-    const snapshot = snapshotRef.current;
-    if (snapshot) {
-      setValue(filesPath, snapshot.files, { shouldDirty: true });
-      setValue(removedFileIdsPath, snapshot.removedFileIds, {
-        shouldDirty: true,
-      });
-    }
-    onClose();
-  }, [filesPath, removedFileIdsPath, setValue, onClose]);
-
-  const handleSave = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
   return (
     <Dialog
       open={open}
-      onClose={handleCancel}
+      onClose={onClose}
       maxWidth="sm"
       fullWidth
       slotProps={{ paper: { sx: { height: "80vh", maxHeight: "80vh" } } }}
@@ -315,12 +285,9 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCancel} disabled={isUploading || isDeleting}>
-          Cancelar
-        </Button>
         <Button
           variant="contained"
-          onClick={handleSave}
+          onClick={onClose}
           disabled={isUploading || isDeleting}
         >
           Actualizar
