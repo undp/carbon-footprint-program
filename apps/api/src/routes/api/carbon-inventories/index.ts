@@ -28,6 +28,7 @@ import { deleteCarbonInventoryRoute } from "@/features/carbonInventories/deleteC
 import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/selfDeclareCarbonInventory/route.js";
 import { getSubcategoryRecommendationsRoute } from "@/features/carbonInventories/getSubcategoryRecommendations/route.js";
 import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCarbonInventory/route.js";
+import { assignOrganizationToCarbonInventoryRoute } from "@/features/carbonInventories/assignOrganizationToCarbonInventory/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -71,6 +72,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
 
   /* MANAGEMENT */
   claimCarbonInventoryRoute(fastify);
+  assignOrganizationToCarbonInventoryRoute(fastify);
   // user needs at least CONTRIBUTOR org. role for this inventory
   selfDeclareCarbonInventoryRoute(fastify);
   requestCalculationRoute(fastify);

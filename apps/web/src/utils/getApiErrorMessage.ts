@@ -1,4 +1,7 @@
 import { AppHttpError } from "@/api/http/errors";
+import { VOCAB } from "@/config/vocab";
+
+const orgSingular = VOCAB.organization.noun.singular;
 
 type ErrorDetails = Record<string, unknown> | undefined;
 type DetailsAwareMessage = (details: ErrorDetails) => string;
@@ -146,6 +149,9 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Una unidad base debe tener un factor base igual a 1.",
   BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT:
     "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
+
+  // Carbon inventory association
+  CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION: `Esta huella ya tiene una ${orgSingular} asociada.`,
 
   // User role management
   SELF_ROLE_CHANGE: "No puedes cambiar tu propio rol.",

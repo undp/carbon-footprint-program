@@ -58,3 +58,5 @@ export * from "./getReductionPlan/schemas.js";
 export * from "./getReductionPlan/types.js";
 export * from "./claimCarbonInventory/schemas.js";
 export * from "./claimCarbonInventory/types.js";
+export * from "./assignOrganizationToCarbonInventory/schemas.js";
+export * from "./assignOrganizationToCarbonInventory/types.js";

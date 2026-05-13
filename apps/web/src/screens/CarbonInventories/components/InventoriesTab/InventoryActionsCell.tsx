@@ -21,7 +21,7 @@ import {
   canSubmitToMeasurement,
   isCarbonInventoryEditable,
 } from "@repo/utils";
-import { BaseActionButton } from "../BaseActionButton";
+import { BaseActionButton, primaryActionButtonSx } from "../BaseActionButton";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
 import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
@@ -298,6 +298,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
                 disabled={
                   !canRequestMeasurement || !carbonInventory.isSelfDeclared
                 }
+                sx={primaryActionButtonSx}
                 aria-label="Postular a reconocimiento de medición"
               >
                 <SendOutlined fontSize="small" />
@@ -313,6 +314,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
               aria-label="Postular a reconocimiento de verificación"
+              sx={primaryActionButtonSx}
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>
