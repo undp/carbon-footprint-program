@@ -1,5 +1,4 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import { useFormContext, useFormState } from "react-hook-form";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -13,10 +12,7 @@ import {
   useEmissionEditorColumns,
   useEmissionSubcategoryTotal,
 } from "./hooks";
-import {
-  EmissionCaptureFormValues,
-  SubcategoryWithLines,
-} from "../../types/EmissionCaptureTypes";
+import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
 import { UsageMode } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 
@@ -52,22 +48,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     emissionFactors: subcategory.emissionFactors,
     rateMeasurementUnits: rateMeasurementUnits || [],
   });
-
-  const { control, getFieldState } =
-    useFormContext<EmissionCaptureFormValues>();
-  const formState = useFormState({
-    control,
-    name: `subcategories.${subcategory.id}.lines`,
-  });
-
-  const manualModeLineIsCommentPending = Boolean(
-    manualModeLine &&
-      (manualModeLine.isNew ||
-        getFieldState(
-          `subcategories.${subcategory.id}.lines.${manualModeLine.lineId}.comment`,
-          formState
-        ).isDirty)
-  );
 
   const totalEmission = useEmissionSubcategoryTotal(subcategory.id);
 
@@ -151,7 +131,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         setTotalEmission={handleSetTotalEmission}
         hasManualModeLine={!!manualModeLine}
         manualModeLineHasComment={!!manualModeLine?.comment}
-        manualModeLineIsCommentPending={manualModeLineIsCommentPending}
         onManualModeLineDelete={handleManualModeLineDelete}
         onManualModeLineComment={handleManualModeLineComment}
         onManualModeLineUploadFiles={handleManualModeLineUploadFiles}

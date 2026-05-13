@@ -1,10 +1,8 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useFormContext, useFormState } from "react-hook-form";
 import { UsageMode } from "@repo/types";
 import {
   EmissionCaptureFormLine,
-  EmissionCaptureFormValues,
   LineId,
 } from "../../../types/EmissionCaptureTypes";
 import {
@@ -58,22 +56,6 @@ export const useEmissionEditorColumns = ({
   inventoryUsageMode,
   isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
-  const { control, getFieldState } =
-    useFormContext<EmissionCaptureFormValues>();
-  const formState = useFormState({
-    control,
-    name: `subcategories.${subcategory.id}.lines`,
-  });
-
-  const isCommentDirty = useCallback(
-    (lineId: LineId): boolean =>
-      getFieldState(
-        `subcategories.${subcategory.id}.lines.${lineId}.comment`,
-        formState
-      ).isDirty,
-    [getFieldState, formState, subcategory.id]
-  );
-
   const displayedUnits = useMemo(() => {
     if (subcategory.allowedMeasurementUnitIds.length === 0)
       return measurementUnits || [];
@@ -299,9 +281,6 @@ export const useEmissionEditorColumns = ({
             (f) => f.isPending
           ).length;
           const linkedFilesCount = visibleFiles.length - pendingFilesCount;
-          const isCommentPending = Boolean(
-            params.row.isNew || isCommentDirty(params.row.lineId)
-          );
           return (
             <EmissionEditorActionsCell
               rowId={params.id}
@@ -313,7 +292,6 @@ export const useEmissionEditorColumns = ({
               deleteSource={() => onDeleteLine(params.id.toString())}
               disabled={isManualModeLoading}
               hasComment={Boolean(params.row.comment)}
-              isCommentPending={isCommentPending}
               pendingFilesCount={pendingFilesCount}
               linkedFilesCount={linkedFilesCount}
             />
@@ -334,6 +312,5 @@ export const useEmissionEditorColumns = ({
     onUploadFiles,
     isManualModeLoading,
     subcategory.id,
-    isCommentDirty,
   ]);
 };

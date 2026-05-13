@@ -16,7 +16,6 @@ interface EmissionEditorActionsCellProps {
   categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
-  isCommentPending?: boolean;
   pendingFilesCount?: number;
   linkedFilesCount?: number;
 }
@@ -29,7 +28,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   categoryColor,
   disabled = false,
   hasComment = false,
-  isCommentPending = false,
   pendingFilesCount = 0,
   linkedFilesCount = 0,
 }) => {
@@ -87,10 +85,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             "& .MuiBadge-badge": {
               top: 2,
               right: 2,
-              backgroundColor: (theme) =>
-                isCommentPending
-                  ? theme.palette.warning.main
-                  : theme.palette.primary.main,
+              backgroundColor: (theme) => theme.palette.primary.main,
             },
           }}
         >
