@@ -187,12 +187,23 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      slotProps={{ paper: { sx: { height: "80vh", maxHeight: "80vh" } } }}
+      slotProps={{ paper: { sx: { maxHeight: "80vh" } } }}
     >
       <DialogTitle>Archivos adjuntos ({visibleFiles.length})</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ width: "100%", height: "100%" }}>
-          <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", pr: 0.5 }}>
+      <DialogContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <Stack
+          spacing={2}
+          sx={{ width: "100%", flex: 1, minHeight: 0, overflow: "hidden" }}
+        >
+          <Box
+            sx={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", pr: 0.5 }}
+          >
             {visibleFiles.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
                 No hay archivos adjuntos a esta línea.
