@@ -30,6 +30,10 @@ import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/se
 import { getSubcategoryRecommendationsRoute } from "@/features/carbonInventories/getSubcategoryRecommendations/route.js";
 import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCarbonInventory/route.js";
 import { assignOrganizationToCarbonInventoryRoute } from "@/features/carbonInventories/assignOrganizationToCarbonInventory/route.js";
+import { requestLineFileUploadRoute } from "@/features/carbonInventories/requestLineFileUpload/route.js";
+import { confirmLineFileUploadRoute } from "@/features/carbonInventories/confirmLineFileUpload/route.js";
+import { deleteLineFileRoute } from "@/features/carbonInventories/deleteLineFile/route.js";
+import { previewLineFileRoute } from "@/features/carbonInventories/previewLineFile/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -58,6 +62,10 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
       updateCarbonInventorySubcategoriesRoute,
       toggleManualTotalEmissionsRoute,
       syncCarbonInventoryLinesRoute,
+      requestLineFileUploadRoute,
+      confirmLineFileUploadRoute,
+      deleteLineFileRoute,
+      previewLineFileRoute,
 
       /* GETTERS */
       getCarbonInventoriesMinimalRoute,
