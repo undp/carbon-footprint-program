@@ -24,6 +24,8 @@ const SystemParameterSeedSchema = z.object({
   description: z.string().min(1),
   type: z.string().min(1),
   options: z.array(z.string()).optional(),
+  min: z.number().int().optional(),
+  max: z.number().int().optional(),
 });
 
 const SystemParameterSeedDataSchema = z
@@ -62,6 +64,52 @@ const SystemParameterSeedDataSchema = z
           });
         }
       }
+
+      // min/max are only meaningful for numeric parameters. When set, verify
+      // the consistency of the bounds and that the seeded value falls inside.
+      const hasMin = item.min !== undefined;
+      const hasMax = item.max !== undefined;
+      if (hasMin || hasMax) {
+        if (item.type !== "number") {
+          ctx.addIssue({
+            code: "custom",
+            message: `Parameter "${item.key}" declares min/max bounds but its type is "${item.type}" (expected "number")`,
+            path: [i, "type"],
+          });
+        }
+        if (hasMin && hasMax && item.min! > item.max!) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Parameter "${item.key}" has min (${item.min}) greater than max (${item.max})`,
+            path: [i, "min"],
+          });
+        }
+        if (item.type === "number") {
+          if (!/^-?\d+$/.test(item.value)) {
+            ctx.addIssue({
+              code: "custom",
+              message: `Parameter "${item.key}" declares min/max bounds but value "${item.value}" is not a valid integer`,
+              path: [i, "value"],
+            });
+          } else {
+            const numericValue = Number(item.value);
+            if (hasMin && numericValue < item.min!) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Parameter "${item.key}" value (${numericValue}) is less than min (${item.min})`,
+                path: [i, "value"],
+              });
+            }
+            if (hasMax && numericValue > item.max!) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Parameter "${item.key}" value (${numericValue}) is greater than max (${item.max})`,
+                path: [i, "value"],
+              });
+            }
+          }
+        }
+      }
     }
   });
 
@@ -89,6 +137,8 @@ export async function seedSystemParameters(
       description: param.description,
       type: param.type,
       options: param.options ?? [],
+      minValue: param.min ?? null,
+      maxValue: param.max ?? null,
     })),
     skipDuplicates: true,
   });

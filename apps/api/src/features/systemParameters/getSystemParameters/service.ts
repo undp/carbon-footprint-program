@@ -15,7 +15,7 @@ export const getSystemParametersService = async (
 
   const parameters = await prismaClient.systemParameter.findMany({
     where,
-    select: { key: true, value: true },
+    select: { key: true, value: true, minValue: true, maxValue: true },
     orderBy: { key: "asc" },
   });
 
