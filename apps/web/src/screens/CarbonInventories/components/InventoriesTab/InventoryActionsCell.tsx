@@ -298,6 +298,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
                 disabled={
                   !canRequestMeasurement || !carbonInventory.isSelfDeclared
                 }
+                sx={(theme) => ({
+                  color: theme.palette.common.white,
+                  minHeight: 30,
+                  minWidth: "auto",
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: "4px",
+                  backgroundColor: theme.palette.primary.main,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                })}
                 aria-label="Postular a reconocimiento de medición"
               >
                 <SendOutlined fontSize="small" />
@@ -313,6 +325,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
               aria-label="Postular a reconocimiento de verificación"
+              sx={(theme) => ({
+                color: theme.palette.common.white,
+                minHeight: 30,
+                minWidth: "auto",
+                px: 1.5,
+                py: 0.5,
+                borderRadius: "4px",
+                backgroundColor: theme.palette.primary.main,
+                "&:hover": {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              })}
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>

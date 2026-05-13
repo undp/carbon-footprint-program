@@ -1,11 +1,12 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Button, CircularProgress, Tooltip } from "@mui/material";
+import { Box, CircularProgress, Tooltip } from "@mui/material";
 import {
   EditOutlined,
   DeleteOutlined,
   FileCopyOutlined,
   FileDownloadOutlined,
   TaskAltRounded,
+  BusinessOutlined,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -16,6 +17,7 @@ import {
 import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
+import { AssociateOrganizationDialog } from "../Dialogs/AssociateOrganizationDialog";
 import {
   SelfDeclareValidationDialog,
   type SelfDeclareValidationReason,
@@ -35,6 +37,7 @@ import {
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useDownloadCarbonInventory } from "@/hooks";
+import { VOCAB } from "@/config/vocab";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -48,10 +51,12 @@ export const DraftActionsCell: FC<Props> = ({
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
+  const [associateOrgDialogOpen, setAssociateOrgDialogOpen] = useState(false);
   const [selfDeclareValidationReason, setSelfDeclareValidationReason] =
     useState<SelfDeclareValidationReason>(null);
 
   const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
+  const hasOrganization = carbonInventory.organizationId !== null;
 
   const isYearAlreadySelfDeclared = useMemo(
     () =>
@@ -236,20 +241,33 @@ export const DraftActionsCell: FC<Props> = ({
           </span>
         </Tooltip>
 
+        {/* Asociar organización */}
+        <Tooltip
+          title={
+            hasOrganization
+              ? `Esta huella ya tiene una ${VOCAB.organization.noun.singular} asociada`
+              : `Asociar ${VOCAB.organization.noun.singular}`
+          }
+        >
+          <span>
+            <BaseActionButton
+              onClick={() => setAssociateOrgDialogOpen(true)}
+              disabled={hasOrganization}
+              aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
+            >
+              <BusinessOutlined fontSize="small" />
+            </BaseActionButton>
+          </span>
+        </Tooltip>
+
         {/* Autodeclarar */}
         <Tooltip title={"Autodeclarar"}>
           <span>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<TaskAltRounded sx={{ fontSize: 16 }} />}
+            <BaseActionButton
               onClick={onSelfDeclareClick}
-              disableElevation
               sx={(theme) => ({
+                color: theme.palette.common.white,
                 minHeight: 30,
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.75rem",
                 minWidth: "auto",
                 px: 1.5,
                 py: 0.5,
@@ -261,8 +279,8 @@ export const DraftActionsCell: FC<Props> = ({
               })}
               aria-label="Autodeclarar"
             >
-              Autodeclarar
-            </Button>
+              <TaskAltRounded sx={{ fontSize: 16 }} />
+            </BaseActionButton>
           </span>
         </Tooltip>
 
@@ -302,6 +320,12 @@ export const DraftActionsCell: FC<Props> = ({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={onDeleteConfirm}
+      />
+
+      <AssociateOrganizationDialog
+        open={associateOrgDialogOpen}
+        onClose={() => setAssociateOrgDialogOpen(false)}
+        carbonInventory={carbonInventory}
       />
     </>
   );
