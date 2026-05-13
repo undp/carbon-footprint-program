@@ -167,6 +167,14 @@ export const SubcategoryPreselectionScreen: FC = () => {
     },
   };
 
+  const existsRecommendations = categories?.some((category) =>
+    category.subcategories.some((subcategory) => subcategory.isRecommended)
+  );
+  const RECOMMENDATIONS_DESCRIPTION = existsRecommendations
+    ? "Hemos destacado las actividades más relevantes para tu rubro como recomendadas."
+    : "";
+  const STEP_HEADER_DESCRIPTION = `Estas son todas las fuentes de emisións disponibles para tu ${VOCAB.organization.noun.singular}. ${RECOMMENDATIONS_DESCRIPTION} Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`;
+
   return (
     <FormProvider {...methods}>
       <form id="subcategory-preselection-form" noValidate>
@@ -194,8 +202,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto rounded-lg bg-white p-6">
             <StepHeader
-              title="Paso 2: Fuentes o actividades sugeridas"
-              description={`Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`}
+              title="Paso 2: Fuentes o actividades disponibles"
+              description={STEP_HEADER_DESCRIPTION}
               explanationSlug={SUBCATEGORY_PRESELECTION_EXPLANATION_SLUGS.MAIN}
             />
             <SubcategoryPreselectionCarousel categories={categories} />
