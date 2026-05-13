@@ -31,7 +31,7 @@ import {
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
-import { BaseActionButton } from "../BaseActionButton";
+import { BaseActionButton, primaryActionButtonSx } from "../BaseActionButton";
 import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
@@ -265,18 +265,7 @@ export const DraftActionsCell: FC<Props> = ({
           <span>
             <BaseActionButton
               onClick={onSelfDeclareClick}
-              sx={(theme) => ({
-                color: theme.palette.common.white,
-                minHeight: 30,
-                minWidth: "auto",
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "4px",
-                backgroundColor: theme.palette.primary.main,
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-              })}
+              sx={primaryActionButtonSx}
               aria-label="Autodeclarar"
             >
               <TaskAltRounded sx={{ fontSize: 16 }} />
