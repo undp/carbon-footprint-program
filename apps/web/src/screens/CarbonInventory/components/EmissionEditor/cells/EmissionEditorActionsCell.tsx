@@ -34,7 +34,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   linkedFilesCount = 0,
 }) => {
   const totalFilesCount = pendingFilesCount + linkedFilesCount;
-  const hasPendingFiles = pendingFilesCount > 0;
   const categoryColorPalette = categoryColor
     ? getColorPalette(categoryColor)
     : undefined;
@@ -63,10 +62,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             "& .MuiBadge-badge": {
               top: 2,
               right: 2,
-              backgroundColor: (theme) =>
-                hasPendingFiles
-                  ? theme.palette.warning.main
-                  : theme.palette.primary.main,
+              backgroundColor: (theme) => theme.palette.primary.main,
               color: (theme) => theme.palette.common.white,
             },
           }}

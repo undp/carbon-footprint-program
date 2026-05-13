@@ -4,7 +4,6 @@ import { useSnackbar } from "notistack";
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -250,15 +249,6 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                           >
                             {file.originalName}
                           </OverflowTooltipText>
-                          {file.isPending && (
-                            <Chip
-                              label="Pendiente de guardar"
-                              size="small"
-                              color="warning"
-                              variant="outlined"
-                              sx={{ flexShrink: 0 }}
-                            />
-                          )}
                           <Box sx={{ display: "flex", flexShrink: 0 }}>
                             <IconButton
                               size="small"
