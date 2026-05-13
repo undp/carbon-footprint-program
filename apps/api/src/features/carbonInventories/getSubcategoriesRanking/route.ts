@@ -5,38 +5,28 @@ import {
   GetSubcategoriesRankingResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getSubcategoriesRankingRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Params: GetSubcategoriesRankingParams }>(
-    "/:id/subcategories-ranking",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Get subcategories ranking",
-        description:
-          "Retrieves subcategories ranked by descending emissions for the organization's own carbon inventory.",
-        params: GetSubcategoriesRankingParamsSchema,
-        response: {
-          200: GetSubcategoriesRankingResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
-          canAdminsBypass: true,
-        }),
-      ],
+export const getSubcategoriesRankingRoute = defineRoute<{
+  Params: GetSubcategoriesRankingParams;
+}>({
+  method: "GET",
+  path: "/:id/subcategories-ranking",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Get subcategories ranking",
+    description:
+      "Retrieves subcategories ranked by descending emissions for the organization's own carbon inventory.",
+    params: GetSubcategoriesRankingParamsSchema,
+    response: {
+      200: GetSubcategoriesRankingResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getSubcategoriesRankingHandler
-  );
-};
+  },
+  access: {
+    mode: "anonymous",
+    carbonInventory: { canAdminsBypass: true },
+  },
+  handler: getSubcategoriesRankingHandler,
+});

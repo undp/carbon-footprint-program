@@ -1,37 +1,33 @@
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { updateEmissionFactorHandler } from "./handler.js";
 import {
+  UpdateEmissionFactorParams,
   UpdateEmissionFactorParamsSchema,
+  UpdateEmissionFactorRequest,
   UpdateEmissionFactorRequestSchema,
   UpdateEmissionFactorResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const updateEmissionFactorRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.patch(
-    "/:id",
-    {
-      schema: {
-        tags: ["emission-factors"],
-        summary: "Update an emission factor",
-        description: "Update an existing emission factor by its ID",
-        params: UpdateEmissionFactorParamsSchema,
-        body: UpdateEmissionFactorRequestSchema,
-        response: {
-          200: UpdateEmissionFactorResponseSchema,
-          400: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          409: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const updateEmissionFactorRoute = defineRoute<{
+  Params: UpdateEmissionFactorParams;
+  Body: UpdateEmissionFactorRequest;
+}>({
+  method: "PATCH",
+  path: "/:id",
+  schema: {
+    tags: ["emission-factors"],
+    summary: "Update an emission factor",
+    description: "Update an existing emission factor by its ID",
+    params: UpdateEmissionFactorParamsSchema,
+    body: UpdateEmissionFactorRequestSchema,
+    response: {
+      200: UpdateEmissionFactorResponseSchema,
+      400: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
-    updateEmissionFactorHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: updateEmissionFactorHandler,
+});

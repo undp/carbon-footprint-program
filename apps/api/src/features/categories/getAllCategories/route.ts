@@ -1,32 +1,26 @@
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { getAllCategoriesHandler } from "./handler.js";
 import {
+  GetAllCategoriesQuery,
   GetAllCategoriesQuerySchema,
   GetAllCategoriesResponseSchema,
 } from "@repo/types";
 
-export const getAllCategoriesRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get(
-    "/",
-    {
-      schema: {
-        tags: ["categories"],
-        summary: "Get all categories for a methodology version",
-        description:
-          "Get all active categories for a given methodology version, ordered by position ascending",
-        querystring: GetAllCategoriesQuerySchema,
-        response: {
-          200: GetAllCategoriesResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const getAllCategoriesRoute = defineRoute<{
+  Querystring: GetAllCategoriesQuery;
+}>({
+  method: "GET",
+  path: "/",
+  schema: {
+    tags: ["categories"],
+    summary: "Get all categories for a methodology version",
+    description:
+      "Get all active categories for a given methodology version, ordered by position ascending",
+    querystring: GetAllCategoriesQuerySchema,
+    response: {
+      200: GetAllCategoriesResponseSchema,
     },
-    getAllCategoriesHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: getAllCategoriesHandler,
+});

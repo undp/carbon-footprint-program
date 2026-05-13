@@ -1,44 +1,41 @@
 import { getReductionProjectByIdHandler } from "./handler.js";
 import {
+  GetReductionProjectByIdParams,
   GetReductionProjectByIdParamsSchema,
   GetReductionProjectByIdResponseSchema,
   OrganizationRole,
-  type GetReductionProjectByIdParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
-export const getReductionProjectByIdRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Params: GetReductionProjectByIdParams }>(
-    "/:id",
-    {
-      schema: {
-        tags: ["reduction-projects"],
-        summary: "Get reduction project by ID",
-        params: GetReductionProjectByIdParamsSchema,
-        response: {
-          200: GetReductionProjectByIdResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
-      preHandler: [
-        fastify.requireReductionProjectAccess({
-          requiredOrganizationRoles: [
-            OrganizationRole.ADMIN,
-            OrganizationRole.CONTRIBUTOR,
-            OrganizationRole.VIEWER,
-          ],
-          canAdminsBypass: true,
-        }),
-      ],
+import { defineRoute } from "@/routing/defineRoute.js";
+
+export const getReductionProjectByIdRoute = defineRoute<{
+  Params: GetReductionProjectByIdParams;
+}>({
+  method: "GET",
+  path: "/:id",
+  schema: {
+    tags: ["reduction-projects"],
+    summary: "Get reduction project by ID",
+    params: GetReductionProjectByIdParamsSchema,
+    response: {
+      200: GetReductionProjectByIdResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getReductionProjectByIdHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    domain: {
+      kind: "reductionProject",
+      reductionProject: {
+        requiredOrganizationRoles: [
+          OrganizationRole.ADMIN,
+          OrganizationRole.CONTRIBUTOR,
+          OrganizationRole.VIEWER,
+        ],
+        canAdminsBypass: true,
+      },
+    },
+  },
+  handler: getReductionProjectByIdHandler,
+});

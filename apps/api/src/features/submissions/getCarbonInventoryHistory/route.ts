@@ -6,42 +6,37 @@ import {
   OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Params: GetCarbonInventoryHistoryParams }>(
-    "/carbon-inventory/:id/history",
-    {
-      schema: {
-        tags: ["submissions"],
-        summary: "Get carbon inventory submission history",
-        description:
-          "Get the history of submissions for a specific carbon inventory.",
-        params: GetCarbonInventoryHistoryParamsSchema,
-        response: {
-          200: GetCarbonInventoryHistoryResponseSchema,
-          503: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
-          requiredOrganizationRoles: [
-            OrganizationRole.ADMIN,
-            OrganizationRole.CONTRIBUTOR,
-            OrganizationRole.VIEWER,
-          ],
-          canAdminsBypass: true,
-        }),
-      ],
+export const getCarbonInventoryHistoryRoute = defineRoute<{
+  Params: GetCarbonInventoryHistoryParams;
+}>({
+  method: "GET",
+  path: "/carbon-inventory/:id/history",
+  schema: {
+    tags: ["submissions"],
+    summary: "Get carbon inventory submission history",
+    description:
+      "Get the history of submissions for a specific carbon inventory.",
+    params: GetCarbonInventoryHistoryParamsSchema,
+    response: {
+      200: GetCarbonInventoryHistoryResponseSchema,
+      503: ApiErrorResponseSchema,
     },
-    getCarbonInventoryHistoryHandler
-  );
-};
+  },
+  access: {
+    mode: "private",
+    domain: {
+      kind: "carbonInventory",
+      carbonInventory: {
+        requiredOrganizationRoles: [
+          OrganizationRole.ADMIN,
+          OrganizationRole.CONTRIBUTOR,
+          OrganizationRole.VIEWER,
+        ],
+        canAdminsBypass: true,
+      },
+    },
+  },
+  handler: getCarbonInventoryHistoryHandler,
+});

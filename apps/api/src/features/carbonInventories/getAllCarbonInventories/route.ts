@@ -1,33 +1,26 @@
 import { getAllCarbonInventoriesHandler } from "./handler.js";
 import {
+  GetAllCarbonInventoriesQuery,
   GetAllCarbonInventoriesQuerySchema,
   GetAllCarbonInventoriesResponseSchema,
 } from "@repo/types";
-import type { GetAllCarbonInventoriesQuery } from "@repo/types";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getAllCarbonInventoriesRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Querystring: GetAllCarbonInventoriesQuery }>(
-    "/",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Get all carbon inventories",
-        description:
-          "Get all carbon inventories ordered by creation date (newest first). Optional parameter: year (e.g., ?year=2024)",
-        querystring: GetAllCarbonInventoriesQuerySchema,
-        response: {
-          200: GetAllCarbonInventoriesResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const getAllCarbonInventoriesRoute = defineRoute<{
+  Querystring: GetAllCarbonInventoriesQuery;
+}>({
+  method: "GET",
+  path: "/",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Get all carbon inventories",
+    description:
+      "Get all carbon inventories ordered by creation date (newest first). Optional parameter: year (e.g., ?year=2024)",
+    querystring: GetAllCarbonInventoriesQuerySchema,
+    response: {
+      200: GetAllCarbonInventoriesResponseSchema,
     },
-    getAllCarbonInventoriesHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: getAllCarbonInventoriesHandler,
+});

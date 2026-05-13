@@ -1,34 +1,28 @@
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import {
+  CreateCountrySubsectorRequest,
   CreateCountrySubsectorRequestSchema,
   CreateCountrySubsectorResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { createCountrySubsectorHandler } from "./handler.js";
 
-export const createCountrySubsectorRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.post(
-    "/",
-    {
-      schema: {
-        tags: ["admin-country-subsectors"],
-        summary: "Create a country subsector",
-        body: CreateCountrySubsectorRequestSchema,
-        response: {
-          201: CreateCountrySubsectorResponseSchema,
-          400: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          409: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const createCountrySubsectorRoute = defineRoute<{
+  Body: CreateCountrySubsectorRequest;
+}>({
+  method: "POST",
+  path: "/",
+  schema: {
+    tags: ["admin-country-subsectors"],
+    summary: "Create a country subsector",
+    body: CreateCountrySubsectorRequestSchema,
+    response: {
+      201: CreateCountrySubsectorResponseSchema,
+      400: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
-    createCountrySubsectorHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: createCountrySubsectorHandler,
+});

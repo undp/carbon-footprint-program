@@ -7,8 +7,12 @@ import type { OrganizationRole, SystemRole } from "@repo/database/enums";
  * in `defineRoute.ts`). Custom extractors are still supported — pass one
  * explicitly when the resource ID lives anywhere other than `request.params.id`.
  */
+// Permissive request shape so extractors that read from `request.params.X` (with
+// X chosen per-route) remain assignable. The Fastify type-provider validates the
+// actual params at runtime via the route schema; the extractor is just sugar.
 export type IdExtractor = (
-  request: FastifyRequest
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  request: FastifyRequest<any>
 ) => string | null | undefined;
 
 export type SystemRolesRequirement =

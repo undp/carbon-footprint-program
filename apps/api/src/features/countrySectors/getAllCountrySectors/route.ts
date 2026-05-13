@@ -1,29 +1,20 @@
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { getAllCountrySectorsHandler } from "./handler.js";
 import { GetAllCountrySectorsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAllCountrySectorsRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get(
-    "/",
-    {
-      schema: {
-        tags: ["country-sectors"],
-        summary: "Get all country sectors",
-        description: "Retrieves all country sectors with their details",
-        response: {
-          200: GetAllCountrySectorsResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const getAllCountrySectorsRoute = defineRoute({
+  method: "GET",
+  path: "/",
+  schema: {
+    tags: ["country-sectors"],
+    summary: "Get all country sectors",
+    description: "Retrieves all country sectors with their details",
+    response: {
+      200: GetAllCountrySectorsResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getAllCountrySectorsHandler
-  );
-};
+  },
+  access: { mode: "public" },
+  handler: getAllCountrySectorsHandler,
+});

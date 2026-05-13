@@ -1,4 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { registerRoutes } from "@/routing/defineRoute.js";
 import { createUserRoute } from "@/features/users/createUser/route.js";
 import { getAllUsersRoute } from "@/features/users/getAllUsers/route.js";
 import { getUserByIdRoute } from "@/features/users/getUserById/route.js";
@@ -9,13 +10,14 @@ import { getMeRoute } from "@/features/users/getMe/route.js";
 import { getUserRoleHistoryRoute } from "@/features/users/getUserRoleHistory/route.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
-  fastify.addHook("onRequest", fastify.requireAuth);
-  createUserRoute(fastify);
-  getAllUsersRoute(fastify);
-  getUserByIdRoute(fastify);
-  updateMyProfileRoute(fastify);
-  updateUserRoleRoute(fastify);
-  deleteUserRoute(fastify);
-  getMeRoute(fastify);
-  getUserRoleHistoryRoute(fastify);
+  registerRoutes(fastify, [
+    createUserRoute,
+    getAllUsersRoute,
+    getUserByIdRoute,
+    updateMyProfileRoute,
+    updateUserRoleRoute,
+    deleteUserRoute,
+    getMeRoute,
+    getUserRoleHistoryRoute,
+  ]);
 }

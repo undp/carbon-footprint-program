@@ -1,30 +1,21 @@
 import { getMyOrganizationsHandler } from "./handler.js";
 import { GetMyOrganizationsSelectorOptionsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getMyOrganizationsRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get(
-    "/me",
-    {
-      schema: {
-        tags: ["organizations"],
-        summary: "Get my organizations",
-        description:
-          "Get all organizations where the user has an active membership",
-        response: {
-          200: GetMyOrganizationsSelectorOptionsResponseSchema,
-          401: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const getMyOrganizationsRoute = defineRoute({
+  method: "GET",
+  path: "/me",
+  schema: {
+    tags: ["organizations"],
+    summary: "Get my organizations",
+    description:
+      "Get all organizations where the user has an active membership",
+    response: {
+      200: GetMyOrganizationsSelectorOptionsResponseSchema,
+      401: ApiErrorResponseSchema,
     },
-    getMyOrganizationsHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: getMyOrganizationsHandler,
+});

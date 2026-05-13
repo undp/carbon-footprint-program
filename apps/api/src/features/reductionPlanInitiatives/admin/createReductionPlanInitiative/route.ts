@@ -1,37 +1,30 @@
 import { createReductionPlanInitiativeHandler } from "./handler.js";
 import {
+  CreateReductionPlanInitiativeRequest,
   CreateReductionPlanInitiativeRequestSchema,
   CreateReductionPlanInitiativeResponseSchema,
-  type CreateReductionPlanInitiativeRequest,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const createReductionPlanInitiativeRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.post<{ Body: CreateReductionPlanInitiativeRequest }>(
-    "/",
-    {
-      schema: {
-        tags: ["admin-reduction-plan-initiatives"],
-        summary: "Create a reduction plan initiative",
-        body: CreateReductionPlanInitiativeRequestSchema,
-        response: {
-          201: CreateReductionPlanInitiativeResponseSchema,
-          400: ApiErrorResponseSchema,
-          401: ApiErrorResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          409: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const createReductionPlanInitiativeRoute = defineRoute<{
+  Body: CreateReductionPlanInitiativeRequest;
+}>({
+  method: "POST",
+  path: "/",
+  schema: {
+    tags: ["admin-reduction-plan-initiatives"],
+    summary: "Create a reduction plan initiative",
+    body: CreateReductionPlanInitiativeRequestSchema,
+    response: {
+      201: CreateReductionPlanInitiativeResponseSchema,
+      400: ApiErrorResponseSchema,
+      401: ApiErrorResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
-    createReductionPlanInitiativeHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: createReductionPlanInitiativeHandler,
+});

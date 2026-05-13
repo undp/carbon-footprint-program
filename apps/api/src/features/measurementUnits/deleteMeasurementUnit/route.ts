@@ -1,34 +1,30 @@
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 import { deleteMeasurementUnitHandler } from "./handler.js";
-import { DeleteMeasurementUnitParamsSchema } from "@repo/types";
+import {
+  DeleteMeasurementUnitParams,
+  DeleteMeasurementUnitParamsSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const deleteMeasurementUnitRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.delete(
-    "/:id",
-    {
-      schema: {
-        tags: ["measurement-units"],
-        summary: "Soft-delete a measurement unit",
-        description:
-          "Soft-deletes a measurement unit and its canonical rate unit. System-protected rows (kg, base units) cannot be deleted.",
-        params: DeleteMeasurementUnitParamsSchema,
-        response: {
-          401: ApiErrorResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          422: ApiErrorResponseSchema,
-          500: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const deleteMeasurementUnitRoute = defineRoute<{
+  Params: DeleteMeasurementUnitParams;
+}>({
+  method: "DELETE",
+  path: "/:id",
+  schema: {
+    tags: ["measurement-units"],
+    summary: "Soft-delete a measurement unit",
+    description:
+      "Soft-deletes a measurement unit and its canonical rate unit. System-protected rows (kg, base units) cannot be deleted.",
+    params: DeleteMeasurementUnitParamsSchema,
+    response: {
+      401: ApiErrorResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      422: ApiErrorResponseSchema,
+      500: ApiErrorResponseSchema,
     },
-    deleteMeasurementUnitHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: deleteMeasurementUnitHandler,
+});

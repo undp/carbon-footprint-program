@@ -15,6 +15,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 
 import type { IdExtractor, RouteAccess } from "./access.js";
+import { tagHook } from "./hookTags.js";
 
 /**
  * Default extractor used when an `access` spec omits its own `extractor`.
@@ -49,14 +50,14 @@ export interface RouteDefinition<
 }
 
 /**
- * Opaque wrapper around a `RouteDefinition`. `registerRoutes` unwraps it and
- * registers it with Fastify. The double-underscore key signals "internal — do
- * not inspect" to readers.
+ * Opaque wrapper around a `RouteDefinition`. The generic is erased at this layer
+ * so a heterogeneous list of routes (different schemas, different params) can be
+ * collected into `RegisteredRoute[]` without variance errors. `defineRoute`
+ * type-checks the handler against the per-route generic before erasing it here.
+ * The double-underscore key signals "internal — do not inspect" to readers.
  */
-export interface RegisteredRoute<
-  TGeneric extends RouteGenericInterface = RouteGenericInterface,
-> {
-  readonly __route: RouteDefinition<TGeneric>;
+export interface RegisteredRoute {
+  readonly __route: RouteDefinition;
 }
 
 /**
@@ -66,8 +67,11 @@ export interface RegisteredRoute<
  */
 export function defineRoute<TGeneric extends RouteGenericInterface>(
   def: RouteDefinition<TGeneric>
-): RegisteredRoute<TGeneric> {
-  return { __route: def };
+): RegisteredRoute {
+  // Erase the route's generic when wrapping. The handler was type-checked
+  // against `def`'s narrow generic by the caller; once stored, the generic is
+  // irrelevant — Fastify validates request shape from the schema at runtime.
+  return { __route: def as unknown as RouteDefinition };
 }
 
 export interface RegisterRoutesOptions {
@@ -95,30 +99,42 @@ export function buildHooks(
   fastify: FastifyZodInstance,
   access: RouteAccess
 ): BuiltHooks {
+  // `fastify.requireAuth` is a single global decorator instance shared across
+  // every route. Tagging it once is benign and idempotent.
+  const taggedRequireAuth = tagHook(fastify.requireAuth, "requireAuth");
+
   if (access.mode === "public") {
+    // `requireAuth` is still added: the auth plugin reads `allowPublicAccess`
+    // and skips the 401 for missing credentials, but it DOES still attempt
+    // authentication and populates `request.authUser` (and `currentUser`) when
+    // a Bearer token is present. This preserves identity capture for handlers
+    // that opportunistically read the caller (e.g. setting `createdById`).
     return {
       config: { allowPublicAccess: true },
-      onRequest: [],
+      onRequest: [taggedRequireAuth],
       preHandler: [],
     };
   }
 
   if (access.mode === "anonymous") {
     const extractor = access.carbonInventory.extractor ?? defaultIdExtractor;
-    const inventoryHook = fastify.requireCarbonInventoryAccess(extractor, {
-      requiredOrganizationRoles:
-        access.carbonInventory.requiredOrganizationRoles,
-      canAdminsBypass: access.carbonInventory.canAdminsBypass,
-    }) as preHandlerHookHandler;
+    const inventoryHook = tagHook(
+      fastify.requireCarbonInventoryAccess(extractor, {
+        requiredOrganizationRoles:
+          access.carbonInventory.requiredOrganizationRoles,
+        canAdminsBypass: access.carbonInventory.canAdminsBypass,
+      }),
+      "requireCarbonInventoryAccess"
+    ) as preHandlerHookHandler;
     return {
       config: { allowAnonymousAccess: true },
-      onRequest: [fastify.requireAuth],
+      onRequest: [taggedRequireAuth],
       preHandler: [inventoryHook],
     };
   }
 
   // private mode below.
-  const onRequest: onRequestHookHandler[] = [fastify.requireAuth];
+  const onRequest: onRequestHookHandler[] = [taggedRequireAuth];
   const preHandler: preHandlerHookHandler[] = [];
 
   // Decorator return types are async (`Promise<void>`) and use narrower request
@@ -127,7 +143,10 @@ export function buildHooks(
   // their own request shape from the route's schema.
   if (access.systemRoles && access.systemRoles.kind === "roles") {
     preHandler.push(
-      fastify.requireRoles(access.systemRoles.roles) as preHandlerHookHandler
+      tagHook(
+        fastify.requireRoles(access.systemRoles.roles),
+        "requireRoles"
+      ) as preHandlerHookHandler
     );
   }
 
@@ -136,12 +155,15 @@ export function buildHooks(
       case "organization": {
         const { organization } = access.domain;
         preHandler.push(
-          fastify.requireOrganizationRole(
-            organization.extractor ?? defaultIdExtractor,
-            {
-              allowedRoles: organization.allowedRoles,
-              canAdminsBypass: organization.canAdminsBypass,
-            }
+          tagHook(
+            fastify.requireOrganizationRole(
+              organization.extractor ?? defaultIdExtractor,
+              {
+                allowedRoles: organization.allowedRoles,
+                canAdminsBypass: organization.canAdminsBypass,
+              }
+            ),
+            "requireOrganizationRole"
           ) as preHandlerHookHandler
         );
         break;
@@ -149,13 +171,16 @@ export function buildHooks(
       case "carbonInventory": {
         const { carbonInventory } = access.domain;
         preHandler.push(
-          fastify.requireCarbonInventoryAccess(
-            carbonInventory.extractor ?? defaultIdExtractor,
-            {
-              requiredOrganizationRoles:
-                carbonInventory.requiredOrganizationRoles,
-              canAdminsBypass: carbonInventory.canAdminsBypass,
-            }
+          tagHook(
+            fastify.requireCarbonInventoryAccess(
+              carbonInventory.extractor ?? defaultIdExtractor,
+              {
+                requiredOrganizationRoles:
+                  carbonInventory.requiredOrganizationRoles,
+                canAdminsBypass: carbonInventory.canAdminsBypass,
+              }
+            ),
+            "requireCarbonInventoryAccess"
           ) as preHandlerHookHandler
         );
         break;
@@ -163,11 +188,14 @@ export function buildHooks(
       case "reductionProject": {
         const { reductionProject } = access.domain;
         preHandler.push(
-          fastify.requireReductionProjectAccess({
-            requiredOrganizationRoles:
-              reductionProject.requiredOrganizationRoles,
-            canAdminsBypass: reductionProject.canAdminsBypass,
-          }) as preHandlerHookHandler
+          tagHook(
+            fastify.requireReductionProjectAccess({
+              requiredOrganizationRoles:
+                reductionProject.requiredOrganizationRoles,
+              canAdminsBypass: reductionProject.canAdminsBypass,
+            }),
+            "requireReductionProjectAccess"
+          ) as preHandlerHookHandler
         );
         break;
       }

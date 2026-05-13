@@ -1,32 +1,26 @@
 import { getSystemParametersHandler } from "./handler.js";
 import {
+  GetSystemParametersQuery,
   GetSystemParametersQuerySchema,
   GetSystemParametersResponseSchema,
 } from "@repo/types";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getSystemParametersRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get(
-    "/",
-    {
-      schema: {
-        tags: ["system-parameters"],
-        summary: "Get system parameters",
-        description:
-          "Get system parameters, optionally filtered by comma-separated keys",
-        querystring: GetSystemParametersQuerySchema,
-        response: {
-          200: GetSystemParametersResponseSchema,
-        },
-      },
-      config: {
-        allowPublicAccess: options?.allowPublicAccess ?? false,
-        allowAnonymousAccess: options?.allowAnonymousAccess ?? false,
-      },
+export const getSystemParametersRoute = defineRoute<{
+  Querystring: GetSystemParametersQuery;
+}>({
+  method: "GET",
+  path: "/",
+  schema: {
+    tags: ["system-parameters"],
+    summary: "Get system parameters",
+    description:
+      "Get system parameters, optionally filtered by comma-separated keys",
+    querystring: GetSystemParametersQuerySchema,
+    response: {
+      200: GetSystemParametersResponseSchema,
     },
-    getSystemParametersHandler
-  );
-};
+  },
+  access: { mode: "public" },
+  handler: getSystemParametersHandler,
+});
