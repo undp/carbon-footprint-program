@@ -23,7 +23,13 @@ interface MessageBubbleProps {
 const ExternalLink = (
   props: React.AnchorHTMLAttributes<HTMLAnchorElement>
 ): React.ReactElement => (
-  <a {...props} target="_blank" rel="noopener noreferrer" />
+  <Link
+    {...props}
+    target="_blank"
+    rel="noopener noreferrer"
+    underline="always"
+    color="primary"
+  />
 );
 
 export function MessageBubble({ message }: MessageBubbleProps) {
