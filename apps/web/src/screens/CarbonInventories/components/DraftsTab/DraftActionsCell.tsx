@@ -29,6 +29,7 @@ import {
   useSelfDeclareCarbonInventory,
   useSystemParameters,
 } from "@/api/query";
+import { useMyOrganizations } from "@/api/query/organizations/useMyOrganizations";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { BaseActionButton, primaryActionButtonSx } from "../BaseActionButton";
@@ -57,6 +58,10 @@ export const DraftActionsCell: FC<Props> = ({
 
   const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
   const hasOrganization = carbonInventory.organizationId !== null;
+
+  const { data: myOrganizations } = useMyOrganizations();
+  const hasNoOrganizationsToAssociate = (myOrganizations ?? []).length === 0;
+  const associateDisabled = hasOrganization || hasNoOrganizationsToAssociate;
 
   const isYearAlreadySelfDeclared = useMemo(
     () =>
@@ -246,13 +251,15 @@ export const DraftActionsCell: FC<Props> = ({
           title={
             hasOrganization
               ? `Esta huella ya tiene una ${VOCAB.organization.noun.singular} asociada`
-              : `Asociar ${VOCAB.organization.noun.singular}`
+              : hasNoOrganizationsToAssociate
+                ? `No perteneces a ninguna ${VOCAB.organization.noun.singular} a la cual asociar esta huella`
+                : `Asociar ${VOCAB.organization.noun.singular}`
           }
         >
           <span>
             <BaseActionButton
               onClick={() => setAssociateOrgDialogOpen(true)}
-              disabled={hasOrganization}
+              disabled={associateDisabled}
               aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
             >
               <BusinessOutlined fontSize="small" />
