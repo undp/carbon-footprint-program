@@ -71,14 +71,15 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ## Security
 
-| Document                                                | Description                                                           |
-| ------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Authentication](./security/authentication.md)          | Authentication providers, token validation, provider selection        |
-| [RBAC and Authorization](./security/rbac.md)            | Role model, authorization plugins, permission matrix                  |
-| [Sensitive Data Handling](./security/sensitive-data.md) | PII inventory, encryption at rest/transit, compliance considerations  |
-| [Secrets Management](./security/secrets.md)             | Managed identities, Key Vault, env var classification, anti-patterns  |
-| [Infrastructure Hardening](./security/hardening.md)     | TLS, CORS, security headers, network isolation, WAF, input validation |
-| [Audit and Logging](./security/audit-logging.md)        | Log structure, redaction, security events, database audit trail       |
+| Document                                                       | Description                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [Authentication](./security/authentication.md)                 | Authentication providers, token validation, provider selection        |
+| [Frontend Auth Recovery](./security/frontend-auth-recovery.md) | Recovery flow when MSAL login succeeds but `GET /users/me` fails      |
+| [RBAC and Authorization](./security/rbac.md)                   | Role model, authorization plugins, permission matrix                  |
+| [Sensitive Data Handling](./security/sensitive-data.md)        | PII inventory, encryption at rest/transit, compliance considerations  |
+| [Secrets Management](./security/secrets.md)                    | Managed identities, Key Vault, env var classification, anti-patterns  |
+| [Infrastructure Hardening](./security/hardening.md)            | TLS, CORS, security headers, network isolation, WAF, input validation |
+| [Audit and Logging](./security/audit-logging.md)               | Log structure, redaction, security events, database audit trail       |
 
 ## Operations
 
