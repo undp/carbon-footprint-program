@@ -16,7 +16,7 @@ export const getReductionProjectAccessRoute = defineRoute<{
     tags: ["reduction-projects"],
     summary: "Get reduction project access",
     description:
-      "Resolves whether the requesting user can edit a reduction project. Read access is enforced by the preHandler — a 403 here means no read access.",
+      "Resolves whether the requesting user can edit a reduction project. Read access is enforced via the route's declarative access metadata — a 403 here means no read access.",
     params: GetReductionProjectAccessParamsSchema,
     response: {
       200: GetReductionProjectAccessResponseSchema,
