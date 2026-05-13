@@ -82,10 +82,21 @@ export const getCarbonInventoryFilesManifestService = async (
         continue;
       }
 
-      const encodedName = encodeURIComponent(file.originalName);
+      // RFC 6266: `filename` carries an ASCII-safe display name for clients
+      // that ignore `filename*`, while `filename*` carries the UTF-8 form
+      // for clients that support it. Using the percent-encoded value in
+      // `filename` caused legacy clients to save `%20` literals.
+      const encodedName = encodeURIComponent(file.originalName).replace(
+        /[!'()*]/g,
+        (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+      );
+      const asciiFallbackName = file.originalName
+        .normalize("NFKD")
+        .replace(/[^\x20-\x7E]/g, "_")
+        .replace(/[\\"]/g, "\\$&");
       const { url, expiresAt } = await signReadSasUrl(file.blobPath, {
         contentType: file.mimeType,
-        contentDisposition: `attachment; filename="${encodedName}"; filename*=UTF-8''${encodedName}`,
+        contentDisposition: `attachment; filename="${asciiFallbackName}"; filename*=UTF-8''${encodedName}`,
       });
 
       if (!latestExpiresAt || expiresAt > latestExpiresAt) {
