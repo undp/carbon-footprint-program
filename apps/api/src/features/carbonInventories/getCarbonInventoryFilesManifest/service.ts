@@ -2,7 +2,6 @@ import type { BlobServiceClient } from "@azure/storage-blob";
 import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type { GetCarbonInventoryFilesManifestResponse } from "@repo/types";
-import type { FastifyBaseLogger } from "fastify";
 import { CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES } from "@/config/constants.js";
 import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
@@ -15,7 +14,6 @@ export const getCarbonInventoryFilesManifestService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
   containerName: string,
-  log: FastifyBaseLogger,
   input: GetCarbonInventoryFilesManifestInput
 ): Promise<GetCarbonInventoryFilesManifestResponse> => {
   const { carbonInventoryId } = input;
@@ -70,15 +68,11 @@ export const getCarbonInventoryFilesManifestService = async (
   for (const line of lines) {
     const lineIdStr = line.id.toString();
     for (const { file } of line.files) {
+      // Defense-in-depth: the Prisma query already scopes lines by
+      // `carbonInventoryId`, so a mismatched blobPath would mean a data-
+      // integrity bug. Silently drop the row in that case; the missing file
+      // in the user's ZIP surfaces the problem to ops.
       if (!file.blobPath.startsWith(expectedPrefix)) {
-        log.warn(
-          {
-            carbonInventoryId,
-            fileUuid: file.uuid,
-            blobPath: file.blobPath,
-          },
-          "Skipping line file with cross-inventory blob path"
-        );
         continue;
       }
 

@@ -21,7 +21,6 @@ export const getCarbonInventoryFilesManifestHandler = async (
     request.server.prisma,
     blobServiceClient,
     storageContainerName,
-    log,
     { carbonInventoryId: id }
   );
 
