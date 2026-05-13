@@ -213,7 +213,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
       fullWidth
       slotProps={{ paper: { sx: { height: "80vh", maxHeight: "80vh" } } }}
     >
-      <DialogTitle>Archivos adjuntos</DialogTitle>
+      <DialogTitle>Archivos adjuntos ({visibleFiles.length})</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ width: "100%", height: "100%" }}>
           <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", pr: 0.5 }}>
