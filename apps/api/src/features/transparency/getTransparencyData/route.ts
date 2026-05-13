@@ -1,12 +1,13 @@
 import { getTransparencyDataHandler } from "./handler.js";
 import {
+  GetTransparencyDataQuery,
   GetTransparencyDataQuerySchema,
   GetTransparencyDataResponseSchema,
 } from "@repo/types";
 import { defineRoute } from "@/routing/defineRoute.js";
 
 export const getTransparencyDataRoute = defineRoute<{
-  Querystring: { year?: string };
+  Querystring: GetTransparencyDataQuery;
 }>({
   method: "GET",
   path: "/",
