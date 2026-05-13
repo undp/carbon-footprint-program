@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import type {
   FilesManifestEntry,
+  GetCarbonInventoryFilesManifestResponse,
+  GetCarbonInventoryMethodologyExportResponse,
   GetEmissionFactorsResponse,
   GetEmissionsDetailedSummaryResponse,
 } from "@repo/types";
@@ -8,8 +10,6 @@ import { sanitizeForFilename } from "@repo/utils";
 import { downloadZip } from "client-zip";
 import { enqueueSnackbar } from "notistack";
 import { apiClient } from "@/api/http";
-import { fetchCarbonInventoryFilesManifest } from "@/api/query/carbonInventories/useCarbonInventoryFilesManifest";
-import { fetchCarbonInventoryMethodologyExport } from "@/api/query/carbonInventories/useCarbonInventoryMethodologyExport";
 import { getInventoryUuidFromLocalStorage } from "@/api/query/carbonInventories/authHeaders";
 import {
   CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME,
@@ -97,8 +97,18 @@ export function useDownloadCarbonInventory() {
                 signal,
               })
               .json<GetEmissionFactorsResponse>(),
-            fetchCarbonInventoryFilesManifest(id, headers, { signal }),
-            fetchCarbonInventoryMethodologyExport(id, headers, { signal }),
+            apiClient
+              .get(`carbon-inventories/${id}/files-manifest`, {
+                headers,
+                signal,
+              })
+              .json<GetCarbonInventoryFilesManifestResponse>(),
+            apiClient
+              .get(`carbon-inventories/${id}/methodology-export`, {
+                headers,
+                signal,
+              })
+              .json<GetCarbonInventoryMethodologyExportResponse>(),
           ]);
 
         const [summaryBuffer, methodologyBuffer] = await Promise.all([
