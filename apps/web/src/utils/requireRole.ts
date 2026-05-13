@@ -32,10 +32,22 @@ export function requireRole(
       throw redirect({ to: redirectTo });
     }
 
-    const user = await queryClient.ensureQueryData<GetMeResponse>({
-      queryKey: userKeys.me,
-      queryFn: () => apiClient.get("users/me").json(),
-    });
+    let user: GetMeResponse;
+    try {
+      user = await queryClient.ensureQueryData<GetMeResponse>({
+        queryKey: userKeys.me,
+        queryFn: () => apiClient.get("users/me").json(),
+      });
+    } catch {
+      // Deep-link path: MSAL has an account but /users/me failed.
+      // Drop the local session and signal Landing to show the error
+      // snackbar via the authError search param (the guard runs outside
+      // React, so we can't call enqueueSnackbar directly here).
+      await msalInstance.clearCache({ account: accounts[0] });
+      queryClient.removeQueries({ queryKey: userKeys.me });
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
+      throw redirect({ to: "/", search: { authError: "login_failed" } });
+    }
 
     if (!user || !allowedRoles.includes(user.role)) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error

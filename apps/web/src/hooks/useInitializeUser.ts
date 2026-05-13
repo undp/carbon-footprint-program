@@ -17,6 +17,8 @@ interface ReturnType {
   refetchUser: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult<GetMeResponse, unknown>>;
+  isUserError: boolean;
+  userError: unknown;
 }
 
 /**
@@ -30,7 +32,9 @@ export function useInitializeUser({
   account,
 }: Props): ReturnType {
   const { setUser, clear } = useUserStore();
-  const { data: me, refetch } = useMe(isAuthenticated);
+  // Surface useMe's error state so AuthContext can react when MSAL succeeded
+  // but the follow-up GET /users/me failed.
+  const { data: me, refetch, error, isError } = useMe(isAuthenticated);
 
   useEffect(() => {
     // Clear user data if not authenticated
@@ -42,5 +46,10 @@ export function useInitializeUser({
     if (me) setUser(me);
   }, [isAuthenticated, account, setUser, clear, me]);
 
-  return { user: me, refetchUser: refetch };
+  return {
+    user: me,
+    refetchUser: refetch,
+    isUserError: isError,
+    userError: error,
+  };
 }
