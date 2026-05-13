@@ -5,6 +5,7 @@ import {
   DeleteEmissionFactorDimensionParamsSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { z } from "zod";
 
 export const deleteEmissionFactorDimensionRoute = defineRoute<{
   Params: DeleteEmissionFactorDimensionParams;
@@ -18,6 +19,7 @@ export const deleteEmissionFactorDimensionRoute = defineRoute<{
       "Delete a dimension and soft-delete all associated emission factors",
     params: DeleteEmissionFactorDimensionParamsSchema,
     response: {
+      200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
     },
   },

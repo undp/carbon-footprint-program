@@ -5,6 +5,7 @@ import {
   DeleteSubcategoryParamsSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { z } from "zod";
 
 export const deleteSubcategoryRoute = defineRoute<{
   Params: DeleteSubcategoryParams;
@@ -17,6 +18,7 @@ export const deleteSubcategoryRoute = defineRoute<{
     description: "Soft-delete a subcategory by its ID",
     params: DeleteSubcategoryParamsSchema,
     response: {
+      200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
     },
   },

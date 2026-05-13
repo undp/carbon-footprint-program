@@ -5,6 +5,7 @@ import {
   DeleteMeasurementUnitParamsSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { z } from "zod";
 
 export const deleteMeasurementUnitRoute = defineRoute<{
   Params: DeleteMeasurementUnitParams;
@@ -18,6 +19,7 @@ export const deleteMeasurementUnitRoute = defineRoute<{
       "Soft-deletes a measurement unit and its canonical rate unit. System-protected rows (kg, base units) cannot be deleted.",
     params: DeleteMeasurementUnitParamsSchema,
     response: {
+      200: z.null().describe("Successfully soft-deleted"),
       401: ApiErrorResponseSchema,
       403: ApiErrorResponseSchema,
       404: ApiErrorResponseSchema,
