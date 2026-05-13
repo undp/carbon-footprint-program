@@ -9,11 +9,9 @@ export const GetCarbonInventoryFilesManifestParamsSchema = z
 
 export const FilesManifestEntrySchema = z.object({
   fileUuid: z.uuid().describe("The file UUID"),
-  lineId: z
-    .string()
-    .describe(
-      "The owning CarbonInventoryLine id (BigInt serialized as string)"
-    ),
+  lineId: IdSchema.describe(
+    "The owning CarbonInventoryLine id (BigInt serialized as string)"
+  ),
   categoryName: z.string().describe("The category name of the owning line"),
   subcategoryName: z
     .string()
