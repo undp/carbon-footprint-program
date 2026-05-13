@@ -14,7 +14,7 @@ export function sanitizeForFilename(
 ): string {
   const normalized = name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036F]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return normalized || fallback;
