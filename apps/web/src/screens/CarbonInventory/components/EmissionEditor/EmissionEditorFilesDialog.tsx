@@ -218,41 +218,11 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                     <ListItemText
                       sx={{ minWidth: 0, my: 0, flex: 1 }}
                       primary={
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            minWidth: 0,
-                          }}
+                        <OverflowTooltipText
+                          sx={{ fontWeight: 500, minWidth: 0 }}
                         >
-                          <OverflowTooltipText
-                            sx={{ fontWeight: 500, flex: 1, minWidth: 0 }}
-                          >
-                            {file.originalName}
-                          </OverflowTooltipText>
-                          <Box sx={{ display: "flex", flexShrink: 0 }}>
-                            <IconButton
-                              size="small"
-                              aria-label={`Previsualizar ${file.originalName}`}
-                              onClick={() => handlePreview(file)}
-                              disabled={disabled}
-                            >
-                              <VisibilityOutlined fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              aria-label={`Eliminar ${file.originalName}`}
-                              onClick={() => handleDelete(file)}
-                              disabled={disabled || isDeleting}
-                            >
-                              <DeleteOutlined
-                                fontSize="small"
-                                sx={{ color: "text.secondary" }}
-                              />
-                            </IconButton>
-                          </Box>
-                        </Box>
+                          {file.originalName}
+                        </OverflowTooltipText>
                       }
                       secondary={formatFileSize(file.sizeBytes)}
                       slotProps={{
@@ -260,6 +230,33 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                         secondary: { variant: "caption" },
                       }}
                     />
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label={`Previsualizar ${file.originalName}`}
+                        onClick={() => handlePreview(file)}
+                        disabled={disabled}
+                      >
+                        <VisibilityOutlined fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        aria-label={`Eliminar ${file.originalName}`}
+                        onClick={() => handleDelete(file)}
+                        disabled={disabled || isDeleting}
+                      >
+                        <DeleteOutlined
+                          fontSize="small"
+                          sx={{ color: "text.secondary" }}
+                        />
+                      </IconButton>
+                    </Box>
                   </ListItem>
                 ))}
               </List>
