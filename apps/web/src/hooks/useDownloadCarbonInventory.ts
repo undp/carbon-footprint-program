@@ -106,10 +106,13 @@ export function useDownloadCarbonInventory() {
           buildMethodologyWorkbook(methodology),
         ]);
 
-        // Disambiguate same-original-name attachments within a single line by
-        // suffixing `-2`, `-3`, ... before the extension. Across-line
-        // collisions cannot exist — `line-{lineId}` partitions the namespace.
-        const perLineNameCount = new Map<string, number>();
+        // Disambiguate ZIP-entry collisions within a single line by suffixing
+        // `-2`, `-3`, ... before the extension. Sanitization can collapse
+        // different `originalName` values (e.g. `Año.pdf` and `Ano.pdf`) into
+        // the same archive entry, so the dedup key is the sanitized archive
+        // path — not the raw original name. Across-line collisions cannot
+        // exist because `line-{lineId}` partitions the namespace.
+        const perEntryCount = new Map<string, number>();
         const entries: { name: string; input: Response | ArrayBuffer }[] = [
           {
             name: CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME,
@@ -122,9 +125,9 @@ export function useDownloadCarbonInventory() {
         ];
 
         for (const file of manifest.files) {
-          const key = `${file.lineId}::${file.originalName}`;
-          const next = (perLineNameCount.get(key) ?? 0) + 1;
-          perLineNameCount.set(key, next);
+          const baseArchiveName = buildArchiveFilename(file, 1);
+          const next = (perEntryCount.get(baseArchiveName) ?? 0) + 1;
+          perEntryCount.set(baseArchiveName, next);
 
           let response: Response;
           try {
