@@ -83,3 +83,9 @@ export const CarbonInventoryInvalidUuidError = createError(
   "Invalid UUID for carbon inventory %s",
   400
 );
+
+export const CarbonInventoryAlreadyHasOrganizationError = createError(
+  "CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION",
+  "Carbon inventory %s already has an associated organization",
+  422
+);
