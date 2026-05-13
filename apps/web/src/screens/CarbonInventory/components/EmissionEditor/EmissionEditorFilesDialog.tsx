@@ -160,6 +160,9 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
             (entry) => entry.uuid !== file.uuid
           );
           setValue(filesPath, next, { shouldDirty: true });
+          enqueueSnackbar("Archivo eliminado correctamente", {
+            variant: "success",
+          });
         } catch {
           enqueueSnackbar("Error al eliminar el archivo", {
             variant: "error",
@@ -172,6 +175,9 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
       if (currentRemoved.includes(file.id)) return;
       setValue(removedFileIdsPath, [...currentRemoved, file.id], {
         shouldDirty: true,
+      });
+      enqueueSnackbar("Archivo eliminado correctamente", {
+        variant: "success",
       });
     },
     [
@@ -264,7 +270,10 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
                               onClick={() => handleDelete(file)}
                               disabled={disabled || isDeleting}
                             >
-                              <DeleteOutlined fontSize="small" color="error" />
+                              <DeleteOutlined
+                                fontSize="small"
+                                sx={{ color: "text.secondary" }}
+                              />
                             </IconButton>
                           </Box>
                         </Box>
