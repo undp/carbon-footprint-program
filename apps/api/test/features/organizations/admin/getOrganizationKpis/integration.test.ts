@@ -476,7 +476,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       expect(accreditedSum).toBe(1);
     });
 
-    it("should count org with carbon inventory in withInventories=true bucket", async () => {
+    it("should count org with carbon inventory in withInventories=true bucket for current year", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
