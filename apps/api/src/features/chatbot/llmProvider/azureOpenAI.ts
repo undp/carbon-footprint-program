@@ -124,7 +124,7 @@ export const azureOpenAIProvider: LLMProvider = {
       {
         model: AZURE_OPENAI_DEPLOYMENT_NAME!,
         messages: openAiMessages,
-        max_tokens: options.maxOutputTokens,
+        max_completion_tokens: options.maxOutputTokens,
         stream: true,
         stream_options: { include_usage: true },
         ...(tools ? { tools, tool_choice: "auto" as const } : {}),
