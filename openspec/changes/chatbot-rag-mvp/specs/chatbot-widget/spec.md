@@ -93,42 +93,44 @@ This is a thin, persistent reminder that the chatbot is AI-generated and that ci
 - **WHEN** any test or component snapshot inspects the disclaimer text
 - **THEN** it SHALL match the literal `"Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas."` exactly — no truncation, no paraphrase, no emoji
 
-### Requirement: Trash icon clears local widget state only — never deletes the persisted conversation
+### Requirement: "Nueva conversación" affordance clears local widget state only — never deletes the persisted conversation
 
-The trash-icon (clear-chat) control in the chatbot widget SHALL ONLY clear local React state. Specifically, on click it SHALL:
+The "Nueva conversación" control (rendered as an `AddIcon` button in the chatbot widget header) SHALL ONLY clear local React state. Specifically, on click it SHALL:
 
 1. Reset the widget's message list to empty.
 2. Generate a fresh `conversation_id` (e.g., via `crypto.randomUUID()`) so that the next outgoing `sendMessage` starts a new conversation thread for backend persistence.
 
-The trash-icon click handler SHALL NOT issue any HTTP request. The persisted `chatbot_chat_conversation` and `chatbot_chat_message` rows in the database SHALL remain untouched after the click. The icon's visible/aria label SHALL be `"Limpiar conversación"` (clear) — NOT `"Eliminar conversación"` (delete) — because the wording must match the actual behavior. (The widget DOES expose a SEPARATE "Eliminar mi historial" affordance in the foot of the panel that calls the foundation `DELETE /api/chatbot/conversations/me` endpoint with confirmation; that endpoint comes from the foundation `chatbot-conversation-deletion` capability, not this change. See the dedicated requirement below for the D11 affordance contract.)
+The click handler SHALL NOT issue any HTTP request. The persisted `chatbot_chat_conversation` and `chatbot_chat_message` rows in the database SHALL remain untouched after the click. The icon's visible/aria label SHALL be `"Nueva conversación"` — the wording communicates "start a fresh thread", not "delete the database".
 
-This is a PM-owned decision: conversations are auditable and may need server-side review after the user clears the UI; client-triggered hard delete is out of V1 scope and belongs to the V4 admin-UI scope. Decision recorded in `design.md` Decision 25.
+The widget in V1 SHALL NOT expose any user-facing affordance for deleting persisted conversation history. The foundation-defined `DELETE /api/chatbot/conversations/me` endpoint exists and is operable by support staff for D11 right-to-be-forgotten requests, but the user-facing UI affordance is intentionally deferred to a future change (see `chatbot-educate-mode-full`). V1 is intentionally not a full-compliance-UI-complete release; the regulatory obligation is met via support intake plus endpoint invocation, with the UI affordance planned for V2/V3.
 
-#### Scenario: Trash icon click clears the rendered message list
+This is a PM-owned decision: conversations are auditable and may need server-side review after the user starts a new conversation; client-triggered hard delete is out of V1 scope. Decision recorded in `design.md` Decision 25.
 
-- **WHEN** the user clicks the widget's trash icon while the message list contains ≥1 message
+#### Scenario: "Nueva conversación" click clears the rendered message list
+
+- **WHEN** the user clicks the widget's "Nueva conversación" button while the message list contains ≥1 message
 - **THEN** immediately after the click handler returns, the rendered DOM SHALL contain zero rendered chat-message bubbles
 
-#### Scenario: Trash icon click does NOT issue any HTTP request
+#### Scenario: "Nueva conversación" click does NOT issue any HTTP request
 
-- **WHEN** the user clicks the widget's trash icon while the message list contains ≥1 message
+- **WHEN** the user clicks the widget's "Nueva conversación" button while the message list contains ≥1 message
 - **AND** an `apiClient` / `fetch` spy observes outgoing HTTP traffic during and immediately after the click
 - **THEN** no request SHALL be observed — in particular, no `DELETE` request to any `/chat/conversations*`, `/chat/messages*`, or other backend path
 
 #### Scenario: Next message after clear uses a fresh conversation_id
 
-- **WHEN** the user clicks the trash icon, then sends a new message
+- **WHEN** the user clicks the "Nueva conversación" button, then sends a new message
 - **THEN** the outgoing `sendMessage` request SHALL carry a `conversation_id` distinct from any `conversation_id` used by messages sent before the click
 
 #### Scenario: Persisted rows survive the clear action
 
-- **WHEN** the user clicks the trash icon while a conversation persisted as N `chatbot_chat_message` rows in the database
+- **WHEN** the user clicks the "Nueva conversación" button while a conversation persisted as N `chatbot_chat_message` rows in the database
 - **THEN** after the click, those N rows SHALL remain unmodified (same content, same `tokens_used`, same `sources_cited`, same `created_at`); no row SHALL be deleted, soft-deleted, or otherwise mutated
 
-#### Scenario: Icon label communicates clear, not delete
+#### Scenario: Affordance label communicates new conversation, not delete
 
-- **WHEN** the trash icon's tooltip / aria-label is inspected
-- **THEN** the label SHALL be `"Limpiar conversación"` and SHALL NOT be `"Eliminar conversación"` (or any synonym implying server-side deletion)
+- **WHEN** the "Nueva conversación" button's tooltip / aria-label is inspected
+- **THEN** the label SHALL be `"Nueva conversación"` and SHALL NOT be `"Eliminar conversación"` or `"Limpiar conversación"` (or any synonym implying server-side deletion or implying the widget is a destructive control)
 
 ## MODIFIED Requirements
 
@@ -150,56 +152,6 @@ The widget SHALL render assistant content as Markdown via `react-markdown` (`rem
 
 - **WHEN** a user message contains characters that look like Markdown syntax (e.g., `**`, `#`)
 - **THEN** the widget SHALL render those characters literally, not as formatting
-
-## MODIFIED Requirements
-
-### Requirement: Widget invokes `DELETE /api/chatbot/conversations/me` via a dedicated "Eliminar mi historial" affordance, separate from the trash icon
-
-The widget SHALL split the foundation-defined "user-visible affordance to delete chat history" into TWO distinct affordances with different semantics:
-
-1. **Trash icon (top of widget panel)**: clears LOCAL React state only — resets message list, generates fresh `conversation_id`, NEVER calls a backend endpoint, NEVER mutates persisted rows. Aria-label: `"Limpiar conversación"`. Fully specified in the `Trash icon clears local widget state only — never deletes the persisted conversation` requirement above.
-
-2. **"Eliminar mi historial" link (foot of widget panel)**: invokes the foundation `DELETE /api/chatbot/conversations/me` endpoint to permanently remove the caller's conversation history from the database. The link SHALL be visually discrete (`<button>` styled as a text link with `theme.palette.text.secondary` color and `variant="caption"` typography), positioned in the foot of the widget panel adjacent to the persistent disclaimer (NOT in the message list, NOT in the input row). On click, the widget SHALL show a confirmation dialog with:
-   - Title: `"¿Eliminar tu historial de conversaciones?"`
-   - Body: `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`
-   - Confirm button label: `"Eliminar permanentemente"` (destructive variant — `color="error"` on MUI)
-   - Cancel button label: `"Cancelar"`
-
-   On confirmation: the widget SHALL `fetch(...)` the `DELETE` endpoint with `credentials: "include"` (matching the foundation widget HTTP convention). On HTTP 204: clear local message list, generate fresh `conversation_id`, transition the widget to the `empty` state, and surface a brief toast/inline confirmation `"Tu historial fue eliminado"`. On HTTP 5xx or network error: keep local state intact, close the dialog, and surface an error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."` — the widget SHALL NOT retry automatically.
-
-   The link SHALL be visible in every canonical widget state EXCEPT `empty` (no point offering deletion when there is no persisted history). When the local view is `empty` but persisted rows exist for the caller's `session_id`/`user_id` (e.g., after a trash-icon click), the link MAY be shown — the widget does not have visibility into persisted state, so the simplest rule is: hide only when the widget has never persisted a conversation in the current session AND the message list is empty.
-
-This split closes the trash-icon dissonance (users no longer guess whether trash deletes the database) and satisfies D11's right-to-be-forgotten with a concrete UI affordance — a compliance trust signal for UNDP and country deployments under Ley 21.719 / LGPD / GDPR. The foundation requirement "Widget invokes DELETE on user request" is thus **fulfilled** by this change, just routed through a different, clearly-labeled control.
-
-#### Scenario: "Eliminar mi historial" link is present in the foot of the widget panel
-
-- **WHEN** the widget is open and the message list contains at least one message (or the widget has previously sent a message in the current session)
-- **THEN** the rendered DOM SHALL contain a button styled as a text link with the visible text `"Eliminar mi historial"` positioned in the foot of the widget panel; the button SHALL be visually distinct from the trash icon (different position, different size, different visual weight)
-
-#### Scenario: Click opens a confirmation dialog with the documented copy
-
-- **WHEN** the user clicks the "Eliminar mi historial" link
-- **THEN** a confirmation dialog SHALL appear with title `"¿Eliminar tu historial de conversaciones?"`, body `"Esta acción es permanente. Se eliminarán todas las conversaciones asociadas a tu sesión y no podremos recuperarlas. ¿Quieres continuar?"`, confirm label `"Eliminar permanentemente"`, cancel label `"Cancelar"`. No HTTP request SHALL be issued at this stage
-
-#### Scenario: Cancel closes the dialog without side effects
-
-- **WHEN** the user clicks "Cancelar" in the confirmation dialog
-- **THEN** the dialog SHALL close, no HTTP request SHALL fire, the widget state and message list SHALL remain unchanged
-
-#### Scenario: Confirm fires DELETE and clears state on 204
-
-- **WHEN** the user clicks "Eliminar permanentemente" and the API returns HTTP 204
-- **THEN** the widget SHALL clear the local message list, generate a fresh `conversation_id`, transition to the `empty` state, and display a brief confirmation `"Tu historial fue eliminado"`. The outgoing request SHALL be `DELETE /api/chatbot/conversations/me` with `credentials: "include"` and no body
-
-#### Scenario: HTTP 5xx surfaces an error and preserves local state
-
-- **WHEN** the user confirms deletion and the API returns HTTP 500 (or the network call fails)
-- **THEN** the dialog SHALL close, the local message list SHALL remain intact, and an error message `"No pudimos eliminar tu historial. Intenta nuevamente más tarde."` SHALL be displayed; the widget SHALL NOT retry automatically and SHALL NOT generate a fresh `conversation_id`
-
-#### Scenario: Trash icon and "Eliminar mi historial" link are visually and semantically distinct
-
-- **WHEN** the widget is rendered with both affordances visible
-- **THEN** the trash icon SHALL be a button at the top of the widget panel with aria-label `"Limpiar conversación"` and the "Eliminar mi historial" SHALL be a button styled as a text link at the foot of the widget panel with that visible text. The two SHALL NOT share styling (size, color, position) — the visual distinction is required to prevent users from conflating clear-local with delete-persistent
 
 ## REMOVED Requirements
 

@@ -179,29 +179,25 @@ If a future change observes operators routinely leaking the key into production,
 
 **Rationale**: Foundation persisted only one of the two counts (output) on the assistant row, leaving `tokens_used` understated by ~the prompt size. Per-turn cost analytics and history-cap diagnostics both read this column; a one-sided value silently distorts both. The fix is mechanical and lands in the same handler change set as the new `sources` payload, so we take it here rather than schedule a separate change.
 
-### 25. Two distinct affordances: trash icon (clear local state, no backend) + "Eliminar mi historial" link (D11 right-to-be-forgotten, calls backend)
+### 25. Single "Nueva conversación" affordance in V1 (clear local state, no backend); user-facing delete-history UI deferred to a future change
 
-**Decision**: The widget exposes TWO separate, visually distinct affordances:
+**Decision**: The widget in V1 exposes a single conversation-management affordance: a "Nueva conversación" button (rendered as an `AddIcon` in the widget header) that clears local React state only — resets the message list, generates a fresh `conversation_id`, and NEVER calls a backend endpoint. Aria-label: `"Nueva conversación"`.
 
-1. **Trash icon** at the top of the widget panel: clears local React state only (resets message list, fresh `conversation_id`), NEVER calls a backend endpoint. Aria-label: `"Limpiar conversación"`.
-2. **"Eliminar mi historial" link** in the foot of the widget panel: calls the foundation-defined `DELETE /api/chatbot/conversations/me` endpoint with a confirmation modal first. On HTTP 204, clears local state and shows a brief confirmation toast. This is the D11 right-to-be-forgotten affordance.
+V1 does NOT ship a user-facing affordance to delete persisted conversation history from the widget UI. The foundation-defined `DELETE /api/chatbot/conversations/me` endpoint exists and remains operable; in V1 it is invoked by support staff (not by end users from the widget) when a user submits a D11 right-to-be-forgotten request through support intake. The user-facing UI affordance (button + confirmation dialog + DELETE wiring) is deferred to `chatbot-educate-mode-full` (or another future change), per PM scope decision for V1.
 
-The foundation widget requirement "Widget invokes DELETE on user request" is thus FULFILLED by this change — just routed through a dedicated, clearly-labeled control instead of overloading the trash icon. The full UI contract (button styling, dialog copy, error handling, visibility rules) is specified in the `Widget invokes DELETE /api/chatbot/conversations/me via a dedicated "Eliminar mi historial" affordance` requirement in `chatbot-widget/spec.md`.
+**Rationale for the single affordance in V1** (instead of shipping both):
 
-**Rationale for splitting the two affordances** (instead of overloading one button):
+- **"Nueva conversación" = "start a fresh thread from my view"** — non-destructive, instant, no auth interaction, no audit trail loss. The intent matches the actual behavior: a new conversation thread on the server side (fresh `conversation_id`), with prior persisted rows untouched and available for audit.
+- The label change from "Limpiar conversación" to "Nueva conversación" further sharpens the user's mental model — the button does not claim to delete anything; it creates a new thread.
+- Conflating "Nueva conversación" with a separate "Eliminar mi historial" affordance on the same surface added UI complexity for a V1 audience that has not yet asked for self-service deletion in product feedback. The two affordances can be re-introduced together in V2/V3 when there is operator + user evidence to justify the surface area.
 
-- **Trash icon = "clear current conversation from my view"** — non-destructive, instant, no auth interaction, no audit trail loss. Cheap action, cheap UI.
-- **D11 link = "delete my data from the database"** — destructive, requires confirmation, has compliance weight. Different action, different UX cost.
+**Rationale for deferring the user-facing D11 affordance** (without weakening compliance):
 
-Conflating them confused users: they either (a) expected "trash" to actually delete and panicked when it didn't, or (b) expected "trash" to be cosmetic and panicked when an early implementation actually deleted persisted rows. Two affordances with explicit, distinct labels remove the ambiguity.
+- V1 is intentionally not a full-compliance-UI-complete release. The regulatory obligation under Ley 21.719 (Chile), LGPD (Brasil), and GDPR-equivalent local laws is to make the right to be forgotten **exercisable** by the data subject — not to make it self-service in the widget. In V1, the path is: user contacts support → support invokes `DELETE /api/chatbot/conversations/me` against the caller's identity. The endpoint, the audit trail, and the support workflow exist and satisfy the regulatory obligation.
+- The V2/V3 affordance turns the same right from "exercisable via support" to "exercisable self-service". That is a UX improvement and a stronger trust signal for UNDP and country deployments, and it ships when the rest of the educar-mode features ship.
+- See `proposal.md` Deferred Debt for the explicit deferral entry.
 
-**Why ship the D11 link in V1 instead of deferring**:
-
-- Compliance under Ley 21.719 (Chile), LGPD (Brasil), GDPR-equivalent local laws requires the right to be **exercisable** by the data subject. Foundation already shipped the endpoint; not exposing it via UI puts the compliance burden on a manual support channel that doesn't yet exist (V1 has no operational support team — see Decision 27 on the Modo B redirect literal not mentioning support).
-- The UX cost is minimal: one text-link button + one confirmation dialog. ~2 hours of frontend work + tests.
-- A self-service deletion UI is also a **trust signal for UNDP and country deployments** — operators evaluating whether to deploy Huella Latam in their jurisdiction can point at the affordance as evidence of compliance posture, not just a backend promise.
-
-**Why the foundation requirement was originally "REMOVED" and is now restored as MODIFIED**: an earlier version of this RAG MVP spec routed the trash icon to the DELETE endpoint, then realized that conflated two distinct user intents. The fix at that time was to clear-state-only the trash icon AND remove the foundation DELETE-on-click requirement. The miss was failing to add a separate D11 affordance — the "Eliminar mi historial" link — leaving compliance dependent on a non-existent support channel. This decision corrects that gap by keeping the trash icon clear-state-only AND adding the dedicated link, satisfying both the UX clarity goal and the compliance ask.
+**Why the foundation requirement was originally "REMOVED" and stays REMOVED in V1**: an earlier draft of this RAG MVP spec routed the trash icon to the DELETE endpoint, then split it into two affordances (the trash icon for clear-local + an "Eliminar mi historial" link for the D11 path). The PM V1 scope decision in this iteration is to keep the clear-local behavior under a renamed, sharper "Nueva conversación" affordance AND defer the user-facing delete-history affordance to a follow-up change. The foundation requirement "Widget invokes DELETE on user request" therefore remains REMOVED in V1 — it returns in the change that ships the deferred affordance, not here.
 
 ### 27. Bot identity stays forward-compatible across V1/V2/V3/V4/V5; V1 ships three-mode routing
 
