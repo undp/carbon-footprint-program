@@ -64,6 +64,24 @@ const isPlatformQuery = (text: string): boolean => {
   return platformCues.some((cue) => lower.includes(cue));
 };
 
+const isOffDomainQuery = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  // Sub-modo C.1 fixtures. Hardcoded to keep welcome/orientation cues
+  // ("hola", "ayuda", "qué puedes hacer", "gracias", "cómo estás") out of
+  // the off-domain branch — those still belong to Modo C.2 / the eco
+  // fallback. Production routing is the real model's job; this list only
+  // covers the smoke-friendly fixtures named in the system prompt.
+  const offDomainCues = [
+    "marte",
+    "2+2",
+    "clima en santiago",
+    "mundial",
+    "messi",
+    "población",
+  ];
+  return offDomainCues.some((cue) => lower.includes(cue));
+};
+
 const splitIntoChunks = (text: string, minChunks: number): string[] => {
   const words = text.split(/(\s+)/).filter((part) => part.length > 0);
   if (words.length <= minChunks) return words;
@@ -77,6 +95,9 @@ const splitIntoChunks = (text: string, minChunks: number): string[] => {
 
 const REDIRECT_LITERAL =
   "Esa pregunta corresponde al uso de la plataforma Huella Latam. Esa funcionalidad estará disponible en una próxima versión del asistente; por ahora puedo ayudarte con preguntas sobre metodología de huella de carbono.";
+
+const OFF_DOMAIN_REDIRECT_LITERAL =
+  "Solo puedo ayudarte con preguntas sobre metodología de huella de carbono, factores de emisión, los alcances 1, 2 y 3, y el uso de la plataforma Huella Latam. ¿En qué de esos temas te puedo ayudar?";
 
 const findLatestToolMessage = (messages: LlmMessage[]): string | null => {
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -161,6 +182,28 @@ export const mockProvider: LLMProvider = {
         id: `mock-call-${toolCallCounter}`,
         name: "searchKnowledge",
         arguments: JSON.stringify({ query: userMessage }),
+      };
+      return;
+    }
+
+    // Sub-modo C.1: off-domain redirect. Ordered AFTER the tool-keyword
+    // check so a factual Modo A query that incidentally contains an
+    // off-domain fixture (none today, but defensive) still routes through
+    // the tool. Yield the redirect literal byte-for-byte instead of the
+    // eco template so the mock matches the system-prompt contract for
+    // out-of-scope questions.
+    if (isOffDomainQuery(userMessage)) {
+      const chunks = splitIntoChunks(OFF_DOMAIN_REDIRECT_LITERAL, 3);
+      for (const chunk of chunks) {
+        if (options.signal?.aborted) return;
+        await Promise.resolve();
+        yield { type: "delta", content: chunk };
+      }
+      if (options.signal?.aborted) return;
+      yield {
+        type: "usage",
+        inputTokens: estimateTokens(joinedInput),
+        outputTokens: estimateTokens(OFF_DOMAIN_REDIRECT_LITERAL),
       };
       return;
     }

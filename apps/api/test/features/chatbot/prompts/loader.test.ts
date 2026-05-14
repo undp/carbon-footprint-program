@@ -14,6 +14,12 @@ describe("System prompt", () => {
     );
   });
 
+  it("contains the off-domain redirect literal byte-for-byte", () => {
+    expect(SYSTEM_PROMPT_ES).toContain(
+      "Solo puedo ayudarte con preguntas sobre metodología de huella de carbono, factores de emisión, los alcances 1, 2 y 3, y el uso de la plataforma Huella Latam. ¿En qué de esos temas te puedo ayudar?"
+    );
+  });
+
   it("contains the K=0 opener literal", () => {
     expect(SYSTEM_PROMPT_ES).toContain(
       "No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."

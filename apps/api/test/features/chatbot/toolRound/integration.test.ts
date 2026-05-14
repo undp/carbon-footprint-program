@@ -698,9 +698,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
         .map((e) => (e.data as { content: string }).content)
         .join("");
       expect(assistantContent).toContain(PLATFORM_REDIRECT_LITERAL);
-      expect(
-        assistantContent.startsWith(PLATFORM_REDIRECT_LITERAL)
-      ).toBe(true);
+      expect(assistantContent.startsWith(PLATFORM_REDIRECT_LITERAL)).toBe(true);
 
       // (c) Assistant row's sources_cited is the empty array. The
       // non-tool path never pushes into finalSources, so the persisted
@@ -804,11 +802,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
   const STUBBED_WELCOME =
     "¡Hola! Soy el Asistente de Huella Latam y en esta versión inicial puedo responder preguntas sobre metodología de huella de carbono y los alcances 1, 2 y 3, citando fuentes verificadas como GHG Protocol. La guía sobre el uso de la plataforma y la medición asistida llegarán en una próxima versión; próximamente también ampliaré el corpus. ¿Querés hacerme una pregunta sobre metodología o factores de emisión?";
 
-  const WELCOME_PHRASINGS = [
-    "hola",
-    "¿qué puedes hacer?",
-    "ayuda",
-  ] as const;
+  const WELCOME_PHRASINGS = ["hola", "¿qué puedes hacer?", "ayuda"] as const;
 
   it.each(WELCOME_PHRASINGS)(
     "Modo C welcome covers capabilities and roadmap: %s",
@@ -869,6 +863,84 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
       const sentenceCount = (assistantContent.match(/[.!?]/g) ?? []).length;
       expect(sentenceCount).toBeGreaterThanOrEqual(2);
       expect(sentenceCount).toBeLessThanOrEqual(6);
+    }
+  );
+
+  // Maps to chatbot-message-streaming spec scenario "Modo C off-domain
+  // redirect":
+  //   THEN the LLM SHALL classify the turn as Modo C sub-modo C.1 and
+  //   SHALL NOT emit a tool_call event; the assistant turn SHALL be
+  //   byte-for-byte exactly the off-domain redirect literal; the
+  //   assistant row's sources_cited SHALL be the empty array and the
+  //   done payload SHALL NOT include a sources field.
+  //
+  // The product motivation is documented in design.md / proposal: the V1
+  // Educar bot is NOT a generalist assistant and must redirect factual
+  // off-domain questions instead of answering them like ChatGPT. The mock
+  // exercises this by routing on hardcoded fixtures (marte, 2+2, clima
+  // en santiago, mundial, messi, población) that do not appear in any
+  // Modo A keyword, Modo B platform cue, or Modo C.2 welcome / plain
+  // conversational cue — so the off-domain branch fires last in the
+  // mock's classification order without false-positives on welcome turns.
+  const OFF_DOMAIN_REDIRECT_LITERAL =
+    "Solo puedo ayudarte con preguntas sobre metodología de huella de carbono, factores de emisión, los alcances 1, 2 y 3, y el uso de la plataforma Huella Latam. ¿En qué de esos temas te puedo ayudar?";
+
+  const OFF_DOMAIN_PHRASINGS = [
+    "¿cuál es la población de Marte?",
+    "¿cuánto es 2+2?",
+    "¿cómo está el clima en Santiago?",
+  ] as const;
+
+  it.each(OFF_DOMAIN_PHRASINGS)(
+    "Modo C off-domain redirect does NOT invoke searchKnowledge and responds with off-domain literal: %s",
+    async (phrasing) => {
+      const executeToolSpy = vi.spyOn(
+        searchKnowledgeTools,
+        "executeSearchKnowledgeTool"
+      );
+
+      const { status, events } = await collectSseEvents(
+        app,
+        "/api/chatbot/message",
+        { content: phrasing },
+        { ownsApp: false }
+      );
+
+      expect(status).toBe(200);
+
+      // Zero tool_call events leaked to the SSE wire AND the server-side
+      // spy confirms executeSearchKnowledgeTool was never invoked. The
+      // off-domain branch in the mock is positioned AFTER the tool-keyword
+      // check, so a defensive regression that drops the off-domain fixture
+      // into the tool-keyword list would surface here.
+      expect(events.filter((e) => e.event === "tool_call")).toHaveLength(0);
+      expect(executeToolSpy).not.toHaveBeenCalled();
+
+      // Byte-for-byte equality of the joined deltas. The mock yields the
+      // literal via splitIntoChunks(_, 3), so the joined content matches
+      // the source string exactly — any paraphrase, padding, or trailing
+      // whitespace fails this assertion.
+      const deltas = events.filter((e) => !e.event);
+      const assistantContent = deltas
+        .map((e) => (e.data as { content: string }).content)
+        .join("");
+      expect(assistantContent).toBe(OFF_DOMAIN_REDIRECT_LITERAL);
+
+      // Persistence: sources_cited defaults to the empty array on the
+      // non-tool path (handler never pushes into finalSources).
+      const assistantRow = await prisma.chatbotChatMessage.findFirst({
+        where: { role: ChatMessageRole.ASSISTANT },
+        orderBy: { id: "desc" },
+      });
+      expect(assistantRow).not.toBeNull();
+      expect(assistantRow!.sourcesCited).toEqual([]);
+
+      // Wire: done payload omits the `sources` field entirely (matches
+      // the K=0 / non-tool convention — present-and-empty would be
+      // a contract drift).
+      const doneEvents = events.filter((e) => e.event === "done");
+      expect(doneEvents).toHaveLength(1);
+      expect(doneEvents[0].data).not.toHaveProperty("sources");
     }
   );
 });
