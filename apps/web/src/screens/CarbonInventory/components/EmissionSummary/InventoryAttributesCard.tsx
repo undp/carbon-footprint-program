@@ -68,15 +68,11 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
       {/* Middle column */}
       <Box className="flex min-w-0 flex-1 flex-col gap-1">
         <AttributeRow label="Tamaño" value={data.organizationSizeName} />
-        <AttributeRow
-          label="Sedes"
-          value={
-            data.organizationBranchesQuantity != null
-              ? String(data.organizationBranchesQuantity)
-              : null
-          }
-        />
         <AttributeRow label="Medición" value={data.name} />
+        <AttributeRow
+          label="Sub-rubro"
+          value={data.organizationSubsectorName}
+        />
       </Box>
 
       {/* Right column - main activity */}

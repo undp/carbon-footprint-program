@@ -150,6 +150,7 @@ export const getEmissionsDetailedSummaryService = async (
               : null,
             factorSource: input.factor?.appliedFactorSource ?? null,
             emissions: lineEmissions,
+            comment: input.comment ?? null,
           };
         })
         .filter((item) => item !== null);

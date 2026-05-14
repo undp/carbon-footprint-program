@@ -9,41 +9,49 @@ export async function resolveInventoryAttributes(
   orgData: OrganizationDataField
 ) {
   const sectorId = orgData?.sectorId ?? null;
+  const subsectorId = orgData?.subsectorId ?? null;
   const sizeId = orgData?.sizeId ?? null;
   const mainActivityId = orgData?.mainActivityId ?? null;
 
-  const [sector, size, mainActivity, methodology] = await Promise.all([
-    sectorId
-      ? prismaClient.countrySector.findUnique({
-          where: { id: BigInt(sectorId) },
-          select: { name: true },
-        })
-      : null,
-    sizeId
-      ? prismaClient.countryOrganizationSize.findUnique({
-          where: { id: BigInt(sizeId) },
-          select: { name: true },
-        })
-      : null,
-    mainActivityId
-      ? prismaClient.organizationMainActivity.findUnique({
-          where: { id: BigInt(mainActivityId) },
-          select: { name: true },
-        })
-      : null,
-    prismaClient.methodologyVersion.findUnique({
-      where: { id: inventory.methodologyVersionId },
-      select: { country: { select: { name: true } } },
-    }),
-  ]);
+  const [sector, subsector, size, mainActivity, methodology] =
+    await Promise.all([
+      sectorId
+        ? prismaClient.countrySector.findUnique({
+            where: { id: BigInt(sectorId) },
+            select: { name: true },
+          })
+        : null,
+      subsectorId
+        ? prismaClient.countrySubsector.findUnique({
+            where: { id: BigInt(subsectorId) },
+            select: { name: true },
+          })
+        : null,
+      sizeId
+        ? prismaClient.countryOrganizationSize.findUnique({
+            where: { id: BigInt(sizeId) },
+            select: { name: true },
+          })
+        : null,
+      mainActivityId
+        ? prismaClient.organizationMainActivity.findUnique({
+            where: { id: BigInt(mainActivityId) },
+            select: { name: true },
+          })
+        : null,
+      prismaClient.methodologyVersion.findUnique({
+        where: { id: inventory.methodologyVersionId },
+        select: { country: { select: { name: true } } },
+      }),
+    ]);
 
   return {
     name: inventory.name,
     companyName: inventory.organization?.summary?.name || orgData?.name || null,
     countryName: methodology?.country.name || null,
     sectorName: sector?.name ?? null,
+    subsectorName: subsector?.name ?? null,
     sizeName: size?.name ?? null,
-    branchCount: null,
     mainActivityName: mainActivity?.name ?? null,
     mainActivityQuantity: orgData?.mainActivityQuantity ?? null,
   };

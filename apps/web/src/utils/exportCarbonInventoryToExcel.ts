@@ -28,8 +28,8 @@ function buildSummarySheet(
     ["Nombre organización", display(inventoryAttributes.companyName)],
     ["País", display(inventoryAttributes.countryName)],
     ["Rubro", display(inventoryAttributes.sectorName)],
+    ["Sub-rubro", display(inventoryAttributes.subsectorName)],
     ["Tamaño", display(inventoryAttributes.sizeName)],
-    ["Sedes", display(inventoryAttributes.branchCount)],
     ["Medición", display(inventoryAttributes.name)],
     ["Año", display(year)],
     [
@@ -70,6 +70,7 @@ function buildDetailTableSheet(
     { width: 22 },
     { width: 28 },
     { width: 20 },
+    { width: 40 },
   ];
 
   const sortedCategories = [...summaryData.categories].sort(
@@ -95,6 +96,7 @@ function buildDetailTableSheet(
           line.factorValue,
           display(line.factorSource),
           line.emissions,
+          display(line.comment),
         ]);
       }
     }
@@ -125,6 +127,7 @@ function buildDetailTableSheet(
       { name: "Factor kgCO₂e/unidad", filterButton: true },
       { name: "Fuente factor", filterButton: true },
       { name: "Emisiones (tCO₂e)", filterButton: true },
+      { name: "Comentario", filterButton: true },
     ],
     rows,
   });

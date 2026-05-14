@@ -3,6 +3,7 @@ import { IdSchema } from "../../zod.js";
 import { OrganizationSummaryBaseSchema } from "../../baseSchemas/organizationSummary.js";
 import { CountryBaseSchema } from "../../baseSchemas/country.js";
 import { CountrySectorBaseSchema } from "../../baseSchemas/countrySector.js";
+import { CountrySubsectorBaseSchema } from "../../baseSchemas/countrySubsector.js";
 import { CountryOrganizationSizeBaseSchema } from "../../baseSchemas/organizationSize.js";
 import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
 import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
@@ -34,6 +35,10 @@ const EmissionLineItemSchema = z
       .describe(
         "Line emissions in tCO2e; null when the line has no computed result yet (incomplete)"
       ),
+    comment: z
+      .string()
+      .nullable()
+      .describe("Optional user-provided comment for the line input"),
   })
   .strict();
 
@@ -126,12 +131,8 @@ const InventoryAttributesSchema = z
     companyName: OrganizationSummaryBaseSchema.shape.name.nullable(),
     countryName: CountryBaseSchema.shape.name.nullable(),
     sectorName: CountrySectorBaseSchema.shape.name.nullable(),
+    subsectorName: CountrySubsectorBaseSchema.shape.name.nullable(),
     sizeName: CountryOrganizationSizeBaseSchema.shape.name.nullable(),
-    branchCount: z
-      .number()
-      .int()
-      .nullable()
-      .describe("Number of branches/sedes"),
     mainActivityName: OrganizationMainActivityBaseSchema.shape.name.nullable(),
     mainActivityQuantity: z
       .int()
