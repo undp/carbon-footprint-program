@@ -249,6 +249,29 @@ The terminal `done` payload SHALL change from `{ inputTokens, outputTokens }` to
 - **WHEN** a client that only parses `inputTokens` and `outputTokens` from the `done` payload receives a payload that includes `sources`
 - **THEN** the client SHALL successfully parse `inputTokens` and `outputTokens` (the additional `sources` field SHALL NOT cause a JSON parse failure or other error in foundation-era code)
 
+### Requirement: Streaming handler sets a signed chatbot_conversation_id cookie on every turn that resolves or creates a conversation
+
+After the streaming handler's identity-scoped transaction returns a `conversationId` (whether the row was just created or an existing active row was reused), the handler SHALL emit a `Set-Cookie: chatbot_conversation_id=<signed-value>; Path=/api/chatbot; Max-Age=<CHATBOT_CONVERSATION_TTL_DAYS * 86400>; SameSite=Lax[; Secure when IS_PROD]` header on the response. The cookie is signed with the same `COOKIE_SECRET` used by `chatbot_session_id` (no new signing infrastructure). The cookie is `httpOnly: false` intentionally — see `design.md` Decision 28 for the threat-model rationale.
+
+The handler SHALL write the cookie BEFORE invoking `reply.hijack()` so that `writeSseHeaders` forwards it onto `reply.raw.writeHead` — once the response is hijacked, Fastify's onSend hook no longer serializes accumulated headers and a late `reply.setCookie()` call would silently drop. The cookie write is the multi-cookie-aware variant (reads any existing `Set-Cookie` header — `chatbot_session_id` may already be there from the identity preHandler — and appends instead of clobbering).
+
+The cookie value is the conversation row's `id` (coerced to a decimal string). Sliding refresh: the cookie's `Max-Age` is re-asserted on every successful turn, tracking the conversation row's `expires_at` even as the foundation `lastMessageAt` update extends the row's lifetime.
+
+#### Scenario: Cookie is set on the first turn that creates a conversation
+
+- **WHEN** an authenticated or anonymous caller POSTs to `/api/chatbot/message` with no prior `chatbot_conversation_id` cookie AND `resolveOrCreateConversation` creates a new row
+- **THEN** the response headers SHALL include a `Set-Cookie` whose name is `chatbot_conversation_id`, whose value is the signed form of the newly-created row's `id` (decimal string), whose `Path` is `/api/chatbot`, whose `Max-Age` matches `CHATBOT_CONVERSATION_TTL_DAYS * 86400`, whose `SameSite` is `Lax`, and which is NOT `HttpOnly`
+
+#### Scenario: Cookie is re-asserted (sliding refresh) on subsequent turns that reuse an existing conversation
+
+- **WHEN** the caller POSTs to `/api/chatbot/message` and `resolveOrCreateConversation` reuses an existing active conversation row
+- **THEN** the response SHALL include a fresh `Set-Cookie: chatbot_conversation_id=<signed>` with `Max-Age` re-asserted to the full TTL window (sliding refresh)
+
+#### Scenario: Cookie write does not clobber the chatbot_session_id cookie
+
+- **WHEN** the chatbot identity preHandler has already written a `chatbot_session_id` cookie via `reply.header("Set-Cookie", ...)` for an anonymous caller AND the streaming handler then writes the `chatbot_conversation_id` cookie
+- **THEN** the final response SHALL carry BOTH `Set-Cookie` headers — neither one SHALL be overwritten by the other; `reply.getHeader("set-cookie")` immediately before `writeSseHeaders` SHALL return an array of length 2
+
 ### Requirement: tokens_used on the assistant chat_message row uses the second-round usage event in the tool path
 
 In the two-round (tool path) case introduced by this change, the values used to populate `chatbot_chat_message.tokens_used` on the assistant row SHALL come from the **SECOND (terminal) `usage` event** — the one that closed the assistant turn — NOT a sum across both rounds and NOT the first-round event (which carries no `usage` because the first invocation terminated on `tool_call`). The `tokens_used` value SHALL be `inputTokens + outputTokens` from that second-round `usage` event, matching the foundation contract.

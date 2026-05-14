@@ -30,6 +30,7 @@ import {
   resolveOrCreateConversation,
 } from "./service.js";
 import { writeSseEvent, writeSseHeaders } from "./helpers.js";
+import { setConversationCookie } from "@/features/chatbot/helpers/conversationCookie.js";
 import type { Prisma } from "@repo/database";
 import type { SourceCitation } from "@repo/types";
 
@@ -137,6 +138,15 @@ export const sendMessageHandler = async (
       };
     }
   );
+
+  // Persistence-across-reload affordance (Decision 28): sliding signed
+  // `chatbot_conversation_id` cookie so the widget can rehydrate via GET
+  // /conversations/me/current on mount. Set BEFORE reply.hijack() so
+  // writeSseHeaders forwards it onto reply.raw.writeHead — once we hijack
+  // Fastify no longer flushes its accumulated headers itself. Re-set on every
+  // turn (sliding refresh) because the row's expires_at moves forward on
+  // create and the cookie should track it.
+  setConversationCookie(reply, conversationId.toString());
 
   const provider = getLlmProvider();
   const llmMessages = buildLlmMessages(history, content);

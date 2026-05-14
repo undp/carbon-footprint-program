@@ -69,7 +69,7 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, startNewConversation } =
+  const { state, messages, historyLoading, sendMessage, startNewConversation } =
     useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -274,7 +274,7 @@ export function ChatbotWidget() {
           bgcolor: theme.palette.background.default,
         }}
       >
-        {messages.length === 0 ? (
+        {messages.length === 0 && !historyLoading ? (
           <Box
             display="flex"
             alignItems="center"
@@ -285,9 +285,10 @@ export function ChatbotWidget() {
               ¿En qué puedo ayudarte?
             </Typography>
           </Box>
-        ) : (
-          messages.map((m) => <MessageBubble key={m.id} message={m} />)
-        )}
+        ) : null}
+        {messages.length > 0
+          ? messages.map((m) => <MessageBubble key={m.id} message={m} />)
+          : null}
         {state === "degraded" ? (
           <Typography
             variant="caption"

@@ -1,14 +1,40 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SourceCitationWire } from "@repo/types";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
+const LOAD_URL = "/api/chatbot/conversations/me/current";
+
+// Mirror of the server-side cookie name in
+// apps/api/src/features/chatbot/helpers/conversationCookie.ts. The server
+// sets this cookie with httpOnly=false intentionally (Decision 28) so the
+// widget can drop it on "Nueva conversación" without a server round-trip.
+const CONVERSATION_COOKIE_NAME = "chatbot_conversation_id";
+const CONVERSATION_COOKIE_PATH = "/api/chatbot";
+
+const clearConversationCookieClient = (): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${CONVERSATION_COOKIE_NAME}=; path=${CONVERSATION_COOKIE_PATH}; max-age=0; SameSite=Lax`;
+};
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Recarga la página o intenta más tarde.";
+
+type LoadedMessage = {
+  id: string;
+  role: "USER" | "ASSISTANT";
+  content: string;
+  sourcesCited: SourceCitationWire[];
+  createdAt: string;
+};
+
+type LoadedConversationResponse = {
+  conversation: { id: string; createdAt: string; expiresAt: string };
+  messages: LoadedMessage[];
+};
 
 type SsePayload = {
   id?: string;
@@ -49,6 +75,11 @@ const parseEvents = (
 export const useChatStream = () => {
   const [state, setState] = useState<ChatbotState>("empty");
   const [messages, setMessages] = useState<ChatbotMessage[]>([]);
+  // `historyLoading` is true from mount until the rehydrate fetch settles
+  // (200 / 204 / 404 / network error). The widget reads it to suppress the
+  // "¿En qué puedo ayudarte?" placeholder briefly so a populated thread does
+  // not flash empty before the seed lands.
+  const [historyLoading, setHistoryLoading] = useState<boolean>(true);
   const consecutiveFailuresRef = useRef(0);
   const lastEventIdRef = useRef<string | undefined>(undefined);
   // Tracks the index of the in-flight assistant message inside `messages` so
@@ -73,6 +104,49 @@ export const useChatStream = () => {
     messageIdCounterRef.current += 1;
     return `${role}-${messageIdCounterRef.current}`;
   }, []);
+
+  // Mount-time rehydration (Decision 28). The server reads the signed
+  // chatbot_conversation_id cookie, checks the TTL and identity match, and
+  // returns the persisted thread when valid. 204 / 404 / network errors all
+  // collapse to "start empty" — never fatal.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(LOAD_URL, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (cancelled || response.status !== 200) return;
+        const body = (await response.json()) as LoadedConversationResponse;
+        if (cancelled) return;
+        const hydrated: ChatbotMessage[] = body.messages.map((m) => {
+          const role: "user" | "assistant" =
+            m.role === "USER" ? "user" : "assistant";
+          const base: ChatbotMessage = {
+            id: nextMessageId(role),
+            role,
+            content: m.content,
+          };
+          if (role === "assistant" && m.sourcesCited.length > 0) {
+            base.sourcesCited = m.sourcesCited;
+          }
+          return base;
+        });
+        if (hydrated.length > 0) {
+          setMessages(hydrated);
+        }
+      } catch {
+        // Mount-time rehydrate is best-effort — a transport failure means we
+        // start visually empty, not error.
+      } finally {
+        if (!cancelled) setHistoryLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [nextMessageId]);
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
@@ -364,7 +438,9 @@ export const useChatStream = () => {
   // Frontend-only conversation reset: clears the visible thread and per-turn
   // refs without notifying the server. Prior turns remain persisted in the
   // backend conversation store — this is intentional, the user is starting
-  // a NEW client-side thread, not deleting history.
+  // a NEW client-side thread, not deleting history. The conversation cookie
+  // is dropped client-side (httpOnly=false per Decision 28) so a subsequent
+  // page reload does NOT re-fetch the prior thread.
   const startNewConversation = useCallback((): void => {
     // Bump the generation token BEFORE we abort so any pending
     // setState calls inside an in-flight sendMessage that resume after
@@ -374,6 +450,7 @@ export const useChatStream = () => {
       turnControllerRef.current.abort();
       turnControllerRef.current = null;
     }
+    clearConversationCookieClient();
     setMessages([]);
     setState("empty");
     lastEventIdRef.current = undefined;
@@ -381,5 +458,11 @@ export const useChatStream = () => {
     inFlightAssistantIndexRef.current = -1;
   }, []);
 
-  return { state, messages, sendMessage, startNewConversation };
+  return {
+    state,
+    messages,
+    historyLoading,
+    sendMessage,
+    startNewConversation,
+  };
 };

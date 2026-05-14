@@ -210,6 +210,45 @@ V1 does NOT ship a user-facing affordance to delete persisted conversation histo
 
 **Architectural note for V3+ (no V1 spec change)**: V3 will ingest platform-usage docs as additional corpus sources. The current `chatbot_corpus_source` schema distinguishes by `source_type` (PDF/MD/URL/XLSX) and `scope` (GLOBAL/NATIONAL) but does NOT carry a `corpus_kind` discriminator (METHODOLOGY vs. PLATFORM_GUIDE vs. REGULATION). For V3, the implementer will need to choose between: (a) adding a nullable `corpus_kind` enum column, (b) reusing a `name` prefix convention (`methodology:GHG-Protocol` vs. `platform:Huella-Manual`), or (c) routing by `source_type` (PDF=methodology, MD=platform-guide). Option (a) is cleanest for retrieval filtering; (b) avoids a migration but is fragile; (c) couples taxonomy to file format and breaks if a future platform manual is published as PDF. **No decision is forced now** — V3 makes this call when the platform-guide corpus is real. This change leaves the schema unconstrained on this axis.
 
+### 28. Persistence-across-reload via signed chatbot_conversation_id cookie; V1 anon→auth transition NOT supported
+
+**Decision**: A separate signed cookie `chatbot_conversation_id` pins the caller's active conversation across reloads. The widget reads it implicitly via `GET /api/chatbot/conversations/me/current` on mount; the server returns the persisted thread when the cookie is valid, the row is within TTL, AND the request identity matches the row's identity strictly. The cookie is:
+
+- **Signed** with `COOKIE_SECRET` — the same secret already used by `chatbot_session_id`. No new signing infrastructure.
+- **Path-scoped** to `/api/chatbot`. Same path as the session cookie.
+- **`Max-Age` aligned** to `CHATBOT_CONVERSATION_TTL_DAYS * 86400` (30 days). Sliding refresh on every successful `sendMessage` turn.
+- **`SameSite=Lax`**, `Secure` only in production.
+- **`httpOnly: false`** — intentional, asymmetric with `chatbot_session_id` (which stays `HttpOnly`). The widget's "Nueva conversación" affordance drops the cookie client-side via `document.cookie` with `Max-Age=0`. Letting JS read+clear the cookie removes the need for a dedicated server-side clear endpoint (smaller V1 surface area).
+
+**Threat model considered (why httpOnly=false is acceptable here)**:
+
+- The cookie does NOT carry credentials. It is an opaque pointer to a conversation row. Authentication is handled by the session cookie (`chatbot_session_id`, HttpOnly) or by the application's auth provider.
+- The signing protects against tampering — an XSS-injected script cannot forge a conversation_id pointing to another user's row. The cookie's only forgery-resistant property is what matters for the IDOR boundary.
+- XSS that can read the cookie value can also issue the `GET /api/chatbot/conversations/me/current` request directly and exfiltrate the conversation content — `httpOnly` here is defense-in-depth, not load-bearing. The chat content itself is the high-value asset; the cookie is just a pointer to it.
+- `chatbot_session_id` stays HttpOnly precisely because it IS the anonymous user's de-facto auth token. The asymmetry is correct.
+
+**V1 deliberately does NOT support the anon → auth claim transition**: a user who starts a conversation anonymously and then logs in receives 404 from the rehydrate endpoint (their cookie points to an `user_id IS NULL` row whose identity does not match an authenticated request). The widget falls back to an empty thread and the user starts a fresh conversation. This is documented as Deferred Debt in `proposal.md` and will be picked up by a future change covering private data (V5 in the documented vision).
+
+**Strict identity match at the endpoint (IDOR guard)** — the `findCurrentConversation` service function filters by:
+
+- authenticated requester: `user_id = caller.userId AND session_id IS NULL`
+- anonymous requester: `session_id = caller.sessionId AND user_id IS NULL`
+
+The TTL filter (`expires_at > NOW()`) is applied in the same SELECT so an expired row never leaves a stale answer on the wire — this is what compensates for the absence of `pg_cron` purge at the visibility layer (the row remains in the table until the eventual purge job is implemented, but it is invisible to the user from the moment it expires).
+
+**Cookie lifecycle**:
+
+| Event                                                         | Cookie state                                                                                                                                                                                 |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First-ever `sendMessage` (no prior cookie)                    | Server `Set-Cookie` writes the signed conv_id                                                                                                                                                |
+| Subsequent `sendMessage` on same conversation                 | Server re-asserts the cookie (sliding `Max-Age` refresh)                                                                                                                                     |
+| F5 / reload while cookie valid                                | `GET /current` returns 200; widget rehydrates                                                                                                                                                |
+| F5 / reload after expiry or identity mismatch                 | `GET /current` returns 404 + `Max-Age=0`; widget starts empty                                                                                                                                |
+| "Nueva conversación" click                                    | Widget clears cookie via `document.cookie`; next reload starts empty                                                                                                                         |
+| `DELETE /api/chatbot/conversations/me` (support-operated D11) | Server clears session cookie via the existing `clearSessionCookie` helper; conversation cookie remains client-side but the row is gone, so the next `GET /current` returns 404 + `Max-Age=0` |
+
+**Re-evaluation triggers**: when V4 / V5 introduce private-data tools and the per-user consent toggle lands, revisit (a) whether `httpOnly: false` is still defensible (private data raises the exfiltration cost), and (b) whether the anon → auth claim transition should be supported. Both are isolated to this cookie + endpoint pair and can be tightened without breaking the V1 contract.
+
 ### 26. Test fixture path declared in spec; PDF binary commit deferred
 
 **Decision**: Tests reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf`. Spec declares the path and expected properties (~5 pages of GHG Protocol fair-use, parseable, ≥1 heading, ≥1 definition paragraph). Binary committed during implementation.
