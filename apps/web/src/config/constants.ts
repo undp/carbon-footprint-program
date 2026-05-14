@@ -104,5 +104,8 @@ export const CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME = "resumen-emisiones.xlsx";
 /** Filename of the methodology workbook at the ZIP root. */
 export const CARBON_INVENTORY_ZIP_METHODOLOGY_ENTRY_NAME = "metodologia.xlsx";
 
+/** Filename of the human-readable README at the ZIP root. */
+export const CARBON_INVENTORY_ZIP_README_ENTRY_NAME = "LEEME.txt";
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";

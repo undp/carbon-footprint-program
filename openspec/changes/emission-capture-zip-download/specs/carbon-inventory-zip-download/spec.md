@@ -29,20 +29,28 @@ The ZIP filename SHALL be `{sanitize(inventoryName) || "huella"}-{year}.zip`, mi
 
 ### Requirement: ZIP archive layout
 
-The ZIP SHALL contain at minimum two files at root: `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_item-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
+The ZIP SHALL contain at minimum three files at root: `LEEME.txt` (a human-readable README explaining the archive contents and the "completed line" filter), `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_item-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
+
+The `LEEME.txt` SHALL state, in Spanish, that the archive only includes information for lines whose emissions have been calculated, and SHALL list the conditions under which a line stays incomplete (missing cantidad, unidad, fuente del factor, valor del factor, or — in manual mode — a subcategory total).
 
 Within the same line, same-filename collisions SHALL be disambiguated by appending `-2`, `-3`, … before the extension. Across-line collisions are impossible because `item-{lineId}` partitions the namespace.
 
 #### Scenario: Inventory with attached files
 
 - **WHEN** the user downloads an inventory whose lines have ACTIVE file attachments
-- **THEN** the unzipped archive contains `resumen-emisiones.xlsx`, `metodologia.xlsx`, and one file per attachment under `archivos/`
+- **THEN** the unzipped archive contains `LEEME.txt`, `resumen-emisiones.xlsx`, `metodologia.xlsx`, and one file per attachment under `archivos/`
 - **AND** each archived filename embeds the owning line's `lineId`
 
 #### Scenario: Inventory with zero attachments
 
 - **WHEN** the user downloads an inventory with no file attachments
-- **THEN** the unzipped archive still contains both `resumen-emisiones.xlsx` and `metodologia.xlsx` at root and an empty `archivos/` directory (or no `archivos/` entry — implementation choice)
+- **THEN** the unzipped archive still contains `LEEME.txt`, `resumen-emisiones.xlsx` and `metodologia.xlsx` at root and an empty `archivos/` directory (or no `archivos/` entry — implementation choice)
+
+#### Scenario: README explains the completed-line filter
+
+- **WHEN** the user opens `LEEME.txt`
+- **THEN** the file states (in Spanish) that the archive only contains information for lines whose emissions have been calculated
+- **AND** it enumerates the data points whose absence leaves a line uncalculated (cantidad, unidad, fuente del factor, valor del factor) and the manual-mode equivalent (subcategory total)
 
 #### Scenario: Duplicate filenames within a single line
 

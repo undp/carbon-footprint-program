@@ -15,9 +15,11 @@ import {
   CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME,
   CARBON_INVENTORY_ZIP_FILES_DIR,
   CARBON_INVENTORY_ZIP_METHODOLOGY_ENTRY_NAME,
+  CARBON_INVENTORY_ZIP_README_ENTRY_NAME,
 } from "@/config/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { downloadBuffer } from "@/services/excel";
+import { buildCarbonInventoryZipReadme } from "@/utils/buildCarbonInventoryZipReadme";
 import { buildCarbonInventoryWorkbook } from "@/utils/exportCarbonInventoryToExcel";
 import { buildMethodologyWorkbook } from "@/utils/exportMethodologyToExcel";
 
@@ -123,7 +125,19 @@ export function useDownloadCarbonInventory() {
         // path — not the raw original name. Across-line collisions cannot
         // exist because `item-{lineId}` partitions the namespace.
         const perEntryCount = new Map<string, number>();
-        const entries: { name: string; input: Response | ArrayBuffer }[] = [
+        const readme = buildCarbonInventoryZipReadme({
+          inventoryName: name,
+          year,
+          generatedAt: new Date(),
+        });
+        const entries: {
+          name: string;
+          input: Response | ArrayBuffer | string;
+        }[] = [
+          {
+            name: CARBON_INVENTORY_ZIP_README_ENTRY_NAME,
+            input: readme,
+          },
           {
             name: CARBON_INVENTORY_ZIP_EXCEL_ENTRY_NAME,
             input: summaryBuffer,
