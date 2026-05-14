@@ -33,6 +33,7 @@ export function shouldShowSubcategory(
  * - It is not visible (no lines and not in manual mode), OR
  * - It is in manual-total mode with all lines deleted (hidden), OR
  * - It is in manual-total mode (active), OR
+ * - All form lines are deleted (user explicitly removed every source), OR
  * - At least one non-deleted line has a positive quantity.
  */
 export function areAllSubcategoriesFilled(
@@ -46,8 +47,11 @@ export function areAllSubcategoriesFilled(
       if (!formSub) return true;
       // Filled if manual total mode is active
       if (formSub.isTotalManualEmissionsModeActive) return true;
+      const lines = Object.values(formSub.lines ?? {});
+      // Filled if every line has been deleted — user opted out of all sources
+      if (lines.length > 0 && lines.every((line) => line.isDeleted)) return true;
       // Filled if at least one non-deleted line has a non-null quantity
-      return Object.values(formSub.lines ?? {}).some(
+      return lines.some(
         (line) => !line.isDeleted && line.quantity != null && line.quantity > 0
       );
     })
