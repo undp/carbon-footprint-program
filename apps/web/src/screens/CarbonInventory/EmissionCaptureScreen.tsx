@@ -221,7 +221,7 @@ export const EmissionCaptureScreen: FC = () => {
             message:
               "Hay subcategorías con fuentes de emisión sin completar. Si continúas, dichas emisiones no se incluirán en el inventario.",
             variant: "error",
-            confirmLabel: "Continuar al siguiente paso",
+            confirmLabel: "Continuar sin completar",
             cancelLabel: "Revisar",
           });
         }
