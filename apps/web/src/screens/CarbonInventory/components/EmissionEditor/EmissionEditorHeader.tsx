@@ -9,7 +9,7 @@ import {
   Skeleton,
   Tooltip,
 } from "@mui/material";
-import { InfoButton, NumericInput } from "@/components";
+import { InfoButton, NumericInput, OverflowTooltipText } from "@/components";
 import { formatter } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
@@ -72,7 +72,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
 
   return (
     <Box className="flex h-20 gap-4">
-      <Box className="flex flex-1 flex-row items-center gap-4">
+      <Box className="flex min-w-0 flex-1 flex-row items-center gap-4">
         <Avatar
           sx={{
             backgroundColor: categoryColorPalette.light,
@@ -84,7 +84,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             <IconComponent sx={{ color: categoryColorPalette.dark }} />
           ) : null}
         </Avatar>
-        <Box className="flex flex-col">
+        <Box className="flex min-w-0 flex-1 flex-col">
           <Box className="flex flex-row items-center gap-1">
             <Typography variant="subtitle1" fontWeight="medium">
               {name}
@@ -110,9 +110,14 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               </Tooltip>
             )}
           </Box>
-          <Typography variant="caption" fontWeight="regular" lineHeight={1.35}>
+          <OverflowTooltipText
+            variant="caption"
+            fontWeight="regular"
+            lineHeight={1.35}
+            lines={2}
+          >
             {description}
-          </Typography>
+          </OverflowTooltipText>
         </Box>
       </Box>
       <Box className="flex flex-row content-center items-center gap-2">
