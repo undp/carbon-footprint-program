@@ -113,7 +113,7 @@ const AttributeRow: FC<{ label: string; value: string | null }> = ({
   value,
 }) => (
   <Box className="flex min-w-0 gap-2">
-    <Typography variant="subtitle1" className="min-w-36 shrink-0">
+    <Typography variant="subtitle1" className="w-48 shrink-0">
       {label}:
     </Typography>
     <OverflowTooltipText
