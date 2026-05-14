@@ -7,6 +7,7 @@ import {
   FormControlLabel,
   Checkbox,
   Skeleton,
+  Tooltip,
 } from "@mui/material";
 import { InfoButton, NumericInput } from "@/components";
 import { formatter } from "@/utils/formatting";
@@ -84,7 +85,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           ) : null}
         </Avatar>
         <Box className="flex flex-col">
-          <Box className="flex flex-row items-center gap-2">
+          <Box className="flex flex-row items-center gap-1">
             <Typography variant="subtitle1" fontWeight="medium">
               {name}
             </Typography>
@@ -95,29 +96,23 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
                 openExplanationContent(explanation);
               }}
             />
+            {!hasEmissionFactors && (
+              <Tooltip
+                title="No hay factores precargados disponibles para esta subcategoría. Puedes ingresar un factor propio o registrar el total de emisiones"
+                placement="top"
+              >
+                <WarningRounded
+                  sx={(theme) => ({
+                    color: theme.palette.warning.main,
+                    height: 24,
+                  })}
+                />
+              </Tooltip>
+            )}
           </Box>
-          <Typography variant="caption" fontWeight="regular">
+          <Typography variant="caption" fontWeight="regular" lineHeight={1.35}>
             {description}
           </Typography>
-
-          {!hasEmissionFactors && (
-            <Box className="items-bottom flex gap-1">
-              <WarningRounded
-                sx={(theme) => ({
-                  color: theme.palette.warning.main,
-                  height: 18,
-                  width: 18,
-                })}
-              />
-              <Typography
-                variant="caption"
-                fontWeight="regular"
-                color="warning"
-              >
-                Esta subcategoría no tiene factores de emisión disponibles
-              </Typography>
-            </Box>
-          )}
         </Box>
       </Box>
       <Box className="flex flex-row content-center items-center gap-2">
