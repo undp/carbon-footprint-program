@@ -141,10 +141,13 @@ describe("searchKnowledge — integration", () => {
   // (GLOBAL/NATIONAL × PDF/MD/URL), then queries with three filter
   // combinations covering single-axis and combined filtering.
   it("scope and sourceType filters restrict results", async () => {
-    const seedSource = async (suffix: string, opts: {
-      scope: CorpusSourceScope;
-      sourceType: CorpusSourceType;
-    }) =>
+    const seedSource = async (
+      suffix: string,
+      opts: {
+        scope: CorpusSourceScope;
+        sourceType: CorpusSourceType;
+      }
+    ) =>
       prisma.chatbotCorpusSource.create({
         data: {
           name: `Source-${suffix}`,
@@ -158,25 +161,24 @@ describe("searchKnowledge — integration", () => {
         },
       });
 
-    const [globalPdf, nationalPdf, globalMd, nationalUrl] =
-      await Promise.all([
-        seedSource("global-pdf", {
-          scope: CorpusSourceScope.GLOBAL,
-          sourceType: CorpusSourceType.PDF,
-        }),
-        seedSource("national-pdf", {
-          scope: CorpusSourceScope.NATIONAL,
-          sourceType: CorpusSourceType.PDF,
-        }),
-        seedSource("global-md", {
-          scope: CorpusSourceScope.GLOBAL,
-          sourceType: CorpusSourceType.MD,
-        }),
-        seedSource("national-url", {
-          scope: CorpusSourceScope.NATIONAL,
-          sourceType: CorpusSourceType.URL,
-        }),
-      ]);
+    const [globalPdf, nationalPdf, globalMd, nationalUrl] = await Promise.all([
+      seedSource("global-pdf", {
+        scope: CorpusSourceScope.GLOBAL,
+        sourceType: CorpusSourceType.PDF,
+      }),
+      seedSource("national-pdf", {
+        scope: CorpusSourceScope.NATIONAL,
+        sourceType: CorpusSourceType.PDF,
+      }),
+      seedSource("global-md", {
+        scope: CorpusSourceScope.GLOBAL,
+        sourceType: CorpusSourceType.MD,
+      }),
+      seedSource("national-url", {
+        scope: CorpusSourceScope.NATIONAL,
+        sourceType: CorpusSourceType.URL,
+      }),
+    ]);
 
     const contents = [
       "Contenido global PDF sobre alcance 1.",
@@ -187,7 +189,12 @@ describe("searchKnowledge — integration", () => {
     const embeddingProvider = getEmbeddingProvider();
     const { vectors } = await embeddingProvider.embed(contents);
     const toVectorLiteral = (v: number[]): string => `[${v.join(",")}]`;
-    const seededIds = [globalPdf.id, nationalPdf.id, globalMd.id, nationalUrl.id];
+    const seededIds = [
+      globalPdf.id,
+      nationalPdf.id,
+      globalMd.id,
+      nationalUrl.id,
+    ];
     for (let i = 0; i < seededIds.length; i++) {
       await prisma.$executeRaw`
         INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
@@ -239,9 +246,9 @@ describe("searchKnowledge — integration", () => {
     await expect(searchKnowledge(prisma, "")).rejects.toBeInstanceOf(
       InvalidQueryError
     );
-    await expect(
-      searchKnowledge(prisma, "   ")
-    ).rejects.toBeInstanceOf(InvalidQueryError);
+    await expect(searchKnowledge(prisma, "   ")).rejects.toBeInstanceOf(
+      InvalidQueryError
+    );
   });
 
   // Maps to chatbot-corpus-retrieval spec requirement:
@@ -286,9 +293,9 @@ describe("searchKnowledge — integration", () => {
     const stubPrisma = { $queryRaw: queryRawStub } as unknown as PrismaClient;
 
     const OVERSIZED = "a".repeat(2049);
-    await expect(
-      searchKnowledge(stubPrisma, OVERSIZED)
-    ).rejects.toBeInstanceOf(InvalidQueryError);
+    await expect(searchKnowledge(stubPrisma, OVERSIZED)).rejects.toBeInstanceOf(
+      InvalidQueryError
+    );
 
     // Embedding provider was NOT called — validateQuery threw first.
     expect(embedSpy).not.toHaveBeenCalled();
