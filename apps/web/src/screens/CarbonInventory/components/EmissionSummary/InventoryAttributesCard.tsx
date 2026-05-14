@@ -7,6 +7,7 @@ import { EmptyStateMessage } from "../EmptyStateMessage";
 import { formatter } from "@/utils/formatting";
 import { VOCAB } from "@/config/vocab";
 import { OverflowTooltipText } from "../../../../components";
+import { capitalize } from "lodash-es";
 
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
@@ -57,7 +58,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
       {/* Left column */}
       <Box className="flex min-w-0 flex-1 flex-col gap-1">
         <AttributeRow
-          label={`Nombre ${VOCAB.organization.noun.singular}`}
+          label={capitalize(VOCAB.organization.noun.singular)}
           value={data.organizationName}
         />
         <AttributeRow label="País" value={data.country} />
@@ -113,7 +114,7 @@ const AttributeRow: FC<{ label: string; value: string | null }> = ({
   value,
 }) => (
   <Box className="flex min-w-0 gap-2">
-    <Typography variant="subtitle1" className="w-48 shrink-0">
+    <Typography variant="subtitle1" className="w-36 shrink-0">
       {label}:
     </Typography>
     <OverflowTooltipText
