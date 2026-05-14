@@ -1,21 +1,18 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { enqueueSnackbar } from "notistack";
+import { z } from "zod";
 import { LandingScreen } from "@screens";
 
-type LandingSearch = {
-  authError?: "login_failed";
-};
+// Accept only the known authError flag from requireRole's redirect;
+// `.catch(undefined)` silently drops unexpected values so the URL
+// contract stays narrow and a refresh with garbage params doesn't break.
+const landingSearchSchema = z.object({
+  authError: z.literal("login_failed").optional().catch(undefined),
+});
 
 export const Route = createFileRoute("/")({
-  // Accept only the known authError flag from requireRole's redirect;
-  // ignore any other query params so the URL contract stays narrow.
-  validateSearch: (search: Record<string, unknown>): LandingSearch => {
-    if (search.authError === "login_failed") {
-      return { authError: "login_failed" };
-    }
-    return {};
-  },
+  validateSearch: landingSearchSchema,
   component: LandingRoute,
 });
 
