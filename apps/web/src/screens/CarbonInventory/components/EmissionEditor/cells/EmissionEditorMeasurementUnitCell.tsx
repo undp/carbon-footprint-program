@@ -32,6 +32,7 @@ export const EmissionEditorMeasurementUnitCell: FC<
       size="small"
       disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
+      inputProps={{ autoComplete: "off" }}
     >
       {measurementUnits.map(({ id, name }) => (
         <MenuItem key={name} value={id}>

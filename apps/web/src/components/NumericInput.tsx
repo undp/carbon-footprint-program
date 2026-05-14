@@ -63,7 +63,12 @@ export const NumericInput: FC<Props> = ({
             <InputAdornment position="end">{suffix}</InputAdornment>
           ),
         },
-        htmlInput: { inputMode: "decimal" },
+        htmlInput: {
+          inputMode: "decimal",
+          autoComplete: "off",
+          autoCorrect: "off",
+          spellCheck: false,
+        },
       }}
       onKeyDown={(e) => {
         if (

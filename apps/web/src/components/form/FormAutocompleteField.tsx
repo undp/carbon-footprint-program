@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import {
   Autocomplete,
   AutocompleteProps,
@@ -48,6 +48,11 @@ export const FormAutocompleteField = <T extends FieldValues>({
     [labelId, name]
   );
 
+  const uniqueId = useId();
+  // Random-ish name to defeat Chrome's autofill heuristics, which match on
+  // common field names like "sector", "company", etc.
+  const antiAutofillName = `nofill-${uniqueId}-${name}`;
+
   const fieldValue = useWatch({ control, name });
   const selectedOption = useMemo(
     () => options.find((option) => option.value === fieldValue) || null,
@@ -93,8 +98,17 @@ export const FormAutocompleteField = <T extends FieldValues>({
                   htmlInput: {
                     ...params.inputProps,
                     id: computedLabelId,
-                    // This is to prevent the browser from suggesting the options
+                    // Prevent the browser from suggesting saved values.
+                    // Chrome ignores autoComplete="off" on inputs whose label
+                    // matches a known field (sector, company, etc.), so we
+                    // pair a non-standard autoComplete value with a unique
+                    // name attribute it cannot match against stored data.
+                    name: antiAutofillName,
                     autoComplete: "new-password",
+                    autoCorrect: "off",
+                    spellCheck: false,
+                    "data-lpignore": "true",
+                    "data-form-type": "other",
                   },
                   input: {
                     ...params.InputProps,
