@@ -118,7 +118,7 @@ If any of the four primary fetches — emissions summary, emission factors, file
 
 The system SHALL expose `GET /carbon-inventories/:id/files-manifest`. The endpoint SHALL be gated by `requireCarbonInventoryAccess(idRequestExtractor)` and SHALL be registered `public: true` so the anonymous calculator flow (using the `x-carbon-inventory-uuid` header) can call it.
 
-The response SHALL include one entry per attached file belonging to an ACTIVE line of the inventory whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. Files attached to OUTDATED or DELETED lines SHALL NOT appear. Each entry SHALL include `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `sasUrl`, `expiresAt`, `sizeBytes`, and `mimeType`. The response SHALL also include a top-level `expiresAt`.
+The response SHALL include one entry per attached file belonging to a **completed** ACTIVE line of the inventory whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. A line is considered completed using the same definition as `CarbonInventorySubtotalsView.active_completed_lines_count`: its active `CarbonInventoryLineInput` has a `CarbonInventoryLineResult` row. Files attached to OUTDATED or DELETED lines, or to ACTIVE lines that have not been calculated yet, SHALL NOT appear. This keeps the ZIP's `archivos/` content in 1:1 alignment with the `item-{lineId}` rows that surface in `resumen-emisiones.xlsx` — incomplete lines have no calculated row in the workbook, so their attachments would be orphans in the archive. Each entry SHALL include `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `sasUrl`, `expiresAt`, `sizeBytes`, and `mimeType`. The response SHALL also include a top-level `expiresAt`.
 
 All SAS URLs in a single response SHALL be signed using a single user-delegation key (one Azure call per request, regardless of file count). Rows whose `File.blobPath` does not start with `CARBON_INVENTORY/{inventoryId}/LINES/` SHALL be logged and skipped (the existing safety pattern from `previewLineFile`).
 
@@ -131,6 +131,11 @@ All SAS URLs in a single response SHALL be signed using a single user-delegation
 #### Scenario: Files attached to OUTDATED or DELETED lines are excluded
 
 - **WHEN** the inventory has files attached to lines whose status is OUTDATED or DELETED
+- **THEN** those files are NOT present in the manifest
+
+#### Scenario: Files attached to ACTIVE lines without a calculated result are excluded
+
+- **WHEN** an ACTIVE line has attached files but its active input has no `CarbonInventoryLineResult` row (no calculated total)
 - **THEN** those files are NOT present in the manifest
 
 #### Scenario: Soft-deleted files are excluded

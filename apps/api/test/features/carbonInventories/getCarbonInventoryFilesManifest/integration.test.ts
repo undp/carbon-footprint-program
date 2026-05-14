@@ -37,6 +37,8 @@ import {
   carbonInventoryPatterns,
   cleanupCarbonInventoryTestData,
   createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+  createCarbonInventoryLineResult,
   getSubcategoryIds,
   createInventoryFromPattern,
 } from "@test/factories/carbonInventorySeeder.js";
@@ -148,6 +150,10 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
       inventory.id,
       subcategoryIds[0]
     );
+    const lineInput = await createCarbonInventoryLineInput(prisma, line.id, {
+      inputType: "DIRECT",
+    });
+    await createCarbonInventoryLineResult(prisma, lineInput.id, 1000);
     await attachFileToLine(prisma, inventory.id, line.id, user.id, {
       originalName: "invoice.pdf",
     });
@@ -218,6 +224,12 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
       inventory.id,
       subcategoryIds[0]
     );
+    const activeInput = await createCarbonInventoryLineInput(
+      prisma,
+      activeLine.id,
+      { inputType: "DIRECT" }
+    );
+    await createCarbonInventoryLineResult(prisma, activeInput.id, 1000);
     const outdatedLine = await createCarbonInventoryLine(
       prisma,
       inventory.id,
@@ -253,6 +265,62 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
     expect(body.files.map((f) => f.originalName)).toEqual(["kept.pdf"]);
   });
 
+  it("excludes files attached to ACTIVE lines without a calculated result", async () => {
+    const user = await getTestLoggedUser(prisma);
+    const inventory = await createInventoryFromPattern(
+      prisma,
+      carbonInventoryPatterns.simplifiedDraft,
+      { createdById: user.id }
+    );
+    const completedLine = await createCarbonInventoryLine(
+      prisma,
+      inventory.id,
+      subcategoryIds[0]
+    );
+    const completedInput = await createCarbonInventoryLineInput(
+      prisma,
+      completedLine.id,
+      { inputType: "DIRECT" }
+    );
+    await createCarbonInventoryLineResult(prisma, completedInput.id, 1000);
+
+    const inProgressLine = await createCarbonInventoryLine(
+      prisma,
+      inventory.id,
+      subcategoryIds[0]
+    );
+    await createCarbonInventoryLineInput(prisma, inProgressLine.id, {
+      inputType: "DIRECT",
+    });
+
+    const untouchedLine = await createCarbonInventoryLine(
+      prisma,
+      inventory.id,
+      subcategoryIds[0]
+    );
+
+    await attachFileToLine(prisma, inventory.id, completedLine.id, user.id, {
+      originalName: "calculated.pdf",
+    });
+    await attachFileToLine(prisma, inventory.id, inProgressLine.id, user.id, {
+      originalName: "in-progress.pdf",
+    });
+    await attachFileToLine(prisma, inventory.id, untouchedLine.id, user.id, {
+      originalName: "untouched.pdf",
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/carbon-inventories/${inventory.id}/files-manifest`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetCarbonInventoryFilesManifestResponse;
+    expect(body.files.map((f) => f.originalName)).toEqual(["calculated.pdf"]);
+  });
+
   it("excludes files whose status is DELETED or that are soft-deleted", async () => {
     const user = await getTestLoggedUser(prisma);
     const inventory = await createInventoryFromPattern(
@@ -265,6 +333,10 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
       inventory.id,
       subcategoryIds[0]
     );
+    const input = await createCarbonInventoryLineInput(prisma, line.id, {
+      inputType: "DIRECT",
+    });
+    await createCarbonInventoryLineResult(prisma, input.id, 1000);
 
     await attachFileToLine(prisma, inventory.id, line.id, user.id, {
       originalName: "ok.pdf",
@@ -302,6 +374,10 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
       inventory.id,
       subcategoryIds[0]
     );
+    const input = await createCarbonInventoryLineInput(prisma, line.id, {
+      inputType: "DIRECT",
+    });
+    await createCarbonInventoryLineResult(prisma, input.id, 1000);
     await attachFileToLine(prisma, inventory.id, line.id, user.id, {
       originalName: "valid.pdf",
     });
@@ -413,6 +489,10 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
         inventory.id,
         subcategoryIds[0]
       );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+      });
+      await createCarbonInventoryLineResult(prisma, input.id, 1000);
       await attachFileToLine(prisma, inventory.id, line.id, otherCreator.id, {
         originalName: "admin-view.pdf",
       });
