@@ -184,6 +184,8 @@ Three outcomes:
 2. **N ≥ 1 chunks, K = 0**: inject a Spanish "0 fuentes válidas encontradas" tool-result into history before re-invoking. Persist `sources_cited = []`; omit `sources` from `done`.
 3. **N = 0**: same as case 2.
 
+**K = 0 override (post-streaming)**: after the second-round stream completes, the handler SHALL inspect the concatenated assistant content. When the content STARTS with the load-bearing K=0 opener literal `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` (leading whitespace permitted), the handler SHALL discard `validSources` and persist `sources_cited = []` REGARDLESS of how many chunks passed Zod validation. The `done` payload SHALL omit `sources`. This case fires when the LLM received K ≥ 1 validated chunks but decided the retrieved content did not actually answer the question (e.g. a user asking about "scope 4" — a non-existent concept — receives chunks about scopes 1/2/3 that the model correctly recognizes as off-target and emits the K=0 opener instead of forcing a citation-backed answer). Persisting the sources in that scenario surfaces "Fuentes consultadas (N)" in the widget alongside a "no dispongo de fuentes" assistant turn — a UX contradiction first observed during Bloque E smoke E2E. The override aligns the persisted/wire state with what the assistant text actually claims.
+
 Decision 19 in `design.md` carries the rationale.
 
 **CRITICAL release-gate invariant (K = 0 path)** — failure of the all-sources-filtered scenario blocks merging to production per `tasks.md` test 10.4.
@@ -207,6 +209,11 @@ Decision 19 in `design.md` carries the rationale.
 
 - **WHEN** `searchKnowledge` returns an empty array
 - **THEN** the handler SHALL inject the empty-corpus tool-result, the second round SHALL produce the no-source fallback response, the assistant row's `sources_cited` SHALL be `[]`, and the `done` payload SHALL NOT include `sources`
+
+#### Scenario: Assistant K=0 opener empties sources_cited even when K ≥ 1
+
+- **WHEN** `searchKnowledge` returns chunks that all pass Zod validation (`validSources.length > 0`, e.g. 8 chunks with parseable HTTPS `cite_url`s) AND the LLM second-round response, after concatenating all `delta` events, starts with the K=0 opener literal `"No dispongo de fuentes verificadas en mi corpus para responder esto con precisión."` (leading whitespace permitted before the literal)
+- **THEN** the assistant row's `sources_cited` SHALL be `[]` (NOT the validated chunks), and the `done` payload SHALL NOT include a `sources` field. The semantics of "K=0" SHALL be driven by the assistant's emission of the opener literal, not by the count of validated chunks alone — this prevents the widget from showing "Fuentes consultadas (N)" alongside an assistant turn that explicitly disclaims having sources
 
 #### Scenario: snippet field is truncated to 240 characters
 

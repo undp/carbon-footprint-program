@@ -1,6 +1,7 @@
 import { ChatMessageRole } from "@repo/database/enums";
 import type { LLMProvider, LlmMessage, LlmStreamEvent } from "./types.js";
 import { estimateTokens } from "./estimateTokens.js";
+import { CHATBOT_K0_OPENER } from "@/features/chatbot/constants.js";
 
 const TOOL_CALL_KEYWORDS = ["alcance", "alcances", "protocolo", "factor"];
 
@@ -113,9 +114,6 @@ const isEmptyToolResult = (toolContent: string | null): boolean => {
   return toolContent.includes("0 fuentes válidas encontradas");
 };
 
-const K0_OPENER =
-  "No dispongo de fuentes verificadas en mi corpus para responder esto con precisión.";
-
 let toolCallCounter = 0;
 
 export const mockProvider: LLMProvider = {
@@ -132,7 +130,7 @@ export const mockProvider: LLMProvider = {
     if (isSecondRound(messages)) {
       const toolContent = findLatestToolMessage(messages);
       const output = isEmptyToolResult(toolContent)
-        ? `${K0_OPENER} Si lo deseas, puedes consultar fuentes externas autorizadas como el GHG Protocol Corporate Standard.`
+        ? `${CHATBOT_K0_OPENER} Si lo deseas, puedes consultar fuentes externas autorizadas como el GHG Protocol Corporate Standard.`
         : `Según las fuentes consultadas: ${userMessage}. Esta es una respuesta de mock con citas.`;
       const chunks = splitIntoChunks(output, 3);
       for (const chunk of chunks) {

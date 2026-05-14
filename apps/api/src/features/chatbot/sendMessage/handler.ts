@@ -6,7 +6,10 @@ import {
   CHATBOT_MAX_RAG_CONTEXT_TOKENS,
 } from "@/config/constants.js";
 import { ExternalServiceError } from "@/errors/ExternalServiceError.js";
-import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
+import {
+  CHATBOT_GENERIC_ERROR_MESSAGE,
+  CHATBOT_K0_OPENER,
+} from "@/features/chatbot/constants.js";
 import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
 import {
   estimateTokens,
@@ -484,6 +487,12 @@ export const sendMessageHandler = async (
 
   const latencyMs = Date.now() - startedAt;
   const tokensUsed = usage ? usage.inputTokens + usage.outputTokens : 0;
+
+  // K=0 override: when the assistant text starts with the opener, the model
+  // disclaimed corpus support — drop validSources so wire and text agree.
+  if (assistantBuffer.trimStart().startsWith(CHATBOT_K0_OPENER)) {
+    finalSources.length = 0;
+  }
 
   // Finalize the assistant row OUTSIDE the transaction. Setting `latency_ms`
   // is what makes the disconnect finalizer's conditional UPDATE a no-op.

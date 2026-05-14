@@ -21,7 +21,10 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { collectSseEvents } from "@test/helpers/sse.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
 import { mockProvider } from "@/features/chatbot/llmProvider/mock.js";
-import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
+import {
+  CHATBOT_GENERIC_ERROR_MESSAGE,
+  CHATBOT_K0_OPENER,
+} from "@/features/chatbot/constants.js";
 import * as searchKnowledgeTools from "@/features/chatbot/tools/searchKnowledge/index.js";
 
 type WireSource = {
@@ -262,6 +265,102 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     const doneEvents = events.filter((e) => e.event === "done");
     expect(doneEvents).toHaveLength(1);
     expect(doneEvents[0].data).not.toHaveProperty("sources");
+  });
+
+  // Maps to spec scenario "Assistant K=0 opener empties sources_cited even
+  // when K ≥ 1": 8 validated chunks but stubbed round 2 emits the opener →
+  // sources_cited persisted as [], `done` omits `sources`.
+  it("K ≥ 1 valid sources but assistant emits K=0 opener empties sources_cited", async () => {
+    const ACTIVE_LABEL = "GHG Protocol §2.3";
+    const ACTIVE_URL = "https://ghgprotocol.org/corporate-standard";
+    const CHUNK_CONTENTS = Array.from(
+      { length: 8 },
+      (_, i) =>
+        `Chunk ${i}: las emisiones de alcance 1/2/3 se rigen por GHG Protocol Corporate Standard.`
+    );
+
+    const activeSource = await prisma.chatbotCorpusSource.create({
+      data: {
+        name: "GHG Protocol Corporate Standard",
+        version: "v05",
+        sourceType: CorpusSourceType.PDF,
+        scope: CorpusSourceScope.GLOBAL,
+        status: CorpusSourceStatus.ACTIVE,
+        activatedAt: new Date(),
+        citeLabel: ACTIVE_LABEL,
+        citeUrl: ACTIVE_URL,
+      },
+    });
+
+    const embeddingProvider = getEmbeddingProvider();
+    const { vectors } = await embeddingProvider.embed(CHUNK_CONTENTS);
+    const toVectorLiteral = (v: number[]): string => `[${v.join(",")}]`;
+    for (let i = 0; i < 8; i++) {
+      await prisma.$executeRaw`
+        INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
+        VALUES (${activeSource.id}, ${i}, ${CHUNK_CONTENTS[i]}, ${toVectorLiteral(vectors[i])}::vector)
+      `;
+    }
+
+    // Round 1 → tool_call; round 2 → opener literal. Counter is hoisted
+    // outside the generator because mockImplementationOnce doesn't compose
+    // cleanly with async generators.
+    let invocationCount = 0;
+    vi.spyOn(mockProvider, "streamCompletion").mockImplementation(
+      async function* () {
+        await Promise.resolve();
+        invocationCount += 1;
+        if (invocationCount === 1) {
+          yield {
+            type: "tool_call",
+            id: "stub-call-1",
+            name: "searchKnowledge",
+            arguments: JSON.stringify({ query: "scope 4" }),
+          };
+          return;
+        }
+        yield {
+          type: "delta",
+          content: `${CHATBOT_K0_OPENER} Si lo deseas, puedes consultar fuentes externas autorizadas como el GHG Protocol Corporate Standard.`,
+        };
+        yield { type: "usage", inputTokens: 200, outputTokens: 50 };
+      }
+    );
+
+    const { status, events } = await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      {
+        content: "¿qué dice el GHG Protocol sobre las emisiones de scope 4?",
+      },
+      { ownsApp: false }
+    );
+
+    expect(status).toBe(200);
+    expect(invocationCount).toBe(2);
+
+    const deltas = events.filter((e) => !e.event);
+    const assistantContent = deltas
+      .map((e) => (e.data as { content: string }).content)
+      .join("");
+    expect(assistantContent.trimStart().startsWith(CHATBOT_K0_OPENER)).toBe(
+      true
+    );
+
+    // sources_cited = [] is load-bearing: without the handler's opener
+    // check this row would carry 8 entries (the pre-fix behavior).
+    const assistantRows = await prisma.chatbotChatMessage.findMany({
+      where: { role: ChatMessageRole.ASSISTANT },
+      orderBy: { id: "asc" },
+    });
+    expect(assistantRows).toHaveLength(1);
+    expect(assistantRows[0].sourcesCited).toEqual([]);
+
+    const doneEvents = events.filter((e) => e.event === "done");
+    expect(doneEvents).toHaveLength(1);
+    expect(
+      Object.prototype.hasOwnProperty.call(doneEvents[0].data, "sources")
+    ).toBe(false);
   });
 
   // Maps to chatbot-message-streaming spec scenario "Second consecutive
