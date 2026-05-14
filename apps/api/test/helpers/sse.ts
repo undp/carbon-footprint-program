@@ -55,6 +55,7 @@ export const collectSseEvents = async (
   status: number;
   events: ParsedSseEvent[];
   setCookie: string[];
+  responseHeaders: Headers;
 }> => {
   const timeoutMs = options?.timeoutMs ?? 5000;
   const ownsApp = options?.ownsApp ?? true;
@@ -107,7 +108,12 @@ export const collectSseEvents = async (
   if (!response.body) {
     clearTimeout(timer);
     if (ownsApp) await app.close();
-    return { status: response.status, events, setCookie };
+    return {
+      status: response.status,
+      events,
+      setCookie,
+      responseHeaders: response.headers,
+    };
   }
 
   const reader = response.body.getReader();
@@ -146,5 +152,10 @@ export const collectSseEvents = async (
     if (ownsApp) await app.close();
   }
 
-  return { status: response.status, events, setCookie };
+  return {
+    status: response.status,
+    events,
+    setCookie,
+    responseHeaders: response.headers,
+  };
 };

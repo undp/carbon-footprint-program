@@ -118,6 +118,25 @@ describe("POST /api/chatbot/message — integration", () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it("emits Set-Cookie chatbot_conversation_id and SSE response headers", async () => {
+    // Pins the wire: rehydrate (Decision 28) needs Set-Cookie, the widget
+    // needs the SSE response headers. A regression in writeSseHeaders or
+    // setConversationCookie would silently break both.
+    const { status, responseHeaders, setCookie } = await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "header check" },
+      { ownsApp: false }
+    );
+    expect(status).toBe(200);
+    expect(responseHeaders.get("content-type")).toMatch(/text\/event-stream/);
+    expect(responseHeaders.get("cache-control")).toMatch(/no-cache/);
+    expect(responseHeaders.get("x-accel-buffering")).toBe("no");
+    expect(
+      setCookie.some((c) => c.startsWith("chatbot_conversation_id="))
+    ).toBe(true);
+  });
+
   it("CHATBOT_GENERIC_ERROR_MESSAGE has the expected Spanish text", () => {
     // Pinned constant value test — the streaming handler imports this
     // constant by name and tests assert against it instead of duplicating
