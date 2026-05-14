@@ -72,7 +72,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
 
   return (
     <Box className="flex h-20 gap-4">
-      <Box className="flex flex-1 flex-row items-center gap-2">
+      <Box className="flex flex-1 flex-row items-center gap-4">
         <Avatar
           sx={{
             backgroundColor: categoryColorPalette.light,
