@@ -20,17 +20,16 @@ interface MessageBubbleProps {
   message: ChatbotMessage;
 }
 
-const ExternalLink = (
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
-): React.ReactElement => (
-  <Link
-    {...props}
-    target="_blank"
-    rel="noopener noreferrer"
-    underline="always"
-    color="primary"
-  />
-);
+const dedupeSourcesByUrl = <T extends { cite_url: string }>(
+  sources: T[]
+): T[] => {
+  const seen = new Set<string>();
+  return sources.filter((source) => {
+    if (seen.has(source.cite_url)) return false;
+    seen.add(source.cite_url);
+    return true;
+  });
+};
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const theme = useTheme();
@@ -43,7 +42,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary;
   const sources = message.sourcesCited ?? [];
-  const hasSources = !isUser && sources.length > 0;
+  const uniqueSources = dedupeSourcesByUrl(sources);
+  const hasSources = !isUser && uniqueSources.length > 0;
 
   return (
     <Box
@@ -75,7 +75,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeKatex]}
-              components={{ a: ExternalLink }}
+              // Strip inline citations at render time — V1 corpus is dominated
+              // by a single source so repeated `[label](url)` markers are noise;
+              // attribution lives in the "Fuentes consultadas" panel below.
+              components={{ a: () => null }}
             >
               {message.content || "…"}
             </ReactMarkdown>
@@ -108,13 +111,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               <ExpandMoreIcon fontSize="small" />
             </IconButton>
             <Typography variant="caption" color="text.secondary">
-              {`Fuentes consultadas (${sources.length})`}
+              {`Fuentes consultadas (${uniqueSources.length})`}
             </Typography>
           </Box>
           <Collapse in={sourcesOpen}>
             <Stack spacing={0.5} mt={0.5} pl={2}>
-              {sources.map((source) => (
-                <Box key={`${source.source_id}-${source.chunk_id}`}>
+              {uniqueSources.map((source) => (
+                <Box key={source.cite_url}>
                   <Link
                     href={source.cite_url}
                     target="_blank"
@@ -123,13 +126,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                   >
                     {source.cite_label}
                   </Link>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    {source.snippet}
-                  </Typography>
                 </Box>
               ))}
             </Stack>

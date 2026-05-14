@@ -40,12 +40,17 @@
 
 ### Requirement: MessageBubble renders a collapsible "Fuentes consultadas" panel when sourcesCited is non-empty
 
-`MessageBubble` at `apps/web/src/components/Chatbot/MessageBubble.tsx` SHALL render a collapsible panel beneath the assistant bubble when `message.sourcesCited` is non-empty. Uses MUI `Collapse`, collapsed by default. Header: `"Fuentes consultadas (<n>)"`. Each row: `cite_label` as anchor opening `cite_url` in a new tab (`target="_blank"`, `rel="noopener noreferrer"`), `snippet` below in smaller font. Theme tokens only — no hardcoded colors. User messages SHALL NOT render this panel.
+`MessageBubble` at `apps/web/src/components/Chatbot/MessageBubble.tsx` SHALL render a collapsible panel beneath the assistant bubble when `message.sourcesCited` is non-empty. Uses MUI `Collapse`, collapsed by default. Entries SHALL be deduplicated by `cite_url` before render — multiple chunks under the same source collapse to a single panel row. Header: `"Fuentes consultadas (<n>)"` where `<n>` is the count of unique `cite_url`s after dedup. Each row renders only `cite_label` as an anchor opening `cite_url` in a new tab (`target="_blank"`, `rel="noopener noreferrer"`); the chunk `snippet` SHALL NOT be rendered (V1 corpus snippets are mid-chunk PDF excerpts that do not carry user-facing value and visually clutter the panel — backend persistence of `snippet` is unaffected). Theme tokens only — no hardcoded colors. User messages SHALL NOT render this panel.
 
 #### Scenario: Panel is rendered when sourcesCited has at least one entry
 
 - **WHEN** an assistant message has `sourcesCited` containing one or more entries
-- **THEN** the rendered DOM SHALL contain a `Collapse`-driven panel beneath the bubble, header `"Fuentes consultadas (<n>)"` where `<n>` is the count, collapsed by default
+- **THEN** the rendered DOM SHALL contain a `Collapse`-driven panel beneath the bubble, header `"Fuentes consultadas (<n>)"` where `<n>` is the count of unique `cite_url`s in `sourcesCited` (after dedup), collapsed by default
+
+#### Scenario: Panel dedupes entries by cite_url
+
+- **WHEN** an assistant message has `sourcesCited` containing N entries that collapse to K unique `cite_url`s (K < N, e.g., 8 chunks from a single source → K = 1)
+- **THEN** the rendered panel SHALL contain exactly K rows — one per unique `cite_url` — and the header SHALL read `"Fuentes consultadas (K)"`; no duplicate rows for the same URL SHALL appear. Backend persistence (`sources_cited` JSONB) SHALL remain unaffected — dedup is render-only
 
 #### Scenario: Panel is not rendered when sourcesCited is undefined
 
@@ -62,15 +67,10 @@
 - **WHEN** the panel is expanded and contains an entry with `cite_label = "GHG Protocol §2.3"` and `cite_url = "https://ghgprotocol.org/corporate-standard"`
 - **THEN** the rendered row SHALL contain an anchor whose visible text is `"GHG Protocol §2.3"`, `href = "https://ghgprotocol.org/corporate-standard"`, `target = "_blank"`, `rel = "noopener noreferrer"`
 
-#### Scenario: Snippet is rendered beneath the link
+#### Scenario: Snippet is not rendered in the panel
 
 - **WHEN** the panel is expanded and contains an entry with a non-empty `snippet`
-- **THEN** the rendered row SHALL contain the `snippet` text below the link
-
-#### Scenario: Widget renders snippets as-received without additional truncation
-
-- **WHEN** the widget receives a `done` event whose `sources[i].snippet` is up to 240 characters (the maximum enforced by the streaming handler per `chatbot-message-streaming` spec)
-- **THEN** the widget SHALL render the full snippet text verbatim — without re-truncating, adding ellipsis, or otherwise modifying its length. Truncation is the streaming handler's responsibility at persistence time; the widget is a pass-through for whatever the API delivered. This avoids double-truncation drift if the server-side cap ever changes
+- **THEN** the rendered row SHALL NOT contain the `snippet` text — only `cite_label` (as anchor) SHALL appear. The `snippet` field SHALL remain present on `message.sourcesCited` (the API contract is unchanged), but the widget SHALL NOT surface it in the DOM
 
 ### Requirement: Widget renders a persistent foot-of-chat disclaimer
 
@@ -136,17 +136,17 @@ This is a PM-owned decision: conversations are auditable and may need server-sid
 
 ### Requirement: Widget renders assistant messages as Markdown
 
-The widget SHALL render assistant content as Markdown via `react-markdown` (`remark-math`, `remark-gfm`, `rehype-katex`). User messages SHALL render as plain text. Inline `[label](url)` produced under the citation rule SHALL render as anchors with `target="_blank"` + `rel="noopener noreferrer"` via the markdown component config. The collapsible panel is the secondary surface; inline citation markers are the primary verification affordance.
+The widget SHALL render assistant content as Markdown via `react-markdown` (`remark-math`, `remark-gfm`, `rehype-katex`). User messages SHALL render as plain text. Inline citation markers of the form `[label](url)` produced under the system-prompt citation rule SHALL NOT render in the assistant message body — the widget SHALL override ReactMarkdown's `a` component to return `null`, eliminating both the link and its label from the rendered DOM. The Markdown source text in `message.content` SHALL be preserved untouched; the decision lives entirely at render time so re-introducing inline citations in V2/V3 (when the corpus diversifies beyond a single source) requires only a renderer change, not a content-pipeline change. The collapsible "Fuentes consultadas" panel is the sole verification affordance.
 
 #### Scenario: Assistant message renders Markdown features
 
 - **WHEN** the assistant message content includes Markdown features supported by `ExplanationContent` (bold, lists, code blocks, math via KaTeX, GFM tables)
 - **THEN** the widget SHALL render those features visually, equivalent to the existing `ExplanationContent` rendering
 
-#### Scenario: Inline citation links render as anchors targeting a new tab
+#### Scenario: Inline citation markers do not render in the assistant message body
 
-- **WHEN** the assistant content contains `[GHG Protocol §2.3](https://ghgprotocol.org/corporate-standard)`
-- **THEN** the rendered DOM SHALL contain an `<a>` element whose visible text is `"GHG Protocol §2.3"`, `href = "https://ghgprotocol.org/corporate-standard"`, `target = "_blank"`, `rel = "noopener noreferrer"`
+- **WHEN** the assistant content contains `[GHG Protocol §2.3](https://ghgprotocol.org/corporate-standard)` in the streamed Markdown
+- **THEN** the rendered message bubble SHALL NOT contain an `<a>` element whose `href = "https://ghgprotocol.org/corporate-standard"`, and SHALL NOT contain the visible text `"GHG Protocol §2.3"` for that citation marker — both the link and its label SHALL be absent from the DOM. `message.content` SHALL be preserved verbatim; the suppression is render-only via the ReactMarkdown `components.a` override
 
 #### Scenario: User message rendered as plain text
 
