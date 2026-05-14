@@ -49,7 +49,8 @@ export function areAllSubcategoriesFilled(
       if (formSub.isTotalManualEmissionsModeActive) return true;
       const lines = Object.values(formSub.lines ?? {});
       // Filled if every line has been deleted — user opted out of all sources
-      if (lines.length > 0 && lines.every((line) => line.isDeleted)) return true;
+      if (lines.length > 0 && lines.every((line) => line.isDeleted))
+        return true;
       // Filled if at least one non-deleted line has a non-null quantity
       return lines.some(
         (line) => !line.isDeleted && line.quantity != null && line.quantity > 0

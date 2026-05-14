@@ -35,7 +35,11 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
           </Typography>
           {subtitle && (
             <>
-              <Typography color="textSecondary" variant="h6" className="shrink-0">
+              <Typography
+                color="textSecondary"
+                variant="h6"
+                className="shrink-0"
+              >
                 •
               </Typography>
               <OverflowTooltipText
