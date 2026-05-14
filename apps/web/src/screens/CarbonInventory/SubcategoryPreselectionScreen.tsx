@@ -173,7 +173,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const RECOMMENDATIONS_DESCRIPTION = existsRecommendations
     ? "Hemos destacado las actividades más relevantes para tu rubro como recomendadas."
     : "";
-  const STEP_HEADER_DESCRIPTION = `Estas son todas las fuentes de emisións disponibles para tu ${VOCAB.organization.noun.singular}. ${RECOMMENDATIONS_DESCRIPTION} Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`;
+  const STEP_HEADER_DESCRIPTION = `Estas son todas las fuentes de emisión disponibles para tu ${VOCAB.organization.noun.singular}. ${RECOMMENDATIONS_DESCRIPTION} Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`;
 
   return (
     <FormProvider {...methods}>
