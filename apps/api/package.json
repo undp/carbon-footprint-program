@@ -17,7 +17,9 @@
     "test:ui": "vitest --ui",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf dist .turbo tsconfig.tsbuildinfo tsconfig.build.tsbuildinfo"
+    "clean": "rimraf dist .turbo tsconfig.tsbuildinfo tsconfig.build.tsbuildinfo",
+    "chatbot:ingest": "tsx scripts/chatbot/ingestCorpus.ts",
+    "chatbot:activate": "tsx scripts/chatbot/activateCorpusSource.ts"
   },
   "dependencies": {
     "@azure/identity": "^4.13.0",
@@ -43,6 +45,7 @@
     "jwks-rsa": "^3.2.0",
     "lodash-es": "^4.17.22",
     "openai": "^6.35.0",
+    "pdf-parse": "^2.4.5",
     "pino": "catalog:shared",
     "zod": "catalog:shared"
   },

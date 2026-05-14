@@ -7,7 +7,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const TEST_DATABASE_CONFIG = {
-  image: "postgres:18-alpine",
+  image: "pgvector/pgvector:pg18",
   database: "testdb",
   username: "testuser",
   password: "testpass",
@@ -73,6 +73,13 @@ export async function setupTestDatabase(): Promise<{
 
   const baseUrl = container.getConnectionUri();
   const url = new URL(baseUrl);
+  // On Windows, `localhost` resolves to `::1` (IPv6) first, but Docker
+  // Desktop only binds `0.0.0.0` (IPv4) by default — Prisma then fails with
+  // P1001 "Can't reach database server". Force IPv4 here so the URL works
+  // identically across macOS/Linux/Windows hosts.
+  if (url.hostname === "localhost") {
+    url.hostname = "127.0.0.1";
+  }
   // Note: connection_limit is not set; Vitest runs files sequentially (fileParallelism: false).
   // url.searchParams.set("connection_limit", "1");
   const databaseUrl = url.toString();

@@ -11,5 +11,12 @@ export const getLlmProvider = (): LLMProvider => {
   return cached;
 };
 
-export type { LLMProvider, LlmMessage, LlmStreamEvent } from "./types.js";
+export type {
+  LLMProvider,
+  LlmMessage,
+  LlmStreamEvent,
+  LlmStreamOptions,
+  LlmToolCall,
+  LlmToolDefinition,
+} from "./types.js";
 export { estimateTokens } from "./estimateTokens.js";

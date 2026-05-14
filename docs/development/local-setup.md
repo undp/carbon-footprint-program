@@ -108,6 +108,8 @@ docker compose up -d
 
 This starts a PostgreSQL container using the configuration in `packages/database/docker-compose.yml`.
 
+> **pgvector image bump.** The Postgres image is `pgvector/pgvector:pg18` (bundles the `vector` extension required by the chatbot RAG migration). The compose volume mounts on `/var/lib/postgresql` (parent directory), NOT `/var/lib/postgresql/data` — Postgres 18+ Docker images store data under a version-specific subdirectory (e.g. `/var/lib/postgresql/18/data`) to enable `pg_upgrade --link` without mount-boundary issues, and mounting directly on `/data` causes the container to fail with an `unused mount/volume` error and enter a restart loop. If you have an existing Postgres Docker volume / data directory from the old `postgres:18-alpine` image, run `docker compose down -v` first — the new image's `initdb` refuses to initialize over a data directory created by a different base image. The actual compose volume name in this repo is `postgres_data` (and Docker prefixes it with the project name at runtime, e.g. `database_postgres_data`); use `docker volume ls` to find the project-prefixed name if you need to delete it manually instead of running `down -v`. Once the old data is gone, `docker compose up -d` against `pgvector/pgvector:pg18` will initialize cleanly and the migrations then run `CREATE EXTENSION IF NOT EXISTS vector` on first apply.
+
 **Verify the container is running:**
 
 ```bash

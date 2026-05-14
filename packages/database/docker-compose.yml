@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:18-alpine
+    image: pgvector/pgvector:pg18
     container_name: undp-postgres
     restart: unless-stopped
     ports:
@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: testpass
       POSTGRES_DB: testdb
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   postgres_data:

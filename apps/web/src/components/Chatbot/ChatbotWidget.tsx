@@ -32,6 +32,9 @@ import { useChatbotSize } from "./useChatbotSize";
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
 
+const FOOT_DISCLAIMER =
+  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
+
 const hasBeenIntroduced = (): boolean => {
   if (typeof window === "undefined") return true;
   try {
@@ -66,7 +69,8 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, deleteHistory } = useChatStream();
+  const { state, messages, historyLoading, sendMessage, startNewConversation } =
+    useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
@@ -155,14 +159,20 @@ export function ChatbotWidget() {
     // committed the user message + assistant placeholder appended by
     // sendMessage. Done BEFORE awaiting the SSE stream because the turn
     // may take many seconds — we want the active bubble in view from
-    // the first delta, not after the stream completes.
+    // the first delta, not after the stream completes. Restoring focus
+    // in the same frame keeps the keyboard ready for the next message
+    // even though the TextField is briefly disabled while busy.
     requestAnimationFrame(() => {
       listRef.current?.scrollTo({
         top: listRef.current.scrollHeight,
         behavior: "smooth",
       });
+      inputRef.current?.focus();
     });
     await sendMessage(content);
+    // Re-focus once the turn ends — the disabled prop on the TextField
+    // can pull focus away while the request is in flight.
+    inputRef.current?.focus();
   };
 
   return (
@@ -234,7 +244,7 @@ export function ChatbotWidget() {
             onClick={() => {
               if (isBusy) return;
               markIntroduced();
-              void deleteHistory();
+              startNewConversation();
               // Return focus to the input so the user can immediately
               // start a new message; the click would otherwise leave
               // focus on this IconButton.
@@ -264,7 +274,7 @@ export function ChatbotWidget() {
           bgcolor: theme.palette.background.default,
         }}
       >
-        {messages.length === 0 ? (
+        {messages.length === 0 && !historyLoading ? (
           <Box
             display="flex"
             alignItems="center"
@@ -275,9 +285,10 @@ export function ChatbotWidget() {
               ¿En qué puedo ayudarte?
             </Typography>
           </Box>
-        ) : (
-          messages.map((m) => <MessageBubble key={m.id} message={m} />)
-        )}
+        ) : null}
+        {messages.length > 0
+          ? messages.map((m) => <MessageBubble key={m.id} message={m} />)
+          : null}
         {state === "degraded" ? (
           <Typography
             variant="caption"
@@ -357,6 +368,18 @@ export function ChatbotWidget() {
             {numberFormatter.format(CHATBOT_MAX_USER_INPUT_CHARS)}
           </Typography>
         ) : null}
+      </Box>
+      <Box
+        sx={{
+          px: 1,
+          pb: 0.5,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {FOOT_DISCLAIMER}
+        </Typography>
       </Box>
     </Paper>
   );

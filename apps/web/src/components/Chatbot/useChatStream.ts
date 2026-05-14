@@ -1,14 +1,40 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { SourceCitationWire } from "@repo/types";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
-const DELETE_URL = "/api/chatbot/conversations/me";
+const LOAD_URL = "/api/chatbot/conversations/me/current";
+
+// Mirror of the server-side cookie name in
+// apps/api/src/features/chatbot/helpers/conversationCookie.ts. The server
+// sets this cookie with httpOnly=false intentionally (Decision 28) so the
+// widget can drop it on "Nueva conversación" without a server round-trip.
+const CONVERSATION_COOKIE_NAME = "chatbot_conversation_id";
+const CONVERSATION_COOKIE_PATH = "/api/chatbot";
+
+const clearConversationCookieClient = (): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${CONVERSATION_COOKIE_NAME}=; path=${CONVERSATION_COOKIE_PATH}; max-age=0; SameSite=Lax`;
+};
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Recarga la página o intenta más tarde.";
+
+type LoadedMessage = {
+  id: string;
+  role: "USER" | "ASSISTANT";
+  content: string;
+  sourcesCited: SourceCitationWire[];
+  createdAt: string;
+};
+
+type LoadedConversationResponse = {
+  conversation: { id: string; createdAt: string; expiresAt: string };
+  messages: LoadedMessage[];
+};
 
 type SsePayload = {
   id?: string;
@@ -49,12 +75,26 @@ const parseEvents = (
 export const useChatStream = () => {
   const [state, setState] = useState<ChatbotState>("empty");
   const [messages, setMessages] = useState<ChatbotMessage[]>([]);
+  // `historyLoading` is true from mount until the rehydrate fetch settles
+  // (200 / 204 / 404 / network error). The widget reads it to suppress the
+  // "¿En qué puedo ayudarte?" placeholder briefly so a populated thread does
+  // not flash empty before the seed lands.
+  const [historyLoading, setHistoryLoading] = useState<boolean>(true);
   const consecutiveFailuresRef = useRef(0);
   const lastEventIdRef = useRef<string | undefined>(undefined);
   // Tracks the index of the in-flight assistant message inside `messages` so
   // updateLastAssistant can target it directly instead of scanning backward
-  // on every delta. Reset to -1 between turns and after deleteHistory.
+  // on every delta. Reset to -1 between turns and on new conversation.
   const inFlightAssistantIndexRef = useRef<number>(-1);
+  // AbortController for the active turn's fetch+SSE pipeline. startNewConversation
+  // aborts it so an in-flight stream cannot re-dirty the freshly-cleared UI
+  // with a late `error`/`truncated`/`empty` setState. Cleared at turn boundaries.
+  const turnControllerRef = useRef<AbortController | null>(null);
+  // Monotonic generation token bumped on every startNewConversation /
+  // sendMessage start. setState calls inside an async sendMessage are gated
+  // on the captured generation matching the current ref so a turn that was
+  // cancelled mid-flight cannot mutate state that belongs to a later turn.
+  const turnGenerationRef = useRef(0);
   // Monotonic counter used to mint locally unique React keys for each
   // message bubble. `Date.now()` collisions (mocked timers, two turns
   // started in the same millisecond) would otherwise let React reconcile
@@ -64,6 +104,49 @@ export const useChatStream = () => {
     messageIdCounterRef.current += 1;
     return `${role}-${messageIdCounterRef.current}`;
   }, []);
+
+  // Mount-time rehydration (Decision 28). The server reads the signed
+  // chatbot_conversation_id cookie, checks the TTL and identity match, and
+  // returns the persisted thread when valid. 204 / 404 / network errors all
+  // collapse to "start empty" — never fatal.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(LOAD_URL, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (cancelled || response.status !== 200) return;
+        const body = (await response.json()) as LoadedConversationResponse;
+        if (cancelled) return;
+        const hydrated: ChatbotMessage[] = body.messages.map((m) => {
+          const role: "user" | "assistant" =
+            m.role === "USER" ? "user" : "assistant";
+          const base: ChatbotMessage = {
+            id: nextMessageId(role),
+            role,
+            content: m.content,
+          };
+          if (role === "assistant" && m.sourcesCited.length > 0) {
+            base.sourcesCited = m.sourcesCited;
+          }
+          return base;
+        });
+        if (hydrated.length > 0) {
+          setMessages(hydrated);
+        }
+      } catch {
+        // Mount-time rehydrate is best-effort — a transport failure means we
+        // start visually empty, not error.
+      } finally {
+        if (!cancelled) setHistoryLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [nextMessageId]);
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
@@ -95,6 +178,23 @@ export const useChatStream = () => {
       const processEvent = (ev: SsePayload): SendMessageResult | null => {
         if (ev.id) lastEventIdRef.current = ev.id;
         if (ev.event === "done") {
+          try {
+            const parsed = JSON.parse(ev.data) as {
+              sources?: SourceCitationWire[];
+            };
+            if (Array.isArray(parsed.sources) && parsed.sources.length > 0) {
+              const sources = parsed.sources;
+              updateLastAssistant((msg) => ({
+                ...msg,
+                sourcesCited: sources,
+              }));
+            }
+          } catch {
+            // Malformed `done` payload — log and continue. Foundation widgets
+            // that ignore the new optional field stay backwards-compatible.
+            // eslint-disable-next-line no-console
+            console.warn("Malformed done event payload");
+          }
           return { kind: "completed" };
         }
         if (ev.event === "error") {
@@ -179,6 +279,17 @@ export const useChatStream = () => {
       // observed during the CURRENT turn's stream, never a stale one from
       // an earlier turn that completed or errored.
       lastEventIdRef.current = undefined;
+      // Mint a generation token for this turn; every subsequent state mutation
+      // checks that the token still matches before applying. startNewConversation
+      // bumps the token, so a turn that was cancelled mid-flight cannot
+      // re-dirty state that belongs to a later turn.
+      turnGenerationRef.current += 1;
+      const turnGeneration = turnGenerationRef.current;
+      const isCurrentTurn = (): boolean =>
+        turnGenerationRef.current === turnGeneration;
+      const controller = new AbortController();
+      turnControllerRef.current = controller;
+
       const userMessage: ChatbotMessage = {
         id: nextMessageId("user"),
         role: "user",
@@ -219,6 +330,7 @@ export const useChatStream = () => {
             credentials: "include",
             headers,
             body: JSON.stringify({ content }),
+            signal: controller.signal,
           });
           return { response, transportError: false };
         } catch {
@@ -228,8 +340,10 @@ export const useChatStream = () => {
 
       const initialAttempt = await attempt(false);
       let response = initialAttempt.response;
+      if (!isCurrentTurn()) return;
       if (initialAttempt.transportError) {
         const retry = await attempt(true);
+        if (!isCurrentTurn()) return;
         if (retry.transportError) {
           consecutiveFailuresRef.current += 1;
           if (consecutiveFailuresRef.current >= 2) {
@@ -251,13 +365,14 @@ export const useChatStream = () => {
       }
 
       if (!response) {
-        setState("error");
+        if (isCurrentTurn()) setState("error");
         return;
       }
 
       if (!response.ok) {
         consecutiveFailuresRef.current = 0;
         if (response.status === 413) {
+          if (!isCurrentTurn()) return;
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
@@ -273,10 +388,12 @@ export const useChatStream = () => {
           } catch {
             // fall through to generic
           }
+          if (!isCurrentTurn()) return;
           setState("error");
           updateLastAssistant((msg) => ({ ...msg, content: serverMessage }));
           return;
         }
+        if (!isCurrentTurn()) return;
         setState("error");
         updateLastAssistant((msg) => ({
           ...msg,
@@ -287,6 +404,7 @@ export const useChatStream = () => {
 
       consecutiveFailuresRef.current = 0;
       const result = await consumeStream(response);
+      if (!isCurrentTurn()) return;
 
       switch (result.kind) {
         case "completed":
@@ -307,32 +425,44 @@ export const useChatStream = () => {
           setState("degraded");
           break;
       }
-      // Turn finished — clear the in-flight pointer so the next turn starts
-      // clean and stale indices can't leak across turns.
+      // Turn finished — clear the in-flight pointer and the per-turn controller
+      // so the next turn starts clean and stale indices can't leak across turns.
       inFlightAssistantIndexRef.current = -1;
+      if (turnControllerRef.current === controller) {
+        turnControllerRef.current = null;
+      }
     },
     [consumeStream, nextMessageId, updateLastAssistant]
   );
 
-  const deleteHistory = useCallback(async (): Promise<void> => {
-    try {
-      const response = await fetch(DELETE_URL, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (response.status === 204) {
-        setMessages([]);
-        setState("empty");
-        lastEventIdRef.current = undefined;
-        consecutiveFailuresRef.current = 0;
-        inFlightAssistantIndexRef.current = -1;
-      } else {
-        setState("error");
-      }
-    } catch {
-      setState("error");
+  // Frontend-only conversation reset: clears the visible thread and per-turn
+  // refs without notifying the server. Prior turns remain persisted in the
+  // backend conversation store — this is intentional, the user is starting
+  // a NEW client-side thread, not deleting history. The conversation cookie
+  // is dropped client-side (httpOnly=false per Decision 28) so a subsequent
+  // page reload does NOT re-fetch the prior thread.
+  const startNewConversation = useCallback((): void => {
+    // Bump the generation token BEFORE we abort so any pending
+    // setState calls inside an in-flight sendMessage that resume after
+    // the abort observe a stale generation and skip the mutation.
+    turnGenerationRef.current += 1;
+    if (turnControllerRef.current) {
+      turnControllerRef.current.abort();
+      turnControllerRef.current = null;
     }
+    clearConversationCookieClient();
+    setMessages([]);
+    setState("empty");
+    lastEventIdRef.current = undefined;
+    consecutiveFailuresRef.current = 0;
+    inFlightAssistantIndexRef.current = -1;
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory };
+  return {
+    state,
+    messages,
+    historyLoading,
+    sendMessage,
+    startNewConversation,
+  };
 };

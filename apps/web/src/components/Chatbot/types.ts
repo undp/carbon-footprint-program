@@ -1,3 +1,5 @@
+import type { SourceCitationWire } from "@repo/types";
+
 export type ChatbotState =
   | "empty"
   | "loading"
@@ -11,6 +13,7 @@ export type ChatbotMessage = {
   role: "user" | "assistant";
   content: string;
   truncated?: boolean;
+  sourcesCited?: SourceCitationWire[];
 };
 
 export type SendMessageResult =
