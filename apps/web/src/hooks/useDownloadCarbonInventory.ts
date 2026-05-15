@@ -182,7 +182,6 @@ export function useDownloadCarbonInventory() {
 
         enqueueSnackbar("Huella descargada", { variant: "success" });
       } catch (error) {
-        controller.abort();
         if (error instanceof FileFetchError) {
           enqueueSnackbar(FILE_FETCH_ERROR, { variant: "error" });
         } else {
