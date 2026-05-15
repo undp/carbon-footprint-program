@@ -16,7 +16,8 @@ const NUM_FMT_DECIMAL = "#,##0.00";
 function buildSummarySheet(
   workbook: ExcelJS.Workbook,
   summaryData: GetEmissionsDetailedSummaryResponse,
-  year: number | null
+  year: number | null,
+  attachmentCount: number
 ) {
   const worksheet = workbook.addWorksheet("Resumen");
 
@@ -42,6 +43,7 @@ function buildSummarySheet(
           : null
       ),
     ],
+    ["Archivo adjuntos", attachmentCount],
   ];
 
   for (const [label, value] of attributes) {
@@ -208,10 +210,11 @@ function buildFactorsSheet(
 export async function buildCarbonInventoryWorkbook(
   year: number | null,
   summaryData: GetEmissionsDetailedSummaryResponse,
-  factorsData: GetEmissionFactorsResponse
+  factorsData: GetEmissionFactorsResponse,
+  attachmentCount: number
 ): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
-  buildSummarySheet(workbook, summaryData, year);
+  buildSummarySheet(workbook, summaryData, year, attachmentCount);
   buildDetailTableSheet(workbook, summaryData);
   buildFactorsSheet(workbook, factorsData);
   return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
@@ -221,12 +224,14 @@ export async function exportCarbonInventoryToExcel(
   inventoryName: string | null,
   year: number | null,
   summaryData: GetEmissionsDetailedSummaryResponse,
-  factorsData: GetEmissionFactorsResponse
+  factorsData: GetEmissionFactorsResponse,
+  attachmentCount: number
 ) {
   const buffer = await buildCarbonInventoryWorkbook(
     year,
     summaryData,
-    factorsData
+    factorsData,
+    attachmentCount
   );
   const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
   const yearSuffix = year != null ? `-${year}` : "";

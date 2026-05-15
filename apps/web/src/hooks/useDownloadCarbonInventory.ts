@@ -114,7 +114,12 @@ export function useDownloadCarbonInventory() {
           ]);
 
         const [summaryBuffer, methodologyBuffer] = await Promise.all([
-          buildCarbonInventoryWorkbook(year, summaryData, factorsData),
+          buildCarbonInventoryWorkbook(
+            year,
+            summaryData,
+            factorsData,
+            manifest.files.length
+          ),
           buildMethodologyWorkbook(methodology),
         ]);
 
