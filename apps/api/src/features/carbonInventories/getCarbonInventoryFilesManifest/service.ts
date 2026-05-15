@@ -66,8 +66,9 @@ export const getCarbonInventoryFilesManifestService = async (
     CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES
   );
 
-  const expectedPrefix =
-    buildCarbonInventoryLineBlobPathPrefix(carbonInventoryId);
+  const expectedPrefix = buildCarbonInventoryLineBlobPathPrefix(
+    BigInt(carbonInventoryId).toString()
+  );
 
   const files: GetCarbonInventoryFilesManifestResponse["files"] = [];
   let latestExpiresAt: Date | null = null;
