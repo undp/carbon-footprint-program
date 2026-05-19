@@ -85,21 +85,28 @@ dig <custom-domain> CNAME +short
 GoDaddy DNS no soporta `ALIAS`/`ANAME`, por lo que el apex requiere validación TXT + registro A apuntando a la IP de Azure.
 
 1. Iniciar primero el alta del custom domain en Azure (paso 3 abajo) para obtener el token TXT y la IP destino.
-2. En GoDaddy (**Domain** → pestaña **DNS** → **DNS Records**), usar **Add New Record**:
-   - **Add New Record**:
-     - **Type**: `TXT`
-     - **Name**: `@`
-     - **Value**: token de validación entregado por Azure
-     - **TTL**: 1 Hour
-   - Borrar el A record existente `@` (apunta al parking GoDaddy).
-   - **Add New Record**: - **Type**: `A` - **Name**: `@` - **Value**: IP entregada por Azure - **TTL**: 1 Hour
-     Para redirigir `www` al apex (opcional pero recomendado):
+2. En GoDaddy (**Domain** → pestaña **DNS** → **DNS Records**):
 
-- **Add New Record**:
-  - **Type**: `CNAME`
-  - **Name**: `www`
-  - **Value**: `<root-domain>`
-- Agregar `www.<root-domain>` como segundo custom domain en el Static Web App (mismo flujo subdominio).
+   a. **Add New Record** — TXT de validación:
+   - **Type**: `TXT`
+   - **Name**: `@`
+   - **Value**: token de validación entregado por Azure
+   - **TTL**: 1 Hour
+
+   b. Borrar el A record existente `@` (apunta al parking GoDaddy).
+
+   c. **Add New Record** — A apuntando a Azure:
+   - **Type**: `A`
+   - **Name**: `@`
+   - **Value**: IP entregada por Azure
+   - **TTL**: 1 Hour
+
+3. (Opcional pero recomendado) Redirigir `www` al apex:
+   - **Add New Record**:
+     - **Type**: `CNAME`
+     - **Name**: `www`
+     - **Value**: `<root-domain>`
+   - Agregar `www.<root-domain>` como segundo custom domain en el Static Web App (mismo flujo subdominio).
 
 ### 3. Agregar el custom domain en el portal Azure
 
@@ -191,15 +198,15 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 
 `FRONT_DOOR_CUSTOM_DOMAIN` y `VITE_FRONT_BASE_URL` cumplen roles distintos y no son intercambiables:
 
-- **`FRONT_DOOR_CUSTOM_DOMAIN`**: lo consume **bicep** (`deploy.sh`) para crear el recurso `customDomain` en Front Door y para setear `allowedOrigin` (plataforma CORS + `ALLOWED_ORIGIN` del API). Solo aplica en Ruta B.
+- **`FRONT_DOOR_CUSTOM_DOMAIN`**: lo consume **bicep** (`deploy.sh`) para crear el recurso `customDomain` en Front Door y para derivar la variable local `allowedOrigin` (ver `infra/main.bicep:221`), que bicep aplica al App Service del API en dos lugares: `siteConfig.cors.allowedOrigins` (plataforma) y el app setting `ALLOWED_ORIGIN` (Fastify). Solo aplica en Ruta B.
 - **`VITE_FRONT_BASE_URL`**: lo consumen **`deploy-web.sh`** (build time del bundle Vite, redirect URIs MSAL) y **`deploy-api.sh`** (sincroniza `ALLOWED_ORIGIN` del contenedor Fastify si se re-corre standalone).
 
-| Ruta                                | `FRONT_DOOR_CUSTOM_DOMAIN` | `VITE_FRONT_BASE_URL`                                                                                                              |
-| ----------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **A** (custom domain directo a SWA) | No aplica                  | **Obligatorio** — bicep no expone el dominio custom como output, así que `deploy-web.sh` y `deploy-api.sh` necesitan el override.  |
-| **B** (Front Door + custom domain)  | **Obligatorio**            | **Opcional** — `deploy-web.sh` lo autoresuelve desde el output `frontDoorCustomDomain` y bicep ya dejó CORS/`ALLOWED_ORIGIN` bien. |
+| Ruta                                | `FRONT_DOOR_CUSTOM_DOMAIN` | `VITE_FRONT_BASE_URL`                                                                                                                                                                                                              |
+| ----------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** (custom domain directo a SWA) | No aplica                  | **Requerido para que el bundle apunte al dominio custom.** Sin override, `deploy-web.sh` cae al hostname default del SWA (`*.azurestaticapps.net`): el deploy corre, pero el login Microsoft rompe en el dominio custom.           |
+| **B** (Front Door + custom domain)  | **Obligatorio**            | **Opcional** si solo corres `deploy.sh` + `deploy-web.sh` (autoresuelto desde el output `frontDoorCustomDomain`, y bicep ya dejó CORS/`ALLOWED_ORIGIN`). **Requerido** si vas a re-correr `deploy-api.sh` standalone — ver nota ↓. |
 
-> En Ruta B, exportar `VITE_FRONT_BASE_URL` igual no rompe nada (gana el override) y es útil si vas a re-correr `deploy-api.sh` standalone sin re-correr `deploy.sh`.
+> **Nota Ruta B + `deploy-api.sh` standalone**: el script solo escribe `ALLOWED_ORIGIN` cuando `VITE_FRONT_BASE_URL` está exportado. Si lo corres sin exportarlo, `ALLOWED_ORIGIN` queda con el último valor que escribió bicep (correcto post-`deploy.sh`, pero puede haber sido pisado por otra ejecución). Exportarlo explícitamente cierra esa puerta.
 
 ### Checklist (orden recomendado)
 
