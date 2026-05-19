@@ -232,7 +232,30 @@ fi
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
-export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+
+# Resolve frontend base URL (used by Vite build for redirect URIs, etc.)
+# Priority:
+#   1. Explicit VITE_FRONT_BASE_URL from .envrc (user-set custom domain).
+#   2. Front Door custom domain from stack outputs (if Front Door + custom domain are deployed).
+#   3. Static Web App default hostname (fallback for plain deployments).
+if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
+  log "${GREEN}   ✓ Using existing VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}${NC}"
+else
+  FRONTDOOR_CUSTOM_DOMAIN_BUILD=$(az stack group show \
+    --name "$STACK_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query outputs.frontDoorCustomDomain.value \
+    --output tsv 2>/dev/null || echo "")
+
+  if [ -n "$FRONTDOOR_CUSTOM_DOMAIN_BUILD" ]; then
+    export VITE_FRONT_BASE_URL="https://$FRONTDOOR_CUSTOM_DOMAIN_BUILD"
+    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Front Door custom domain: ${VITE_FRONT_BASE_URL}${NC}"
+  else
+    export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
+  fi
+fi
+
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
 if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
   export VITE_IS_DEMO_APP
