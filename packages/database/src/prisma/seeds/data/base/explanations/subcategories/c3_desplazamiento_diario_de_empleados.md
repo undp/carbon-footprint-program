@@ -2,7 +2,7 @@
 
 Esta sub-categoría incluye las emisiones asociadas al **traslado cotidiano de los empleados entre su hogar y el lugar de trabajo (commuting)**.
 
-Cubre todos los modos de transporte que usan los empleados, con desglose de **Tipo de transporte** y, cuando aplica, **Variante** de combustible:
+Cubre todos los modos de transporte que usan los empleados, con desglose de **Tipo** y, cuando aplica, **Combustible**:
 
 - 🚗 **Auto** (Gasolina, Diésel, Eléctrico, Híbrido)
 - 🏍️ **Moto** (Gasolina, Eléctrico)
@@ -33,30 +33,30 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, tu empresa probablem
 
 ## ¿Cómo es el cálculo de emisiones?
 
-La plataforma trabaja con **cantidades agregadas a nivel organización**, no por empleado individual. Para cada combinación de **Tipo × Variante** usada por tu equipo, suma el total anual de km y se multiplica por el factor correspondiente:
+La plataforma trabaja con **cantidades agregadas a nivel organización**, no por empleado individual. Para cada combinación de **Tipo × Combustible** usada por tu equipo, suma el total anual de km y se multiplica por el factor correspondiente:
 
-> $CO_2e$ = $Distancia\ anual\ agregada\ (km) \times Factor\ por\ Tipo\ y\ Variante\ (kg\ CO_2e/km)$
+> $CO_2e$ = $Distancia\ anual\ agregada\ (km) \times Factor\ por\ Tipo\ y\ Combustible\ (kg\ CO_2e/km)$
 
 Factores referenciales (DEFRA 2025):
 
-| Tipo                 | Variante  | Factor (kg CO₂e/km) |
-| :------------------- | :-------- | ------------------: |
-| Auto                 | Gasolina  |               0.173 |
-| Auto                 | Diésel    |               0.166 |
-| Auto                 | Eléctrico |               0.047 |
-| Auto                 | Híbrido   |               0.110 |
-| Moto                 | Gasolina  |               0.114 |
-| Moto                 | Eléctrico |               0.030 |
-| Bus urbano           | No aplica |               0.117 |
-| Bus interurbano      | No aplica |               0.027 |
-| Metro                | No aplica |               0.041 |
-| Tren cercanías       | No aplica |               0.035 |
-| Tren larga distancia | No aplica |               0.035 |
-| Taxi/Ride-share      | Gasolina  |               0.149 |
-| Taxi/Ride-share      | Eléctrico |               0.060 |
-| Taxi/Ride-share      | Híbrido   |               0.110 |
-| Bici                 | No aplica |               0.000 |
-| Caminata             | No aplica |               0.000 |
+| Tipo                 | Combustible | Factor (kg CO₂e/km) |
+| :------------------- | :---------- | ------------------: |
+| Auto                 | Gasolina    |               0.173 |
+| Auto                 | Diésel      |               0.166 |
+| Auto                 | Eléctrico   |               0.047 |
+| Auto                 | Híbrido     |               0.110 |
+| Moto                 | Gasolina    |               0.114 |
+| Moto                 | Eléctrico   |               0.030 |
+| Bus urbano           | No aplica   |               0.117 |
+| Bus interurbano      | No aplica   |               0.027 |
+| Metro                | No aplica   |               0.041 |
+| Tren cercanías       | No aplica   |               0.035 |
+| Tren larga distancia | No aplica   |               0.035 |
+| Taxi/Ride-share      | Gasolina    |               0.149 |
+| Taxi/Ride-share      | Eléctrico   |               0.060 |
+| Taxi/Ride-share      | Híbrido     |               0.110 |
+| Bici                 | No aplica   |               0.000 |
+| Caminata             | No aplica   |               0.000 |
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -104,14 +104,14 @@ La distancia promedio al trabajo en grandes ciudades de la región suele estar e
 
 ### 4️⃣ Ingreso de la información
 
-Por cada combinación de **Tipo × Variante** que aplique a tu equipo, agrega una línea con:
+Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega una línea con:
 
-| Campo    | Qué debes ingresar                             |       Ejemplo |
-| :------- | :--------------------------------------------- | ------------: |
-| Tipo     | Modo de transporte                             |          Auto |
-| Variante | Combustible o variante (o "No aplica")         |      Gasolina |
-| Unidad   | km                                             |            km |
-| Cantidad | Total anual agregado de la flota laboral en km | 72.000 km/año |
+| Campo       | Qué debes ingresar                             |       Ejemplo |
+| :---------- | :--------------------------------------------- | ------------: |
+| Tipo        | Modo de transporte                             |          Auto |
+| Combustible | Combustible o variante (o "No aplica")         |      Gasolina |
+| Unidad      | km                                             |            km |
+| Cantidad    | Total anual agregado de la flota laboral en km | 72.000 km/año |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**, salvo que uses factores propios.
 

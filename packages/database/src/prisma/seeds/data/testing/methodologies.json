@@ -2582,7 +2582,7 @@
             "emissionFactorDimensions": [
               {
                 "code": "Desplazamiento diario de empleados_Tipo",
-                "name": "Tipo de transporte",
+                "name": "Tipo",
                 "position": 1,
                 "isRequired": true,
                 "values": [
@@ -2599,7 +2599,7 @@
                 ]
               },
               {
-                "code": "Desplazamiento diario de empleados_Variante",
+                "code": "Desplazamiento diario de empleados_Combustible",
                 "name": "Combustible",
                 "position": 2,
                 "isRequired": true,
@@ -2619,7 +2619,7 @@
                   "valueName": "Auto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2632,7 +2632,7 @@
                   "valueName": "Auto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Diésel"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2645,7 +2645,7 @@
                   "valueName": "Auto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2658,7 +2658,7 @@
                   "valueName": "Auto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Híbrido"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2671,7 +2671,7 @@
                   "valueName": "Moto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2684,7 +2684,7 @@
                   "valueName": "Moto"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2697,7 +2697,7 @@
                   "valueName": "Bus urbano"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2710,7 +2710,7 @@
                   "valueName": "Bus interurbano"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2723,7 +2723,7 @@
                   "valueName": "Metro"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2736,7 +2736,7 @@
                   "valueName": "Tren cercanías"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2749,7 +2749,7 @@
                   "valueName": "Tren larga distancia"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2762,7 +2762,7 @@
                   "valueName": "Taxi/Ride-share"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2775,7 +2775,7 @@
                   "valueName": "Taxi/Ride-share"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2788,7 +2788,7 @@
                   "valueName": "Taxi/Ride-share"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "Híbrido"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2801,7 +2801,7 @@
                   "valueName": "Bici"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
@@ -2814,7 +2814,7 @@
                   "valueName": "Caminata"
                 },
                 "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Variante",
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
