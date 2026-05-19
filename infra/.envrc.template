@@ -47,6 +47,8 @@ export DRY_RUN="false"
 #   - VITE_API_BASE_URL   → API App Service URL + "/api".
 # Override only when pointing to a custom domain that is NOT exposed via the bicep stack outputs
 # (e.g. Static Web App with custom domain but no Front Door).
-# deploy-api.sh sets ALLOWED_ORIGIN to the same value when deploying the API.
+# deploy-api.sh sets ALLOWED_ORIGIN (Fastify) to the same value when deploying the API.
+# You must ALSO add this origin in Azure Portal → App Service (API) → API → CORS (platform layer).
+# See custom_domain.md §3b.
 # export VITE_FRONT_BASE_URL="https://app.huella-test.com"
 # export VITE_API_BASE_URL="https://api.huella-test.com/api"
