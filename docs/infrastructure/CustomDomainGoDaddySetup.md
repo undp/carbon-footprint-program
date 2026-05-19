@@ -227,7 +227,7 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
 
 > ⚠️ No uses `https://<custom-domain>/` (con `/` final) en `.envrc` ni en Entra. Si `VITE_FRONT_BASE_URL` termina en `/`, el redirect queda como `https://<custom-domain>//app/home` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
 > Si previamente había URIs de un dominio temporal (ej. `*.azurestaticapps.net`) y ya no se usan, borrarlas para reducir superficie.
-> Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./docs/infrastructure/MSAL-EasyAuth-Setup.md).
+> Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md).
 
 ### 2. Rebuildear el frontend con las nuevas URLs
 
@@ -255,7 +255,7 @@ Re-ejecutar `infra/deploy-web.sh` para rebuildear y subir el bundle al Static We
 - `VITE_API_BASE_URL=...` apuntando al App Service correcto del entorno
 - `VITE_AZURE_FRONT_CLIENT_ID` / `VITE_AZURE_API_CLIENT_ID` / `VITE_AZURE_AUTH_AUTHORITY` del tenant esperado
 
-> Detalle de `VITE_API_BASE_URL`: [`docs/infrastructure/StaticWebAppDeployment.md`](./docs/infrastructure/StaticWebAppDeployment.md#variables-de-entorno).
+> Detalle de `VITE_API_BASE_URL`: [`docs/infrastructure/StaticWebAppDeployment.md`](./StaticWebAppDeployment.md#variables-de-entorno).
 
 ### 3. CORS del API (dos capas)
 
@@ -308,7 +308,7 @@ Este ajuste es el que suele faltar si solo corriste `deploy-api.sh`: actualiza F
 
 Si el API usa `AUTH_PROVIDER=easy-auth` (default cuando `enableAzureAuth=true` en bicep), el frontend envía `Authorization: Bearer` y Azure debe validar el token e inyectar `X-MS-CLIENT-PRINCIPAL`. Eso se configura en el **mismo** App Service del API, no en `deploy-web` ni `deploy-api`.
 
-Seguir [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./docs/infrastructure/MSAL-EasyAuth-Setup.md) (Step 6 para tenant CIAM / Step 7 para organizational): proveedor Microsoft, issuer CIAM, client ID del API, audience, frontend en "allowed client applications", _Allow unauthenticated access_, token store habilitado.
+Seguir [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md) (Step 6 para tenant CIAM / Step 7 para organizational): proveedor Microsoft, issuer CIAM, client ID del API, audience, frontend en "allowed client applications", _Allow unauthenticated access_, token store habilitado.
 
 **Síntoma si falta o está mal:** log `Missing X-MS-CLIENT-PRINCIPAL header`, `GET /api/users/me` → 401, toast _"Ocurrió un problema al iniciar sesión"_ después de un login Microsoft exitoso (MSAL OK, falla `/users/me`).
 
