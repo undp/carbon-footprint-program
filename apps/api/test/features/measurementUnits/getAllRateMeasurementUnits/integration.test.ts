@@ -104,7 +104,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         "kg por megawatt",
         "kg por kilowatt",
         "kg por gigajoule",
-        "kg por kiloómetro-hora",
+        "kg por kilómetro-tonelada",
         "kg por pieza arrendada",
       ];
 
