@@ -44,43 +44,157 @@ Se corrigieron las **7 inconsistencias críticas de valor** identificadas en la 
 
 ## Detalle por corrección
 
+### Fórmula base y supuestos compartidos (Correcciones 1–4)
+
+Las cuatro correcciones de Ganadería aplican la **metodología Tier 1 del IPCC 2006, Volumen 4 (AFOLU), Capítulo 10** (Emissions from Livestock and Manure Management).
+
+**Fórmula general:**
+
+```
+CO₂e [kg / cabeza / año] = ( EF_entérico  +  EF_estiércol ) × GWP_CH₄
+
+donde:
+  EF_entérico  = factor de emisión de CH₄ por fermentación entérica
+                 (digestión anaerobia en el rumen / tracto digestivo del animal)
+                 [kg CH₄ / cabeza / año]
+                 fuente: IPCC 2006 Tabla 10.10 (no-cattle) ó Tabla 10.11 (cattle)
+
+  EF_estiércol = factor de emisión de CH₄ por gestión del estiércol
+                 (descomposición anaerobia del estiércol almacenado / aplicado)
+                 [kg CH₄ / cabeza / año]
+                 fuente: IPCC 2006 Tabla 10.14 (mamíferos) ó Tabla 10.15 (aves)
+
+  GWP_CH₄      = 30  (potencial de calentamiento global del metano a 100 años)
+```
+
+**¿Qué representa cada componente?**
+
+- **EF entérico** captura el CH₄ producido por microorganismos en el sistema digestivo del animal — predominante en rumiantes (vacas, ovejas, cabras, camélidos) y bajo/nulo en monogástricos (cerdos, aves).
+- **EF estiércol** captura el CH₄ producido por descomposición anaerobia del estiércol durante almacenamiento (lagunas, fosas) o aplicación al suelo. Depende del clima (templado/tropical), tipo de sistema (sólido/líquido) y especie.
+- **GWP_CH₄ = 30** corresponde al valor de **AR5 con climate-carbon feedback** (Myhre et al. 2013, IPCC). Se eligió este valor para preservar la consistencia interna con el seed original (el valor previo de "Vacas lecheras" 1710 = 57×30 implicaba este GWP). _Caveat:_ DEFRA UK usa AR5 sin feedback (CH₄ = 28). La unificación a AR5 sin feedback queda como hallazgo estructural pendiente y reajustaría ligeramente todos los valores de esta subcategoría (×28/30 ≈ −6.7%).
+
+**Supuestos compartidos por las 4 correcciones:**
+
+1. **Región climática = Latinoamérica (LAC) / Developing Countries — Temperate.** El IPCC publica factores por zona climática. Se elige la fila explícita "Latin America" cuando existe (Tabla 10.11 cattle, Tabla 10.14 cattle manure) y "Developing Countries — Temperate" como fallback (Tabla 10.10 small ruminants, Tabla 10.15 poultry). Justificación: la plataforma se distribuye a países de LATAM, y dentro de LATAM la mayoría de la masa ganadera está en zonas templadas o subtropicales. Países tropicales puros (Amazonía, Centroamérica baja) deberían sobrescribir con factores zonificados localmente.
+2. **Tier 1, no Tier 2.** No se aplican ajustes por peso vivo individual, dieta, productividad lechera, ni edad. Tier 1 usa factores promedio por categoría animal. Justificación: la plataforma es una herramienta de huella corporativa con datos agregados (cabezas totales), no un inventario nacional desagregado.
+3. **Suma de entérico + estiércol antes de multiplicar por GWP** (no GWP separados). Ambos componentes son CH₄, por lo que tienen el mismo GWP y se pueden sumar en masa antes de la conversión a CO₂e.
+4. **No se aplica componente de N₂O del estiércol.** IPCC Vol.4 Cap.10.5 publica N₂O directo/indirecto del estiércol como cálculo separado. El seed original no lo incluía y se mantiene esa decisión para no introducir un cambio de alcance; queda como hallazgo pendiente para una iteración más exhaustiva.
+
+**Prioridad de fuentes:** IPCC 2006 manda en todas estas correcciones. DEFRA UK no publica factores ganaderos por cabeza animal (DEFRA solo publica emisiones por producto consumido — leche, carne — bajo enfoque de cadena de suministro, no Scope 1 directo del productor).
+
+---
+
 ### Corrección 1 — Cabras: 35.17 → 155.1 kg CO₂e/cab/yr
 
-- **Diagnóstico de la auditoría:** el valor 35.17 corresponde literalmente a la **suma** 5.17 + 30, no a la multiplicación 5.17 × 30 que prescribe la metodología (CH₄ entérico + manure × GWP).
-- **Cálculo correcto:**
-  - Entérico (IPCC 2006 Tabla 10.10, Goats, Developing countries) = 5 kg CH₄/cab/yr.
-  - Manure (Tabla 10.14, LAC) = 0.17 kg CH₄/cab/yr.
-  - Total CH₄ = 5.17 kg CH₄/cab/yr.
-  - CO₂e = 5.17 × **30** = **155.1 kg CO₂e/cab/yr** (GWP CH₄ con feedback, AR5; mismo GWP usado por el resto de la subcategoría Ganadería, para mantener consistencia interna).
-- **Prioridad de fuentes:** IPCC manda — DEFRA no publica factores para ganadería.
+**Diagnóstico (bug aritmético):** el valor 35.17 corresponde literalmente a la **suma** `5.17 + 30 = 35.17`. Se usó el operador `+` donde la fórmula prescribe `×`. Es decir, el valor original sumó el GWP al CH₄ total en lugar de multiplicarlo. Sobreestimación / subestimación dependiendo del factor, pero metodológicamente incorrecto.
+
+**Valores IPCC aplicados:**
+
+| Componente   | Tabla IPCC        | Fila / Columna                | Valor                  |
+| ------------ | ----------------- | ----------------------------- | ---------------------- |
+| EF entérico  | Vol.4 Tabla 10.10 | _Goats, Developing countries_ | **5 kg CH₄/cab/yr**    |
+| EF estiércol | Vol.4 Tabla 10.14 | _Goats, Latin America_        | **0.17 kg CH₄/cab/yr** |
+| Total CH₄    | suma              |                               | **5.17 kg CH₄/cab/yr** |
+
+**Cálculo:**
+
+```
+CO₂e = (5 + 0.17) × 30 = 5.17 × 30 = 155.1 kg CO₂e/cabeza/año
+```
+
+**Por qué este valor:** Cabras son pequeños rumiantes con sistema digestivo similar a ovejas pero menor masa corporal y menor ingesta diaria → factor entérico moderado (5 kg CH₄/yr vs ~8 en ovejas adultas vs 56–72 en vacas). El componente de estiércol es bajo (0.17) porque en sistemas pastoriles típicos de LATAM el estiércol queda disperso en pradera (no en lagunas anaerobias), donde se descompone aerobiamente y emite mínimo CH₄.
+
+**Supuesto específico:** se asume manejo extensivo (pradera). Si el productor confina cabras en establo con manejo líquido de estiércol, el factor real puede ser hasta 3× mayor — el país deberá sobrescribir.
+
+---
 
 ### Corrección 2 — Crianza de aves: 9810 → 0.6 kg CO₂e/cab/yr
 
-- **Diagnóstico:** discrepancia de magnitud 16,350×. Valor original sin justificación documentada.
-- **Cálculo correcto:**
-  - IPCC 2006 Tabla 10.15, columna _Poultry, Developing countries, Temperate_ = 0.02 kg CH₄/cab/yr.
-  - CO₂e = 0.02 × 30 = **0.6 kg CO₂e/cab/yr**.
-- **Prioridad de fuentes:** IPCC (DEFRA no publica factores ganaderos por cabeza).
+**Diagnóstico:** sobrestimación de **16.350×** vs IPCC Tier 1. El valor original 9810 no tiene base documentada (no corresponde a IPCC, DEFRA, ni a ninguna metodología nacional conocida). Para contexto: una gallina ponedora de ~2 kg de peso vivo no puede emitir 9.810 kg CO₂e/año — implicaría emisión > 4.900× su peso vivo, biológicamente imposible.
 
-### Corrección 3 — Inversión Vacas lecheras / Vacas de pastoreo
+**Valores IPCC aplicados:**
 
-- **Diagnóstico:** asignación invertida respecto a IPCC 2006 Tabla 10.11 fila Latin America.
-- **Valores correctos (IPCC 2006):**
-  - Dairy + manure LAC = 72 + 1 = **73 kg CH₄/cab/yr** → "Vacas lecheras".
-  - Other Cattle + manure LAC = 56 + 1 = **57 kg CH₄/cab/yr** → "Vacas de pastoreo".
-- **CO₂e con GWP CH₄ = 30:**
-  - Vacas lecheras = 73 × 30 = **2190 kg CO₂e/cab/yr**.
-  - Vacas de pastoreo = 57 × 30 = **1710 kg CO₂e/cab/yr**.
-- **Acción:** intercambio de valores entre los dos items (sin renombrar dimensiones).
-- **Prioridad de fuentes:** IPCC.
+| Componente   | Tabla IPCC        | Fila / Columna                             | Valor                  |
+| ------------ | ----------------- | ------------------------------------------ | ---------------------- |
+| EF entérico  | —                 | (no aplica para aves)                      | **0 kg CH₄/cab/yr**    |
+| EF estiércol | Vol.4 Tabla 10.15 | _Poultry, Developing countries, Temperate_ | **0.02 kg CH₄/cab/yr** |
+| Total CH₄    | suma              |                                            | **0.02 kg CH₄/cab/yr** |
+
+**Cálculo:**
+
+```
+CO₂e = (0 + 0.02) × 30 = 0.02 × 30 = 0.6 kg CO₂e/cabeza/año
+```
+
+**Por qué este valor:**
+
+- **EF entérico = 0** porque las aves NO son rumiantes: su tracto digestivo no fermenta anaerobiamente, no producen CH₄ entérico significativo. IPCC explícitamente no publica factor entérico para poultry.
+- **EF estiércol = 0.02** porque el estiércol de aves (gallinaza) en clima templado se gestiona típicamente seco — fermentación anaerobia mínima → poco CH₄. En clima tropical con manejo líquido el factor puede subir a 0.117 (factor "Developing — Warm" de la misma tabla), pero se elige Temperate como default LATAM.
+
+**Supuesto específico:** el item "Crianza de aves" no distingue entre ponedoras, broilers, o crianza dual. IPCC publica el mismo valor para todas estas categorías en Tier 1 → no hay pérdida de precisión por usar el factor genérico.
+
+---
+
+### Corrección 3 — Inversión Vacas lecheras ↔ Vacas de pastoreo
+
+**Diagnóstico:** asignación invertida respecto a IPCC. El valor original asignaba **2190 a Vacas de pastoreo y 1710 a Vacas lecheras**, cuando en realidad las vacas lecheras emiten MÁS (no menos) que las de pastoreo. Razón biológica: una vaca lechera en producción consume ~22–25 kg de materia seca/día para sostener producción de leche (~20–30 L/día en LATAM), versus ~12–15 kg/día de una vaca de pastoreo en mantenimiento. Mayor ingesta → mayor fermentación entérica → más CH₄.
+
+**Valores IPCC aplicados (Tabla 10.11, fila _Latin America_):**
+
+| Categoría animal                     | EF entérico  | EF estiércol (Tabla 10.14 LAC) | Total CH₄    | × GWP 30                |
+| ------------------------------------ | ------------ | ------------------------------ | ------------ | ----------------------- |
+| **Dairy Cattle** (Vacas lecheras)    | 72 kg CH₄/yr | 1 kg CH₄/yr                    | 73 kg CH₄/yr | **2190 kg CO₂e/cab/yr** |
+| **Other Cattle** (Vacas de pastoreo) | 56 kg CH₄/yr | 1 kg CH₄/yr                    | 57 kg CH₄/yr | **1710 kg CO₂e/cab/yr** |
+
+**Cálculo:**
+
+```
+Vacas lecheras    = (72 + 1) × 30 = 73 × 30 = 2190 kg CO₂e/cab/año
+Vacas de pastoreo = (56 + 1) × 30 = 57 × 30 = 1710 kg CO₂e/cab/año
+```
+
+**Acción aplicada:** intercambio de los dos valores entre los items en el JSON. No se modificó ningún número — solo se corrigió la asignación entre `valueName: "Vacas lecheras"` y `valueName: "Vacas de pastoreo"`. Los labels de las dimensiones se preservaron.
+
+**Por qué estos valores:**
+
+- **EF entérico Dairy (72) > Other Cattle (56)** refleja la ingesta diaria significativamente mayor de vacas en producción láctea. El factor IPCC promedia genéticas y sistemas productivos de LATAM (mayoritariamente cruzas Holstein × cebú en sistemas semi-intensivos).
+- **EF estiércol = 1 kg CH₄/yr** para ambas categorías porque el manejo dominante en LATAM es pastoreo o semi-confinamiento (sólido), no lagunas anaerobias (que multiplicarían el factor por 10–20×). Países con confinamiento intensivo (feedlots Argentina/Brasil) deberían sobrescribir.
+
+**Supuesto específico:** "Vacas de pastoreo" incluye toros, terneros, novillos y vacas adultas no lecheras (la categoría IPCC "Other Cattle" agrupa todos). Si el país requiere desagregar (e.g., diferenciar terneros con factor reducido), debe ampliar la dimensión en su mantenedor.
+
+---
 
 ### Corrección 4 — Camélidos: 1437.6 → 240 kg CO₂e/cab/yr
 
-- **Diagnóstico:** el factor 47.92 kg CH₄/yr corresponde a _Camels_ (dromedarios, ~570 kg de peso vivo) — animal **inexistente comercialmente en Latinoamérica**. Los camélidos sudamericanos son llamas (~130 kg) y alpacas (~65 kg).
-- **Decisión:** se usa el factor **IPCC 2006 Tabla 10.10 _Alpacas_** = 8 kg CH₄/cab/yr × 30 = **240 kg CO₂e/cab/yr**.
-  - IPCC publica explícitamente el valor para Alpacas; para Llamas registra "To be determined". Tomar Alpacas como default es el camino auditable (cualquier escalamiento a Llamas por ratio peso^0.75 sería una estimación derivada sin respaldo IPCC directo).
-- **Caveat:** el _label_ "Camélidos" mantiene su nombre genérico. Una segunda iteración debería desambiguar por especie (Alpacas, Llamas, Vicuñas, Guanacos) — pero excede el alcance "corregir factores uno a uno".
-- **Prioridad de fuentes:** IPCC (DEFRA no aplica).
+**Diagnóstico:** el valor 1437.6 = 47.92 × 30 implica que se usó EF = 47.92 kg CH₄/yr, que corresponde a **Camels** (dromedarios árabes/asiáticos, peso vivo ~570 kg) en Tabla 10.10 — un animal **inexistente comercialmente en Latinoamérica**. Los camélidos sudamericanos son significativamente más pequeños:
+
+| Especie                 | Peso vivo aprox. | EF entérico IPCC publicado           |
+| ----------------------- | ---------------- | ------------------------------------ |
+| **Alpaca**              | ~65 kg           | **8 kg CH₄/yr** (Tabla 10.10)        |
+| **Llama**               | ~130 kg          | "To be determined" (sin valor IPCC)  |
+| **Vicuña** (silvestre)  | ~45 kg           | sin valor IPCC                       |
+| **Guanaco** (silvestre) | ~90 kg           | sin valor IPCC                       |
+| ~~Camel (dromedario)~~  | ~570 kg          | 46–47.92 kg CH₄/yr (no aplica LATAM) |
+
+El factor de emisión escala aproximadamente con el peso vivo elevado a 0.75 (ley alométrica de Kleiber para metabolismo basal). Un Camel pesa ~9× una Alpaca → su factor de CH₄ es ~6× mayor (8 vs 47.92), consistente con la relación alométrica. Aplicar el factor de Camel a alpacas era un error de orden de magnitud.
+
+**Decisión:** usar el factor publicado por IPCC para **Alpacas (Tabla 10.10): EF entérico = 8 kg CH₄/cab/yr** como default. No se incluye EF de estiércol porque IPCC Tabla 10.14 no lista factor de estiércol para camélidos sudamericanos (es despreciable en sistemas pastoriles altoandinos típicos).
+
+**Cálculo:**
+
+```
+CO₂e = 8 × 30 = 240 kg CO₂e/cabeza/año
+```
+
+**Supuestos específicos:**
+
+1. **Se elige Alpaca como proxy de "Camélidos" genérico** porque es el único valor publicado por IPCC para camélidos sudamericanos. Para una huella con mayoría de Llamas, este valor subestima en aprox. ×(130/65)^0.75 ≈ ×1.68 → un país que despliegue para regiones con población mayoritaria de llamas (Bolivia, Perú altiplánico) debería sobrescribir con un factor estimado de ~404 kg CO₂e/cab/yr (240 × 1.68).
+2. **Vicuñas y Guanacos silvestres no aplican** porque son fauna no productiva — no entran en una huella corporativa empresarial.
+3. **Estiércol = 0** asumiendo manejo extensivo en pradera altoandina. Si hubiera manejo concentrado (corrales de esquila, lugares de pernocta) el factor podría subir levemente (~0.1–0.5 kg CH₄/yr), pero IPCC no publica ese componente desagregado para esta especie.
+
+**Caveat de label:** el item se mantiene como "Camélidos" (genérico). Una iteración futura debería desambiguar por especie (Alpaca, Llama, Vicuña, Guanaco) y publicar factor por especie. Esto excede el alcance "corregir factores uno a uno" del presente reporte.
+
+**Prioridad de fuentes:** IPCC 2006 (DEFRA no aplica — no publica factores para camélidos en ninguna versión).
 
 ### Corrección 5 — Cultivo general: omisión de conversión N₂O-N → N₂O
 
