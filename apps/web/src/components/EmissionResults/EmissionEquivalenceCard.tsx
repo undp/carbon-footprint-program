@@ -57,11 +57,11 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         <Box className="flex w-full flex-1 flex-col justify-center pb-3">
           <OverflowTooltipText
             fontWeight="fontWeightBold"
+            noWrap
             sx={{
               color: theme.palette.primary.main,
               fontSize: { md: "3rem", xl: "4rem" },
               lineHeight: 1.2,
-              whiteSpace: "nowrap",
             }}
           >
             {value}
