@@ -731,11 +731,25 @@
                   {
                     "name": "Combustible de aviación",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Electricidad",
+                    "parentValue": null
                   }
                 ]
               }
             ],
             "emissionFactors": [
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.177
+              },
               {
                 "dimensionValue1": null,
                 "dimensionValue2": {

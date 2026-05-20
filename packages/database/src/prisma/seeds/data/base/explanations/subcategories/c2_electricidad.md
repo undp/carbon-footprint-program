@@ -165,4 +165,5 @@ Si el factor está en **kg CO₂e por kWh**, el consumo debe estar en **kWh**.
 > - Declara solo electricidad comprada a un proveedor externo
 > - No incluyas autogeneración
 > - La energía renovable comprada también debe declararse
+> - **Vehículos eléctricos (BEVs)** cargados en sedes de la empresa (con la electricidad pasando por tu medidor) se incluyen acá; si se cargan externamente en electrolineras pagadas por la empresa, se declaran en **Combustiones móviles (Alcance 1)** con combustible "Electricidad"
 > - Guarda facturas y certificados como respaldo para auditorías o verificaciones externas
