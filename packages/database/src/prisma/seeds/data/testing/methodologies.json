@@ -656,7 +656,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Hexafloruro de azufre",
+                    "name": "Hexafluoruro de azufre",
                     "parentValue": null
                   },
                   {
@@ -700,7 +700,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "HFC-235cb",
+                    "name": "HFC-236cb",
                     "parentValue": null
                   },
                   {
@@ -744,7 +744,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Perfloruro ciclopropano",
+                    "name": "Perfluorociclopropano",
                     "parentValue": null
                   },
                   {
@@ -780,7 +780,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Trifloruro de nitrogeno",
+                    "name": "Trifluoruro de nitrógeno",
                     "parentValue": null
                   }
                 ]
@@ -800,7 +800,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones fugitivas_Gas",
-                  "valueName": "Hexafloruro de azufre"
+                  "valueName": "Hexafluoruro de azufre"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -910,7 +910,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones fugitivas_Gas",
-                  "valueName": "HFC-235cb"
+                  "valueName": "HFC-236cb"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -1020,7 +1020,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones fugitivas_Gas",
-                  "valueName": "Perfloruro ciclopropano"
+                  "valueName": "Perfluorociclopropano"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -1110,7 +1110,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones fugitivas_Gas",
-                  "valueName": "Trifloruro de nitrogeno"
+                  "valueName": "Trifluoruro de nitrógeno"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -1148,7 +1148,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Buffalos",
+                    "name": "Búfalos",
                     "parentValue": null
                   },
                   {
@@ -1182,7 +1182,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
-                  "valueName": "Buffalos"
+                  "valueName": "Búfalos"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
@@ -1358,7 +1358,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Potacio (K2O)",
+                    "name": "Potasio (K2O)",
                     "parentValue": null
                   }
                 ]
@@ -1388,7 +1388,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
-                  "valueName": "Potacio (K2O)"
+                  "valueName": "Potasio (K2O)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -1514,7 +1514,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Vidrio de iluminaria (Ampolletas, bombillas, etc)",
+                    "name": "Vidrio de iluminación (Ampolletas, bombillas, etc)",
                     "parentValue": null
                   },
                   {
@@ -1566,7 +1566,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio de iluminaria (Ampolletas, bombillas, etc)"
+                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
@@ -2589,7 +2589,7 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Brazil",
+                    "name": "Brasil",
                     "parentValue": null
                   },
                   {
@@ -2691,7 +2691,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Viajes de negocios - Estadía_País",
-                  "valueName": "Brazil"
+                  "valueName": "Brasil"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/pieza arre",
