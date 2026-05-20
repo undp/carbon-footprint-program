@@ -4,7 +4,7 @@ interface ConfirmConfig {
   title: string;
   message: string;
   description?: string;
-  variant?: "warning" | "error" | "info" | "success" | "primary";
+  variant?: "warning" | "error" | "primary";
   confirmLabel?: string;
   cancelLabel?: string;
 }
@@ -19,7 +19,7 @@ interface ConfirmDialogState {
   description?: string;
 
   // Config state
-  variant: "warning" | "error" | "info" | "success" | "primary";
+  variant: "warning" | "error" | "primary";
   confirmLabel?: string;
   cancelLabel?: string;
 
