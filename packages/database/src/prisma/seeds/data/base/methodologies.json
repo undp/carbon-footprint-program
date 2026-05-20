@@ -2805,12 +2805,304 @@
             "icon": "FACTORY"
           },
           {
-            "name": "Desplazamiento diario de empleados y trabajo remoto",
-            "description": "Emisiones asociadas al traslado cotidiano y al trabajo desde el hogar de los empleados de tu empresa. Incluye los viajes diarios de los empleados entre su hogar y el lugar de trabajo, así como el consumo energético asociado al teletrabajo.",
-            "emissionFactorDimensions": [],
-            "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": [],
-            "icon": "FACTORY"
+            "name": "Desplazamiento diario de empleados",
+            "description": "Emisiones asociadas al traslado cotidiano de los empleados entre su hogar y el lugar de trabajo (commuting).",
+            "emissionFactorDimensions": [
+              {
+                "code": "Desplazamiento diario de empleados_Tipo",
+                "name": "Tipo",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  { "name": "Auto", "parentValue": null },
+                  { "name": "Moto", "parentValue": null },
+                  { "name": "Bus urbano", "parentValue": null },
+                  { "name": "Bus interurbano", "parentValue": null },
+                  { "name": "Metro", "parentValue": null },
+                  { "name": "Tren cercanías", "parentValue": null },
+                  { "name": "Tren larga distancia", "parentValue": null },
+                  { "name": "Taxi/Ride-share", "parentValue": null },
+                  { "name": "Bici", "parentValue": null },
+                  { "name": "Caminata", "parentValue": null }
+                ]
+              },
+              {
+                "code": "Desplazamiento diario de empleados_Combustible",
+                "name": "Combustible",
+                "position": 2,
+                "isRequired": true,
+                "values": [
+                  { "name": "Gasolina", "parentValue": null },
+                  { "name": "Diésel", "parentValue": null },
+                  { "name": "Eléctrico", "parentValue": null },
+                  { "name": "Híbrido", "parentValue": null },
+                  { "name": "No aplica", "parentValue": null }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.173
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.166
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.047
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Híbrido"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.11
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Moto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.114
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Moto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.03
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bus urbano"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.117
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bus interurbano"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.027
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Metro"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.041
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Tren cercanías"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.035
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Tren larga distancia"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.035
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.149
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.06
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Híbrido"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.11
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bici"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Caminata"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.0
+              }
+            ],
+            "allowedMeasurementUnitsAbbreviations": ["km"],
+            "icon": "CAR"
+          },
+          {
+            "name": "Trabajo remoto de empleados",
+            "description": "Emisiones asociadas al consumo energético del hogar atribuible a las horas de trabajo remoto (teletrabajo).",
+            "emissionFactorDimensions": [
+              {
+                "code": "Trabajo remoto de empleados_Componente",
+                "name": "Componente",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  { "name": "Equipo de oficina", "parentValue": null },
+                  { "name": "Calefacción", "parentValue": null },
+                  { "name": "Refrigeración", "parentValue": null }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Equipo de oficina"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "value": 0.057
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Calefacción"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "value": 0.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Refrigeración"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "value": 0.122
+              }
+            ],
+            "allowedMeasurementUnitsAbbreviations": ["h"],
+            "icon": "BOLT"
           },
           {
             "name": "Viajes de negocios - Estadía",
