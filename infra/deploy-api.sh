@@ -92,10 +92,22 @@ az resource update \
   --set properties.acrUseManagedIdentityCreds=true >/dev/null
 
 log "Setting app settings..."
+APP_SETTINGS=(
+  "WEBSITES_PORT=$API_PORT"
+  "APP_VERSION=${APP_VERSION:-unknown}"
+)
+
+if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
+  APP_SETTINGS+=("ALLOWED_ORIGIN=$VITE_FRONT_BASE_URL")
+  log "Setting ALLOWED_ORIGIN from VITE_FRONT_BASE_URL: $VITE_FRONT_BASE_URL"
+else
+  log "VITE_FRONT_BASE_URL not set; leaving ALLOWED_ORIGIN unchanged."
+fi
+
 az webapp config appsettings set \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "$APP_SERVICE_NAME" \
-  --settings WEBSITES_PORT="$API_PORT" APP_VERSION="${APP_VERSION:-unknown}" >/dev/null
+  --settings "${APP_SETTINGS[@]}" >/dev/null
 
 log "Restarting app..."
 az webapp restart -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME"
