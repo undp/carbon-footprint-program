@@ -1,6 +1,6 @@
 # Huella Latam
 
-Full-stack monorepo for the Huella Latam project, built with modern web technologies and deployed on Azure.
+full-stack monorepo for the Huella Latam project, built with modern web technologies and deployed on Azure.
 
 ## 📋 Table of Contents
 
