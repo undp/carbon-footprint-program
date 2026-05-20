@@ -100,12 +100,12 @@ _Ejemplo:_
 
 Debes rellenar los siguientes campos:
 
-| Campo           | Qué debes ingresar                          |                            Ejemplo |
-| :-------------- | :------------------------------------------ | ---------------------------------: |
-| Tipo (Opcional) | Qué vehículos vas a declarar                |                          Van, auto, camión |
+| Campo           | Qué debes ingresar                          |                                                 Ejemplo |
+| :-------------- | :------------------------------------------ | ------------------------------------------------------: |
+| Tipo (Opcional) | Qué vehículos vas a declarar                |                                       Van, auto, camión |
 | Combustible     | Combustible utilizado por tu(s) vehículo(s) | Diésel, gasolina, GLP, gas natural, electricidad (BEVs) |
-| Unidad          | Unidad en la que se declara el combustible  |                                     Litros |
-| Cantidad        | Total anual consumido por la flota          |                                   12.000 L |
+| Unidad          | Unidad en la que se declara el combustible  |                                                  Litros |
+| Cantidad        | Total anual consumido por la flota          |                                                12.000 L |
 
 ⚠️ No siempre hay factor para todos los combustibles y unidades disponibles
 
