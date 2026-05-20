@@ -729,10 +729,6 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Lubricantes",
-                    "parentValue": null
-                  },
-                  {
                     "name": "Combustible de aviación",
                     "parentValue": null
                   }
@@ -819,16 +815,6 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2339
-              },
-              {
-                "dimensionValue1": null,
-                "dimensionValue2": {
-                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
-                  "valueName": "Lubricantes"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m3",
-                "source": "DEFRA 2025",
-                "value": 2749
               },
               {
                 "dimensionValue1": null,
@@ -2401,7 +2387,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2414,7 +2400,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2427,7 +2413,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 8.9
+                "value": 8.98311
               },
               {
                 "dimensionValue1": {
@@ -2440,7 +2426,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2453,7 +2439,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2466,7 +2452,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 925
+                "value": 925.34348
               },
               {
                 "dimensionValue1": {
@@ -2479,7 +2465,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2492,7 +2478,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 1
+                "value": 1.00835
               },
               {
                 "dimensionValue1": {
@@ -2505,7 +2491,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 1.26
+                "value": 1.26338
               },
               {
                 "dimensionValue1": {
@@ -2518,7 +2504,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2531,7 +2517,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2544,7 +2530,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 8.9
+                "value": 8.98311
               },
               {
                 "dimensionValue1": {
@@ -2557,7 +2543,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2570,7 +2556,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2583,7 +2569,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 1164
+                "value": 1164.4894
               },
               {
                 "dimensionValue1": {
@@ -2596,7 +2582,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2609,7 +2595,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2622,7 +2608,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 8.9
+                "value": 8.98311
               },
               {
                 "dimensionValue1": {
@@ -2635,7 +2621,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2648,7 +2634,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 520
+                "value": 520.5327
               },
               {
                 "dimensionValue1": {
@@ -2661,7 +2647,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2674,7 +2660,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 497
+                "value": 497.24244
               },
               {
                 "dimensionValue1": {
@@ -2687,7 +2673,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2700,7 +2686,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2713,7 +2699,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 496
+                "value": 496.78228
               },
               {
                 "dimensionValue1": {
@@ -2726,7 +2712,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2739,7 +2725,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 4.68
+                "value": 4.68568
               },
               {
                 "dimensionValue1": {
@@ -2752,7 +2738,7 @@
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
-                "value": 8.9
+                "value": 8.98311
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2788,7 +2774,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
-                "value": 0.1708
+                "value": 0.17088
               },
               {
                 "dimensionValue1": {

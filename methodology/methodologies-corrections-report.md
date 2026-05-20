@@ -1,10 +1,14 @@
 # Reporte de correcciones — `methodologies.json`
 
-**Archivo intervenido:** `packages/database/src/prisma/seeds/data/base/methodologies.json`
+**Archivos intervenidos:**
+
+- `packages/database/src/prisma/seeds/data/base/methodologies.json` (seed productivo).
+- `packages/database/src/prisma/seeds/data/testing/methodologies.json` (seed de testing — sincronizado con las mismas 13 ediciones para mantener consistencia con la base).
+
 **Fecha:** 2026-05-19
 **Autor de la intervención:** corrección guiada por `methodologies-deep-audit.md`
 **Prioridad de fuentes aplicada:** IPCC > DEFRA 2025 > otros (Kool 2012, etc.)
-**Validación:** `python3 -c "import json; json.load(...)"` → JSON sintácticamente válido tras todos los cambios.
+**Validación:** ambos archivos sintácticamente válidos (`python3 -c "import json; json.load(...)"` → OK).
 
 ---
 
@@ -152,6 +156,15 @@ Por instrucción explícita de "corregir factores uno a uno", los siguientes hal
 
 - "Hexafloruro" → "Hexafluoruro"; "Perfloruro" → "Perfluorociclopropano"; "Trifloruro" → "Trifluoruro"; "Potacio" → "Potasio"; "Brazil" → "Brasil"; "Vidrio de iluminaria" → "Vidrio de iluminación"; "pieza arre" → "noche-habitación"; "cant anim" → "cabeza".
 
+### Explanations de usuario (no abordadas — fuera del alcance "corregir factores")
+
+Dos archivos MD que el seed distribuye como ayuda al usuario contienen ejemplos numéricos que quedaron desalineados con los factores reales tras las correcciones. Son contenido ilustrativo, no factores ni tests, por lo que no se modificaron:
+
+- `packages/database/src/prisma/seeds/data/base/explanations/subcategories/c1_emisiones_por_uso_de_suelo_ganaderia.md` (líneas 107, 111, 115): usa "1.500 kg CO₂e/animal" para Vacas de pastoreo (factor real corregido: 1.710). El texto declara "ejemplo referencial".
+- `packages/database/src/prisma/seeds/data/base/explanations/subcategories/c2_electricidad.md` (líneas 148, 152, 156): usa "0,35 kg CO₂e/kWh" (factor real corregido: 0,177 DEFRA UK). Sin disclaimer explícito.
+
+**Recomendación:** marcar explícitamente como ejemplo referencial, o realinear con los factores actuales en una pasada de docs.
+
 ---
 
 ## Recomendaciones para la siguiente iteración
@@ -169,9 +182,13 @@ Por instrucción explícita de "corregir factores uno a uno", los siguientes hal
 ```text
 $ python3 -c "import json; json.load(open('packages/database/src/prisma/seeds/data/base/methodologies.json')); print('JSON valid')"
 JSON valid
+$ python3 -c "import json; json.load(open('packages/database/src/prisma/seeds/data/testing/methodologies.json')); print('JSON valid')"
+JSON valid
 ```
 
-Todos los nuevos valores presentes y localizados (`grep` confirma 13 ediciones aplicadas).
+Todos los nuevos valores presentes y localizados en ambos seeds (`grep` confirma 13 ediciones aplicadas en cada archivo, 0 valores antiguos residuales).
+
+**Tests existentes:** se hizo barrido de `apps/api/test` y `apps/web/src` buscando valores literales de factores antiguos y nombres de dimensiones afectadas. **Ningún test integraba constantes hardcoded** de los factores modificados — todos los tests obtienen los factores desde el seed (testing), por lo que la sincronización del seed de testing es suficiente para mantener la metodología de testing consistente con la base.
 
 ---
 
