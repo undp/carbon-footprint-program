@@ -1,12 +1,22 @@
 # 🚚 Combustiones móviles
 
-Esta categoría corresponde a **vehículos y maquinarias móviles que consumen combustible y son operados o financiados por la empresa**, como **autos**, **camiones**, **buses**, **motocicletas**, **maquinaria**, **barcos** u **otros equipos móviles**.
+Esta categoría corresponde a **vehículos y maquinarias móviles que consumen combustible o electricidad y son operados o financiados por la empresa**, como **autos**, **camiones**, **buses**, **motocicletas**, **maquinaria**, **barcos**, **vehículos eléctricos (BEVs)** u **otros equipos móviles**.
 
 Un punto relevante es que, si el transporte lo realiza un **proveedor externo** y tu empresa **no tiene control operativo**, ese consumo se reporta en **Transporte de Terceros (Alcance 3)**.
 
+### ⚡ ¿Y los vehículos eléctricos (BEVs)?
+
+El tratamiento depende de **dónde se cargan**:
+
+- **Cargados en sedes o instalaciones de la empresa** (la electricidad la paga tu empresa al medidor de la sede) → declarar el consumo en **Electricidad (Alcance 2)**, no aquí.
+- **Cargados externamente** (electrolineras, cargadores públicos pagados por la empresa) → declarar aquí en **Combustiones móviles**, seleccionando **"Electricidad"** como tipo de combustible y unidades en **kWh** o **MWh**.
+- **Cargados por el conductor por su cuenta y luego reembolsados** (o no reembolsados) → corresponde a **Alcance 3 (Viajes de negocios / Desplazamiento de empleados)**, no aquí.
+
+⚠️ En ambos casos (Alcance 1 externo o Alcance 2 sede propia) el **factor de emisión es el mismo**: la intensidad del sistema eléctrico nacional (kg CO₂e/kWh). Lo que cambia es la clasificación, no el factor.
+
 ## 📘 ¿Preguntas claves que te pueden ayudar a determinar si debes declarar emisiones en esta sub-categoría?
 
-- ¿Tu empresa paga combustible (bencina, diésel o gas) para vehículos propios o arrendados?
+- ¿Tu empresa paga combustible (bencina, diésel, gas o electricidad para BEVs) para vehículos propios o arrendados?
 - ¿Utilizas vehículos de la empresa para transportar productos, insumos o personal?
 - ¿Tienes autos administrativos, de ventas o gerenciales cuyo combustible paga la empresa?
 - ¿Usas maquinaria o equipos móviles que funcionen con combustible (ej. montacargas, maquinaria liviana, generadores móviles)?
@@ -90,12 +100,12 @@ _Ejemplo:_
 
 Debes rellenar los siguientes campos:
 
-| Campo           | Qué debes ingresar                          |                            Ejemplo |
-| :-------------- | :------------------------------------------ | ---------------------------------: |
-| Tipo (Opcional) | Qué vehículos vas a declarar                |                  Van, auto, camión |
-| Combustible     | Combustible utilizado por tu(s) vehículo(s) | Diésel, gasolina, GLP, gas natural |
-| Unidad          | Unidad en la que se declara el combustible  |                             Litros |
-| Cantidad        | Total anual consumido por la flota          |                           12.000 L |
+| Campo           | Qué debes ingresar                          |                                                 Ejemplo |
+| :-------------- | :------------------------------------------ | ------------------------------------------------------: |
+| Tipo (Opcional) | Qué vehículos vas a declarar                |                                       Van, auto, camión |
+| Combustible     | Combustible utilizado por tu(s) vehículo(s) | Diésel, gasolina, GLP, gas natural, electricidad (BEVs) |
+| Unidad          | Unidad en la que se declara el combustible  |                                                  Litros |
+| Cantidad        | Total anual consumido por la flota          |                                                12.000 L |
 
 ⚠️ No siempre hay factor para todos los combustibles y unidades disponibles
 
@@ -148,5 +158,5 @@ Si el factor está en **kg CO₂e por litro**, la cantidad debe estar en **litro
 
 > - Incluye solo **vehículos propios o controlados directamente**
 > - Traslados realizados por **empresas externas** se reportan en **Transporte tercerizado (Alcance 3)**
-> - **Vehículos eléctricos** se contabilizan en **Electricidad (Alcance 2)**
+> - **Vehículos eléctricos (BEVs)** cargados en sede propia se contabilizan en **Electricidad (Alcance 2)**; si se cargan externamente con pago de la empresa, se declaran aquí con combustible **"Electricidad"** (Alcance 1)
 > - Guarda **facturas y planillas** como respaldo para auditorías o certificaciones
