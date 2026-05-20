@@ -69,6 +69,10 @@ export const FormSelectField = <T extends FieldValues>({
               ),
             })}
             {...props}
+            inputProps={{
+              autoComplete: "off",
+              ...props.inputProps,
+            }}
           >
             {options.map((option) => (
               <MenuItem key={option.value} value={option.value}>

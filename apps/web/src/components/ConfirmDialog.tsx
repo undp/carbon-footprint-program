@@ -23,7 +23,7 @@ export interface ConfirmDialogProps {
   description?: string;
 
   // Customization
-  variant?: "warning" | "error" | "info" | "success";
+  variant?: "error" | "warning" | "primary";
   confirmLabel?: string;
   cancelLabel?: string;
 
@@ -38,7 +38,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   title,
   message,
   description,
-  variant = "success",
+  variant = "primary",
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   isLoading = false,

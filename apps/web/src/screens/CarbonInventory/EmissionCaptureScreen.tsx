@@ -217,11 +217,11 @@ export const EmissionCaptureScreen: FC = () => {
           goNext();
         } else {
           confirmDialog.openConfirm({
-            title: "Subcategorías sin completar",
+            title: "Fuentes de emisión sin completar",
             message:
-              "Hay subcategorías que no tienen datos cargados. Si continúas, quedarán sin emisiones calculadas.",
+              "Hay subcategorías con fuentes de emisión sin completar. Si continúas, dichas emisiones no se incluirán en el inventario.",
             variant: "error",
-            confirmLabel: "Continuar",
+            confirmLabel: "Continuar sin completar",
             cancelLabel: "Revisar",
           });
         }

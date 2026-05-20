@@ -41,7 +41,7 @@ export const BaseHeader: FC<PropsWithChildren<Props>> = ({
             />
           </Box>
         )}
-        <Box className="flex flex-1 gap-12">{titleComponent}</Box>
+        <Box className="flex min-w-0 flex-1 gap-12">{titleComponent}</Box>
         {children}
       </Toolbar>
     </AppBar>

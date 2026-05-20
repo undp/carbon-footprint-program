@@ -7,8 +7,9 @@ import {
   FormControlLabel,
   Checkbox,
   Skeleton,
+  Tooltip,
 } from "@mui/material";
-import { InfoButton, NumericInput } from "@/components";
+import { InfoButton, NumericInput, OverflowTooltipText } from "@/components";
 import { formatter } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
@@ -77,7 +78,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
 
   return (
     <Box className="flex h-20 gap-4">
-      <Box className="flex flex-1 flex-row items-center gap-2">
+      <Box className="flex min-w-0 flex-1 flex-row items-center gap-4">
         <Avatar
           sx={{
             backgroundColor: categoryColorPalette.light,
@@ -89,8 +90,8 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             <IconComponent sx={{ color: categoryColorPalette.dark }} />
           ) : null}
         </Avatar>
-        <Box className="flex flex-col">
-          <Box className="flex flex-row items-center gap-2">
+        <Box className="flex min-w-0 flex-1 flex-col">
+          <Box className="flex flex-row items-center gap-1">
             <Typography variant="subtitle1" fontWeight="medium">
               {name}
             </Typography>
@@ -101,29 +102,28 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
                 openExplanationContent(explanation);
               }}
             />
-          </Box>
-          <Typography variant="caption" fontWeight="regular">
-            {description}
-          </Typography>
-
-          {!hasEmissionFactors && (
-            <Box className="items-bottom flex gap-1">
-              <WarningRounded
-                sx={(theme) => ({
-                  color: theme.palette.warning.main,
-                  height: 18,
-                  width: 18,
-                })}
-              />
-              <Typography
-                variant="caption"
-                fontWeight="regular"
-                color="warning"
+            {!hasEmissionFactors && (
+              <Tooltip
+                title="No hay factores precargados disponibles para esta subcategoría. Puedes ingresar un factor propio o registrar el total de emisiones"
+                placement="top"
               >
-                Esta subcategoría no tiene factores de emisión disponibles
-              </Typography>
-            </Box>
-          )}
+                <WarningRounded
+                  sx={(theme) => ({
+                    color: theme.palette.warning.main,
+                    height: 24,
+                  })}
+                />
+              </Tooltip>
+            )}
+          </Box>
+          <OverflowTooltipText
+            variant="caption"
+            fontWeight="regular"
+            lineHeight={1.35}
+            lines={2}
+          >
+            {description}
+          </OverflowTooltipText>
         </Box>
       </Box>
       <Box className="flex flex-row content-center items-center gap-2">

@@ -37,6 +37,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
             color: categoryColorPalette.dark,
           },
         }}
+        columnHeaderHeight={48}
         columns={columns}
         rows={rows}
         getRowId={(row: EmissionCaptureFormLine) => row.lineId}

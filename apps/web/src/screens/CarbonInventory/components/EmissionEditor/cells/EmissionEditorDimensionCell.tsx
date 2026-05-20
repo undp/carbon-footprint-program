@@ -50,6 +50,7 @@ export const EmissionEditorDimensionCell: FC<
       size="small"
       disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
+      inputProps={{ autoComplete: "off" }}
     >
       {values.map(({ id, value: dimensionValue }) => (
         <MenuItem key={id} value={id}>

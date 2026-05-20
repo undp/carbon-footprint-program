@@ -45,7 +45,10 @@ export const NumericInput: FC<Props> = ({
   return (
     <NumericFormat
       customInput={TextField}
-      value={value}
+      // Pass "" instead of null/undefined: react-number-format treats nil
+      // values as "switched to uncontrolled" and falls back to its internal
+      // state, which prevents external resets from clearing the display.
+      value={value ?? ""}
       valueIsNumericString={false}
       decimalSeparator={formatter.decimalSeparator}
       thousandSeparator={formatter.thousandSeparator}
@@ -63,7 +66,12 @@ export const NumericInput: FC<Props> = ({
             <InputAdornment position="end">{suffix}</InputAdornment>
           ),
         },
-        htmlInput: { inputMode: "decimal" },
+        htmlInput: {
+          inputMode: "decimal",
+          autoComplete: "off",
+          autoCorrect: "off",
+          spellCheck: false,
+        },
       }}
       onKeyDown={(e) => {
         if (

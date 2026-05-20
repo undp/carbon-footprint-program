@@ -6,6 +6,8 @@ import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
 import { EmptyStateMessage } from "../EmptyStateMessage";
 import { formatter } from "@/utils/formatting";
 import { VOCAB } from "@/config/vocab";
+import { OverflowTooltipText } from "../../../../components";
+import { capitalize } from "lodash-es";
 
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
@@ -50,13 +52,13 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
 
   return (
     <Box
-      className="flex gap-6 rounded-lg p-4"
+      className="flex min-w-0 gap-6 rounded-lg p-4"
       sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
     >
       {/* Left column */}
-      <Box className="flex flex-1 flex-col gap-1">
+      <Box className="flex min-w-0 flex-1 flex-col gap-1">
         <AttributeRow
-          label={`Nombre ${VOCAB.organization.noun.singular}`}
+          label={capitalize(VOCAB.organization.noun.singular)}
           value={data.organizationName}
         />
         <AttributeRow label="País" value={data.country} />
@@ -64,7 +66,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
       </Box>
 
       {/* Middle column */}
-      <Box className="flex flex-1 flex-col gap-1">
+      <Box className="flex min-w-0 flex-1 flex-col gap-1">
         <AttributeRow label="Tamaño" value={data.organizationSizeName} />
         <AttributeRow
           label="Sedes"
@@ -111,12 +113,16 @@ const AttributeRow: FC<{ label: string; value: string | null }> = ({
   label,
   value,
 }) => (
-  <Box className="flex gap-2">
-    <Typography variant="subtitle1" className="min-w-36">
+  <Box className="flex min-w-0 gap-2">
+    <Typography variant="subtitle1" className="w-36 shrink-0">
       {label}:
     </Typography>
-    <Typography variant="subtitle1" fontWeight="fontWeightMedium">
+    <OverflowTooltipText
+      variant="subtitle1"
+      fontWeight="fontWeightMedium"
+      className="min-w-0 flex-1"
+    >
       {value ?? "-"}
-    </Typography>
+    </OverflowTooltipText>
   </Box>
 );
