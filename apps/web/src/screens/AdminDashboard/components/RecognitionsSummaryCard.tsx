@@ -54,10 +54,7 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
     if (!data) {
       return {
         total: 0,
-        byType: {} as Record<
-          string,
-          { approved: number; approvedAuto: number }
-        >,
+        byType: {},
       };
     }
 

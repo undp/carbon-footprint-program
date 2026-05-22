@@ -143,10 +143,8 @@ export function buildHooks(
   // their own request shape from the route's schema.
   if (access.systemRoles && access.systemRoles.kind === "roles") {
     preHandler.push(
-      tagHook(
-        fastify.requireRoles(access.systemRoles.roles),
-        "requireRoles"
-      ) as preHandlerHookHandler
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
+      tagHook(fastify.requireRoles(access.systemRoles.roles), "requireRoles")
     );
   }
 
@@ -159,6 +157,7 @@ export function buildHooks(
         case "organization": {
           const options = domain.options ?? {};
           preHandler.push(
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
             tagHook(
               fastify.requireOrganizationRole(
                 options.extractor ?? defaultIdExtractor,
@@ -168,7 +167,7 @@ export function buildHooks(
                 }
               ),
               "requireOrganizationRole"
-            ) as preHandlerHookHandler
+            )
           );
           break;
         }
@@ -191,13 +190,14 @@ export function buildHooks(
         case "reductionProject": {
           const options = domain.options ?? {};
           preHandler.push(
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
             tagHook(
               fastify.requireReductionProjectAccess({
                 requiredOrganizationRoles: options.requiredOrganizationRoles,
                 canAdminsBypass: options.canAdminsBypass,
               }),
               "requireReductionProjectAccess"
-            ) as preHandlerHookHandler
+            )
           );
           break;
         }

@@ -58,9 +58,7 @@ const DOMAIN_ACCESS_KINDS: ReadonlySet<HookKind> = new Set([
  */
 export function collectSecurityIssues(routeOpts: RouteOptions): string[] {
   const issues: string[] = [];
-  const config = routeOpts.config as
-    | { allowPublicAccess?: boolean; allowAnonymousAccess?: boolean }
-    | undefined;
+  const config = routeOpts.config;
 
   const isPublic = config?.allowPublicAccess === true;
   const isAnonymous = config?.allowAnonymousAccess === true;

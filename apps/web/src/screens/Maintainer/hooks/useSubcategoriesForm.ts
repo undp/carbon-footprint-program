@@ -53,7 +53,7 @@ export const useSubcategoriesForm = () => {
       if (currentRow) {
         const updatedRow = { ...structuredClone(currentRow), [field]: value };
         fieldArray.update(rowIndex, updatedRow);
-        form.setValue(`subcategories.${rowIndex}.${field}`, value as never, {
+        form.setValue(`subcategories.${rowIndex}.${field}`, value, {
           shouldDirty: true,
         });
         void form.trigger(`subcategories.${rowIndex}.${field}`);

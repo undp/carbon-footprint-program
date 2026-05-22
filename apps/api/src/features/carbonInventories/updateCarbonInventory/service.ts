@@ -65,12 +65,12 @@ export const updateCarbonInventoryService = async (
 
     // Normalize undefined to null for JSON fields
     updateData.organizationData = data.organizationData
-      ? ({
+      ? {
           ...data.organizationData,
           name: isLinked
             ? (existingName ?? null)
             : (data.organizationData.name ?? null),
-        } as Prisma.InputJsonValue)
+        }
       : Prisma.JsonNull;
   }
 

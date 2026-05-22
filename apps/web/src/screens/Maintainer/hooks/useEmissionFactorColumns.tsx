@@ -79,7 +79,7 @@ const UnitEditSelect: FC<{
     name: `emissionFactors.${rowIndex}.rateMeasurementUnitId`,
   });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     "emissionFactors",
     rowIndex,
     "rateMeasurementUnitId"
@@ -119,7 +119,7 @@ const DimensionValueEditSelect: FC<{
     name: `emissionFactors.${rowIndex}.${fieldName}`,
   });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     "emissionFactors",
     rowIndex,
     fieldName
@@ -173,7 +173,7 @@ export const useEmissionFactorColumns = ({
     (rowId: string) => {
       const rows = getValues();
       const index = rows.findIndex((r) => r.id === rowId);
-      return { index, row: rows[index] as EmissionFactorForm | undefined };
+      return { index, row: rows[index] };
     },
     [getValues]
   );

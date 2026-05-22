@@ -132,12 +132,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   const isEmpty = formValue === "";
   const displayValue = isEmpty && placeholder ? placeholder : formValue;
   const { errors } = useFormState({ control, name: formPath });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    fieldName
-  );
+  const fieldError = getNestedError(errors, formArrayName, rowIndex, fieldName);
 
   const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
     displayValue,

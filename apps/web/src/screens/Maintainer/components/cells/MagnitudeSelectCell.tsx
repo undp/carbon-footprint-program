@@ -33,7 +33,7 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
   const magnitudeId = useWatch({ name: formPath }) as string;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     formArrayName,
     rowIndex,
     "magnitudeId"

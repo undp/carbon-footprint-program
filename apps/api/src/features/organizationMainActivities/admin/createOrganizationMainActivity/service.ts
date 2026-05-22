@@ -48,7 +48,7 @@ export const createOrganizationMainActivityService = async (
         if (!sector) {
           throw new ResourceNotFoundError(
             "CountrySector",
-            data.countrySectorId as string
+            data.countrySectorId
           );
         }
       }
@@ -61,7 +61,7 @@ export const createOrganizationMainActivityService = async (
         if (!subsector) {
           throw new ResourceNotFoundError(
             "CountrySubsector",
-            data.countrySubsectorId as string
+            data.countrySubsectorId
           );
         }
         if (sectorId !== null && subsector.countrySectorId !== sectorId) {
