@@ -8,3 +8,4 @@ export * from "./methodology";
 export * from "./profiling";
 export * from "./role";
 export * from "./recognitionType";
+export * from "./badge";
