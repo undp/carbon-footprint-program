@@ -3,7 +3,7 @@ import type { IFuseOptions } from "fuse.js";
 import type { GridColDef } from "@mui/x-data-grid";
 import type { GetAllUsersResponse } from "@repo/types";
 import { MaintainerDataGrid } from "../../../components/MaintainerDataGrid";
-import { ROLE_LABELS } from "../constants";
+import { SYSTEM_ROLE_LABELS } from "@/labels/status/role";
 import { formatter } from "@/utils/formatting";
 import Box from "@mui/material/Box";
 
@@ -24,7 +24,7 @@ export const UsersScreenTable: FC<UsersScreenTableProps> = ({
     () => ({
       keys: [
         "email",
-        { name: "role", getFn: (row) => ROLE_LABELS[row.role] },
+        { name: "role", getFn: (row) => SYSTEM_ROLE_LABELS[row.role].label },
         {
           name: "organizations",
           getFn: (row) =>

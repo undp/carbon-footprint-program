@@ -6,3 +6,5 @@ export * from "./carbonInventory";
 export * from "./reductionProject";
 export * from "./methodology";
 export * from "./profiling";
+export * from "./role";
+export * from "./recognitionType";
