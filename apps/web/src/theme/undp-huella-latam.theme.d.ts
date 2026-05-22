@@ -1,5 +1,6 @@
 import "@mui/material/styles";
 import { SubmissionType, CarbonInventoryRecognitionsType } from "@repo/types";
+import { StatusFamily } from "../labels/status/types";
 
 declare module "@mui/material/styles" {
   interface TypeText {
@@ -26,6 +27,7 @@ declare module "@mui/material/styles" {
     requestTypeColors: Record<SubmissionType, string>;
     recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string>;
     roleColors: Record<"USER" | "ADMIN" | "SUPERADMIN", string>;
+    statusFamilyColors: Record<StatusFamily, string>;
   }
 
   interface PaletteOptions {
@@ -42,5 +44,6 @@ declare module "@mui/material/styles" {
     requestTypeColors?: Record<SubmissionType, string>;
     recognitionTypeColors?: Record<CarbonInventoryRecognitionsType, string>;
     roleColors?: Record<"USER" | "ADMIN" | "SUPERADMIN", string>;
+    statusFamilyColors?: Record<StatusFamily, string>;
   }
 }

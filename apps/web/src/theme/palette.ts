@@ -9,6 +9,7 @@ import {
   SubmissionType as RequestType,
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
+import { StatusFamily } from "../labels/status/types";
 
 const requestTypeColors: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
@@ -23,6 +24,14 @@ const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
   [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
+};
+
+const statusFamilyColors: Record<StatusFamily, string> = {
+  [StatusFamily.POSITIVE]: "#2E7D32",
+  [StatusFamily.IN_REVIEW]: "#0288D1",
+  [StatusFamily.ACTION_REQUIRED]: "#ED6C02",
+  [StatusFamily.NEGATIVE]: "#D32F2F",
+  [StatusFamily.NEUTRAL]: "#9E9E9E",
 };
 
 export const palette: PaletteOptions = {
@@ -142,4 +151,5 @@ export const palette: PaletteOptions = {
     ADMIN: "#2E7D32",
     SUPERADMIN: "#B8860B",
   },
+  statusFamilyColors,
 } as const;
