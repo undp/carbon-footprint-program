@@ -3,9 +3,15 @@ import { apiClient } from "@/api/http/client";
 import { FileType } from "@repo/types";
 
 const preUploadOneFile = async (file: File): Promise<string> => {
+  const mimeType = file.type || "application/octet-stream";
   const { uuid, uploadUrl } = await apiClient
     .post("files/request-upload", {
-      json: { originalName: file.name, fileType: FileType.SUBMISSION },
+      json: {
+        originalName: file.name,
+        fileType: FileType.SUBMISSION,
+        sizeBytes: file.size,
+        mimeType,
+      },
     })
     .json<{ uuid: string; uploadUrl: string }>();
 
@@ -14,7 +20,7 @@ const preUploadOneFile = async (file: File): Promise<string> => {
     body: file,
     headers: {
       "x-ms-blob-type": "BlockBlob",
-      "Content-Type": file.type || "application/octet-stream",
+      "Content-Type": mimeType,
     },
   });
 
