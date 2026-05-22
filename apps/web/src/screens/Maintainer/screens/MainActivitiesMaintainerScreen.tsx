@@ -166,9 +166,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `mainActivities.${rowIndex}.${field}` as `mainActivities.${number}.name`
-      );
+      void form.trigger(`mainActivities.${rowIndex}.${field}`);
     },
     [form]
   );

@@ -43,12 +43,7 @@ export const EditableSelectCell: FC<EditableSelectCellProps> = ({
   const { control } = useFormContext();
   const value = useWatch({ name: formPath }) as string | null | undefined;
   const { errors } = useFormState({ control, name: formPath });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    fieldName
-  );
+  const fieldError = getNestedError(errors, formArrayName, rowIndex, fieldName);
 
   const displayName =
     (value && options.find((o) => o.id === value)?.name) || placeholder;

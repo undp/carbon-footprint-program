@@ -146,9 +146,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `subsectors.${rowIndex}.${field}` as `subsectors.${number}.name`
-      );
+      void form.trigger(`subsectors.${rowIndex}.${field}`);
     },
     [form]
   );

@@ -72,12 +72,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
   const { control } = useFormContext();
   const formValue = useWatch({ name: formPath }) as number | null;
   const { errors } = useFormState({ control, name: formPath });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    fieldName
-  );
+  const fieldError = getNestedError(errors, formArrayName, rowIndex, fieldName);
 
   if (!isEditing) {
     return (

@@ -1,10 +1,5 @@
 import { useCallback, useMemo } from "react";
-import {
-  useForm,
-  useFieldArray,
-  type FieldPath,
-  type FieldPathValue,
-} from "react-hook-form";
+import { useForm, useFieldArray, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -103,13 +98,9 @@ export const useMagnitudesForm = (reservedCodes: Set<string>) => {
     ) => {
       const path =
         `magnitudes.${rowIndex}.${field}` as FieldPath<MagnitudesFormValues>;
-      form.setValue(
-        path,
-        value as FieldPathValue<MagnitudesFormValues, typeof path>,
-        {
-          shouldDirty: true,
-        }
-      );
+      form.setValue(path, value, {
+        shouldDirty: true,
+      });
       void form.trigger(path);
     },
     [form]

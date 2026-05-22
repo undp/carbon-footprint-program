@@ -10,5 +10,5 @@ export const SEEDS_DATASET: SeedsDataset = (() => {
   if (env !== "base" && env !== "testing") {
     throw new Error(`Invalid seeds dataset: ${env}`);
   }
-  return env as SeedsDataset;
+  return env;
 })();

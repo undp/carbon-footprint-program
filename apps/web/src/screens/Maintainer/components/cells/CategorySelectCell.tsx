@@ -26,7 +26,7 @@ export const CategorySelectCell: FC<CategorySelectCellProps> = ({
   const categoryId = useWatch({ name: formPath }) as string;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     formArrayName,
     rowIndex,
     "categoryId"
