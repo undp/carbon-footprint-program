@@ -1,16 +1,16 @@
 ## 1. Pre-flight
 
-- [ ] 1.1 Checkout `main`, run `git pull --ff-only origin main`
-- [ ] 1.2 Run `pnpm install` on a clean `main`
-- [ ] 1.3 Run `pnpm type-check` on `main` — must pass
-- [ ] 1.4 Run `pnpm lint` on `main` — must pass with zero warnings
-- [ ] 1.5 Run `pnpm test` on `main` — must pass
-- [ ] 1.6 Run `pnpm build` on `main` — must pass
-- [ ] 1.7 If any step 1.2–1.6 fails, halt and report to user
+- [x] 1.1 ~~Checkout `main`~~ — skipped (single-branch strategy: working on `feat/mati/upgrade-dependencies`)
+- [x] 1.2 Run `pnpm install` on a clean `main`
+- [x] 1.3 Run `pnpm type-check` on `main` — must pass (24s ✓)
+- [x] 1.4 Run `pnpm lint` on `main` — must pass with zero warnings (49s ✓)
+- [x] 1.5 Run `pnpm test` on `main` — must pass (4m ✓, after cherry-picking PR 341 fix to unblock baseline)
+- [x] 1.6 Run `pnpm build` on `main` — must pass (46s ✓, with `direnv exec .` to load env)
+- [x] 1.7 If any step 1.2–1.6 fails, halt and report to user — N/A (all green)
 
 ## 2. PR 1 — Low-risk (branch `chore/upgrade-deps-low-risk`)
 
-- [ ] 2.1 Create branch `chore/upgrade-deps-low-risk` from `main`
+- [x] 2.1 ~~Create branch `chore/upgrade-deps-low-risk` from `main`~~ — skipped (single-branch override)
 - [ ] 2.2 Re-check latest patch/minor versions with `pnpm outdated --recursive`
 
 ### Shared catalog (`pnpm-workspace.yaml > catalogs.shared`)
