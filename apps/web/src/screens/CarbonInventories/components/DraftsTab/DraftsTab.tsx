@@ -2,7 +2,8 @@ import { FC, useMemo } from "react";
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ResponsiveTypography, StylizedDataGrid } from "@/components";
-import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/status/carbonInventory";
 import { formatter } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,
@@ -116,7 +117,9 @@ export const DraftsTab: FC<DraftsTabProps> = ({
             >
           ) =>
             params.value != null ? (
-              <CarbonInventoryStatusChip status={params.value} />
+              <StatusChip
+                config={CARBON_INVENTORY_STATUS_CONFIG[params.value]}
+              />
             ) : null,
         },
         {
