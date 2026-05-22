@@ -1,4 +1,4 @@
-import { FC, ReactNode } from "react";
+import { FC } from "react";
 import { Chip, ChipProps, Tooltip, Typography, useTheme } from "@mui/material";
 import { alpha, darken } from "@mui/material/styles";
 import { StatusConfig } from "@/labels/status/types";
@@ -6,7 +6,7 @@ import { StatusConfig } from "@/labels/status/types";
 interface StatusChipProps {
   config: StatusConfig;
   size?: ChipProps["size"];
-  icon?: ReactNode;
+  icon?: ChipProps["icon"];
   tooltip?: string;
 }
 
@@ -26,7 +26,7 @@ export const StatusChip: FC<StatusChipProps> = ({
   return (
     <Tooltip title={tooltipText}>
       <Chip
-        icon={iconNode as ChipProps["icon"]}
+        icon={iconNode}
         size={size}
         sx={{
           padding: "6px 8px",

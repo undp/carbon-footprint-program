@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@repo/types";
-import { StatusConfig, StatusFamily } from "./types";
+import { sortOrderByLabel, StatusConfig, StatusFamily } from "./types";
 
 export const SUBMISSION_STATUS_CONFIG: Record<SubmissionStatus, StatusConfig> =
   {
@@ -31,14 +31,10 @@ export const SUBMISSION_STATUS_CONFIG: Record<SubmissionStatus, StatusConfig> =
       family: StatusFamily.POSITIVE,
       label: "Otorgado",
       tooltip: "Reconocimiento otorgado automáticamente",
-      sortOrder: 1,
+      sortOrder: 4,
     },
   };
 
-export const SUBMISSION_STATUS_SORT_ORDER_BY_LABEL: Record<string, number> =
-  Object.fromEntries(
-    Object.values(SUBMISSION_STATUS_CONFIG).map((config) => [
-      config.label,
-      config.sortOrder,
-    ])
-  );
+export const SUBMISSION_STATUS_SORT_ORDER_BY_LABEL = sortOrderByLabel(
+  SUBMISSION_STATUS_CONFIG
+);

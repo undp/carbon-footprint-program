@@ -26,6 +26,10 @@ const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
 };
 
+// Status family colors mirror success.main / info.main / warning.main /
+// error.main / grey[500] from the palette below. They are duplicated here
+// because `palette` is a flat initializer and cannot self-reference — keep
+// these in sync when any of those palette entries change.
 const statusFamilyColors: Record<StatusFamily, string> = {
   [StatusFamily.POSITIVE]: "#2E7D32",
   [StatusFamily.IN_REVIEW]: "#0288D1",

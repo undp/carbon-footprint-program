@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ChipProps } from "@mui/material";
 
 export enum StatusFamily {
   POSITIVE = "positive",
@@ -13,7 +13,7 @@ export interface StatusConfig {
   label: string;
   tooltip: string;
   sortOrder: number;
-  icon?: ReactNode;
+  icon?: ChipProps["icon"];
 }
 
 export interface CustomPaletteConfig {
@@ -21,5 +21,14 @@ export interface CustomPaletteConfig {
   label: string;
   tooltip: string;
   sortOrder: number;
-  icon?: ReactNode;
+  icon?: ChipProps["icon"];
 }
+
+export const sortOrderByLabel = <
+  T extends { label: string; sortOrder: number },
+>(
+  config: Record<string, T>
+): Record<string, number> =>
+  Object.fromEntries(
+    Object.values(config).map((entry) => [entry.label, entry.sortOrder])
+  );
