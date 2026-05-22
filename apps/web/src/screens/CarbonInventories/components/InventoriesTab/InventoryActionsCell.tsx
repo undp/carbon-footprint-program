@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Badge, Box, CircularProgress, Tooltip } from "@mui/material";
+import { Badge, Box, CircularProgress } from "@mui/material";
 import {
   VisibilityOutlined,
   FileDownloadOutlined,
@@ -21,7 +21,7 @@ import {
   canSubmitToMeasurement,
   isCarbonInventoryEditable,
 } from "@repo/utils";
-import { BaseActionButton, primaryActionButtonSx } from "../BaseActionButton";
+import { BaseActionButton, primaryActionButtonSx } from "@/components";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
 import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
@@ -249,120 +249,103 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {isCarbonInventoryEditable(carbonInventory.status) ? (
-          <Tooltip title="Editar huella">
-            <BaseActionButton onClick={onEditClick} aria-label="Editar huella">
-              <EditOutlined fontSize="small" />
-            </BaseActionButton>
-          </Tooltip>
+          <BaseActionButton
+            tooltip="Editar huella"
+            onClick={onEditClick}
+            aria-label="Editar huella"
+          >
+            <EditOutlined fontSize="small" />
+          </BaseActionButton>
         ) : (
-          <Tooltip title="Ver huella">
-            <span>
-              <BaseActionButton onClick={onViewClick} aria-label="Ver huella">
-                <VisibilityOutlined fontSize="small" />
-              </BaseActionButton>
-            </span>
-          </Tooltip>
+          <BaseActionButton
+            tooltip="Ver huella"
+            onClick={onViewClick}
+            aria-label="Ver huella"
+          >
+            <VisibilityOutlined fontSize="small" />
+          </BaseActionButton>
         )}
 
         {/* Descargar */}
-        <Tooltip
-          title={
+        <BaseActionButton
+          tooltip={
             isDownloading
               ? "Descargando..."
               : !carbonInventory.hasActiveLines
                 ? "Sin actividades registradas"
                 : "Descargar"
           }
+          onClick={onDownloadClick}
+          disabled={isDownloading || !carbonInventory.hasActiveLines}
+          aria-label="Descargar"
         >
-          <span>
-            <BaseActionButton
-              onClick={onDownloadClick}
-              disabled={isDownloading || !carbonInventory.hasActiveLines}
-              aria-label="Descargar"
-            >
-              {isDownloading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <FileDownloadOutlined fontSize="small" />
-              )}
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          {isDownloading ? (
+            <CircularProgress size={16} />
+          ) : (
+            <FileDownloadOutlined fontSize="small" />
+          )}
+        </BaseActionButton>
 
         {/* Postular a reconocimiento de medición */}
         {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
-          <Tooltip title="Postular a reconocimiento de medición">
-            <span>
-              <BaseActionButton
-                onClick={onCalculationClick}
-                disabled={
-                  !canRequestMeasurement || !carbonInventory.isSelfDeclared
-                }
-                sx={primaryActionButtonSx}
-                aria-label="Postular a reconocimiento de medición"
-              >
-                <SendOutlined fontSize="small" />
-              </BaseActionButton>
-            </span>
-          </Tooltip>
+          <BaseActionButton
+            tooltip="Postular a reconocimiento de medición"
+            onClick={onCalculationClick}
+            disabled={!canRequestMeasurement || !carbonInventory.isSelfDeclared}
+            sx={primaryActionButtonSx}
+            aria-label="Postular a reconocimiento de medición"
+          >
+            <SendOutlined fontSize="small" />
+          </BaseActionButton>
         )}
 
         {/* Postular a Reconocimiento */}
-        <Tooltip title="Postular a reconocimiento de verificación">
-          <span>
-            <BaseActionButton
-              onClick={onVerifyClick}
-              disabled={!canRequestVerification}
-              aria-label="Postular a reconocimiento de verificación"
-              sx={primaryActionButtonSx}
-            >
-              <VerifiedOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Postular a reconocimiento de verificación"
+          onClick={onVerifyClick}
+          disabled={!canRequestVerification}
+          aria-label="Postular a reconocimiento de verificación"
+          sx={primaryActionButtonSx}
+        >
+          <VerifiedOutlined fontSize="small" />
+        </BaseActionButton>
 
         {/* Historial */}
-        <Tooltip title="Historial">
-          <span>
-            <Badge
-              variant="dot"
-              invisible={
-                carbonInventory.status !==
-                  CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED &&
-                carbonInventory.status !==
-                  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED
-              }
-              overlap="circular"
-              sx={{
-                "& .MuiBadge-badge": {
-                  top: 2,
-                  right: 2,
-                  backgroundColor: (theme) => theme.palette.warning.main,
-                },
-              }}
-            >
-              <BaseActionButton
-                onClick={() => setHistoryDialogOpen(true)}
-                aria-label="Historial"
-              >
-                <DescriptionOutlined fontSize="small" />
-              </BaseActionButton>
-            </Badge>
-          </span>
-        </Tooltip>
+        <Badge
+          variant="dot"
+          invisible={
+            carbonInventory.status !==
+              CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED &&
+            carbonInventory.status !==
+              CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED
+          }
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+              backgroundColor: (theme) => theme.palette.warning.main,
+            },
+          }}
+        >
+          <BaseActionButton
+            tooltip="Historial"
+            onClick={() => setHistoryDialogOpen(true)}
+            aria-label="Historial"
+          >
+            <DescriptionOutlined fontSize="small" />
+          </BaseActionButton>
+        </Badge>
 
         {/* Duplicar */}
-        <Tooltip title="Duplicar huella">
-          <span>
-            <BaseActionButton
-              onClick={onDuplicateClick}
-              disabled={isDuplicating}
-              aria-label="Duplicar huella"
-            >
-              <FileCopyOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Duplicar huella"
+          onClick={onDuplicateClick}
+          disabled={isDuplicating}
+          aria-label="Duplicar huella"
+        >
+          <FileCopyOutlined fontSize="small" />
+        </BaseActionButton>
       </Box>
 
       <CalculationConfirmationDialog

@@ -18,3 +18,4 @@ export * from "./SubmissionTypeChip";
 export * from "./OverflowTooltipText";
 export * from "./SearchBar";
 export * from "./ActionIconButton";
+export * from "./BaseActionButton";

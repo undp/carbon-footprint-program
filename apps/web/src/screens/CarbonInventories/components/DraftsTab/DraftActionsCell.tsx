@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, CircularProgress, Tooltip } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -32,7 +32,7 @@ import {
 import { useMyOrganizations } from "@/api/query/organizations/useMyOrganizations";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
-import { BaseActionButton, primaryActionButtonSx } from "../BaseActionButton";
+import { BaseActionButton, primaryActionButtonSx } from "@/components";
 import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
@@ -203,98 +203,79 @@ export const DraftActionsCell: FC<Props> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {/* Editar */}
-        <Tooltip title="Editar huella">
-          <BaseActionButton onClick={onEditClick} aria-label="Editar huella">
-            <EditOutlined fontSize="small" />
-          </BaseActionButton>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Editar huella"
+          onClick={onEditClick}
+          aria-label="Editar huella"
+        >
+          <EditOutlined fontSize="small" />
+        </BaseActionButton>
 
         {/* Duplicar */}
-        <Tooltip title="Duplicar huella">
-          <span>
-            <BaseActionButton
-              onClick={onDuplicateClick}
-              disabled={isDuplicating}
-              aria-label="Duplicar huella"
-            >
-              <FileCopyOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Duplicar huella"
+          onClick={onDuplicateClick}
+          disabled={isDuplicating}
+          aria-label="Duplicar huella"
+        >
+          <FileCopyOutlined fontSize="small" />
+        </BaseActionButton>
 
         {/* Descargar */}
-        <Tooltip
-          title={
+        <BaseActionButton
+          tooltip={
             isDownloading
               ? "Descargando..."
               : !carbonInventory.hasActiveLines
                 ? "Sin actividades registradas"
                 : "Descargar"
           }
+          onClick={onDownloadClick}
+          disabled={isDownloading || !carbonInventory.hasActiveLines}
+          aria-label="Descargar"
         >
-          <span>
-            <BaseActionButton
-              onClick={onDownloadClick}
-              disabled={isDownloading || !carbonInventory.hasActiveLines}
-              aria-label="Descargar"
-            >
-              {isDownloading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <FileDownloadOutlined fontSize="small" />
-              )}
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          {isDownloading ? (
+            <CircularProgress size={16} />
+          ) : (
+            <FileDownloadOutlined fontSize="small" />
+          )}
+        </BaseActionButton>
 
         {/* Asociar organización */}
-        <Tooltip
-          title={
+        <BaseActionButton
+          tooltip={
             hasOrganization
               ? `Esta huella ya tiene una ${VOCAB.organization.noun.singular} asociada`
               : hasNoOrganizationsToAssociate
                 ? `No perteneces a ninguna ${VOCAB.organization.noun.singular} a la cual asociar esta huella`
                 : `Asociar ${VOCAB.organization.noun.singular}`
           }
+          onClick={() => setAssociateOrgDialogOpen(true)}
+          disabled={associateDisabled}
+          aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
         >
-          <span>
-            <BaseActionButton
-              onClick={() => setAssociateOrgDialogOpen(true)}
-              disabled={associateDisabled}
-              aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
-            >
-              <BusinessOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          <BusinessOutlined fontSize="small" />
+        </BaseActionButton>
 
         {/* Autodeclarar */}
-        <Tooltip title={"Autodeclarar"}>
-          <span>
-            <BaseActionButton
-              onClick={onSelfDeclareClick}
-              sx={primaryActionButtonSx}
-              aria-label="Autodeclarar"
-            >
-              <TaskAltRounded sx={{ fontSize: 16 }} />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Autodeclarar"
+          onClick={onSelfDeclareClick}
+          sx={primaryActionButtonSx}
+          aria-label="Autodeclarar"
+        >
+          <TaskAltRounded sx={{ fontSize: 16 }} />
+        </BaseActionButton>
 
         {/* Eliminar */}
-        <Tooltip
-          title={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
+        <BaseActionButton
+          tooltip={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
+          onClick={() => setDeleteDialogOpen(true)}
+          disabled={!canDelete}
+          aria-label="Eliminar"
         >
-          <span>
-            <BaseActionButton
-              onClick={() => setDeleteDialogOpen(true)}
-              disabled={!canDelete}
-              aria-label="Eliminar"
-            >
-              <DeleteOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          <DeleteOutlined fontSize="small" />
+        </BaseActionButton>
       </Box>
 
       <SelfDeclareValidationDialog
