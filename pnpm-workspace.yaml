@@ -10,7 +10,7 @@ catalogs:
     tsx: ^4.22.3
     rimraf: ^6.0.1
     typescript: ^5.9.3
-    vitest: ^4.0.15
+    vitest: ^4.1.7
     zod: ^4.3.6
 
 onlyBuiltDependencies:
