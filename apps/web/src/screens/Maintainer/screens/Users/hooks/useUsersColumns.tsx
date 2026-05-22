@@ -7,8 +7,10 @@ import type { GetAllUsersResponse } from "@repo/types";
 import { SystemRoleChip } from "@/components/SystemRoleChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
-import { ORGANIZATION_ROLE_LABELS } from "@/labels";
-import { SYSTEM_ROLE_LABELS } from "@/labels/status/role";
+import {
+  ORGANIZATION_ROLE_LABELS,
+  SYSTEM_ROLE_LABELS,
+} from "@/labels/status/role";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
