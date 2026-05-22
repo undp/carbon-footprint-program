@@ -13,8 +13,7 @@ import {
   type ReductionPlanInitiativeMutationData,
 } from "@repo/types";
 
-export interface ReductionPlanInitiativeFormRow
-  extends ReductionPlanInitiativeMutationData {
+export interface ReductionPlanInitiativeFormRow extends ReductionPlanInitiativeMutationData {
   id: string;
 }
 

@@ -21,8 +21,10 @@ import { getColorPalette } from "@/utils/categoryColors";
 type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
-interface EmissionEditorHeaderProps
-  extends Pick<Subcategory, "name" | "description" | "explanation" | "icon"> {
+interface EmissionEditorHeaderProps extends Pick<
+  Subcategory,
+  "name" | "description" | "explanation" | "icon"
+> {
   categoryColor: string;
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;

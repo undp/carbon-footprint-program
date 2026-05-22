@@ -2,11 +2,10 @@ import { FC } from "react";
 import { IconButton, IconButtonProps, Tooltip } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
 
-interface ActionIconButtonProps
-  extends Pick<
-    IconButtonProps,
-    "onClick" | "disabled" | "color" | "className" | "sx" | "size"
-  > {
+interface ActionIconButtonProps extends Pick<
+  IconButtonProps,
+  "onClick" | "disabled" | "color" | "className" | "sx" | "size"
+> {
   icon: SvgIconComponent;
   tooltip: string;
   ariaLabel?: string;

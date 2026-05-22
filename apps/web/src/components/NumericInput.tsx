@@ -4,8 +4,10 @@ import type { FieldError } from "react-hook-form";
 import { NumericFormat, NumberFormatValues } from "react-number-format";
 import { formatter } from "@/utils/formatting";
 
-interface Props
-  extends Omit<TextFieldProps, "onChange" | "value" | "defaultValue" | "type"> {
+interface Props extends Omit<
+  TextFieldProps,
+  "onChange" | "value" | "defaultValue" | "type"
+> {
   value: number | null;
   onChange: (value: number | null) => void;
   suffix?: string;
