@@ -12,7 +12,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tanstack/eslint-plugin-query": "^5.100.11",
-    "@tanstack/eslint-plugin-router": "^1.139.0",
+    "@tanstack/eslint-plugin-router": "^1.162.0",
     "eslint": "catalog:shared",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",

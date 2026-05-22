@@ -432,8 +432,8 @@ importers:
         specifier: ^5.100.11
         version: 5.100.11(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)
       '@tanstack/eslint-plugin-router':
-        specifier: ^1.139.0
-        version: 1.139.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)
+        specifier: ^1.162.0
+        version: 1.162.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)
       eslint:
         specifier: catalog:shared
         version: 9.39.1(jiti@2.7.0)
@@ -1925,10 +1925,10 @@ packages:
       typescript:
         optional: true
 
-  '@tanstack/eslint-plugin-router@1.139.0':
-    resolution: {integrity: sha512-1lNmOtQF6VzDiGYulpYpdX/K8odTjmU5QJ3Mj/U05NDyzXj4aBBBo8y13PnnafOpsKm9sKar5xtMSjOnFCur3A==}
+  '@tanstack/eslint-plugin-router@1.162.0':
+    resolution: {integrity: sha512-0mv+5fOnWXeorh6zd3VyHVfpejIzc7+z68Ts0CQMDzMiwjM5rvea46fyl2m50zx5JFennsu7RO/QJAfnqkKJXw==}
     peerDependencies:
-      eslint: ^8.57.0 || ^9.0.0
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
 
   '@tanstack/history@1.162.0':
     resolution: {integrity: sha512-79pf/RkhteYZTRgcR4F9kbk84P2N8rugQJswxfIqovlbRiT3yI7eBE+5QorIrZaOKktsgzRlXh1l/du/xpl4iA==}
@@ -7114,9 +7114,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/eslint-plugin-router@1.139.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)':
+  '@tanstack/eslint-plugin-router@1.162.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/utils': 8.47.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.59.4(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.3)
       eslint: 9.39.1(jiti@2.7.0)
     transitivePeerDependencies:
       - supports-color
