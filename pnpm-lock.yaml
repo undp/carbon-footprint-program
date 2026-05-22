@@ -335,8 +335,8 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1(vite@7.2.4(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.8.1))
       baseline-browser-mapping:
-        specifier: ^2.9.15
-        version: 2.9.15
+        specifier: ^2.10.31
+        version: 2.10.31
       eslint:
         specifier: catalog:shared
         version: 9.39.1(jiti@2.7.0)
@@ -2448,8 +2448,9 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.9.15:
-    resolution: {integrity: sha512-kX8h7K2srmDyYnXRIppo4AH/wYgzWVCs+eKr3RusRSQ5PvRYoEFmR/I0PbdTjKFAoKqp5+kbxnNTFO9jOfSVJg==}
+  baseline-browser-mapping@2.10.31:
+    resolution: {integrity: sha512-MujYO3eP72uvmSE0i4wltsodRfIpZATP3jvzRNRGGxgzId7aVocVJJV3nf01qnzzKFGxQVC9bpWxl5cjxTr/7Q==}
+    engines: {node: '>=6.0.0'}
     hasBin: true
 
   bcrypt-pbkdf@1.0.2:
@@ -7698,7 +7699,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.9.15: {}
+  baseline-browser-mapping@2.10.31: {}
 
   bcrypt-pbkdf@1.0.2:
     dependencies:
@@ -7740,7 +7741,7 @@ snapshots:
 
   browserslist@4.28.0:
     dependencies:
-      baseline-browser-mapping: 2.9.15
+      baseline-browser-mapping: 2.10.31
       caniuse-lite: 1.0.30001755
       electron-to-chromium: 1.5.255
       node-releases: 2.0.27
