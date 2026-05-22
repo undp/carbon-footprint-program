@@ -3,7 +3,7 @@ import {
   OrganizationDisplayStatus,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
-import { AdminOrganizationDisplayStatus } from "@/screens/Maintainer/hooks/useOrganizationDisplayStatus";
+import { AdminOrganizationDisplayStatus } from "@/screens/Maintainer/hooks/organizationDisplayStatus";
 import { VOCAB } from "@/config/vocab";
 import { sortOrderByLabel, StatusConfig, StatusFamily } from "./types";
 

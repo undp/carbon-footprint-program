@@ -4,7 +4,7 @@ import { enqueueSnackbar } from "notistack";
 import type { IFuseOptions } from "fuse.js";
 import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
-import { getDisplayStatus } from "../hooks/useOrganizationDisplayStatus";
+import { getDisplayStatus } from "../hooks/organizationDisplayStatus";
 import { ADMIN_ORGANIZATION_STATUS_CONFIG } from "@/labels/status/organization";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
 import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";

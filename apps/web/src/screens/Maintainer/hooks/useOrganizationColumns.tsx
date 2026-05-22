@@ -10,7 +10,7 @@ import {
 import { StatusChip } from "@/components/StatusChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
-import { getDisplayStatus } from "./useOrganizationDisplayStatus";
+import { getDisplayStatus } from "./organizationDisplayStatus";
 import {
   ADMIN_ORGANIZATION_STATUS_CONFIG,
   ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL,
