@@ -122,6 +122,7 @@ export const SubcategoryRecommendationsMaintainerScreen: FC = () => {
 
   // Reset transient state when methodology changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting multiple transient editor states when the selected methodology changes; deriving via key prop would require lifting state up
     setTempRows([]);
     setEditedRows(new Map());
     setEditingRowId(null);

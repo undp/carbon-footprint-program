@@ -22,6 +22,7 @@ export const FreeSoloAutocompleteCell: FC<FreeSoloAutocompleteCellProps> = ({
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing controlled prop to local edit buffer; refactor to derived state requires API change
     setLocalValue(value);
   }, [value]);
 
