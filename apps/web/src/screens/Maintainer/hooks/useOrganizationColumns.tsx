@@ -7,10 +7,14 @@ import {
   BlockOutlined,
   LockOpenOutlined,
 } from "@mui/icons-material";
-import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
+import { StatusChip } from "@/components/StatusChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
-import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
+import { getDisplayStatus } from "./useOrganizationDisplayStatus";
+import {
+  ADMIN_ORGANIZATION_STATUS_CONFIG,
+  ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL,
+} from "@/labels/status/organization";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";
@@ -30,8 +34,6 @@ export const useOrganizationColumns = ({
   onBlock,
   onUnblock,
 }: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
-  const { getDisplayStatus, getColor, STATUS_LABEL, STATUS_SORT_ORDER } =
-    useOrganizationDisplayStatus();
   const cellClassName = "content-center";
 
   return useMemo<GridColDef<OrganizationRow>[]>(
@@ -71,15 +73,16 @@ export const useOrganizationColumns = ({
         field: "status",
         headerName: "Estado",
         valueGetter: (_value, row) =>
-          STATUS_LABEL[
+          ADMIN_ORGANIZATION_STATUS_CONFIG[
             getDisplayStatus(
               row.status,
               row.isAccredited,
               row.hasCarbonInventories
             )
-          ],
-        sortComparator: (value1: string, value2: string, _, __) =>
-          STATUS_SORT_ORDER[value1] - STATUS_SORT_ORDER[value2],
+          ].label,
+        sortComparator: (value1: string, value2: string) =>
+          ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL[value1] -
+          ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL[value2],
         cellClassName,
         flex: 0.9,
         renderCell: (params) => {
@@ -89,9 +92,8 @@ export const useOrganizationColumns = ({
             params.row.hasCarbonInventories
           );
           return (
-            <OrganizationStatusChip
-              label={STATUS_LABEL[displayStatus]}
-              color={getColor(displayStatus)}
+            <StatusChip
+              config={ADMIN_ORGANIZATION_STATUS_CONFIG[displayStatus]}
             />
           );
         },
@@ -156,15 +158,6 @@ export const useOrganizationColumns = ({
         },
       },
     ],
-    [
-      getDisplayStatus,
-      getColor,
-      STATUS_LABEL,
-      STATUS_SORT_ORDER,
-      onView,
-      onViewHistory,
-      onBlock,
-      onUnblock,
-    ]
+    [onView, onViewHistory, onBlock, onUnblock]
   );
 };

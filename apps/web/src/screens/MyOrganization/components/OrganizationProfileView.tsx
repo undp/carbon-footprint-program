@@ -1,8 +1,6 @@
 import React, { FC, useCallback, useMemo, useState } from "react";
 import {
   Typography,
-  useTheme,
-  Theme,
   IconButton,
   Popper,
   Fade,
@@ -14,60 +12,16 @@ import { VisibilityOutlined } from "@mui/icons-material";
 import {
   GetOrganizationByIdResponse,
   SubmissionStatus,
-  OrganizationDisplayStatus,
-  OrganizationDisplayStatusValues,
   SubmissionEventType,
 } from "@repo/types";
-import { capitalize } from "lodash-es";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
-import { RequestStatusChip } from "@/screens/Maintainer/components/RequestStatusChip";
+import { StatusChip } from "@/components/StatusChip";
 import { useGetOrganizationHistory } from "@/api/query";
 import { HistoryCard } from "@/components/dialogs/SubmissionHistory";
+import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/status/organization";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/status/submission";
 import { VOCAB } from "@/config/vocab";
-
-export const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> =
-  {
-    [OrganizationDisplayStatusValues.ACCREDITED]: capitalize(
-      VOCAB.inscription.adjective.singular
-    ),
-    [OrganizationDisplayStatusValues.NOT_ACCREDITED]: `No ${capitalize(VOCAB.inscription.adjective.singular)}`,
-    [OrganizationDisplayStatusValues.BLOCKED]: "Bloqueada",
-  };
-
-export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.PENDING]: "Pendiente",
-  [SubmissionStatus.APPROVED]: "Aprobada",
-  [SubmissionStatus.REVIEWED]: "Con observaciones",
-  [SubmissionStatus.APPROVED_AUTOMATICALLY]: "Aprobada Automáticamente",
-  [SubmissionStatus.REJECTED]: "Rechazada",
-};
-
-export const getDisplayStatusColor = (
-  status: OrganizationDisplayStatus,
-  theme: Theme
-): string => {
-  const colorMap = {
-    [OrganizationDisplayStatusValues.ACCREDITED]: theme.palette.success.light,
-    [OrganizationDisplayStatusValues.NOT_ACCREDITED]: theme.palette.grey[400],
-    [OrganizationDisplayStatusValues.BLOCKED]: theme.palette.error.light,
-  };
-  return colorMap[status];
-};
-
-export const getSubmissionStatusColor = (
-  status: SubmissionStatus,
-  theme: Theme
-): string => {
-  const colorMap = {
-    [SubmissionStatus.PENDING]: theme.palette.info.light,
-    [SubmissionStatus.APPROVED]: theme.palette.success.light,
-    [SubmissionStatus.REVIEWED]: theme.palette.warning.light,
-    [SubmissionStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
-    [SubmissionStatus.REJECTED]: theme.palette.error.light,
-  };
-  return colorMap[status];
-};
 
 type OrganizationProfileViewProps = {
   profile: GetOrganizationByIdResponse;
@@ -77,7 +31,6 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
   profile,
 }) => {
   const representative = profile.representative;
-  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const [arrowRef, setArrowRef] = useState<HTMLElement | null>(null);
@@ -107,9 +60,8 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
         <InfoRow
           label="Estado"
           value={
-            <RequestStatusChip
-              label={DISPLAY_STATUS_LABELS[profile.status]}
-              color={getDisplayStatusColor(profile.status, theme)}
+            <StatusChip
+              config={ORGANIZATION_DISPLAY_STATUS_CONFIG[profile.status]}
             />
           }
         />
@@ -118,12 +70,10 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
             label="Estado última solicitud"
             value={
               <Box className="flex flex-row items-center gap-1">
-                <RequestStatusChip
-                  label={SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]}
-                  color={getSubmissionStatusColor(
-                    profile.lastSubmissionStatus,
-                    theme
-                  )}
+                <StatusChip
+                  config={
+                    SUBMISSION_STATUS_CONFIG[profile.lastSubmissionStatus]
+                  }
                 />
                 {lastSubmission?.eventType === SubmissionEventType.REVIEWED &&
                   profile.lastSubmissionStatus ===
