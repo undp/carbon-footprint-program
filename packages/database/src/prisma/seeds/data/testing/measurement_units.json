@@ -28,7 +28,7 @@
     "isBase": true
   },
   {
-    "name": "metros cúbicos",
+    "name": "metro cúbico",
     "magnitudeCode": "volume",
     "abbreviation": "m3",
     "baseFactor": 1000.0,
@@ -77,14 +77,14 @@
     "isBase": false
   },
   {
-    "name": "cantidad de animales",
+    "name": "animal",
     "magnitudeCode": "animals",
     "abbreviation": "cant anim",
     "baseFactor": 1.0,
     "isBase": true
   },
   {
-    "name": "hectáreas",
+    "name": "hectárea",
     "magnitudeCode": "area",
     "abbreviation": "ha",
     "baseFactor": 1.0,
@@ -105,7 +105,7 @@
     "isBase": true
   },
   {
-    "name": "giga joule",
+    "name": "gigajoule",
     "magnitudeCode": "energy",
     "abbreviation": "GJ",
     "baseFactor": 1.0,
@@ -119,7 +119,7 @@
     "isBase": true
   },
   {
-    "name": "piezas arrendadas",
+    "name": "pieza arrendada",
     "magnitudeCode": "rooms",
     "abbreviation": "pieza arre",
     "baseFactor": 1.0,

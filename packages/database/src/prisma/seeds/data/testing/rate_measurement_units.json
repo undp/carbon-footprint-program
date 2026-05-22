@@ -4,7 +4,7 @@
     "abbreviation": "kg/g"
   },
   {
-    "name": "kg por kg",
+    "name": "kg por kilógramo",
     "abbreviation": "kg/kg"
   },
   {
@@ -52,11 +52,11 @@
     "abbreviation": "kg/ha"
   },
   {
-    "name": "kg por megawatt",
+    "name": "kg por megawatt hora",
     "abbreviation": "kg/MWh"
   },
   {
-    "name": "kg por kilowatt",
+    "name": "kg por kilowatt hora",
     "abbreviation": "kg/kWh"
   },
   {
@@ -64,7 +64,7 @@
     "abbreviation": "kg/GJ"
   },
   {
-    "name": "kg por kilómetro-tonelada",
+    "name": "kg por kilómetro tonelada",
     "abbreviation": "kg/km-ton"
   },
   {

@@ -89,7 +89,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
 
       const expectedNames = [
         "kg por gramo",
-        "kg por kg",
+        "kg por kilógramo",
         "kg por tonelada",
         "kg por kilómetro",
         "kg por milla",
@@ -101,10 +101,10 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         "kg por hora",
         "kg por animal",
         "kg por hectárea",
-        "kg por megawatt",
-        "kg por kilowatt",
+        "kg por megawatt hora",
+        "kg por kilowatt hora",
         "kg por gigajoule",
-        "kg por kiloómetro-hora",
+        "kg por kilómetro tonelada",
         "kg por pieza arrendada",
       ];
 
