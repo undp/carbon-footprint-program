@@ -99,16 +99,17 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
     const requiredOrganizationRoles = options?.requiredOrganizationRoles;
     const canAdminsBypass = options?.canAdminsBypass;
 
-    return async function (
-      request: FastifyRequest<{ Params: P }>,
-      reply: FastifyReply
-    ) {
+    return async function (request: FastifyRequest, reply: FastifyReply) {
       const log = request.log.child({
         module: "carbon-inventory-authorization",
       });
 
-      // Extract carbon inventory ID from request
-      const carbonInventoryId = carbonInventoryIdExtractor(request);
+      // The extractor is supplied per-route and knows its own Params shape;
+      // the inner hook is generic over RouteGenericInterface so it can be
+      // assigned to `preHandlerAsyncHookHandler` without contravariance issues.
+      const carbonInventoryId = carbonInventoryIdExtractor(
+        request as FastifyRequest<{ Params: P }>
+      );
 
       if (!carbonInventoryId) {
         log.warn(

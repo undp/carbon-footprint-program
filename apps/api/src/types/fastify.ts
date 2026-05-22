@@ -5,6 +5,8 @@ import type {
   RawRequestDefaultExpression,
   RawReplyDefaultExpression,
   FastifyBaseLogger,
+  onRequestAsyncHookHandler,
+  preHandlerAsyncHookHandler,
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
@@ -76,10 +78,7 @@ declare module "fastify" {
      * // Protect individual route
      * fastify.get("/protected", { onRequest: [fastify.requireAuth] }, handler);
      */
-    requireAuth: (
-      request: FastifyRequest,
-      reply: FastifyReply
-    ) => Promise<void>;
+    requireAuth: onRequestAsyncHookHandler;
 
     /**
      * Require user to have at least one of the specified roles.
@@ -100,9 +99,7 @@ declare module "fastify" {
      *   onRequest: [fastify.requireAuth, fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])],
      * }, handler);
      */
-    requireRoles: (
-      allowedRoles: SystemRole[]
-    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireRoles: (allowedRoles: SystemRole[]) => preHandlerAsyncHookHandler;
 
     /**
      * Require user to have at least one of the specified roles within an organization.
@@ -132,7 +129,7 @@ declare module "fastify" {
     requireOrganizationRole: (
       organizationIdExtractor: OrganizationIdExtractorFn,
       options: RequireOrganizationRoleOptions
-    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    ) => preHandlerAsyncHookHandler;
 
     /**
      * Require user to have access to a specific carbon inventory.
@@ -158,10 +155,7 @@ declare module "fastify" {
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
       carbonInventoryIdExtractor: IdExtractor<P>,
       options?: RequireCarbonInventoryAccessOptions
-    ) => (
-      request: FastifyRequest<{ Params: P }>,
-      reply: FastifyReply
-    ) => Promise<void>;
+    ) => preHandlerAsyncHookHandler;
 
     /**
      * Require access to a reduction project (creator or active org member).
@@ -169,7 +163,7 @@ declare module "fastify" {
     requireReductionProjectAccess: (options?: {
       requiredOrganizationRoles?: OrganizationRole[];
       canAdminsBypass?: boolean;
-    }) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    }) => preHandlerAsyncHookHandler;
   }
 
   interface FastifyRequest {
