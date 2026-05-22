@@ -39,7 +39,7 @@
     "@tanstack/react-router": "^1.170.7",
     "attr-accept": "^2.2.5",
     "client-zip": "^2.5.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.2.1",
     "exceljs": "^4.4.0",
     "fuse.js": "^7.1.0",
     "katex": "^0.16.38",
