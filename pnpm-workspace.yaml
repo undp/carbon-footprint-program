@@ -4,7 +4,7 @@ packages:
 
 catalogs:
   shared:
-    "@types/node": ^24.10.1
+    "@types/node": ^24.12.4
     eslint: ^9.39.1
     pino: ^10.1.0
     tsx: ^4.20.6
