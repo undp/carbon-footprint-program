@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
@@ -7,6 +6,8 @@ import { CountryOrganizationSizeStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
+import { StatusChip } from "@/components/StatusChip";
+import { PROFILING_STATUS_CONFIG_MASCULINE } from "@/labels/status/profiling";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({
@@ -154,17 +155,17 @@ export const useOrganizationSizeProfilingColumns = ({
         filterable: false,
         valueGetter: (_value, row: OrganizationSizeFormRow) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE
-            ? "Activo"
+            ? PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE.label
             : row.status === CountryOrganizationSizeStatus.DELETED
-              ? "Eliminado"
-              : "Nuevo",
+              ? PROFILING_STATUS_CONFIG_MASCULINE.DELETED.label
+              : PROFILING_STATUS_CONFIG_MASCULINE.NEW.label,
         renderCell: ({ row }: GridRenderCellParams<OrganizationSizeFormRow>) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
+            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE} />
           ) : row.status === CountryOrganizationSizeStatus.DELETED ? (
-            <Chip label="Eliminado" size="small" color="default" />
+            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.DELETED} />
           ) : (
-            <Chip label="Nuevo" size="small" color="info" />
+            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.NEW} />
           ),
       },
       {

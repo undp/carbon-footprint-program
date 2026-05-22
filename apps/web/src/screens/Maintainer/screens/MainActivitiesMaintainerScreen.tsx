@@ -36,7 +36,7 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import { PROFILING_STATUS_CONFIG_FEMININE } from "@/labels/status/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS = {
@@ -117,8 +117,8 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         }
         if (key === "statusLabel") {
           return row.status === OrganizationMainActivityStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+            ? PROFILING_STATUS_CONFIG_FEMININE.ACTIVE.label
+            : PROFILING_STATUS_CONFIG_FEMININE.DELETED.label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";

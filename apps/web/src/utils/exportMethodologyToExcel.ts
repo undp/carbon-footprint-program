@@ -1,8 +1,5 @@
 import ExcelJS from "exceljs";
-import {
-  MethodologyVersionStatus,
-  type GetMethodologyExportResponse,
-} from "@repo/types";
+import { type GetMethodologyExportResponse } from "@repo/types";
 import {
   display,
   downloadBuffer,
@@ -10,12 +7,7 @@ import {
   sanitizeFilenamePart,
 } from "@/services/excel";
 import { formatter } from "./formatting";
-
-const METHODOLOGY_STATUS_LABELS: Record<MethodologyVersionStatus, string> = {
-  [MethodologyVersionStatus.PUBLISHED]: "Activa",
-  [MethodologyVersionStatus.UNPUBLISHED]: "Inactiva",
-  [MethodologyVersionStatus.DELETED]: "Eliminada",
-};
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/status/methodology";
 
 type Methodology = GetMethodologyExportResponse;
 type Category = Methodology["categories"][number];
@@ -58,7 +50,7 @@ function buildMethodologySheet(
     description: display(methodology.description),
     regulation: display(methodology.regulation),
     version: display(methodology.version),
-    status: METHODOLOGY_STATUS_LABELS[methodology.status],
+    status: METHODOLOGY_STATUS_CONFIG[methodology.status].label,
   });
 }
 
