@@ -1,5 +1,10 @@
-import { FC, useState } from "react";
-import { useWatch, useFormState, type Control } from "react-hook-form";
+import { useState } from "react";
+import {
+  useWatch,
+  useFormState,
+  type Control,
+  type FieldValues,
+} from "react-hook-form";
 
 /**
  * Lightweight alternative to @hookform/devtools for forms using useFieldArray.
@@ -9,10 +14,12 @@ import { useWatch, useFormState, type Control } from "react-hook-form";
  * `register` on those paths throw "N is read-only". This panel uses `useWatch`
  * instead, which reads values without registering fields.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const FormDebugPanel: FC<{ control: Control<any> }> = ({ control }) => {
+export const FormDebugPanel = <T extends FieldValues>({
+  control,
+}: {
+  control: Control<T>;
+}) => {
   const [collapsed, setCollapsed] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const values = useWatch({ control });
   const { isDirty, isValid, isSubmitting, isSubmitted, errors } = useFormState({
     control,
