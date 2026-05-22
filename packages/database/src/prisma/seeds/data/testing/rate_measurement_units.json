@@ -1,6 +1,6 @@
 [
   {
-    "name": "kg por gramo",
+    "name": "kg por g",
     "abbreviation": "kg/g"
   },
   {
@@ -8,67 +8,67 @@
     "abbreviation": "kg/kg"
   },
   {
-    "name": "kg por tonelada",
+    "name": "kg por ton",
     "abbreviation": "kg/ton"
   },
   {
-    "name": "kg por kilómetro",
+    "name": "kg por km",
     "abbreviation": "kg/km"
   },
   {
-    "name": "kg por milla",
+    "name": "kg por mi",
     "abbreviation": "kg/mi"
   },
   {
-    "name": "kg por metro",
+    "name": "kg por m",
     "abbreviation": "kg/m"
   },
   {
-    "name": "kg por litro",
+    "name": "kg por L",
     "abbreviation": "kg/L"
   },
   {
-    "name": "kg por galón",
+    "name": "kg por gal",
     "abbreviation": "kg/gal"
   },
   {
-    "name": "kg por metro cúbico",
+    "name": "kg por m3",
     "abbreviation": "kg/m3"
   },
   {
-    "name": "kg por día",
+    "name": "kg por d",
     "abbreviation": "kg/d"
   },
   {
-    "name": "kg por hora",
+    "name": "kg por h",
     "abbreviation": "kg/h"
   },
   {
-    "name": "kg por animal",
+    "name": "kg por cant anim",
     "abbreviation": "kg/cant anim"
   },
   {
-    "name": "kg por hectárea",
+    "name": "kg por ha",
     "abbreviation": "kg/ha"
   },
   {
-    "name": "kg por megawatt",
+    "name": "kg por MWh",
     "abbreviation": "kg/MWh"
   },
   {
-    "name": "kg por kilowatt",
+    "name": "kg por kWh",
     "abbreviation": "kg/kWh"
   },
   {
-    "name": "kg por gigajoule",
+    "name": "kg por GJ",
     "abbreviation": "kg/GJ"
   },
   {
-    "name": "kg por kilómetro-tonelada",
+    "name": "kg por km-ton",
     "abbreviation": "kg/km-ton"
   },
   {
-    "name": "kg por pieza arrendada",
+    "name": "kg por pieza arre",
     "abbreviation": "kg/pieza arre"
   }
 ]

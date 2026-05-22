@@ -68,9 +68,9 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
 
-      const testRateUnit = body.find((ru) => ru.name.includes("kg por litro"));
+      const testRateUnit = body.find((ru) => ru.name.includes("kg por L"));
       expect(testRateUnit).toBeDefined();
-      expect(testRateUnit!.name).toBe("kg por litro");
+      expect(testRateUnit!.name).toBe("kg por L");
       expect(testRateUnit!.abbreviation).toBe("kg/L");
     });
   });
@@ -88,24 +88,24 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       ) as GetAllRateMeasurementUnitsResponse;
 
       const expectedNames = [
-        "kg por gramo",
+        "kg por g",
         "kg por kg",
-        "kg por tonelada",
-        "kg por kilómetro",
-        "kg por milla",
-        "kg por metro",
-        "kg por litro",
-        "kg por galón",
-        "kg por metro cúbico",
-        "kg por día",
-        "kg por hora",
-        "kg por animal",
-        "kg por hectárea",
-        "kg por megawatt",
-        "kg por kilowatt",
-        "kg por gigajoule",
-        "kg por kilómetro-tonelada",
-        "kg por pieza arrendada",
+        "kg por ton",
+        "kg por km",
+        "kg por mi",
+        "kg por m",
+        "kg por L",
+        "kg por gal",
+        "kg por m3",
+        "kg por d",
+        "kg por h",
+        "kg por cant anim",
+        "kg por ha",
+        "kg por MWh",
+        "kg por kWh",
+        "kg por GJ",
+        "kg por km-ton",
+        "kg por pieza arre",
       ];
 
       const actualNames = body.map((ru) => ru.name);
@@ -125,16 +125,16 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
 
-      // Check kg por litro has correct nested units
-      const kgPerLiter = body.find((ru) => ru.name === "kg por litro");
+      // Check kg por L has correct nested units
+      const kgPerLiter = body.find((ru) => ru.name === "kg por L");
       expect(kgPerLiter).toBeDefined();
       expect(kgPerLiter!.numeratorUnit.name).toBe("kilógramos");
       expect(kgPerLiter!.numeratorUnit.magnitude.code).toBe("mass");
       expect(kgPerLiter!.denominatorUnit.name).toBe("litros");
       expect(kgPerLiter!.denominatorUnit.magnitude.code).toBe("volume");
 
-      // Check kg por hora has correct nested units
-      const kgPerHour = body.find((ru) => ru.name === "kg por hora");
+      // Check kg por h has correct nested units
+      const kgPerHour = body.find((ru) => ru.name === "kg por h");
       expect(kgPerHour).toBeDefined();
       expect(kgPerHour!.numeratorUnit.name).toBe("kilógramos");
       expect(kgPerHour!.numeratorUnit.magnitude.code).toBe("mass");
@@ -196,10 +196,8 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
 
-      // Check for kg por metro cúbico which should have m3 in denominator
-      const kgPerCubicMeter = body.find(
-        (ru) => ru.name === "kg por metro cúbico"
-      );
+      // Check for kg por m3 which should have m3 in denominator
+      const kgPerCubicMeter = body.find((ru) => ru.name === "kg por m3");
       expect(kgPerCubicMeter).toBeDefined();
       expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toBe("m3");
       expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toContain("3");
