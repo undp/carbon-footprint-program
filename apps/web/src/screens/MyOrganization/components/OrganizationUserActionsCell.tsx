@@ -1,7 +1,8 @@
 import { FC } from "react";
-import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
 import { OrganizationRole } from "@repo/types";
+import { BaseActionButton } from "@/components";
 
 interface OrganizationUserActionsCellProps {
   userId: string;
@@ -22,8 +23,6 @@ export const OrganizationUserActionsCell: FC<
   onEdit,
   onDelete,
 }) => {
-  const theme = useTheme();
-
   const editTooltip = isCurrentUser
     ? "No puedes editar tu propio rol"
     : "Editar usuario";
@@ -31,48 +30,26 @@ export const OrganizationUserActionsCell: FC<
     ? "No puedes eliminarte a ti mismo"
     : "Eliminar usuario";
 
-  const iconBorder = isCurrentUser
-    ? theme.palette.grey[300]
-    : theme.palette.primary.main;
-
-  const iconButtonStyles = () => ({
-    border: `1px solid ${iconBorder}`,
-    borderRadius: "4px",
-    padding: "4px",
-  });
-
   return (
     <Box className="flex items-center justify-center gap-2">
-      <Tooltip title={editTooltip}>
-        <span>
-          <IconButton
-            size="small"
-            onClick={() =>
-              currentRole && onEdit(userId, userEmail ?? "", currentRole)
-            }
-            disabled={isCurrentUser}
-            sx={iconButtonStyles}
-            color="primary"
-            aria-label="Editar usuario"
-          >
-            <EditOutlined fontSize="small" />
-          </IconButton>
-        </span>
-      </Tooltip>
-      <Tooltip title={deleteTooltip}>
-        <span>
-          <IconButton
-            size="small"
-            onClick={() => onDelete(userId, userEmail ?? "")}
-            disabled={isCurrentUser}
-            sx={iconButtonStyles}
-            color="primary"
-            aria-label="Eliminar usuario"
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        </span>
-      </Tooltip>
+      <BaseActionButton
+        tooltip={editTooltip}
+        onClick={() =>
+          currentRole && onEdit(userId, userEmail ?? "", currentRole)
+        }
+        disabled={isCurrentUser}
+        aria-label="Editar usuario"
+      >
+        <EditOutlined fontSize="small" />
+      </BaseActionButton>
+      <BaseActionButton
+        tooltip={deleteTooltip}
+        onClick={() => onDelete(userId, userEmail ?? "")}
+        disabled={isCurrentUser}
+        aria-label="Eliminar usuario"
+      >
+        <DeleteOutlined fontSize="small" />
+      </BaseActionButton>
     </Box>
   );
 };
