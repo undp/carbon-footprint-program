@@ -24,7 +24,7 @@
     "@emotion/styled": "^11.14.1",
     "@fontsource-variable/roboto": "^5.2.10",
     "@fontsource/roboto": "^5.2.10",
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.4.0",
     "@mui/icons-material": "^7.3.11",
     "@mui/material": "^7.3.11",
     "@mui/x-charts": "^8.20.0",
