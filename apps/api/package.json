@@ -56,7 +56,7 @@
     "eslint": "catalog:shared",
     "pino-pretty": "^13.1.3",
     "rimraf": "catalog:shared",
-    "tsc-alias": "^1.8.16",
+    "tsc-alias": "^1.8.17",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared",
     "vite-tsconfig-paths": "^5.1.4",
