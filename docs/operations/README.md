@@ -11,3 +11,4 @@ Running the Huella Latam platform in production: admin workflows, monitoring, in
 | [Operations Runbook](./runbook.md)                        | Backup, restore, rollback procedures, incident severity levels, and response steps                                                                   |
 | [Risks and Limitations](./risks-and-limitations.md)       | Known technical risks, single points of failure, critical external dependencies, and inherent system limitations                                     |
 | [Performance and Scaling Playbook](./scaling-playbook.md) | Metric-based decision criteria for App Service scale-out, Redis-backed rate limiting, PgBouncer, PostgreSQL HA, and Application Insights integration |
+| [File Upload Limits](./file-uploads.md)                   | Configuring the global byte range and per-use-case allowlists for uploaded files                                                                     |
