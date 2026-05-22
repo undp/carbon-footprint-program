@@ -344,6 +344,7 @@ export const OrganizationFormDialog: FC<Props> = ({
               <FormFileUpload
                 control={control}
                 name="files"
+                useCase="SUBMISSION"
                 disabled={isSubmitting}
                 required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 requiredMessage="Al menos un archivo es requerido"

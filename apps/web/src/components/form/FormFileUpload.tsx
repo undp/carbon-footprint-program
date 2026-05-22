@@ -1,4 +1,5 @@
 import type { Accept } from "react-dropzone";
+import type { FileUploadType } from "@repo/constants";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { FileUpload } from "../FileUpload";
 import { PropsWithChildren } from "react";
@@ -6,6 +7,7 @@ import { PropsWithChildren } from "react";
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
   control: Control<T>;
+  useCase?: FileUploadType;
   accept?: Accept;
   acceptMessage?: string;
   disabled?: boolean;

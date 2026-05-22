@@ -21,6 +21,7 @@ export const FileUploadSection: FC<Props> = ({ control, disabled }) => {
       <FormFileUpload
         control={control}
         name="files"
+        useCase="SUBMISSION"
         disabled={disabled}
         required
         requiredMessage="Al menos un archivo es requerido"

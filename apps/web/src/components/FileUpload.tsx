@@ -20,8 +20,10 @@ import { DeleteOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
 import accepts from "attr-accept";
+import type { FileUploadType } from "@repo/constants";
 import { useFileUploadLimits } from "@/api/query/systemParameters";
 import { mergeUniqueFiles } from "@/utils/files";
+import { getPolicyAccept } from "@/utils/buildAcceptFromPolicy";
 
 interface FileWithPreview {
   file: File;
@@ -31,6 +33,13 @@ interface FileWithPreview {
 interface Props {
   value: File[];
   onChange: (files: File[]) => void;
+  /**
+   * Use case that drives the dropzone's accept map and effective max
+   * size. Resolved against FILE_UPLOAD_POLICIES. When omitted, the
+   * dropzone falls back to the legacy default (PDF/images/xlsx) and
+   * the global FILE_UPLOAD_MAX_BYTES.
+   */
+  useCase?: FileUploadType;
   accept?: Accept;
   acceptMessage?: string;
   disabled?: boolean;
@@ -78,7 +87,8 @@ const defaultChildren = (acceptMessage: string) => (
 export const FileUpload: FC<PropsWithChildren<Props>> = ({
   value,
   onChange,
-  accept = defaultAccept,
+  useCase,
+  accept,
   acceptMessage,
   disabled = false,
   error,
@@ -86,9 +96,11 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 }) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
-  const limits = useFileUploadLimits();
+  const limits = useFileUploadLimits(useCase);
   const maxBytes = limits?.maxBytes;
   const maxSizeMB = limits?.maxMB;
+  const resolvedAccept =
+    accept ?? (useCase ? getPolicyAccept(useCase) : defaultAccept);
 
   const resolvedAcceptMessage =
     acceptMessage ??
@@ -136,16 +148,14 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
         const file = item.getAsFile();
         if (!file) return;
 
-        if (accept) {
-          const acceptStr = Object.entries(accept)
-            .flatMap(([mime, exts]) => [mime, ...exts])
-            .join(",");
+        const acceptStr = Object.entries(resolvedAccept)
+          .flatMap(([mime, exts]) => [mime, ...exts])
+          .join(",");
 
-          if (!accepts(file, acceptStr)) {
-            setDropError(`"${file.name}": tipo de archivo no permitido.`);
-            hadRejections = true;
-            return;
-          }
+        if (!accepts(file, acceptStr)) {
+          setDropError(`"${file.name}": tipo de archivo no permitido.`);
+          hadRejections = true;
+          return;
         }
 
         if (maxBytes !== undefined && file.size > maxBytes) {
@@ -161,12 +171,12 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       if (pasted.length) addFiles(pasted, hadRejections);
     },
-    [disabled, accept, maxBytes, maxSizeMB, addFiles]
+    [disabled, resolvedAccept, maxBytes, maxSizeMB, addFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (accepted, rejected) => addFiles(accepted, rejected.length > 0),
-    accept,
+    accept: resolvedAccept,
     maxSize: maxBytes,
     multiple: true,
     disabled,

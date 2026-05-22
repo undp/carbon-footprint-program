@@ -277,6 +277,7 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
           <FileUpload
             value={[]}
             onChange={handleFilesPicked}
+            useCase="CARBON_INVENTORY"
             accept={acceptMap}
             disabled={disabled || isUploading}
           />
