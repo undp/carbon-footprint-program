@@ -68,7 +68,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             disabled={disabled}
             sx={iconSx}
           >
-            <UploadFileOutlined fontSize="small" />
+            <UploadFileOutlined />
           </BaseActionButton>
         </Badge>
       )}
@@ -92,7 +92,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             disabled={disabled}
             sx={iconSx}
           >
-            <CommentOutlined fontSize="small" />
+            <CommentOutlined />
           </BaseActionButton>
         </Badge>
       )}
@@ -104,7 +104,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           disabled={disabled}
           sx={iconSx}
         >
-          <DeleteOutlined fontSize="small" />
+          <DeleteOutlined />
         </BaseActionButton>
       )}
     </Box>
