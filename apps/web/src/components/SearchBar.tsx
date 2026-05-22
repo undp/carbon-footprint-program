@@ -10,8 +10,10 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
-interface SearchBarProps
-  extends Omit<TextFieldProps, "value" | "onChange" | "size" | "sx"> {
+interface SearchBarProps extends Omit<
+  TextFieldProps,
+  "value" | "onChange" | "size" | "sx"
+> {
   value: string;
   onChange: (value: string) => void;
   /** Custom styles merged with the base styles. */
