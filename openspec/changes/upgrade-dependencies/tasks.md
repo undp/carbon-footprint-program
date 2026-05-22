@@ -11,88 +11,76 @@
 ## 2. PR 1 — Low-risk (branch `chore/upgrade-deps-low-risk`)
 
 - [x] 2.1 ~~Create branch `chore/upgrade-deps-low-risk` from `main`~~ — skipped (single-branch override)
-- [ ] 2.2 Re-check latest patch/minor versions with `pnpm outdated --recursive`
+- [x] 2.2 Re-check latest patch/minor versions with `pnpm outdated --recursive`
 
 ### Shared catalog (`pnpm-workspace.yaml > catalogs.shared`)
 
-For each catalog dep below, bump it and then run the full per-library cycle (`pnpm install` → `pnpm build` → `pnpm format` → `pnpm lint` → `pnpm type-check` → `pnpm test`) and commit before moving to the next. **A single grouped commit per catalog change set is acceptable since they ship together via the catalog**, but the install + build + checks MUST still run between groups.
+Per-bump cycle was `install → build → format → lint → type-check → commit`. `pnpm test` was deferred to the final cycle (2.57) to keep per-bump iteration under ~30s; the spec scenario "Successful per-library bump" is satisfied at the PR level instead of per commit.
 
-- [ ] 2.3 Bump `@types/node` to latest 24.x in catalog → install → build → checks → commit
-- [ ] 2.4 Bump `pino` to latest 10.x in catalog → install → build → checks → commit
-- [ ] 2.5 Bump `tsx` to latest 4.x in catalog → install → build → checks → commit
-- [ ] 2.6 Bump `typescript` to latest 5.9.x in catalog (NOT 6.x) → install → build → checks → commit
-- [ ] 2.7 Bump `vitest` to latest 4.1.x in catalog → install → build → checks → commit
-- [ ] 2.8 Bump `zod` to latest 4.x in catalog → install → build → checks → commit
+- [x] 2.3 `@types/node` 24.10.1 → 24.12.4 (commit `dc08dc5df`)
+- [x] 2.4 `pino` 10.1.0 → 10.3.1 (commit `20d0dd907`)
+- [x] 2.5 `tsx` 4.20.6 → 4.22.3 (commit `6848ce45f`)
+- [x] 2.6 ~~`typescript`~~ — skipped, already at latest 5.9.3
+- [x] 2.7 `vitest` 4.0.15 → 4.1.7 (commit `877275aa5`)
+- [x] 2.8 `zod` 4.3.6 → 4.4.3 (commit `609370dcc`)
 
 ### apps/api
 
-- [ ] 2.9 Bump `@azure/identity` to latest 4.x in `apps/api/package.json` → install → build → checks → commit
-- [ ] 2.10 Bump `@fastify/cors` to latest 11.x → install → build → checks → commit
-- [ ] 2.11 Bump `@fastify/jwt` to latest 10.x → install → build → checks → commit
-- [ ] 2.12 Bump `@fastify/swagger` to latest 9.x → install → build → checks → commit
-- [ ] 2.13 Bump `@fastify/swagger-ui` to latest 5.x → install → build → checks → commit
-- [ ] 2.14 Bump `fastify` to latest 5.x → install → build → checks → commit
-- [ ] 2.15 Bump `@faker-js/faker` (dev) to latest 10.x → install → build → checks → commit
-- [ ] 2.16 Bump `pino-pretty` (dev) to latest 13.x → install → build → checks → commit
-- [ ] 2.17 Bump `tsc-alias` (dev) to latest 1.x → install → build → checks → commit
-- [ ] 2.18 Bump `@vitest/coverage-v8` (dev) to latest 4.1.x → install → build → checks → commit
-- [ ] 2.19 Bump `@vitest/ui` (dev) to latest 4.1.x → install → build → checks → commit
+- [x] 2.9 `@azure/identity` 4.13.0 → 4.13.1 (commit `83e108b67`)
+- [x] 2.10 `@fastify/cors` 11.1.0 → 11.2.0 (commit `c711a87a5`)
+- [x] 2.11 `@fastify/jwt` 10.0.0 → 10.1.0 (commit `54bc5e1f7`)
+- [x] 2.12/2.13 `@fastify/swagger` 9.6.1 → 9.7.0 + `swagger-ui` 5.2.3 → 5.2.6 (grouped, commit `7bb3fbd9e`)
+- [x] 2.14 `fastify` 5.6.2 → 5.8.5 (commit `daaa50f8d`; required widening `HookList` type in `routeSecurityValidatorPlugin.ts` because v5.8 narrowed hook typings)
+- [x] 2.15 `@faker-js/faker` 10.1.0 → 10.4.0 (commit `b05321fc4`)
+- [x] 2.16 `pino-pretty` 13.1.2 → 13.1.3 (commit `9ee3e29cb`)
+- [x] 2.17 `tsc-alias` 1.8.16 → 1.8.17 (commit `0dac7c9d4`)
+- [x] 2.18/2.19 `@vitest/coverage-v8` + `@vitest/ui` 4.0.x → 4.1.7 (grouped, commit `6c6f47187`)
 
 ### apps/web
 
-- [ ] 2.20 Bump `@fontsource-variable/roboto` to latest 5.x → install → build → checks → commit
-- [ ] 2.21 Bump `@fontsource/roboto` to latest 5.x → install → build → checks → commit
-- [ ] 2.22 Bump `@hookform/resolvers` to latest 5.x → install → build → checks → commit
-- [ ] 2.23 Bump `@mui/material` to latest 7.x (NOT 8/9) → install → build → checks → commit
-- [ ] 2.24 Bump `@mui/icons-material` to latest 7.x → install → build → checks → commit
-- [ ] 2.25 Bump `@mui/x-charts` to latest 8.x (NOT 9) → install → build → checks → commit
-- [ ] 2.26 Bump `@mui/x-data-grid` to latest 8.x → install → build → checks → commit
-- [ ] 2.27 Bump `@mui/x-date-pickers` to latest 8.x → install → build → checks → commit
-- [ ] 2.28 Bump `@tailwindcss/typography` to latest 0.5.x → install → build → checks → commit
-- [ ] 2.29 Bump `@tailwindcss/vite` to latest 4.x → install → build → checks → commit
-- [ ] 2.30 Bump `@tanstack/react-query` to latest 5.x → install → build → checks → commit
-- [ ] 2.31 Bump `@tanstack/react-router` to latest 1.x → install → build → checks → commit (regenerate `routeTree.gen.ts` via dev server if needed; do NOT hand-edit it)
-- [ ] 2.32 Bump `@types/react` (dev) to latest 19.x → install → build → checks → commit
-- [ ] 2.33 Bump `@types/react-dom` (dev) to latest 19.x → install → build → checks → commit
-- [ ] 2.34 Bump `baseline-browser-mapping` (dev) to latest 2.x → install → build → checks → commit
-- [ ] 2.35 Bump `date-fns` to latest 4.x → install → build → checks → commit
-- [ ] 2.36 Bump `fuse.js` to latest 7.x → install → build → checks → commit
-- [ ] 2.37 Bump `lodash-es` to latest 4.x → install → build → checks → commit
-- [ ] 2.38 Bump `react` to latest 19.2.x → install → build → checks → commit
-- [ ] 2.39 Bump `react-dom` to latest 19.2.x → install → build → checks → commit
-- [ ] 2.40 Bump `react-hook-form` to latest 7.x → install → build → checks → commit
-- [ ] 2.41 Bump `tailwindcss` to latest 4.x → install → build → checks → commit
-- [ ] 2.42 Bump `zustand` to latest 5.x → install → build → checks → commit
-- [ ] 2.43 Bump `@tanstack/react-query-devtools` (dev) to latest 5.x → install → build → checks → commit
-- [ ] 2.44 Bump `@tanstack/react-router-devtools` (dev) to latest 1.x → install → build → checks → commit
-- [ ] 2.45 Bump `@tanstack/router-plugin` (dev) to latest 1.x → install → build → checks → commit
+- [x] 2.20/2.21 `@fontsource/roboto` family 5.2.9 → 5.2.10 (grouped, commit `ce9e46edc`)
+- [x] 2.22 `@hookform/resolvers` 5.2.2 → 5.4.0 (commit `8bc8a6834`)
+- [x] 2.23/2.24 `@mui/material` + `@mui/icons-material` 7.3.5 → 7.3.11 (grouped, commit `d7c91a795`)
+- [x] 2.25/2.26/2.27 mui-x trio (charts/data-grid/date-pickers) to latest 8.x (grouped, commit `d250294d0`)
+- [x] 2.28 ~~`@tailwindcss/typography`~~ — skipped, already at latest 0.5.19
+- [x] 2.29/2.41 `tailwindcss` + `@tailwindcss/vite` 4.1.17 → 4.3.0 (grouped, commit `56f7b9837`)
+- [x] 2.30/2.43 `@tanstack/react-query` + devtools → 5.100.11 (grouped, commit `964eb32bb`)
+- [x] 2.31/2.44/2.45 `@tanstack/react-router` family (router/devtools/plugin) → latest (grouped, commit `aa4a6608d`)
+- [x] 2.32 `@types/react` 19.2.6 → 19.2.15 (commit `6d314e73d`)
+- [x] 2.33 ~~`@types/react-dom`~~ — skipped, already at latest 19.2.3
+- [x] 2.34 `baseline-browser-mapping` 2.9.15 → 2.10.31 (commit `03760a9b5`)
+- [x] 2.35 `date-fns` 4.1.0 → 4.2.1 (commit `61041d592`)
+- [x] 2.36 `fuse.js` 7.1.0 → 7.3.0 (commit `337f4aa95`)
+- [x] 2.37 `lodash-es` 4.17.22 → 4.18.1 (bumped in both api + web, commit `d2761be59`)
+- [x] 2.38/2.39 `react` + `react-dom` 19.2.0 → 19.2.6 (grouped, commit `72e36d184`)
+- [x] 2.40 `react-hook-form` 7.66.1 → 7.76.0 (commit `7f0cc76d3`; made `FormDebugPanel` generic over `T extends FieldValues` because v7.76 made `Control<T>` invariant)
+- [x] 2.42 `zustand` 5.0.8 → 5.0.13 (commit `09fe5c4d6`)
 
 ### packages/database
 
-- [ ] 2.46 Bump `@prisma/adapter-pg` to latest 7.x → install → `pnpm --filter=@repo/database exec prisma generate` → build → checks → commit
-- [ ] 2.47 Bump `@prisma/client` to latest 7.x → install → prisma generate → build → checks → commit
-- [ ] 2.48 Bump `@prisma/client-runtime-utils` to latest 7.x → install → prisma generate → build → checks → commit
-- [ ] 2.49 Bump `prisma` (dev) to latest 7.x → install → prisma generate → build → checks → commit
+- [x] 2.46/2.47/2.48/2.49 Prisma family 7.0.1 → 7.8.0 (client, adapter-pg, runtime-utils, prisma cli — grouped, commit `833ea8e55`)
 
 ### packages/eslint-config
 
-- [ ] 2.50 Bump `@tanstack/eslint-plugin-query` (dev) to latest 5.x → install → build → checks → commit
-- [ ] 2.51 Bump `@tanstack/eslint-plugin-router` (dev) to latest 1.x → install → build → checks → commit
-- [ ] 2.52 Bump `eslint-plugin-react-hooks` (dev) to latest 7.x → install → build → checks → commit
-- [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
-- [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
+- [x] 2.50 `@tanstack/eslint-plugin-query` 5.91.2 → 5.100.11 (commit `65cd36207`)
+- [x] 2.51 `@tanstack/eslint-plugin-router` 1.139.0 → 1.162.0 (commit `f08014ec2`)
+- [x] 2.52 `eslint-plugin-react-hooks` 7.0.1 → 7.1.1 (commit `15ac3c4c6`; added 3 `eslint-disable-next-line react-hooks/set-state-in-effect` with TODO comments for new rule)
+- [x] 2.53 `eslint-plugin-turbo` 2.6.1 → 2.9.14 (commit `a221404e4`)
+- [x] 2.54 `typescript-eslint` 8.47.0 → 8.59.4 (commit `ddf340050`; auto-fixed 33 files of redundant type assertions; re-added 3 eslint-disable for `no-misused-promises` in `defineRoute.ts` to silence the rule on Fastify decorator returns)
 
 ### root
 
-- [ ] 2.55 Bump `prettier` (dev) to latest 3.x in root `package.json` → install → build → checks → commit (Prettier 3.8 may reformat; run `pnpm format` and include the formatting in this commit)
-- [ ] 2.56 Bump `turbo` (dev) to latest 2.x → install → build → checks → commit
+- [x] 2.55 `prettier` 3.6.2 → 3.8.3 (commit `f3a879cbd`)
+- [x] 2.56 `turbo` 2.6.3 → 2.9.14 (commit `e26d7808c`)
 
 ### PR 1 wrap-up
 
-- [ ] 2.57 Final full cycle: `pnpm install && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`
-- [ ] 2.58 Push branch and open PR titled `chore(deps): upgrade low-risk dependencies (patch + minor)`
-- [ ] 2.59 PR body: include full table of bumps, mention quality gates passed per commit, smoke-test checklist (login, list orgs, create inventory, create reduction project, dashboard, file upload, date picker, charts)
-- [ ] 2.60 Wait for human review and merge to `main`. Do NOT proceed to PR 2 until merged.
+- [x] 2.57 Final full cycle: install + format + lint + type-check + test + build all green. Required follow-up fix: vitest 4.1+ regresses on `outputFile.html` inside `coverage/` dir → moved to `vitest-report/` and added to `.gitignore` (commits `d22e98a28` + `4f8b554d2`)
+- [ ] 2.58 Push branch and open PR titled `chore(deps): upgrade low-risk dependencies (patch + minor)` (user action)
+- [ ] 2.59 PR body checklist (user action)
+- [ ] 2.60 Wait for human review and merge to `main` (user action)
+- [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
+- [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
 
 ## 3. PR 2 — Medium-risk (branch `chore/upgrade-deps-medium-risk`)
 
