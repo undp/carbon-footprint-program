@@ -5,6 +5,16 @@ import { FilenameSchema } from "../../baseSchemas/filename.js";
 export const RequestUploadBodySchema = z.object({
   originalName: FilenameSchema.describe("The original file name"),
   fileType: RouteFileTypeSchema.describe("The type of file being uploaded"),
+  sizeBytes: z
+    .number()
+    .int()
+    .positive()
+    .describe("The file size in bytes declared by the client"),
+  mimeType: z
+    .string()
+    .min(1)
+    .max(255)
+    .describe("The MIME type declared by the client"),
 });
 
 export const RequestUploadResponseSchema = z.object({

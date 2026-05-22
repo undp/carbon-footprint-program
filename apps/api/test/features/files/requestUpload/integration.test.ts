@@ -30,6 +30,13 @@ vi.mock("@/services/blobService.js", () => ({
   }),
 }));
 
+const validPayload = {
+  originalName: "report.pdf",
+  fileType: "SUBMISSION",
+  sizeBytes: 1024,
+  mimeType: "application/pdf",
+};
+
 describe("POST /api/files/request-upload - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -58,7 +65,7 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { originalName: "report.pdf", fileType: "SUBMISSION" },
+        payload: validPayload,
       });
 
       expect(response.statusCode).toBe(200);
@@ -71,17 +78,15 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
     });
 
     it("should generate a different uuid on each call", async () => {
-      const payload = { originalName: "file.pdf", fileType: "SUBMISSION" };
-
       const r1 = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload,
+        payload: validPayload,
       });
       const r2 = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload,
+        payload: validPayload,
       });
 
       expect((JSON.parse(r1.body) as RequestUploadResponse).uuid).not.toBe(
@@ -89,23 +94,30 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
       );
     });
 
-    it("should work without a pre-existing submission", async () => {
+    it("should accept any allowed extension/mime for the file type", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { originalName: "standalone.pdf", fileType: "SUBMISSION" },
+        payload: {
+          originalName: "evidence.xlsx",
+          fileType: "CARBON_INVENTORY",
+          sizeBytes: 2048,
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
       });
 
       expect(response.statusCode).toBe(200);
     });
   });
 
-  describe("Error cases", () => {
+  describe("Validation errors (schema)", () => {
     it("should return 400 when originalName is missing", async () => {
+      const { originalName: _o, ...rest } = validPayload;
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { fileType: "SUBMISSION" },
+        payload: rest,
       });
 
       expect(response.statusCode).toBe(400);
@@ -115,10 +127,11 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
     });
 
     it("should return 400 when fileType is missing", async () => {
+      const { fileType: _f, ...rest } = validPayload;
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { originalName: "file.pdf" },
+        payload: rest,
       });
 
       expect(response.statusCode).toBe(400);
@@ -131,12 +144,135 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { originalName: "file.pdf", fileType: "INVALID" },
+        payload: { ...validPayload, fileType: "INVALID" },
       });
 
       expect(response.statusCode).toBe(400);
       expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
         VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when sizeBytes is missing", async () => {
+      const { sizeBytes: _s, ...rest } = validPayload;
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: rest,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when mimeType is missing", async () => {
+      const { mimeType: _m, ...rest } = validPayload;
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: rest,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when filename has path separators", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: { ...validPayload, originalName: "../etc/passwd.pdf" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when filename has non-ASCII characters", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: { ...validPayload, originalName: "reporte🚀.pdf" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+  });
+
+  describe("Validation errors (policy)", () => {
+    it("should return 400 when sizeBytes exceeds the global max", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: { ...validPayload, sizeBytes: 999_999_999 },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_SIZE_OUT_OF_RANGE"
+      );
+    });
+
+    it("should return 400 when sizeBytes exceeds the per-use-case max (badge)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: {
+          originalName: "logo.png",
+          fileType: "BADGE",
+          sizeBytes: 6 * 1024 * 1024,
+          mimeType: "image/png",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_SIZE_OUT_OF_RANGE"
+      );
+    });
+
+    it("should return 400 when MIME type is not in the file type allowlist", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: {
+          originalName: "doc.txt",
+          fileType: "LEGAL",
+          sizeBytes: 1024,
+          mimeType: "text/plain",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_MIME_TYPE_NOT_ALLOWED"
+      );
+    });
+
+    it("should return 400 when extension does not match the file type", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: {
+          originalName: "doc.txt",
+          fileType: "SUBMISSION",
+          sizeBytes: 1024,
+          mimeType: "application/pdf",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_EXTENSION_NOT_ALLOWED"
       );
     });
   });

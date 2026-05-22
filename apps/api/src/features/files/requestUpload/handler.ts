@@ -8,20 +8,21 @@ export const requestUploadHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "files/requestUpload" });
-  const { originalName, fileType } = request.body;
+  const { originalName, fileType, sizeBytes, mimeType } = request.body;
 
-  const { storageContainerName, blobServiceClient } = request.server;
+  const { storageContainerName, blobServiceClient, prisma } = request.server;
 
   if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
   }
 
-  log.info({ fileType }, "Generating upload URL...");
+  log.info({ fileType, sizeBytes, mimeType }, "Generating upload URL...");
 
   const result = await requestUploadService(
+    prisma,
     blobServiceClient,
     storageContainerName,
-    { originalName, fileType }
+    { originalName, fileType, sizeBytes, mimeType }
   );
 
   log.info({ uuid: result.uuid, fileType }, "Upload URL generated");
