@@ -11,7 +11,8 @@ import {
   useCarbonInventory,
 } from "@/api/query/carbonInventories";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
-import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/status/reductionProject";
 import { InfoButton, ScreenEmptyState } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { REDUCTION_PROJECT_EXPLANATION_SLUGS } from "./constants";
@@ -303,7 +304,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
             />
           </Box>
           {(isEditMode || isViewMode) && status && (
-            <ReductionProjectStatusChip status={status} size="medium" />
+            <StatusChip
+              config={REDUCTION_PROJECT_STATUS_CONFIG[status]}
+              size="medium"
+            />
           )}
         </Box>
 
