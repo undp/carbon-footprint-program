@@ -59,7 +59,7 @@
     "remark-math": "^6.0.0",
     "tailwindcss": "^4.3.0",
     "zod": "catalog:shared",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@hookform/devtools": "^4.4.0",
