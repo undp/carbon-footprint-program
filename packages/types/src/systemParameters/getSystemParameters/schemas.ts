@@ -7,6 +7,8 @@ export const SystemParameterKeySchema = z.enum([
   "USER_INACTIVE_THRESHOLD_DAYS",
   "TERMS_CONDITIONS_FILE_UUID",
   "MEASURING_ORGANIZATIONS_YEAR_RANGE",
+  "FILE_UPLOAD_MIN_BYTES",
+  "FILE_UPLOAD_MAX_BYTES",
 ]);
 
 export const SystemParameterKeyEnum = SystemParameterKeySchema.enum;
@@ -33,6 +35,8 @@ export const UserInactiveThresholdDaysSchema = z.string().regex(/^\d+$/);
 export const TermsConditionsFileUuidSchema = z.union([z.uuid(), z.literal("")]);
 
 export const MeasuringOrganizationsYearRangeSchema = z.string().regex(/^\d+$/);
+
+export const FileUploadByteCountSchema = z.string().regex(/^\d+$/);
 
 // Numeric bounds stored on the system_parameter row. Nullable when the
 // parameter has no numeric semantics (selectors, file-type pointers).
@@ -77,6 +81,16 @@ export const SystemParameterEntrySchema = z.discriminatedUnion("key", [
   z.object({
     key: z.literal(SystemParameterKeyEnum.MEASURING_ORGANIZATIONS_YEAR_RANGE),
     value: MeasuringOrganizationsYearRangeSchema,
+    ...SystemParameterBoundsShape,
+  }),
+  z.object({
+    key: z.literal(SystemParameterKeyEnum.FILE_UPLOAD_MIN_BYTES),
+    value: FileUploadByteCountSchema,
+    ...SystemParameterBoundsShape,
+  }),
+  z.object({
+    key: z.literal(SystemParameterKeyEnum.FILE_UPLOAD_MAX_BYTES),
+    value: FileUploadByteCountSchema,
     ...SystemParameterBoundsShape,
   }),
 ]);

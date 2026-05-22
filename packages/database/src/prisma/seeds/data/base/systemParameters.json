@@ -31,5 +31,21 @@
     "description": "Number of years (including the current year) considered as 'recent measurements' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.",
     "type": "number",
     "min": 1
+  },
+  {
+    "key": "FILE_UPLOAD_MIN_BYTES",
+    "value": "1",
+    "description": "Minimum allowed size in bytes for any uploaded file. Files below this threshold are rejected at request-upload and confirm-upload.",
+    "type": "number",
+    "min": 1,
+    "max": 1073741824
+  },
+  {
+    "key": "FILE_UPLOAD_MAX_BYTES",
+    "value": "20971520",
+    "description": "Maximum allowed size in bytes for any uploaded file. Enforced at request-upload (declared size) and confirm-upload (verified via blob HEAD). Per-use-case policies in FILE_UPLOAD_POLICIES may impose a stricter limit on top of this global ceiling.",
+    "type": "number",
+    "min": 1,
+    "max": 1073741824
   }
 ]
