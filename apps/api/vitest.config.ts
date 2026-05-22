@@ -41,9 +41,11 @@ export default defineConfig({
     globalSetup: ["./test/setup/globalSetup.ts"],
     // Better logging for UI
     logHeapUsage: true,
-    // Detailed output
+    // Detailed output (kept outside ./coverage to avoid clobbering the
+    // coverage report directory under vitest 4.1+, which now refuses to
+    // copy the report into a subdirectory of itself).
     outputFile: {
-      html: "./coverage/index.html",
+      html: "./vitest-report/index.html",
     },
     server: {
       deps: {
