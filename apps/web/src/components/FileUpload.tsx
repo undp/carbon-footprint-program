@@ -20,7 +20,7 @@ import { DeleteOutlined, UploadFileOutlined } from "@mui/icons-material";
 import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
 import accepts from "attr-accept";
-import { MAX_FILE_UPLOAD_SIZE_MB } from "../config/constants";
+import { useFileUploadLimits } from "@/api/query/systemParameters";
 import { mergeUniqueFiles } from "@/utils/files";
 
 interface FileWithPreview {
@@ -33,7 +33,6 @@ interface Props {
   onChange: (files: File[]) => void;
   accept?: Accept;
   acceptMessage?: string;
-  maxSizeMB?: number;
   disabled?: boolean;
   error?: string;
 }
@@ -80,14 +79,21 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
   value,
   onChange,
   accept = defaultAccept,
-  maxSizeMB = MAX_FILE_UPLOAD_SIZE_MB,
-  acceptMessage = defaultAcceptMessage(maxSizeMB),
+  acceptMessage,
   disabled = false,
   error,
-  children = defaultChildren(acceptMessage),
+  children,
 }) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const limits = useFileUploadLimits();
+  const maxBytes = limits?.maxBytes;
+  const maxSizeMB = limits?.maxMB;
+
+  const resolvedAcceptMessage =
+    acceptMessage ??
+    (maxSizeMB !== undefined ? defaultAcceptMessage(maxSizeMB) : "");
+  const resolvedChildren = children ?? defaultChildren(resolvedAcceptMessage);
 
   const filesWithPreviews = useMemo<FileWithPreview[]>(
     () =>
@@ -116,7 +122,6 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
     [value, onChange]
   );
 
-  // Clipboard paste support (scoped to this component's container)
   const handlePaste = useCallback(
     (e: ClipboardEvent) => {
       if (disabled) return;
@@ -143,7 +148,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
           }
         }
 
-        if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
+        if (maxBytes !== undefined && file.size > maxBytes) {
           setDropError(
             `"${file.name}": excede el tamaño máximo (${maxSizeMB} MB).`
           );
@@ -156,13 +161,13 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       if (pasted.length) addFiles(pasted, hadRejections);
     },
-    [disabled, accept, maxSizeMB, addFiles]
+    [disabled, accept, maxBytes, maxSizeMB, addFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (accepted, rejected) => addFiles(accepted, rejected.length > 0),
     accept,
-    maxSize: maxSizeMB * 1024 * 1024,
+    maxSize: maxBytes,
     multiple: true,
     disabled,
     onDropRejected: (rejections) => {
@@ -197,7 +202,6 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
   return (
     <div ref={containerRef} className="flex w-full flex-col gap-2">
-      {/* File list */}
       {filesWithPreviews.length > 0 && (
         <List className="flex flex-col gap-1" dense disablePadding>
           {filesWithPreviews.map(({ file, previewUrl }, index) => (
@@ -253,7 +257,6 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
         </List>
       )}
 
-      {/* Dropzone */}
       <div
         {...getRootProps()}
         role="button"
@@ -269,10 +272,9 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
         } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} style={{ visibility: "hidden" }} />
-        {children}
+        {resolvedChildren}
       </div>
 
-      {/* Error message */}
       {displayError && (
         <FormHelperText error role="alert" sx={{ whiteSpace: "pre-line" }}>
           {displayError}

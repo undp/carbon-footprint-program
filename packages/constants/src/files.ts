@@ -44,7 +44,7 @@ const LEGAL_POLICY: FileUploadPolicy = {
   allowedMimeTypes: ["application/pdf"],
 };
 
-const DOCUMENT_BUNDLE_POLICY: FileUploadPolicy = {
+const SUBMISSION_POLICY: FileUploadPolicy = {
   allowedExtensions: [
     ".pdf",
     ".png",
@@ -64,9 +64,43 @@ const DOCUMENT_BUNDLE_POLICY: FileUploadPolicy = {
   ],
 };
 
+const CARBON_INVENTORY_POLICY: FileUploadPolicy = {
+  allowedExtensions: [
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".xls",
+    ".xlsx",
+    ".doc",
+    ".docx",
+    ".csv",
+    ".txt",
+    ".zip",
+    ".gif",
+  ],
+  allowedMimeTypes: [
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/csv",
+    "text/plain",
+    "application/zip",
+    "application/x-zip-compressed",
+  ],
+  maxBytes: 10 * 1024 * 1024,
+};
+
 export const FILE_UPLOAD_POLICIES = {
   BADGE: BADGE_POLICY,
   LEGAL: LEGAL_POLICY,
-  CARBON_INVENTORY: DOCUMENT_BUNDLE_POLICY,
-  SUBMISSION: DOCUMENT_BUNDLE_POLICY,
+  CARBON_INVENTORY: CARBON_INVENTORY_POLICY,
+  SUBMISSION: SUBMISSION_POLICY,
 } as const satisfies Record<FileUploadType, FileUploadPolicy>;
