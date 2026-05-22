@@ -12,6 +12,7 @@ export * from "./explanation.js";
 export * from "./emissionFactorDimension.js";
 export * from "./emissionFactorDimensionValue.js";
 export * from "./file.js";
+export * from "./filename.js";
 export * from "./magnitude.js";
 export * from "./measurementUnit.js";
 export * from "./methodologyVersion.js";
