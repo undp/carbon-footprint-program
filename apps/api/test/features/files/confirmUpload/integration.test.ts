@@ -166,6 +166,62 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       );
     });
 
+    it("should return 400 and delete the blob when its size exceeds the limit", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440020";
+      const originalName = "oversized.png";
+      const blobPath = `BADGE/tmp/${uuid}-${originalName}`;
+      // Badge policy caps at 5 MB; upload something just over.
+      const oversized = "x".repeat(5 * 1024 * 1024 + 1);
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        content: oversized,
+        contentType: "image/png",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "BADGE" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_SIZE_OUT_OF_RANGE"
+      );
+
+      const exists = await app
+        .blobStorage!.getBlockBlobClient(blobPath)
+        .exists();
+      expect(exists).toBe(false);
+
+      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      expect(fileRecord).toBeNull();
+    });
+
+    it("should return 400 and delete the blob when MIME does not match the file type", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440021";
+      const originalName = "tampered.pdf";
+      const blobPath = `LEGAL/tmp/${uuid}-${originalName}`;
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "text/plain",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "LEGAL" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_MIME_TYPE_NOT_ALLOWED"
+      );
+
+      const exists = await app
+        .blobStorage!.getBlockBlobClient(blobPath)
+        .exists();
+      expect(exists).toBe(false);
+    });
+
     it("should return 409 when the same uuid is confirmed twice", async () => {
       const uuid = "550e8400-e29b-41d4-a716-446655440010";
       const originalName = "duplicate.pdf";

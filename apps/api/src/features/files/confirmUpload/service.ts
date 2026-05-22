@@ -6,6 +6,8 @@ import {
 } from "@repo/types";
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "../helpers/persistFileRecord.js";
+import { getFileUploadLimits } from "../helpers/getFileUploadLimits.js";
+import { validateFileUploadDeclaration } from "../helpers/validateFileUploadDeclaration.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
@@ -29,6 +31,17 @@ export const confirmUploadService = async (
     blobPath,
     uuid
   );
+
+  const limits = await getFileUploadLimits(prisma, fileType);
+  try {
+    validateFileUploadDeclaration(
+      { fileType, originalName, sizeBytes, mimeType },
+      limits
+    );
+  } catch (validationError) {
+    await blobStorage.getBlockBlobClient(blobPath).deleteIfExists();
+    throw validationError;
+  }
 
   try {
     await prisma.file.create({
