@@ -34,7 +34,7 @@ import {
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_CONFIG_MASCULINE } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS = {
@@ -90,8 +90,8 @@ export const SubsectorsMaintainerScreen: FC = () => {
         }
         if (key === "statusLabel") {
           return row.status === CountrySubsectorStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE.label
-            : PROFILING_STATUS_CONFIG_MASCULINE.DELETED.label;
+            ? PROFILING_STATUS_CONFIG.ACTIVE.label
+            : PROFILING_STATUS_CONFIG.DELETED.label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";

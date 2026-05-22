@@ -32,7 +32,7 @@ import {
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_CONFIG_MASCULINE } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SECTORS_MAINTAINER_EXPLANATION_SLUGS = {
@@ -67,8 +67,8 @@ export const SectorsMaintainerScreen: FC = () => {
         const key = Array.isArray(path) ? path[0] : path;
         if (key === "statusLabel") {
           return row.status === CountrySectorStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE.label
-            : PROFILING_STATUS_CONFIG_MASCULINE.DELETED.label;
+            ? PROFILING_STATUS_CONFIG.ACTIVE.label
+            : PROFILING_STATUS_CONFIG.DELETED.label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";

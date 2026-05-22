@@ -7,7 +7,7 @@ import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG_FEMININE } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const MainActivityRowSchema = z.object({
@@ -220,17 +220,17 @@ export const useMainActivityProfilingColumns = ({
         width: 130,
         valueGetter: (_value, row: MainActivityFormRow) =>
           row.status === OrganizationMainActivityStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG_FEMININE.ACTIVE.label
+            ? PROFILING_STATUS_CONFIG.ACTIVE.label
             : row.status === OrganizationMainActivityStatus.DELETED
-              ? PROFILING_STATUS_CONFIG_FEMININE.DELETED.label
-              : PROFILING_STATUS_CONFIG_FEMININE.NEW.label,
+              ? PROFILING_STATUS_CONFIG.DELETED.label
+              : PROFILING_STATUS_CONFIG.NEW.label,
         renderCell: ({ row }: GridRenderCellParams<MainActivityFormRow>) =>
           row.status === OrganizationMainActivityStatus.ACTIVE ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_FEMININE.ACTIVE} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.ACTIVE} />
           ) : row.status === OrganizationMainActivityStatus.DELETED ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_FEMININE.DELETED} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.DELETED} />
           ) : (
-            <StatusChip config={PROFILING_STATUS_CONFIG_FEMININE.NEW} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.NEW} />
           ),
       },
       {

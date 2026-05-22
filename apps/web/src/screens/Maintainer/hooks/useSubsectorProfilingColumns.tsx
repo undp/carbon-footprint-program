@@ -7,7 +7,7 @@ import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG_MASCULINE } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const SubsectorRowSchema = z.object({
@@ -171,17 +171,17 @@ export const useSubsectorProfilingColumns = ({
         width: 130,
         valueGetter: (_value, row: SubsectorFormRow) =>
           row.status === CountrySubsectorStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE.label
+            ? PROFILING_STATUS_CONFIG.ACTIVE.label
             : row.status === CountrySubsectorStatus.DELETED
-              ? PROFILING_STATUS_CONFIG_MASCULINE.DELETED.label
-              : PROFILING_STATUS_CONFIG_MASCULINE.NEW.label,
+              ? PROFILING_STATUS_CONFIG.DELETED.label
+              : PROFILING_STATUS_CONFIG.NEW.label,
         renderCell: ({ row }: GridRenderCellParams<SubsectorFormRow>) =>
           row.status === CountrySubsectorStatus.ACTIVE ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.ACTIVE} />
           ) : row.status === CountrySubsectorStatus.DELETED ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.DELETED} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.DELETED} />
           ) : (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.NEW} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.NEW} />
           ),
       },
       {

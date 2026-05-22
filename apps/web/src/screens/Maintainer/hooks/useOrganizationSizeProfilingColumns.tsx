@@ -7,7 +7,7 @@ import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG_MASCULINE } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({
@@ -155,17 +155,17 @@ export const useOrganizationSizeProfilingColumns = ({
         filterable: false,
         valueGetter: (_value, row: OrganizationSizeFormRow) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE.label
+            ? PROFILING_STATUS_CONFIG.ACTIVE.label
             : row.status === CountryOrganizationSizeStatus.DELETED
-              ? PROFILING_STATUS_CONFIG_MASCULINE.DELETED.label
-              : PROFILING_STATUS_CONFIG_MASCULINE.NEW.label,
+              ? PROFILING_STATUS_CONFIG.DELETED.label
+              : PROFILING_STATUS_CONFIG.NEW.label,
         renderCell: ({ row }: GridRenderCellParams<OrganizationSizeFormRow>) =>
           row.status === CountryOrganizationSizeStatus.ACTIVE ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.ACTIVE} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.ACTIVE} />
           ) : row.status === CountryOrganizationSizeStatus.DELETED ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.DELETED} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.DELETED} />
           ) : (
-            <StatusChip config={PROFILING_STATUS_CONFIG_MASCULINE.NEW} />
+            <StatusChip config={PROFILING_STATUS_CONFIG.NEW} />
           ),
       },
       {
