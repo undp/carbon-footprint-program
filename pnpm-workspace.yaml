@@ -7,7 +7,7 @@ catalogs:
     "@types/node": ^24.12.4
     eslint: ^9.39.1
     pino: ^10.3.1
-    tsx: ^4.20.6
+    tsx: ^4.22.3
     rimraf: ^6.0.1
     typescript: ^5.9.3
     vitest: ^4.0.15
