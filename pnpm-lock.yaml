@@ -197,7 +197,7 @@ importers:
         version: 5.2.10
       '@hookform/resolvers':
         specifier: ^5.4.0
-        version: 5.4.0(react-hook-form@7.66.1(react@19.2.6))
+        version: 5.4.0(react-hook-form@7.76.0(react@19.2.6))
       '@mui/icons-material':
         specifier: ^7.3.11
         version: 7.3.11(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.6))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.6))(@types/react@19.2.15)(react@19.2.6))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@types/react@19.2.15)(react@19.2.6)
@@ -271,8 +271,8 @@ importers:
         specifier: ^15.0.0
         version: 15.0.0(react@19.2.6)
       react-hook-form:
-        specifier: ^7.66.1
-        version: 7.66.1(react@19.2.6)
+        specifier: ^7.76.0
+        version: 7.76.0(react@19.2.6)
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.15)(react@19.2.6)
@@ -4670,8 +4670,8 @@ packages:
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
 
-  react-hook-form@7.66.1:
-    resolution: {integrity: sha512-2KnjpgG2Rhbi+CIiIBQQ9Df6sMGH5ExNyFl4Hw9qO7pIqMBR8Bvu9RQyjl3JM4vehzCh9soiNUM/xYMswb2EiA==}
+  react-hook-form@7.76.0:
+    resolution: {integrity: sha512-eKtLGgFeSgkHqQD8J59AMZ9a4uD1D83iSIzt4YlTGD7liDen5rrjcUO1rVIGd9yC1gofryjtHbv+4ny4hkLWlw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -6398,10 +6398,10 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@hookform/resolvers@5.4.0(react-hook-form@7.66.1(react@19.2.6))':
+  '@hookform/resolvers@5.4.0(react-hook-form@7.76.0(react@19.2.6))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.66.1(react@19.2.6)
+      react-hook-form: 7.76.0(react@19.2.6)
 
   '@humanfs/core@0.19.1': {}
 
@@ -10342,7 +10342,7 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.6
 
-  react-hook-form@7.66.1(react@19.2.6):
+  react-hook-form@7.76.0(react@19.2.6):
     dependencies:
       react: 19.2.6
 
