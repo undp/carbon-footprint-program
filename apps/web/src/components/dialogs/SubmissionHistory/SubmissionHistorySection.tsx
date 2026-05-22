@@ -6,8 +6,7 @@ import { formatter } from "@/utils/formatting";
 import { FilesSection } from "./FilesSection";
 import { getEventLabel } from "../../../utils/submissions";
 import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
-import { CustomPaletteChip } from "@/components/CustomPaletteChip";
-import { SUBMISSION_TYPE_LABELS } from "@/labels/status/submissionType";
+import { SubmissionTypeChip } from "@/components/SubmissionTypeChip";
 
 type Props = {
   history: SubmissionHistoryEntry[];
@@ -60,13 +59,7 @@ export const HistoryCard: FC<{
                 />
               </Box>
               {entry.submissionType && (
-                <CustomPaletteChip
-                  config={{
-                    ...SUBMISSION_TYPE_LABELS[entry.submissionType],
-                    color:
-                      theme.palette.requestTypeColors[entry.submissionType],
-                  }}
-                />
+                <SubmissionTypeChip type={entry.submissionType} />
               )}
             </Box>
           </Stack>

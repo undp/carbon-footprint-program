@@ -1,9 +1,9 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { Stack, useTheme } from "@mui/material";
+import { Stack } from "@mui/material";
 import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
 import { StatusChip } from "@/components/StatusChip";
-import { CustomPaletteChip } from "@/components/CustomPaletteChip";
+import { SubmissionTypeChip } from "@/components/SubmissionTypeChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import {
   GetAllAdminRequestsResponse,
@@ -28,7 +28,6 @@ interface Props {
 export const useRequestColumns = ({
   onView,
 }: Props): GridColDef<GetAllAdminRequestsResponse[number]>[] => {
-  const theme = useTheme();
   const cellClassName = "content-center";
 
   const handleView = useCallback(
@@ -53,14 +52,7 @@ export const useRequestColumns = ({
         sortComparator: (value1: string, value2: string) =>
           SUBMISSION_TYPE_SORT_ORDER_BY_LABEL[value1] -
           SUBMISSION_TYPE_SORT_ORDER_BY_LABEL[value2],
-        renderCell: (params) => (
-          <CustomPaletteChip
-            config={{
-              ...SUBMISSION_TYPE_LABELS[params.row.type],
-              color: theme.palette.requestTypeColors[params.row.type],
-            }}
-          />
-        ),
+        renderCell: (params) => <SubmissionTypeChip type={params.row.type} />,
       },
       {
         field: "year",
@@ -120,6 +112,6 @@ export const useRequestColumns = ({
         },
       },
     ],
-    [theme, handleView]
+    [handleView]
   );
 };
