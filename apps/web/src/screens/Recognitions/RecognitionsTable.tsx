@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { EmojiEventsOutlined } from "@mui/icons-material";
 import { GridColDef } from "@mui/x-data-grid";
-import { InfoButton, StylizedDataGrid } from "@/components";
+import { BaseActionButton, InfoButton, StylizedDataGrid } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import {
   GetOrganizationRecognitionsResponse,
@@ -56,31 +56,30 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     cellClassName: "content-center",
     renderCell: (params) =>
       params.row.recognitionFileUrl ? (
-        <Tooltip title="Ver archivo" placement="top">
-          <IconButton
-            size="small"
-            color="success"
-            onClick={() =>
-              window.open(
-                params.row.recognitionFileUrl!,
-                "_blank",
-                "noopener,noreferrer"
-              )
-            }
-            sx={{
-              border: 1,
-              borderColor: "success.main",
-              borderRadius: 1,
-              p: "4px",
-            }}
-          >
-            <EmojiEventsOutlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <BaseActionButton
+          tooltip="Ver archivo"
+          tooltipPlacement="top"
+          color="success"
+          onClick={() =>
+            window.open(
+              params.row.recognitionFileUrl!,
+              "_blank",
+              "noopener,noreferrer"
+            )
+          }
+          aria-label="Ver archivo"
+        >
+          <EmojiEventsOutlined fontSize="small" />
+        </BaseActionButton>
       ) : (
-        <Tooltip title="No hay un archivo disponible" placement="top">
-          <EmojiEventsOutlined fontSize="small" color="disabled" />
-        </Tooltip>
+        <BaseActionButton
+          tooltip="No hay un archivo disponible"
+          tooltipPlacement="top"
+          disabled
+          aria-label="No hay un archivo disponible"
+        >
+          <EmojiEventsOutlined fontSize="small" />
+        </BaseActionButton>
       ),
   },
 ];
