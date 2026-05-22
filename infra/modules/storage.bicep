@@ -13,6 +13,11 @@ param allowedOrigin string = ''
 @description('Additional allowed origin for local development (e.g., http://localhost:5173). Leave empty to disable.')
 param devAllowedOrigin string = ''
 
+@description('Maximum allowed upload size in bytes. This is the same value seeded into the FILE_UPLOAD_MAX_BYTES system parameter, surfaced here so future infra-level enforcement (eg. Event Grid orphan cleanup) can reuse the configured ceiling without drifting from the application config.')
+@minValue(1)
+@maxValue(1073741824)
+param fileUploadMaxBytes int = 20971520
+
 @description('Tags to apply to the Storage Account')
 param tags object = {}
 
@@ -74,3 +79,4 @@ output id string = storage.id
 output blobUri string = storage.properties.primaryEndpoints.blob
 output fileUri string = storage.properties.primaryEndpoints.file
 output primaryEndpoints object = storage.properties.primaryEndpoints
+output fileUploadMaxBytes int = fileUploadMaxBytes

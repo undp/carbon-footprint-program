@@ -50,6 +50,13 @@ param storageNetworkAclDefaultAction = 'Allow'
 // This allows the browser to make direct PUT requests to Azure Blob Storage SAS URLs
 param storageDevAllowedOrigin = 'http://localhost:5173'
 
+// Maximum allowed upload size in bytes (20 MiB by default).
+// MUST stay in sync with the FILE_UPLOAD_MAX_BYTES system parameter seeded
+// in packages/database/src/prisma/seeds/data/<dataset>/systemParameters.json.
+// The application enforces the limit at runtime; this value is passed to the
+// storage module for future infra-level enforcement.
+param storageFileUploadMaxBytes = 20971520
+
 // Grant Storage Blob Data Contributor to the dev group so developers can
 // upload/download blobs locally using `az login` without manual role assignment.
 // In production this should remain false — only the App Service managed identity needs access.

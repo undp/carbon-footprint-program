@@ -30,6 +30,11 @@ param storageNetworkAclDefaultAction string = 'Deny'
 @description('Additional allowed origin for blob storage CORS during local development (e.g., http://localhost:5173). Leave empty to disable.')
 param storageDevAllowedOrigin string = ''
 
+@description('Maximum allowed upload size in bytes. Must match the FILE_UPLOAD_MAX_BYTES system parameter seeded into the database; the application reads the system parameter at runtime, this value is passed to the storage module so future infra-level enforcement (eg. Event Grid orphan cleanup) can reuse the same number.')
+@minValue(1)
+@maxValue(1073741824)
+param storageFileUploadMaxBytes int = 20971520
+
 // --------- Database parameters ---------
 @description('Database user')
 param dbUser string
@@ -232,6 +237,7 @@ module storage 'modules/storage.bicep' = {
     networkAclDefaultAction: storageNetworkAclDefaultAction
     allowedOrigin: allowedOrigin
     devAllowedOrigin: storageDevAllowedOrigin
+    fileUploadMaxBytes: storageFileUploadMaxBytes
     tags: tags
   }
 }
