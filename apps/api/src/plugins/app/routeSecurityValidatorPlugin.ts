@@ -26,7 +26,7 @@ export class RouteSecurityViolationError extends Error {
 
 // Hooks come from Fastify's RouteOptions and may be sync or async; we never
 // invoke them here, only inspect their identity via getHookKind.
-type HookList = unknown;
+type HookList = RouteOptions["onRequest"] | RouteOptions["preHandler"];
 
 function normalizeHooks(hooks: HookList): unknown[] {
   if (hooks == null) return [];
