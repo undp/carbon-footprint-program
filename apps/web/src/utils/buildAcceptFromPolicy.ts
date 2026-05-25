@@ -1,5 +1,6 @@
 import type { Accept } from "react-dropzone";
 import {
+  CANONICAL_MIME_EXTENSIONS,
   FILE_UPLOAD_POLICIES,
   type FileUploadType,
   type FileUploadPolicy,
@@ -8,9 +9,9 @@ import {
 /**
  * Builds the react-dropzone `accept` map for a given upload policy by
  * pairing every allowed MIME type with the matching extension(s).
- * Throws if any extension in the policy lacks a mapping in the
- * candidates table below — this prevents silent misassignment when a
- * new extension is added to a policy without updating this util.
+ * Throws if any extension in the policy lacks a mapping in the shared
+ * `CANONICAL_MIME_EXTENSIONS` table — this prevents silent misassignment
+ * when a new extension is added to a policy without updating the table.
  */
 export const buildAcceptFromPolicy = (policy: FileUploadPolicy): Accept => {
   const accept: Record<string, string[]> = {};
@@ -31,31 +32,11 @@ function matchExtensionToMime(
   extension: string,
   mimeTypes: readonly string[]
 ): string {
-  const candidates: Record<string, readonly string[]> = {
-    "image/png": [".png"],
-    "image/jpeg": [".jpg", ".jpeg"],
-    "image/webp": [".webp"],
-    "image/svg+xml": [".svg"],
-    "image/gif": [".gif"],
-    "application/pdf": [".pdf"],
-    "application/vnd.ms-excel": [".xls"],
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-      ".xlsx",
-    ],
-    "application/msword": [".doc"],
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
-      ".docx",
-    ],
-    "text/csv": [".csv"],
-    "text/plain": [".txt"],
-    "application/zip": [".zip"],
-    "application/x-zip-compressed": [".zip"],
-  };
   for (const mime of mimeTypes) {
-    if (candidates[mime]?.includes(extension)) return mime;
+    if (CANONICAL_MIME_EXTENSIONS[mime]?.includes(extension)) return mime;
   }
   throw new Error(
-    `Extension "${extension}" has no MIME mapping in buildAcceptFromPolicy. ` +
-      `Update the candidates table or include the matching MIME in the policy's allowedMimeTypes.`
+    `Extension "${extension}" has no MIME mapping in CANONICAL_MIME_EXTENSIONS. ` +
+      `Update the canonical map in @repo/constants/files or include the matching MIME in the policy's allowedMimeTypes.`
   );
 }

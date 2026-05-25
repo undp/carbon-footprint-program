@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CANONICAL_MIME_EXTENSIONS,
   FILE_UPLOAD_POLICIES,
   FILE_UPLOAD_TYPES,
   type FileUploadType,
@@ -23,6 +24,14 @@ describe("buildAcceptFromPolicy", () => {
       const allExtensions = Object.values(accept).flat();
       for (const ext of FILE_UPLOAD_POLICIES[useCase].allowedExtensions) {
         expect(allExtensions).toContain(ext);
+      }
+    });
+
+    it("registers every policy MIME in CANONICAL_MIME_EXTENSIONS", () => {
+      // The API's MIME↔extension cross-check fails-open for MIMEs missing
+      // from the canonical map. Make sure no policy MIME slips into that gap.
+      for (const mime of FILE_UPLOAD_POLICIES[useCase].allowedMimeTypes) {
+        expect(CANONICAL_MIME_EXTENSIONS).toHaveProperty(mime);
       }
     });
   });

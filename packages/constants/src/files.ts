@@ -104,3 +104,29 @@ export const FILE_UPLOAD_POLICIES = {
   CARBON_INVENTORY: CARBON_INVENTORY_POLICY,
   SUBMISSION: SUBMISSION_POLICY,
 } as const satisfies Record<FileUploadType, FileUploadPolicy>;
+
+/**
+ * Canonical filename extensions for each MIME type accepted by any upload
+ * policy. Single source of truth used by the API (to cross-check that a
+ * client-declared MIME and extension agree) and by the web client (to build
+ * the dropzone `accept` map). Every MIME listed in any policy MUST appear
+ * here — the buildAcceptFromPolicy unit test enforces it.
+ */
+export const CANONICAL_MIME_EXTENSIONS: Record<string, readonly string[]> = {
+  "image/png": [".png"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/webp": [".webp"],
+  "image/svg+xml": [".svg"],
+  "image/gif": [".gif"],
+  "application/pdf": [".pdf"],
+  "application/vnd.ms-excel": [".xls"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/msword": [".doc"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+    ".docx",
+  ],
+  "text/csv": [".csv"],
+  "text/plain": [".txt"],
+  "application/zip": [".zip"],
+  "application/x-zip-compressed": [".zip"],
+};
