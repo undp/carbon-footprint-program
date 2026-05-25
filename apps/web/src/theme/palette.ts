@@ -9,7 +9,7 @@ import {
   SubmissionType as RequestType,
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
-import { StatusFamily } from "../labels/status/types";
+import { StatusFamily } from "@/labels/status/types";
 
 const requestTypeColors: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",

@@ -1,6 +1,6 @@
 import "@mui/material/styles";
 import { SubmissionType, CarbonInventoryRecognitionsType } from "@repo/types";
-import { StatusFamily } from "../labels/status/types";
+import { StatusFamily } from "@/labels/status/types";
 
 declare module "@mui/material/styles" {
   interface TypeText {
