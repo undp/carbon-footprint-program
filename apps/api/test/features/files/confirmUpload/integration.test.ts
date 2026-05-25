@@ -185,7 +185,7 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
-        "FILE_SIZE_OUT_OF_RANGE"
+        "FILE_TOO_LARGE"
       );
 
       const exists = await app

@@ -2,7 +2,8 @@ import type { FileUploadLimits } from "./getFileUploadLimits.js";
 import {
   FileExtensionNotAllowedError,
   FileMimeTypeNotAllowedError,
-  FileSizeOutOfRangeError,
+  FileTooLargeError,
+  FileTooSmallError,
 } from "@/errors/index.js";
 
 interface FileUploadDeclaration {
@@ -30,12 +31,11 @@ export function validateFileUploadDeclaration(
 ): void {
   const { fileType, originalName, sizeBytes, mimeType } = declaration;
 
-  if (sizeBytes < limits.minBytes || sizeBytes > limits.maxBytes) {
-    throw new FileSizeOutOfRangeError(
-      String(sizeBytes),
-      String(limits.minBytes),
-      String(limits.maxBytes)
-    );
+  if (sizeBytes < limits.minBytes) {
+    throw new FileTooSmallError(String(sizeBytes), String(limits.minBytes));
+  }
+  if (sizeBytes > limits.maxBytes) {
+    throw new FileTooLargeError(String(sizeBytes), String(limits.maxBytes));
   }
 
   const normalizedMime = mimeType.toLowerCase();
