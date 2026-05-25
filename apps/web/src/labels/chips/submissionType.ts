@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-import { useTheme } from "@mui/material";
 import { SubmissionType } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
@@ -44,16 +42,3 @@ export const SUBMISSION_TYPE_LABELS: Record<
 export const SUBMISSION_TYPE_SORT_ORDER = sortOrderByKey(
   SUBMISSION_TYPE_LABELS
 );
-
-export const useSubmissionTypeConfig = (
-  type: SubmissionType
-): CustomPaletteConfig => {
-  const theme = useTheme();
-  return useMemo(
-    () => ({
-      ...SUBMISSION_TYPE_LABELS[type],
-      color: theme.palette.requestTypeColors[type],
-    }),
-    [type, theme]
-  );
-};

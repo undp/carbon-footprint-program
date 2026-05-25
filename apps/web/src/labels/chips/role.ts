@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-import { useTheme } from "@mui/material";
 import { OrganizationRole, SystemRole } from "@repo/types";
 import { CustomPaletteConfig } from "./types";
 
@@ -24,17 +22,6 @@ export const SYSTEM_ROLE_LABELS: Record<SystemRole, RoleLabelEntry> = {
     tooltip: "Super administrador con permisos completos",
     sortOrder: 2,
   },
-};
-
-export const useSystemRoleConfig = (role: SystemRole): CustomPaletteConfig => {
-  const theme = useTheme();
-  return useMemo(
-    () => ({
-      ...SYSTEM_ROLE_LABELS[role],
-      color: theme.palette.roleColors[role],
-    }),
-    [role, theme]
-  );
 };
 
 export const ORGANIZATION_ROLE_LABELS: Record<OrganizationRole, string> = {
