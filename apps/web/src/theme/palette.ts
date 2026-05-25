@@ -26,16 +26,18 @@ const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
 };
 
-// Status family colors mirror success.main / info.main / warning.main /
-// error.main / grey[500] from the palette below. They are duplicated here
-// because `palette` is a flat initializer and cannot self-reference — keep
-// these in sync when any of those palette entries change.
+const SUCCESS_MAIN = "#2E7D32";
+const INFO_MAIN = "#0288D1";
+const WARNING_MAIN = "#ED6C02";
+const ERROR_MAIN = "#D32F2F";
+const GREY_500 = "#9E9E9E";
+
 const statusFamilyColors: Record<StatusFamily, string> = {
-  [StatusFamily.POSITIVE]: "#2E7D32",
-  [StatusFamily.IN_REVIEW]: "#0288D1",
-  [StatusFamily.ACTION_REQUIRED]: "#ED6C02",
-  [StatusFamily.NEGATIVE]: "#D32F2F",
-  [StatusFamily.NEUTRAL]: "#9E9E9E",
+  [StatusFamily.POSITIVE]: SUCCESS_MAIN,
+  [StatusFamily.IN_REVIEW]: INFO_MAIN,
+  [StatusFamily.ACTION_REQUIRED]: WARNING_MAIN,
+  [StatusFamily.NEGATIVE]: ERROR_MAIN,
+  [StatusFamily.NEUTRAL]: GREY_500,
 };
 
 export const palette: PaletteOptions = {
@@ -56,28 +58,28 @@ export const palette: PaletteOptions = {
   },
   // Error colors
   error: {
-    main: "#D32F2F",
+    main: ERROR_MAIN,
     light: "#EF5350",
     dark: "#C62828",
     contrastText: "#FFFFFF",
   },
   // Warning colors
   warning: {
-    main: "#ED6C02",
+    main: WARNING_MAIN,
     light: "#FF9800",
     dark: "#E65100",
     contrastText: "#FFFFFF",
   },
   // Info colors
   info: {
-    main: "#0288D1",
+    main: INFO_MAIN,
     light: "#03A9F4",
     dark: "#01579B",
     contrastText: "#FFFFFF",
   },
   // Success colors
   success: {
-    main: "#2E7D32",
+    main: SUCCESS_MAIN,
     light: "#4CAF50",
     dark: "#1B5E20",
     contrastText: "#FFFFFF",
@@ -115,7 +117,7 @@ export const palette: PaletteOptions = {
     200: "#EEEEEE",
     300: "#E0E0E0",
     400: "#BDBDBD",
-    500: "#9E9E9E",
+    500: GREY_500,
     600: "#757575",
     700: "#616161",
     800: "#424242",
