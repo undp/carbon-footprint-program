@@ -140,8 +140,8 @@ param enableFrontDoor bool = false
 ])
 param frontDoorSkuName string
 
-@description('Custom domain name for Front Door (optional)')
-param frontDoorCustomDomain string = ''
+@description('Custom domain to expose the frontend (e.g., app.example.com). Bicep binds it to Front Door when enableFrontDoor=true, otherwise to the Static Web App. The same value is propagated to App Service CORS, Fastify ALLOWED_ORIGIN, and Blob Storage CORS. Empty to use the default Azure-managed hostname.')
+param frontendCustomDomain string = ''
 
 @description('Enable WAF managed rules (requires Premium SKU, ignored for Standard)')
 param frontDoorEnableManagedRules bool = false
@@ -217,12 +217,13 @@ module keyVault 'modules/keyVault.bicep' = {
 }
 
 // --------- Storage Account ---------
-// Compute the allowed origin for blob storage CORS (same origin used for App Service CORS)
-var allowedOrigin = enableFrontDoor
-  ? (frontDoorCustomDomain != ''
-    ? 'https://${frontDoorCustomDomain}'
-    : 'https://${frontDoor!.outputs.endpointHostname}')
-  : 'https://${staticWebApp.outputs.defaultHostname}'
+// Compute the allowed origin for blob storage CORS (same origin used for App Service CORS and Fastify ALLOWED_ORIGIN).
+// When a custom domain is set, it always wins regardless of which front-end resource it binds to.
+var allowedOrigin = frontendCustomDomain != ''
+  ? 'https://${frontendCustomDomain}'
+  : (enableFrontDoor
+    ? 'https://${frontDoor!.outputs.endpointHostname}'
+    : 'https://${staticWebApp.outputs.defaultHostname}')
 
 module storage 'modules/storage.bicep' = {
   name: 'storageDeployment'
@@ -278,6 +279,9 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
     enterpriseCdn: staticWebAppEnterpriseCdn
     appLocation: staticWebAppAppLocation
     outputLocation: staticWebAppOutputLocation
+    // Bind the custom domain to the SWA only when Front Door is not in the path;
+    // otherwise Front Door owns the public hostname and the SWA stays on its default hostname.
+    customDomainName: enableFrontDoor ? '' : frontendCustomDomain
     tags: tags
   }
 }
@@ -387,7 +391,7 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
   params: {
     skuName: frontDoorSkuName
     originHostname: staticWebApp.outputs.defaultHostname
-    customDomainName: frontDoorCustomDomain
+    customDomainName: frontendCustomDomain
     enableManagedRules: frontDoorEnableManagedRules
     wafMode: frontDoorWafMode
     rateLimitThreshold: frontDoorRateLimitThreshold
@@ -419,6 +423,8 @@ output frontend object = {
     hostname: staticWebApp.outputs.defaultHostname
     url: 'https://${staticWebApp.outputs.defaultHostname}'
   }
+  customDomain: frontendCustomDomain
+  customDomainUrl: frontendCustomDomain != '' ? 'https://${frontendCustomDomain}' : ''
   frontDoor: enableFrontDoor ? {
     endpoint: frontDoor.?outputs.endpointHostname ?? ''
     url: 'https://${frontDoor.?outputs.endpointHostname ?? ''}'
@@ -485,14 +491,14 @@ output authentication object = enableAzureAuth ? {
 @description('Static Web App default hostname')
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
 
+@description('Custom domain bound to the public frontend (Front Door or SWA depending on enableFrontDoor). Empty when not configured.')
+output frontendCustomDomain string = frontendCustomDomain
+
 @description('Static Web App name')
 output staticWebAppName string = staticWebApp.outputs.name
 
 @description('Front Door endpoint hostname')
 output frontDoorEndpoint string = enableFrontDoor ? frontDoor.?outputs.endpointHostname ?? '' : ''
-
-@description('Front Door custom domain hostname')
-output frontDoorCustomDomain string = enableFrontDoor ? frontDoor.?outputs.customDomainHostname ?? '' : ''
 
 @description('Front Door profile name')
 output frontDoorProfileName string = enableFrontDoor ? frontDoor.?outputs.profileName ?? '' : ''

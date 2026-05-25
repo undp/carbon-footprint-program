@@ -121,13 +121,13 @@ fi
 CUSTOM_DOMAIN=$(az stack group show \
   --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "outputs.frontDoorCustomDomain.value" -o tsv)
+  --query "outputs.frontendCustomDomain.value" -o tsv)
 
 if [ -z "$CUSTOM_DOMAIN" ] || [ "$CUSTOM_DOMAIN" = "null" ]; then
   log "${YELLOW}No custom domain configured in Front Door.${NC}"
   echo ""
   echo -e "${CYAN}To configure a custom domain:${NC}"
-  echo -e "1. Set FRONT_DOOR_CUSTOM_DOMAIN in .envrc"
+  echo -e "1. Set FRONTEND_CUSTOM_DOMAIN in .envrc"
   echo -e "2. Run ./deploy.sh"
   echo ""
   exit 0

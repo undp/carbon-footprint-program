@@ -232,9 +232,9 @@ DEPLOY_PARAMS=(
 )
 
 # Add optional parameters only if set
-if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
-  log "Using custom Front Door domain: $FRONT_DOOR_CUSTOM_DOMAIN"
-  DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
+if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+  log "Using frontend custom domain: $FRONTEND_CUSTOM_DOMAIN"
+  DEPLOY_PARAMS+=(--parameters frontendCustomDomain="$FRONTEND_CUSTOM_DOMAIN")
 fi
 
 # Add Azure authentication parameters if configured
@@ -260,8 +260,8 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
-  if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
-    log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
+  if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+    log "[DRY RUN]   --parameters frontendCustomDomain=$FRONTEND_CUSTOM_DOMAIN \\"
   fi
   log "[DRY RUN]   --deny-settings-mode none \\"
   log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"

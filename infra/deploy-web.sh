@@ -233,23 +233,32 @@ export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 
-# Resolve frontend base URL (used by Vite build for redirect URIs, etc.)
-# Priority:
-#   1. Explicit VITE_FRONT_BASE_URL from .envrc (user-set custom domain).
-#   2. Front Door custom domain from stack outputs (if Front Door + custom domain are deployed).
-#   3. Static Web App default hostname (fallback for plain deployments).
+# Resolve frontend base URL (used by Vite build for redirect URIs, etc.).
+# Source of truth = FRONTEND_CUSTOM_DOMAIN (env var or stack output). A manual
+# VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with bicep's
+# allowedOrigin (App Service CORS + Fastify ALLOWED_ORIGIN + Storage CORS), the
+# browser would hit CORS errors. Priority:
+#   1. FRONTEND_CUSTOM_DOMAIN env var (current intent).
+#   2. Stack output frontendCustomDomain (what was actually deployed).
+#   3. Static Web App default hostname (no custom domain configured).
 if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
-  log "${GREEN}   ✓ Using existing VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}${NC}"
+  log "${YELLOW}   ⚠ Ignoring VITE_FRONT_BASE_URL from environment (\$VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}); deriving from FRONTEND_CUSTOM_DOMAIN / stack instead.${NC}"
+  unset VITE_FRONT_BASE_URL
+fi
+
+if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+  export VITE_FRONT_BASE_URL="https://${FRONTEND_CUSTOM_DOMAIN}"
+  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from FRONTEND_CUSTOM_DOMAIN env: ${VITE_FRONT_BASE_URL}${NC}"
 else
-  FRONTDOOR_CUSTOM_DOMAIN_BUILD=$(az stack group show \
+  FRONTEND_CUSTOM_DOMAIN_BUILD=$(az stack group show \
     --name "$STACK_NAME" \
     --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query outputs.frontDoorCustomDomain.value \
+    --query outputs.frontendCustomDomain.value \
     --output tsv 2>/dev/null || echo "")
 
-  if [ -n "$FRONTDOOR_CUSTOM_DOMAIN_BUILD" ]; then
-    export VITE_FRONT_BASE_URL="https://$FRONTDOOR_CUSTOM_DOMAIN_BUILD"
-    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Front Door custom domain: ${VITE_FRONT_BASE_URL}${NC}"
+  if [ -n "$FRONTEND_CUSTOM_DOMAIN_BUILD" ]; then
+    export VITE_FRONT_BASE_URL="https://$FRONTEND_CUSTOM_DOMAIN_BUILD"
+    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from stack output frontendCustomDomain: ${VITE_FRONT_BASE_URL}${NC}"
   else
     export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
     log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
@@ -408,10 +417,10 @@ FRONTDOOR_ENDPOINT=$(az stack group show \
   --query outputs.frontDoorEndpoint.value \
   --output tsv 2>/dev/null || echo "")
 
-FRONTDOOR_CUSTOM_DOMAIN=$(az stack group show \
+FRONTEND_CUSTOM_DOMAIN_OUTPUT=$(az stack group show \
   --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.frontDoorCustomDomain.value \
+  --query outputs.frontendCustomDomain.value \
   --output tsv 2>/dev/null || echo "")
 
 echo ""
@@ -425,13 +434,13 @@ echo -e "   Static Web App:  ${BLUE}https://$SWA_HOSTNAME${NC}"
 
 if [ -n "$FRONTDOOR_ENDPOINT" ]; then
   echo -e "   Front Door CDN:  ${BLUE}https://$FRONTDOOR_ENDPOINT${NC}"
-  
-  if [ -n "$FRONTDOOR_CUSTOM_DOMAIN" ]; then
-    echo -e "   Custom Domain:   ${BLUE}https://$FRONTDOOR_CUSTOM_DOMAIN${NC} ${GREEN}← Use this for production${NC}"
+
+  if [ -n "$FRONTEND_CUSTOM_DOMAIN_OUTPUT" ]; then
+    echo -e "   Custom Domain:   ${BLUE}https://$FRONTEND_CUSTOM_DOMAIN_OUTPUT${NC} ${GREEN}← Use this for production${NC}"
     echo ""
     echo -e "${YELLOW}💡 Custom domain configured! Make sure DNS records are set:${NC}"
-    echo -e "   ${CYAN}TXT Record:${NC}   _dnsauth.$FRONTDOOR_CUSTOM_DOMAIN → [validation-token]"
-    echo -e "   ${CYAN}CNAME Record:${NC} $FRONTDOOR_CUSTOM_DOMAIN → $FRONTDOOR_ENDPOINT"
+    echo -e "   ${CYAN}TXT Record:${NC}   _dnsauth.$FRONTEND_CUSTOM_DOMAIN_OUTPUT → [validation-token]"
+    echo -e "   ${CYAN}CNAME Record:${NC} $FRONTEND_CUSTOM_DOMAIN_OUTPUT → $FRONTDOOR_ENDPOINT"
     echo ""
     echo -e "${YELLOW}   SSL certificate will be provisioned automatically after DNS validation.${NC}"
   else
@@ -439,6 +448,13 @@ if [ -n "$FRONTDOOR_ENDPOINT" ]; then
     echo -e "${YELLOW}💡 Tip: The Front Door URL provides global CDN, better performance,"
     echo -e "   and additional security features.${NC}"
   fi
+elif [ -n "$FRONTEND_CUSTOM_DOMAIN_OUTPUT" ]; then
+  echo -e "   Custom Domain:   ${BLUE}https://$FRONTEND_CUSTOM_DOMAIN_OUTPUT${NC} ${GREEN}← Use this for production${NC}"
+  echo ""
+  echo -e "${YELLOW}💡 Custom domain configured on Static Web App. Required DNS record:${NC}"
+  echo -e "   ${CYAN}CNAME Record:${NC} $FRONTEND_CUSTOM_DOMAIN_OUTPUT → $SWA_HOSTNAME"
+  echo ""
+  echo -e "${YELLOW}   SSL certificate will be provisioned automatically after CNAME validation.${NC}"
 fi
 
 echo ""

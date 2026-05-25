@@ -97,11 +97,41 @@ APP_SETTINGS=(
   "APP_VERSION=${APP_VERSION:-unknown}"
 )
 
-if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
-  APP_SETTINGS+=("ALLOWED_ORIGIN=$VITE_FRONT_BASE_URL")
-  log "Setting ALLOWED_ORIGIN from VITE_FRONT_BASE_URL: $VITE_FRONT_BASE_URL"
+# Resolve ALLOWED_ORIGIN for the Fastify container. Source of truth =
+# FRONTEND_CUSTOM_DOMAIN (env var or stack output). Falls back to the Static
+# Web App default hostname when no custom domain is configured. A manual
+# VITE_FRONT_BASE_URL is intentionally ignored to keep this script in sync with
+# bicep's allowedOrigin (App Service CORS + Storage CORS).
+if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+  ALLOWED_ORIGIN_VALUE="https://${FRONTEND_CUSTOM_DOMAIN}"
+  log "Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: $ALLOWED_ORIGIN_VALUE"
 else
-  log "VITE_FRONT_BASE_URL not set; leaving ALLOWED_ORIGIN unchanged."
+  STACK_FRONTEND_DOMAIN=$(az stack group show \
+    --name "$STACK_NAME_ENV" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query "outputs.frontendCustomDomain.value" -o tsv 2>/dev/null || echo "")
+
+  if [ -n "$STACK_FRONTEND_DOMAIN" ]; then
+    ALLOWED_ORIGIN_VALUE="https://${STACK_FRONTEND_DOMAIN}"
+    log "Resolved ALLOWED_ORIGIN from stack output frontendCustomDomain: $ALLOWED_ORIGIN_VALUE"
+  else
+    STACK_SWA_HOSTNAME=$(az stack group show \
+      --name "$STACK_NAME_ENV" \
+      --resource-group "$AZURE_RESOURCE_GROUP" \
+      --query "outputs.staticWebAppHostname.value" -o tsv 2>/dev/null || echo "")
+
+    if [ -n "$STACK_SWA_HOSTNAME" ]; then
+      ALLOWED_ORIGIN_VALUE="https://${STACK_SWA_HOSTNAME}"
+      log "Resolved ALLOWED_ORIGIN from Static Web App default hostname: $ALLOWED_ORIGIN_VALUE"
+    else
+      ALLOWED_ORIGIN_VALUE=""
+      log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or stack outputs; leaving unchanged."
+    fi
+  fi
+fi
+
+if [ -n "$ALLOWED_ORIGIN_VALUE" ]; then
+  APP_SETTINGS+=("ALLOWED_ORIGIN=$ALLOWED_ORIGIN_VALUE")
 fi
 
 az webapp config appsettings set \

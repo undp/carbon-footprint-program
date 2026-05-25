@@ -32,6 +32,9 @@ param appLocation string = '/apps/web'
 @description('Build output location relative to app location')
 param outputLocation string = 'dist'
 
+@description('Custom domain to bind to the Static Web App (e.g., app.example.com). Empty to skip. Use a CNAME-validated subdomain; apex domains require dns-txt-token validation and additional setup.')
+param customDomainName string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -66,6 +69,15 @@ resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
   )
 }
 
+// Custom domain (CNAME validation). DNS CNAME record must point to defaultHostname before deploy.
+resource customDomain 'Microsoft.Web/staticSites/customDomains@2025-03-01' = if (customDomainName != '') {
+  parent: staticWebApp
+  name: customDomainName
+  properties: {
+    validationMethod: 'cname-delegation'
+  }
+}
+
 // Outputs
 @description('Static Web App resource ID')
 output id string = staticWebApp.id
@@ -75,6 +87,9 @@ output name string = staticWebApp.name
 
 @description('Default hostname of the Static Web App')
 output defaultHostname string = staticWebApp.properties.defaultHostname
+
+@description('Custom domain bound to the Static Web App (empty when not configured)')
+output customDomain string = customDomainName
 
 @description('Deployment token for CI/CD (sensitive)')
 @secure()
