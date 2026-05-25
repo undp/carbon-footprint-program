@@ -99,12 +99,19 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
   const limits = useFileUploadLimits(useCase);
   const maxBytes = limits?.maxBytes;
   const maxSizeMB = limits?.maxMB;
+  // Until the system parameters arrive, the dropzone has no client-side size
+  // cap. Force-disable so a user cannot drop a 1 GB file in the loading gap
+  // and rely on the API to reject it; the API check is still authoritative.
+  const isLoadingLimits = limits === undefined;
+  const effectiveDisabled = disabled || isLoadingLimits;
   const resolvedAccept =
     accept ?? (useCase ? getPolicyAccept(useCase) : defaultAccept);
 
   const resolvedAcceptMessage =
     acceptMessage ??
-    (maxSizeMB !== undefined ? defaultAcceptMessage(maxSizeMB) : "");
+    (maxSizeMB !== undefined
+      ? defaultAcceptMessage(maxSizeMB)
+      : "Cargando límites…");
   const resolvedChildren = children ?? defaultChildren(resolvedAcceptMessage);
 
   const filesWithPreviews = useMemo<FileWithPreview[]>(
@@ -136,7 +143,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
   const handlePaste = useCallback(
     (e: ClipboardEvent) => {
-      if (disabled) return;
+      if (effectiveDisabled) return;
       if (!containerRef.current?.contains(document.activeElement)) return;
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -171,7 +178,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       if (pasted.length) addFiles(pasted, hadRejections);
     },
-    [disabled, resolvedAccept, maxBytes, maxSizeMB, addFiles]
+    [effectiveDisabled, resolvedAccept, maxBytes, maxSizeMB, addFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -179,7 +186,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
     accept: resolvedAccept,
     maxSize: maxBytes,
     multiple: true,
-    disabled,
+    disabled: effectiveDisabled,
     onDropRejected: (rejections) => {
       const messages = rejections.map((rejection) => {
         const code = rejection.errors[0]?.code as ErrorCode | undefined;
@@ -270,16 +277,16 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
       <div
         {...getRootProps()}
         role="button"
-        tabIndex={disabled ? -1 : 0}
+        tabIndex={effectiveDisabled ? -1 : 0}
         aria-label="Subir archivos: haz clic, arrastra o pega"
-        aria-disabled={disabled}
+        aria-disabled={effectiveDisabled}
         className={`flex flex-col items-center rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200 ${
           displayError
             ? "border-red-600!"
             : isDragActive
               ? "border-primary! bg-primary/10"
               : ""
-        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
+        } ${effectiveDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!effectiveDisabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} style={{ visibility: "hidden" }} />
         {resolvedChildren}
