@@ -36,7 +36,7 @@ export const LandingScreen: FC = () => {
         }}
       />
       <Header />
-      <Container className="my-4 flex flex-col justify-center gap-10">
+      <Container className="my-2 flex flex-col justify-center gap-6">
         <TermsAlert />
         <Box className="flex flex-col items-center justify-center gap-4">
           <Typography variant="h4" color="white">
