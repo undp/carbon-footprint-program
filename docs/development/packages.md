@@ -60,6 +60,19 @@ Every schema is defined in Zod. TypeScript types are inferred from Zod with `z.i
 
 **Key dependencies:** `@repo/constants`, `@repo/database` (imports Prisma enums), `zod`
 
+#### Zod validation messages must be in English
+
+All Zod schemas in `packages/types` must use **stable English** validation messages. The package is consumed by both the API and the web client; embedding Spanish copy here couples the contract to a single locale and breaks the i18n boundary documented in [i18n-plan.md](./i18n-plan.md).
+
+Convention:
+
+- Custom messages (`.min(1, "...")`, `.regex(/.../, "...")`, `.refine(..., "...")`) use short, stable English strings.
+- When a schema owns several related messages, export them as a `*_VALIDATION_MESSAGES` const (see `packages/types/src/baseSchemas/filename.ts` → `FILENAME_VALIDATION_MESSAGES`) so the web translator can reference them symbolically and stay in sync at build time.
+- The web app translates messages into Spanish at render time via `apps/web/src/utils/translateValidationMessage.ts`. Add a dictionary entry for each new message.
+- Messages set on the FE side (e.g. `requiredMessage` in a Controller) may be written in Spanish directly — they pass through the translator unchanged.
+
+API-thrown business errors follow the same boundary but use a different mechanism: throw a `createError(...)` with a stable `code`, and add the user-facing Spanish copy to `ERROR_MESSAGES` in `apps/web/src/utils/getApiErrorMessage.ts`.
+
 ---
 
 ### `@repo/database` — Prisma Client and Migrations

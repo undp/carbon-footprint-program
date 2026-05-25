@@ -15,6 +15,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { useFuzzySearch } from "@/hooks";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Option = { label: string; value: string | number };
 
@@ -92,7 +93,9 @@ export const FormAutocompleteField = <T extends FieldValues>({
                 {...params}
                 label={label}
                 error={!!fieldState.error && !props.disabled}
-                helperText={fieldState.error?.message}
+                helperText={translateValidationMessage(
+                  fieldState.error?.message
+                )}
                 required={required}
                 slotProps={{
                   htmlInput: {

@@ -1,5 +1,6 @@
 import { TextField, TextFieldProps } from "@mui/material";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -57,7 +58,9 @@ export const FormTextField = <T extends FieldValues>({
           }}
           required={required}
           error={!!fieldState.error && !props.disabled}
-          helperText={fieldState.error?.message ?? helperText}
+          helperText={
+            translateValidationMessage(fieldState.error?.message) ?? helperText
+          }
           fullWidth={fullWidth}
         />
       )}

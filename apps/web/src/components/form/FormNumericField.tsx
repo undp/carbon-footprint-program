@@ -2,6 +2,7 @@ import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { TextFieldProps } from "@mui/material";
 import { NumericInput } from "../NumericInput";
 import { toNullableNumber } from "@/utils/number";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -87,7 +88,9 @@ export const FormNumericField = <T extends FieldValues>({
           min={min}
           required={required}
           error={!!fieldState.error && !props.disabled}
-          helperText={fieldState.error?.message ?? helperText}
+          helperText={
+            translateValidationMessage(fieldState.error?.message) ?? helperText
+          }
           fullWidth={fullWidth}
           sx={{
             minHeight: "5rem",

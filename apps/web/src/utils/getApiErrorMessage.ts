@@ -158,6 +158,13 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",
   INSUFFICIENT_PERMISSIONS: "No tienes permisos para realizar esta acción.",
   INVALID_ROLE_TRANSITION: "La transición de rol solicitada no es válida.",
+
+  // File upload validation
+  FILE_SIZE_OUT_OF_RANGE: "El archivo excede el tamaño máximo permitido.",
+  FILE_MIME_TYPE_NOT_ALLOWED:
+    "El tipo de archivo no está permitido para este caso de uso.",
+  FILE_EXTENSION_NOT_ALLOWED:
+    "La extensión del archivo no está permitida para este caso de uso.",
 };
 
 /**

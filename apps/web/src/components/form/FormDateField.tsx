@@ -1,6 +1,7 @@
 import { DatePicker } from "@mui/x-date-pickers";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { format, isValid, parseISO } from "date-fns";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -56,7 +57,9 @@ export const FormDateField = <T extends FieldValues>({
                 fullWidth: true,
                 required,
                 error: !!fieldState.error && !disabled,
-                helperText: fieldState.error?.message ?? helperText,
+                helperText:
+                  translateValidationMessage(fieldState.error?.message) ??
+                  helperText,
                 sx: { minHeight: "5rem" },
               },
             }}

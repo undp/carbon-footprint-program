@@ -3,6 +3,7 @@ import type { FileUploadType } from "@repo/constants";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { FileUpload } from "../FileUpload";
 import { PropsWithChildren } from "react";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
@@ -39,7 +40,7 @@ export const FormFileUpload = <T extends FieldValues>({
       <FileUpload
         value={field.value ?? []}
         onChange={field.onChange}
-        error={fieldState.error?.message}
+        error={translateValidationMessage(fieldState.error?.message)}
         {...props}
       >
         {children}

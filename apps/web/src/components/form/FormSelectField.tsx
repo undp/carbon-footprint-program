@@ -9,6 +9,7 @@ import {
   SelectProps,
 } from "@mui/material";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { translateValidationMessage } from "@/utils/translateValidationMessage";
 
 type Option = { label: string; value: string | number };
 
@@ -83,7 +84,8 @@ export const FormSelectField = <T extends FieldValues>({
 
           {(fieldState.error?.message || helperText) && (
             <FormHelperText>
-              {fieldState.error?.message ?? helperText}
+              {translateValidationMessage(fieldState.error?.message) ??
+                helperText}
             </FormHelperText>
           )}
         </FormControl>
