@@ -222,6 +222,68 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       expect(exists).toBe(false);
     });
 
+    it("should return 400 with FILE_TOO_SMALL when the blob is below the minimum size", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440023";
+      const originalName = "empty.pdf";
+      const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+      // FILE_UPLOAD_MIN_BYTES is seeded to 1; an empty blob is the only way
+      // to land below the minimum without rewriting the schema.
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        content: "",
+        contentType: "application/pdf",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_TOO_SMALL"
+      );
+
+      const exists = await app
+        .blobStorage!.getBlockBlobClient(blobPath)
+        .exists();
+      expect(exists).toBe(false);
+
+      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      expect(fileRecord).toBeNull();
+    });
+
+    it("should return 400 and delete the blob when extension does not match the file type", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440022";
+      // SUBMISSION policy accepts pdf/png/jpg/jpeg/webp/xls/xlsx — not .txt.
+      // The blob's content-type is allowed (application/pdf), so the failure
+      // hits the extension check, not the MIME check.
+      const originalName = "report.txt";
+      const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "application/pdf",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_EXTENSION_NOT_ALLOWED"
+      );
+
+      const exists = await app
+        .blobStorage!.getBlockBlobClient(blobPath)
+        .exists();
+      expect(exists).toBe(false);
+
+      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      expect(fileRecord).toBeNull();
+    });
+
     it("should return 409 when the same uuid is confirmed twice", async () => {
       const uuid = "550e8400-e29b-41d4-a716-446655440010";
       const originalName = "duplicate.pdf";
