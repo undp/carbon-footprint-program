@@ -82,3 +82,6 @@ public/dist
 # Agents
 .agents/settings*
 .agents/skills/
+
+# Superset
+.superset/
