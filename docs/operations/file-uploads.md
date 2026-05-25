@@ -35,8 +35,8 @@ sweep (Event Grid, lifecycle policy) can reuse the value.
    param files) to match.
 3. Re-run the seed against the target database: `pnpm db:seed` or the
    command your environment uses to apply `systemParameters.json`.
-4. The API caches the value via `getFileUploadLimits` per request;
-   no application restart is required, the next request picks the new
+4. `getFileUploadLimits` reads the value on every request; no
+   application restart is required, the next request picks the new
    value up.
 
 ---
@@ -50,6 +50,28 @@ and the web client (`apps/web/src/utils/buildAcceptFromPolicy.ts` and
 runtime configuration.
 
 Effective max per request = `min(global FILE_UPLOAD_MAX_BYTES, policy.maxBytes ?? Infinity)`.
+
+---
+
+## Carbon-inventory line files keep their own allowlist
+
+The carbon-inventory line upload endpoints (`confirmLineFileUploadService`,
+`requestLineFileUploadService`) intentionally validate against their
+own dedicated constants in `packages/constants/src/carbonInventory.ts`
+(`CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES`,
+`CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES`) rather than going through
+`FILE_UPLOAD_POLICIES.CARBON_INVENTORY`. Reasons:
+
+- The line-file endpoint enforces tighter, feature-specific rules
+  decoupled from the broader `CARBON_INVENTORY` policy that the
+  generic upload flow uses.
+- The dual source lets the carbon-inventory team evolve its allowlist
+  without affecting other consumers of `FILE_UPLOAD_POLICIES`.
+
+If you need to update the rules for inventory line files, edit the
+dedicated constants in `packages/constants/src/carbonInventory.ts`.
+Keep the two policies aligned (or deliberately divergent) and document
+the difference in the PR.
 
 ---
 
