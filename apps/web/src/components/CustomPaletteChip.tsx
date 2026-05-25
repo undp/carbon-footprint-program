@@ -7,23 +7,20 @@ interface CustomPaletteChipProps {
   config: CustomPaletteConfig;
   size?: ChipProps["size"];
   icon?: ChipProps["icon"];
-  tooltip?: string;
 }
 
 export const CustomPaletteChip: FC<CustomPaletteChipProps> = ({
   config,
   size = "small",
   icon,
-  tooltip,
 }) => {
   const color = config.color;
   const variant = size === "medium" ? "subtitle1" : "subtitle2";
   const fontWeight = size === "medium" ? "fontWeightMedium" : undefined;
   const iconNode = icon ?? config.icon;
-  const tooltipText = tooltip ?? config.tooltip;
 
   return (
-    <Tooltip title={tooltipText}>
+    <Tooltip title={config.tooltip}>
       <Chip
         icon={iconNode}
         size={size}

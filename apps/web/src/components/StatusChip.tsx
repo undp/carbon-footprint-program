@@ -7,24 +7,21 @@ interface StatusChipProps {
   config: StatusConfig;
   size?: ChipProps["size"];
   icon?: ChipProps["icon"];
-  tooltip?: string;
 }
 
 export const StatusChip: FC<StatusChipProps> = ({
   config,
   size = "small",
   icon,
-  tooltip,
 }) => {
   const theme = useTheme();
   const color = theme.palette.statusFamilyColors[config.family];
   const variant = size === "medium" ? "subtitle1" : "subtitle2";
   const fontWeight = size === "medium" ? "fontWeightMedium" : undefined;
   const iconNode = icon ?? config.icon;
-  const tooltipText = tooltip ?? config.tooltip;
 
   return (
-    <Tooltip title={tooltipText}>
+    <Tooltip title={config.tooltip}>
       <Chip
         icon={iconNode}
         size={size}
