@@ -6,8 +6,8 @@ import type {
   RawServerDefault,
   RouteGenericInterface,
   RouteHandlerMethod,
-  onRequestHookHandler,
-  preHandlerHookHandler,
+  onRequestAsyncHookHandler,
+  preHandlerAsyncHookHandler,
 } from "fastify";
 import type { SystemRole } from "@repo/database/enums";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -85,8 +85,8 @@ export interface RegisterRoutesOptions {
 
 interface BuiltHooks {
   config: { allowPublicAccess?: boolean; allowAnonymousAccess?: boolean };
-  onRequest: onRequestHookHandler[];
-  preHandler: preHandlerHookHandler[];
+  onRequest: onRequestAsyncHookHandler[];
+  preHandler: preHandlerAsyncHookHandler[];
 }
 
 /**
@@ -125,7 +125,7 @@ export function buildHooks(
         canAdminsBypass: options.canAdminsBypass,
       }),
       "requireCarbonInventoryAccess"
-    ) as preHandlerHookHandler;
+    );
     return {
       config: { allowAnonymousAccess: true },
       onRequest: [taggedRequireAuth],
@@ -134,16 +134,11 @@ export function buildHooks(
   }
 
   // private mode below.
-  const onRequest: onRequestHookHandler[] = [taggedRequireAuth];
-  const preHandler: preHandlerHookHandler[] = [];
+  const onRequest: onRequestAsyncHookHandler[] = [taggedRequireAuth];
+  const preHandler: preHandlerAsyncHookHandler[] = [];
 
-  // Decorator return types are async (`Promise<void>`) and use narrower request
-  // generics than `preHandlerHookHandler`. We cast to the generic shape — Fastify
-  // accepts async preHandlers at runtime, and the underlying decorators enforce
-  // their own request shape from the route's schema.
   if (access.systemRoles && access.systemRoles.kind === "roles") {
     preHandler.push(
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
       tagHook(fastify.requireRoles(access.systemRoles.roles), "requireRoles")
     );
   }
@@ -157,7 +152,6 @@ export function buildHooks(
         case "organization": {
           const options = domain.options ?? {};
           preHandler.push(
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
             tagHook(
               fastify.requireOrganizationRole(
                 options.extractor ?? defaultIdExtractor,
@@ -183,14 +177,13 @@ export function buildHooks(
                 }
               ),
               "requireCarbonInventoryAccess"
-            ) as preHandlerHookHandler
+            )
           );
           break;
         }
         case "reductionProject": {
           const options = domain.options ?? {};
           preHandler.push(
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- decorator returns async hook; preHandler accepts both sync and async at runtime
             tagHook(
               fastify.requireReductionProjectAccess({
                 requiredOrganizationRoles: options.requiredOrganizationRoles,
