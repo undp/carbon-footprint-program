@@ -59,10 +59,10 @@ export const getReferenceCount = async (
 };
 
 export const buildCanonicalRmuFields = (
-  mu: Pick<MeasurementUnit, "abbreviation" | "name">
+  mu: Pick<MeasurementUnit, "abbreviation">
 ) => ({
   abbreviation: `kg/${mu.abbreviation}`,
-  name: `kg por ${mu.name}`,
+  name: `kg por ${mu.abbreviation}`,
 });
 
 export const assertNotKgMu = (mu: Pick<MeasurementUnit, "abbreviation">) => {

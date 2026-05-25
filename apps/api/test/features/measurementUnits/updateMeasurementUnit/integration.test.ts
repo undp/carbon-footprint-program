@@ -90,7 +90,7 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         },
       });
       expect(canonicalRmu).not.toBeNull();
-      expect(canonicalRmu!.name).toBe("kg por Renamed Unit");
+      expect(canonicalRmu!.name).toBe(`kg por ${newAbbr}`);
     });
 
     it("should update magnitude and baseFactor when referenceCount is 0", async () => {
