@@ -18,12 +18,17 @@ export const confirmUploadHandler = async (
   log.info({ uuid, fileType }, "Confirming file upload...");
 
   const prisma = request.server.prisma;
-  const result = await confirmUploadService(prisma, blobStorage, {
-    uuid,
-    originalName,
-    fileType,
-    userId: request.currentUser?.id,
-  });
+  const result = await confirmUploadService(
+    prisma,
+    blobStorage,
+    {
+      uuid,
+      originalName,
+      fileType,
+      userId: request.currentUser?.id,
+    },
+    log
+  );
 
   log.info({ uuid, fileType }, "File upload confirmed");
   return reply.status(201).send(result);
