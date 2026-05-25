@@ -5,59 +5,24 @@ import {
   SubmissionType,
 } from "@repo/types";
 import { SvgIconComponent } from "@mui/icons-material";
+import { mapValues } from "lodash-es";
 import { CarbonInventoryRecognitionsBadgeType } from "@/screens/Recognitions/constants";
 import { RECOGNITION_TYPE_LABELS } from "@/labels/chips/recognitionType";
 
 export const RECOGNITION_TYPE_LABEL: Record<
   CarbonInventoryRecognitionsType,
   string
-> = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_CALCULATION]
-      .fullLabel,
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_VERIFICATION]
-      .fullLabel,
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.REDUCTION_PROJECT_VERIFICATION]
-      .fullLabel,
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]
-      .fullLabel,
-};
+> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.fullLabel);
 
 export const RECOGNITION_TYPE_CHIP_LABEL: Record<
   CarbonInventoryRecognitionsType,
   string
-> = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_CALCULATION]
-      .chipLabel,
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_VERIFICATION]
-      .chipLabel,
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.REDUCTION_PROJECT_VERIFICATION]
-      .chipLabel,
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]
-      .chipLabel,
-};
+> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.chipLabel);
 
 export const RECOGNITION_ICON: Record<
   CarbonInventoryRecognitionsType,
   SvgIconComponent
-> = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_CALCULATION].icon,
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.CARBON_INVENTORY_VERIFICATION].icon,
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.REDUCTION_PROJECT_VERIFICATION].icon,
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
-    RECOGNITION_TYPE_LABELS[SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]
-      .icon,
-};
+> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.icon);
 
 // Neutralization recognitions are hidden in the front until the admin
 // neutralization module is implemented.
