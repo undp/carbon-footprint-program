@@ -24,11 +24,15 @@ export interface CustomPaletteConfig {
   icon?: ChipProps["icon"];
 }
 
-export const sortOrderByLabel = <
-  T extends { label: string; sortOrder: number },
+export const sortOrderByKey = <
+  K extends string,
+  T extends { sortOrder: number },
 >(
-  config: Record<string, T>
-): Record<string, number> =>
+  config: Record<K, T>
+): Record<K, number> =>
   Object.fromEntries(
-    Object.values(config).map((entry) => [entry.label, entry.sortOrder])
-  );
+    (Object.entries(config) as [K, T][]).map(([key, value]) => [
+      key,
+      value.sortOrder,
+    ])
+  ) as Record<K, number>;

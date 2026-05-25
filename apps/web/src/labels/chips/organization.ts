@@ -5,7 +5,7 @@ import {
 } from "@repo/types";
 import { AdminOrganizationDisplayStatus } from "@/screens/Maintainer/hooks/organizationDisplayStatus";
 import { VOCAB } from "@/config/vocab";
-import { sortOrderByLabel, StatusConfig, StatusFamily } from "./types";
+import { sortOrderByKey, StatusConfig, StatusFamily } from "./types";
 
 export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   AdminOrganizationDisplayStatus,
@@ -37,7 +37,7 @@ export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   },
 };
 
-export const ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL = sortOrderByLabel(
+export const ADMIN_ORGANIZATION_STATUS_SORT_ORDER = sortOrderByKey(
   ADMIN_ORGANIZATION_STATUS_CONFIG
 );
 

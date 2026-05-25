@@ -8,17 +8,18 @@ import { AdminActionButton } from "@/components/AdminActionButton";
 import {
   GetAllAdminRequestsResponse,
   SubmissionStatus as RequestStatus,
+  SubmissionType,
 } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";
 import {
   SUBMISSION_STATUS_CONFIG,
-  SUBMISSION_STATUS_SORT_ORDER_BY_LABEL,
+  SUBMISSION_STATUS_SORT_ORDER,
 } from "@/labels/chips/submission";
 import {
   SUBMISSION_TYPE_LABELS,
-  SUBMISSION_TYPE_SORT_ORDER_BY_LABEL,
+  SUBMISSION_TYPE_SORT_ORDER,
 } from "@/labels/chips/submissionType";
 
 interface Props {
@@ -48,10 +49,11 @@ export const useRequestColumns = ({
         headerName: "Tipo",
         cellClassName,
         flex: 1,
-        valueGetter: (_value, row) => SUBMISSION_TYPE_LABELS[row.type].label,
-        sortComparator: (value1: string, value2: string) =>
-          SUBMISSION_TYPE_SORT_ORDER_BY_LABEL[value1] -
-          SUBMISSION_TYPE_SORT_ORDER_BY_LABEL[value2],
+        valueGetter: (_value, row) => row.type,
+        valueFormatter: (value: SubmissionType) =>
+          SUBMISSION_TYPE_LABELS[value].label,
+        sortComparator: (v1: SubmissionType, v2: SubmissionType) =>
+          SUBMISSION_TYPE_SORT_ORDER[v1] - SUBMISSION_TYPE_SORT_ORDER[v2],
         renderCell: (params) => <SubmissionTypeChip type={params.row.type} />,
       },
       {
@@ -67,11 +69,11 @@ export const useRequestColumns = ({
         headerName: "Estado",
         cellClassName,
         flex: 0.7,
-        valueGetter: (_value, row) =>
-          SUBMISSION_STATUS_CONFIG[row.status].label,
-        sortComparator: (value1: string, value2: string) =>
-          SUBMISSION_STATUS_SORT_ORDER_BY_LABEL[value1] -
-          SUBMISSION_STATUS_SORT_ORDER_BY_LABEL[value2],
+        valueGetter: (_value, row) => row.status,
+        valueFormatter: (value: RequestStatus) =>
+          SUBMISSION_STATUS_CONFIG[value].label,
+        sortComparator: (v1: RequestStatus, v2: RequestStatus) =>
+          SUBMISSION_STATUS_SORT_ORDER[v1] - SUBMISSION_STATUS_SORT_ORDER[v2],
         renderCell: (params) => (
           <StatusChip config={SUBMISSION_STATUS_CONFIG[params.row.status]} />
         ),

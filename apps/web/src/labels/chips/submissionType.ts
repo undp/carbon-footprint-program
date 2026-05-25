@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material";
 import { SubmissionType } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
-import { CustomPaletteConfig, sortOrderByLabel } from "./types";
+import { CustomPaletteConfig, sortOrderByKey } from "./types";
 
 type SubmissionTypeLabelEntry = Pick<
   CustomPaletteConfig,
@@ -41,7 +41,7 @@ export const SUBMISSION_TYPE_LABELS: Record<
   },
 };
 
-export const SUBMISSION_TYPE_SORT_ORDER_BY_LABEL = sortOrderByLabel(
+export const SUBMISSION_TYPE_SORT_ORDER = sortOrderByKey(
   SUBMISSION_TYPE_LABELS
 );
 

@@ -10,10 +10,13 @@ import {
 import { StatusChip } from "@/components/StatusChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
-import { getDisplayStatus } from "./organizationDisplayStatus";
+import {
+  AdminOrganizationDisplayStatus,
+  getDisplayStatus,
+} from "./organizationDisplayStatus";
 import {
   ADMIN_ORGANIZATION_STATUS_CONFIG,
-  ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL,
+  ADMIN_ORGANIZATION_STATUS_SORT_ORDER,
 } from "@/labels/chips/organization";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
@@ -73,16 +76,19 @@ export const useOrganizationColumns = ({
         field: "status",
         headerName: "Estado",
         valueGetter: (_value, row) =>
-          ADMIN_ORGANIZATION_STATUS_CONFIG[
-            getDisplayStatus(
-              row.status,
-              row.isAccredited,
-              row.hasCarbonInventories
-            )
-          ].label,
-        sortComparator: (value1: string, value2: string) =>
-          ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL[value1] -
-          ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL[value2],
+          getDisplayStatus(
+            row.status,
+            row.isAccredited,
+            row.hasCarbonInventories
+          ),
+        valueFormatter: (value: AdminOrganizationDisplayStatus) =>
+          ADMIN_ORGANIZATION_STATUS_CONFIG[value].label,
+        sortComparator: (
+          v1: AdminOrganizationDisplayStatus,
+          v2: AdminOrganizationDisplayStatus
+        ) =>
+          ADMIN_ORGANIZATION_STATUS_SORT_ORDER[v1] -
+          ADMIN_ORGANIZATION_STATUS_SORT_ORDER[v2],
         cellClassName,
         flex: 0.9,
         renderCell: (params) => {

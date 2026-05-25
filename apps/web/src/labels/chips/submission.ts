@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@repo/types";
-import { sortOrderByLabel, StatusConfig, StatusFamily } from "./types";
+import { sortOrderByKey, StatusConfig, StatusFamily } from "./types";
 
 export const SUBMISSION_STATUS_CONFIG: Record<SubmissionStatus, StatusConfig> =
   {
@@ -35,6 +35,6 @@ export const SUBMISSION_STATUS_CONFIG: Record<SubmissionStatus, StatusConfig> =
     },
   };
 
-export const SUBMISSION_STATUS_SORT_ORDER_BY_LABEL = sortOrderByLabel(
+export const SUBMISSION_STATUS_SORT_ORDER = sortOrderByKey(
   SUBMISSION_STATUS_CONFIG
 );
