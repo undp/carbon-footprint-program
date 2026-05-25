@@ -17,12 +17,14 @@ const VALIDATION_MESSAGE_TRANSLATIONS: Record<string, string> = {
     "El nombre del archivo es obligatorio.",
   [FILENAME_VALIDATION_MESSAGES.TOO_LONG]:
     "El nombre del archivo es demasiado largo.",
-  [FILENAME_VALIDATION_MESSAGES.NON_PRINTABLE_ASCII]:
-    "El nombre del archivo solo puede contener caracteres ASCII imprimibles.",
-  [FILENAME_VALIDATION_MESSAGES.PATH_SEPARATORS]:
-    "El nombre del archivo no puede contener separadores de ruta ni dos puntos.",
+  [FILENAME_VALIDATION_MESSAGES.CONTROL_CHARACTERS]:
+    "El nombre del archivo no puede contener caracteres de control.",
+  [FILENAME_VALIDATION_MESSAGES.RESERVED_CHARACTERS]:
+    'El nombre del archivo no puede contener separadores de ruta ni caracteres reservados (/, \\, :, <, >, ", |, ?, *).',
   [FILENAME_VALIDATION_MESSAGES.ALL_DOTS]:
     "El nombre del archivo no puede estar formado solo por puntos.",
+  [FILENAME_VALIDATION_MESSAGES.LEADING_DOT_OR_SPACE]:
+    "El nombre del archivo no puede empezar con punto o espacio.",
   [FILENAME_VALIDATION_MESSAGES.TRAILING_DOT_OR_SPACE]:
     "El nombre del archivo no puede terminar en punto o espacio.",
 };

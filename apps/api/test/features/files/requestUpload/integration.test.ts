@@ -194,11 +194,37 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
       );
     });
 
-    it("should return 400 when filename has non-ASCII characters", async () => {
+    it("should accept Spanish accented filenames", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/files/request-upload",
-        payload: { ...validPayload, originalName: "reporte🚀.pdf" },
+        payload: {
+          ...validPayload,
+          originalName: "informe-medición-año2023.pdf",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should return 400 when filename contains Windows-reserved characters", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: { ...validPayload, originalName: "report<bad>.pdf" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when filename starts with a dot", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: { ...validPayload, originalName: ".hidden.pdf" },
       });
 
       expect(response.statusCode).toBe(400);
