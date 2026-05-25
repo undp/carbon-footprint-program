@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { RestoreOutlined } from "@mui/icons-material";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";

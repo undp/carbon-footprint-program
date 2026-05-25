@@ -15,11 +15,11 @@ import { formatter } from "@/utils/formatting";
 import {
   SUBMISSION_STATUS_CONFIG,
   SUBMISSION_STATUS_SORT_ORDER_BY_LABEL,
-} from "@/labels/status/submission";
+} from "@/labels/chips/submission";
 import {
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_TYPE_SORT_ORDER_BY_LABEL,
-} from "@/labels/status/submissionType";
+} from "@/labels/chips/submissionType";
 
 interface Props {
   onView: (row: GetAllAdminRequestsResponse[number]) => void;

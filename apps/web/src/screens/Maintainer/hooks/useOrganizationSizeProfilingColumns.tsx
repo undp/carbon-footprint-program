@@ -7,7 +7,7 @@ import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({

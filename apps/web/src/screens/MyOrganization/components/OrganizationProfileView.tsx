@@ -19,8 +19,8 @@ import { InfoRow } from "./InfoRow";
 import { StatusChip } from "@/components/StatusChip";
 import { useGetOrganizationHistory } from "@/api/query";
 import { HistoryCard } from "@/components/dialogs/SubmissionHistory";
-import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/status/organization";
-import { SUBMISSION_STATUS_CONFIG } from "@/labels/status/submission";
+import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
 import { VOCAB } from "@/config/vocab";
 
 type OrganizationProfileViewProps = {

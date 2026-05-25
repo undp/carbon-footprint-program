@@ -16,7 +16,7 @@ import type { GetAllUsersResponse } from "@repo/types";
 import { useUpdateUserRole } from "@/api/query/users";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { DIALOG_COPY } from "../constants";
-import { SYSTEM_ROLE_LABELS } from "@/labels/status/role";
+import { SYSTEM_ROLE_LABELS } from "@/labels/chips/role";
 
 interface PromoteUserDialogProps {
   open: boolean;

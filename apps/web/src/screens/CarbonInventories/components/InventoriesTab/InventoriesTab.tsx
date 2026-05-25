@@ -3,7 +3,7 @@ import { Box, Typography, useMediaQuery } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ResponsiveTypography, StylizedDataGrid } from "@/components";
 import { StatusChip } from "@/components/StatusChip";
-import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/status/carbonInventory";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
 import { formatter } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,

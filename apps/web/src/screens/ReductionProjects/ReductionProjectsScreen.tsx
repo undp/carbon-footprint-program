@@ -22,7 +22,7 @@ import {
 import { useExplanationDialog } from "@/contexts";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { StatusChip } from "@/components/StatusChip";
-import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/status/reductionProject";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import {
   useReductionProjects,
   useReductionProjectsMinimal,

@@ -5,7 +5,7 @@ import type { IFuseOptions } from "fuse.js";
 import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
 import { getDisplayStatus } from "../hooks/organizationDisplayStatus";
-import { ADMIN_ORGANIZATION_STATUS_CONFIG } from "@/labels/status/organization";
+import { ADMIN_ORGANIZATION_STATUS_CONFIG } from "@/labels/chips/organization";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
 import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";
 import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrganization";

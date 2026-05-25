@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Chip, ChipProps, Tooltip, Typography } from "@mui/material";
 import { alpha, darken } from "@mui/material/styles";
-import { CustomPaletteConfig } from "@/labels/status/types";
+import { CustomPaletteConfig } from "@/labels/chips/types";
 
 interface CustomPaletteChipProps {
   config: CustomPaletteConfig;

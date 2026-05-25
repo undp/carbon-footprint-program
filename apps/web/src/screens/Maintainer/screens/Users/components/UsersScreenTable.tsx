@@ -3,7 +3,7 @@ import type { IFuseOptions } from "fuse.js";
 import type { GridColDef } from "@mui/x-data-grid";
 import type { GetAllUsersResponse } from "@repo/types";
 import { MaintainerDataGrid } from "../../../components/MaintainerDataGrid";
-import { SYSTEM_ROLE_LABELS } from "@/labels/status/role";
+import { SYSTEM_ROLE_LABELS } from "@/labels/chips/role";
 import { formatter } from "@/utils/formatting";
 import Box from "@mui/material/Box";
 

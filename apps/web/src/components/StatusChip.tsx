@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Chip, ChipProps, Tooltip, Typography, useTheme } from "@mui/material";
 import { alpha, darken } from "@mui/material/styles";
-import { StatusConfig } from "@/labels/status/types";
+import { StatusConfig } from "@/labels/chips/types";
 
 interface StatusChipProps {
   config: StatusConfig;

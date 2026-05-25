@@ -14,7 +14,7 @@ import {
   HistoryOutlined,
 } from "@mui/icons-material";
 import { StatusChip } from "@/components/StatusChip";
-import { BADGE_STATUS_CONFIG } from "@/labels/status/badge";
+import { BADGE_STATUS_CONFIG } from "@/labels/chips/badge";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";

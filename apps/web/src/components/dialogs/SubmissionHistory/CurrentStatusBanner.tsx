@@ -7,8 +7,8 @@ import {
   SubmissionType,
 } from "@repo/types";
 import { EVENT_TYPE_LABEL } from "@/utils/submissions";
-import { SUBMISSION_STATUS_CONFIG } from "@/labels/status/submission";
-import { SUBMISSION_TYPE_LABELS } from "@/labels/status/submissionType";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
+import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
 
 type Props = {
   status: SubmissionStatus | null;

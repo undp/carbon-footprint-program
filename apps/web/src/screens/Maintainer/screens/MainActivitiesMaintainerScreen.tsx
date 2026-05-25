@@ -36,7 +36,7 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS = {

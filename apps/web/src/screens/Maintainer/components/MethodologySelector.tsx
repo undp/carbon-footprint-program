@@ -2,7 +2,7 @@ import { FC, useId } from "react";
 import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { GetAllMethodologiesResponse } from "@repo/types";
 import { StatusChip } from "@/components/StatusChip";
-import { METHODOLOGY_STATUS_CONFIG } from "@/labels/status/methodology";
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
 
 interface Props {
   methodologies: GetAllMethodologiesResponse;

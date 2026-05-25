@@ -10,7 +10,7 @@ import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
 import {
   ORGANIZATION_ROLE_LABELS,
   SYSTEM_ROLE_LABELS,
-} from "@/labels/status/role";
+} from "@/labels/chips/role";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 

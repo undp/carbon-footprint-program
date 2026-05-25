@@ -32,7 +32,7 @@ import {
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SECTORS_MAINTAINER_EXPLANATION_SLUGS = {

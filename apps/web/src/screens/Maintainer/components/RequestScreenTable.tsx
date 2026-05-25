@@ -6,8 +6,8 @@ import { useRequestColumns } from "../hooks/useRequestColumns";
 import { useAdminRequests } from "@/api/query/requests/useAdminRequests";
 import { GetAllAdminRequestsResponse, SubmissionType } from "@repo/types";
 import { ViewSubmissionDialog } from "@/components/dialogs";
-import { SUBMISSION_STATUS_CONFIG } from "@/labels/status/submission";
-import { SUBMISSION_TYPE_LABELS } from "@/labels/status/submissionType";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
+import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
 
 const TABLE_ROW_COUNT = 6;
 

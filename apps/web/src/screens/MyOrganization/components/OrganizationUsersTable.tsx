@@ -4,7 +4,7 @@ import { Add } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
 import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
-import { ORGANIZATION_ROLE_LABELS } from "@/labels/status/role";
+import { ORGANIZATION_ROLE_LABELS } from "@/labels/chips/role";
 import { OrganizationRole } from "@repo/types";
 
 type User = {

@@ -7,7 +7,7 @@ import {
   sanitizeFilenamePart,
 } from "@/services/excel";
 import { formatter } from "./formatting";
-import { METHODOLOGY_STATUS_CONFIG } from "@/labels/status/methodology";
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
 
 type Methodology = GetMethodologyExportResponse;
 type Category = Methodology["categories"][number];

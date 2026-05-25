@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { SubmissionType } from "@repo/types";
 import { CustomPaletteChip } from "./CustomPaletteChip";
-import { useSubmissionTypeConfig } from "@/labels/status/submissionType";
+import { useSubmissionTypeConfig } from "@/labels/chips/submissionType";
 
 interface SubmissionTypeChipProps {
   type: SubmissionType;

@@ -33,7 +33,7 @@ import {
   type OrganizationSizeFormRow,
 } from "../hooks/useOrganizationSizeProfilingColumns";
 import { sortByStatusThenPosition } from "../utils/profilingSort";
-import { PROFILING_STATUS_CONFIG } from "@/labels/status/profiling";
+import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { VOCAB } from "@/config/vocab";

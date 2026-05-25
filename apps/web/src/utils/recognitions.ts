@@ -6,7 +6,7 @@ import {
 } from "@repo/types";
 import { SvgIconComponent } from "@mui/icons-material";
 import { CarbonInventoryRecognitionsBadgeType } from "@/screens/Recognitions/constants";
-import { RECOGNITION_TYPE_LABELS } from "@/labels/status/recognitionType";
+import { RECOGNITION_TYPE_LABELS } from "@/labels/chips/recognitionType";
 
 export const RECOGNITION_TYPE_LABEL: Record<
   CarbonInventoryRecognitionsType,

@@ -14,7 +14,7 @@ import { useAuth } from "../../contexts";
 import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
 import { StatusChip } from "@/components/StatusChip";
-import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/status/carbonInventory";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";

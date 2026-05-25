@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { SystemRole } from "@repo/types";
 import { CustomPaletteChip } from "./CustomPaletteChip";
-import { useSystemRoleConfig } from "@/labels/status/role";
+import { useSystemRoleConfig } from "@/labels/chips/role";
 
 interface SystemRoleChipProps {
   role: SystemRole;

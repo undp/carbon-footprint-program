@@ -12,7 +12,7 @@ import {
 } from "@/api/query/carbonInventories";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { StatusChip } from "@/components/StatusChip";
-import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/status/reductionProject";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import { InfoButton, ScreenEmptyState } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { REDUCTION_PROJECT_EXPLANATION_SLUGS } from "./constants";

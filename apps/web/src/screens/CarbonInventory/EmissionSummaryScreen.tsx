@@ -29,7 +29,7 @@ import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigati
 import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { StatusChip } from "@/components/StatusChip";
-import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/status/carbonInventory";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";

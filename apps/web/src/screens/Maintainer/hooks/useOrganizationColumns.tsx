@@ -14,7 +14,7 @@ import { getDisplayStatus } from "./organizationDisplayStatus";
 import {
   ADMIN_ORGANIZATION_STATUS_CONFIG,
   ADMIN_ORGANIZATION_STATUS_SORT_ORDER_BY_LABEL,
-} from "@/labels/status/organization";
+} from "@/labels/chips/organization";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";

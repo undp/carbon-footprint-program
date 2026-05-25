@@ -12,7 +12,7 @@ import {
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
 import { METHODOLOGY_ACTION_TOOLTIPS } from "../constants";
-import { METHODOLOGY_STATUS_CONFIG } from "@/labels/status/methodology";
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
 
 type Methodology = GetAllMethodologiesResponse[number];
 
