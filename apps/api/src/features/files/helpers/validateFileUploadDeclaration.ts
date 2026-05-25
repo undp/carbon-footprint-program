@@ -1,6 +1,8 @@
+import { CANONICAL_MIME_EXTENSIONS } from "@repo/constants";
 import type { FileUploadLimits } from "./getFileUploadLimits.js";
 import {
   FileExtensionNotAllowedError,
+  FileMimeExtensionMismatchError,
   FileMimeTypeNotAllowedError,
   FileTooLargeError,
   FileTooSmallError,
@@ -53,6 +55,20 @@ export function validateFileUploadDeclaration(
       extension || "(none)",
       fileType,
       limits.allowedExtensions.join(", ")
+    );
+  }
+
+  // Cross-check: each side passed its own allowlist, but they must also
+  // agree with each other. Skip silently for MIMEs absent from the canonical
+  // map — buildAcceptFromPolicy's test guarantees every policy MIME is
+  // registered, so the only way to hit the gap is to declare a MIME the
+  // policy does not even list, which the previous check already blocked.
+  const canonicalExtensions = CANONICAL_MIME_EXTENSIONS[normalizedMime];
+  if (canonicalExtensions && !canonicalExtensions.includes(extension)) {
+    throw new FileMimeExtensionMismatchError(
+      extension || "(none)",
+      mimeType,
+      canonicalExtensions.join(", ")
     );
   }
 }

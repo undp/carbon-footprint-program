@@ -23,3 +23,9 @@ export const FileExtensionNotAllowedError = createError(
   'Extension "%s" is not allowed for file type %s. Allowed: %s',
   400
 );
+
+export const FileMimeExtensionMismatchError = createError(
+  "FILE_MIME_EXTENSION_MISMATCH",
+  'Extension "%s" does not match the declared MIME type "%s". Expected one of: %s',
+  400
+);

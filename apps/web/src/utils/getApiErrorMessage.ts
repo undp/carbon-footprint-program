@@ -166,6 +166,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "El tipo de archivo no está permitido para este caso de uso.",
   FILE_EXTENSION_NOT_ALLOWED:
     "La extensión del archivo no está permitida para este caso de uso.",
+  FILE_MIME_EXTENSION_MISMATCH:
+    "La extensión del archivo no coincide con su tipo MIME declarado.",
 };
 
 /**

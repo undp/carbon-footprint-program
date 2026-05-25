@@ -301,5 +301,25 @@ describe("POST /api/files/request-upload - Integration Tests", () => {
         "FILE_EXTENSION_NOT_ALLOWED"
       );
     });
+
+    it("should return 400 when extension and declared MIME disagree", async () => {
+      // Both ".png" and "application/pdf" are individually allowed for
+      // SUBMISSION but they don't pair — the cross-check must reject.
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/request-upload",
+        payload: {
+          originalName: "tampered.png",
+          fileType: "SUBMISSION",
+          sizeBytes: 1024,
+          mimeType: "application/pdf",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_MIME_EXTENSION_MISMATCH"
+      );
+    });
   });
 });
