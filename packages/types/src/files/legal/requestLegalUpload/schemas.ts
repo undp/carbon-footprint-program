@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { LegalOriginalNameSchema } from "../baseSchemas.js";
+import { FilenameSchema } from "../../../baseSchemas/filename.js";
 
 export const RequestLegalUploadBodySchema = z.object({
-  originalName: LegalOriginalNameSchema.describe("The original file name"),
+  originalName: FilenameSchema.describe("The original file name"),
 });
 
 export const RequestLegalUploadResponseSchema = z.object({
