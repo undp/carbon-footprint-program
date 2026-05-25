@@ -8,9 +8,9 @@ import {
 /**
  * Builds the react-dropzone `accept` map for a given upload policy by
  * pairing every allowed MIME type with the matching extension(s).
- * Extensions without an obvious MIME parent are appended under the
- * first MIME in the policy as a fallback so the dropzone still
- * accepts them in the file picker.
+ * Throws if any extension in the policy lacks a mapping in the
+ * candidates table below — this prevents silent misassignment when a
+ * new extension is added to a policy without updating this util.
  */
 export const buildAcceptFromPolicy = (policy: FileUploadPolicy): Accept => {
   const accept: Record<string, string[]> = {};
@@ -54,5 +54,8 @@ function matchExtensionToMime(
   for (const mime of mimeTypes) {
     if (candidates[mime]?.includes(extension)) return mime;
   }
-  return mimeTypes[0];
+  throw new Error(
+    `Extension "${extension}" has no MIME mapping in buildAcceptFromPolicy. ` +
+      `Update the candidates table or include the matching MIME in the policy's allowedMimeTypes.`
+  );
 }
