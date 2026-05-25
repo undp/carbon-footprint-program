@@ -1,12 +1,9 @@
-import { useMemo } from "react";
-import { useTheme } from "@mui/material";
 import { CarbonInventoryRecognitionsType, SubmissionType } from "@repo/types";
 import {
   SvgIconComponent,
   VerifiedOutlined,
   WorkspacePremiumOutlined,
 } from "@mui/icons-material";
-import { CustomPaletteConfig } from "./types";
 
 type RecognitionLabelEntry = {
   fullLabel: string;
@@ -48,20 +45,4 @@ export const RECOGNITION_TYPE_LABELS: Record<
     sortOrder: 3,
     icon: WorkspacePremiumOutlined,
   },
-};
-
-export const useRecognitionTypeConfig = (
-  type: CarbonInventoryRecognitionsType,
-  variant: "short" | "full" = "short"
-): CustomPaletteConfig => {
-  const theme = useTheme();
-  return useMemo(() => {
-    const entry = RECOGNITION_TYPE_LABELS[type];
-    return {
-      label: variant === "full" ? entry.fullLabel : entry.chipLabel,
-      tooltip: entry.tooltip,
-      sortOrder: entry.sortOrder,
-      color: theme.palette.recognitionTypeColors[type],
-    };
-  }, [type, variant, theme]);
 };
