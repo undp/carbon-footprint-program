@@ -5,7 +5,7 @@ import {
   type FileUploadPolicy,
 } from "@repo/constants";
 import { SystemParameterKeyEnum } from "@repo/types";
-import { getSystemParameterIntValue } from "@/helpers/getSystemParameterIntValue.js";
+import { parseSystemParameterInt } from "@/helpers/parseSystemParameterInt.js";
 
 export interface FileUploadLimits {
   /** Effective minimum size in bytes (global system parameter). */
@@ -26,16 +26,23 @@ export async function getFileUploadLimits(
   prismaClient: PrismaClient | Prisma.TransactionClient,
   useCase: FileUploadType
 ): Promise<FileUploadLimits> {
-  const [globalMin, globalMax] = await Promise.all([
-    getSystemParameterIntValue(
-      prismaClient,
-      SystemParameterKeyEnum.FILE_UPLOAD_MIN_BYTES
-    ),
-    getSystemParameterIntValue(
-      prismaClient,
-      SystemParameterKeyEnum.FILE_UPLOAD_MAX_BYTES
-    ),
-  ]);
+  const minKey = SystemParameterKeyEnum.FILE_UPLOAD_MIN_BYTES;
+  const maxKey = SystemParameterKeyEnum.FILE_UPLOAD_MAX_BYTES;
+
+  const rows = await prismaClient.systemParameter.findMany({
+    where: { key: { in: [minKey, maxKey] } },
+    select: { key: true, value: true, minValue: true, maxValue: true },
+  });
+  const rowsByKey = new Map(rows.map((row) => [row.key, row] as const));
+
+  const globalMin = parseSystemParameterInt(
+    minKey,
+    rowsByKey.get(minKey) ?? null
+  );
+  const globalMax = parseSystemParameterInt(
+    maxKey,
+    rowsByKey.get(maxKey) ?? null
+  );
 
   const policy: FileUploadPolicy = FILE_UPLOAD_POLICIES[useCase];
   const maxBytes =
