@@ -33,9 +33,9 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 - [x] 1.1 In `src/prisma/schema.prisma`, replace `@default(dbgenerated("gen_random_uuid()"))` with `@default(uuid())` on `CarbonInventory.uuid`
 - [x] 1.2 Audit other UUID columns: `User.uuid` already uses `@default(uuid())` (no change); `File.uuid` intentionally has no default because the UUID is provided by the caller to match an external blob-storage identifier (no change — document the rationale in CLAUDE.md if not already noted)
-- [ ] 1.3 Change `ReductionProject.baselineScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
-- [ ] 1.4 Change `ReductionProject.projectScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
-- [ ] 1.5 Grep the schema for any remaining `@db.Decimal(...)` with non-`(28, 10)` precision; align them with the standard
+- [x] 1.3 Change `ReductionProject.baselineScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
+- [x] 1.4 Change `ReductionProject.projectScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
+- [x] 1.5 Grep confirmed: post-change, all 11 `@db.Decimal(...)` instances use `(28, 10)`; no Decimal fields lack an explicit precision annotation
 
 ### Squash
 

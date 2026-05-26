@@ -1081,8 +1081,8 @@ model ReductionProject {
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
   reportedElsewhereDescription String?                @map("reported_elsewhere_description")
   year                         Int
-  baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(15, 4)
-  projectScenario              Decimal                @map("project_scenario") @db.Decimal(15, 4)
+  baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(28, 10)
+  projectScenario              Decimal                @map("project_scenario") @db.Decimal(28, 10)
   status                       ReductionProjectStatus @default(ACTIVE)
   createdAt                    DateTime               @default(now()) @map("created_at")
   updatedAt                    DateTime?              @updatedAt @map("updated_at")
