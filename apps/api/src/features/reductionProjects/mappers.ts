@@ -6,7 +6,7 @@ import type {
 } from "@repo/types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
 import { GwpSourceSchema } from "@repo/types";
-import { ConsideredGeiSchema } from "@repo/types";
+import { ConsideredGeiArraySchema } from "@repo/types";
 
 type ReductionProjectWithRelations = Prisma.ReductionProjectGetPayload<{
   include: {
@@ -42,9 +42,7 @@ function mapPersistenceFields(
       name: row.subcategory.name,
     },
     gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,
-    consideredGei: row.consideredGei.map((gei) =>
-      ConsideredGeiSchema.parse(gei)
-    ),
+    consideredGei: ConsideredGeiArraySchema.parse(row.consideredGei),
     reportedElsewhere: row.reportedElsewhere,
     reportedElsewhereDescription: row.reportedElsewhereDescription,
     year: row.year,

@@ -50,7 +50,7 @@ model SystemParameter {
   value       String
   description String
   type        String
-  options     String[]  @default([])
+  options     Json      @default("[]")
   minValue    Int?      @map("min_value")
   maxValue    Int?      @map("max_value")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -658,7 +658,7 @@ model EmissionFactor {
   dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
   source                String
-  gasDetails            Json                          @map("gas_details") @db.JsonB
+  gasDetails            Json                          @map("gas_details")
   value                 Decimal                       @db.Decimal(28, 10)
   status                EmissionFactorStatus          @default(ACTIVE)
   createdAt             DateTime                      @default(now()) @map("created_at")
@@ -698,7 +698,7 @@ model CarbonInventory {
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")
-  organizationData     Json?                             @map("organization_data") @db.JsonB
+  organizationData     Json?                             @map("organization_data")
   year                 Int?
   status               InventoryStatus                   @default(ACTIVE)
   usageMode            UsageMode                         @map("usage_mode")
@@ -822,7 +822,7 @@ model CarbonInventoryLineFactor {
   appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(28, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
   appliedFactorSource     String?                  @map("applied_factor_source")
-  derivationDetails       Json?                    @map("derivation_details") @db.JsonB
+  derivationDetails       Json?                    @map("derivation_details")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime?                @updatedAt @map("updated_at")
   createdById             BigInt?                  @map("created_by_id")
@@ -841,7 +841,7 @@ model CarbonInventoryLineResult {
   id             BigInt                   @id @default(autoincrement())
   lineInputId    BigInt                   @map("line_input_id")
   totalEmissions Decimal                  @map("total_emissions") @db.Decimal(28, 10)
-  resultDetails  Json?                    @map("result_details") @db.JsonB
+  resultDetails  Json?                    @map("result_details")
   calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
   updatedAt      DateTime?                @updatedAt @map("updated_at")
@@ -1077,7 +1077,7 @@ model ReductionProject {
   description                  String
   subcategoryId                BigInt                 @map("subcategory_id")
   gwpUsed                      String?                @map("gwp_used")
-  consideredGei                String[]               @map("considered_gei")
+  consideredGei                Json                   @default("[]") @map("considered_gei")
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
   reportedElsewhereDescription String?                @map("reported_elsewhere_description")
   year                         Int

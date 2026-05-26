@@ -41,7 +41,7 @@ CREATE TABLE "system_parameter" (
     "value" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "type" TEXT NOT NULL,
-    "options" TEXT[] NOT NULL DEFAULT '{}',
+    "options" JSONB NOT NULL DEFAULT '[]',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,

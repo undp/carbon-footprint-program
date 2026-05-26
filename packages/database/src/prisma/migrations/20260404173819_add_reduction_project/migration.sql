@@ -11,7 +11,7 @@ CREATE TABLE "reduction_projects" (
     "description" TEXT NOT NULL,
     "subcategory_id" BIGINT NOT NULL,
     "gwp_used" TEXT,
-    "considered_gei" TEXT[],
+    "considered_gei" JSONB NOT NULL DEFAULT '[]',
     "reported_elsewhere" BOOLEAN NOT NULL DEFAULT false,
     "reported_elsewhere_description" TEXT,
     "year" INTEGER NOT NULL,
