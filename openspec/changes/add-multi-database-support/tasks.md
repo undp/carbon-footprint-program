@@ -68,38 +68,44 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 ## 2. PR 2 — `feat/mati/json-array-portability` (Type portability)
 
 **Branch base**: `main` (after PR 1 merged)
-**Milestone**: schema has no PG-only types remaining — `@db.JsonB` dropped, `String[]` removed, mappers validate via Zod. PG still works identically from the API consumer's perspective.
-**Estimated**: 2-3 days.
+**Milestone**: schema has no PG-only types remaining — `@db.JsonB` dropped, `String[]` removed, the array column read path validates via Zod. PG still works identically from the API consumer's perspective.
+**Estimated**: 1-2 days.
+
+> **Approach note (POC):** migrations edited in place (TEXT[] → JSONB) rather than a separate data-migration step, consistent with PR 1. No `to_jsonb` backfill is needed because dev DBs are rebuilt via `migrate reset`; for any real environment with data, add a one-off `ALTER ... USING to_jsonb(...)` migration when consolidating.
 
 ### Schema changes
 
-- [ ] 2.1 Remove `@db.JsonB` from `EmissionFactor.gasDetails` in `src/prisma/schema.prisma`
-- [ ] 2.2 Remove `@db.JsonB` from `CarbonInventory.organizationData`
-- [ ] 2.3 Remove `@db.JsonB` from `CarbonInventoryLineFactor.derivationDetails`
-- [ ] 2.4 Remove `@db.JsonB` from `CarbonInventoryLineResult.resultDetails`
-- [ ] 2.5 Change `SystemParameter.options` from `String[]` to `Json` (drop `@default([])`; the default JSON value will be set in the migration UPDATE step)
-- [ ] 2.6 Change `ReductionProject.consideredGei` from `String[]` to `Json`
+- [x] 2.1 Remove `@db.JsonB` from `EmissionFactor.gasDetails` in `src/prisma/schema.prisma`
+- [x] 2.2 Remove `@db.JsonB` from `CarbonInventory.organizationData`
+- [x] 2.3 Remove `@db.JsonB` from `CarbonInventoryLineFactor.derivationDetails`
+- [x] 2.4 Remove `@db.JsonB` from `CarbonInventoryLineResult.resultDetails`
+- [x] 2.5 Change `SystemParameter.options` from `String[]` to `Json @default("[]")`
+- [x] 2.6 Change `ReductionProject.consideredGei` from `String[]` to `Json @default("[]")`
+
+### Migration edits (in place)
+
+- [x] 2.6a `system_parameter.options`: `TEXT[] NOT NULL DEFAULT '{}'` → `JSONB NOT NULL DEFAULT '[]'` (base migration)
+- [x] 2.6b `reduction_projects.considered_gei`: `TEXT[]` → `JSONB NOT NULL DEFAULT '[]'` (add_reduction_project migration)
+- [x] 2.6c The 4 JSON columns stay `JSONB` in their migrations — removing `@db.JsonB` from the schema is a no-op on PG SQL
 
 ### Zod schemas
 
-- [ ] 2.7 Add a new Zod schema for `derivationDetails` in `packages/types/src/baseSchemas/` (review the field's actual shape in the carbon-inventory feature first; conservative shape — `z.record(z.string(), z.unknown())` — is acceptable if structure is loose)
-- [ ] 2.8 Add a Zod schema for `resultDetails` in `packages/types/src/baseSchemas/` (same approach)
-- [ ] 2.9 Add `SystemParameterOptionsSchema = z.array(z.string())` in `packages/types/src/systemParameters/` (or co-locate with the existing `SystemParameterEntrySchema`)
-- [ ] 2.10 Add `ConsideredGeiArraySchema = z.array(ConsideredGeiSchema)` in `packages/types/src/common/consideredGei/`; export from `index.ts`
+- [x] 2.7 ~~Zod schema for `derivationDetails`~~ — **skipped**: only copied opaquely in `duplicateCarbonInventory`, never read as typed data. Dropping `@db.JsonB` is sufficient; a parser would be dead code.
+- [x] 2.8 ~~Zod schema for `resultDetails`~~ — **skipped** (same reason)
+- [x] 2.9 ~~`SystemParameterOptionsSchema`~~ — **skipped**: no endpoint reads `options` (it is write-only from seeds, validated in-memory at seed time). A read-path parser would be dead code.
+- [x] 2.10 Add `ConsideredGeiArraySchema = z.array(ConsideredGeiSchema)` in `packages/types/src/common/consideredGei/schemas.ts` (exported via existing `index.ts`)
 
 ### Mapper updates
 
-- [ ] 2.11 Update API services that touch `gasDetails`, `organizationData`, `derivationDetails`, `resultDetails` to parse with their Zod schemas on read. `gasDetails` and `organizationData` already have parsers — just verify they still apply post-`@db.JsonB`-removal.
-- [ ] 2.12 Update `getSystemParameters` to parse `options` through `SystemParameterOptionsSchema` on read
-- [ ] 2.13 Update `reductionProjects` mapper to parse `consideredGei` through `ConsideredGeiArraySchema` on read. Outbound API contract continues to return `string[]`.
+- [x] 2.11 `gasDetails` and `organizationData` already parse via their existing Zod schemas; no change needed beyond the `@db.JsonB` drop. `derivationDetails`/`resultDetails` are pass-through (no parse site).
+- [x] 2.12 ~~Parse `options` in `getSystemParameters`~~ — N/A: the endpoint does not select `options`.
+- [x] 2.13 `reductionProjects` mapper parses `consideredGei` through `ConsideredGeiArraySchema`; outbound contract still returns `string[]`. Write sites (create/update) pass `string[]`, assignable to Prisma's Json input.
 
-### Data migration
+### Validation (user runs Prisma)
 
-- [ ] 2.14 Create a raw-SQL migration in `packages/database/src/prisma/migrations/` that converts existing PG data:
-  - `UPDATE system_parameter SET options = to_jsonb(options::text[])` (or equivalent that produces `jsonb` arrays from existing `text[]`)
-  - `UPDATE reduction_projects SET considered_gei = to_jsonb(considered_gei::text[])`
-
-> **Note for the implementer**: the column type changes from `text[]` → `jsonb` are produced automatically by Prisma when the schema changes. The raw-SQL migration above is an `ALTER TABLE` + data-rewrite in one step; carefully sequence the type change so existing values are preserved (Prisma may need help here — review the generated migration and amend the `ALTER` with a `USING to_jsonb(...)` clause).
+- [ ] 2.14 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` — regenerates the client with the new `Json` types and rebuilds + seeds the DB. Watch that `seedSystemParameters` (writes `options`) succeeds.
+- [ ] 2.15 **[runs Prisma — user executes]** `pnpm type-check` — confirms the client's new `JsonValue`/`InputJsonValue` types are accepted at read (mapper) and write (create/update, seed) sites.
+- [ ] 2.16 **[runs Prisma — user executes]** `pnpm test --filter=api -- reductionProjects --coverage=false` (and the broader suite) — confirms reduction-project create/read round-trips `consideredGei` correctly.
 
 ### Validation
 
