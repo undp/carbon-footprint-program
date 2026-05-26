@@ -334,7 +334,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
-  '/app': typeof AppRouteWithChildren
+  '/app': typeof AppShellRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/carbon-inventory': typeof CarbonInventoryRouteWithChildren
   '/transparency': typeof TransparencyRoute
