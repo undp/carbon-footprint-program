@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' ,'AREA' ,'POWER' ,'ENERGY' ,'DISTANCE_MASS' ,'ROOMS');
+CREATE TYPE "magnitude_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
 CREATE TYPE "measurement_unit_status" AS ENUM ('ACTIVE', 'DELETED');
@@ -139,10 +139,23 @@ CREATE TABLE "user" (
 );
 
 -- CreateTable
+CREATE TABLE "magnitude" (
+    "id" BIGSERIAL NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "is_system" BOOLEAN NOT NULL DEFAULT false,
+    "status" "magnitude_status" NOT NULL DEFAULT 'ACTIVE',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "magnitude_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "measurement_unit" (
     "id" BIGSERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "magnitude" "Magnitude" NOT NULL,
+    "magnitude_id" BIGINT NOT NULL,
     "abbreviation" TEXT NOT NULL,
     "base_factor" DOUBLE PRECISION NOT NULL,
     "is_base" BOOLEAN NOT NULL,
@@ -200,6 +213,12 @@ CREATE UNIQUE INDEX "user_idp_user_id_key" ON "user"("idp_user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "magnitude_code_key" ON "magnitude"("code");
+
+-- CreateIndex
+CREATE INDEX "measurement_unit_magnitude_id_idx" ON "measurement_unit"("magnitude_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "measurement_unit_abbreviation_key" ON "measurement_unit"("abbreviation");
@@ -260,6 +279,9 @@ ALTER TABLE "user" ADD CONSTRAINT "user_updated_by_id_fkey" FOREIGN KEY ("update
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_country_job_position_id_fkey" FOREIGN KEY ("country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "measurement_unit" ADD CONSTRAINT "measurement_unit_magnitude_id_fkey" FOREIGN KEY ("magnitude_id") REFERENCES "magnitude"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "rate_measurement_unit" ADD CONSTRAINT "rate_measurement_unit_numerator_measurement_unit_id_fkey" FOREIGN KEY ("numerator_measurement_unit_id") REFERENCES "measurement_unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
