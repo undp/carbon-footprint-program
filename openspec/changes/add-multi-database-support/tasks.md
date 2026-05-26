@@ -180,23 +180,29 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 **Milestone**: SQL Server schema exists, views are ported, partial indexes converted, CHECK constraints replicated, collation scripted, docker-compose available for local dev. A developer can run the API against SQL Server end-to-end (smoke).
 **Estimated**: 5-7 days.
 
+### Enum portability (SQL Server has no native enums — see design.md finding 9)
+
+- [x] 4.0a Make enum exports provider-independent: hand-authored canonical `src/enums.ts` (31 enums) + explicit re-export in `index.ts` so the 77 app imports work on either provider. **Validated on PG** (type-check + lint green).
+- [ ] 4.0b Replicate enum value sets as raw-SQL CHECK constraints in `sqlserver/migrations/` (one CHECK per `String` column that is an enum in PG). Pending — written after the initial migration confirms column names.
+
 ### SQL Server schema
 
-- [ ] 4.1 Copy `postgresql/schema.prisma` to `sqlserver/schema.prisma`
-- [ ] 4.2 Change `datasource.provider = "sqlserver"` and `generator client { output = "../../generated/prisma-sqlserver" }`
-- [ ] 4.3 Replace `@db.Uuid` with `@db.UniqueIdentifier` on all UUID fields in `sqlserver/schema.prisma`
-- [ ] 4.4 Set `previewFeatures = ["views", "partialIndexes"]` in both schemas
-- [ ] 4.5 Apply the `@db.Text` recommendations from `docs/architecture/multi-db/db-text-audit.md` (added in PR 3) to both schemas
+- [x] 4.1 Derived `sqlserver/schema.prisma` from `postgresql/schema.prisma` via `scripts/_derive_sqlserver_schema.py` (reproducible mechanical transform)
+- [x] 4.2 `datasource.provider = "sqlserver"`. **Adjusted (finding 8)**: generator `output` stays `../../generated/prisma` (single shared client dir), not `prisma-sqlserver`
+- [x] 4.3 `@db.Uuid` → `@db.UniqueIdentifier` (3 UUID fields: User/CarbonInventory/File)
+- [x] 4.4 **Adjusted**: both schemas keep `previewFeatures = ["views"]`; `partialIndexes` deferred to its own experiment (task 4.6) to avoid destabilizing the validated PG state
+- [x] 4.5 Applied `@db.Text` (24 fields from the db-text audit) to **both** schemas (no-op on PG: `String`/`@db.Text` both map to `text`)
+- [x] 4.5a Enum-typed fields → `String` with quoted defaults; enum blocks dropped from the SQL Server schema (31 enums)
 
-### Partial unique indexes (declarative)
+### Partial unique indexes (raw SQL for now; preview experiment deferred)
 
-- [ ] 4.6 Convert each of the 8+ partial unique indexes from raw SQL to declarative `@@unique([...], where: ...)` in both schemas
-- [ ] 4.7 For any partial index the preview cannot express (e.g., `NULLS NOT DISTINCT` on `organization_main_activity`), keep a raw-SQL migration in both providers and document the reason
+- [ ] 4.6 **Experiment (deferred)**: enable `partialIndexes` preview on PG, declare one partial index, `migrate dev`, read the diff (finding 6 bugs #29289/#29386). Adopt declarative only if no-op; otherwise keep raw SQL in both providers
+- [ ] 4.7 Replicate the 7 partial unique indexes (status/active-scoped) as SQL Server **filtered indexes** in `sqlserver/migrations/` (per `null-uniqueness-audit.md`); `organization_main_activity` NULLS-NOT-DISTINCT comes for free on SQL Server
 
 ### CHECK constraints
 
-- [ ] 4.8 Replicate all CHECK constraints (position > 0, etc.) in raw-SQL migrations in `sqlserver/migrations/`
-- [ ] 4.9 Add `WHERE col IS NOT NULL` filtered indexes in `sqlserver/migrations/` for every unique constraint flagged in `docs/architecture/multi-db/null-uniqueness-audit.md`
+- [ ] 4.8 Replicate all CHECK constraints (position > 0, measurement_unit base_factor, system_parameter value bounds) in raw-SQL migrations in `sqlserver/migrations/`
+- [ ] 4.9 Add `WHERE col IS NOT NULL` filtered indexes in `sqlserver/migrations/` for `User.email` and `User.idpUserId` (per `null-uniqueness-audit.md`)
 
 ### Views (raw-SQL migrations under `sqlserver/migrations/`)
 
@@ -207,16 +213,18 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ### Provisioning script and local compose
 
-- [ ] 4.14 Create `packages/database/scripts/provision-sqlserver.sh` (or `.ts`) that runs `CREATE DATABASE huella COLLATE Latin1_General_100_CS_AS_SC_UTF8` against the configured SQL Server host
-- [ ] 4.15 Document calling the provisioning script before `prisma migrate deploy` in `docs/operations/deployment.md`
-- [ ] 4.16 Create `packages/database/docker-compose.sqlserver.yml` with `mcr.microsoft.com/mssql/server:2019-latest`, `ACCEPT_EULA=Y`, configurable `MSSQL_SA_PASSWORD`, port mapping. Pre-create the database with the correct collation in an init script
+- [x] 4.14 Created `packages/database/scripts/provision-sqlserver.sh` — idempotent `CREATE DATABASE huella COLLATE Latin1_General_100_CS_AS_SC_UTF8` (uses local `sqlcmd` or falls back to `docker exec`)
+- [ ] 4.15 Document calling the provisioning script before `prisma migrate deploy` in `docs/operations/deployment.md` (pending)
+- [x] 4.16 Created `packages/database/docker-compose.sqlserver.yml` (`mcr.microsoft.com/mssql/server:2019-latest`, `ACCEPT_EULA=Y`, configurable `MSSQL_SA_PASSWORD`, `MSSQL_COLLATION` CS_AS_SC_UTF8 so the instance default matches). **Adjusted**: DB pre-creation is the provision script (4.14), not a compose init container — simpler than a healthcheck-wait sidecar
 
-### Validation
+### Validation (user runs Prisma)
 
-- [ ] 4.17 **[runs Prisma — user executes]** Start SQL Server locally: `docker compose -f packages/database/docker-compose.sqlserver.yml up -d`
-- [ ] 4.18 **[runs Prisma — user executes]** Run the provisioning script, then `pnpm --filter=@repo/database dev:migrate:mssql -- dev --name initial`. Inspect generated SQL for sanity
+> ⚠️ Expect FK cascade-path errors on first `migrate dev` (design.md finding 9): SQL Server forbids multiple cascade paths PG allows. Capture the exact relations it names; the fix is `onDelete: NoAction` on those relations in the SQL Server schema.
+
+- [ ] 4.17 **[runs Prisma — user executes]** `docker compose -f packages/database/docker-compose.sqlserver.yml up -d`, then `./packages/database/scripts/provision-sqlserver.sh`
+- [ ] 4.18 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma validate --config=prisma.config.mssql.ts` (no DB needed) — catch schema errors; then `pnpm --filter=@repo/database dev:migrate:mssql -- --name initial`. Report generated SQL + any cascade-path errors
 - [ ] 4.19 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:seed:mssql` succeeds
-- [ ] 4.20 **[runs Prisma — user executes]** Smoke-test API: start with `DB_PROVIDER=sqlserver`, `GET /health` returns 200, list a few entities via integration tests selected by hand
+- [ ] 4.20 **[runs Prisma — user executes]** Smoke-test API: start with `DB_PROVIDER=sqlserver`, `GET /health` returns 200
 
 ### Merge
 
