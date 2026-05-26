@@ -82,32 +82,35 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 - [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
 - [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
 
-## 3. PR 2 — Medium-risk (branch `chore/upgrade-deps-medium-risk`)
+## 3. PR 2 — Medium-risk (branch `feat/mati/upgrade-mid-risk-dependencies`)
 
-- [ ] 3.1 Re-checkout `main`, `git pull --ff-only`, run full pre-flight again (1.2–1.6)
-- [ ] 3.2 Create branch `chore/upgrade-deps-medium-risk` from updated `main`
-- [ ] 3.3 Re-check latest versions with `pnpm outdated --recursive`
+- [x] 3.1 ~~Re-checkout `main`, `git pull --ff-only`, run full pre-flight again~~ — skipped: branch stacked on `feat/mati/upgrade-low-risk-dependencies` (low-risk PR pending merge); pre-flight inherited.
+- [x] 3.2 Create branch `feat/mati/upgrade-mid-risk-dependencies` from low-risk branch
+- [x] 3.3 Re-check latest versions with `pnpm outdated --recursive`
 
-### Order is strict: lowest-blast-radius first
+### Order: lowest-blast-radius first. Per-bump cycle: install → build → format → lint → type-check → commit (test deferred to final cycle except testcontainers).
 
-- [ ] 3.4 Bump `globals` (dev) 16 → 17 in `packages/eslint-config/package.json`. Read [globals releases](https://github.com/sindresorhus/globals/releases). Adjust `packages/eslint-config/{base,api,web}.ts` if any global was removed. Run install → build → checks → commit.
-- [ ] 3.5 Bump `cpy-cli` (dev) 5 → 7 in root `package.json`. Read [cpy-cli releases](https://github.com/sindresorhus/cpy-cli/releases). Verify the `build` script in `packages/database/package.json` (the only consumer of cpy-cli) still copies `src/generated/prisma/**` to `dist/`. Adjust flags if changed. Run install → build → checks → commit.
-- [ ] 3.6 Bump `@vitejs/plugin-react` (dev) 5 → 6 in `apps/web/package.json`. Read its CHANGELOG. Check `apps/web/vite.config.ts` for renamed/removed options. Run install → build → checks → start `pnpm dev:web` briefly to confirm HMR works → commit.
-- [ ] 3.7 Bump `@fastify/multipart` 9 → 10 in `apps/api/package.json`. Read [UPGRADE.md](https://github.com/fastify/fastify-multipart/blob/master/UPGRADE.md). Search usages: `grep -rn "multipart\\|saveRequestFiles\\|request.files\\|request.file" apps/api/src`. Adjust file-upload handlers. Run install → build → checks → commit.
-- [ ] 3.8 Bump `@testcontainers/postgresql` (dev) 11 → 12 in `apps/api/package.json`. Read testcontainers-node release notes. Adjust `apps/api/test/factories/appFactory.ts` and any global setup if API changed. Run install → build → `pnpm test --filter=api` → commit.
-- [ ] 3.9 Bump `@testcontainers/azurite` (dev) 11 → 12 in `apps/api/package.json`. Adjust as needed. Run install → build → `pnpm test --filter=api` → commit.
-- [ ] 3.10 Bump `jwks-rsa` 3 → 4 in `apps/api/package.json`. Read [jwks-rsa releases](https://github.com/auth0/node-jwks-rsa/releases). Locate usages: `grep -rn "jwks-rsa\\|JwksClient" apps/api/src`. Adjust `apps/api/src/plugins/app/authorizationPlugin.ts` and any other JWT verification site. Run install → build → checks → commit.
-- [ ] 3.11 Bump `ky` 1 → 2 in `apps/web/package.json`. Read [ky releases](https://github.com/sindresorhus/ky/releases). Update `apps/web/src/api/http/client.ts` (the `beforeRequest` MSAL hook, retry options, timeout, JSON parsing changes). Search for other usages: `grep -rn "from 'ky'\\|from \"ky\"" apps/web/src`. Run install → build → checks → commit.
+- [x] 3.4 `globals` 16.5.0 → 17.6.0 (commit `9a581b931`). No removed globals in use (`node`, `vitest`, `browser` still present).
+- [x] 3.5 `cpy-cli` 5.0.0 → 7.0.0 (commit `333b7e030`). `packages/database` build verified — prisma generated files still copied.
+- [x] 3.6 `@vitejs/plugin-react` 5.1.1 → 5.2.0 (commit `41ee4bd7a`). **v6 deferred to PR 3**: peer requires Vite ^8, and Vite 7→8 is high-risk scope. Bumped to latest v5 minor instead.
+- [x] 3.7 `@fastify/multipart` 9.3.0 → 10.0.0 (commit `bc1eea69d`). Only consumer is the plugin registration with limits config; no upload handler code uses the multipart API directly.
+- [x] 3.8 `@testcontainers/postgresql` 11.9.0 → 12.0.0 (commit `af47eee01`). API tests green (1303 passed). No factory adjustments needed.
+- [x] 3.9 `@testcontainers/azurite` 11.12.0 → 12.0.0 (commit `5f00e8fc9`). API tests green.
+- [x] 3.10 `jwks-rsa` 3.2.2 → 4.0.1 (commit `268f6d355`). `JwksClient` class API unchanged for our usage. Required follow-up: vitest-report dir leaking into eslint scope (commit `3608ddbd9` — unrelated to bump, surfaced via stale dir).
+- [x] 3.11 `ky` 1.14.1 → 2.0.2 (commit `b06cebcd8`). Required code changes in `apps/web/src/api/http/client.ts`:
+  - `beforeRequest` hook now receives `{ request }` state object (destructured), not a direct request arg.
+  - `afterResponse` hook now receives `{ request, response }` state object instead of `(request, _options, response)`.
+  - `prefixUrl` option renamed to `prefix` (same join semantics: leading slash of input trimmed at boundary).
 
 ### PR 2 wrap-up
 
-- [ ] 3.12 Final full cycle: `pnpm install && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`
-- [ ] 3.13 Push and open PR titled `chore(deps): upgrade medium-risk dependencies (scoped majors)`
-- [ ] 3.14 PR body: tabulate bumps, link the migration guides consulted, list manually edited files, include checklist:
+- [x] 3.12 Final full cycle: `pnpm install && pnpm format:check && pnpm lint && pnpm type-check && pnpm test && pnpm build` — all green (test ~4min, 1303 passed).
+- [ ] 3.13 Push and open PR titled `chore(deps): upgrade medium-risk dependencies (scoped majors)` (user action)
+- [ ] 3.14 PR body checklist (user action):
   - [ ] Login (MSAL flow) works end-to-end against the dev tenant
   - [ ] Authenticated API call returns 200 (jwks-rsa + ky path verified)
   - [ ] Evidence file upload works (multipart 10)
-  - [ ] `pnpm dev:web` HMR works (vite-plugin-react 6)
+  - [ ] `pnpm dev:web` HMR works (vite-plugin-react 5.2)
   - [ ] `pnpm test --filter=api` is fully green (testcontainers 12)
 - [ ] 3.15 Wait for human review and merge. Do NOT proceed to PR 3 until merged.
 
