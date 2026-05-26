@@ -23,38 +23,45 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ---
 
-## 1. PR 1 — `feat/mati/squash-migrations` (Clean baseline)
+## 1. PR 1 — `feat/mati/squash-migrations` (Schema portability cleanups)
+
+> **Squash abandoned.** The squash was meant to reduce SQL Server porting effort, but Prisma generates the SQL Server migrations from the `sqlserver` schema independently — it does not port the PG migrations, so the squash gave no SQL-Server benefit while adding real reconstruction risk (views, CHECK constraints, ~15 partial indexes live only in hand-written SQL, and later migrations mutate earlier objects). Instead, PR 1 edits existing migrations in place (dev-phase practice) to reach a clean final state with zero drift. (Branch name kept as-is for continuity; consider renaming to `feat/mati/db-portability-cleanups` before opening the PR.)
 
 **Branch base**: `main` (after `feat/mati/upgrade-low-risk-dependencies` is merged)
-**Milestone**: a single timestamped baseline migration, UUID generation portable, Decimal precision uniform. PG continues working unchanged; SQL Server work not yet started.
-**Estimated**: 2-3 days.
+**Milestone**: migration chain reproduces a cleaned schema with zero drift — portable UUID generation, uniform Decimal precision, and `magnitude` reaching its final table shape in one migration (no enum→table dance). PG continues working unchanged; SQL Server work not yet started.
+**Estimated**: 2 days.
 
-### Schema cleanups (preserve in baseline)
+### Schema cleanups (schema.prisma)
 
 - [x] 1.1 In `src/prisma/schema.prisma`, replace `@default(dbgenerated("gen_random_uuid()"))` with `@default(uuid())` on `CarbonInventory.uuid`
-- [x] 1.2 Audit other UUID columns: `User.uuid` already uses `@default(uuid())` (no change); `File.uuid` intentionally has no default because the UUID is provided by the caller to match an external blob-storage identifier (no change — document the rationale in CLAUDE.md if not already noted)
+- [x] 1.2 Audit other UUID columns: `User.uuid` already uses `@default(uuid())` (no change); `File.uuid` intentionally has no default because the UUID is provided by the caller to match an external blob-storage identifier (no change)
 - [x] 1.3 Change `ReductionProject.baselineScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
 - [x] 1.4 Change `ReductionProject.projectScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
 - [x] 1.5 Grep confirmed: post-change, all 11 `@db.Decimal(...)` instances use `(28, 10)`; no Decimal fields lack an explicit precision annotation
 
-### Squash
+### Edit migrations in place to reach final state with zero drift
 
-> **Order matters**: delete the old migration directories BEFORE generating the baseline, so Prisma produces a single migration that creates everything from an empty history (not an incremental from the last existing migration).
+- [x] 1.6 Consolidate magnitude: fold `20260510000000_convert_magnitude_enum_to_table` into the base migration — base now creates the `magnitude_status` enum + `magnitude` table and `measurement_unit.magnitude_id` FK directly; the dead `measurement_unit_unique_base_per_magnitude` index (on the dropped enum column) is removed; the conversion migration is deleted. Seed `seedMagnitudes` covers the 10 magnitudes for fresh installs.
+- [x] 1.7 Fold UUID cleanup into origin: `create_carbon_inventory_table` migration `uuid` column drops `DEFAULT gen_random_uuid()`
+- [x] 1.8 Fold Decimal cleanup into origin: `add_reduction_project` migration widens `baseline_scenario`/`project_scenario` to `DECIMAL(28,10)`
+- [x] 1.9 Verified no migration references `gen_random_uuid()` or `DECIMAL(15,4)` anymore
 
-- [x] 1.6 Delete the 33 old migration directories from `packages/database/src/prisma/migrations/` (leave the `migrations/` folder itself in place, empty)
-- [ ] 1.7 **[runs Prisma — user executes]** From repo root: `pnpm --filter=@repo/database dev:migrate -- --create-only --name baseline` (`dev:migrate` = `prisma migrate dev`, so the `-- --create-only --name baseline` completes it). With no prior migrations present, Prisma generates a single migration that creates the entire schema from the cleaned model. NOTE: `prisma` is not on the global PATH — always invoke via `pnpm`, never as a bare `prisma ...` command
-- [ ] 1.8 **[runs Prisma — user executes]** Apply the baseline to a fresh dev DB + seed: `pnpm --filter=@repo/database db:restore` (`db:restore` = `prisma migrate reset --force && prisma db seed`)
-- [ ] 1.9 **[runs Prisma — user executes]** Validate a clean deploy path: against an empty DB run `pnpm --filter=@repo/database prod:deploy` (= `prisma migrate deploy`) then `pnpm --filter=@repo/database dev:seed` — no errors, all reference data present
-- [ ] 1.10 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource "$DATABASE_URL"` — must report zero differences after step 1.8
+### Validation (user runs Prisma)
+
+> Editing existing migrations changes their checksums, so a `migrate reset` is required on the dev DB (acceptable in dev phase; no production deployments per precondition 0.2).
+
+- [ ] 1.10 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` (= `prisma migrate reset --force && prisma db seed`) — rebuilds the dev DB from the edited migrations and re-seeds. NOTE: `prisma` is not on the global PATH — always invoke via `pnpm`, never as a bare `prisma ...` command
+- [ ] 1.11 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource "$DATABASE_URL"` — must report zero differences (proves the edited migrations reproduce the schema exactly)
+- [ ] 1.12 **[runs Prisma — user executes]** `pnpm test --filter=api -- --coverage=false` against the rebuilt DB — full suite green
 
 ### Docs
 
-- [x] 1.11 Update CLAUDE.md: add a "TypeScript & Typing Rules" line stating `@db.Decimal(28, 10)` is the project-wide standard for all decimal columns
-- [x] 1.12 Update CLAUDE.md: add a note that UUIDs use `@default(uuid())` (client-side), not `dbgenerated`
+- [x] 1.13 Update CLAUDE.md: `@db.Decimal(28, 10)` is the project-wide standard for all decimal columns
+- [x] 1.14 Update CLAUDE.md: UUIDs use `@default(uuid())` (client-side), not `dbgenerated`
 
 ### Merge
 
-- [ ] 1.13 Open PR `feat/mati/squash-migrations`; pass CI (lint, type-check, tests); merge to `main`
+- [ ] 1.15 Open PR (rename branch first if desired); pass CI (lint, type-check, format, tests); merge to `main`
 
 ---
 
