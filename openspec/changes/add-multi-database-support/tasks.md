@@ -211,21 +211,23 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 - [ ] 4.12 Port `carbon_inventory_sector_subtotals_view`
 - [ ] 4.13 Port `submission_summary_view`
 
-### Provisioning script and local compose
+### SQL Server compatibility extension (findings 10/14/15)
 
-- [x] 4.14 Created `packages/database/scripts/provision-sqlserver.sh` — idempotent `CREATE DATABASE huella COLLATE Latin1_General_100_CS_AS_SC_UTF8` (uses local `sqlcmd` or falls back to `docker exec`)
-- [ ] 4.15 Document calling the provisioning script before `prisma migrate deploy` in `docs/operations/deployment.md` (pending)
-- [x] 4.16 Created `packages/database/docker-compose.sqlserver.yml` (`mcr.microsoft.com/mssql/server:2019-latest`, `ACCEPT_EULA=Y`, configurable `MSSQL_SA_PASSWORD`, `MSSQL_COLLATION` CS_AS_SC_UTF8 so the instance default matches). **Adjusted**: DB pre-creation is the provision script (4.14), not a compose init container — simpler than a healthcheck-wait sidecar
+- [x] 4.5b Created `src/sqlServerCompat.ts` — a Prisma Client extension (`applySqlServerCompat`, no-op on PG) that strips unsupported `createMany({ skipDuplicates })` and transparently (de)serializes the 6 JSON columns (`String @db.NVarChar(Max)` on SQL Server). Wired into `seed.ts` and the Fastify Prisma plugin; exported from `@repo/database`. Avoids editing 19 `skipDuplicates` sites + every JSON read/write site
 
-### Validation (user runs Prisma)
+### TLS + provisioning + local compose
 
-> ⚠️ Expect FK cascade-path errors on first `migrate dev` (design.md finding 9): SQL Server forbids multiple cascade paths PG allows. Capture the exact relations it names; the fix is `onDelete: NoAction` on those relations in the SQL Server schema.
+- [x] 4.14 Created `scripts/provision-sqlserver.sh` — idempotent `CREATE DATABASE huella COLLATE Latin1_General_100_CS_AS_SC_UTF8` (local `sqlcmd` or `docker exec` fallback)
+- [ ] 4.15 Document the provisioning script + `SSL_CERT_FILE` cert flow before `prisma migrate deploy` in `docs/operations/deployment.md` (pending)
+- [x] 4.16 Created `docker-compose.sqlserver.yml` — builds a **custom image** (`sqlserver-tls/Dockerfile`) presenting a cert we control + `scripts/gen-sqlserver-cert.sh`, so the schema engine verifies via `SSL_CERT_FILE` (finding 12). No persistent volume (baked `mssql.conf` is used); symbol-free SA password to avoid brace-escaping
 
-- [x] 4.17 **[validated]** `docker compose -f packages/database/docker-compose.sqlserver.yml up -d` + `provision-sqlserver.sh` — SQL Server 2019 up; `huella` DB created with CS_AS_SC_UTF8 collation (provision ran via `docker exec` fallback, no local `sqlcmd`)
-- [x] 4.18a **[validated]** `prisma validate --config=prisma.config.mssql.ts` → **schema is valid** (after fixing 255 validation errors across enums/Json/referential-actions — findings 9/10/11)
-- [ ] 4.18b **BLOCKED (Prisma 7 tooling — finding 12)** `dev:migrate:mssql` fails with `P1011` TLS self-signed (CLI schema engine ignores `trustServerCertificate`); offline `migrate diff --script` produces empty output for both providers. Applying the migration needs the cert workaround (`SSL_CERT_FILE` + container cert) — deferred to consolidation/PR 5
-- [ ] 4.19 **BLOCKED on 4.18b** `dev:seed:mssql` (runtime client honors `trustServerCertificate`, so this should work once tables exist)
-- [ ] 4.20 **BLOCKED on 4.18b** Smoke-test API with `DB_PROVIDER=sqlserver`; also needs the app-layer JSON handling (finding 10) before full round-trip
+### Validation — **end-to-end on SQL Server, prototyped & working**
+
+- [x] 4.17 **[done]** `docker compose ... up -d --build` + `provision-sqlserver.sh` — custom SQL Server 2019 up with our cert; `huella` created with CS_AS_SC_UTF8
+- [x] 4.18a **[done]** `prisma validate --config=prisma.config.mssql.ts` → schema valid (255 errors fixed — findings 9/10/11/13)
+- [x] 4.18b **[done]** TLS resolved via `SSL_CERT_FILE` + custom cert image (finding 12). `prisma db push` syncs all **42 tables** in ~3s. NOTE: `migrate dev` hangs on the shadow-DB step (finding 16) — `db push` is the working apply path for the POC; real migration generation still pending
+- [x] 4.19 **[done]** Full seed succeeds on SQL Server (10 magnitudes, 18 units, 229 emission factors with JSON `gasDetails`, system-parameter JSON `options`, …) via the compat extension; reads round-trip JSON (`options` → array, `gasDetails` → object)
+- [ ] 4.20 Smoke-test API booting with `DB_PROVIDER=sqlserver`, `GET /health` 200 — pending (plugin now applies the compat extension; the 4 views must be created first for view-backed endpoints)
 
 ### Merge
 
