@@ -1,4 +1,5 @@
 import { PrismaClient, generatePrismaAdapter } from "../../index.js";
+import { applySqlServerCompat } from "../../sqlServerCompat.js";
 import { SEEDS_DATASET } from "../../environment.js";
 import { seedMagnitudes } from "./scripts/seedMagnitudes.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
@@ -16,9 +17,11 @@ import { seedSystemParameters } from "./scripts/seedSystemParameters.js";
 import { seedSubcategoryRecommendations } from "./scripts/seedSubcategoryRecommendations.js";
 import { seedTermsConditions } from "./scripts/seedTermsConditions.js";
 
-const prisma = new PrismaClient({
-  adapter: generatePrismaAdapter(),
-});
+const prisma = applySqlServerCompat(
+  new PrismaClient({
+    adapter: generatePrismaAdapter(),
+  })
+);
 
 async function main() {
   await prisma.$connect();

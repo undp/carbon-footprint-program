@@ -1,5 +1,6 @@
 export * from "./generated/prisma/client.js";
 export * from "./adapter.js";
+export * from "./sqlServerCompat.js";
 
 // Canonical, provider-independent enums. Re-exported EXPLICITLY (not via
 // `export *`) so they take precedence over the generated client's own

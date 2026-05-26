@@ -3,6 +3,7 @@ import {
   PrismaClient,
   type Prisma,
   generatePrismaAdapter,
+  applySqlServerCompat,
 } from "@repo/database";
 import { FastifyInstance } from "fastify";
 
@@ -93,7 +94,11 @@ export default fp<PrismaPluginOptions>(
       }
     });
 
-    fastify.decorate("prisma", prismaClient);
+    // On SQL Server, wrap with the compatibility extension (drops unsupported
+    // `skipDuplicates`, transparently (de)serializes JSON columns). No-op on
+    // PostgreSQL. Logging/connect/disconnect stay on the base client; the
+    // extension shares the same engine.
+    fastify.decorate("prisma", applySqlServerCompat(prismaClient));
   },
   { name: "prisma-plugin" }
 );
