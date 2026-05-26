@@ -103,9 +103,9 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ### Validation (user runs Prisma)
 
-- [ ] 2.14 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` — regenerates the client with the new `Json` types and rebuilds + seeds the DB. Watch that `seedSystemParameters` (writes `options`) succeeds.
-- [ ] 2.15 **[runs Prisma — user executes]** `pnpm type-check` — confirms the client's new `JsonValue`/`InputJsonValue` types are accepted at read (mapper) and write (create/update, seed) sites.
-- [ ] 2.16 **[runs Prisma — user executes]** `pnpm test --filter=api -- reductionProjects --coverage=false` (and the broader suite) — confirms reduction-project create/read round-trips `consideredGei` correctly.
+- [x] 2.14 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` — regenerated the client with the new `Json` types and rebuilt + seeded the DB. ✓
+- [x] 2.15 **[runs Prisma — user executes]** `pnpm type-check` — client's new `JsonValue`/`InputJsonValue` types accepted at read (mapper) and write (create/update, seed) sites. ✓
+- [x] 2.16 **[runs Prisma — user executes]** `pnpm test --filter=api -- reductionProjects --coverage=false` (and the broader suite) — reduction-project create/read round-trips `consideredGei` correctly. ✓
 
 ### Validation
 
