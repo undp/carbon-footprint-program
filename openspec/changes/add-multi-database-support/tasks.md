@@ -4,7 +4,7 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 | PR   | Branch                                 | Milestone                                                                                                                             | Depends on                                                 |
 | ---- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| PR 1 | `feat/mati/squash-migrations`          | Clean baseline schema (squash + UUID + Decimal unification)                                                                           | `feat/mati/upgrade-low-risk-dependencies` merged to `main` |
+| PR 1 | `feat/mati/db-portability-cleanups`    | Migration cleanups in place (magnitude consolidation + UUID + Decimal unification) — NO squash                                        | `feat/mati/upgrade-low-risk-dependencies` merged to `main` |
 | PR 2 | `feat/mati/json-array-portability`     | Schema types are provider-portable (JSONB dropped, arrays as Json + Zod)                                                              | PR 1 merged                                                |
 | PR 3 | `feat/mati/multi-db-foundation`        | Dual-provider scaffolding: folder layout, configs, adapter selector, Fastify plugin. PG keeps working; SQL Server schema still empty. | PR 2 merged                                                |
 | PR 4 | `feat/mati/sqlserver-schema-and-views` | First viable SQL Server deploy: schema, views ported, partial indexes, CHECK, collation, docker-compose                               | PR 3 merged                                                |
@@ -18,14 +18,14 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 ## 0. Prerequisites (external sign-off, not coded)
 
 - [ ] 0.1 `feat/mati/upgrade-low-risk-dependencies` (Prisma 7.8.0 bump) is merged to `main`
-- [ ] 0.2 DevOps/PM confirm: zero production deployments have the existing 33 migrations registered in `_prisma_migrations` (precondition for migration squash)
-- [ ] 0.3 Stakeholders confirm adoption of the Prisma 7.8.0 `partialIndexes` preview feature
+- [ ] 0.2 DevOps/PM confirm: zero production deployments have the existing migrations registered in `_prisma_migrations` (precondition for editing migrations in place — checksums change, requiring `migrate reset` on dev DBs)
+- [ ] 0.3 Stakeholders confirm adoption of the Prisma 7.8.0 `partialIndexes` preview feature — run the validation experiment first (design.md POC finding 6: open bugs #29289 drop/recreate, #29386 loop)
 
 ---
 
-## 1. PR 1 — `feat/mati/squash-migrations` (Schema portability cleanups)
+## 1. PR 1 — `feat/mati/db-portability-cleanups` (Schema portability cleanups)
 
-> **Squash abandoned.** The squash was meant to reduce SQL Server porting effort, but Prisma generates the SQL Server migrations from the `sqlserver` schema independently — it does not port the PG migrations, so the squash gave no SQL-Server benefit while adding real reconstruction risk (views, CHECK constraints, ~15 partial indexes live only in hand-written SQL, and later migrations mutate earlier objects). Instead, PR 1 edits existing migrations in place (dev-phase practice) to reach a clean final state with zero drift. (Branch name kept as-is for continuity; consider renaming to `feat/mati/db-portability-cleanups` before opening the PR.)
+> **Squash abandoned** (validated in the POC — see design.md POC findings). The squash was meant to reduce SQL Server porting effort, but Prisma generates the SQL Server migrations from the `sqlserver` schema independently — it does not port the PG migrations, so the squash gave no SQL-Server benefit while adding real reconstruction risk (views, CHECK constraints, ~15 partial indexes live only in hand-written SQL, and later migrations mutate earlier objects). Instead, PR 1 edits existing migrations in place (dev-phase practice) to reach a clean final state with zero drift. The POC work (this content + the migration edits) was prototyped on `feat/mati/multi-db-poc`; cherry-pick / re-apply onto a fresh `feat/mati/db-portability-cleanups` branch when consolidating for the real PR.
 
 **Branch base**: `main` (after `feat/mati/upgrade-low-risk-dependencies` is merged)
 **Milestone**: migration chain reproduces a cleaned schema with zero drift — portable UUID generation, uniform Decimal precision, and `magnitude` reaching its final table shape in one migration (no enum→table dance). PG continues working unchanged; SQL Server work not yet started.

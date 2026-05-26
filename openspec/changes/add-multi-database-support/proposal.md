@@ -7,7 +7,7 @@ Huella Latam is distributed as a digital public good that each country deploys o
 - Introduce a **dual-provider data layer**: two `schema.prisma` files (`prisma/postgresql/`, `prisma/sqlserver/`) sharing the same logical model, each generating its own Prisma Client.
 - Adopt the official Prisma 7 multi-provider pattern: separate `prisma.config.pg.ts` and `prisma.config.mssql.ts`; build-time `DB_PROVIDER` env var decides which client is generated and bundled.
 - Add `@prisma/adapter-mssql@^7.8.0` alongside existing `@prisma/adapter-pg`; `src/adapter.ts` selects at runtime; the Fastify Prisma plugin instantiates the correct client at API startup.
-- **Pre-port cleanup** (in a separate PR, `feat/mati/squash-migrations`): squash the 33 PG-only migrations into a single timestamp baseline, unify UUID generation to `@default(uuid())` (client-side, portable), unify `@db.Decimal` precision to `(28, 10)` across all decimal columns.
+- **Pre-port cleanup** (PR 1, edit migrations in place — NOT a squash; see POC finding in design.md): consolidate the magnitude enum→table conversion into the base migration, unify UUID generation to `@default(uuid())` (client-side, portable), and unify `@db.Decimal` precision to `(28, 10)`. A squash was considered and rejected — Prisma generates SQL Server migrations from the `sqlserver` schema independently, so squashing the PG history gives no porting benefit while adding reconstruction risk.
 - **Schema unification** to remove provider divergence:
   - Drop `@db.JsonB` annotations on the 4 JSON columns; rely on Prisma `Json` (mapped to `jsonb` in PG, `nvarchar(max)` in SQL Server) + existing centralized Zod schemas in `packages/types`.
   - Convert `String[]` columns (`SystemParameter.options`, `ReductionProject.consideredGei`) to `Json` + Zod array validation, preserving the API contract.
@@ -31,7 +31,7 @@ Huella Latam is distributed as a digital public good that each country deploys o
 
 ## Impact
 
-- **`packages/database/`**: full restructure. Two schema folders, two config files, two generator outputs, new adapter selector. Existing migration history is squashed into a single baseline as a prerequisite. Adds `@prisma/adapter-mssql` and `docker-compose.sqlserver.yml`.
+- **`packages/database/`**: full restructure. Two schema folders, two config files, two generator outputs, new adapter selector. Existing migrations are cleaned in place (magnitude consolidation + UUID/Decimal folds) rather than squashed. Adds `@prisma/adapter-mssql` and `docker-compose.sqlserver.yml`.
 - **`packages/types/`**: add `ConsideredGeiArraySchema = z.array(ConsideredGeiSchema)` and ensure all 4 JSON columns have centralized Zod parsers (2 already exist, 2 need to be added or formalized for `derivationDetails` and `resultDetails`).
 - **`apps/api/`**: Fastify Prisma plugin refactored to read `DB_PROVIDER` at startup. Mappers for `SystemParameter.options`, `ReductionProject.consideredGei`, `derivationDetails`, `resultDetails` may need Zod parsing where they currently treat the field as raw `string[]` or opaque JSON. `apps/api/test/factories/` validated against both providers.
 - **`apps/web/`**: no changes (frontend is provider-agnostic; consumes the API).

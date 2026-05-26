@@ -111,11 +111,17 @@ Prisma 7's `prisma.config.ts` supports a single `schema` path.
 
 **Decision**: split into `prisma.config.pg.ts` and `prisma.config.mssql.ts`. Each `package.json` script (`dev:migrate:pg`, `dev:migrate:mssql`, etc.) passes `--config=...` explicitly. No env-based branching inside config files.
 
-### Squash migrations as a separate, pre-multi-DB PR
+### Migration cleanups: edit in place, do NOT squash (revised after POC)
 
-The current 33 incremental migrations would each have to be hand-ported to SQL Server otherwise.
+**Original idea (rejected)**: squash the 33 migrations into one baseline in a pre-multi-DB PR, to reduce SQL Server porting effort.
 
-**Decision**: a separate PR `feat/mati/squash-migrations` (Pre-Phase 0) consolidates them into a single timestamped baseline, after `feat/mati/upgrade-low-risk-dependencies` merges to `main`. The same PR carries the pre-port cleanup (UUID unification, Decimal unification). DevOps/PM must confirm zero production deployments have the existing 33 migrations registered before this lands.
+**POC finding**: the squash gives **no SQL Server benefit**. Prisma generates the SQL Server migrations from the `sqlserver` schema **independently** — it does not "port" the PostgreSQL migrations. SQL Server starts from a single baseline regardless of how many PG migrations exist. Meanwhile the squash adds real risk: views, CHECK constraints, and ~15 partial unique indexes live only in hand-written SQL (the schema documents them in comments), and **later migrations mutate earlier objects** (e.g. the magnitude enum→table conversion silently dropped `measurement_unit_unique_base_per_magnitude`), so a regenerated baseline is neither trivial nor reliably complete.
+
+**Decision**: do NOT squash. Instead, edit existing migrations in place (standard dev-phase practice for this project) to reach a clean final state with zero drift:
+- Consolidate the magnitude enum→table conversion into the base migration (so `measurement_unit`/`magnitude` are born in final shape — no enum→table dance). **Validated**: `prisma migrate reset` + seed applies the full edited chain cleanly.
+- Fold the UUID cleanup (`@default(uuid())`, drop `gen_random_uuid()`) into the `create_carbon_inventory_table` migration.
+- Fold the Decimal cleanup (`(28,10)`) into the `add_reduction_project` migration.
+- Editing migrations changes their checksums → requires `prisma migrate reset` on dev DBs (acceptable; no production deployments per precondition).
 
 ### Views: hand-rewrite for SQL Server, accept worst-case perf if within SLA
 
@@ -147,7 +153,7 @@ This is a greenfield multi-DB rollout; there is no PG → SQL Server live data m
 **Phase ordering** (full detail in `tasks.md`):
 
 1. Merge `feat/mati/upgrade-low-risk-dependencies` to `main` (Prisma 7.8.0).
-2. Pre-Phase 0 PR `feat/mati/squash-migrations`: validated baseline + UUID/Decimal unification cleanups.
+2. PR 1 (migration cleanups, edit-in-place — NO squash): magnitude consolidation + UUID/Decimal folds. Validated in the POC via `migrate reset` + seed.
 3. Phase 0: PoC `@prisma/adapter-mssql`, validate `partialIndexes` preview against a real partial index, audit the 4 views for PG-specific constructs, audit `@db.Text` candidates, create ADR.
 4. Phase 1: restructure `packages/database/` (folder layout, two config files, scripts, generator outputs, `docker-compose.sqlserver.yml`).
 5. Phase 2: unify JSON/array types in the PG schema (sub-phase 2a), then copy to SQL Server schema and switch provider-specific annotations (sub-phase 2b).
@@ -158,11 +164,72 @@ This is a greenfield multi-DB rollout; there is no PG → SQL Server live data m
 10. Phase 7: documentation (README, deployment doc, CLAUDE.md update).
 11. Phase 8: staging end-to-end validation + perf bench; document observed perf differences.
 
-**Rollback**: each phase is its own PR; reverting a phase restores the prior state. The squash PR is the only irreversible step (and it has a `_prisma_migrations` precondition: zero production deployments with the existing 33 migrations).
+**Rollback**: each phase is its own PR; reverting a phase restores the prior state. The PR 1 migration edits change checksums, so they require `migrate reset` on dev DBs (no production rows affected per precondition).
+
+## POC Findings (discovery on branch `feat/mati/multi-db-poc`)
+
+This change started as a proof-of-concept to surface the real challenges of supporting SQL Server. Concrete findings, to carry into the branch-by-branch consolidation:
+
+1. **The squash does not help SQL Server** (see the migration-cleanups decision above). Abandoned. PR 1 became "edit migrations in place" instead.
+
+2. **Migration consolidation works and is validated.** Folding the magnitude enum→table conversion into the base migration + the UUID/Decimal folds applies cleanly via `prisma migrate reset` (all 31 migrations apply, seed populates 10 magnitudes / 18 units / full reference data). This is the model for any future migration cleanup in dev phase.
+
+3. **The real porting cost is the hand-written SQL, not the tables.** Prisma auto-generates tables, enums, FKs, and plain unique indexes for both providers. What must be hand-ported / hand-maintained per provider:
+   - **4 views**: `organization_summary_view`, `submission_summary_view`, `carbon_inventory_subtotals_view`, `carbon_inventory_sector_subtotals_view`. PG-only constructs to translate: `DISTINCT ON`, `FILTER (WHERE ...)`, `EXTRACT(...)::int`, `expr::enum_type`, `CREATE OR REPLACE VIEW`.
+   - **~4 CHECK constraints**: `position > 0` (category, emission_factor_dimension, country_organization_size), `measurement_unit_base_factor_check`.
+   - **~15 partial unique indexes** (the `WHERE`-filtered ones). Final-state inventory below.
+
+4. **Later migrations mutate earlier objects — the migration history is NOT a reliable source for final state.** The magnitude enum→table conversion did `DROP COLUMN magnitude`, which silently dropped `measurement_unit_unique_base_per_magnitude` (it was on that column) and nobody recreated it. So:
+   - The "one base unit per magnitude" DB guarantee was **lost** in production history. **Open decision**: restore it as `UNIQUE(magnitude_id) WHERE is_base` or leave it to app-level enforcement. (The consolidated base migration in this POC does NOT recreate it, matching the real final state.)
+   - To enumerate the true final-state partial indexes, query the live DB, do not read migrations:
+     ```sql
+     SELECT t.relname AS table_name, i.relname AS index_name, pg_get_indexdef(ix.indexrelid)
+     FROM pg_index ix
+     JOIN pg_class i ON i.oid = ix.indexrelid
+     JOIN pg_class t ON t.oid = ix.indrelid
+     JOIN pg_namespace n ON n.oid = t.relnamespace
+     WHERE n.nspname = 'public' AND ix.indpred IS NOT NULL
+     ORDER BY t.relname, i.relname;
+     ```
+
+5. **Partial-index inventory (final state, from migration tracing — confirm against the live-DB query before relying on it):**
+   - `country_organization_size`: `(country_id, name) WHERE status = 'ACTIVE'`; `(country_id, position) WHERE status <> 'DELETED'`
+   - `country_sector`: `(country_id, name) WHERE status = 'ACTIVE'`
+   - `country_subsector`: `(country_sector_id, name) WHERE status = 'ACTIVE'`
+   - `organization_main_activity`: `(name, country_sector_id, country_subsector_id) NULLS NOT DISTINCT WHERE status = 'ACTIVE'`
+   - `methodology_version`: `(country_id, name, version) WHERE status <> 'DELETED'`
+   - `category`: `(methodology_version_id, name)` and `(methodology_version_id, position)`, both `WHERE status <> 'DELETED'`
+   - `subcategory`: `(category_id, name) WHERE status <> 'DELETED'`
+   - `emission_factor_dimension`: `(subcategory_id, code)` and `(subcategory_id, position)`, both `WHERE status <> 'DELETED'`
+   - `emission_factor_dimension_value`: `(dimension_id, value) WHERE status <> 'DELETED'`
+   - `emission_factor`: `(subcategory + dims + source) WHERE status <> 'DELETED'`
+   - `submission`: `(type, subject_id) WHERE status IN ('PENDING','APPROVED','APPROVED_AUTOMATICALLY')`
+   - `user_organization_membership`: `(user_id, organization_id) WHERE status = 'ACTIVE'`
+   - `badge`: `(type) WHERE status = 'ACTIVE'`
+   - `subcategory_recommendation`: `(subcategory_id, sector_id, subsector_id) WHERE status = 'ACTIVE'`
+   - `carbon_inventory_line_input`: `(line_id) WHERE is_active = true`
+   - **DROPPED / lost**: `measurement_unit_unique_base_per_magnitude` (see finding 4).
+
+6. **`partialIndexes` preview (Prisma 7.4+) has open bugs to validate before adopting:**
+   - Syntax: `@@unique([...], where: raw("status <> 'DELETED'"))` (raw predicate) or `where: { field: value }` (object).
+   - [#29289](https://github.com/prisma/prisma/issues/29289): generates a DROP for manually-created partial indexes — directly relevant since ours are hand-written; converting may produce drop/recreate churn rather than a no-op.
+   - [#29386](https://github.com/prisma/prisma/issues/29386): infinite generation loop with varchar partial unique index.
+   - [#29282](https://github.com/prisma/prisma/issues/29282): generates a `UniqueCompoundInput` type (affects generated client types).
+   - **Validation experiment (not yet run)**: enable the preview, declare the final-state partial indexes, run `migrate dev`, and read the diff. No-op → adopt; drop/recreate or loop → keep raw SQL in both providers. Use the live-DB query (finding 4) for the ground-truth list.
+   - `NULLS NOT DISTINCT` (organization_main_activity) likely cannot be expressed via the preview and stays raw SQL.
+
+7. **Operational gotchas:**
+   - `prisma` is not on the global PATH — always invoke via `pnpm --filter=@repo/database ...` or `pnpm --filter=@repo/database exec prisma ...`. A bare `prisma ...` triggers the shell's command-not-found handler.
+   - The repo's git remote `origin` still points at the old `in-ventures/undp-huella-latam` location (redirects to `undp/carbon-footprint-program`).
 
 ## Open Questions
 
 - Are there country deployments with a committed SQL Server delivery date? (Affects prioritization vs. other roadmap items.)
+- Do we accept the `partialIndexes` preview feature as a project-wide dependency, knowing its API could change and that it has the open bugs in finding 6? (Run the validation experiment first.)
+- Versioning policy: does every PR that modifies the schema have to update both `postgresql/schema.prisma` and `sqlserver/schema.prisma` in the same PR, or is a follow-up PR acceptable?
+- Restore the lost `one base unit per magnitude` uniqueness on `magnitude_id`, or leave it to app-level enforcement? (Finding 4.)
+
+- Are there country deployments with a committed SQL Server delivery date? (Affects prioritization vs. other roadmap items.)
 - Do we accept the `partialIndexes` preview feature as a project-wide dependency, knowing its API could change in a future Prisma minor version?
 - Versioning policy: does every PR that modifies the schema have to update both `postgresql/schema.prisma` and `sqlserver/schema.prisma` in the same PR, or is a follow-up PR acceptable?
-- DevOps/PM sign-off on the migration squash precondition (zero production deployments with the existing 33 migrations registered).
+- DevOps/PM sign-off on editing migrations in place (zero production deployments with the existing migrations registered; checksums change so dev DBs need `migrate reset`).

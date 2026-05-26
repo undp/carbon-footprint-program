@@ -96,15 +96,16 @@ A SQL Server deployment SHALL create its database with collation `Latin1_General
 - **AND** an attempt is made to create a user with `email: "foo@x.com"` on SQL Server
 - **THEN** the second insert SHALL succeed (the two values are treated as distinct, matching PG behavior)
 
-### Requirement: Migration history is single-baseline at multi-DB introduction time
+### Requirement: PostgreSQL migrations reproduce the cleaned schema; SQL Server starts from a single baseline
 
-At the time `multi-database-support` is introduced, the PostgreSQL migration history SHALL be squashed into a single timestamped baseline migration. The SQL Server migration history SHALL be initialized as a single baseline migration generated from the same logical schema. From that point forward, each new feature SHALL add one migration file per provider, kept in sync.
+The PostgreSQL migration history SHALL NOT be squashed. Instead, existing migrations are edited in place (dev-phase practice) so the chain reproduces the cleaned schema with zero drift — including the magnitude enum→table consolidation folded into the base migration, and the UUID/Decimal cleanups folded into their origin migrations. The SQL Server migration history SHALL be initialized as a single baseline migration generated from the `sqlserver` schema. From that point forward, each new feature SHALL add one migration file per provider, kept in sync.
 
-#### Scenario: Fresh PostgreSQL deployment after squash
+#### Scenario: Fresh PostgreSQL deployment reproduces cleaned schema
 
 - **WHEN** a new deployment runs `prisma migrate deploy --config=prisma.config.pg.ts` against an empty database
-- **THEN** the baseline migration applies all tables, views, partial indexes, and CHECK constraints
-- **AND** `prisma db seed` succeeds and produces the same state as before the squash
+- **THEN** the migration chain applies all tables, views, partial indexes, and CHECK constraints
+- **AND** `prisma db seed` succeeds with all reference data
+- **AND** `prisma migrate diff --from-schema-datamodel <schema> --to-schema-datasource <db>` reports zero differences
 
 #### Scenario: Fresh SQL Server deployment
 
