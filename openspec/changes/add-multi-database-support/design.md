@@ -118,6 +118,7 @@ Prisma 7's `prisma.config.ts` supports a single `schema` path.
 **POC finding**: the squash gives **no SQL Server benefit**. Prisma generates the SQL Server migrations from the `sqlserver` schema **independently** — it does not "port" the PostgreSQL migrations. SQL Server starts from a single baseline regardless of how many PG migrations exist. Meanwhile the squash adds real risk: views, CHECK constraints, and ~15 partial unique indexes live only in hand-written SQL (the schema documents them in comments), and **later migrations mutate earlier objects** (e.g. the magnitude enum→table conversion silently dropped `measurement_unit_unique_base_per_magnitude`), so a regenerated baseline is neither trivial nor reliably complete.
 
 **Decision**: do NOT squash. Instead, edit existing migrations in place (standard dev-phase practice for this project) to reach a clean final state with zero drift:
+
 - Consolidate the magnitude enum→table conversion into the base migration (so `measurement_unit`/`magnitude` are born in final shape — no enum→table dance). **Validated**: `prisma migrate reset` + seed applies the full edited chain cleanly.
 - Fold the UUID cleanup (`@default(uuid())`, drop `gen_random_uuid()`) into the `create_carbon_inventory_table` migration.
 - Fold the Decimal cleanup (`(28,10)`) into the `add_reduction_project` migration.
@@ -221,6 +222,14 @@ This change started as a proof-of-concept to surface the real challenges of supp
 7. **Operational gotchas:**
    - `prisma` is not on the global PATH — always invoke via `pnpm --filter=@repo/database ...` or `pnpm --filter=@repo/database exec prisma ...`. A bare `prisma ...` triggers the shell's command-not-found handler.
    - The repo's git remote `origin` still points at the old `in-ventures/undp-huella-latam` location (redirects to `undp/carbon-footprint-program`).
+
+8. **Dual-provider scaffolding (PR 3) — discoveries while restructuring `@repo/database`:**
+   - **Single generated-client output dir beats per-provider dirs.** The original plan (task 3.7) generated to `generated/prisma-postgresql` / `generated/prisma-sqlserver` and had `index.ts` re-export "the active client". This is impossible cleanly: `index.ts` uses `export *`, which is **static** — it cannot branch on `DB_PROVIDER` at module load. **Decision (POC):** both schemas generate to the **same** `src/generated/prisma` dir; only the active provider is generated at build time (chosen by which `prisma.config.*.ts` runs). Result: `index.ts`, the Fastify plugin, and every consumer import stay **unchanged** — zero application-code branching on provider. This made tasks 3.12 and 3.16 essentially no-ops.
+   - **`@prisma/adapter-mssql` constructor takes the connection string directly OR a node-mssql config object — NOT `{ connectionString }`.** `new PrismaMssql("sqlserver://...")` works; `new PrismaMssql({ connectionString })` would be read as a node-mssql config missing `server`. `PrismaPg` uses `{ connectionString }`. The selector therefore passes the bare string to MSSQL and `{ connectionString }` to PG.
+   - **`DB_PROVIDER` defaults to `postgresql` when unset, instead of throwing** (deviates from task 3.15). Throwing on unset would break every existing local/dev/test setup (none set it) and the entire test suite. Defaulting preserves backward-compat ("PG keeps working unchanged"); SQL Server requires an explicit opt-in. An _invalid_ value still throws a clear error. Added `DB_PROVIDER` to `turbo.json` `globalEnv` (it changes build output).
+   - **Health check + Fastify plugin needed no per-provider code.** `SELECT 1` is universal; the adapter selector is the only provider-aware code. Single plugin implementation, as the milestone required, achieved for free.
+   - **`infra/run-migrations.sh` calls `pnpm prod:deploy`** — kept a `prod:deploy` alias → `prod:deploy:pg` so existing infra is untouched. SQL Server deploy wiring deferred to PR 4/5.
+   - **`src/generated/` already gitignored** by the root `**/generated/**` rule → task 3.8 (per-package `.gitignore`) is unnecessary.
 
 ## Open Questions
 

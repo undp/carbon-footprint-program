@@ -126,20 +126,20 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ### Documentation and audits (no code changes)
 
-- [ ] 3.1 Create ADR `docs/architecture/adrs/0001-multi-database-support.md`. Explicit framing: divergence is **infrastructure-agnostic**, orthogonal to country-agnostic principle (which still applies to seeds and system parameters)
-- [ ] 3.2 Audit the 4 views and write `docs/architecture/multi-db/view-port-notes.md` listing every PG-specific construct used per view with the SQL Server replacement
-- [ ] 3.3 Audit `@db.Text` candidates: grep for `String` fields representing descriptions, comments, review notes, manual factor sources, explanations. Document recommended `@db.Text` additions in `docs/architecture/multi-db/db-text-audit.md` (apply in PR 4)
-- [ ] 3.4 Audit unique constraints with nullable columns: flag any needing explicit `WHERE col IS NOT NULL` filtered indexes in SQL Server. Document in `docs/architecture/multi-db/null-uniqueness-audit.md` (apply in PR 4)
+- [x] 3.1 Create ADR `docs/architecture/adrs/0001-multi-database-support.md`. Explicit framing: divergence is **infrastructure-agnostic**, orthogonal to country-agnostic principle (which still applies to seeds and system parameters)
+- [x] 3.2 Audit the 4 views and write `docs/architecture/multi-db/view-port-notes.md` listing every PG-specific construct used per view with the SQL Server replacement
+- [x] 3.3 Audit `@db.Text` candidates → `docs/architecture/multi-db/db-text-audit.md` (24 fields flagged; 2 already annotated). Apply in PR 4
+- [x] 3.4 Audit unique constraints with nullable columns → `docs/architecture/multi-db/null-uniqueness-audit.md` (only `User.email` + `User.idpUserId` need `WHERE ... IS NOT NULL`; 7 raw-SQL partial indexes inventoried). Apply in PR 4
 
 ### Restructure `packages/database/`
 
-- [ ] 3.5 Create directory `packages/database/src/prisma/postgresql/`; move `schema.prisma` and `migrations/` into it
-- [ ] 3.6 Create directory `packages/database/src/prisma/sqlserver/` (empty for now)
-- [ ] 3.7 Add `generator client { output = "../../generated/prisma-postgresql" }` to `postgresql/schema.prisma`
-- [ ] 3.8 Update `packages/database/.gitignore` to exclude `src/generated/`
-- [ ] 3.9 Create `packages/database/prisma.config.pg.ts` pointing at `src/prisma/postgresql/schema.prisma`
-- [ ] 3.10 Create `packages/database/prisma.config.mssql.ts` pointing at `src/prisma/sqlserver/schema.prisma` (config will be valid once PR 4 lands the SQL Server schema)
-- [ ] 3.11 Update `packages/database/package.json` scripts:
+- [x] 3.5 Moved `schema.prisma` + `migrations/` into `packages/database/src/prisma/postgresql/` (via `git mv`); shared `seeds/` stays at `src/prisma/seeds/`
+- [x] 3.6 Created `packages/database/src/prisma/sqlserver/` (`.gitkeep`, empty until PR 4)
+- [x] 3.7 **Adjusted (POC finding 8)**: generator `output` set to `../../generated/prisma` (single shared dir), NOT per-provider `prisma-postgresql`/`prisma-sqlserver`. Per-provider dirs would force a runtime branch in `index.ts`, impossible with static `export *`. Single dir → only the active provider is generated at build time; all consumer imports unchanged
+- [x] 3.8 **N/A**: `src/generated/` is already gitignored by the root `**/generated/**` rule; no per-package `.gitignore` needed
+- [x] 3.9 Created `packages/database/prisma.config.pg.ts` → `src/prisma/postgresql/schema.prisma` + `.../postgresql/migrations`
+- [x] 3.10 Created `packages/database/prisma.config.mssql.ts` → `src/prisma/sqlserver/schema.prisma` (valid once PR 4 lands the schema; documented in-file)
+- [x] 3.11 Update `packages/database/package.json` scripts:
   ```json
   "dev:migrate:pg": "prisma migrate dev --config=prisma.config.pg.ts",
   "dev:migrate:mssql": "prisma migrate dev --config=prisma.config.mssql.ts",
@@ -150,30 +150,27 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
   "prod:deploy:pg": "prisma migrate deploy --config=prisma.config.pg.ts",
   "prod:deploy:mssql": "prisma migrate deploy --config=prisma.config.mssql.ts"
   ```
-  Keep the old `dev:migrate`/`dev:generate`/`dev:seed` aliases pointing to the `:pg` variants during transition.
-- [ ] 3.12 Update `packages/database/src/index.ts` to re-export the active client based on `DB_PROVIDER` env (set at build time); document the pattern in `packages/database/README.md`
+  Done. Added `:pg`/`:mssql` variants for generate/migrate/seed/deploy; kept `dev:migrate`/`dev:generate`/`dev:seed`/`prod:deploy` as aliases → `:pg`; every command passes `--config`. `db:restore` uses the pg config. `dev:studio` pinned to pg config. Also added `@db.Text`-relevant note: `prebuild` → `prisma generate --config=prisma.config.pg.ts`.
+- [x] 3.12 **Adjusted (POC finding 8)**: `index.ts` stays unchanged — the single shared output dir means the active client is whatever was generated at build time, so no `DB_PROVIDER` branch is possible or needed in `index.ts`. Documented the dual-provider pattern in `packages/database/README.md`
 
 ### Adapter + Fastify plugin
 
-- [ ] 3.13 Add `@prisma/adapter-mssql@^7.8.0` to `packages/database/package.json` dependencies
-- [ ] 3.14 Refactor `packages/database/src/adapter.ts` to a selector:
-  ```ts
-  if (process.env.DB_PROVIDER === "sqlserver")
-    return new PrismaMssql({ connectionString });
-  return new PrismaPg({ connectionString });
-  ```
-- [ ] 3.15 Validate `DB_PROVIDER` at startup; throw a clear `ConfigError` if unset or not in `("postgresql", "sqlserver")`
-- [ ] 3.16 Refactor the Fastify Prisma plugin in `apps/api/src/plugins/` to read `DB_PROVIDER`, import the active client from `@repo/database`, and register `fastify.prisma` — single plugin implementation
-- [ ] 3.17 Confirm `apps/api/src/routes/health.ts` (`SELECT 1`) still passes on PG
+- [x] 3.13 Added `@prisma/adapter-mssql@^7.8.0` to `packages/database/package.json` dependencies (alphabetized before `adapter-pg`)
+- [x] 3.14 Refactored `src/adapter.ts` to a selector — **corrected per POC finding 8**: `PrismaMssql` takes the JDBC connection string **directly** (`new PrismaMssql(connectionString)`), not `{ connectionString }` (that is `PrismaPg`'s shape). Selector keys off `DB_PROVIDER === DbProvider.SQLSERVER`
+- [x] 3.15 **Adjusted (POC finding 8)**: `DB_PROVIDER` validated in `environment.ts`; an _invalid_ value throws a clear error. **Unset defaults to `postgresql`** (not throw) to preserve backward-compat — throwing would break all existing dev/test setups. Added `DbProvider` const-enum + `DB_PROVIDER` to `turbo.json` `globalEnv`
+- [x] 3.16 **No-op (POC finding 8)**: the Fastify plugin (`apps/api/src/plugins/app/prisma.ts`) already imports `PrismaClient` + `generatePrismaAdapter` from `@repo/database`; the adapter selector makes it provider-agnostic with zero changes. Single plugin implementation achieved for free
+- [x] 3.17 `apps/api/src/routes/health.ts` uses `SELECT 1`, which is universal across PG and SQL Server — no change. (PG pass confirmed at runtime in 3.18/3.19)
 
-### Validation
+### Validation (user runs Prisma)
 
-- [ ] 3.18 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:generate:pg` produces the PG client; the API boots with `DB_PROVIDER=postgresql`
-- [ ] 3.19 **[runs Prisma — user executes]** Full integration test suite passes against PG
+> ⚠️ Requires `pnpm install` first (new dep `@prisma/adapter-mssql`) and a regen of the client (its output path moved to `src/prisma/postgresql/` schema).
+
+- [ ] 3.18 **[runs Prisma — user executes]** `pnpm install`, then `pnpm --filter=@repo/database dev:generate:pg` produces the PG client; `pnpm type-check` + `pnpm lint` green; the API boots with `DB_PROVIDER=postgresql` (or unset → defaults to pg)
+- [ ] 3.19 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` rebuilds from the moved migrations; full integration suite passes against PG
 
 ### Merge
 
-- [ ] 3.20 Open PR `feat/mati/multi-db-foundation`; pass CI; merge to `main`
+- [ ] 3.20 (POC consolidation) Re-apply onto a fresh `feat/mati/multi-db-foundation` from `main`; open PR; pass CI; merge to `main`
 
 ---
 
