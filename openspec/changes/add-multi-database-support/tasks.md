@@ -221,10 +221,11 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 > ⚠️ Expect FK cascade-path errors on first `migrate dev` (design.md finding 9): SQL Server forbids multiple cascade paths PG allows. Capture the exact relations it names; the fix is `onDelete: NoAction` on those relations in the SQL Server schema.
 
-- [ ] 4.17 **[runs Prisma — user executes]** `docker compose -f packages/database/docker-compose.sqlserver.yml up -d`, then `./packages/database/scripts/provision-sqlserver.sh`
-- [ ] 4.18 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma validate --config=prisma.config.mssql.ts` (no DB needed) — catch schema errors; then `pnpm --filter=@repo/database dev:migrate:mssql -- --name initial`. Report generated SQL + any cascade-path errors
-- [ ] 4.19 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:seed:mssql` succeeds
-- [ ] 4.20 **[runs Prisma — user executes]** Smoke-test API: start with `DB_PROVIDER=sqlserver`, `GET /health` returns 200
+- [x] 4.17 **[validated]** `docker compose -f packages/database/docker-compose.sqlserver.yml up -d` + `provision-sqlserver.sh` — SQL Server 2019 up; `huella` DB created with CS_AS_SC_UTF8 collation (provision ran via `docker exec` fallback, no local `sqlcmd`)
+- [x] 4.18a **[validated]** `prisma validate --config=prisma.config.mssql.ts` → **schema is valid** (after fixing 255 validation errors across enums/Json/referential-actions — findings 9/10/11)
+- [ ] 4.18b **BLOCKED (Prisma 7 tooling — finding 12)** `dev:migrate:mssql` fails with `P1011` TLS self-signed (CLI schema engine ignores `trustServerCertificate`); offline `migrate diff --script` produces empty output for both providers. Applying the migration needs the cert workaround (`SSL_CERT_FILE` + container cert) — deferred to consolidation/PR 5
+- [ ] 4.19 **BLOCKED on 4.18b** `dev:seed:mssql` (runtime client honors `trustServerCertificate`, so this should work once tables exist)
+- [ ] 4.20 **BLOCKED on 4.18b** Smoke-test API with `DB_PROVIDER=sqlserver`; also needs the app-layer JSON handling (finding 10) before full round-trip
 
 ### Merge
 
