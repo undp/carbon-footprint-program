@@ -71,7 +71,7 @@
     "@types/node": "catalog:shared",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "baseline-browser-mapping": "^2.10.31",
     "eslint": "catalog:shared",
     "rimraf": "catalog:shared",
