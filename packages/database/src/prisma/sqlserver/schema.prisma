@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlserver"
 }
 
 model Country {
@@ -63,13 +63,6 @@ model SystemParameter {
   @@map("system_parameter")
 }
 
-enum CountryOrganizationSizeStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_organization_size_status")
-}
-
 model CountryOrganizationSize {
   id               BigInt                        @id @default(autoincrement())
   countryId        BigInt                        @map("country_id")
@@ -77,7 +70,7 @@ model CountryOrganizationSize {
   description      String? @db.Text
   // Position must be > 0 (enforced by DB CHECK constraint: country_organization_size_position_check)
   position         Int
-  status           CountryOrganizationSizeStatus @default(ACTIVE)
+  status           String @default("ACTIVE")
   createdAt        DateTime                      @default(now()) @map("created_at")
   updatedAt        DateTime?                     @updatedAt @map("updated_at")
   createdById      BigInt?                       @map("created_by_id")
@@ -93,19 +86,12 @@ model CountryOrganizationSize {
   @@map("country_organization_size")
 }
 
-enum CountrySectorStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_sector_status")
-}
-
 model CountrySector {
   id                         BigInt                      @id @default(autoincrement())
   countryId                  BigInt                      @map("country_id")
   name                       String
   description                String? @db.Text
-  status                     CountrySectorStatus         @default(ACTIVE)
+  status                     String         @default("ACTIVE")
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
@@ -124,19 +110,12 @@ model CountrySector {
   @@map("country_sector")
 }
 
-enum CountrySubsectorStatus {
-  ACTIVE
-  DELETED
-
-  @@map("country_subsector_status")
-}
-
 model CountrySubsector {
   id                         BigInt                      @id @default(autoincrement())
   countrySectorId            BigInt                      @map("country_sector_id")
   name                       String
   description                String? @db.Text
-  status                     CountrySubsectorStatus      @default(ACTIVE)
+  status                     String      @default("ACTIVE")
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
@@ -154,18 +133,11 @@ model CountrySubsector {
   @@map("country_subsector")
 }
 
-enum OrganizationMainActivityStatus {
-  ACTIVE
-  DELETED
-
-  @@map("organization_main_activity_status")
-}
-
 model OrganizationMainActivity {
   id                 BigInt                         @id @default(autoincrement())
   name               String
   description        String? @db.Text
-  status             OrganizationMainActivityStatus @default(ACTIVE)
+  status             String @default("ACTIVE")
   countrySectorId    BigInt?                        @map("country_sector_id")
   countrySubsectorId BigInt?                        @map("country_subsector_id")
   createdAt          DateTime                       @default(now()) @map("created_at")
@@ -198,57 +170,12 @@ model CountryJobPosition {
   @@map("country_job_position")
 }
 
-enum SystemRole {
-  USER
-  ADMIN
-  SUPERADMIN
-
-  @@map("system_role")
-}
-
-enum OrganizationRole {
-  VIEWER
-  CONTRIBUTOR
-  ADMIN
-
-  @@map("organization_role")
-}
-
-enum MembershipStatus {
-  ACTIVE
-  OUTDATED
-  DELETED
-
-  @@map("membership_status")
-}
-
-enum SubcategoryStatus {
-  ACTIVE
-  DELETED
-
-  @@map("subcategory_status")
-}
-
-enum EmissionFactorDimensionStatus {
-  ACTIVE
-  DELETED
-
-  @@map("emission_factor_dimension_status")
-}
-
-enum EmissionFactorDimensionValueStatus {
-  ACTIVE
-  DELETED
-
-  @@map("emission_factor_dimension_value_status")
-}
-
 model UserOrganizationMembership {
   id             BigInt           @id @default(autoincrement())
   userId         BigInt           @map("user_id")
   organizationId BigInt           @map("organization_id")
-  role           OrganizationRole @default(VIEWER)
-  status         MembershipStatus @default(ACTIVE)
+  role           String @default("VIEWER")
+  status         String @default("ACTIVE")
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime?        @updatedAt @map("updated_at")
   createdById    BigInt?          @map("created_by_id")
@@ -265,11 +192,11 @@ model UserOrganizationMembership {
 
 model User {
   id                                   BigInt                         @id @default(autoincrement())
-  uuid                                 String                         @unique @default(uuid()) @db.Uuid
+  uuid                                 String                         @unique @default(uuid()) @db.UniqueIdentifier
   idpUserId                            String?                        @unique @map("idp_user_id")
   idpName                              String?                        @map("idp_name")
   email                                String?                        @unique
-  role                                 SystemRole                     @default(USER)
+  role                                 String                     @default("USER")
   countryJobPositionId                 BigInt?                        @map("country_job_position_id")
   firstName                            String?                        @map("first_name")
   lastName                             String?                        @map("last_name")
@@ -351,8 +278,8 @@ model User {
 model UserRoleAudit {
   id           BigInt     @id @default(autoincrement())
   userId       BigInt     @map("user_id")
-  previousRole SystemRole @map("previous_role")
-  newRole      SystemRole @map("new_role")
+  previousRole String @map("previous_role")
+  newRole      String @map("new_role")
   changedById  BigInt     @map("changed_by_id")
   createdAt    DateTime   @default(now()) @map("created_at")
 
@@ -375,32 +302,18 @@ model UserAccessLog {
   @@map("user_access_log")
 }
 
-enum MagnitudeStatus {
-  ACTIVE
-  DELETED
-
-  @@map("magnitude_status")
-}
-
 model Magnitude {
   id        BigInt          @id @default(autoincrement())
   code      String          @unique
   name      String
   isSystem  Boolean         @default(false) @map("is_system")
-  status    MagnitudeStatus @default(ACTIVE)
+  status    String @default("ACTIVE")
   createdAt DateTime        @default(now()) @map("created_at")
   updatedAt DateTime        @updatedAt @map("updated_at")
 
   measurementUnits MeasurementUnit[]
 
   @@map("magnitude")
-}
-
-enum MeasurementUnitStatus {
-  ACTIVE
-  DELETED
-
-  @@map("measurement_unit_status")
 }
 
 model MeasurementUnit {
@@ -410,7 +323,7 @@ model MeasurementUnit {
   abbreviation                String                       @unique
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
-  status                      MeasurementUnitStatus        @default(ACTIVE)
+  status                      String        @default("ACTIVE")
   magnitude                   Magnitude                    @relation(fields: [magnitudeId], references: [id], onDelete: Restrict)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
@@ -427,7 +340,7 @@ model RateMeasurementUnit {
   abbreviation                 String                      @unique
   numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
   denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
-  status                       MeasurementUnitStatus       @default(ACTIVE)
+  status                       String       @default("ACTIVE")
   denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
   numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
   emissionFactors              EmissionFactor[]
@@ -437,21 +350,6 @@ model RateMeasurementUnit {
   @@map("rate_measurement_unit")
 }
 
-enum MethodologyVersionStatus {
-  PUBLISHED
-  UNPUBLISHED
-  DELETED
-
-  @@map("methodology_version_status")
-}
-
-enum CategoryStatus {
-  ACTIVE
-  DELETED
-
-  @@map("category_status")
-}
-
 model MethodologyVersion {
   id                BigInt                   @id @default(autoincrement())
   countryId         BigInt                   @map("country_id")
@@ -459,7 +357,7 @@ model MethodologyVersion {
   description       String @db.Text
   regulation        String @db.Text
   version           String
-  status            MethodologyVersionStatus
+  status            String
   createdAt         DateTime                 @default(now()) @map("created_at")
   updatedAt         DateTime?                @updatedAt @map("updated_at")
   createdById       BigInt?                  @map("created_by_id")
@@ -504,7 +402,7 @@ model Category {
   explanation          String?            @db.Text
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
-  status               CategoryStatus     @default(ACTIVE)
+  status               String     @default("ACTIVE")
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
@@ -528,7 +426,7 @@ model Subcategory {
   icon                        String
   description                 String @db.Text
   explanation                 String?                      @db.Text
-  status                      SubcategoryStatus            @default(ACTIVE)
+  status                      String            @default("ACTIVE")
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")
@@ -562,19 +460,12 @@ model SubcategoryMeasurementUnit {
   @@map("subcategory_measurement_unit")
 }
 
-enum SubcategoryRecommendationStatus {
-  ACTIVE
-  DELETED
-
-  @@map("subcategory_recommendation_status")
-}
-
 model SubcategoryRecommendation {
   id            BigInt                          @id @default(autoincrement())
   subcategoryId BigInt                          @map("subcategory_id")
   sectorId      BigInt                          @map("sector_id")
   subsectorId   BigInt?                         @map("subsector_id")
-  status        SubcategoryRecommendationStatus @default(ACTIVE)
+  status        String @default("ACTIVE")
   createdAt     DateTime                        @default(now()) @map("created_at")
   updatedAt     DateTime?                       @updatedAt @map("updated_at")
   createdById   BigInt?                         @map("created_by_id")
@@ -599,7 +490,7 @@ model EmissionFactorDimension {
   // Position must be > 0 (enforced by DB CHECK constraint: emission_factor_dimension_position_check)
   position      Int
   isRequired    Boolean                        @map("is_required")
-  status        EmissionFactorDimensionStatus  @default(ACTIVE)
+  status        String  @default("ACTIVE")
   createdAt     DateTime                       @default(now()) @map("created_at")
   updatedAt     DateTime?                      @updatedAt @map("updated_at")
   createdById   BigInt?                        @map("created_by_id")
@@ -621,7 +512,7 @@ model EmissionFactorDimensionValue {
   dimensionId                          BigInt                             @map("dimension_id")
   parentValueId                        BigInt?                            @map("parent_value_id")
   value                                String
-  status                               EmissionFactorDimensionValueStatus @default(ACTIVE)
+  status                               String @default("ACTIVE")
   createdAt                            DateTime                           @default(now()) @map("created_at")
   updatedAt                            DateTime?                          @updatedAt @map("updated_at")
   createdById                          BigInt?                            @map("created_by_id")
@@ -644,13 +535,6 @@ model EmissionFactorDimensionValue {
   @@map("emission_factor_dimension_value")
 }
 
-enum EmissionFactorStatus {
-  ACTIVE
-  DELETED
-
-  @@map("emission_factor_status")
-}
-
 model EmissionFactor {
   id                    BigInt                        @id @default(autoincrement())
   subcategoryId         BigInt                        @map("subcategory_id")
@@ -660,7 +544,7 @@ model EmissionFactor {
   source                String @db.Text
   gasDetails            Json                          @map("gas_details")
   value                 Decimal                       @db.Decimal(28, 10)
-  status                EmissionFactorStatus          @default(ACTIVE)
+  status                String          @default("ACTIVE")
   createdAt             DateTime                      @default(now()) @map("created_at")
   updatedAt             DateTime?                     @updatedAt @map("updated_at")
   createdById           BigInt?                       @map("created_by_id")
@@ -678,30 +562,17 @@ model EmissionFactor {
 }
 
 // TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
-enum InventoryStatus {
-  ACTIVE
-  DELETED
-
-  @@map("inventory_status")
-}
-
-enum UsageMode {
-  SIMPLIFIED
-  EXPERT
-
-  @@map("usage_mode")
-}
 
 model CarbonInventory {
   id                   BigInt                            @id @default(autoincrement())
-  uuid                 String                            @default(uuid()) @db.Uuid
+  uuid                 String                            @default(uuid()) @db.UniqueIdentifier
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")
   organizationData     Json?                             @map("organization_data")
   year                 Int?
-  status               InventoryStatus                   @default(ACTIVE)
-  usageMode            UsageMode                         @map("usage_mode")
+  status               String                   @default("ACTIVE")
+  usageMode            String                         @map("usage_mode")
   methodologyVersionId BigInt                            @map("methodology_version_id")
   preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
   isEditable           Boolean                           @default(true) @map("is_editable")
@@ -725,21 +596,13 @@ model CarbonInventory {
   @@map("carbon_inventory")
 }
 
-enum CarbonInventoryLineStatus {
-  ACTIVE
-  OUTDATED
-  DELETED
-
-  @@map("carbon_inventory_line_status")
-}
-
 // A "line" represents what is being measured (subcategory + optional selections) for a given inventory.
 // We do not store quantities/factors here. It's the anchor.
 model CarbonInventoryLine {
   id                BigInt                     @id @default(autoincrement())
   carbonInventoryId BigInt                     @map("carbon_inventory_id")
   subcategoryId     BigInt                     @map("subcategory_id")
-  status            CarbonInventoryLineStatus  @default(ACTIVE)
+  status            String  @default("ACTIVE")
   createdAt         DateTime                   @default(now()) @map("created_at")
   updatedAt         DateTime?                  @updatedAt @map("updated_at")
   createdById       BigInt?                    @map("created_by_id")
@@ -769,18 +632,11 @@ model CarbonInventoryLineFile {
 }
 
 /// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
-enum InputType {
-  SIMPLIFIED
-  EXPERT
-  DIRECT
-
-  @@map("input_type")
-}
 
 model CarbonInventoryLineInput {
   id                     BigInt                        @id @default(autoincrement())
   lineId                 BigInt                        @map("line_id")
-  inputType              InputType                     @map("input_type")
+  inputType              String                     @map("input_type")
   selection1Id           BigInt?                       @map("selection_1_id")
   selection2Id           BigInt?                       @map("selection_2_id")
   quantity               Decimal?                      @db.Decimal(28, 10)
@@ -870,7 +726,7 @@ view CarbonInventorySubtotalsView {
 view CarbonInventorySectorSubtotalsView {
   carbonInventoryId BigInt          @map("carbon_inventory_id")
   year              Int?
-  status            InventoryStatus
+  status            String
   isSelfDeclared    Boolean         @map("is_self_declared")
   sectorId          BigInt?         @map("sector_id")
   sectorName        String?         @map("sector_name")
@@ -879,25 +735,17 @@ view CarbonInventorySectorSubtotalsView {
   @@map("carbon_inventory_sector_subtotals_view")
 }
 
-enum OrganizationSummaryDisplayStatus {
-  NOT_ACCREDITED
-  ACCREDITED
-  BLOCKED
-
-  @@map("organization_summary_display_status")
-}
-
 view OrganizationSummaryView {
   organizationId          BigInt                           @unique @map("organization_id")
   organizationDataId      BigInt                           @map("organization_data_id")
-  organizationStatus      OrganizationStatus               @map("organization_status")
+  organizationStatus      String               @map("organization_status")
   name                    String                           @map("name")
   sectorId                BigInt?                          @map("sector_id")
   subsectorId             BigInt?                          @map("subsector_id")
-  lastSubmissionStatus    SubmissionStatus?                @map("last_submission_status")
+  lastSubmissionStatus    String?                @map("last_submission_status")
   lastSubmissionUpdatedAt DateTime?                        @map("last_submission_updated_at")
   hasUnsubmittedChanges   Boolean                          @map("has_unsubmitted_changes")
-  displayStatus           OrganizationSummaryDisplayStatus @map("display_status")
+  displayStatus           String @map("display_status")
   isAccredited            Boolean                          @map("is_accredited")
   hasCarbonInventories    Boolean                          @map("has_carbon_inventories")
   totalEmissions          Decimal                          @map("total_emissions") @db.Decimal(28, 10)
@@ -908,17 +756,10 @@ view OrganizationSummaryView {
   @@map("organization_summary_view")
 }
 
-enum OrganizationStatus {
-  ACTIVE
-  BLOCKED
-
-  @@map("organization_status")
-}
-
 model Organization {
   id          BigInt             @id @default(autoincrement())
   countryId   BigInt             @map("country_id")
-  status      OrganizationStatus @default(ACTIVE)
+  status      String @default("ACTIVE")
   createdAt   DateTime           @default(now()) @map("created_at")
   updatedAt   DateTime?          @updatedAt @map("updated_at")
   createdById BigInt?            @map("created_by_id")
@@ -936,17 +777,10 @@ model Organization {
   @@map("organization")
 }
 
-enum OrganizationDataStatus {
-  OUTDATED
-  ACTIVE
-
-  @@map("organization_data_status")
-}
-
 model OrganizationData {
   id                                 BigInt                             @id @default(autoincrement())
   organizationId                     BigInt                             @map("organization_id")
-  status                             OrganizationDataStatus             @default(ACTIVE)
+  status                             String             @default("ACTIVE")
   legalName                          String                             @map("legal_name")
   tradeName                          String?                            @map("trade_name")
   taxId                              String?                            @map("tax_id")
@@ -982,29 +816,14 @@ model OrganizationData {
   @@map("organization_data")
 }
 
-enum SubmissionFileType {
-  SUBMIT_ATTACHMENT
-  RECOGNITION
-  REVIEW_ATTACHMENT
-
-  @@map("submission_file_type")
-}
-
-enum FileStatus {
-  ACTIVE
-  DELETED
-
-  @@map("file_status")
-}
-
 model File {
   id           BigInt     @id @default(autoincrement())
-  uuid         String     @unique @db.Uuid
+  uuid         String     @unique @db.UniqueIdentifier
   originalName String     @map("original_name")
   mimeType     String     @map("mime_type")
   sizeBytes    Int        @map("size_bytes")
   blobPath     String     @map("blob_path")
-  status       FileStatus @default(ACTIVE)
+  status       String @default("ACTIVE")
   createdAt    DateTime   @default(now()) @map("created_at")
   deletedAt    DateTime?  @map("deleted_at")
   createdById  BigInt?    @map("created_by_id")
@@ -1020,7 +839,7 @@ model File {
 model SubmissionFile {
   fileId       BigInt             @map("file_id")
   submissionId BigInt             @map("submission_id")
-  type         SubmissionFileType @default(SUBMIT_ATTACHMENT) @map("type")
+  type         String @default("SUBMIT_ATTACHMENT") @map("type")
 
   file       File       @relation(fields: [fileId], references: [id])
   submission Submission @relation(fields: [submissionId], references: [id])
@@ -1061,13 +880,6 @@ model SubmissionSubjectOrganizationData {
   @@map("submission_subject_organization_data")
 }
 
-enum ReductionProjectStatus {
-  ACTIVE
-  DELETED
-
-  @@map("reduction_project_status")
-}
-
 model ReductionProject {
   id                           BigInt                 @id @default(autoincrement())
   name                         String
@@ -1083,7 +895,7 @@ model ReductionProject {
   year                         Int
   baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(28, 10)
   projectScenario              Decimal                @map("project_scenario") @db.Decimal(28, 10)
-  status                       ReductionProjectStatus @default(ACTIVE)
+  status                       String @default("ACTIVE")
   createdAt                    DateTime               @default(now()) @map("created_at")
   updatedAt                    DateTime?              @updatedAt @map("updated_at")
   createdById                  BigInt?                @map("created_by_id")
@@ -1109,32 +921,12 @@ model SubmissionSubjectReductionProject {
   @@map("submission_subject_reduction_projects")
 }
 
-enum SubmissionStatus {
-  PENDING
-  APPROVED
-  APPROVED_AUTOMATICALLY
-  REVIEWED
-  REJECTED
-
-  @@map("submission_status")
-}
-
-enum SubmissionType {
-  ORGANIZATION_ACCREDITATION
-  CARBON_INVENTORY_CALCULATION
-  CARBON_INVENTORY_VERIFICATION
-  REDUCTION_PROJECT_VERIFICATION
-  NEUTRALIZATION_PLAN_VERIFICATION
-
-  @@map("submission_type")
-}
-
 model Submission {
   id             BigInt                 @id @default(autoincrement())
   subjectId      BigInt                 @map("subject_id")
-  type           SubmissionType
+  type           String
   badgeId        BigInt?                @map("badge_id")
-  status         SubmissionStatus       @default(PENDING)
+  status         String       @default("PENDING")
   reviewerId     BigInt?                @map("reviewer_id")
   reviewComments String?                @map("review_comments") @db.Text
   reviewedAt     DateTime?              @map("reviewed_at")
@@ -1158,8 +950,8 @@ model Submission {
 
 view SubmissionSummaryView {
   submissionId       BigInt           @unique @map("submission_id")
-  type               SubmissionType
-  status             SubmissionStatus
+  type               String
+  status             String
   organizationId     BigInt           @map("organization_id")
   organizationName   String           @map("organization_name")
   period             Int?
@@ -1171,27 +963,10 @@ view SubmissionSummaryView {
   @@map("submission_summary_view")
 }
 
-enum BadgeType {
-  ORGANIZATION_ACCREDITATION
-  CARBON_INVENTORY_CALCULATION
-  CARBON_INVENTORY_VERIFICATION
-  REDUCTION_PROJECT_VERIFICATION
-  NEUTRALIZATION_PLAN_VERIFICATION
-
-  @@map("badge_type")
-}
-
-enum BadgeStatus {
-  ACTIVE
-  INACTIVE
-
-  @@map("badge_status")
-}
-
 model Badge {
   id        BigInt      @id @default(autoincrement())
-  type      BadgeType
-  status    BadgeStatus @default(ACTIVE)
+  type      String
+  status    String @default("ACTIVE")
   fileId    BigInt      @unique @map("file_id")
   createdAt DateTime    @default(now()) @map("created_at")
 
@@ -1203,13 +978,6 @@ model Badge {
   @@map("badge")
 }
 
-enum ReductionPlanInitiativeStatus {
-  ACTIVE
-  DELETED
-
-  @@map("reduction_plan_initiative_status")
-}
-
 model ReductionPlanInitiative {
   id                BigInt                        @id @default(autoincrement())
   subcategoryId     BigInt                        @map("subcategory_id")
@@ -1217,7 +985,7 @@ model ReductionPlanInitiative {
   dimensionValue2Id BigInt?                       @map("dimension_value_2_id")
   title             String
   description       String @db.Text
-  status            ReductionPlanInitiativeStatus @default(ACTIVE)
+  status            String @default("ACTIVE")
   createdAt         DateTime                      @default(now()) @map("created_at")
   updatedAt         DateTime?                     @updatedAt @map("updated_at")
   createdById       BigInt?                       @map("created_by_id")
