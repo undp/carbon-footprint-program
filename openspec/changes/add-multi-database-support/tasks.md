@@ -49,8 +49,8 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ### Docs
 
-- [ ] 1.11 Update CLAUDE.md: add a "TypeScript & Typing Rules" line stating `@db.Decimal(28, 10)` is the project-wide standard for all decimal columns
-- [ ] 1.12 Update CLAUDE.md: add a note that UUIDs use `@default(uuid())` (client-side), not `dbgenerated`
+- [x] 1.11 Update CLAUDE.md: add a "TypeScript & Typing Rules" line stating `@db.Decimal(28, 10)` is the project-wide standard for all decimal columns
+- [x] 1.12 Update CLAUDE.md: add a note that UUIDs use `@default(uuid())` (client-side), not `dbgenerated`
 
 ### Merge
 
