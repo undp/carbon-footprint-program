@@ -1,5 +1,9 @@
-const getEnv = (key: string): string | undefined =>
-  typeof process !== "undefined" ? process.env[key] : undefined;
+type ProcessLike = { env: Record<string, string | undefined> };
+
+const getEnv = (key: string): string | undefined => {
+  const proc = (globalThis as { process?: ProcessLike }).process;
+  return proc?.env[key];
+};
 
 const NODE_ENV = getEnv("NODE_ENV") ?? "production";
 
