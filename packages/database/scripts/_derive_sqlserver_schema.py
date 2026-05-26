@@ -120,6 +120,11 @@ def derive_mssql(pg_text):
     # 1c. SQL Server has no `Restrict` referential action; NoAction is equivalent
     # (both block the delete of a referenced row).
     text = text.replace("onDelete: Restrict", "onDelete: NoAction")
+    # 1d. @db.Text maps to SQL Server's deprecated `text` LOB type, which does NOT
+    # support UTF-8/_SC collations (our DB uses Latin1_General_100_CS_AS_SC_UTF8).
+    # Use nvarchar(max) instead. (On PostgreSQL @db.Text -> `text` is correct and
+    # stays in that schema.)
+    text = text.replace("@db.Text", "@db.NVarChar(Max)")
     # 2. Remove enum blocks entirely.
     lines, blocks = split_blocks(text)
     drop = set()

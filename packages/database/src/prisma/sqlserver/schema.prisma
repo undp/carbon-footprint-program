@@ -29,8 +29,8 @@ model CountryParameter {
   id          BigInt    @id @default(autoincrement())
   countryId   BigInt    @map("country_id")
   key         String
-  value       String @db.Text
-  description String @db.Text
+  value       String @db.NVarChar(Max)
+  description String @db.NVarChar(Max)
   type        String
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
@@ -47,10 +47,10 @@ model CountryParameter {
 model SystemParameter {
   id          BigInt    @id @default(autoincrement())
   key         String    @unique
-  value       String @db.Text
-  description String @db.Text
+  value       String @db.NVarChar(Max)
+  description String @db.NVarChar(Max)
   type        String
-  options     String @db.Text      @default("[]")
+  options     String @db.NVarChar(Max)      @default("[]")
   minValue    Int?      @map("min_value")
   maxValue    Int?      @map("max_value")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -67,7 +67,7 @@ model CountryOrganizationSize {
   id               BigInt                        @id @default(autoincrement())
   countryId        BigInt                        @map("country_id")
   name             String
-  description      String? @db.Text
+  description      String? @db.NVarChar(Max)
   // Position must be > 0 (enforced by DB CHECK constraint: country_organization_size_position_check)
   position         Int
   status           String @default("ACTIVE")
@@ -90,7 +90,7 @@ model CountrySector {
   id                         BigInt                      @id @default(autoincrement())
   countryId                  BigInt                      @map("country_id")
   name                       String
-  description                String? @db.Text
+  description                String? @db.NVarChar(Max)
   status                     String         @default("ACTIVE")
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
@@ -114,7 +114,7 @@ model CountrySubsector {
   id                         BigInt                      @id @default(autoincrement())
   countrySectorId            BigInt                      @map("country_sector_id")
   name                       String
-  description                String? @db.Text
+  description                String? @db.NVarChar(Max)
   status                     String      @default("ACTIVE")
   createdAt                  DateTime                    @default(now()) @map("created_at")
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
@@ -136,7 +136,7 @@ model CountrySubsector {
 model OrganizationMainActivity {
   id                 BigInt                         @id @default(autoincrement())
   name               String
-  description        String? @db.Text
+  description        String? @db.NVarChar(Max)
   status             String @default("ACTIVE")
   countrySectorId    BigInt?                        @map("country_sector_id")
   countrySubsectorId BigInt?                        @map("country_subsector_id")
@@ -354,8 +354,8 @@ model MethodologyVersion {
   id                BigInt                   @id @default(autoincrement())
   countryId         BigInt                   @map("country_id")
   name              String
-  description       String @db.Text
-  regulation        String @db.Text
+  description       String @db.NVarChar(Max)
+  regulation        String @db.NVarChar(Max)
   version           String
   status            String
   createdAt         DateTime                 @default(now()) @map("created_at")
@@ -379,8 +379,8 @@ model MethodologyVersion {
 model Explanation {
   slug        String    @id
   name        String
-  description String? @db.Text
-  content     String @db.Text
+  description String? @db.NVarChar(Max)
+  content     String @db.NVarChar(Max)
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
@@ -397,9 +397,9 @@ model Category {
   name                 String
   icon                 String
   color                String
-  synonyms             String @db.Text
-  description          String @db.Text
-  explanation          String?            @db.Text
+  synonyms             String @db.NVarChar(Max)
+  description          String @db.NVarChar(Max)
+  explanation          String?            @db.NVarChar(Max)
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
   status               String     @default("ACTIVE")
@@ -424,8 +424,8 @@ model Subcategory {
   categoryId                  BigInt                       @map("category_id")
   name                        String
   icon                        String
-  description                 String @db.Text
-  explanation                 String?                      @db.Text
+  description                 String @db.NVarChar(Max)
+  explanation                 String?                      @db.NVarChar(Max)
   status                      String            @default("ACTIVE")
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
@@ -541,8 +541,8 @@ model EmissionFactor {
   dimensionValue1Id     BigInt?                       @map("dimension_value_1_id")
   dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
-  source                String @db.Text
-  gasDetails            String @db.Text                          @map("gas_details")
+  source                String @db.NVarChar(Max)
+  gasDetails            String @db.NVarChar(Max)                          @map("gas_details")
   value                 Decimal                       @db.Decimal(28, 10)
   status                String          @default("ACTIVE")
   createdAt             DateTime                      @default(now()) @map("created_at")
@@ -569,7 +569,7 @@ model CarbonInventory {
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")
-  organizationData     String? @db.Text                             @map("organization_data")
+  organizationData     String? @db.NVarChar(Max)                             @map("organization_data")
   year                 Int?
   status               String                   @default("ACTIVE")
   usageMode            String                         @map("usage_mode")
@@ -643,9 +643,9 @@ model CarbonInventoryLineInput {
   measurementUnitId      BigInt?                       @map("measurement_unit_id")
   directTotalEmissions   Decimal?                      @map("direct_total_emissions") @db.Decimal(28, 10)
   manualFactor           Decimal?                      @map("manual_factor") @db.Decimal(28, 10)
-  manualFactorSource     String?                       @map("manual_factor_source") @db.Text
+  manualFactorSource     String?                       @map("manual_factor_source") @db.NVarChar(Max)
   manualFactorRateUnitId BigInt?                       @map("manual_factor_rate_unit_id")
-  comment                String? @db.Text
+  comment                String? @db.NVarChar(Max)
   isActive               Boolean                       @default(true) @map("is_active")
   createdAt              DateTime                      @default(now()) @map("created_at")
   updatedAt              DateTime?                     @updatedAt @map("updated_at")
@@ -677,8 +677,8 @@ model CarbonInventoryLineFactor {
   emissionFactorId        BigInt?                  @map("emission_factor_id")
   appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(28, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
-  appliedFactorSource     String?                  @map("applied_factor_source") @db.Text
-  derivationDetails       String? @db.Text                    @map("derivation_details")
+  appliedFactorSource     String?                  @map("applied_factor_source") @db.NVarChar(Max)
+  derivationDetails       String? @db.NVarChar(Max)                    @map("derivation_details")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime?                @updatedAt @map("updated_at")
   createdById             BigInt?                  @map("created_by_id")
@@ -697,7 +697,7 @@ model CarbonInventoryLineResult {
   id             BigInt                   @id @default(autoincrement())
   lineInputId    BigInt                   @map("line_input_id")
   totalEmissions Decimal                  @map("total_emissions") @db.Decimal(28, 10)
-  resultDetails  String? @db.Text                    @map("result_details")
+  resultDetails  String? @db.NVarChar(Max)                    @map("result_details")
   calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
   updatedAt      DateTime?                @updatedAt @map("updated_at")
@@ -788,7 +788,7 @@ model OrganizationData {
   sectorId                           BigInt?                            @map("sector_id")
   mainActivityId                     BigInt?                            @map("main_activity_id")
   subsectorId                        BigInt?                            @map("subsector_id")
-  address                            String? @db.Text
+  address                            String? @db.NVarChar(Max)
   employeesCount                     Int?                               @map("employees_count")
   representativeFullName             String?                            @map("representative_full_name")
   representativeTaxId                String?                            @map("representative_tax_id")
@@ -886,12 +886,12 @@ model ReductionProject {
   organizationId               BigInt                 @map("organization_id")
   carbonInventoryId            BigInt                 @map("carbon_inventory_id")
   implementationDate           String                 @map("implementation_date")
-  description                  String @db.Text
+  description                  String @db.NVarChar(Max)
   subcategoryId                BigInt                 @map("subcategory_id")
   gwpUsed                      String?                @map("gwp_used")
-  consideredGei                String @db.Text                   @default("[]") @map("considered_gei")
+  consideredGei                String @db.NVarChar(Max)                   @default("[]") @map("considered_gei")
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
-  reportedElsewhereDescription String?                @map("reported_elsewhere_description") @db.Text
+  reportedElsewhereDescription String?                @map("reported_elsewhere_description") @db.NVarChar(Max)
   year                         Int
   baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(28, 10)
   projectScenario              Decimal                @map("project_scenario") @db.Decimal(28, 10)
@@ -928,7 +928,7 @@ model Submission {
   badgeId        BigInt?                @map("badge_id")
   status         String       @default("PENDING")
   reviewerId     BigInt?                @map("reviewer_id")
-  reviewComments String?                @map("review_comments") @db.Text
+  reviewComments String?                @map("review_comments") @db.NVarChar(Max)
   reviewedAt     DateTime?              @map("reviewed_at")
   createdAt      DateTime               @default(now()) @map("created_at")
   updatedAt      DateTime?              @updatedAt @map("updated_at")
@@ -984,7 +984,7 @@ model ReductionPlanInitiative {
   dimensionValue1Id BigInt?                       @map("dimension_value_1_id")
   dimensionValue2Id BigInt?                       @map("dimension_value_2_id")
   title             String
-  description       String @db.Text
+  description       String @db.NVarChar(Max)
   status            String @default("ACTIVE")
   createdAt         DateTime                      @default(now()) @map("created_at")
   updatedAt         DateTime?                     @updatedAt @map("updated_at")
