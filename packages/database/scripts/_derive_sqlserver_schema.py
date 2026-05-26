@@ -87,10 +87,39 @@ def apply_db_text(text):
     return "".join(lines)
 
 
+# Cascade paths that SQL Server rejects as multi-path; broken to NoAction.
+# Each entry (model, field) is the FK-owning side whose Cascade we drop. We keep
+# cascade on the "primary" parent and break the secondary path.
+CASCADE_BREAKS = [
+    ("CarbonInventoryLine", "subcategory"),  # keep cascade from CarbonInventory; drop from Subcategory
+]
+
+
+def break_cascades(text):
+    lines, blocks = split_blocks(text)
+    bmap = {name: (s, e) for k, name, s, e in blocks if k in ("model", "view")}
+    for model, field in CASCADE_BREAKS:
+        if model not in bmap:
+            continue
+        s, e = bmap[model]
+        for li in range(s + 1, e):
+            fm = re.match(r"^\s+(\w+)\s", lines[li])
+            if fm and fm.group(1) == field and "onDelete: Cascade" in lines[li]:
+                lines[li] = lines[li].replace("onDelete: Cascade", "onDelete: NoAction")
+    return "".join(lines)
+
+
 def derive_mssql(pg_text):
     text = pg_text
     # 1. Header: provider + generator output (single shared client dir, per ADR).
     text = text.replace('provider = "postgresql"', 'provider = "sqlserver"')
+    # 1b. Prisma's SQL Server connector does NOT support the `Json` scalar type
+    # (unlike PostgreSQL). Store JSON as nvarchar(max) text. NOTE: the read/write
+    # paths need provider-aware JSON (de)serialization — tracked as finding 10.
+    text = re.sub(r"(^\s+\w+\s+)Json(\?)?", r"\1String\2 @db.Text", text, flags=re.MULTILINE)
+    # 1c. SQL Server has no `Restrict` referential action; NoAction is equivalent
+    # (both block the delete of a referenced row).
+    text = text.replace("onDelete: Restrict", "onDelete: NoAction")
     # 2. Remove enum blocks entirely.
     lines, blocks = split_blocks(text)
     drop = set()
@@ -107,7 +136,34 @@ def derive_mssql(pg_text):
     text = re.sub(r'@default\(([A-Z][A-Z0-9_]*)\)', r'@default("\1")', text)
     # 5. UUID native type.
     text = text.replace("@db.Uuid", "@db.UniqueIdentifier")
-    # 6. Collapse 3+ blank lines left by enum removal.
+
+    # 6. SQL Server forbids multiple cascade/SET NULL paths and self-relations
+    # without NoAction (PostgreSQL allows them). Set onUpdate: NoAction (inert:
+    # PKs are immutable autoincrement/uuid) and onDelete: NoAction on every
+    # FK-owning relation. Behavior delta vs PG: a referenced row cannot be
+    # hard-deleted (NoAction) instead of SET NULL/cascade; documented in the ADR.
+    def add_noaction(m):
+        inner = m.group(1)
+        extra = []
+        # onUpdate: Cascade (Prisma's implicit default) is the dominant cause of
+        # SQL Server multi-path errors and is inert here (PKs never change), so
+        # force NoAction whenever onUpdate is not already set.
+        if "onUpdate" not in inner:
+            extra.append("onUpdate: NoAction")
+        # Preserve any explicit onDelete (Restrict/Cascade intent); only default
+        # the rest to NoAction.
+        if "onDelete" not in inner:
+            extra.append("onDelete: NoAction")
+        if not extra:
+            return m.group(0)
+        return f"@relation({inner}, {', '.join(extra)})"
+
+    text = re.sub(r"@relation\(([^)]*\bfields:[^)]*)\)", add_noaction, text)
+
+    # 6b. Break SQL Server multi-path cascade diamonds.
+    text = break_cascades(text)
+
+    # 7. Collapse 3+ blank lines left by enum removal.
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text
 

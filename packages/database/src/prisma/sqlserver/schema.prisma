@@ -36,9 +36,9 @@ model CountryParameter {
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
   updatedById BigInt?   @map("updated_by_id")
-  country     Country   @relation(fields: [countryId], references: [id])
-  creator     User?     @relation("country_parameter_created_by", fields: [createdById], references: [id])
-  updater     User?     @relation("country_parameter_updated_by", fields: [updatedById], references: [id])
+  country     Country   @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator     User?     @relation("country_parameter_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater     User?     @relation("country_parameter_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@unique([countryId, key])
   @@map("country_parameter")
@@ -50,15 +50,15 @@ model SystemParameter {
   value       String @db.Text
   description String @db.Text
   type        String
-  options     Json      @default("[]")
+  options     String @db.Text      @default("[]")
   minValue    Int?      @map("min_value")
   maxValue    Int?      @map("max_value")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
   updatedById BigInt?   @map("updated_by_id")
-  creator     User?     @relation("system_parameter_created_by", fields: [createdById], references: [id])
-  updater     User?     @relation("system_parameter_updated_by", fields: [updatedById], references: [id])
+  creator     User?     @relation("system_parameter_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater     User?     @relation("system_parameter_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("system_parameter")
 }
@@ -75,9 +75,9 @@ model CountryOrganizationSize {
   updatedAt        DateTime?                     @updatedAt @map("updated_at")
   createdById      BigInt?                       @map("created_by_id")
   updatedById      BigInt?                       @map("updated_by_id")
-  country          Country                       @relation(fields: [countryId], references: [id])
-  creator          User?                         @relation("country_organization_size_created_by", fields: [createdById], references: [id])
-  updater          User?                         @relation("country_organization_size_updated_by", fields: [updatedById], references: [id])
+  country          Country                       @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator          User?                         @relation("country_organization_size_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater          User?                         @relation("country_organization_size_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   organizationData OrganizationData[]
 
   // NOTE: Partial unique index (countryId, name) WHERE status = 'ACTIVE'.
@@ -96,9 +96,9 @@ model CountrySector {
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
   updatedById                BigInt?                     @map("updated_by_id")
-  country                    Country                     @relation(fields: [countryId], references: [id])
-  creator                    User?                       @relation("country_sector_created_by", fields: [createdById], references: [id])
-  updater                    User?                       @relation("country_sector_updated_by", fields: [updatedById], references: [id])
+  country                    Country                     @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                    User?                       @relation("country_sector_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                    User?                       @relation("country_sector_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   subsectors                 CountrySubsector[]
   organizationMainActivities OrganizationMainActivity[]
   organizationData           OrganizationData[]
@@ -120,9 +120,9 @@ model CountrySubsector {
   updatedAt                  DateTime?                   @updatedAt @map("updated_at")
   createdById                BigInt?                     @map("created_by_id")
   updatedById                BigInt?                     @map("updated_by_id")
-  countrySector              CountrySector               @relation(fields: [countrySectorId], references: [id])
-  creator                    User?                       @relation("country_subsector_created_by", fields: [createdById], references: [id])
-  updater                    User?                       @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
+  countrySector              CountrySector               @relation(fields: [countrySectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                    User?                       @relation("country_subsector_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                    User?                       @relation("country_subsector_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   organizationMainActivities OrganizationMainActivity[]
   organizationData           OrganizationData[]
   subcategoryRecommendations SubcategoryRecommendation[]
@@ -144,10 +144,10 @@ model OrganizationMainActivity {
   updatedAt          DateTime?                      @updatedAt @map("updated_at")
   createdById        BigInt?                        @map("created_by_id")
   updatedById        BigInt?                        @map("updated_by_id")
-  countrySector      CountrySector?                 @relation(fields: [countrySectorId], references: [id])
-  countrySubsector   CountrySubsector?              @relation(fields: [countrySubsectorId], references: [id])
-  creator            User?                          @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
-  updater            User?                          @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  countrySector      CountrySector?                 @relation(fields: [countrySectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  countrySubsector   CountrySubsector?              @relation(fields: [countrySubsectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator            User?                          @relation("organization_main_activity_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater            User?                          @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   organizationData   OrganizationData[]
 
   // NOTE: Partial unique index (name, countrySectorId, countrySubsectorId) NULLS NOT DISTINCT WHERE status = 'ACTIVE'.
@@ -162,7 +162,7 @@ model CountryJobPosition {
   name             String
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime?          @updatedAt @map("updated_at")
-  country          Country            @relation(fields: [countryId], references: [id])
+  country          Country            @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   users            User[]
   organizationData OrganizationData[]
 
@@ -181,10 +181,10 @@ model UserOrganizationMembership {
   createdById    BigInt?          @map("created_by_id")
   updatedById    BigInt?          @map("updated_by_id")
 
-  user         User         @relation("user_memberships", fields: [userId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  creator      User?        @relation("membership_created_by", fields: [createdById], references: [id])
-  updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id])
+  user         User         @relation("user_memberships", fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  organization Organization @relation(fields: [organizationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator      User?        @relation("membership_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@index([userId, organizationId])
   @@map("user_organization_membership")
@@ -247,10 +247,10 @@ model User {
   carbonInventoryLineFactorsUpdated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_updated_by")
   carbonInventoryLineResultsCreated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_created_by")
   carbonInventoryLineResultsUpdated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_updated_by")
-  countryJobPosition                   CountryJobPosition?            @relation(fields: [countryJobPositionId], references: [id])
-  creator                              User?                          @relation("user_created_by", fields: [createdById], references: [id])
+  countryJobPosition                   CountryJobPosition?            @relation(fields: [countryJobPositionId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                              User?                          @relation("user_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   usersCreated                         User[]                         @relation("user_created_by")
-  updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])
+  updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   usersUpdated                         User[]                         @relation("user_updated_by")
   organizationsCreated                 Organization[]                 @relation("organization_created_by")
   organizationsUpdated                 Organization[]                 @relation("organization_updated_by")
@@ -283,8 +283,8 @@ model UserRoleAudit {
   changedById  BigInt     @map("changed_by_id")
   createdAt    DateTime   @default(now()) @map("created_at")
 
-  user      User @relation("user_role_audit_target", fields: [userId], references: [id], onDelete: Restrict)
-  changedBy User @relation("user_role_audit_actor", fields: [changedById], references: [id], onDelete: Restrict)
+  user      User @relation("user_role_audit_target", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  changedBy User @relation("user_role_audit_actor", fields: [changedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([userId, createdAt])
   @@map("user_role_audit")
@@ -295,7 +295,7 @@ model UserAccessLog {
   userId    BigInt   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([userId, createdAt])
   @@index([createdAt])
@@ -324,7 +324,7 @@ model MeasurementUnit {
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
   status                      String        @default("ACTIVE")
-  magnitude                   Magnitude                    @relation(fields: [magnitudeId], references: [id], onDelete: Restrict)
+  magnitude                   Magnitude                    @relation(fields: [magnitudeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
   lineInputs                  CarbonInventoryLineInput[]
@@ -341,8 +341,8 @@ model RateMeasurementUnit {
   numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
   denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
   status                       String       @default("ACTIVE")
-  denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
-  numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
+  denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   emissionFactors              EmissionFactor[]
   lineInputsAsManualFactor     CarbonInventoryLineInput[]  @relation("manual_factor_rate_unit")
   lineFactorsAsApplied         CarbonInventoryLineFactor[] @relation("applied_factor_rate_unit")
@@ -362,9 +362,9 @@ model MethodologyVersion {
   updatedAt         DateTime?                @updatedAt @map("updated_at")
   createdById       BigInt?                  @map("created_by_id")
   updatedById       BigInt?                  @map("updated_by_id")
-  country           Country                  @relation(fields: [countryId], references: [id])
-  creator           User?                    @relation("methodology_version_created_by", fields: [createdById], references: [id])
-  updater           User?                    @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
+  country           Country                  @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator           User?                    @relation("methodology_version_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater           User?                    @relation("methodology_version_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   categories        Category[]
   carbonInventories CarbonInventory[]
 
@@ -385,8 +385,8 @@ model Explanation {
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
   updatedById BigInt?   @map("updated_by_id")
-  creator     User?     @relation("explanation_created_by", fields: [createdById], references: [id])
-  updater     User?     @relation("explanation_updated_by", fields: [updatedById], references: [id])
+  creator     User?     @relation("explanation_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater     User?     @relation("explanation_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("explanation")
 }
@@ -407,9 +407,9 @@ model Category {
   updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
   updatedById          BigInt?            @map("updated_by_id")
-  methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
-  creator              User?              @relation("category_created_by", fields: [createdById], references: [id])
-  updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
+  methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator              User?              @relation("category_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   subcategories        Subcategory[]
 
   // Partial unique indexes exist in SQL migrations:
@@ -431,9 +431,9 @@ model Subcategory {
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")
   updatedById                 BigInt?                      @map("updated_by_id")
-  category                    Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id])
-  updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id])
+  category                    Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   dimensions                  EmissionFactorDimension[]
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]
@@ -453,8 +453,8 @@ model SubcategoryMeasurementUnit {
   subcategoryId     BigInt          @map("subcategory_id")
   measurementUnitId BigInt          @map("measurement_unit_id")
   createdAt         DateTime        @default(now()) @map("created_at")
-  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id])
+  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@unique([subcategoryId, measurementUnitId])
   @@map("subcategory_measurement_unit")
@@ -470,11 +470,11 @@ model SubcategoryRecommendation {
   updatedAt     DateTime?                       @updatedAt @map("updated_at")
   createdById   BigInt?                         @map("created_by_id")
   updatedById   BigInt?                         @map("updated_by_id")
-  subcategory   Subcategory                     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  sector        CountrySector                   @relation(fields: [sectorId], references: [id])
-  subsector     CountrySubsector?               @relation(fields: [subsectorId], references: [id])
-  creator       User?                           @relation("subcategory_recommendation_created_by", fields: [createdById], references: [id])
-  updater       User?                           @relation("subcategory_recommendation_updated_by", fields: [updatedById], references: [id])
+  subcategory   Subcategory                     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sector        CountrySector                   @relation(fields: [sectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  subsector     CountrySubsector?               @relation(fields: [subsectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator       User?                           @relation("subcategory_recommendation_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater       User?                           @relation("subcategory_recommendation_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   // Partial unique index exists in SQL migration:
   // ("subcategory_id", "sector_id", "subsector_id") WHERE status = 'ACTIVE'
@@ -495,9 +495,9 @@ model EmissionFactorDimension {
   updatedAt     DateTime?                      @updatedAt @map("updated_at")
   createdById   BigInt?                        @map("created_by_id")
   updatedById   BigInt?                        @map("updated_by_id")
-  subcategory   Subcategory                    @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  creator       User?                          @relation("emission_factor_dimension_created_by", fields: [createdById], references: [id])
-  updater       User?                          @relation("emission_factor_dimension_updated_by", fields: [updatedById], references: [id])
+  subcategory   Subcategory                    @relation(fields: [subcategoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator       User?                          @relation("emission_factor_dimension_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater       User?                          @relation("emission_factor_dimension_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   values        EmissionFactorDimensionValue[]
 
   // Partial unique indexes exist in SQL migration:
@@ -517,8 +517,8 @@ model EmissionFactorDimensionValue {
   updatedAt                            DateTime?                          @updatedAt @map("updated_at")
   createdById                          BigInt?                            @map("created_by_id")
   updatedById                          BigInt?                            @map("updated_by_id")
-  dimension                            EmissionFactorDimension            @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
-  parentValue                          EmissionFactorDimensionValue?      @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id])
+  dimension                            EmissionFactorDimension            @relation(fields: [dimensionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parentValue                          EmissionFactorDimensionValue?      @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   childValues                          EmissionFactorDimensionValue[]     @relation("dimension_value_hierarchy")
   emissionFactorsAsDimension1          EmissionFactor[]                   @relation("emission_factor_dimension_value_1")
   emissionFactorsAsDimension2          EmissionFactor[]                   @relation("emission_factor_dimension_value_2")
@@ -526,8 +526,8 @@ model EmissionFactorDimensionValue {
   lineInputsAsSelection2               CarbonInventoryLineInput[]         @relation("line_input_selection_2")
   reductionPlanInitiativesAsDimension1 ReductionPlanInitiative[]          @relation("reduction_plan_initiative_dimension_value_1")
   reductionPlanInitiativesAsDimension2 ReductionPlanInitiative[]          @relation("reduction_plan_initiative_dimension_value_2")
-  creator                              User?                              @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
-  updater                              User?                              @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
+  creator                              User?                              @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                              User?                              @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   // Partial unique index exists in SQL migration:
   // ("dimension_id", "value") WHERE status <> 'DELETED'
@@ -542,19 +542,19 @@ model EmissionFactor {
   dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
   source                String @db.Text
-  gasDetails            Json                          @map("gas_details")
+  gasDetails            String @db.Text                          @map("gas_details")
   value                 Decimal                       @db.Decimal(28, 10)
   status                String          @default("ACTIVE")
   createdAt             DateTime                      @default(now()) @map("created_at")
   updatedAt             DateTime?                     @updatedAt @map("updated_at")
   createdById           BigInt?                       @map("created_by_id")
   updatedById           BigInt?                       @map("updated_by_id")
-  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
-  dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
-  rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
-  creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
-  updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
+  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   lineFactors           CarbonInventoryLineFactor[]
 
   // Partial unique index (status <> 'DELETED') managed in migration SQL
@@ -569,7 +569,7 @@ model CarbonInventory {
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")
-  organizationData     Json?                             @map("organization_data")
+  organizationData     String? @db.Text                             @map("organization_data")
   year                 Int?
   status               String                   @default("ACTIVE")
   usageMode            String                         @map("usage_mode")
@@ -583,13 +583,13 @@ model CarbonInventory {
   updatedById          BigInt?                           @map("updated_by_id")
   selfDeclaredById     BigInt?                           @map("self_declared_by_id")
   isSelfDeclared       Boolean                           @default(false) @map("is_self_declared")
-  methodologyVersion   MethodologyVersion                @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
-  creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
-  updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
-  selfDeclaredBy       User?                             @relation("carbon_inventory_self_declared_by", fields: [selfDeclaredById], references: [id])
+  methodologyVersion   MethodologyVersion                @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  selfDeclaredBy       User?                             @relation("carbon_inventory_self_declared_by", fields: [selfDeclaredById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   lines                CarbonInventoryLine[]
   subtotals            CarbonInventorySubtotalsView[]
-  organization         Organization?                     @relation(fields: [organizationId], references: [id])
+  organization         Organization?                     @relation(fields: [organizationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submission           SubmissionSubjectCarbonInventory?
   reductionProjects    ReductionProject[]                @relation("reduction_project_carbon_inventory")
 
@@ -607,10 +607,10 @@ model CarbonInventoryLine {
   updatedAt         DateTime?                  @updatedAt @map("updated_at")
   createdById       BigInt?                    @map("created_by_id")
   updatedById       BigInt?                    @map("updated_by_id")
-  carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id], onDelete: Cascade)
-  subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
-  updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
+  carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   inputs            CarbonInventoryLineInput[]
   files             CarbonInventoryLineFile[]
 
@@ -623,9 +623,9 @@ model CarbonInventoryLineFile {
   createdAt   DateTime @default(now()) @map("created_at")
   createdById BigInt?  @map("created_by_id")
 
-  line    CarbonInventoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  file    File                @relation(fields: [fileId], references: [id], onDelete: Restrict)
-  creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id])
+  line    CarbonInventoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  file    File                @relation(fields: [fileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@id([lineId, fileId])
   @@map("carbon_inventory_line_file")
@@ -651,13 +651,13 @@ model CarbonInventoryLineInput {
   updatedAt              DateTime?                     @updatedAt @map("updated_at")
   createdById            BigInt?                       @map("created_by_id")
   updatedById            BigInt?                       @map("updated_by_id")
-  line                   CarbonInventoryLine           @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  selection1             EmissionFactorDimensionValue? @relation("line_input_selection_1", fields: [selection1Id], references: [id])
-  selection2             EmissionFactorDimensionValue? @relation("line_input_selection_2", fields: [selection2Id], references: [id])
-  measurementUnit        MeasurementUnit?              @relation(fields: [measurementUnitId], references: [id])
-  manualFactorRateUnit   RateMeasurementUnit?          @relation("manual_factor_rate_unit", fields: [manualFactorRateUnitId], references: [id])
-  creator                User?                         @relation("carbon_inventory_line_input_created_by", fields: [createdById], references: [id])
-  updater                User?                         @relation("carbon_inventory_line_input_updated_by", fields: [updatedById], references: [id])
+  line                   CarbonInventoryLine           @relation(fields: [lineId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  selection1             EmissionFactorDimensionValue? @relation("line_input_selection_1", fields: [selection1Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  selection2             EmissionFactorDimensionValue? @relation("line_input_selection_2", fields: [selection2Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  measurementUnit        MeasurementUnit?              @relation(fields: [measurementUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  manualFactorRateUnit   RateMeasurementUnit?          @relation("manual_factor_rate_unit", fields: [manualFactorRateUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                User?                         @relation("carbon_inventory_line_input_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                User?                         @relation("carbon_inventory_line_input_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   factor                 CarbonInventoryLineFactor?
   result                 CarbonInventoryLineResult?
 
@@ -678,16 +678,16 @@ model CarbonInventoryLineFactor {
   appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(28, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
   appliedFactorSource     String?                  @map("applied_factor_source") @db.Text
-  derivationDetails       Json?                    @map("derivation_details")
+  derivationDetails       String? @db.Text                    @map("derivation_details")
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime?                @updatedAt @map("updated_at")
   createdById             BigInt?                  @map("created_by_id")
   updatedById             BigInt?                  @map("updated_by_id")
-  lineInput               CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade)
-  emissionFactor          EmissionFactor?          @relation(fields: [emissionFactorId], references: [id])
-  appliedFactorRateUnit   RateMeasurementUnit      @relation("applied_factor_rate_unit", fields: [appliedFactorRateUnitId], references: [id])
-  creator                 User?                    @relation("carbon_inventory_line_factor_created_by", fields: [createdById], references: [id])
-  updater                 User?                    @relation("carbon_inventory_line_factor_updated_by", fields: [updatedById], references: [id])
+  lineInput               CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  emissionFactor          EmissionFactor?          @relation(fields: [emissionFactorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  appliedFactorRateUnit   RateMeasurementUnit      @relation("applied_factor_rate_unit", fields: [appliedFactorRateUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                 User?                    @relation("carbon_inventory_line_factor_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                 User?                    @relation("carbon_inventory_line_factor_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@unique([lineInputId])
   @@map("carbon_inventory_line_factor")
@@ -697,15 +697,15 @@ model CarbonInventoryLineResult {
   id             BigInt                   @id @default(autoincrement())
   lineInputId    BigInt                   @map("line_input_id")
   totalEmissions Decimal                  @map("total_emissions") @db.Decimal(28, 10)
-  resultDetails  Json?                    @map("result_details")
+  resultDetails  String? @db.Text                    @map("result_details")
   calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
   updatedAt      DateTime?                @updatedAt @map("updated_at")
   createdById    BigInt?                  @map("created_by_id")
   updatedById    BigInt?                  @map("updated_by_id")
-  lineInput      CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade)
-  creator        User?                    @relation("carbon_inventory_line_result_created_by", fields: [createdById], references: [id])
-  updater        User?                    @relation("carbon_inventory_line_result_updated_by", fields: [updatedById], references: [id])
+  lineInput      CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator        User?                    @relation("carbon_inventory_line_result_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater        User?                    @relation("carbon_inventory_line_result_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@unique([lineInputId])
   @@map("carbon_inventory_line_result")
@@ -718,7 +718,7 @@ view CarbonInventorySubtotalsView {
   value                     Decimal         @db.Decimal(28, 10)
   activeLinesCount          BigInt          @map("active_lines_count")
   activeCompletedLinesCount BigInt          @map("active_completed_lines_count")
-  carbonInventory           CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
+  carbonInventory           CarbonInventory @relation(fields: [carbonInventoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("carbon_inventory_subtotals_view")
 }
@@ -750,8 +750,8 @@ view OrganizationSummaryView {
   hasCarbonInventories    Boolean                          @map("has_carbon_inventories")
   totalEmissions          Decimal                          @map("total_emissions") @db.Decimal(28, 10)
   lastMeasurement         DateTime?                        @map("last_measurement")
-  organization            Organization                     @relation(fields: [organizationId], references: [id])
-  organizationData        OrganizationData                 @relation(fields: [organizationDataId], references: [id])
+  organization            Organization                     @relation(fields: [organizationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  organizationData        OrganizationData                 @relation(fields: [organizationDataId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("organization_summary_view")
 }
@@ -765,9 +765,9 @@ model Organization {
   createdById BigInt?            @map("created_by_id")
   updatedById BigInt?            @map("updated_by_id")
 
-  country           Country                      @relation(fields: [countryId], references: [id])
-  creator           User?                        @relation("organization_created_by", fields: [createdById], references: [id])
-  updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
+  country           Country                      @relation(fields: [countryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator           User?                        @relation("organization_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   data              OrganizationData[]
   carbonInventories CarbonInventory[]
   reductionProjects ReductionProject[]
@@ -799,15 +799,15 @@ model OrganizationData {
   updatedAt                          DateTime?                          @updatedAt @map("updated_at")
   createdById                        BigInt?                            @map("created_by_id")
   updatedById                        BigInt?                            @map("updated_by_id")
-  organization                       Organization                       @relation(fields: [organizationId], references: [id])
-  countryOrganizationSize            CountryOrganizationSize?           @relation(fields: [countryOrganizationSizeId], references: [id])
-  sector                             CountrySector?                     @relation(fields: [sectorId], references: [id])
-  subsector                          CountrySubsector?                  @relation(fields: [subsectorId], references: [id])
-  representativeCountryJobPosition   CountryJobPosition?                @relation(fields: [representativeCountryJobPositionId], references: [id])
-  creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id])
-  updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
+  organization                       Organization                       @relation(fields: [organizationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  countryOrganizationSize            CountryOrganizationSize?           @relation(fields: [countryOrganizationSizeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  sector                             CountrySector?                     @relation(fields: [sectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  subsector                          CountrySubsector?                  @relation(fields: [subsectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  representativeCountryJobPosition   CountryJobPosition?                @relation(fields: [representativeCountryJobPositionId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submission                         SubmissionSubjectOrganizationData?
-  mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id])
+  mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   summaries                          OrganizationSummaryView[]
 
   // NOTE: The following constraints are implemented on the migrations:
@@ -828,7 +828,7 @@ model File {
   deletedAt    DateTime?  @map("deleted_at")
   createdById  BigInt?    @map("created_by_id")
 
-  createdBy                User?                     @relation("file_created_by", fields: [createdById], references: [id])
+  createdBy                User?                     @relation("file_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submissionFiles          SubmissionFile[]
   badge                    Badge?                    @relation("badge_file")
   carbonInventoryLineFiles CarbonInventoryLineFile[]
@@ -841,8 +841,8 @@ model SubmissionFile {
   submissionId BigInt             @map("submission_id")
   type         String @default("SUBMIT_ATTACHMENT") @map("type")
 
-  file       File       @relation(fields: [fileId], references: [id])
-  submission Submission @relation(fields: [submissionId], references: [id])
+  file       File       @relation(fields: [fileId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submission Submission @relation(fields: [submissionId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@id([fileId, submissionId])
   @@index([submissionId])
@@ -853,7 +853,7 @@ model SubmissionSubject {
   id               BigInt                             @id @default(autoincrement())
   createdAt        DateTime                           @default(now()) @map("created_at")
   createdById      BigInt?                            @map("created_by_id")
-  creator          User?                              @relation("submission_subject_created_by", fields: [createdById], references: [id])
+  creator          User?                              @relation("submission_subject_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submissions      Submission[]
   carbonInventory  SubmissionSubjectCarbonInventory?
   organizationData SubmissionSubjectOrganizationData?
@@ -865,8 +865,8 @@ model SubmissionSubject {
 model SubmissionSubjectCarbonInventory {
   subjectId         BigInt            @id @map("subject_id")
   carbonInventoryId BigInt            @unique @map("carbon_inventory_id")
-  subject           SubmissionSubject @relation(fields: [subjectId], references: [id])
-  carbonInventory   CarbonInventory   @relation(fields: [carbonInventoryId], references: [id])
+  subject           SubmissionSubject @relation(fields: [subjectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  carbonInventory   CarbonInventory   @relation(fields: [carbonInventoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("submission_subject_carbon_inventory")
 }
@@ -874,8 +874,8 @@ model SubmissionSubjectCarbonInventory {
 model SubmissionSubjectOrganizationData {
   subjectId          BigInt            @id @map("subject_id")
   organizationDataId BigInt            @unique @map("organization_data_id")
-  subject            SubmissionSubject @relation(fields: [subjectId], references: [id])
-  organizationData   OrganizationData  @relation(fields: [organizationDataId], references: [id])
+  subject            SubmissionSubject @relation(fields: [subjectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  organizationData   OrganizationData  @relation(fields: [organizationDataId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("submission_subject_organization_data")
 }
@@ -889,7 +889,7 @@ model ReductionProject {
   description                  String @db.Text
   subcategoryId                BigInt                 @map("subcategory_id")
   gwpUsed                      String?                @map("gwp_used")
-  consideredGei                Json                   @default("[]") @map("considered_gei")
+  consideredGei                String @db.Text                   @default("[]") @map("considered_gei")
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
   reportedElsewhereDescription String?                @map("reported_elsewhere_description") @db.Text
   year                         Int
@@ -901,11 +901,11 @@ model ReductionProject {
   createdById                  BigInt?                @map("created_by_id")
   updatedById                  BigInt?                @map("updated_by_id")
 
-  organization    Organization                       @relation(fields: [organizationId], references: [id])
-  carbonInventory CarbonInventory                    @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id])
-  subcategory     Subcategory                        @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id])
-  creator         User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id])
-  updater         User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id])
+  organization    Organization                       @relation(fields: [organizationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  carbonInventory CarbonInventory                    @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  subcategory     Subcategory                        @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator         User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater         User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submission      SubmissionSubjectReductionProject?
 
   @@map("reduction_projects")
@@ -915,8 +915,8 @@ model SubmissionSubjectReductionProject {
   subjectId          BigInt @id @map("subject_id")
   reductionProjectId BigInt @unique @map("reduction_project_id")
 
-  subject          SubmissionSubject @relation(fields: [subjectId], references: [id])
-  reductionProject ReductionProject  @relation(fields: [reductionProjectId], references: [id])
+  subject          SubmissionSubject @relation(fields: [subjectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  reductionProject ReductionProject  @relation(fields: [reductionProjectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("submission_subject_reduction_projects")
 }
@@ -934,11 +934,11 @@ model Submission {
   updatedAt      DateTime?              @updatedAt @map("updated_at")
   createdById    BigInt?                @map("created_by_id")
   updatedById    BigInt?                @map("updated_by_id")
-  subject        SubmissionSubject      @relation(fields: [subjectId], references: [id])
-  reviewer       User?                  @relation("submission_reviewer", fields: [reviewerId], references: [id])
-  creator        User?                  @relation("submission_created_by", fields: [createdById], references: [id])
-  updater        User?                  @relation("submission_updated_by", fields: [updatedById], references: [id])
-  badge          Badge?                 @relation(fields: [badgeId], references: [id])
+  subject        SubmissionSubject      @relation(fields: [subjectId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  reviewer       User?                  @relation("submission_reviewer", fields: [reviewerId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator        User?                  @relation("submission_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater        User?                  @relation("submission_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  badge          Badge?                 @relation(fields: [badgeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   summary        SubmissionSummaryView?
   files          SubmissionFile[]
 
@@ -958,7 +958,7 @@ view SubmissionSummaryView {
   requestedAt        DateTime         @map("requested_at")
   carbonInventoryId  BigInt?          @map("carbon_inventory_id")
   reductionProjectId BigInt?          @map("reduction_project_id")
-  submission         Submission       @relation(fields: [submissionId], references: [id])
+  submission         Submission       @relation(fields: [submissionId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("submission_summary_view")
 }
@@ -970,7 +970,7 @@ model Badge {
   fileId    BigInt      @unique @map("file_id")
   createdAt DateTime    @default(now()) @map("created_at")
 
-  file        File         @relation("badge_file", fields: [fileId], references: [id])
+  file        File         @relation("badge_file", fields: [fileId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submissions Submission[]
 
   // Enforced by partial unique index in migration:
@@ -990,11 +990,11 @@ model ReductionPlanInitiative {
   updatedAt         DateTime?                     @updatedAt @map("updated_at")
   createdById       BigInt?                       @map("created_by_id")
   updatedById       BigInt?                       @map("updated_by_id")
-  subcategory       Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  dimensionValue1   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_1", fields: [dimensionValue1Id], references: [id])
-  dimensionValue2   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_2", fields: [dimensionValue2Id], references: [id])
-  creator           User?                         @relation("reduction_plan_initiative_created_by", fields: [createdById], references: [id])
-  updater           User?                         @relation("reduction_plan_initiative_updated_by", fields: [updatedById], references: [id])
+  subcategory       Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dimensionValue1   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_1", fields: [dimensionValue1Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  dimensionValue2   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_2", fields: [dimensionValue2Id], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  creator           User?                         @relation("reduction_plan_initiative_created_by", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  updater           User?                         @relation("reduction_plan_initiative_updated_by", fields: [updatedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   // Partial unique index exists in SQL migration:
   // ("subcategory_id", "title") WHERE status = 'ACTIVE'
