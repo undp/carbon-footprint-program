@@ -1,0 +1,30 @@
+version: "3.9"
+
+# Local SQL Server for multi-database development/testing.
+# Usage:
+#   1. docker compose -f docker-compose.sqlserver.yml up -d
+#   2. ./scripts/provision-sqlserver.sh        # creates the `huella` DB with CS_AS_SC_UTF8 collation
+#   3. DB_PROVIDER=sqlserver DATABASE_URL="sqlserver://localhost:1433;database=huella;user=sa;password=...;encrypt=true;trustServerCertificate=true" \
+#        pnpm dev:migrate:mssql -- --name initial
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: undp-sqlserver
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      # Override locally if you need a different password; must satisfy SQL Server
+      # complexity rules (>=8 chars, upper/lower/digit/symbol).
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Huella!Local2026}"
+      MSSQL_PID: "Developer"
+      # Server default collation is case-sensitive UTF-8 so any database created
+      # on this instance (including `huella`) inherits PG-compatible semantics.
+      MSSQL_COLLATION: "Latin1_General_100_CS_AS_SC_UTF8"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+volumes:
+  sqlserver_data:
+    driver: local
