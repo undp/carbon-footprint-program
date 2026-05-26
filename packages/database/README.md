@@ -173,6 +173,55 @@ El adaptador se inicializa automáticamente con la variable de entorno `DATABASE
 - Mejor rendimiento en entornos serverless
 - Gestión eficiente de conexiones
 
+## 🗄️ Soporte multi-base de datos (PostgreSQL + SQL Server)
+
+Este paquete soporta **dos proveedores de base de datos**, seleccionados en
+tiempo de build/deploy mediante la variable de entorno `DB_PROVIDER`
+(`postgresql` por defecto, o `sqlserver`). Ver
+[ADR 0001](../../docs/architecture/adrs/0001-multi-database-support.md).
+
+> ⚠️ El esquema de SQL Server y sus migraciones se incorporan en una PR
+> posterior (`feat/mati/sqlserver-schema-and-views`). En este punto la carpeta
+> `src/prisma/sqlserver/` existe pero está vacía; los comandos `:mssql` aún no
+> funcionan.
+
+### Cómo funciona
+
+- **Dos schemas**, uno por proveedor, bajo
+  `src/prisma/postgresql/schema.prisma` y `src/prisma/sqlserver/schema.prisma`.
+  Los modelos se mantienen idénticos; solo difieren `datasource.provider`, los
+  tipos nativos (`@db.Uuid` vs `@db.UniqueIdentifier`, `@db.Text`) y el `output`
+  del generador.
+- **Un único directorio de cliente generado** (`src/generated/prisma`). Solo se
+  genera el cliente del proveedor activo, según qué `prisma.config.*.ts` se use.
+  Por eso `index.ts` y todos los imports de la app no cambian: el código nunca se
+  ramifica por proveedor.
+- **Un único selector de adaptador** (`adapter.ts`) devuelve `PrismaPg` o
+  `PrismaMssql` según `DB_PROVIDER`.
+
+### Configuración del proveedor
+
+```env
+# PostgreSQL (por defecto)
+DB_PROVIDER="postgresql"
+DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb?schema=public"
+
+# SQL Server (la cadena usa formato JDBC, distinto al de PostgreSQL)
+DB_PROVIDER="sqlserver"
+DATABASE_URL="sqlserver://localhost:1433;database=huella;user=sa;password=...;encrypt=true;trustServerCertificate=true"
+```
+
+> Si `DB_PROVIDER` está ausente, se asume `postgresql` (retrocompatibilidad). Un
+> valor inválido lanza un error claro al cargar `environment.ts`.
+
+### Scripts por proveedor
+
+Cada comando de Prisma tiene una variante `:pg` y `:mssql`
+(`dev:generate:pg` / `dev:generate:mssql`, `dev:migrate:pg` / `dev:migrate:mssql`,
+`dev:seed:pg` / `dev:seed:mssql`, `prod:deploy:pg` / `prod:deploy:mssql`). Los
+alias sin sufijo (`dev:generate`, `dev:migrate`, `dev:seed`, `prod:deploy`)
+apuntan a la variante `:pg`.
+
 ## 📝 Scripts Disponibles
 
 | Script             | Descripción                                             | Requiere BD |
@@ -329,18 +378,23 @@ await prisma.user.delete({
 
 ```
 packages/database/
-├── prisma/
-│   ├── migrations/            # Migraciones de la base de datos
-│   └── schema.prisma          # Schema de Prisma con los modelos
-├── generated/
-│   └── client/                # Cliente generado de Prisma
-├── adapter.ts                 # Configuración del adaptador PostgreSQL
-├── environment.ts             # Variables de entorno
-├── index.ts                   # Exportaciones del paquete
-├── prisma.config.ts           # Configuración de Prisma
-├── docker-compose.yml         # Configuración de PostgreSQL
+├── src/
+│   ├── prisma/
+│   │   ├── postgresql/
+│   │   │   ├── migrations/        # Migraciones PostgreSQL
+│   │   │   └── schema.prisma      # Schema PostgreSQL
+│   │   ├── sqlserver/             # Schema + migraciones SQL Server (vacío hasta PR 4)
+│   │   └── seeds/                 # Seeds compartidos (provider-agnósticos)
+│   ├── generated/
+│   │   └── prisma/                # Cliente generado del proveedor activo
+│   ├── adapter.ts                 # Selector de adaptador (PrismaPg | PrismaMssql)
+│   ├── environment.ts             # Variables de entorno + validación de DB_PROVIDER
+│   └── index.ts                   # Exportaciones del paquete
+├── prisma.config.pg.ts            # Configuración de Prisma (PostgreSQL)
+├── prisma.config.mssql.ts         # Configuración de Prisma (SQL Server)
+├── docker-compose.yml             # Configuración de PostgreSQL
 ├── package.json
-└── README.md                  # Este archivo
+└── README.md                      # Este archivo
 ```
 
 ## 🔍 Modelos Actuales
