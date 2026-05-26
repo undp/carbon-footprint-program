@@ -5,6 +5,7 @@
     "API_PORT",
     "NODE_ENV",
     "DATABASE_URL",
+    "DB_PROVIDER",
     "JWT_SECRET",
     "LOG_LEVEL",
     "AZURE_TENANT_ID",
