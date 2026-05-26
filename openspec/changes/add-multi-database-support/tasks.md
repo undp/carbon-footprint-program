@@ -2,14 +2,14 @@
 
 This change is executed as a chain of **6 PRs**, each producing a reviewable milestone. Each branch starts from `main` AFTER the previous one is merged. PRs are numbered to make the dependency chain explicit.
 
-| PR | Branch | Milestone | Depends on |
-|---|---|---|---|
-| PR 1 | `feat/mati/squash-migrations` | Clean baseline schema (squash + UUID + Decimal unification) | `feat/mati/upgrade-low-risk-dependencies` merged to `main` |
-| PR 2 | `feat/mati/json-array-portability` | Schema types are provider-portable (JSONB dropped, arrays as Json + Zod) | PR 1 merged |
-| PR 3 | `feat/mati/multi-db-foundation` | Dual-provider scaffolding: folder layout, configs, adapter selector, Fastify plugin. PG keeps working; SQL Server schema still empty. | PR 2 merged |
-| PR 4 | `feat/mati/sqlserver-schema-and-views` | First viable SQL Server deploy: schema, views ported, partial indexes, CHECK, collation, docker-compose | PR 3 merged |
-| PR 5 | `feat/mati/sqlserver-testing-and-docs` | Testcontainers SQL Server + docs + PR-template parity reminder | PR 4 merged |
-| Ops | (no branch) | Staging validation + performance bench + archive openspec change | PR 5 merged |
+| PR   | Branch                                 | Milestone                                                                                                                             | Depends on                                                 |
+| ---- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| PR 1 | `feat/mati/squash-migrations`          | Clean baseline schema (squash + UUID + Decimal unification)                                                                           | `feat/mati/upgrade-low-risk-dependencies` merged to `main` |
+| PR 2 | `feat/mati/json-array-portability`     | Schema types are provider-portable (JSONB dropped, arrays as Json + Zod)                                                              | PR 1 merged                                                |
+| PR 3 | `feat/mati/multi-db-foundation`        | Dual-provider scaffolding: folder layout, configs, adapter selector, Fastify plugin. PG keeps working; SQL Server schema still empty. | PR 2 merged                                                |
+| PR 4 | `feat/mati/sqlserver-schema-and-views` | First viable SQL Server deploy: schema, views ported, partial indexes, CHECK, collation, docker-compose                               | PR 3 merged                                                |
+| PR 5 | `feat/mati/sqlserver-testing-and-docs` | Testcontainers SQL Server + docs + PR-template parity reminder                                                                        | PR 4 merged                                                |
+| Ops  | (no branch)                            | Staging validation + performance bench + archive openspec change                                                                      | PR 5 merged                                                |
 
 > **Convention for Prisma CLI tasks**: tasks that require executing `prisma migrate`, `prisma generate`, `prisma db seed`, or any local-DB-mutating command are marked **[runs Prisma — user executes]**. The implementer edits the relevant files and prepares the migration; the user runs the command and confirms before the checkbox is ticked.
 
@@ -31,19 +31,21 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 ### Schema cleanups (preserve in baseline)
 
-- [ ] 1.1 In `src/prisma/schema.prisma`, replace `@default(dbgenerated("gen_random_uuid()"))` with `@default(uuid())` on `CarbonInventory.uuid`
-- [ ] 1.2 Audit other UUID columns (`User.uuid`, `File.uuid`) and ensure they all use `@default(uuid())`; remove any remaining `dbgenerated(...)` UUID defaults
+- [x] 1.1 In `src/prisma/schema.prisma`, replace `@default(dbgenerated("gen_random_uuid()"))` with `@default(uuid())` on `CarbonInventory.uuid`
+- [x] 1.2 Audit other UUID columns: `User.uuid` already uses `@default(uuid())` (no change); `File.uuid` intentionally has no default because the UUID is provided by the caller to match an external blob-storage identifier (no change — document the rationale in CLAUDE.md if not already noted)
 - [ ] 1.3 Change `ReductionProject.baselineScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
 - [ ] 1.4 Change `ReductionProject.projectScenario` from `@db.Decimal(15, 4)` to `@db.Decimal(28, 10)`
 - [ ] 1.5 Grep the schema for any remaining `@db.Decimal(...)` with non-`(28, 10)` precision; align them with the standard
 
 ### Squash
 
-- [ ] 1.6 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:migrate -- reset --force` to drop the dev DB
-- [ ] 1.7 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:migrate -- dev --create-only --name baseline` to generate the consolidated baseline migration from the cleaned schema
-- [ ] 1.8 Delete the 33 old migration directories from `packages/database/src/prisma/migrations/`, keeping only the new baseline
-- [ ] 1.9 **[runs Prisma — user executes]** Validate the squash: `pnpm --filter=@repo/database prod:deploy` against a fresh empty DB, then `pnpm --filter=@repo/database dev:seed`. Confirm no errors and schema matches the model
-- [ ] 1.10 **[runs Prisma — user executes]** `prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource src/prisma/schema.prisma` — must report zero differences
+> **Order matters**: delete the old migration directories BEFORE generating the baseline, so Prisma produces a single migration that creates everything from an empty history (not an incremental from the last existing migration).
+
+- [ ] 1.6 Delete the 33 old migration directories from `packages/database/src/prisma/migrations/` (leave the `migrations/` folder itself in place, empty)
+- [ ] 1.7 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:migrate -- dev --create-only --name baseline` — with no prior migrations present, Prisma generates a single migration that creates the entire schema from the cleaned model
+- [ ] 1.8 **[runs Prisma — user executes]** Apply the baseline to a fresh dev DB: `pnpm --filter=@repo/database dev:migrate -- reset --force` (this also runs the seed)
+- [ ] 1.9 **[runs Prisma — user executes]** Validate that `prisma migrate deploy` from an empty DB + `prisma db seed` produces the expected state (no errors, all reference data present)
+- [ ] 1.10 **[runs Prisma — user executes]** `prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource <connection-string>` — must report zero differences after step 1.8
 
 ### Docs
 
@@ -143,7 +145,8 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 - [ ] 3.13 Add `@prisma/adapter-mssql@^7.8.0` to `packages/database/package.json` dependencies
 - [ ] 3.14 Refactor `packages/database/src/adapter.ts` to a selector:
   ```ts
-  if (process.env.DB_PROVIDER === "sqlserver") return new PrismaMssql({ connectionString });
+  if (process.env.DB_PROVIDER === "sqlserver")
+    return new PrismaMssql({ connectionString });
   return new PrismaPg({ connectionString });
   ```
 - [ ] 3.15 Validate `DB_PROVIDER` at startup; throw a clear `ConfigError` if unset or not in `("postgresql", "sqlserver")`

@@ -694,7 +694,7 @@ enum UsageMode {
 
 model CarbonInventory {
   id                   BigInt                            @id @default(autoincrement())
-  uuid                 String                            @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uuid                 String                            @default(uuid()) @db.Uuid
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")

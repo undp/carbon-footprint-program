@@ -22,9 +22,11 @@ Huella Latam is distributed as a digital public good that each country deploys o
 ## Capabilities
 
 ### New Capabilities
+
 - `multi-database-support`: dual-provider data layer enabling each deployment to run on PostgreSQL or SQL Server 2019+, including schema portability rules, provider selection mechanism, migration strategy per provider, and parity expectations between the two engines.
 
 ### Modified Capabilities
+
 <!-- None: no existing capability spec governs database-engine choice; the change introduces this as a new capability. -->
 
 ## Impact

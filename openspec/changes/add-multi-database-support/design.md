@@ -5,11 +5,13 @@ Huella Latam's data layer currently targets PostgreSQL only. The schema (`packag
 Some target countries cannot adopt PostgreSQL (IT policy, licensing, sovereignty constraints) and require SQL Server 2019+ on-premise (Standard/Enterprise). The codebase must support **both engines** without forking the deliverable per country.
 
 Constraints we accept:
+
 - 1 deployment = 1 engine. The same artifact does not run on both at the same time.
 - Greenfield installs only. We do not migrate live PG → SQL Server data.
 - Single developer (Mati) full-time; estimated 15-21 days of work end-to-end.
 
 Constraints we honor:
+
 - The CLAUDE.md "country-agnostic" principle: country variations live in seed data and system parameters, never in code. Multi-DB is an **orthogonal** dimension (infrastructure-agnostic, not country-agnostic); the ADR makes this explicit.
 
 Prisma 7.8.0 is already merged to the upgrade branch and unlocks key features for this work: `partialIndexes` preview, mature `@prisma/adapter-mssql` (MSSQL v12.2.0 + fixes for EREQINPROG, VARCHAR cast, enum `@map` parametrization), and savepoint-based nested transactions in SQL Server.
@@ -17,6 +19,7 @@ Prisma 7.8.0 is already merged to the upgrade branch and unlocks key features fo
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Provide a single codebase that builds and deploys against either PostgreSQL or SQL Server 2019+ based on a `DB_PROVIDER` build-time env var.
 - Minimize divergence between the two schema files: same models, same fields, same relations, same constraints — only provider-specific annotations (`@db.UniqueIdentifier`, view bodies, partial-index emitted SQL) differ.
 - Keep the public HTTP API contract unchanged. All Prisma-client type changes (e.g., `string[]` → `Json`) are absorbed at the mapper layer via centralized Zod parsers.
@@ -24,6 +27,7 @@ Prisma 7.8.0 is already merged to the upgrade branch and unlocks key features fo
 - Hand-port the 4 SQL views with documented SQL Server equivalents and ensure parity of semantics.
 
 **Non-Goals:**
+
 - Live data migration from PG → SQL Server (out of scope; greenfield only).
 - Cross-provider replication or hybrid setups (one engine per deployment).
 - A general database-vendor abstraction or repository layer over Prisma (would be over-engineering; current Prisma usage is direct in 50+ services).
@@ -40,6 +44,7 @@ Prisma 7 binds `migrations/` to a single `datasource.provider`. A single schema 
 **Decision**: maintain `prisma/postgresql/schema.prisma` and `prisma/sqlserver/schema.prisma`, each with its own `migrations/` folder and its own generated client directory. Reviewers enforce parity via human inspection; an automated parity check is deferred post-MVP.
 
 **Alternatives considered**:
+
 - Single schema with `provider = env("DB_PROVIDER")` — rejected: schema fails to validate under SQL Server because of `@db.JsonB`, `String[]`, etc.
 - Schema transformer (custom script generating SQL Server schema from PG schema) — rejected: introduces a non-standard build step Prisma does not know about; brittle.
 
@@ -58,6 +63,7 @@ The 4 JSON columns (`EmissionFactor.gasDetails`, `CarbonInventory.organizationDa
 **Decision**: change Prisma type from `String[]` to `Json` in both schemas. In `packages/types`, define `ConsideredGeiArraySchema = z.array(ConsideredGeiSchema)` and a similar parser for `SystemParameter.options`. The mapper validates and exposes `string[]` to the API consumers, so the HTTP contract is unchanged.
 
 **Alternatives considered**:
+
 - Delimited string (`'A;B;C'`) + parse helper — rejected: separator collisions, harder to validate per element, redundant when Prisma `Json` already returns a JS array.
 - Junction tables (`system_parameter_option`, `reduction_project_gei`) — rejected: no query benefit; introduces JOINs in hot paths.
 
@@ -139,6 +145,7 @@ SQL Server defaults to `SQL_Latin1_General_CP1_CI_AS` (case-insensitive). PG def
 This is a greenfield multi-DB rollout; there is no PG → SQL Server live data migration. The phases below describe the implementation rollout (the rollback strategy is per-PR revert).
 
 **Phase ordering** (full detail in `tasks.md`):
+
 1. Merge `feat/mati/upgrade-low-risk-dependencies` to `main` (Prisma 7.8.0).
 2. Pre-Phase 0 PR `feat/mati/squash-migrations`: validated baseline + UUID/Decimal unification cleanups.
 3. Phase 0: PoC `@prisma/adapter-mssql`, validate `partialIndexes` preview against a real partial index, audit the 4 views for PG-specific constructs, audit `@db.Text` candidates, create ADR.
