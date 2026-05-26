@@ -17,11 +17,9 @@ export const msalConfig: Configuration = {
     authority: AZURE_AUTHORITY,
     redirectUri: `${FRONT_BASE_URL}/app/home`,
     postLogoutRedirectUri: FRONT_BASE_URL,
-    navigateToLoginRequestUrl: false,
   },
   cache: {
     cacheLocation: "localStorage", // "sessionStorage" or "localStorage"
-    storeAuthStateInCookie: false, // Set to true for IE 11 or Edge
   },
 };
 

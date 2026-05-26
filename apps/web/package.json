@@ -18,8 +18,8 @@
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.27.0",
-    "@azure/msal-react": "^3.0.23",
+    "@azure/msal-browser": "^5.11.0",
+    "@azure/msal-react": "^5.4.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource-variable/roboto": "^5.2.10",
