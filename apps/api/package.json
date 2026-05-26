@@ -59,7 +59,7 @@
     "tsc-alias": "^1.8.17",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared",
-    "vite-tsconfig-paths": "^5.1.4",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "catalog:shared"
   }
 }
