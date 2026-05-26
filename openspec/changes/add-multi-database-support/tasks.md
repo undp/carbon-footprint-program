@@ -50,7 +50,7 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 
 > Editing existing migrations changes their checksums, so a `migrate reset` is required on the dev DB (acceptable in dev phase; no production deployments per precondition 0.2).
 
-- [ ] 1.10 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` (= `prisma migrate reset --force && prisma db seed`) — rebuilds the dev DB from the edited migrations and re-seeds. NOTE: `prisma` is not on the global PATH — always invoke via `pnpm`, never as a bare `prisma ...` command
+- [x] 1.10 **[runs Prisma — user executes]** `pnpm --filter=@repo/database db:restore` (= `prisma migrate reset --force && prisma db seed`) — rebuilds the dev DB from the edited migrations and re-seeds. ✓ All 31 migrations applied cleanly (consolidated base creates the `magnitude` table; `convert_magnitude` is gone); seed completed (10 magnitudes, 18 units, full reference data)
 - [ ] 1.11 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource "$DATABASE_URL"` — must report zero differences (proves the edited migrations reproduce the schema exactly)
 - [ ] 1.12 **[runs Prisma — user executes]** `pnpm test --filter=api -- --coverage=false` against the rebuilt DB — full suite green
 
