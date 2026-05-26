@@ -1,0 +1,4 @@
+# Local-dev self-signed TLS material — never commit private keys.
+# Regenerate with ../scripts/gen-sqlserver-cert.sh
+mssql.key
+mssql.pem
