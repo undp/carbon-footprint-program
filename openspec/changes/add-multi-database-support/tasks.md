@@ -42,10 +42,10 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 > **Order matters**: delete the old migration directories BEFORE generating the baseline, so Prisma produces a single migration that creates everything from an empty history (not an incremental from the last existing migration).
 
 - [x] 1.6 Delete the 33 old migration directories from `packages/database/src/prisma/migrations/` (leave the `migrations/` folder itself in place, empty)
-- [ ] 1.7 **[runs Prisma — user executes]** `pnpm --filter=@repo/database dev:migrate -- dev --create-only --name baseline` — with no prior migrations present, Prisma generates a single migration that creates the entire schema from the cleaned model
-- [ ] 1.8 **[runs Prisma — user executes]** Apply the baseline to a fresh dev DB: `pnpm --filter=@repo/database dev:migrate -- reset --force` (this also runs the seed)
-- [ ] 1.9 **[runs Prisma — user executes]** Validate that `prisma migrate deploy` from an empty DB + `prisma db seed` produces the expected state (no errors, all reference data present)
-- [ ] 1.10 **[runs Prisma — user executes]** `prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource <connection-string>` — must report zero differences after step 1.8
+- [ ] 1.7 **[runs Prisma — user executes]** From repo root: `pnpm --filter=@repo/database dev:migrate -- --create-only --name baseline` (`dev:migrate` = `prisma migrate dev`, so the `-- --create-only --name baseline` completes it). With no prior migrations present, Prisma generates a single migration that creates the entire schema from the cleaned model. NOTE: `prisma` is not on the global PATH — always invoke via `pnpm`, never as a bare `prisma ...` command
+- [ ] 1.8 **[runs Prisma — user executes]** Apply the baseline to a fresh dev DB + seed: `pnpm --filter=@repo/database db:restore` (`db:restore` = `prisma migrate reset --force && prisma db seed`)
+- [ ] 1.9 **[runs Prisma — user executes]** Validate a clean deploy path: against an empty DB run `pnpm --filter=@repo/database prod:deploy` (= `prisma migrate deploy`) then `pnpm --filter=@repo/database dev:seed` — no errors, all reference data present
+- [ ] 1.10 **[runs Prisma — user executes]** `pnpm --filter=@repo/database exec prisma migrate diff --from-schema-datamodel src/prisma/schema.prisma --to-schema-datasource "$DATABASE_URL"` — must report zero differences after step 1.8
 
 ### Docs
 
