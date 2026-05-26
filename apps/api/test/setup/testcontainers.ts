@@ -28,12 +28,14 @@ function createPrismaExecOptions(databaseUrl: string) {
       HOME: process.env.HOME,
       DATABASE_URL: databaseUrl,
       SEEDS_DATASET: "testing",
+      DB_PROVIDER: "postgresql",
     },
   };
 }
 
 export function runPrismaMigrations(databaseUrl: string): void {
-  const command = "pnpm exec prisma migrate deploy";
+  const command =
+    "pnpm exec prisma migrate deploy --config=prisma.config.pg.ts";
   const opts = createPrismaExecOptions(databaseUrl);
 
   try {
@@ -47,7 +49,7 @@ export function runPrismaMigrations(databaseUrl: string): void {
 }
 
 export function runPrismaSeeds(databaseUrl: string): void {
-  const command = "pnpm exec prisma db seed";
+  const command = "pnpm exec prisma db seed --config=prisma.config.pg.ts";
   const opts = createPrismaExecOptions(databaseUrl);
 
   try {
