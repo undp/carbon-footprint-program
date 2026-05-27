@@ -250,6 +250,11 @@ CREATE UNIQUE INDEX "measurement_unit_abbreviation_key" ON "measurement_unit"("a
 -- CreateIndex
 CREATE INDEX "measurement_unit_magnitude_id_idx" ON "measurement_unit"("magnitude_id");
 
+-- CreateIndex: partial unique index — at most one base unit per magnitude.
+-- NOTE: Prisma does not track partial indexes (the WHERE clause) on schema diffs.
+-- Preserve this WHERE clause manually when touching this table.
+CREATE UNIQUE INDEX "measurement_unit_unique_base_per_magnitude" ON "measurement_unit"("magnitude_id") WHERE is_base;
+
 -- CreateIndex
 CREATE UNIQUE INDEX "rate_measurement_unit_abbreviation_key" ON "rate_measurement_unit"("abbreviation");
 
