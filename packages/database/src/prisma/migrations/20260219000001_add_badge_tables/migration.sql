@@ -13,6 +13,10 @@ CREATE TABLE "badge" (
 );
 CREATE UNIQUE INDEX "badge_file_id_key" ON "badge"("file_id");
 
+-- Only one ACTIVE badge per type (partial unique index, managed manually — Prisma does
+-- not track the WHERE clause on schema diffs).
+CREATE UNIQUE INDEX "badge_type_active_key" ON "badge"("type") WHERE status = 'ACTIVE';
+
 ALTER TABLE "badge"
   ADD CONSTRAINT "badge_file_id_fkey"
   FOREIGN KEY ("file_id") REFERENCES "file"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
