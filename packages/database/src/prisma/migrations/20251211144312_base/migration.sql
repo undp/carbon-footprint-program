@@ -46,8 +46,13 @@ CREATE TABLE "system_parameter" (
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
+    -- Optional numeric bounds: advisory metadata for editors (admin UI, seed validator).
+    -- Stay NULL for parameters without numeric semantics (selectors, file-type pointers).
+    "min_value" INTEGER,
+    "max_value" INTEGER,
 
-    CONSTRAINT "system_parameter_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "system_parameter_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "system_parameter_min_le_max_check" CHECK ("min_value" IS NULL OR "max_value" IS NULL OR "min_value" <= "max_value")
 );
 
 -- CreateEnum
