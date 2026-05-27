@@ -139,6 +139,7 @@ CREATE TABLE "user" (
     "updated_by_id" BIGINT,
     "terms_accepted" BOOLEAN NOT NULL DEFAULT false,
     "terms_accepted_at" TIMESTAMP(3),
+    "last_access_at" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
