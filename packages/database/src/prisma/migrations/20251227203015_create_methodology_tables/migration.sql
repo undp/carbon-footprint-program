@@ -49,7 +49,8 @@ CREATE TABLE "category" (
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
-    CONSTRAINT "category_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "category_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "category_position_check" CHECK (position > 0)
 );
 
 -- CreateTable
@@ -82,7 +83,8 @@ CREATE TABLE "emission_factor_dimension" (
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
-    CONSTRAINT "emission_factor_dimension_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "emission_factor_dimension_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "emission_factor_dimension_position_check" CHECK (position > 0)
 );
 
 -- CreateTable
