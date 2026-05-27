@@ -180,7 +180,9 @@ CREATE TABLE "measurement_unit" (
     "is_base" BOOLEAN NOT NULL,
     "status" "measurement_unit_status" NOT NULL DEFAULT 'ACTIVE',
 
-    CONSTRAINT "measurement_unit_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "measurement_unit_pkey" PRIMARY KEY ("id"),
+    -- Base units must have base_factor = 1; non-base units a positive factor other than 1.
+    CONSTRAINT "measurement_unit_base_factor_check" CHECK ((is_base AND base_factor = 1) OR (NOT is_base AND base_factor > 0 AND base_factor <> 1))
 );
 
 -- CreateTable
