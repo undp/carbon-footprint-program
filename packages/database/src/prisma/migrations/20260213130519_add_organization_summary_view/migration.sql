@@ -1,19 +1,9 @@
 -- CreateEnum
 CREATE TYPE "organization_summary_display_status" AS ENUM ('NOT_ACCREDITED', 'ACCREDITED', 'BLOCKED');
 
--- Seed MEASURING_ORGANIZATIONS_YEAR_RANGE so the view's subquery resolves on first run.
--- The seed pipeline (systemParameters.json) also lists this key; skipDuplicates on the
--- seed side, ON CONFLICT here keep both paths idempotent.
-INSERT INTO "system_parameter" ("key", "value", "description", "type", "options", "min_value")
-VALUES (
-  'MEASURING_ORGANIZATIONS_YEAR_RANGE',
-  '2',
-  'Number of years (including the current year) considered as ''recent measurements'' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.',
-  'number',
-  '{}',
-  1
-)
-ON CONFLICT ("key") DO NOTHING;
+-- NOTE: the view's year filter reads MEASURING_ORGANIZATIONS_YEAR_RANGE from
+-- system_parameter, seeded by the seed pipeline (systemParameters.json). The subquery
+-- falls back to a default of 2 via COALESCE, so the view resolves even before the seed runs.
 
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
