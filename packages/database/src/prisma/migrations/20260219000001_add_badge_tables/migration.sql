@@ -28,3 +28,6 @@ ALTER TABLE "submission"
 ALTER TABLE "submission"
   ADD CONSTRAINT "submission_badge_id_fkey"
   FOREIGN KEY ("badge_id") REFERENCES "badge"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Index on submission.badge_id for FK lookup performance
+CREATE INDEX "submission_badge_id_idx" ON "submission"("badge_id");
