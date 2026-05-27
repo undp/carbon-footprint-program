@@ -1,6 +1,10 @@
 -- CreateEnum
 CREATE TYPE "organization_summary_display_status" AS ENUM ('NOT_ACCREDITED', 'ACCREDITED', 'BLOCKED');
 
+-- NOTE: the view's year filter reads MEASURING_ORGANIZATIONS_YEAR_RANGE from
+-- system_parameter, seeded by the seed pipeline (systemParameters.json). The subquery
+-- falls back to a default of 2 via COALESCE, so the view resolves even before the seed runs.
+
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
 
@@ -82,7 +86,16 @@ organization_carbon_inventories_summary AS (
   WHERE ci.organization_id IS NOT NULL
   AND ci.status NOT IN ('DELETED')
   AND ci.year IS NOT NULL
-  AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
+  AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - (COALESCE(
+    (SELECT CASE
+        WHEN value ~ '^[0-9]+$'
+         AND length(value) <= 10
+         AND value::bigint BETWEEN 1 AND 2147483647
+        THEN value::int
+      END
+     FROM system_parameter WHERE key = 'MEASURING_ORGANIZATIONS_YEAR_RANGE'),
+    2
+  ) - 1)
   GROUP BY ci.organization_id
 )
 

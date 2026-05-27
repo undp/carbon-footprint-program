@@ -79,6 +79,13 @@ CREATE UNIQUE INDEX "carbon_inventory_line_factor_line_input_id_key" ON "carbon_
 -- CreateIndex
 CREATE UNIQUE INDEX "carbon_inventory_line_result_line_input_id_key" ON "carbon_inventory_line_result"("line_input_id");
 
+-- CreateIndex: partial unique index — at most one active input per line.
+-- NOTE: Prisma does not track partial indexes (the WHERE clause) on schema diffs.
+-- Preserve this WHERE clause manually when touching this table.
+CREATE UNIQUE INDEX "carbon_inventory_line_input_line_id_active_unique"
+ON "carbon_inventory_line_input"("line_id")
+WHERE "is_active" = true;
+
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_carbon_inventory_id_fkey" FOREIGN KEY ("carbon_inventory_id") REFERENCES "carbon_inventory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
