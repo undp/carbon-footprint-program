@@ -125,6 +125,15 @@ def derive_mssql(pg_text):
     # Use nvarchar(max) instead. (On PostgreSQL @db.Text -> `text` is correct and
     # stays in that schema.)
     text = text.replace("@db.Text", "@db.NVarChar(Max)")
+    # 1e. EmissionFactor.source participates in a unique index, but nvarchar(max)
+    # cannot be an index key column on SQL Server. Bound it to nvarchar(450)
+    # (<= the 1700-byte nonclustered key limit). PostgreSQL keeps it as text.
+    text = re.sub(
+        r"(^\s+source\s+String\??\s+)@db\.NVarChar\(Max\)",
+        r"\1@db.NVarChar(450)",
+        text,
+        flags=re.MULTILINE,
+    )
     # 2. Remove enum blocks entirely.
     lines, blocks = split_blocks(text)
     drop = set()

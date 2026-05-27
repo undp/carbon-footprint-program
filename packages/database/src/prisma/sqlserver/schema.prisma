@@ -541,7 +541,7 @@ model EmissionFactor {
   dimensionValue1Id     BigInt?                       @map("dimension_value_1_id")
   dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
-  source                String @db.NVarChar(Max)
+  source                String @db.NVarChar(450)
   gasDetails            String @db.NVarChar(Max)                          @map("gas_details")
   value                 Decimal                       @db.Decimal(28, 10)
   status                String          @default("ACTIVE")
