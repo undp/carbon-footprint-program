@@ -194,22 +194,23 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 - [x] 4.5 Applied `@db.Text` (24 fields from the db-text audit) to **both** schemas (no-op on PG: `String`/`@db.Text` both map to `text`)
 - [x] 4.5a Enum-typed fields → `String` with quoted defaults; enum blocks dropped from the SQL Server schema (31 enums)
 
-### Partial unique indexes (raw SQL for now; preview experiment deferred)
+### Partial unique indexes + CHECK + nullable uniques → `manual-ddl.sql`
 
-- [ ] 4.6 **Experiment (deferred)**: enable `partialIndexes` preview on PG, declare one partial index, `migrate dev`, read the diff (finding 6 bugs #29289/#29386). Adopt declarative only if no-op; otherwise keep raw SQL in both providers
-- [ ] 4.7 Replicate the 7 partial unique indexes (status/active-scoped) as SQL Server **filtered indexes** in `sqlserver/migrations/` (per `null-uniqueness-audit.md`); `organization_main_activity` NULLS-NOT-DISTINCT comes for free on SQL Server
+All raw-SQL objects live in `src/prisma/sqlserver/manual-ddl.sql`, applied after `db push` (idempotent, GO-batched). Applied + validated on the live SQL Server.
 
-### CHECK constraints
+- [x] 4.6 **Experiment deferred** (kept raw SQL): `partialIndexes` preview not adopted — `migrate dev` itself is blocked (finding 16), and raw filtered indexes are proven. Revisit if/when the migrate flow works
+- [x] 4.7 Ported all **15 partial unique indexes** to SQL Server filtered indexes. **Finding 18**: composite indexes with nullable members get `AND <col> IS NOT NULL` to reproduce PG NULL-distinct (`emission_factor`, `subcategory_recommendation`); `organization_main_activity` NULLS-NOT-DISTINCT is free
+- [x] 4.8 Replicated all 5 CHECK constraints (position > 0 ×3, `measurement_unit` base_factor with BIT `= 1`/`= 0`, `system_parameter` min/max)
+- [x] 4.9 `User.email` + `User.idpUserId`: dropped Prisma's UNIQUE CONSTRAINT, recreated as filtered unique indexes `WHERE col IS NOT NULL` (match PG multi-NULL)
+- [x] 4.9a **Finding 18b**: `EmissionFactor.source` bounded to `@db.NVarChar(450)` on SQL Server (nvarchar(max) cannot be an index key column)
 
-- [ ] 4.8 Replicate all CHECK constraints (position > 0, measurement_unit base_factor, system_parameter value bounds) in raw-SQL migrations in `sqlserver/migrations/`
-- [ ] 4.9 Add `WHERE col IS NOT NULL` filtered indexes in `sqlserver/migrations/` for `User.email` and `User.idpUserId` (per `null-uniqueness-audit.md`)
+### Views (in `manual-ddl.sql`)
 
-### Views (raw-SQL migrations under `sqlserver/migrations/`)
-
-- [ ] 4.10 Port `organization_summary_view`: `DISTINCT ON` → `ROW_NUMBER() OVER (PARTITION BY ...) = 1`, `FILTER (WHERE ...)` → `COUNT(CASE WHEN ... END)`, `EXTRACT(YEAR FROM x)::int` → `YEAR(x)`, `expr::enum_type` → `CAST(expr AS VARCHAR(N))`, `CREATE OR REPLACE VIEW` → `CREATE OR ALTER VIEW`
-- [ ] 4.11 Port `carbon_inventory_subtotals_view`
-- [ ] 4.12 Port `carbon_inventory_sector_subtotals_view`
-- [ ] 4.13 Port `submission_summary_view`
+- [x] 4.10 Ported `organization_summary_view`: `DISTINCT ON`→`ROW_NUMBER`, boolean exprs→`CAST(CASE… AS BIT)`, enum casts dropped, regex→`NOT LIKE '%[^0-9]%'`, `value::int`→`TRY_CAST`, `EXTRACT`→`YEAR`, `[key]` bracketed
+- [x] 4.11 Ported `carbon_inventory_subtotals_view`: `FILTER (WHERE EXISTS…)`→ join + `COUNT(DISTINCT CASE…)` (SQL Server forbids subquery inside aggregate)
+- [x] 4.12 Ported `carbon_inventory_sector_subtotals_view` (`DISTINCT ON`→`ROW_NUMBER`)
+- [x] 4.13 Ported `submission_summary_view` (`NULL::BIGINT`→`CAST(NULL AS BIGINT)`, `EXTRACT`→`YEAR`, UNION ALL)
+- [x] 4.13a Created `scripts/setup-sqlserver.sh` (canonical fresh install: generate client → db push → manual-ddl → seed) — the SQL Server analogue of `db:restore`
 
 ### SQL Server compatibility extension (findings 10/14/15)
 
@@ -227,7 +228,8 @@ This change is executed as a chain of **6 PRs**, each producing a reviewable mil
 - [x] 4.18a **[done]** `prisma validate --config=prisma.config.mssql.ts` → schema valid (255 errors fixed — findings 9/10/11/13)
 - [x] 4.18b **[done]** TLS resolved via `SSL_CERT_FILE` + custom cert image (finding 12). `prisma db push` syncs all **42 tables** in ~3s. NOTE: `migrate dev` hangs on the shadow-DB step (finding 16) — `db push` is the working apply path for the POC; real migration generation still pending
 - [x] 4.19 **[done]** Full seed succeeds on SQL Server (10 magnitudes, 18 units, 229 emission factors with JSON `gasDetails`, system-parameter JSON `options`, …) via the compat extension; reads round-trip JSON (`options` → array, `gasDetails` → object)
-- [ ] 4.20 Smoke-test API booting with `DB_PROVIDER=sqlserver`, `GET /health` 200 — pending (plugin now applies the compat extension; the 4 views must be created first for view-backed endpoints)
+- [x] 4.20 **Behavior parity proven** — ran the full API integration suite against SQL Server (`TEST_DB_PROVIDER=sqlserver`, external pre-seeded DB): **1227/1304 tests pass (94%), 118/145 files**. The 76 failures are low-severity and clustered: finding 19 (unique-violation error-code string), finding 20 (collation `ORDER BY`), + 1 transaction-rollback edge. Views, JSON, partial indexes, enums, soft-delete all behave identically. See finding 21
+- [x] 4.20a Wired `TEST_DB_PROVIDER=sqlserver` into the test bootstrap (`globalSetup.ts` / `testcontainers.ts`); defaults to `postgresql` (no change to existing runs)
 
 ### Merge
 
