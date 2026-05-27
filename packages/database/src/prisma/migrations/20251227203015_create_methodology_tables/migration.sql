@@ -129,6 +129,9 @@ CREATE TABLE "subcategory_measurement_unit" (
     CONSTRAINT "subcategory_measurement_unit_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex: Partial unique index excluding DELETED rows
+CREATE UNIQUE INDEX "methodology_version_country_id_name_version_active_unique" ON "methodology_version" ("country_id", "name", "version") WHERE "status" <> 'DELETED';
+
 -- CreateIndex: Partial unique indexes excluding DELETED rows
 CREATE UNIQUE INDEX "category_methodology_version_id_name_active_unique"
   ON "category" ("methodology_version_id", "name")
