@@ -93,7 +93,7 @@ export const useEmissionEditorForm = ({
 
   // Get standard form context methods
   const formContext = useFormContext<EmissionCaptureFormValues>();
-  const { setValue, getValues } = formContext;
+  const { setValue, getValues, resetField } = formContext;
 
   // Get extended methods (addLine, removeLine) from the form context
   // These are added by useEmissionCaptureForm
@@ -488,6 +488,26 @@ export const useEmissionEditorForm = ({
             console.error("EmissionEditor submit error:", err);
             throw err;
           }
+
+          // The submit above persisted this subcategory's lines. Drop the local
+          // temp "new" copies (and any just-deleted lines) and clear their dirty
+          // state, so the refetch triggered by toggleManualMode repopulates them
+          // with their server ids instead of duplicating them alongside the
+          // freshly created server rows. This submit path has no resetAfterSave,
+          // so the cleanup is done here, scoped to the toggled subcategory.
+          const currentLines =
+            getValues(`subcategories.${subcategoryId}.lines`) ?? {};
+          const persistedLines = Object.fromEntries(
+            Object.entries(currentLines).filter(
+              ([, line]) => line && !line.isNew && !line.isDeleted
+            )
+          );
+          setValue(`subcategories.${subcategoryId}.lines`, persistedLines, {
+            shouldDirty: false,
+          });
+          resetField(`subcategories.${subcategoryId}.lines`, {
+            defaultValue: persistedLines,
+          });
         }
 
         await toggleManualMode({ activated: isManual });
@@ -517,6 +537,7 @@ export const useEmissionEditorForm = ({
       getValues,
       submit,
       setValue,
+      resetField,
       subcategoryId,
       startAction,
       endAction,
