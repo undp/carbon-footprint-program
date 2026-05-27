@@ -62,10 +62,25 @@ export function runPrismaSeeds(databaseUrl: string): void {
   }
 }
 
+// When TEST_DB_PROVIDER=sqlserver, run the suite against an external SQL Server
+// that has already been set up + seeded (packages/database/scripts/setup-sqlserver.sh)
+// instead of spinning a PostgreSQL testcontainer. Used to prove behavior parity.
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+export const TEST_DB_PROVIDER = process.env.TEST_DB_PROVIDER ?? "postgresql";
+
 export async function setupTestDatabase(): Promise<{
   databaseUrl: string;
-  container: StartedPostgreSqlContainer;
+  container: StartedPostgreSqlContainer | null;
 }> {
+  if (TEST_DB_PROVIDER === "sqlserver") {
+    const url = process.env.DATABASE_URL;
+    if (!url)
+      throw new Error(
+        "TEST_DB_PROVIDER=sqlserver requires DATABASE_URL to point at a pre-seeded SQL Server"
+      );
+    return { databaseUrl: url, container: null };
+  }
+
   const container = await new PostgreSqlContainer(TEST_DATABASE_CONFIG.image)
     .withDatabase(TEST_DATABASE_CONFIG.database)
     .withUsername(TEST_DATABASE_CONFIG.username)

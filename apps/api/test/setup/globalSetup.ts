@@ -3,6 +3,7 @@ import {
   runPrismaSeeds,
   setupTestDatabase,
   setupTestStorage,
+  TEST_DB_PROVIDER,
 } from "./testcontainers.js";
 import type { StartedAzuriteContainer } from "@testcontainers/azurite";
 import type { TestProject } from "vitest/node";
@@ -40,17 +41,22 @@ export default async function setup(project: TestProject) {
   project.provide("storageConnectionString", storageConnectionString);
   project.provide("storageContainerName", storageContainerName);
 
-  try {
-    runPrismaMigrations(databaseUrl);
-    runPrismaSeeds(databaseUrl);
-  } catch (error) {
-    await dbContainer.stop();
-    if (storageContainer) await storageContainer.stop();
-    throw error;
+  // For SQL Server the database is set up + seeded out of band by
+  // packages/database/scripts/setup-sqlserver.sh (the CLI migrate flow is blocked
+  // on self-signed TLS + raw-SQL views/indexes), so skip migrate/seed here.
+  if (TEST_DB_PROVIDER !== "sqlserver") {
+    try {
+      runPrismaMigrations(databaseUrl);
+      runPrismaSeeds(databaseUrl);
+    } catch (error) {
+      if (dbContainer) await dbContainer.stop();
+      if (storageContainer) await storageContainer.stop();
+      throw error;
+    }
   }
 
   return async () => {
-    await dbContainer.stop();
+    if (dbContainer) await dbContainer.stop();
     if (storageContainer) await storageContainer.stop();
   };
 }
