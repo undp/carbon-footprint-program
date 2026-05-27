@@ -157,25 +157,6 @@ CREATE TABLE "magnitude" (
     CONSTRAINT "magnitude_pkey" PRIMARY KEY ("id")
 );
 
--- Seed the ten platform magnitudes with the canonical Spanish labels. Only `mass`
--- is system-protected (`is_system = true`); the rest are admin-managed and may be
--- relabeled, soft-deleted, or replaced by country deployments through the maintainer
--- screen. Codes follow the lowercase convention validated for user-defined magnitudes
--- (^[a-z][a-z0-9_]*$). Idempotent by `code`. The seed pipeline (seedMagnitudes.ts)
--- also lists these keys, so both paths stay consistent.
-INSERT INTO "magnitude" ("code", "name", "is_system", "status", "updated_at") VALUES
-    ('mass',          'Masa',             true,  'ACTIVE', CURRENT_TIMESTAMP),
-    ('volume',        'Volumen',          false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('distance',      'Distancia',        false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('time',          'Tiempo',           false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('animals',       'Animales',         false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('area',          'Área',             false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('power',         'Potencia',         false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('energy',        'Energía',          false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('distance_mass', 'Distancia · Masa', false, 'ACTIVE', CURRENT_TIMESTAMP),
-    ('rooms',         'Habitaciones',     false, 'ACTIVE', CURRENT_TIMESTAMP)
-ON CONFLICT ("code") DO NOTHING;
-
 -- CreateTable
 CREATE TABLE "measurement_unit" (
     "id" BIGSERIAL NOT NULL,
