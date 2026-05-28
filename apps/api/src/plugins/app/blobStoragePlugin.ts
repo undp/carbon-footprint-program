@@ -1,10 +1,10 @@
 import fp from "fastify-plugin";
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
-import { DefaultAzureCredential } from "@azure/identity";
 import {
   AZURE_STORAGE_ACCOUNT_NAME,
   AZURE_STORAGE_CONTAINER_NAME,
 } from "@/config/environment.js";
+import { getStorageCredential } from "@/utils/getStorageCredential.js";
 
 export default fp(
   (fastify, _opts, done) => {
@@ -26,7 +26,7 @@ export default fp(
 
     const blobServiceClient = new BlobServiceClient(
       `https://${AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net`,
-      new DefaultAzureCredential()
+      getStorageCredential()
     );
 
     const containerClient: ContainerClient =

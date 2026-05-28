@@ -1,5 +1,6 @@
 export * from "./bigint.js";
 export * from "./decimal.js";
+export * from "./getStorageCredential.js";
 export * from "./number.js";
 export * from "./string.js";
 

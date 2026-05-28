@@ -3,8 +3,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { DefaultAzureCredential } from "@azure/identity";
 import { BadgeStatus, BadgeType, type PrismaClient } from "../../../index.js";
+import { getStorageCredential } from "../../../utils/getStorageCredential.js";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,7 +58,7 @@ export async function seedBadges(
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
   const containerClient = new BlobServiceClient(
     `https://${accountName}.blob.core.windows.net`,
-    new DefaultAzureCredential()
+    getStorageCredential()
   ).getContainerClient(containerName);
 
   const badgesDir = join(__dirname, "../data/badges");
