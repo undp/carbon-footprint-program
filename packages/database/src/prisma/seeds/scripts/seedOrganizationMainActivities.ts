@@ -1,4 +1,8 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import {
+  type PrismaClient,
+  type Prisma,
+  OrganizationMainActivityStatus,
+} from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -99,19 +103,32 @@ export async function seedOrganizationMainActivities(
     }
   }
 
-  // Batch create main activities (skips duplicates thanks to NULLS NOT DISTINCT unique index)
-  await prisma.organizationMainActivity.createMany({
-    data: mainActivitiesToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all main activities were created
-  const mainActivities = await prisma.organizationMainActivity.findMany();
-
-  if (mainActivities.length !== mainActivitiesToCreate.length)
-    throw new Error(
-      `Expected ${mainActivitiesToCreate.length} main activities but found ${mainActivities.length} for dataset ${dataset}`
-    );
+  // Upsert each row by (name, countrySectorId, countrySubsectorId) against the
+  // partial unique index (NULLS NOT DISTINCT) so re-runs are idempotent. There
+  // are no extra non-key fields to propagate today.
+  for (const item of mainActivitiesToCreate) {
+    const countrySectorId = item.countrySectorId ?? null;
+    const countrySubsectorId = item.countrySubsectorId ?? null;
+    const existing = await prisma.organizationMainActivity.findFirst({
+      where: {
+        name: item.name,
+        countrySectorId,
+        countrySubsectorId,
+        status: OrganizationMainActivityStatus.ACTIVE,
+      },
+      select: { id: true },
+    });
+    if (!existing) {
+      await prisma.organizationMainActivity.create({
+        data: {
+          name: item.name,
+          countrySectorId,
+          countrySubsectorId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+        },
+      });
+    }
+  }
 
   console.log(
     `✓ Ensured ${mainActivitiesToCreate.length} organization main activities exist for dataset ${dataset}`

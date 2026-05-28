@@ -71,11 +71,23 @@ export async function seedReductionPlanInitiatives(
     }
   }
 
-  await prisma.reductionPlanInitiative.createMany({
-    data: initiativesToCreate,
-    skipDuplicates: true,
-  });
+  // Upsert by (subcategoryId, title) — the partial unique index scopes to
+  // ACTIVE rows, so re-runs propagate description changes without duplicating.
+  for (const initiative of initiativesToCreate) {
+    const { count } = await prisma.reductionPlanInitiative.updateMany({
+      where: {
+        subcategoryId: initiative.subcategoryId,
+        title: initiative.title,
+        status: ReductionPlanInitiativeStatus.ACTIVE,
+      },
+      data: { description: initiative.description },
+    });
+    if (count === 0) {
+      await prisma.reductionPlanInitiative.create({ data: initiative });
+    }
+  }
 
-  const count = await prisma.reductionPlanInitiative.count();
-  console.log(`   ✓ Ensured ${count} initiatives exist for dataset ${dataset}`);
+  console.log(
+    `   ✓ Ensured ${initiativesToCreate.length} initiatives exist for dataset ${dataset}`
+  );
 }

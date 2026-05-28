@@ -1,4 +1,8 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import {
+  type PrismaClient,
+  type Prisma,
+  CountryOrganizationSizeStatus,
+} from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -52,34 +56,59 @@ export async function seedCountryOrganizationSizes(
 
   checkForDuplicates(organizationSizesData, ["countryIsoCode", "name"]);
 
-  // Prepare organization sizes data with countryId. `position` is assigned per-country
-  // in the order the seed file declares them, so the JSON authors control the default
-  // ordering presented in the admin maintainer.
-  const positionByCountry = new Map<bigint, number>();
-  const organizationSizesToCreate = organizationSizesData.map((os) => {
+  // Group seed entries per country, preserving JSON order. `position` is derived
+  // from that order so JSON authors control the default ordering shown in the
+  // admin maintainer.
+  const sizesByCountryId = new Map<
+    bigint,
+    { name: string; position: number }[]
+  >();
+  for (const os of organizationSizesData) {
     const country = countryByIso.get(os.countryIsoCode);
     if (!country)
       throw new Error(
         `Country '${os.countryIsoCode}' not found in dataset ${dataset}`
       );
-    const nextPosition = (positionByCountry.get(country.id) ?? 0) + 1;
-    positionByCountry.set(country.id, nextPosition);
-    return { name: os.name, countryId: country.id, position: nextPosition };
-  });
+    const list = sizesByCountryId.get(country.id) ?? [];
+    list.push({ name: os.name, position: list.length + 1 });
+    sizesByCountryId.set(country.id, list);
+  }
 
-  // Batch create organization sizes (skips duplicates)
-  await prisma.countryOrganizationSize.createMany({
-    data: organizationSizesToCreate,
-    skipDuplicates: true,
-  });
+  // Per-country transaction: re-running the seed must propagate name/position
+  // changes to existing rows without creating duplicates. The partial unique
+  // index on (country_id, position) WHERE status <> 'DELETED' forbids transient
+  // collisions during reordering, so existing active rows are shifted to a high
+  // position range first and then assigned their final positions.
+  for (const [countryId, sizes] of sizesByCountryId) {
+    const shiftOffset = sizes.length + 1_000_000;
+    await prisma.$transaction(async (tx) => {
+      await tx.countryOrganizationSize.updateMany({
+        where: { countryId, status: CountryOrganizationSizeStatus.ACTIVE },
+        data: { position: { increment: shiftOffset } },
+      });
 
-  // Verify all organization sizes were created
-  const organizationSizes = await prisma.countryOrganizationSize.findMany();
-
-  if (organizationSizes.length !== organizationSizesData.length)
-    throw new Error(
-      `Expected ${organizationSizesData.length} organization sizes but found ${organizationSizes.length} for dataset ${dataset}`
-    );
+      for (const { name, position } of sizes) {
+        const { count } = await tx.countryOrganizationSize.updateMany({
+          where: {
+            countryId,
+            name,
+            status: CountryOrganizationSizeStatus.ACTIVE,
+          },
+          data: { position },
+        });
+        if (count === 0) {
+          await tx.countryOrganizationSize.create({
+            data: {
+              countryId,
+              name,
+              position,
+              status: CountryOrganizationSizeStatus.ACTIVE,
+            },
+          });
+        }
+      }
+    });
+  }
 
   console.log(
     `✓ Ensured ${organizationSizesData.length} organization sizes exist for dataset ${dataset}`

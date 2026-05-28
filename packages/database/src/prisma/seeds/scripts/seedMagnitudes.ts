@@ -41,7 +41,7 @@ export async function seedMagnitudes(
   for (const { code, name } of magnitudesData) {
     await prisma.magnitude.upsert({
       where: { code },
-      update: {},
+      update: { name },
       create: {
         code,
         name,

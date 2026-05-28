@@ -66,37 +66,30 @@ export async function seedMeasurementUnits(
   // Check the data has no duplicated based on abbreviation
   checkForDuplicates(measurementUnitsData, ["abbreviation"]);
 
-  // Prepare measurement units data
-  const measurementUnitsToCreate = measurementUnitsData.map((mu) => {
+  // Upsert measurement units by abbreviation (unique). Propagate name, base
+  // factor, magnitude assignment, and isBase flag from JSON to existing rows.
+  for (const mu of measurementUnitsData) {
     const magnitudeId = magnitudeIdByCode.get(mu.magnitudeCode);
     if (!magnitudeId) {
       throw new Error(
         `Unknown magnitudeCode '${mu.magnitudeCode}' for measurement unit '${mu.abbreviation}' in dataset ${dataset}. Add it to SYSTEM_MAGNITUDES or seed it explicitly.`
       );
     }
-    return {
+    const mutableFields = {
       magnitudeId,
       name: mu.name,
-      abbreviation: mu.abbreviation,
       baseFactor: mu.baseFactor,
       isBase: mu.isBase,
     };
-  });
-
-  // Batch create measurement units (skips duplicates)
-  await prisma.measurementUnit.createMany({
-    data: measurementUnitsToCreate,
-    skipDuplicates: true,
-  });
+    await prisma.measurementUnit.upsert({
+      where: { abbreviation: mu.abbreviation },
+      update: mutableFields,
+      create: { abbreviation: mu.abbreviation, ...mutableFields },
+    });
+  }
 
   // Fetch all measurement units to use for rate measurement units
   const measurementUnits = await prisma.measurementUnit.findMany();
-
-  // Verify all measurement units were created
-  if (measurementUnits.length !== measurementUnitsData.length)
-    throw new Error(
-      `Expected ${measurementUnitsData.length} measurement units but found ${measurementUnits.length} for dataset ${dataset}`
-    );
 
   console.log(
     `✓ Ensured ${measurementUnitsData.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")} for dataset ${dataset}`
@@ -119,8 +112,9 @@ export async function seedMeasurementUnits(
   // Check the data has no duplicated based on abbreviation
   checkForDuplicates(rateMeasurementUnitsData, ["abbreviation"]);
 
-  // Prepare rate measurement units data
-  const rateMeasurementUnitsToCreate = rateMeasurementUnitsData.map((rmu) => {
+  // Upsert rate measurement units by abbreviation (unique). Propagate name and
+  // numerator/denominator changes from JSON to existing rows.
+  for (const rmu of rateMeasurementUnitsData) {
     const parts = rmu.abbreviation.split("/").map((p) => p.trim());
     if (parts.length !== 2 || !parts[0] || !parts[1]) {
       throw new Error(
@@ -143,30 +137,21 @@ export async function seedMeasurementUnits(
       );
     }
 
-    return {
+    const mutableFields = {
       name: rmu.name,
-      abbreviation: rmu.abbreviation,
       numeratorMeasurementUnitId: numeratorMeasurementUnit.id,
       denominatorMeasurementUnitId: denominatorMeasurementUnit.id,
     };
-  });
 
-  // Batch create rate measurement units (skips duplicates)
-  await prisma.rateMeasurementUnit.createMany({
-    data: rateMeasurementUnitsToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all rate measurement units were created
-  const rateMeasurementUnits = await prisma.rateMeasurementUnit.findMany();
-
-  if (rateMeasurementUnits.length !== rateMeasurementUnitsData.length)
-    throw new Error(
-      `Expected ${rateMeasurementUnitsData.length} rate measurement units but found ${rateMeasurementUnits.length} for dataset ${dataset}`
-    );
+    await prisma.rateMeasurementUnit.upsert({
+      where: { abbreviation: rmu.abbreviation },
+      update: mutableFields,
+      create: { abbreviation: rmu.abbreviation, ...mutableFields },
+    });
+  }
 
   console.log(
-    `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")} for dataset ${dataset}`
+    `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsData.map((rmu) => rmu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
   // Assert canonical RMU coverage: every MU must have a canonical kg/<MU.abbreviation> RMU

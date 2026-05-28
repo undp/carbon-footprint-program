@@ -40,22 +40,15 @@ export async function seedCountries(
   // Check the data has no duplicated based isoCode
   checkForDuplicates(countriesData, ["isoCode"]);
 
-  // Batch create countries (skips duplicates)
-  await prisma.country.createMany({
-    data: countriesData.map((country) => ({
-      name: country.name,
-      isoCode: country.isoCode,
-    })),
-    skipDuplicates: true,
-  });
-
-  // Verify all countries were created
-  const countries = await prisma.country.findMany();
-
-  if (countries.length !== countriesData.length)
-    throw new Error(
-      `Expected ${countriesData.length} countries but found ${countries.length} for dataset ${dataset}`
-    );
+  // Upsert each country by isoCode so re-running the seed propagates name changes
+  // to existing rows without creating duplicates.
+  for (const { name, isoCode } of countriesData) {
+    await prisma.country.upsert({
+      where: { isoCode },
+      update: { name },
+      create: { name, isoCode },
+    });
+  }
 
   console.log(
     `✓ Ensured ${countriesData.length} countries exist for dataset ${dataset}`

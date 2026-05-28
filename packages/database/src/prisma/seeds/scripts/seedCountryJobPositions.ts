@@ -46,29 +46,20 @@ export async function seedCountryJobPositions(
   // Check the data has no duplicated based on countryIsoCode and name
   checkForDuplicates(jobPositionsData, ["countryIsoCode", "name"]);
 
-  // Prepare job positions data with countryId
-  const jobPositionsToCreate = jobPositionsData.map((jp) => {
+  // Upsert each job position by (countryId, name). The compound unique key fully
+  // determines the row; there are no additional fields to propagate on re-run.
+  for (const jp of jobPositionsData) {
     const country = countryByIso.get(jp.countryIsoCode);
     if (!country)
       throw new Error(
         `Country '${jp.countryIsoCode}' not found in dataset ${dataset}`
       );
-    return { name: jp.name, countryId: country.id };
-  });
-
-  // Batch create job positions (skips duplicates)
-  await prisma.countryJobPosition.createMany({
-    data: jobPositionsToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all job positions were created
-  const jobPositions = await prisma.countryJobPosition.findMany();
-
-  if (jobPositions.length !== jobPositionsData.length)
-    throw new Error(
-      `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length} for dataset ${dataset}`
-    );
+    await prisma.countryJobPosition.upsert({
+      where: { countryId_name: { countryId: country.id, name: jp.name } },
+      update: {},
+      create: { name: jp.name, countryId: country.id },
+    });
+  }
 
   console.log(
     `✓ Ensured ${jobPositionsData.length} job positions exist for dataset ${dataset}`

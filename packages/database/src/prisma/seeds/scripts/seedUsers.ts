@@ -11,14 +11,15 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type UserData = (Required<
-  Pick<Prisma.UserCreateInput, "firstName" | "lastName" | "idpUserId">
-> & {
+type UserData = {
+  idpUserId: string;
   email: string;
+  firstName: string;
+  lastName: string;
   countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
   countryIsoCode: Prisma.CountryCreateInput["isoCode"];
   role: SystemRole;
-})[];
+}[];
 
 const UserDataSchema: z.ZodType<UserData> = z.array(
   z.object({
@@ -59,8 +60,10 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
   // Check the data has no duplicates based on email
   checkForDuplicates(usersData, ["email"]);
 
-  // Prepare users data with countryJobPositionId
-  const usersToCreate = usersData.map((user) => {
+  // Upsert each user by idpUserId (unique). Re-running propagates email, name,
+  // role, and job-position changes from JSON onto existing rows. Note: user
+  // state managed through the app (memberships, audits) is not touched.
+  for (const user of usersData) {
     const country = countryByIso.get(user.countryIsoCode);
     if (!country)
       throw new Error(
@@ -75,35 +78,20 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
         `Job position '${user.countryJobPositionName}' for country '${user.countryIsoCode}' not found in dataset ${dataset}`
       );
 
-    return {
-      idpUserId: user.idpUserId,
+    const mutableFields = {
       email: user.email,
       countryJobPositionId: jobPosition.id,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
     };
-  });
 
-  // Batch create users (skips duplicates)
-  await prisma.user.createMany({
-    data: usersToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all users were created
-  const users = await prisma.user.findMany({
-    where: {
-      email: {
-        in: usersData.map((u) => u.email),
-      },
-    },
-  });
-
-  if (users.length !== usersData.length)
-    throw new Error(
-      `Expected ${usersData.length} users but found ${users.length} for dataset ${dataset}`
-    );
+    await prisma.user.upsert({
+      where: { idpUserId: user.idpUserId },
+      update: mutableFields,
+      create: { idpUserId: user.idpUserId, ...mutableFields },
+    });
+  }
 
   console.log(
     `✓ Ensured ${usersData.length} users exist for dataset ${dataset}`

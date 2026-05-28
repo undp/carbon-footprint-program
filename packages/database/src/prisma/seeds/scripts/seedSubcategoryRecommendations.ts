@@ -1,4 +1,7 @@
-import { type PrismaClient } from "../../../index.js";
+import {
+  type PrismaClient,
+  SubcategoryRecommendationStatus,
+} from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -90,10 +93,25 @@ export async function seedSubcategoryRecommendations(
     }
   }
 
-  await prisma.subcategoryRecommendation.createMany({
-    data: recommendationsToCreate,
-    skipDuplicates: true,
-  });
+  // Upsert by (subcategoryId, sectorId, subsectorId). No mutable fields to
+  // propagate; findFirst + create is enough and also handles NULL subsector
+  // correctly (the partial unique index treats NULLs as distinct).
+  for (const rec of recommendationsToCreate) {
+    const existing = await prisma.subcategoryRecommendation.findFirst({
+      where: {
+        subcategoryId: rec.subcategoryId,
+        sectorId: rec.sectorId,
+        subsectorId: rec.subsectorId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+      select: { id: true },
+    });
+    if (!existing) {
+      await prisma.subcategoryRecommendation.create({
+        data: { ...rec, status: SubcategoryRecommendationStatus.ACTIVE },
+      });
+    }
+  }
 
   console.log(
     `✓ Seeded ${recommendationsToCreate.length} subcategory recommendations`

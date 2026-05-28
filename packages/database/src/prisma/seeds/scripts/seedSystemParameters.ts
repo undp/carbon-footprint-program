@@ -130,32 +130,31 @@ export async function seedSystemParameters(
 
   checkForDuplicates(systemParametersData, ["key"]);
 
-  await prisma.systemParameter.createMany({
-    data: systemParametersData.map((param) => ({
-      key: param.key,
-      value: param.value,
-      description: param.description,
-      type: param.type,
-      options: param.options ?? [],
-      minValue: param.min ?? null,
-      maxValue: param.max ?? null,
-    })),
-    skipDuplicates: true,
-  });
-
-  const systemParameters = await prisma.systemParameter.findMany({
-    select: { key: true },
-  });
-
-  const existingKeys = new Set(systemParameters.map((p) => p.key));
-  const missingKeys = systemParametersData
-    .map((p) => p.key)
-    .filter((key) => !existingKeys.has(key));
-
-  if (missingKeys.length > 0)
-    throw new Error(
-      `Missing system parameter keys for dataset ${dataset}: ${missingKeys.join(", ")}`
-    );
+  // Upsert by key (unique). On update we propagate config metadata
+  // (description, type, options, min, max) but deliberately leave `value`
+  // alone: it is the seed-time default and is owned by the admin UI after
+  // initial creation. See docs/development/seeding.md.
+  for (const param of systemParametersData) {
+    await prisma.systemParameter.upsert({
+      where: { key: param.key },
+      update: {
+        description: param.description,
+        type: param.type,
+        options: param.options ?? [],
+        minValue: param.min ?? null,
+        maxValue: param.max ?? null,
+      },
+      create: {
+        key: param.key,
+        value: param.value,
+        description: param.description,
+        type: param.type,
+        options: param.options ?? [],
+        minValue: param.min ?? null,
+        maxValue: param.max ?? null,
+      },
+    });
+  }
 
   console.log(
     `✓ Ensured ${systemParametersData.length} system parameters exist for dataset ${dataset}`

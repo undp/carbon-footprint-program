@@ -1,4 +1,9 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import {
+  type PrismaClient,
+  type Prisma,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+} from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -60,42 +65,41 @@ export async function seedCountrySectorSubsectors(
     );
   }
 
-  // Prepare sectors data with countryId
-  const sectorsToCreate = countrySectorSubsectorsData.map((item) => {
+  // Resolve sectors: upsert each by (countryId, name). The partial unique index
+  // on (country_id, name) WHERE status = 'ACTIVE' prevents duplicates; we match
+  // by the same predicate so re-running propagates any future field updates.
+  const sectorsToUpsert = countrySectorSubsectorsData.map((item) => {
     const country = countryByIso.get(item.countryIsoCode);
     if (!country) {
       throw new Error(
         `Country '${item.countryIsoCode}' not found in dataset ${dataset}`
       );
     }
-    return {
-      countryId: country.id,
-      name: item.sector,
-    };
+    return { countryId: country.id, name: item.sector };
   });
 
-  // Batch create sectors (skips duplicates)
-  await prisma.countrySector.createMany({
-    data: sectorsToCreate,
-    skipDuplicates: true,
+  for (const { countryId, name } of sectorsToUpsert) {
+    const existing = await prisma.countrySector.findFirst({
+      where: { countryId, name, status: CountrySectorStatus.ACTIVE },
+      select: { id: true },
+    });
+    if (!existing) {
+      await prisma.countrySector.create({
+        data: { countryId, name, status: CountrySectorStatus.ACTIVE },
+      });
+    }
+  }
+
+  // Fetch active sectors to resolve subsector parent IDs
+  const sectors = await prisma.countrySector.findMany({
+    where: { status: CountrySectorStatus.ACTIVE },
   });
-
-  // Fetch all sectors to get their IDs for subsectors
-  const sectors = await prisma.countrySector.findMany();
-
-  // Verify all sectors were created
-  if (sectors.length !== sectorsToCreate.length)
-    throw new Error(
-      `Expected ${sectorsToCreate.length} sectors but found ${sectors.length} for dataset ${dataset}`
-    );
-
-  // Create a map for quick sector lookup
   const sectorMap = new Map(
     sectors.map((s) => [`${s.countryId}_${s.name}`, s])
   );
 
-  // Prepare subsectors data
-  const subsectorsToCreate: { countrySectorId: bigint; name: string }[] = [];
+  // Resolve subsectors: same upsert pattern keyed on (countrySectorId, name)
+  const subsectorsToUpsert: { countrySectorId: bigint; name: string }[] = [];
   for (const item of countrySectorSubsectorsData) {
     const country = countryByIso.get(item.countryIsoCode);
     if (!country)
@@ -110,32 +114,38 @@ export async function seedCountrySectorSubsectors(
       );
 
     for (const subsectorName of item.subsectors) {
-      subsectorsToCreate.push({
+      subsectorsToUpsert.push({
         countrySectorId: sector.id,
         name: subsectorName,
       });
     }
   }
 
-  // Batch create subsectors (skips duplicates)
-  await prisma.countrySubsector.createMany({
-    data: subsectorsToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all subsectors were created
-  const subsectors = await prisma.countrySubsector.findMany();
-
-  if (subsectors.length !== subsectorsToCreate.length)
-    throw new Error(
-      `Expected ${subsectorsToCreate.length} subsectors but found ${subsectors.length} for dataset ${dataset}`
-    );
+  for (const { countrySectorId, name } of subsectorsToUpsert) {
+    const existing = await prisma.countrySubsector.findFirst({
+      where: {
+        countrySectorId,
+        name,
+        status: CountrySubsectorStatus.ACTIVE,
+      },
+      select: { id: true },
+    });
+    if (!existing) {
+      await prisma.countrySubsector.create({
+        data: {
+          countrySectorId,
+          name,
+          status: CountrySubsectorStatus.ACTIVE,
+        },
+      });
+    }
+  }
 
   console.log(
-    `✓ Ensured ${sectorsToCreate.length} sectors exist for dataset ${dataset}`
+    `✓ Ensured ${sectorsToUpsert.length} sectors exist for dataset ${dataset}`
   );
   console.log(
-    `✓ Ensured ${subsectorsToCreate.length} subsectors exist for dataset ${dataset}`
+    `✓ Ensured ${subsectorsToUpsert.length} subsectors exist for dataset ${dataset}`
   );
   console.log("✓ Country sectors and subsectors seeded successfully!");
 }
