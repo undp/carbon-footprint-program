@@ -340,6 +340,12 @@ The `CountryParameter` model allows per-country configuration that differs from 
 
 ---
 
+## Re-running the seed
+
+The seed is idempotent: re-running it propagates JSON edits onto existing rows without creating duplicates. Row removal from JSON is not handled. See [Database Seeding](./seeding.md) for the full contract and implementation details.
+
+---
+
 ## Seeding Order Summary
 
 The seed scripts must run in this order (enforced by `seed.ts`):
