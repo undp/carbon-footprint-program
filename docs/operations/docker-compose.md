@@ -1,263 +1,95 @@
 # Docker Compose — Full Stack Operations
 
-End-to-end guide for running Huella Latam via `docker-compose.yml`. Covers the local dev workflow, the production deployment notes, and the configuration of every service.
+Run the whole Huella Latam stack — Postgres, migrations + seed, API, and web — from a single `docker-compose.yml`. The same file is both the **local dev path** and the **template for productive deployments**; only the env file changes between environments.
 
-This compose file is designed as both the **local dev path** and the **template for productive deployments** — the same file works in both contexts; only the env file changes per environment.
+## Services & boot order
 
----
+| Service    | Image                            | Purpose                                          | Host port    |
+| ---------- | -------------------------------- | ------------------------------------------------ | ------------ |
+| `postgres` | `postgres:18-alpine`             | Application database                             | `5432` (cfg) |
+| `migrate`  | `huella-latam-migrate:local`     | One-shot: applies migrations + seeds, then exits | —            |
+| `api`      | `huella-latam-api:local`         | Fastify API                                      | `8080` (cfg) |
+| `web`      | built from `apps/web/Dockerfile` | React SPA served by nginx                        | `3000` (cfg) |
 
-## What this brings up
-
-| Service    | Image                                  | Purpose                                                        | Host port    |
-| ---------- | -------------------------------------- | -------------------------------------------------------------- | ------------ |
-| `postgres` | `postgres:18-alpine`                   | Application database                                           | `5432` (cfg) |
-| `migrate`  | `huella-latam-migrate:local` (builder) | One-shot: applies Prisma migrations + seeds the DB, then exits | —            |
-| `api`      | `huella-latam-api:local`               | Fastify API server                                             | `8080` (cfg) |
-| `web`      | (built from `apps/web/Dockerfile`)     | React SPA served by nginx                                      | `3000` (cfg) |
-
-Boot order is enforced by `depends_on`:
+`depends_on` enforces the order:
 
 ```
 postgres (healthy) → migrate (completed) → api → web
 ```
 
-`migrate` reuses the `builder` stage of `apps/api/Dockerfile` (full source + `tsx` + Prisma) and exits 0 after migrations and seeding. The `api` waits for it via `condition: service_completed_successfully`.
-
----
-
-## Prerequisites
-
-```bash
-docker --version          # Docker Engine
-docker compose version    # Compose v2 plugin
-docker info               # Daemon reachable
-```
-
-Host ports `3000`, `8080`, `5432` free — or override via env (see below).
-
----
+`migrate` reuses the `builder` stage of `apps/api/Dockerfile` (it already has the source, `tsx`, and Prisma) and exits 0 after seeding; `api` waits on `condition: service_completed_successfully`.
 
 ## Quick start
 
+Requires Docker Engine + the Compose v2 plugin (`docker compose version`). Host ports `3000`, `8080`, `5432` must be free (or override them — see [Configuration](docker-compose.md#configuration)).
+
 ```bash
 cp .env.dockercompose.example .env.dockercompose
-# edit values you need to change (typically: ports, JWT_SECRET, Azure storage SP)
 docker compose --env-file .env.dockercompose up --build
 ```
 
-> docker-compose only auto-loads a file literally named `.env`. The descriptive `.env.dockercompose` is passed explicitly via `--env-file`. The example is committed; `.env.dockercompose` is gitignored.
+The defaults boot a working local stack (auth disabled, storage disabled). Edit the env file only for what you need — typically ports, `JWT_SECRET`, and the Azure storage Service Principal.
 
-Suggested shell alias to avoid repeating the flag:
+> Compose auto-loads only a file literally named `.env`. Ours is `.env.dockercompose` (gitignored; the `.example` is committed), so it's passed explicitly with `--env-file`.
+
+Handy alias used throughout this guide:
 
 ```bash
 alias dc='docker compose --env-file .env.dockercompose'
-dc up --build -d
-dc ps
-dc logs -f api
-dc down
+dc up --build -d   # start detached
+dc ps              # status
+dc logs -f api     # follow one service
+dc down            # stop
 ```
 
----
+## Configuration
 
-## Configuration via `.env.dockercompose`
-
-The example file is organized in sections, each documented inline. Below is a recap of what each block controls.
+`.env.dockercompose` is sectioned and documented inline; this is the recap of what each block controls.
 
 ### Database
 
-| Var                          | Local default  | Notes                                                  |
-| ---------------------------- | -------------- | ------------------------------------------------------ |
-| `POSTGRES_USER`              | `huella`       | Postgres role + DB owner                               |
-| `POSTGRES_PASSWORD`          | `huella`       | Change for any non-local environment                   |
-| `POSTGRES_DB`                | `huella_latam` | Database name                                          |
-| `POSTGRES_PORT_HOST_MAPPING` | `5432`         | Host port to reach Postgres (container is always 5432) |
+| Var                          | Default        | Notes                                |
+| ---------------------------- | -------------- | ------------------------------------ |
+| `POSTGRES_USER`              | `huella`       | Role + DB owner                      |
+| `POSTGRES_PASSWORD`          | `huella`       | Change outside local                 |
+| `POSTGRES_DB`                | `huella_latam` | Database name                        |
+| `POSTGRES_PORT_HOST_MAPPING` | `5432`         | Host port (container is always 5432) |
 
 ### API core
 
-| Var                            | Local default           | Notes                                                   |
-| ------------------------------ | ----------------------- | ------------------------------------------------------- |
-| `NODE_ENV`                     | `development`           | Use `production` for deployments                        |
-| `API_HOST`                     | `0.0.0.0`               | Bind address inside the container                       |
-| `API_PORT`                     | `8080`                  | Host port to reach the API (container is fixed at 8080) |
-| `LOG_LEVEL`                    | `debug`                 | `debug` \| `info` \| `warn` \| `error`                  |
-| `APP_VERSION`                  | `local`                 | Build identifier surfaced in logs / responses           |
-| `ALLOWED_ORIGIN`               | `http://localhost:3000` | CORS origin allowed to call the API                     |
-| `JWT_SECRET`                   | `super-secret-key`      | **CHANGE IN PRODUCTION** — strong random secret         |
-| `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation for local testing               |
+| Var                            | Default                 | Notes                                      |
+| ------------------------------ | ----------------------- | ------------------------------------------ |
+| `NODE_ENV`                     | `development`           | `production` for deployments               |
+| `API_HOST`                     | `0.0.0.0`               | Bind address inside the container          |
+| `API_PORT`                     | `8080`                  | **Host** port (container is fixed at 8080) |
+| `LOG_LEVEL`                    | `debug`                 | `debug` \| `info` \| `warn` \| `error`     |
+| `APP_VERSION`                  | `local`                 | Shown in logs / responses                  |
+| `ALLOWED_ORIGIN`               | `http://localhost:3000` | CORS origin allowed to call the API        |
+| `JWT_SECRET`                   | `super-secret-key`      | **Change in production**                   |
+| `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation (local only)       |
 
 ### Authentication
 
-`AUTH_PROVIDER` chooses the strategy. The same compose supports every mode by passing the right env vars:
+`AUTH_PROVIDER` selects the strategy:
 
 | Mode          | Required vars                                                                                         | Use case                       |
 | ------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `none`        | —                                                                                                     | API fully open (local probe)   |
+| `none`        | —                                                                                                     | API open (simplest local boot) |
 | `forced-user` | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`, `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER`                           | Local dev with a fake user     |
-| `jwks`        | `AZURE_TENANT_TYPE`, `AZURE_TENANT_ID`, `AZURE_TENANT_SUBDOMAIN` (if external), `AZURE_API_CLIENT_ID` | Productive Azure Entra ID auth |
+| `jwks`        | `AZURE_TENANT_TYPE`, `AZURE_TENANT_ID`, `AZURE_TENANT_SUBDOMAIN` (if external), `AZURE_API_CLIENT_ID` | Azure Entra ID auth            |
 | `easy-auth`   | —                                                                                                     | Azure App Service Easy Auth    |
 
-`AZURE_TENANT_ID` here always means the **External ID (CIAM) tenant** — the tenant used to validate user tokens. Generic JWKS overrides (`JWKS_URI`, `JWKS_ISSUER`, etc.) are available for non-Azure IdPs.
-
-### Azure Blob Storage
-
-Used for file upload/download in the API and for seeding badges + terms & conditions in `migrate`.
-
-Identity model:
-
-- **Production on Azure** — leave `AZURE_STORAGE_TENANT_ID` / `_CLIENT_ID` / `_CLIENT_SECRET` empty. The compute (App Service / Container Apps) has Managed Identity, picked up automatically by `DefaultAzureCredential`.
-- **Local in docker** — no Managed Identity, no `az` CLI. A dedicated Service Principal is needed in the **Directory tenant** (where the storage account lives). These vars are intentionally separate from `AZURE_TENANT_ID` (JWKS) so the SP can live in a different tenant than the auth tenant — which is the typical Huella Latam setup (Entra External ID for auth, Directory tenant for infra).
-
-The seeds skip badge + terms upload if `AZURE_STORAGE_ACCOUNT_NAME` is empty (warning log, exit 0). To enable them locally, follow the SP setup below.
-
-#### Creating the storage Service Principal (Azure Portal — primary)
-
-Step-by-step from zero, assuming no app registration or secret exists yet.
-
-##### 0. Pre-check — correct tenant
-
-Upper-right corner of the portal → click your avatar → **Switch directory**. Make sure you are in the **Directory tenant** (where the storage account lives, **not** the Entra External ID tenant used for end-user auth).
-
-##### 1. Create the App Registration (the SP "shell")
-
-1. Portal search → **Microsoft Entra ID**.
-2. Left menu → **App registrations**.
-3. Click **+ New registration**.
-4. Fill in:
-   - **Name**: `huella-local-storage`
-   - **Supported account types**: **Accounts in this organizational directory only (Single tenant)**.
-   - **Redirect URI**: leave empty (not applicable).
-5. Click **Register**.
-6. You land on the **Overview** of the new app registration. Copy these two values:
-   - **Application (client) ID** → will be your `AZURE_STORAGE_CLIENT_ID`.
-   - **Directory (tenant) ID** → will be your `AZURE_STORAGE_TENANT_ID`.
-
-##### 2. Create the Client Secret
-
-1. Same app registration → left menu → **Certificates & secrets**.
-2. **Client secrets** tab → **+ New client secret**.
-3. Fill in:
-   - **Description**: `huella-local-dev` (or any identifiable name).
-   - **Expires**: 6 months or 1 year (for dev).
-4. Click **Add**.
-5. ⚠ **Copy the `Value` NOW** — shown in plaintext only once. After a reload, it's masked forever. This is your `AZURE_STORAGE_CLIENT_SECRET`.
-   - **Do NOT** copy the `Secret ID` column — that's the record identifier, not the secret.
-
-##### 3. Assign the role on the Storage Account
-
-1. Portal search → name of your **Storage account** (the value of `AZURE_STORAGE_ACCOUNT_NAME`).
-2. Left menu → **Access Control (IAM)**.
-3. Click **+ Add** → **Add role assignment**.
-4. **Role** tab:
-   - Search and select **Storage Blob Data Contributor**.
-   - Click **Next**.
-5. **Members** tab:
-   - **Assign access to**: **User, group, or service principal**.
-   - Click **+ Select members** → search by name (`huella-local-storage`) → select it → **Select**.
-   - Click **Next**.
-6. **Review + assign** tab → click **Review + assign**.
-7. Wait 1–2 minutes for the role to propagate (otherwise you'll get `AuthorizationPermissionMismatch`).
-
-##### 4. ⚠ Confirm Blob CORS allows the web origin
-
-If the frontend talks **directly** to blob storage (uploads/downloads via SAS URLs from the browser), the storage account's CORS rules must permit the web origin. If only the API touches storage server-side, this step is not strictly required — but it costs nothing to set and avoids hard-to-debug CORS errors later.
-
-1. Storage account → left menu → **Settings → Resource sharing (CORS)**.
-2. **Blob service** tab → add a row:
-   - **Allowed origins**: web app URL (e.g., `http://localhost:3000` for local, `https://app.your-domain.com` for prod). Multiple origins comma-separated.
-   - **Allowed methods**: `GET, PUT, POST, DELETE, HEAD, OPTIONS`.
-   - **Allowed headers**: `*` (or explicitly `Content-Type, x-ms-*, Authorization, x-ms-blob-content-type`).
-   - **Exposed headers**: `*`.
-   - **Max age (seconds)**: `3600`.
-3. Click **Save** at the top.
-
-> Symptoms of a missing CORS rule: browser console shows `CORS error` or `blocked by CORS policy` when uploading/downloading files; the API works fine via `curl` from the host.
-
-##### 5. Paste into `.env.dockercompose`
-
-```bash
-AZURE_STORAGE_ACCOUNT_NAME=<storage-account-name>
-AZURE_STORAGE_CONTAINER_NAME=files
-AZURE_STORAGE_TENANT_ID=<Directory (tenant) ID from step 1.6>
-AZURE_STORAGE_CLIENT_ID=<Application (client) ID from step 1.6>
-AZURE_STORAGE_CLIENT_SECRET=<Value from step 2.5>
-```
-
-##### 6. Restart the stack clean
-
-```bash
-docker compose --env-file .env.dockercompose down -v
-docker compose --env-file .env.dockercompose up --build
-```
-
-`-v` wipes the postgres volume → DB recreated from scratch → seed runs on an empty DB → `Seeding badges...` should now complete.
-
-##### 7. Verify
-
-```bash
-dc exec migrate env | grep -E "AZURE_STORAGE_(TENANT|CLIENT)_ID"
-# Both vars must appear non-empty.
-```
-
-Expected in the `migrate` log:
-
-```
-Seeding badges...
-  ✓ <BADGE_TYPE> seeded
-  ...
-Seeding completed successfully for dataset: 'base'
-```
-
-##### 8. If something fails
-
-| Symptom                                     | Cause / Fix                                                                                      |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `EnvironmentCredential is unavailable`      | One of the 3 storage vars missing or has stray spaces/quotes. Re-verify with the `env \| grep`.  |
-| `AuthorizationPermissionMismatch`           | Role assignment hasn't propagated. Wait 2 min and retry.                                         |
-| `Container 'files' does not exist`          | Create it: storage account → **Containers** → **+ Container** → name: `files`.                   |
-| `InvalidAuthenticationTokenTenant`          | `AZURE_STORAGE_TENANT_ID` points to the wrong tenant. Must be the Directory tenant (step 0).     |
-| Browser shows `CORS blocked` when uploading | Step 4 (CORS rule) missing or origin doesn't match exactly (check scheme, port, trailing slash). |
-
-#### Alternative: `az` CLI
-
-If you have the CLI working and Owner / User Access Admin on the subscription:
-
-```bash
-az login --tenant <DIRECTORY_TENANT_ID>
-az account set --subscription <SUB_ID>
-az ad sp create-for-rbac \
-  --name huella-local-storage \
-  --role "Storage Blob Data Contributor" \
-  --scopes "/subscriptions/<SUB>/resourceGroups/<RG>/providers/Microsoft.Storage/storageAccounts/<STORAGE>"
-```
-
-CORS is not configured by `create-for-rbac` — set it via portal (step 4) or:
-
-```bash
-az storage cors add \
-  --account-name <STORAGE> \
-  --services b \
-  --methods GET PUT POST DELETE HEAD OPTIONS \
-  --origins http://localhost:3000 \
-  --allowed-headers '*' \
-  --exposed-headers '*' \
-  --max-age 3600
-```
-
-Workaround if the host `az` is broken (e.g., Python 3.14 argparse bug): run it from the official image:
-
-```bash
-alias daz='docker run --rm -it -v "$HOME/.azure:/root/.azure" mcr.microsoft.com/azure-cli az'
-daz login --tenant <DIRECTORY_TENANT_ID> --use-device-code
-daz ad sp create-for-rbac --name huella-local-storage --role "Storage Blob Data Contributor" --scopes ...
-```
+`AZURE_TENANT_ID` is always the **Entra External ID (CIAM) tenant** that validates user tokens — distinct from the storage tenant below. For non-Azure IdPs, use the generic `JWKS_*` overrides.
 
 ### Web build args
 
-The `VITE_*` variables are **inlined into the SPA bundle at docker build time**. Changing them requires `--build`.
+`VITE_*` values are **inlined into the SPA bundle at build time** — literal strings in the compiled JS, not runtime config. Changing any of them requires `dc up --build web`.
 
-| Var                                 | Local default                                          |
+> ⚠️ `API_PORT` and `VITE_API_BASE_URL` are independent. If you change the API's host port, update `VITE_API_BASE_URL` to match and rebuild `web` — otherwise the browser keeps calling the old port. See [Web serves a stale or wrong API URL](docker-compose.md#web-serves-a-stale-or-wrong-api-url).
+
+| Var                                 | Default                                                |
 | ----------------------------------- | ------------------------------------------------------ |
-| `WEB_PORT`                          | `3000` (host port; container listens on 8080)          |
+| `WEB_PORT`                          | `3000` (host; container listens on 8080)               |
 | `VITE_API_BASE_URL`                 | `http://localhost:8080`                                |
 | `VITE_FRONT_BASE_URL`               | `http://localhost:3000`                                |
 | `VITE_AZURE_FRONT_CLIENT_ID`        | `00000000-...` (placeholder unless using JWKS locally) |
@@ -267,153 +99,168 @@ The `VITE_*` variables are **inlined into the SPA bundle at docker build time**.
 | `VITE_IS_DEMO_APP`                  | `false`                                                |
 | `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                                                |
 
-See `docs/operations/web-docker.md` for the web image internals.
+See [web-docker.md](./web-docker.md) for the image internals.
 
----
+### Azure Blob Storage (optional)
+
+The API uses blob storage for file upload/download, and `migrate` uses it to seed badges + terms & conditions. **Leave `AZURE_STORAGE_ACCOUNT_NAME` empty to disable both** — the seeds log a warning and skip (exit 0), and the stack still boots. Set it up only when you need files or the badge/terms seeds locally.
+
+`getStorageCredential()` picks the credential from **where the compute runs** — specifically, whether the host provides an Azure Managed Identity:
+
+| Where the API / `migrate` runs           | `AZURE_STORAGE_*` SP vars | Credential used                                           |
+| ---------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| **Local docker**                         | set all three             | explicit `ClientSecretCredential`                         |
+| **On-premise / any non-Azure host**      | set all three             | explicit `ClientSecretCredential`                         |
+| **Azure (App Service / Container Apps)** | leave all three empty     | `DefaultAzureCredential` → the compute's Managed Identity |
+
+The deciding factor is the Managed Identity, not local-vs-production: only Azure-hosted compute has one, so only there can the SP vars stay empty. **Local and on-premise are the same case** — both authenticate with an explicit Service Principal. The storage account itself always lives in Azure (`<account>.blob.core.windows.net`) regardless of where the app runs, so any non-Azure host needs network reachability to it **plus** the SP credentials.
+
+The SP's tenant (`AZURE_STORAGE_TENANT_ID`) is deliberately separate from the auth tenant (`AZURE_TENANT_ID`): the storage account lives in the **Directory tenant**, while end-user auth uses **Entra External ID**.
+
+#### Create the storage Service Principal (Azure Portal)
+
+Everything below is in the Azure Portal — no `az` CLI required.
+
+1. **Select the right tenant.** Avatar (top-right) → **Switch directory** → the **Directory tenant** that owns the storage account (not the Entra External ID tenant).
+2. **Register an app.** **Microsoft Entra ID → App registrations → + New registration**. Name `huella-local-storage`, **Single tenant**, no redirect URI → **Register**. From the **Overview**, copy:
+   - **Application (client) ID** → `AZURE_STORAGE_CLIENT_ID`
+   - **Directory (tenant) ID** → `AZURE_STORAGE_TENANT_ID`
+3. **Add a client secret.** Same app → **Certificates & secrets → Client secrets → + New client secret** → set an expiry → **Add**. Copy the **Value** immediately (shown only once) → `AZURE_STORAGE_CLIENT_SECRET`.
+   > Copy the **Value**, not the **Secret ID** — the Secret ID is just the record identifier.
+4. **Assign the role.** Storage account → **Access Control (IAM) → + Add → Add role assignment** → role **Storage Blob Data Contributor** → assign to the `huella-local-storage` SP. Wait 1–2 min for it to propagate.
+5. **Allow CORS — only if the browser uploads directly to blob.** Storage account → **Resource sharing (CORS) → Blob service**: origins = web URL (`http://localhost:3000`), methods `GET, PUT, POST, DELETE, HEAD, OPTIONS`, allowed + exposed headers `*`, max-age `3600` → **Save**. Skip this if only the API touches storage server-side.
+6. **Fill `.env.dockercompose`** (and make sure the container exists: storage account → **Containers → + Container** → `files`):
+   ```bash
+   AZURE_STORAGE_ACCOUNT_NAME=<storage-account-name>
+   AZURE_STORAGE_CONTAINER_NAME=files
+   AZURE_STORAGE_TENANT_ID=<Directory (tenant) ID — step 2>
+   AZURE_STORAGE_CLIENT_ID=<Application (client) ID — step 2>
+   AZURE_STORAGE_CLIENT_SECRET=<Value — step 3>
+   ```
+7. **Restart clean and verify:**
+   ```bash
+   dc down -v && dc up --build
+   dc exec migrate env | grep AZURE_STORAGE   # the 3 SP vars must be non-empty
+   ```
+   The `migrate` log should show `Seeding badges...` completing. If it errors, see [Troubleshooting](docker-compose.md#troubleshooting).
 
 ## Common workflows
 
-### First boot
+| Goal                                | Command                                                       |
+| ----------------------------------- | ------------------------------------------------------------- |
+| First boot                          | `dc up --build`                                               |
+| Rebuild after a **backend** change  | `dc up --build api migrate`                                   |
+| Rebuild after a **frontend** change | `dc up --build web`                                           |
+| Reset the database (wipe + reseed)  | `dc down -v && dc up --build`                                 |
+| Logs (all / one service)            | `dc logs -f` / `dc logs -f api`                               |
+| Shell into a container              | `dc exec api sh`                                              |
+| psql into the DB                    | `dc exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"` |
+| Stop (keep data) / stop + wipe      | `dc down` / `dc down -v`                                      |
 
-```bash
-dc up --build
-```
+`down -v` removes only this compose's `postgres-data` volume — your host's local DB is untouched.
 
-### Rebuild after backend code change
-
-The `api` and `migrate` images need to be rebuilt:
-
-```bash
-dc up --build api migrate
-```
-
-Or full rebuild: `dc up --build`.
-
-### Rebuild after frontend code change
-
-The web bundle is baked at image build time, so any change needs `--build`:
-
-```bash
-dc up --build web
-```
-
-### Reset the database (start clean)
-
-```bash
-dc down -v
-dc up --build
-```
-
-`-v` removes the named volume `postgres-data`. Only affects this compose's Postgres — your host's local DB is untouched.
-
-### Run only a subset (skip `migrate`)
-
-Useful when the seed is non-idempotent and the DB is already populated:
+**Skip the seed** (DB already populated, or the seed isn't idempotent):
 
 ```bash
 dc up -d postgres
-dc up -d --no-deps api web
+dc up -d --no-deps api web        # --no-deps bypasses the migrate gate
 ```
 
-`--no-deps` bypasses the `migrate` gate.
-
-### Apply migrations only (no seed)
+**Migrations only, no seed:**
 
 ```bash
 dc up -d postgres
-dc run --rm migrate pnpm --filter @repo/database prod:deploy
+dc run --rm migrate pnpm --filter @repo/database prod:deploy   # overrides the default command
 dc up -d --no-deps api web
 ```
 
-The trailing argument overrides the migrate service's default command.
+## Production deployment
 
-### Logs and shell access
+The same compose file is the productive template — production differs from the committed local-dev defaults (covered by [Quick start](docker-compose.md#quick-start) and [Configuration](docker-compose.md#configuration)) only through the env file. Each country deploys on its own infrastructure, so there are two production targets, **on-premise** (self-hosted) and **Azure**; they differ only in the storage credential.
 
-```bash
-dc logs -f               # all services, follow
-dc logs -f api           # just one
-dc exec api sh           # shell inside the running api container
-dc exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-```
+| Setting         | On-premise (self-hosted)                   | Azure (App Service / Container Apps)       |
+| --------------- | ------------------------------------------ | ------------------------------------------ |
+| `NODE_ENV`      | `production`                               | `production`                               |
+| `JWT_SECRET`    | strong secret from a vault                 | strong secret from a vault                 |
+| `AUTH_PROVIDER` | `jwks`                                     | `jwks`                                     |
+| `VITE_*`        | public deployment URLs                     | public deployment URLs                     |
+| Postgres        | external managed Postgres → `DATABASE_URL` | external managed Postgres → `DATABASE_URL` |
+| Azure storage   | **3 SP vars set** (no Managed Identity)    | **3 SP vars empty** → Managed Identity     |
 
-### Stop everything
+Storage is the only target-dependent setting, because it hinges on the Managed Identity:
 
-```bash
-dc down                  # stop + remove containers (keeps the volume)
-dc down -v               # also remove the postgres volume (DB wipe)
-```
+- **On-premise / any non-Azure host** — no Managed Identity, so keep the three `AZURE_STORAGE_*` SP vars **set** (production-grade, vault-managed values). `getStorageCredential()` uses the explicit `ClientSecretCredential`. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional) for the SP setup.
+- **On Azure** — leave the three SP vars **empty**; `getStorageCredential()` falls back to `DefaultAzureCredential` → the compute's Managed Identity.
 
----
-
-## Production deployment notes
-
-The same compose file is the productive template. The deltas come exclusively from the env file:
-
-| Concern         | Local dev `.env`                                  | Production `.env`                                                           |
-| --------------- | ------------------------------------------------- | --------------------------------------------------------------------------- |
-| `NODE_ENV`      | `development`                                     | `production`                                                                |
-| `JWT_SECRET`    | dev placeholder                                   | Strong random secret from a vault                                           |
-| `AUTH_PROVIDER` | typically `jwks`                                  | `jwks`                                                                      |
-| Azure storage   | Service Principal env vars set (Directory tenant) | All `AZURE_STORAGE_*_ID/SECRET` left **empty** — Managed Identity covers it |
-| `VITE_*`        | `localhost` URLs                                  | Public URLs of the deployment                                               |
-| Postgres        | inline container, ephemeral                       | External managed Postgres → set `DATABASE_URL` accordingly                  |
-
-When `AZURE_STORAGE_TENANT_ID` / `_CLIENT_ID` / `_CLIENT_SECRET` are unset, the `getStorageCredential()` helper (`packages/database/src/utils/getStorageCredential.ts`, shared by the API and the seeds via `@repo/database/utils`) falls back to `DefaultAzureCredential`, which automatically picks the compute's Managed Identity on Azure. No code branching — the env file is the only difference.
-
----
+No code branches by environment — `getStorageCredential()` (`packages/database/src/utils/getStorageCredential.ts`, shared by the API and the seeds via `@repo/database/utils`) just reads the env; the env file is the only difference.
 
 ## Troubleshooting
 
 ### `Bind for 0.0.0.0:5432 failed: port is already allocated`
 
-Another Postgres (host install or container) is using the port. Either change `POSTGRES_PORT_HOST_MAPPING=5433` in your env file, or free the port (`sudo systemctl stop postgresql`, etc.). Internal services keep using `postgres:5432` via Docker network regardless.
+Another Postgres owns the host port. Either set `POSTGRES_PORT_HOST_MAPPING=5433` in your env file, or free the port (`sudo systemctl stop postgresql`). Internal services always reach Postgres at `postgres:5432` over the compose network regardless.
 
-### `CredentialUnavailableError: EnvironmentCredential is unavailable`
+### Storage credential / Service Principal errors
 
-The three `AZURE_STORAGE_*` vars are not all set (or storage code is using the wrong helper). Verify:
+| Symptom                                                               | Cause / fix                                                                                                                            |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `CredentialUnavailableError` / `EnvironmentCredential is unavailable` | Not all three `AZURE_STORAGE_*` SP vars are set (or they have stray quotes/spaces). Check `dc exec migrate env \| grep AZURE_STORAGE`. |
+| `AuthorizationPermissionMismatch`                                     | Role not propagated yet (wait 1–2 min) or wrong role/scope. Needs **Storage Blob Data Contributor** at the storage-account scope.      |
+| `InvalidAuthenticationTokenTenant`                                    | `AZURE_STORAGE_TENANT_ID` is the wrong tenant — it must be the **Directory tenant** (step 1).                                          |
+| `Container 'files' does not exist`                                    | Create it: storage account → **Containers → + Container** → `files`.                                                                   |
+| Browser `CORS blocked` on upload/download                             | CORS rule missing or origin mismatch (scheme / port / trailing slash) — see step 5. The API still works via `curl` from the host.      |
 
-```bash
-dc exec migrate env | grep AZURE_STORAGE
-```
+### Seed fails with `Expected N emission factors but found M`
 
-All of `AZURE_STORAGE_TENANT_ID`, `AZURE_STORAGE_CLIENT_ID`, `AZURE_STORAGE_CLIENT_SECRET` must be present and non-empty. Recreate the SP if the secret expired.
-
-### `AuthorizationPermissionMismatch` from blob storage
-
-SP exists and credential is valid, but the role hasn't propagated yet (1–2 min) or the role/scope is wrong. Recheck: **Storage Blob Data Contributor** role assigned at the storage account scope.
-
-### Seed fails with "Expected N emission factors but found M"
-
-The seed isn't fully idempotent and the DB has stale/duplicated reference data. Reset:
-
-```bash
-dc down -v
-dc up --build
-```
-
-Or skip the seed entirely with the "Apply migrations only" workflow above.
+The seed isn't fully idempotent and the DB has stale or duplicated reference data. Reset with `dc down -v && dc up --build`, or use the migrations-only workflow above.
 
 ### `migrate` exits 0 but the DB looks empty
 
-Confirm the connection target — `migrate` connects to `postgres:5432` (compose network), not to your host DB on `localhost:5432`. Inspect with:
+`migrate` connects to `postgres:5432` on the compose network, not your host's `localhost:5432`. Inspect the right DB:
 
 ```bash
 dc exec postgres psql -U huella -d huella_latam -c "\dt"
 ```
 
-### Web app can reach the API only on first load
+### Web serves a stale or wrong API URL
 
-Likely a `VITE_API_BASE_URL` mismatch — Vite inlines the URL at build time. After changing it in the env file, run `dc up --build web`.
+`VITE_API_BASE_URL` is baked into the bundle at build time, so the browser keeps calling the old URL until the web image is rebuilt. After changing `API_PORT` or any `VITE_*`:
 
-### Azure CLI errors out with `badly formed help string` (Python 3.14)
+1. Update **both** `API_PORT` and `VITE_API_BASE_URL` so they match.
+2. `dc up -d --build web`, then hard-refresh the browser (Ctrl/Cmd + Shift + R).
 
-Known argparse incompatibility. Use the dockerized CLI: `mcr.microsoft.com/azure-cli` (see the SP alternative above), or use the Azure portal flow instead.
+Still stale? Docker reused a cached layer. Check what's actually in the served bundle, and force a clean rebuild if needed:
 
----
+```bash
+docker exec huella-latam-web sh -c 'grep -roE "http://localhost:[0-9]+" /usr/share/nginx/html/assets/ | sort -u'
+# old port still present → rebuild ignoring the layer cache:
+dc down && dc build --no-cache web && dc up -d
+```
+
+> A leftover `http://localhost:5173` (Vite's HMR URL) can appear in some chunks — it's unused at runtime, ignore it.
+
+### Compose uses the wrong value for a variable (shell / direnv overrides `--env-file`)
+
+Compose interpolation precedence is **shell env > `--env-file` > defaults**. If a `.envrc` (loaded by direnv) exports `VITE_*` / `JWT_SECRET` for the `pnpm dev` workflow, those exports silently win over `.env.dockercompose`.
+
+Diagnose:
+
+```bash
+env | grep '^VITE_'                  # what your shell exports
+dc config | grep VITE_API_BASE_URL   # what compose actually resolves
+```
+
+If they differ, that's the conflict. Cleanest fixes:
+
+- Move the `VITE_*` exports out of `.envrc` into `apps/web/.env.local` (Vite reads it in dev), so the two workflows never collide; or
+- Run compose with a scrubbed environment: `alias dc='env -i HOME=$HOME PATH=$PATH USER=$USER docker compose --env-file .env.dockercompose'`; or
+- Temporarily `direnv deny` while working with docker compose, then `direnv allow` to return to `pnpm dev`.
+
+The rule applies to **every** interpolated var (`JWT_SECRET`, `AZURE_STORAGE_*`, `POSTGRES_*`, …) — if a value seems stuck on an old setting, check the shell first.
 
 ## Related docs
 
-- **[Web App Docker Guide](./web-docker.md)** — internals of the web image (nginx config, build args, hardening notes).
-- `apps/api/Dockerfile` — API multi-stage build (also used as the `migrate` base).
-- `apps/web/Dockerfile` — Web SPA build + nginx runtime.
-- `.env.dockercompose.example` — committed template; the single source of truth for every var.
+- [Web App Docker Guide](./web-docker.md) — web image internals (nginx config, build args, hardening notes).
+- `apps/api/Dockerfile` — API multi-stage build (also the `migrate` base).
+- `apps/web/Dockerfile` — web SPA build + nginx runtime.
+- `.env.dockercompose.example` — committed template; the source of truth for every var.
