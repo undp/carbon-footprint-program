@@ -68,8 +68,18 @@ export async function seedEmissionFactorDimensions(
     ])
   );
 
-  // Prepare dimensions data
-  const dimensionsToCreate = dimensionsData.map((dimension) => {
+  // Group dimensions per subcategory to safely propagate position changes
+  // against the partial unique index on (subcategoryId, position).
+  const dimensionsBySubcategoryId = new Map<
+    bigint,
+    {
+      code: string;
+      name: string;
+      position: number;
+      isRequired: boolean;
+    }[]
+  >();
+  for (const dimension of dimensionsData) {
     const subcategory = subcategoriesByFullPath.get(
       `${dimension.countryIsoCode}:${dimension.methodologyVersionName}:${dimension.categoryName}:${dimension.subcategoryName}`
     );
@@ -78,24 +88,58 @@ export async function seedEmissionFactorDimensions(
         `Subcategory '${dimension.subcategoryName}' not found for category '${dimension.categoryName}' in methodology '${dimension.methodologyVersionName}' in country '${dimension.countryIsoCode}' for dataset ${dataset}`
       );
     }
-
-    return {
-      subcategoryId: subcategory.id,
+    const list = dimensionsBySubcategoryId.get(subcategory.id) ?? [];
+    list.push({
       code: dimension.code,
       name: dimension.name,
       position: dimension.position,
       isRequired: dimension.isRequired,
-      status: EmissionFactorDimensionStatus.ACTIVE,
-    };
-  });
+    });
+    dimensionsBySubcategoryId.set(subcategory.id, list);
+  }
 
-  // Batch create dimensions (skips duplicates)
-  await prisma.emissionFactorDimension.createMany({
-    data: dimensionsToCreate,
-    skipDuplicates: true,
-  });
+  for (const [subcategoryId, items] of dimensionsBySubcategoryId) {
+    const shiftOffset =
+      Math.max(...items.map((i) => i.position), items.length) + 1_000_000;
+    await prisma.$transaction(async (tx) => {
+      await tx.emissionFactorDimension.updateMany({
+        where: {
+          subcategoryId,
+          status: { not: EmissionFactorDimensionStatus.DELETED },
+        },
+        data: { position: { increment: shiftOffset } },
+      });
 
-  // Verify all dimensions were created
+      for (const item of items) {
+        const { count } = await tx.emissionFactorDimension.updateMany({
+          where: {
+            subcategoryId,
+            code: item.code,
+            status: { not: EmissionFactorDimensionStatus.DELETED },
+          },
+          data: {
+            name: item.name,
+            position: item.position,
+            isRequired: item.isRequired,
+          },
+        });
+        if (count === 0) {
+          await tx.emissionFactorDimension.create({
+            data: {
+              subcategoryId,
+              code: item.code,
+              name: item.name,
+              position: item.position,
+              isRequired: item.isRequired,
+              status: EmissionFactorDimensionStatus.ACTIVE,
+            },
+          });
+        }
+      }
+    });
+  }
+
+  // Fetch active dimensions for the next step (values + parent relations).
   const dimensions = await prisma.emissionFactorDimension.findMany({
     where: {
       status: EmissionFactorDimensionStatus.ACTIVE,
@@ -104,11 +148,6 @@ export async function seedEmissionFactorDimensions(
       subcategory: true,
     },
   });
-
-  if (dimensions.length !== dimensionsData.length)
-    throw new Error(
-      `Expected ${dimensionsData.length} emission factor dimensions but found ${dimensions.length} for dataset ${dataset}`
-    );
 
   console.log(
     `   ✓ Ensured ${dimensionsData.length} emission factor dimensions exist for dataset ${dataset}`
@@ -188,16 +227,29 @@ export async function seedEmissionFactorDimensions(
     }
   }
 
-  // Create values without parent relationships first
-  await prisma.emissionFactorDimensionValue.createMany({
-    data: allValuesToCreate.map((v) => ({
-      dimensionId: v.dimensionId,
-      value: v.value,
-      parentValueId: null,
-      status: EmissionFactorDimensionValueStatus.ACTIVE,
-    })),
-    skipDuplicates: true,
-  });
+  // First pass: ensure each (dimensionId, value) exists without parent.
+  // Existing rows keep their current parentValueId so the 2nd pass can
+  // re-evaluate it from JSON.
+  for (const v of allValuesToCreate) {
+    const existing = await prisma.emissionFactorDimensionValue.findFirst({
+      where: {
+        dimensionId: v.dimensionId,
+        value: v.value,
+        status: { not: EmissionFactorDimensionValueStatus.DELETED },
+      },
+      select: { id: true },
+    });
+    if (!existing) {
+      await prisma.emissionFactorDimensionValue.create({
+        data: {
+          dimensionId: v.dimensionId,
+          value: v.value,
+          parentValueId: null,
+          status: EmissionFactorDimensionValueStatus.ACTIVE,
+        },
+      });
+    }
+  }
 
   // Fetch all created dimension values
   const dimensionValues = await prisma.emissionFactorDimensionValue.findMany({

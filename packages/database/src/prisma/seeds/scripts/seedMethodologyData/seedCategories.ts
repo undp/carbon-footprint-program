@@ -1,4 +1,4 @@
-import { type PrismaClient } from "@/index.js";
+import { CategoryStatus, type PrismaClient } from "@/index.js";
 import { z } from "zod";
 import {
   checkForDuplicates,
@@ -45,9 +45,21 @@ export async function seedCategories(
     methodologyVersions.map((mv) => [`${mv.country.isoCode}:${mv.name}`, mv])
   );
 
-  // Prepare categories data
-  const categoriesToCreate = categoriesData.map((category) => {
-    // Find methodology version by country and name
+  // Group categories per methodology version to handle the partial unique on
+  // (methodologyVersionId, position) safely during reordering: shift existing
+  // active positions to a high range, then assign final positions.
+  const categoriesByMethodologyId = new Map<
+    bigint,
+    {
+      name: string;
+      synonyms: string;
+      description: string;
+      icon: string;
+      color: string;
+      position: number;
+    }[]
+  >();
+  for (const category of categoriesData) {
     const methodologyVersion = methodologyVersionsByCountryAndName.get(
       `${category.countryIsoCode}:${category.methodologyVersionName}`
     );
@@ -56,31 +68,61 @@ export async function seedCategories(
         `Methodology version '${category.methodologyVersionName}' not found for country '${category.countryIsoCode}' in dataset ${dataset}`
       );
     }
-
-    return {
-      methodologyVersionId: methodologyVersion.id,
+    const list = categoriesByMethodologyId.get(methodologyVersion.id) ?? [];
+    list.push({
       name: category.name,
       synonyms: category.synonyms,
       description: category.description,
       icon: category.icon,
       color: category.color,
       position: category.position,
-    };
-  });
+    });
+    categoriesByMethodologyId.set(methodologyVersion.id, list);
+  }
 
-  // Batch create categories (skips duplicates)
-  await prisma.category.createMany({
-    data: categoriesToCreate,
-    skipDuplicates: true,
-  });
+  for (const [methodologyVersionId, items] of categoriesByMethodologyId) {
+    const shiftOffset =
+      Math.max(...items.map((i) => i.position), items.length) + 1_000_000;
+    await prisma.$transaction(async (tx) => {
+      await tx.category.updateMany({
+        where: {
+          methodologyVersionId,
+          status: { not: CategoryStatus.DELETED },
+        },
+        data: { position: { increment: shiftOffset } },
+      });
 
-  // Verify all categories were created
-  const categories = await prisma.category.findMany();
-
-  if (categories.length !== categoriesData.length)
-    throw new Error(
-      `Expected ${categoriesData.length} categories but found ${categories.length} for dataset ${dataset}`
-    );
+      for (const item of items) {
+        const { count } = await tx.category.updateMany({
+          where: {
+            methodologyVersionId,
+            name: item.name,
+            status: { not: CategoryStatus.DELETED },
+          },
+          data: {
+            synonyms: item.synonyms,
+            description: item.description,
+            icon: item.icon,
+            color: item.color,
+            position: item.position,
+          },
+        });
+        if (count === 0) {
+          await tx.category.create({
+            data: {
+              methodologyVersionId,
+              name: item.name,
+              synonyms: item.synonyms,
+              description: item.description,
+              icon: item.icon,
+              color: item.color,
+              position: item.position,
+            },
+          });
+        }
+      }
+    });
+  }
 
   console.log(
     `   ✓ Ensured ${categoriesData.length} categories exist for dataset ${dataset}`

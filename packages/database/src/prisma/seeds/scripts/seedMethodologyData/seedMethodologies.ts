@@ -31,8 +31,11 @@ export async function seedMethodologies(
     countries.map((country) => [country.isoCode, country])
   );
 
-  // Prepare methodologies data
-  const methodologiesToCreate = methodologiesData.map((methodology, index) => {
+  // Upsert by (countryId, name, version) against the partial unique index
+  // scoped to non-DELETED rows. On update we propagate description/regulation
+  // but leave `status` alone: publishing state is managed via the admin UI
+  // after the initial seed.
+  for (const [index, methodology] of methodologiesData.entries()) {
     const country = countriesByIsoCode.get(methodology.countryIsoCode);
     if (!country) {
       throw new Error(
@@ -40,32 +43,35 @@ export async function seedMethodologies(
       );
     }
 
-    return {
-      countryId: country.id,
-      name: methodology.name,
-      description: methodology.description,
-      regulation: methodology.regulation,
-      version: methodology.version,
-      status:
-        index === 0
-          ? MethodologyVersionStatus.PUBLISHED
-          : MethodologyVersionStatus.UNPUBLISHED,
-    };
-  });
+    const { count } = await prisma.methodologyVersion.updateMany({
+      where: {
+        countryId: country.id,
+        name: methodology.name,
+        version: methodology.version,
+        status: { not: MethodologyVersionStatus.DELETED },
+      },
+      data: {
+        description: methodology.description,
+        regulation: methodology.regulation,
+      },
+    });
 
-  // Batch create methodologies (skips duplicates)
-  await prisma.methodologyVersion.createMany({
-    data: methodologiesToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all methodologies were created
-  const methodologies = await prisma.methodologyVersion.findMany();
-
-  if (methodologies.length !== methodologiesData.length)
-    throw new Error(
-      `Expected ${methodologiesData.length} methodologies but found ${methodologies.length} for dataset ${dataset}`
-    );
+    if (count === 0) {
+      await prisma.methodologyVersion.create({
+        data: {
+          countryId: country.id,
+          name: methodology.name,
+          description: methodology.description,
+          regulation: methodology.regulation,
+          version: methodology.version,
+          status:
+            index === 0
+              ? MethodologyVersionStatus.PUBLISHED
+              : MethodologyVersionStatus.UNPUBLISHED,
+        },
+      });
+    }
+  }
 
   console.log(
     `   ✓ Ensured ${methodologiesData.length} methodologies exist for dataset ${dataset}`

@@ -2,6 +2,7 @@ import { type PrismaClient } from "@/index.js";
 import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
 } from "@/enums.js";
 import { z } from "zod";
 import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
@@ -164,19 +165,28 @@ export async function seedEmissionFactors(
     };
   });
 
-  // Batch create emission factors (skips duplicates)
-  await prisma.emissionFactor.createMany({
-    data: emissionFactorsToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all emission factors were created
-  const emissionFactors = await prisma.emissionFactor.findMany();
-
-  if (emissionFactors.length !== emissionFactorsData.length)
-    throw new Error(
-      `Expected ${emissionFactorsData.length} emission factors but found ${emissionFactors.length} for dataset ${dataset}`
-    );
+  // Upsert by (subcategoryId, dimensionValue1Id, dimensionValue2Id, source)
+  // against the partial unique index scoped to non-DELETED rows. Re-runs
+  // propagate value/rate-unit changes onto existing rows.
+  for (const ef of emissionFactorsToCreate) {
+    const { count } = await prisma.emissionFactor.updateMany({
+      where: {
+        subcategoryId: ef.subcategoryId,
+        dimensionValue1Id: ef.dimensionValue1Id,
+        dimensionValue2Id: ef.dimensionValue2Id,
+        source: ef.source,
+        status: { not: EmissionFactorStatus.DELETED },
+      },
+      data: {
+        rateMeasurementUnitId: ef.rateMeasurementUnitId,
+        gasDetails: ef.gasDetails,
+        value: ef.value,
+      },
+    });
+    if (count === 0) {
+      await prisma.emissionFactor.create({ data: ef });
+    }
+  }
 
   console.log(
     `   ✓ Ensured ${emissionFactorsData.length} emission factors exist for dataset ${dataset}`

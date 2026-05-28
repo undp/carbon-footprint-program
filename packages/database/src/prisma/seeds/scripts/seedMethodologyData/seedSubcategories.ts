@@ -56,8 +56,9 @@ export async function seedSubcategories(
     ])
   );
 
-  // Prepare subcategories data
-  const subcategoriesToCreate = subcategoriesData.map((subcategory) => {
+  // Upsert subcategories by (categoryId, name) against the partial unique on
+  // non-DELETED rows. Re-runs propagate icon/description changes.
+  for (const subcategory of subcategoriesData) {
     const category = categoriesByFullPath.get(
       `${subcategory.countryIsoCode}:${subcategory.methodologyVersionName}:${subcategory.categoryName}`
     );
@@ -67,23 +68,33 @@ export async function seedSubcategories(
       );
     }
 
-    return {
-      categoryId: category.id,
-      name: subcategory.name,
-      icon: subcategory.icon,
-      status: SubcategoryStatus.ACTIVE,
-      description: subcategory.description,
-    };
-  });
+    const { count } = await prisma.subcategory.updateMany({
+      where: {
+        categoryId: category.id,
+        name: subcategory.name,
+        status: { not: SubcategoryStatus.DELETED },
+      },
+      data: {
+        icon: subcategory.icon,
+        description: subcategory.description,
+      },
+    });
+    if (count === 0) {
+      await prisma.subcategory.create({
+        data: {
+          categoryId: category.id,
+          name: subcategory.name,
+          icon: subcategory.icon,
+          status: SubcategoryStatus.ACTIVE,
+          description: subcategory.description,
+        },
+      });
+    }
+  }
 
-  // Batch create subcategories (skips duplicates)
-  await prisma.subcategory.createMany({
-    data: subcategoriesToCreate,
-    skipDuplicates: true,
-  });
-
-  // Verify all subcategories were created
+  // Fetch active subcategories for the next step (SubcategoryMeasurementUnit).
   const subcategories = await prisma.subcategory.findMany({
+    where: { status: { not: SubcategoryStatus.DELETED } },
     include: {
       category: {
         include: {
@@ -96,11 +107,6 @@ export async function seedSubcategories(
       },
     },
   });
-
-  if (subcategories.length !== subcategoriesData.length)
-    throw new Error(
-      `Expected ${subcategoriesData.length} subcategories but found ${subcategories.length} for dataset ${dataset}`
-    );
 
   console.log(
     `   ✓ Ensured ${subcategoriesData.length} subcategories exist for dataset ${dataset}`
