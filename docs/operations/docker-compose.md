@@ -358,7 +358,7 @@ The same compose file is the productive template. The deltas come exclusively fr
 | `VITE_*`        | `localhost` URLs                                  | Public URLs of the deployment                                               |
 | Postgres        | inline container, ephemeral                       | External managed Postgres → set `DATABASE_URL` accordingly                  |
 
-When `AZURE_STORAGE_TENANT_ID` / `_CLIENT_ID` / `_CLIENT_SECRET` are unset, the `getStorageCredential()` helper (`apps/api/src/utils/getStorageCredential.ts`) falls back to `DefaultAzureCredential`, which automatically picks the compute's Managed Identity on Azure. No code branching — the env file is the only difference.
+When `AZURE_STORAGE_TENANT_ID` / `_CLIENT_ID` / `_CLIENT_SECRET` are unset, the `getStorageCredential()` helper (`packages/database/src/utils/getStorageCredential.ts`, shared by the API and the seeds via `@repo/database/utils`) falls back to `DefaultAzureCredential`, which automatically picks the compute's Managed Identity on Azure. No code branching — the env file is the only difference.
 
 ---
 

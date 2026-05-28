@@ -248,3 +248,15 @@ export const AZURE_STORAGE_ACCOUNT_NAME =
  */
 export const AZURE_STORAGE_CONTAINER_NAME =
   process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
+
+/**
+ * Dedicated Service Principal for Blob Storage, used by `getStorageCredential()`.
+ * Set all three together for the local / docker-compose path, where there is no
+ * Managed Identity and the SP may live in a different tenant than `AZURE_TENANT_ID`
+ * (which is the JWKS auth tenant). Leave empty on Azure — the helper then falls
+ * back to `DefaultAzureCredential` (Managed Identity).
+ */
+export const AZURE_STORAGE_TENANT_ID = process.env.AZURE_STORAGE_TENANT_ID;
+export const AZURE_STORAGE_CLIENT_ID = process.env.AZURE_STORAGE_CLIENT_ID;
+export const AZURE_STORAGE_CLIENT_SECRET =
+  process.env.AZURE_STORAGE_CLIENT_SECRET;

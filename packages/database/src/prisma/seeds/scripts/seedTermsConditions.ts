@@ -61,7 +61,11 @@ export async function seedTermsConditions(
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
   const containerClient = new BlobServiceClient(
     `https://${accountName}.blob.core.windows.net`,
-    getStorageCredential()
+    getStorageCredential({
+      tenantId: process.env.AZURE_STORAGE_TENANT_ID,
+      clientId: process.env.AZURE_STORAGE_CLIENT_ID,
+      clientSecret: process.env.AZURE_STORAGE_CLIENT_SECRET,
+    })
   ).getContainerClient(containerName);
 
   const filePath = join(__dirname, "../data/legal", TERMS_CONDITIONS_FILE_NAME);
