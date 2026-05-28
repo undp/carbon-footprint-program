@@ -48,9 +48,6 @@ docs
 # Infra
 infra
 
-# Other apps (if building from root)
-apps/web
-
 # Rest client files
 **/*.rest
 
