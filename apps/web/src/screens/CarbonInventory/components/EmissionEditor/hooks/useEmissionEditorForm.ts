@@ -50,6 +50,7 @@ interface UseEmssionEditorFormResults {
 interface ExtendedFormContext {
   addLine: (subcategoryId: SubcategoryId) => EmissionCaptureFormLine;
   removeLine: (subcategoryId: SubcategoryId, lineId: LineId) => void;
+  resetAfterSaveForSubcategory: (subcategoryId: SubcategoryId) => void;
 }
 
 export const useEmissionEditorForm = ({
@@ -95,9 +96,10 @@ export const useEmissionEditorForm = ({
   const formContext = useFormContext<EmissionCaptureFormValues>();
   const { setValue, getValues } = formContext;
 
-  // Get extended methods (addLine, removeLine) from the form context
+  // Get extended methods (addLine, removeLine, ...) from the form context
   // These are added by useEmissionCaptureForm
-  const { addLine, removeLine } = formContext as unknown as ExtendedFormContext;
+  const { addLine, removeLine, resetAfterSaveForSubcategory } =
+    formContext as unknown as ExtendedFormContext;
 
   // Watch lines from form state to get reactive updates
   const formLines = useWatch({
@@ -488,6 +490,13 @@ export const useEmissionEditorForm = ({
             console.error("EmissionEditor submit error:", err);
             throw err;
           }
+
+          // The submit above persisted this subcategory's lines but this submit
+          // path has no resetAfterSave, so drop its temp/new and just-deleted
+          // lines (scoped to the toggled subcategory) before the toggle refetch
+          // repopulates them with their server ids — otherwise reconciliation
+          // would duplicate them alongside the freshly created server rows.
+          resetAfterSaveForSubcategory(subcategoryId);
         }
 
         await toggleManualMode({ activated: isManual });
@@ -517,6 +526,7 @@ export const useEmissionEditorForm = ({
       getValues,
       submit,
       setValue,
+      resetAfterSaveForSubcategory,
       subcategoryId,
       startAction,
       endAction,
