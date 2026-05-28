@@ -15,6 +15,7 @@ Frontend web application for the Huella Latam project, built with React 19, Vite
 - [Styling](#-styling)
 - [Type Safety](#-type-safety)
 - [Building for Production](#-building-for-production)
+- [Docker](#-docker)
 - [Best Practices](#-best-practices)
 
 ## 🛠 Tech Stack
@@ -802,6 +803,13 @@ VITE_APP_NAME="Huella Latam"
 ```
 
 These are embedded at build time, so rebuild after changing them.
+
+## 🐳 Docker
+
+The web app ships with a production-ready container based on `nginxinc/nginx-unprivileged:alpine-slim`.
+
+- **Full-stack workflow (postgres + api + web via docker-compose):** [`docs/operations/docker-compose.md`](../../docs/operations/docker-compose.md)
+- **Web image reference (architecture, build args, standalone run):** [`docs/operations/web-docker.md`](../../docs/operations/web-docker.md)
 
 ## ✅ Best Practices
 
