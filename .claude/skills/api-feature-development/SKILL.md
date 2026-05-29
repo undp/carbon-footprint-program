@@ -53,12 +53,12 @@ The API uses a two-dimension role model. Apply the correct hook in `route.ts`:
 Rules:
 
 - Domain-specific access hooks (`requireCarbonInventoryAccess`, `requireReductionProjectAccess`) are only used at endpoints **within their own domain**. Endpoints in other domains that reference these entities indirectly should rely on `requireOrganizationRole`.
-- Access the current user via `request.currentUser` (set by `user-resolve-plugin` in preHandler).
+- Access the current user via `request.currentUser` (set by `userResolvePlugin.ts` in preHandler).
 - Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`, `carbonInventoryAuthorizationPlugin.ts`, `reductionProjectAuthorizationPlugin.ts`.
 
 ## Error handling
 
-- Throw the custom error classes from `apps/api/src/errors/` (e.g. `DataIntegrityError`, `EmptyResourceError`, `DatabaseUniqueConstraintViolationError`). Fastify's error-handler plugin catches them and normalizes the response. **Reuse the existing error classes** — the shared set covers not found, unique constraint violation, data integrity, empty resource, and config error. Do not define new feature-specific error classes.
+- Throw the custom error classes from `apps/api/src/errors/`. The `errorHandler.ts` plugin catches them and normalizes the response. **Reuse the existing error classes** — the shared set covers: `ResourceNotFoundError`, `DatabaseUniqueConstraintViolationError`, `DataIntegrityError`, `EmptyResourceError`, `DeleteBlockedByReferencesError`, `ParentNotActiveError`, `RestoreOnActiveError`, and `ApplicationConfigError`. Do not define new feature-specific error classes; if none fits, extend the shared set deliberately.
 - Use `ApiErrorResponseSchema` from `apps/api/src/commonSchemas/errors.ts` for error responses in route schemas (e.g. `response: { 404: ApiErrorResponseSchema }`).
 - For Prisma unique-constraint violations, use helpers like `extractP2002Fields()` from `apps/api/src/errors/` to produce meaningful messages.
 
