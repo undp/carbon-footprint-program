@@ -4,11 +4,11 @@
 
 Esta pantalla administra el catálogo de Metodologías de cálculo de huella de carbono disponibles en el país (por ejemplo, enfoques basados en ISO 14064, GHG Protocol u otros marcos normativos). Cada Metodología define el conjunto de Categorías, Sub-categorías y Factores de Emisión sobre los cuales se levantan los inventarios.
 
-Las Metodologías existen en versiones administradas: cada fila representa una versión específica con su propio nombre, regulación, versión y estado. En todo momento debe existir una y sólo una Metodología activa (publicada), que es la que se utiliza por defecto al crear nuevos inventarios.
+Las Metodologías existen en versiones administradas: cada fila representa una versión específica con su propio nombre, normativa, versión y estado. En todo momento debe existir una y sólo una Metodología activa (publicada), que es la que se utiliza por defecto al crear nuevos inventarios.
 
 ## Alcance
 
-- Permite gestionar versiones de Metodología con los siguientes campos: nombre, descripción, regulación, versión y estado de publicación.
+- Permite gestionar versiones de Metodología con los siguientes campos: nombre, descripción, normativa, versión y estado de publicación.
 - Cada Metodología agrupa Categorías, Sub-categorías, Dimensiones y Factores de Emisión que se administran en sus mantenedores específicos. Desde esta pantalla se accede a esos mantenedores en el contexto de la Metodología seleccionada.
 - También expone acceso a la exportación a Excel de la estructura completa de una Metodología y a su duplicación como base para una nueva versión.
 - No se modifican desde aquí las Categorías, Sub-categorías ni Factores de Emisión: cada uno tiene su propio mantenedor.
@@ -22,11 +22,11 @@ Las Metodologías existen en versiones administradas: cada fila representa una v
 
 Campos y validaciones:
 
-| Campo       | Reglas                                                          |
+| Columna     | Reglas                                                          |
 | ----------- | --------------------------------------------------------------- |
 | Nombre      | Obligatorio. Entre 1 y 255 caracteres. Único dentro del país.   |
 | Descripción | Obligatoria. Entre 1 y 255 caracteres.                          |
-| Regulación  | Obligatoria. Entre 1 y 255 caracteres.                          |
+| Normativa   | Obligatoria. Entre 1 y 255 caracteres.                          |
 | Versión     | Obligatoria. Entre 1 y 100 caracteres.                          |
 | Estado      | Se inicializa como no publicada y se activa con el interruptor. |
 
@@ -53,10 +53,10 @@ La operación se realiza como eliminación lógica: la versión queda marcada co
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**
-> Los inventarios de carbono se asocian a una versión específica de Metodología al momento de su creación. Modificar el nombre, regulación o versión de una Metodología en uso cambia la forma en que se identifica en reportes históricos. Eliminar una Metodología referenciada por inventarios puede dejar inconsistente la trazabilidad normativa, aun cuando los inventarios sigan existiendo.
+> Los inventarios de carbono se asocian a una versión específica de Metodología al momento de su creación. Modificar el nombre, normativa o versión de una Metodología en uso cambia la forma en que se identifica en reportes históricos. Eliminar una Metodología referenciada por inventarios puede dejar inconsistente la trazabilidad normativa, aun cuando los inventarios sigan existiendo.
 
 > ℹ️ **Cuándo modificar**
 > Lo habitual es agregar una nueva versión cuando el regulador del país publica una actualización normativa, o cuando se requiere introducir un nuevo enfoque metodológico. La opción de duplicar facilita construir la nueva versión a partir de una existente y publicarla cuando esté lista.
 
 > 🚫 **Cuándo NO modificar**
-> No se recomienda alterar el nombre, regulación o versión de una Metodología ya utilizada en inventarios reconocidos o reportados externamente: conviene crear una nueva versión en lugar de mutar la actual. Tampoco eliminar versiones referenciadas por inventarios históricos, ya que afecta la trazabilidad de los cálculos publicados.
+> No se recomienda alterar el nombre, normativa o versión de una Metodología ya utilizada en inventarios reconocidos o reportados externamente: conviene crear una nueva versión en lugar de mutar la actual. Tampoco eliminar versiones referenciadas por inventarios históricos, ya que afecta la trazabilidad de los cálculos publicados.

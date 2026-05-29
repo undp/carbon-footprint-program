@@ -8,7 +8,7 @@ Cada Sub-categoría se enmarca dentro de una Categoría y declara las Unidades d
 
 ## Alcance
 
-- Permite gestionar Sub-categorías con los siguientes campos: Categoría a la que pertenecen, nombre, ícono, descripción, explicación extendida (texto enriquecido opcional) y Unidades de Medida asociadas.
+- Permite gestionar Sub-categorías con las siguientes columnas: ícono, Categoría / Alcance a la que pertenecen, sub-categoría (nombre), descripción, unidades aceptadas y explicación extendida (texto enriquecido opcional).
 - Las Sub-categorías pertenecen a una Categoría administrada en el Mantenedor de Categorías. Si una Categoría requerida no existe, debe crearse previamente en ese mantenedor.
 - Las Unidades de Medida disponibles para asociar provienen del Mantenedor de Unidades de Medida.
 - Los Factores de Emisión, Dimensiones y Recomendaciones de Sub-categoría se administran en sus propias pantallas; no se gestionan desde aquí.
@@ -22,21 +22,21 @@ Cada Sub-categoría se enmarca dentro de una Categoría y declara las Unidades d
 
 Campos y validaciones:
 
-| Campo              | Reglas                                                                               |
-| ------------------ | ------------------------------------------------------------------------------------ |
-| Categoría          | Obligatoria. Debe seleccionarse una Categoría existente de la metodología actual.    |
-| Nombre             | Obligatorio. Entre 1 y 255 caracteres. Debe ser único dentro de la Categoría.        |
-| Ícono              | Obligatorio. Debe corresponder a un ícono válido del catálogo.                       |
-| Descripción        | Obligatoria. Texto breve que describe la sub-categoría.                              |
-| Explicación        | Opcional. Texto enriquecido extendido gestionado desde el editor asociado a la fila. |
-| Unidades de Medida | Lista de unidades válidas para esta sub-categoría. No se admiten duplicados.         |
+| Columna             | Reglas                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| Ícono               | Obligatorio. Debe corresponder a un ícono válido del catálogo; toma el color de la Categoría. |
+| Categoría / Alcance | Obligatoria. Debe seleccionarse una Categoría existente de la metodología actual.             |
+| Sub-categoría       | Obligatorio. Entre 1 y 255 caracteres. Debe ser único dentro de la Categoría.                 |
+| Descripción         | Obligatoria. Texto breve que describe la sub-categoría.                                       |
+| Unidades aceptadas  | Lista de Unidades de Medida válidas para esta sub-categoría. No se admiten duplicados.        |
+| Explicación         | Opcional. Texto enriquecido extendido gestionado desde el editor asociado a la fila.          |
 
 ### Editar Sub-categoría
 
 1. Hacer clic sobre la fila para entrar en modo edición.
 2. Modificar los campos editables y confirmar los cambios desde los controles de la fila.
 
-Son editables la Categoría a la que pertenece, el nombre, el ícono, la descripción, la explicación y el listado de Unidades de Medida asociadas. El identificador interno no se modifica desde esta pantalla.
+Son editables el ícono, la Categoría / Alcance a la que pertenece, la sub-categoría (nombre), la descripción, las unidades aceptadas y la explicación. El identificador interno no se modifica desde esta pantalla.
 
 ### Eliminar Sub-categoría
 

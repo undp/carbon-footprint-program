@@ -8,7 +8,7 @@ Cada Iniciativa está asociada a una Sub-categoría dentro de una versión de Me
 
 ## Alcance
 
-- Permite gestionar Iniciativas con los siguientes campos: título, descripción y Sub-categoría asociada.
+- Permite gestionar Iniciativas con las siguientes columnas: Subcategoría asociada, nombre y descripción.
 - Las Iniciativas existen siempre en el contexto de una versión de Metodología, que se selecciona en el encabezado. Por defecto se muestra la Metodología publicada.
 - Las Sub-categorías disponibles provienen del Mantenedor de Sub-categorías de la Metodología seleccionada y se muestran agrupadas por Categoría.
 - No se administra desde aquí la asignación concreta de iniciativas a organizaciones, ni los planes de reducción específicos de cada inventario.
@@ -23,11 +23,11 @@ Cada Iniciativa está asociada a una Sub-categoría dentro de una versión de Me
 
 Campos y validaciones:
 
-| Campo         | Reglas                                                                                   |
-| ------------- | ---------------------------------------------------------------------------------------- |
-| Título        | Obligatorio. Entre 1 y 120 caracteres. Debe ser único dentro de una misma Sub-categoría. |
-| Descripción   | Obligatoria. Entre 1 y 1000 caracteres.                                                  |
-| Sub-categoría | Obligatoria. Debe pertenecer a la Metodología seleccionada.                              |
+| Columna      | Reglas                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Subcategoría | Obligatoria. Debe pertenecer a la Metodología seleccionada. Se elige agrupada por Categoría. |
+| Nombre       | Obligatorio. Entre 1 y 120 caracteres. Debe ser único dentro de una misma Sub-categoría.     |
+| Descripción  | Obligatoria. Entre 1 y 1000 caracteres.                                                      |
 
 ### Editar Iniciativa
 
