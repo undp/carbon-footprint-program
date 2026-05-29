@@ -8,7 +8,7 @@ Cada Factor está asociado a una Sub-categoría, una Unidad de Medida de tasa, u
 
 ## Alcance
 
-- Permite gestionar Factores de Emisión con los siguientes campos: Sub-categoría, valores de Dimensiones 1 y 2 (cuando apliquen), Unidad de Medida de tasa, fuente, desglose por GEI y valor total.
+- Permite gestionar Factores de Emisión con las siguientes columnas: Sub-categoría, Variable 1 y Variable 2 (cuando la Sub-categoría las requiere), Valor, Unidad, Desglose GEI y Fuente.
 - Los Factores existen siempre dentro del contexto de una versión de Metodología, que se selecciona en el encabezado.
 - Las opciones de Sub-categoría, Unidad de Medida y valores de Dimensión provienen de los mantenedores correspondientes (Sub-categorías, Unidades de Medida de Tasa, Dimensiones de Factores de Emisión).
 - No se administra desde aquí la definición de Sub-categorías, Dimensiones ni Unidades de Medida; sólo la asociación de valores numéricos.
@@ -22,15 +22,15 @@ Cada Factor está asociado a una Sub-categoría, una Unidad de Medida de tasa, u
 
 Campos y validaciones:
 
-| Campo            | Reglas                                                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| Sub-categoría    | Obligatoria. Debe pertenecer a la Metodología activa en el selector.                            |
-| Dimensión 1      | Obligatoria si la Sub-categoría declara una primera dimensión requerida; opcional en otro caso. |
-| Dimensión 2      | Obligatoria si la Sub-categoría declara una segunda dimensión requerida; opcional en otro caso. |
-| Unidad de Medida | Obligatoria. Debe corresponder a una unidad de tasa compatible con la Sub-categoría.            |
-| Fuente           | Obligatoria. Texto libre con la referencia bibliográfica o regulatoria del factor.              |
-| Valor            | Obligatorio. Número no negativo y distinto de 0.                                                |
-| Desglose por GEI | Valores no negativos por gas (CO₂ fósil, CH₄, N₂O, HFC, PFC, SF₆, NF₃). Se edita en un modal.   |
+| Columna       | Reglas                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Sub-categoría | Obligatoria. Debe pertenecer a la Metodología activa en el selector.                                             |
+| Variable 1    | Obligatoria si la Sub-categoría declara una primera dimensión requerida; deshabilitada (no aplica) en otro caso. |
+| Variable 2    | Obligatoria si la Sub-categoría declara una segunda dimensión requerida; deshabilitada (no aplica) en otro caso. |
+| Valor         | Obligatorio. Número no negativo y distinto de 0.                                                                 |
+| Unidad        | Obligatoria. Debe corresponder a una unidad de tasa compatible con la Sub-categoría.                             |
+| Desglose GEI  | Valores no negativos por gas (CO₂ fósil, CH₄, N₂O, HFC, PFC, SF₆, NF₃). Se edita en un modal.                    |
+| Fuente        | Obligatoria. Texto libre con la referencia bibliográfica o regulatoria del factor.                               |
 
 ### Editar Factor de Emisión
 

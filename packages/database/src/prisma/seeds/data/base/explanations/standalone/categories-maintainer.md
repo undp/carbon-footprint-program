@@ -8,7 +8,7 @@ Las Categorías existen siempre dentro del contexto de una Metodología específ
 
 ## Alcance
 
-- Permite gestionar Categorías con los siguientes campos: nombre, ícono, color (código hexadecimal), sinónimos, descripción, explicación extendida (texto enriquecido opcional) y posición.
+- Permite gestionar Categorías con las siguientes columnas: posición, ícono (con su color), categoría/alcance, nombre, descripción y explicación extendida (texto enriquecido opcional).
 - Cada Categoría está asociada a una versión de Metodología administrada en el Mantenedor de Metodologías. El selector de metodología en el encabezado define sobre cuál versión se está trabajando.
 - Las Sub-categorías que dependen de cada Categoría se administran por separado, en el Mantenedor de Sub-categorías.
 - No se modifica desde aquí la estructura general de Metodologías ni las Sub-categorías vinculadas.
@@ -22,15 +22,14 @@ Las Categorías existen siempre dentro del contexto de una Metodología específ
 
 Campos y validaciones:
 
-| Campo       | Reglas                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------ |
-| Nombre      | Obligatorio. Entre 1 y 255 caracteres. Debe ser único dentro de la versión de metodología. |
-| Ícono       | Obligatorio. Debe corresponder a un ícono válido del catálogo.                             |
-| Color       | Obligatorio. Código hexadecimal válido (por ejemplo `#1A2B3C`).                            |
-| Sinónimos   | Obligatorio. Texto libre con denominaciones alternativas para búsqueda.                    |
-| Descripción | Obligatoria. Texto breve que describe la categoría.                                        |
-| Explicación | Opcional. Texto enriquecido extendido que se gestiona desde el editor asociado a la fila.  |
-| Posición    | Número entero mayor a 0. Define el orden y debe ser único dentro de la metodología.        |
+| Columna           | Reglas                                                                                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pos.              | Define el orden de la categoría. Número entero mayor a 0, único dentro de la metodología. Se ajusta con las acciones de mover hacia arriba/abajo, no se escribe a mano. |
+| Ícono             | Obligatorio. Se elige un ícono válido del catálogo y su color (código hexadecimal) desde el selector de ícono de la fila.                                               |
+| Categoría/Alcance | Obligatoria. Denominación del alcance o categoría que se muestra en captura y reportes.                                                                                 |
+| Nombre            | Obligatorio. Entre 1 y 255 caracteres. Debe ser único dentro de la versión de metodología.                                                                              |
+| Descripción       | Obligatoria. Texto breve que describe la categoría.                                                                                                                     |
+| Explicación       | Opcional. Texto enriquecido extendido que se gestiona desde el editor asociado a la fila (botón Agregar/Editar/Ver).                                                    |
 
 ### Editar Categoría
 
