@@ -18,6 +18,7 @@ import {
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
+import { useEmissionCaptureActions } from "../../../hooks/useEmissionCaptureActions";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
@@ -44,13 +45,6 @@ interface UseEmssionEditorFormResults {
   handleDeleteLine: (lineId: LineId) => void;
   handleSetTotalEmission: (total: number | null) => void;
   handleSetManualMode: (isManual: boolean) => Promise<void>;
-}
-
-// Extended form context type that includes addLine and removeLine
-interface ExtendedFormContext {
-  addLine: (subcategoryId: SubcategoryId) => EmissionCaptureFormLine;
-  removeLine: (subcategoryId: SubcategoryId, lineId: LineId) => void;
-  resetAfterSaveForSubcategory: (subcategoryId: SubcategoryId) => void;
 }
 
 export const useEmissionEditorForm = ({
@@ -96,10 +90,11 @@ export const useEmissionEditorForm = ({
   const formContext = useFormContext<EmissionCaptureFormValues>();
   const { setValue, getValues } = formContext;
 
-  // Get extended methods (addLine, removeLine, ...) from the form context
-  // These are added by useEmissionCaptureForm
+  // Get imperative emission-capture actions (addLine, removeLine, ...) from
+  // their dedicated context — react-hook-form 7.76's FormProvider no longer
+  // forwards non-UseFormReturn props, so these can't ride on the form context.
   const { addLine, removeLine, resetAfterSaveForSubcategory } =
-    formContext as unknown as ExtendedFormContext;
+    useEmissionCaptureActions();
 
   // Watch lines from form state to get reactive updates
   const formLines = useWatch({

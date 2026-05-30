@@ -19,6 +19,7 @@ import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
 import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
 import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
+import { EmissionCaptureActionsContext } from "./hooks/useEmissionCaptureActions";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { EmissionCaptureFormValues } from "./types/EmissionCaptureTypes";
@@ -81,7 +82,23 @@ export const EmissionCaptureScreen: FC = () => {
 
   // Form setup
   const methods = useEmissionCaptureForm({ data });
-  const { handleSubmit, formState, resetAfterSave, getDirtyLineIds } = methods;
+  const {
+    handleSubmit,
+    formState,
+    resetAfterSave,
+    getDirtyLineIds,
+    addLine,
+    removeLine,
+    resetAfterSaveForSubcategory,
+  } = methods;
+
+  // Imperative line actions are not part of UseFormReturn, so they no longer
+  // ride on FormProvider (react-hook-form 7.76 drops unknown props). Expose
+  // them to descendant editors through a dedicated context instead.
+  const emissionCaptureActions = useMemo(
+    () => ({ addLine, removeLine, resetAfterSaveForSubcategory }),
+    [addLine, removeLine, resetAfterSaveForSubcategory]
+  );
 
   const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
     useEmissionCaptureSubmit({
@@ -279,98 +296,104 @@ export const EmissionCaptureScreen: FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <form id="emission-capture-form" noValidate>
-        <CarbonInventoryLayout
-          headerProps={{
-            title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
-            subtitle: data?.name ?? undefined,
-            action: (
-              <CarbonInventoryNavigationButton
-                type={user ? "inventories" : "landing"}
-                buttonProps={{
-                  onClick: handleExitClick,
-                  disabled: globalSubmitting || isBusy,
-                  loading: isSubmittingAndGoingToList,
-                }}
-              />
-            ),
-          }}
-          footerProps={{
-            buttons: [backButton, nextButton],
-          }}
-          isLoading={isLoading}
-        >
-          <Box className="flex min-h-0 flex-1 flex-col">
-            <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
-              <StepHeader
-                title="Paso 3: Completa los datos de tus fuentes de emisión"
-                description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
-                explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
-                action={
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<AddRounded />}
-                    onClick={handleOpenAddSubcategoryModal}
-                    disabled={globalSubmitting || isBusy}
-                    loading={isSubmittingBeforeModal}
-                  >
-                    Agregar Subcategorías
-                  </Button>
-                }
-              />
-              <CategoryCarousel
-                categories={data?.categories ?? []}
-                selectedCategoryId={selectedCategory}
-                onCategorySelect={handleCategoryChangeWithSave}
-              />
-              {selectedCategoryData && (
-                <>
-                  <TotalCategoryEmissionCard category={selectedCategoryData} />
-                  <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                    {selectedCategoryData.subcategories.map((subcategory) => {
-                      const formSubcategory =
-                        watchedSubcategories?.[subcategory.id];
-                      if (!shouldShowSubcategory(subcategory, formSubcategory))
-                        return null;
-                      return (
-                        <EmissionEditor
-                          key={subcategory.id}
-                          categoryColor={selectedCategoryData.color}
-                          subcategory={subcategory}
-                          inventoryUsageMode={
-                            data?.usageMode ?? UsageMode.SIMPLIFIED
-                          }
-                          inventoryId={inventoryId}
-                        />
-                      );
-                    })}
-                  </Box>
-                </>
-              )}
+      <EmissionCaptureActionsContext.Provider value={emissionCaptureActions}>
+        <form id="emission-capture-form" noValidate>
+          <CarbonInventoryLayout
+            headerProps={{
+              title: `Simulador de Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
+              subtitle: data?.name ?? undefined,
+              action: (
+                <CarbonInventoryNavigationButton
+                  type={user ? "inventories" : "landing"}
+                  buttonProps={{
+                    onClick: handleExitClick,
+                    disabled: globalSubmitting || isBusy,
+                    loading: isSubmittingAndGoingToList,
+                  }}
+                />
+              ),
+            }}
+            footerProps={{
+              buttons: [backButton, nextButton],
+            }}
+            isLoading={isLoading}
+          >
+            <Box className="flex min-h-0 flex-1 flex-col">
+              <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
+                <StepHeader
+                  title="Paso 3: Completa los datos de tus fuentes de emisión"
+                  description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
+                  explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
+                  action={
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddRounded />}
+                      onClick={handleOpenAddSubcategoryModal}
+                      disabled={globalSubmitting || isBusy}
+                      loading={isSubmittingBeforeModal}
+                    >
+                      Agregar Subcategorías
+                    </Button>
+                  }
+                />
+                <CategoryCarousel
+                  categories={data?.categories ?? []}
+                  selectedCategoryId={selectedCategory}
+                  onCategorySelect={handleCategoryChangeWithSave}
+                />
+                {selectedCategoryData && (
+                  <>
+                    <TotalCategoryEmissionCard
+                      category={selectedCategoryData}
+                    />
+                    <Box className="flex min-h-0 flex-1 flex-col gap-4">
+                      {selectedCategoryData.subcategories.map((subcategory) => {
+                        const formSubcategory =
+                          watchedSubcategories?.[subcategory.id];
+                        if (
+                          !shouldShowSubcategory(subcategory, formSubcategory)
+                        )
+                          return null;
+                        return (
+                          <EmissionEditor
+                            key={subcategory.id}
+                            categoryColor={selectedCategoryData.color}
+                            subcategory={subcategory}
+                            inventoryUsageMode={
+                              data?.usageMode ?? UsageMode.SIMPLIFIED
+                            }
+                            inventoryId={inventoryId}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </>
+                )}
+              </Box>
             </Box>
-          </Box>
-        </CarbonInventoryLayout>
-      </form>
-      {IS_DEVELOPMENT && <DevTool control={methods.control} />}
-      <ExitInventoryDialog {...dialogProps} />
-      {isAddSubcategoryModalOpen && (
-        <AddSubcategoryModal
-          open={isAddSubcategoryModalOpen}
-          onClose={() => setIsAddSubcategoryModalOpen(false)}
-          inventoryId={inventoryId}
+          </CarbonInventoryLayout>
+        </form>
+        {IS_DEVELOPMENT && <DevTool control={methods.control} />}
+        <ExitInventoryDialog {...dialogProps} />
+        {isAddSubcategoryModalOpen && (
+          <AddSubcategoryModal
+            open={isAddSubcategoryModalOpen}
+            onClose={() => setIsAddSubcategoryModalOpen(false)}
+            inventoryId={inventoryId}
+          />
+        )}
+        <ConfirmDialog
+          open={confirmDialog.isOpen}
+          onClose={confirmDialog.closeConfirm}
+          onConfirm={handleWarningConfirm}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          variant={confirmDialog.variant}
+          confirmLabel={confirmDialog.confirmLabel}
+          cancelLabel={confirmDialog.cancelLabel}
         />
-      )}
-      <ConfirmDialog
-        open={confirmDialog.isOpen}
-        onClose={confirmDialog.closeConfirm}
-        onConfirm={handleWarningConfirm}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        variant={confirmDialog.variant}
-        confirmLabel={confirmDialog.confirmLabel}
-        cancelLabel={confirmDialog.cancelLabel}
-      />
+      </EmissionCaptureActionsContext.Provider>
     </FormProvider>
   );
 };
