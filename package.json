@@ -23,6 +23,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
     "db:restore": "turbo run db:restore --filter=@repo/database",
+    "db:seed": "pnpm --filter=@repo/database dev:seed",
     "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
   },
   "devDependencies": {
