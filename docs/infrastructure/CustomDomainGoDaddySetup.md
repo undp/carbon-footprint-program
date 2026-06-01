@@ -70,6 +70,8 @@ Bicep crea el recurso `customDomain` en el Static Web App (validación `cname-de
 6. Ejecutar `./infra/deploy-api.sh` — setea `ALLOWED_ORIGIN` de Fastify con la misma prioridad.
 7. Saltar a [Post-configuración](#post-configuración-actualizar-entra-id-frontend-y-api) (Entra ID redirect URIs siguen siendo manuales).
 
+> ⚠️ **El CNAME debe existir y estar propagado ANTES de `deploy.sh`.** La validación `cname-delegation` es **síncrona**: Azure resuelve el CNAME al crear el recurso `customDomains`. Si el registro todavía no resuelve al `<swa-default-host>`, la creación del recurso falla — y como vive dentro del deployment stack, **la corrida completa de `deploy.sh` falla** (no solo el binding del dominio). Los recursos ya existentes no se borran, pero el dominio no queda atado: corregir el DNS, esperar propagación (`dig <custom-domain> CNAME +short`) y re-correr `deploy.sh`.
+
 > ⚠️ **Apex domains** no se soportan en esta opción — el módulo SWA usa `cname-delegation`, que no aplica a registros `@`. Usar la opción manual (abajo) con validación TXT.
 
 ### Opción manual (vía portal Azure)
@@ -308,6 +310,8 @@ Navegador (Origin: https://<custom-domain>)
 ```
 
 **Con la opción IaC** (`FRONTEND_CUSTOM_DOMAIN` seteado, cualquier ruta): bicep deja las tres capas alineadas al dominio custom. Tras `deploy.sh` + `deploy-api.sh`, no hace falta tocar el portal.
+
+> ℹ️ La opción IaC autoriza **un solo origen** (el dominio custom): bicep computa un único `allowedOrigin`. Una vez atado el dominio, acceder por el hostname default (`*.azurestaticapps.net` / `*.azurefd.net`) deja de pasar CORS. Es esperado — usar siempre el dominio custom. Si necesitás mantener ambos orígenes, agregalos a mano en los blades del portal (paso 3b/3c), asumiendo el drift respecto al IaC.
 
 **Con la opción manual** (sin var bicep): bicep deja el CORS de plataforma + Storage apuntando al hostname default del SWA, **no** al dominio custom. Los pasos 3b y 3c (abajo) son obligatorios.
 

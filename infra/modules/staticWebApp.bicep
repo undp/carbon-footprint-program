@@ -69,7 +69,10 @@ resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
   )
 }
 
-// Custom domain (CNAME validation). DNS CNAME record must point to defaultHostname before deploy.
+// Custom domain (CNAME validation). The DNS CNAME record must already point to
+// defaultHostname and be propagated BEFORE deploy: 'cname-delegation' validates
+// synchronously at create time, so an unresolved record fails this resource and,
+// because it lives in the deployment stack, fails the whole deploy.sh run.
 resource customDomain 'Microsoft.Web/staticSites/customDomains@2025-03-01' = if (customDomainName != '') {
   parent: staticWebApp
   name: customDomainName
