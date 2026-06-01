@@ -25,7 +25,7 @@ export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   },
   [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: {
     family: StatusFamily.NEUTRAL,
-    label: `No ${VOCAB.inscription.adjective.singular}`,
+    label: `No ${capitalize(VOCAB.inscription.adjective.singular)}`,
     tooltip: `${capitalize(VOCAB.organization.noun.singular)} sin proceso de ${VOCAB.inscription.noun.singular}`,
     sortOrder: 2,
   },
