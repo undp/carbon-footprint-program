@@ -63,7 +63,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
         >
           <AppActionButton
             tooltip="Adjuntar archivos"
-            aria-label="Adjuntar archivos"
             onClick={() => uploadFiles(rowId)}
             disabled={disabled}
             sx={iconSx}
@@ -87,7 +86,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
         >
           <AppActionButton
             tooltip="Agregar información adicional"
-            aria-label="Agregar información adicional"
             onClick={() => updateComment(rowId)}
             disabled={disabled}
             sx={iconSx}
@@ -99,7 +97,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       {deleteSource && (
         <AppActionButton
           tooltip="Eliminar fuente"
-          aria-label="Eliminar fuente"
           onClick={() => deleteSource(rowId)}
           disabled={disabled}
           sx={iconSx}

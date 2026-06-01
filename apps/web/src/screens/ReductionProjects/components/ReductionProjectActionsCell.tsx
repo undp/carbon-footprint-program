@@ -52,19 +52,11 @@ export const ReductionProjectActionsCell: FC<
     <>
       <Box className="flex justify-center gap-1">
         {canEdit ? (
-          <AppActionButton
-            tooltip="Editar proyecto"
-            onClick={onEditClick}
-            aria-label="Editar proyecto"
-          >
+          <AppActionButton tooltip="Editar proyecto" onClick={onEditClick}>
             <EditOutlined fontSize="small" />
           </AppActionButton>
         ) : (
-          <AppActionButton
-            tooltip="Ver proyecto"
-            onClick={onViewClick}
-            aria-label="Ver proyecto"
-          >
+          <AppActionButton tooltip="Ver proyecto" onClick={onViewClick}>
             <VisibilityOutlined fontSize="small" />
           </AppActionButton>
         )}
@@ -88,7 +80,6 @@ export const ReductionProjectActionsCell: FC<
           <AppActionButton
             tooltip="Historial"
             onClick={() => setHistoryDialogOpen(true)}
-            aria-label="Historial"
           >
             <DescriptionOutlined fontSize="small" />
           </AppActionButton>
@@ -98,7 +89,6 @@ export const ReductionProjectActionsCell: FC<
           tooltip="Descargar proyecto"
           onClick={onDownloadClick}
           disabled={isDownloading}
-          aria-label="Descargar proyecto"
         >
           <FileDownloadOutlined fontSize="small" />
         </AppActionButton>

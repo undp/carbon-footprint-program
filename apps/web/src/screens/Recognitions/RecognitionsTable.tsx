@@ -67,7 +67,6 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
               "noopener,noreferrer"
             )
           }
-          aria-label="Ver archivo"
         >
           <EmojiEventsOutlined fontSize="small" />
         </AppActionButton>
@@ -76,7 +75,6 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
           tooltip="No hay un archivo disponible"
           tooltipPlacement="top"
           disabled
-          aria-label="No hay un archivo disponible"
         >
           <EmojiEventsOutlined fontSize="small" />
         </AppActionButton>

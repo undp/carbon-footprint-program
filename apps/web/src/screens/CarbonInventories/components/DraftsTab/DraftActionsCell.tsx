@@ -203,11 +203,7 @@ export const DraftActionsCell: FC<Props> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {/* Editar */}
-        <AppActionButton
-          tooltip="Editar huella"
-          onClick={onEditClick}
-          aria-label="Editar huella"
-        >
+        <AppActionButton tooltip="Editar huella" onClick={onEditClick}>
           <EditOutlined fontSize="small" />
         </AppActionButton>
 
@@ -216,7 +212,6 @@ export const DraftActionsCell: FC<Props> = ({
           tooltip="Duplicar huella"
           onClick={onDuplicateClick}
           disabled={isDuplicating}
-          aria-label="Duplicar huella"
         >
           <FileCopyOutlined fontSize="small" />
         </AppActionButton>
@@ -262,7 +257,6 @@ export const DraftActionsCell: FC<Props> = ({
           tooltip="Autodeclarar"
           onClick={onSelfDeclareClick}
           sx={primaryActionButtonSx}
-          aria-label="Autodeclarar"
         >
           <TaskAltRounded sx={{ fontSize: 16 }} />
         </AppActionButton>

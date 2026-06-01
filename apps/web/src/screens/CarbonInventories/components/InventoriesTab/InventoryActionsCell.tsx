@@ -249,19 +249,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {isCarbonInventoryEditable(carbonInventory.status) ? (
-          <AppActionButton
-            tooltip="Editar huella"
-            onClick={onEditClick}
-            aria-label="Editar huella"
-          >
+          <AppActionButton tooltip="Editar huella" onClick={onEditClick}>
             <EditOutlined fontSize="small" />
           </AppActionButton>
         ) : (
-          <AppActionButton
-            tooltip="Ver huella"
-            onClick={onViewClick}
-            aria-label="Ver huella"
-          >
+          <AppActionButton tooltip="Ver huella" onClick={onViewClick}>
             <VisibilityOutlined fontSize="small" />
           </AppActionButton>
         )}
@@ -293,7 +285,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             onClick={onCalculationClick}
             disabled={!canRequestMeasurement || !carbonInventory.isSelfDeclared}
             sx={primaryActionButtonSx}
-            aria-label="Postular a reconocimiento de medición"
           >
             <SendOutlined fontSize="small" />
           </AppActionButton>
@@ -304,7 +295,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           tooltip="Postular a reconocimiento de verificación"
           onClick={onVerifyClick}
           disabled={!canRequestVerification}
-          aria-label="Postular a reconocimiento de verificación"
           sx={primaryActionButtonSx}
         >
           <VerifiedOutlined fontSize="small" />
@@ -331,7 +321,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           <AppActionButton
             tooltip="Historial"
             onClick={() => setHistoryDialogOpen(true)}
-            aria-label="Historial"
           >
             <DescriptionOutlined fontSize="small" />
           </AppActionButton>
@@ -342,7 +331,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           tooltip="Duplicar huella"
           onClick={onDuplicateClick}
           disabled={isDuplicating}
-          aria-label="Duplicar huella"
         >
           <FileCopyOutlined fontSize="small" />
         </AppActionButton>
