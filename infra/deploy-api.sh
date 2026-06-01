@@ -97,36 +97,47 @@ APP_SETTINGS=(
   "APP_VERSION=${APP_VERSION:-unknown}"
 )
 
-# Resolve ALLOWED_ORIGIN for the Fastify container. Source of truth =
-# FRONTEND_CUSTOM_DOMAIN (env var or stack output). Falls back to the Static
-# Web App default hostname when no custom domain is configured. A manual
-# VITE_FRONT_BASE_URL is intentionally ignored to keep this script in sync with
-# bicep's allowedOrigin (App Service CORS + Storage CORS).
+# Read a single deployment-stack output, normalizing a missing/null output to
+# an empty string (az may emit the literal "null" for an absent value).
+stack_output() {
+  local value
+  value=$(az stack group show \
+    --name "$STACK_NAME_ENV" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query "outputs.$1.value" -o tsv 2>/dev/null || echo "")
+  if [ "$value" = "null" ]; then
+    value=""
+  fi
+  printf '%s' "$value"
+}
+
+# Resolve ALLOWED_ORIGIN for the Fastify container. This MUST mirror the
+# `allowedOrigin` precedence in infra/main.bicep so a standalone deploy-api.sh
+# never overwrites the origin bicep wrote to App Service / Storage CORS:
+#   1. FRONTEND_CUSTOM_DOMAIN (env var, then stack output) — wins for any front end.
+#   2. Front Door endpoint — when Front Door is enabled without a custom domain.
+#   3. Static Web App default hostname — plain deployments.
+# A manual VITE_FRONT_BASE_URL is intentionally ignored to keep this in sync.
 if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   ALLOWED_ORIGIN_VALUE="https://${FRONTEND_CUSTOM_DOMAIN}"
   log "Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: $ALLOWED_ORIGIN_VALUE"
 else
-  STACK_FRONTEND_DOMAIN=$(az stack group show \
-    --name "$STACK_NAME_ENV" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query "outputs.frontendCustomDomain.value" -o tsv 2>/dev/null || echo "")
+  ORIGIN_HOST=""
+  ORIGIN_SOURCE=""
+  if ORIGIN_HOST=$(stack_output frontendCustomDomain); [ -n "$ORIGIN_HOST" ]; then
+    ORIGIN_SOURCE="stack output frontendCustomDomain"
+  elif ORIGIN_HOST=$(stack_output frontDoorEndpoint); [ -n "$ORIGIN_HOST" ]; then
+    ORIGIN_SOURCE="stack output frontDoorEndpoint"
+  elif ORIGIN_HOST=$(stack_output staticWebAppHostname); [ -n "$ORIGIN_HOST" ]; then
+    ORIGIN_SOURCE="Static Web App default hostname"
+  fi
 
-  if [ -n "$STACK_FRONTEND_DOMAIN" ]; then
-    ALLOWED_ORIGIN_VALUE="https://${STACK_FRONTEND_DOMAIN}"
-    log "Resolved ALLOWED_ORIGIN from stack output frontendCustomDomain: $ALLOWED_ORIGIN_VALUE"
+  if [ -n "$ORIGIN_HOST" ]; then
+    ALLOWED_ORIGIN_VALUE="https://${ORIGIN_HOST}"
+    log "Resolved ALLOWED_ORIGIN from ${ORIGIN_SOURCE}: $ALLOWED_ORIGIN_VALUE"
   else
-    STACK_SWA_HOSTNAME=$(az stack group show \
-      --name "$STACK_NAME_ENV" \
-      --resource-group "$AZURE_RESOURCE_GROUP" \
-      --query "outputs.staticWebAppHostname.value" -o tsv 2>/dev/null || echo "")
-
-    if [ -n "$STACK_SWA_HOSTNAME" ]; then
-      ALLOWED_ORIGIN_VALUE="https://${STACK_SWA_HOSTNAME}"
-      log "Resolved ALLOWED_ORIGIN from Static Web App default hostname: $ALLOWED_ORIGIN_VALUE"
-    else
-      ALLOWED_ORIGIN_VALUE=""
-      log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or stack outputs; leaving unchanged."
-    fi
+    ALLOWED_ORIGIN_VALUE=""
+    log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or stack outputs; leaving unchanged."
   fi
 fi
 
