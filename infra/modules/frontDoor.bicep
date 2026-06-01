@@ -256,6 +256,3 @@ output endpointHostname string = frontDoorEndpoint.properties.hostName
 
 @description('Front Door Endpoint ID')
 output endpointId string = frontDoorEndpoint.id
-
-@description('Custom domain hostname (if configured)')
-output customDomainHostname string = customDomainName
