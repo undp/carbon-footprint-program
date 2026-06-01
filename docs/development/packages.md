@@ -79,14 +79,15 @@ Owns the Prisma schema, all migration files, and seed scripts. Exports the `Pris
 
 **Key scripts:**
 
-| Script         | Purpose                                                 |
-| -------------- | ------------------------------------------------------- |
-| `dev:migrate`  | Create and apply a new migration interactively          |
-| `dev:generate` | Regenerate the Prisma client after schema changes       |
-| `dev:seed`     | Run seed scripts (uses `SEEDS_DATASET` env var)         |
-| `dev:studio`   | Open Prisma Studio at http://localhost:5555             |
-| `dev:reset`    | Drop the database, reapply all migrations, reseed       |
-| `prod:deploy`  | Apply pending migrations non-interactively (used in CI) |
+| Script         | Purpose                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| `dev:migrate`  | Create and apply a new migration interactively                        |
+| `dev:generate` | Regenerate the Prisma client after schema changes                     |
+| `dev:seed`     | Run seed scripts (uses `SEEDS_DATASET` env var)                       |
+| `dev:studio`   | Open Prisma Studio at http://localhost:5555                           |
+| `dev:reset`    | Drop the database, reapply all migrations, reseed                     |
+| `prod:deploy`  | Apply pending migrations non-interactively (used in CI)               |
+| `prod:seed`    | Run seed scripts non-interactively (used by docker-compose `migrate`) |
 
 **Build note:** `prebuild` runs `prisma generate` automatically, so the generated client is always in sync with the schema before the TypeScript compiler runs.
 
