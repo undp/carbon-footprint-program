@@ -32,6 +32,7 @@
     "dev:studio": "prisma studio",
     "db:restore": "prisma migrate reset --force && prisma db seed",
     "prod:deploy": "prisma migrate deploy",
+    "prod:seed": "prisma db seed",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
     "validate:version": "tsx scripts/validate-postgres-version.ts",
     "promote-superadmin": "tsx src/scripts/promote-superadmin.ts"

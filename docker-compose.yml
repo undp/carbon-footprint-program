@@ -17,7 +17,7 @@ services:
     command:
       - sh
       - -c
-      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/database dev:seed"
+      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/database prod:seed"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
