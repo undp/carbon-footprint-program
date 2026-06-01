@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { useTheme } from "@mui/material";
 import { SystemRole } from "@repo/types";
 import { CustomPaletteChip } from "./CustomPaletteChip";
@@ -11,12 +11,9 @@ interface SystemRoleChipProps {
 
 export const SystemRoleChip: FC<SystemRoleChipProps> = ({ role }) => {
   const theme = useTheme();
-  const config = useMemo<CustomPaletteConfig>(
-    () => ({
-      ...SYSTEM_ROLE_LABELS[role],
-      color: theme.palette.roleColors[role],
-    }),
-    [role, theme]
-  );
+  const config: CustomPaletteConfig = {
+    ...SYSTEM_ROLE_LABELS[role],
+    color: theme.palette.roleColors[role],
+  };
   return <CustomPaletteChip config={config} />;
 };

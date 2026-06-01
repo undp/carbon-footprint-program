@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { useTheme } from "@mui/material";
 import { SubmissionType } from "@repo/types";
 import { CustomPaletteChip } from "./CustomPaletteChip";
@@ -11,12 +11,9 @@ interface SubmissionTypeChipProps {
 
 export const SubmissionTypeChip: FC<SubmissionTypeChipProps> = ({ type }) => {
   const theme = useTheme();
-  const config = useMemo<CustomPaletteConfig>(
-    () => ({
-      ...SUBMISSION_TYPE_LABELS[type],
-      color: theme.palette.requestTypeColors[type],
-    }),
-    [type, theme]
-  );
+  const config: CustomPaletteConfig = {
+    ...SUBMISSION_TYPE_LABELS[type],
+    color: theme.palette.requestTypeColors[type],
+  };
   return <CustomPaletteChip config={config} />;
 };
