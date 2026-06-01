@@ -4,7 +4,7 @@ Reference for the `apps/web` container image: architecture, build args, and stan
 
 For the **full-stack docker-compose workflow** (postgres + migrate + api + web), see [docker-compose.md](./docker-compose.md).
 
-This is a minimal first version — no healthcheck, hardening, or runtime env injection yet. See [Future improvements](#future-improvements).
+This is a minimal first version — no hardening or runtime env injection yet. See [Future improvements](#future-improvements).
 
 ---
 
@@ -19,6 +19,7 @@ This is a minimal first version — no healthcheck, hardening, or runtime env in
 | Build orchestration | `turbo prune --scope=web --docker` + `turbo build --filter=web`     |
 | SPA routing         | nginx `try_files $uri $uri/ /index.html` (TanStack Router fallback) |
 | Asset caching       | `/assets/*` → `Cache-Control: public, immutable`, 1y expiry         |
+| Healthcheck         | BusyBox `wget` probe on `/` (port 8080), every 30s                  |
 
 Stages: `pruner` isolates the workspace to web's package.json + lockfile, `builder` (Node) installs deps and compiles the SPA, `runner` (nginx) serves the static `dist/` output. The prune step keeps the dependency-install layer cached so it only re-runs when dependencies change, not on every source edit.
 
@@ -76,7 +77,6 @@ For running it as part of the full stack, see [docker-compose.md](./docker-compo
 
 Deliberately left out of this first version, to add when needed:
 
-- **Healthcheck** — `wget --spider http://localhost:8080/` for orchestrator readiness.
 - **Hardening** — `read_only: true` + tmpfs for `/tmp`, `/var/cache/nginx`, `/var/run`; drop capabilities.
 - **Security headers** — CSP, HSTS, X-Content-Type-Options, Referrer-Policy in `nginx.conf`.
 - **Runtime env injection** — envsubst entrypoint for a single multi-environment image.

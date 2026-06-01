@@ -54,4 +54,10 @@ FROM nginxinc/nginx-unprivileged:alpine-slim AS runner
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 8080
+
+# Readiness probe — nginx serves the SPA on 8080. Uses BusyBox `wget`
+# (curl isn't shipped in the alpine-slim image).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -q -O /dev/null http://localhost:8080/ || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]
