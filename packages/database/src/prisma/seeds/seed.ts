@@ -22,6 +22,21 @@ const prisma = new PrismaClient({
 
 async function main() {
   await prisma.$connect();
+
+  // Seeds are additive and intended for a fresh database. Re-running them
+  // against a populated database is unsafe (duplicates, partial drift, PK
+  // churn), so if the database already contains data we skip seeding entirely.
+  // Country is reference data created only by the seed, never by the app, so
+  // its presence is a reliable "already seeded" marker. To reseed, reset the
+  // database first (`pnpm db:reset`).
+  const existingCountries = await prisma.country.count();
+  if (existingCountries > 0) {
+    console.log(
+      `Database already contains data — skipping seed for dataset '${SEEDS_DATASET}'.`
+    );
+    return;
+  }
+
   await seedMagnitudes(prisma, SEEDS_DATASET);
   await seedMeasurementUnits(prisma, SEEDS_DATASET); // needs the magnitudes to be seeded first
   await seedSystemParameters(prisma, SEEDS_DATASET);
@@ -37,14 +52,11 @@ async function main() {
   await seedReductionPlanInitiatives(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
   await seedBadges(prisma, SEEDS_DATASET);
   await seedTermsConditions(prisma, SEEDS_DATASET); // needs TERMS_CONDITIONS_FILE_UUID system parameter row to exist
+
+  console.log(`Seeding completed successfully for dataset: '${SEEDS_DATASET}'`);
 }
 
 main()
-  .then(() => {
-    console.log(
-      `Seeding completed successfully for dataset: '${SEEDS_DATASET}'`
-    );
-  })
   .catch((e) => {
     console.error(e);
     // Let Node exit after pending tasks (like $disconnect) finish

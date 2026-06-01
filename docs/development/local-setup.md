@@ -139,6 +139,8 @@ pnpm db:reset
 
 This resets the database, applies all migrations, and runs seeds in one command.
 
+> **Seeding is skipped when the database already has data.** `pnpm dev:seed` only seeds a fresh database — if any data already exists it logs a message and exits without changes. To reseed, reset the database first with `pnpm db:reset`.
+
 ---
 
 ## Step 6 — Start Development Servers
