@@ -22,7 +22,7 @@ import {
   TuneOutlined,
   FileDownloadOutlined,
 } from "@mui/icons-material";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 
 interface ActionButtonProps {
   isActiveRow: boolean;
@@ -100,21 +100,21 @@ export const ActionButtons: FC<ActionButtonProps> = ({
     <>
       <Box className="flex justify-end gap-1">
         {isEditing && onStopEditCells && (
-          <ActionIconButton
+          <AdminActionButton
             icon={SaveOutlined}
             tooltip="Guardar cambios"
             onClick={onStopEditCells}
           />
         )}
         {isEditing && onCancelEdit && (
-          <ActionIconButton
+          <AdminActionButton
             icon={CloseOutlined}
             tooltip="Cancelar edición"
             onClick={onCancelEdit}
           />
         )}
         {onEdit && !isActiveRow && !isEditing && (
-          <ActionIconButton
+          <AdminActionButton
             icon={SettingsOutlined}
             tooltip={
               editDisabled && editTooltipTitle
@@ -126,7 +126,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           />
         )}
         {onView && isActiveRow && (
-          <ActionIconButton
+          <AdminActionButton
             icon={VisibilityOutlined}
             tooltip="Ver alcances"
             onClick={onView}
@@ -139,7 +139,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           }}
         >
           {!isEditing && onMoveUp && (
-            <ActionIconButton
+            <AdminActionButton
               icon={KeyboardArrowUpOutlined}
               tooltip="Mover arriba"
               onClick={onMoveUp}
@@ -147,7 +147,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             />
           )}
           {!isEditing && onMoveDown && (
-            <ActionIconButton
+            <AdminActionButton
               icon={KeyboardArrowDownOutlined}
               tooltip="Mover abajo"
               onClick={onMoveDown}
@@ -156,14 +156,14 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           )}
         </Box>
         {!isEditing && onConfigureVariables && !isActiveRow && (
-          <ActionIconButton
+          <AdminActionButton
             icon={TuneOutlined}
             tooltip="Configurar variables"
             onClick={onConfigureVariables}
           />
         )}
         {!isEditing && onDuplicate && (
-          <ActionIconButton
+          <AdminActionButton
             icon={ContentCopyOutlined}
             tooltip={
               duplicateDisabled && duplicateTooltipTitle
@@ -189,7 +189,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           </Tooltip>
         )}
         {!isEditing && onDelete && (
-          <ActionIconButton
+          <AdminActionButton
             icon={DeleteOutlined}
             tooltip={resolvedDeleteTooltipTitle}
             onClick={() => setDeleteOpen(true)}

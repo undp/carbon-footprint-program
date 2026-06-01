@@ -21,7 +21,7 @@ import {
   canSubmitToMeasurement,
   isCarbonInventoryEditable,
 } from "@repo/utils";
-import { BaseActionButton, primaryActionButtonSx } from "@/components";
+import { AppActionButton, primaryActionButtonSx } from "@/components";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
 import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
@@ -249,25 +249,25 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {isCarbonInventoryEditable(carbonInventory.status) ? (
-          <BaseActionButton
+          <AppActionButton
             tooltip="Editar huella"
             onClick={onEditClick}
             aria-label="Editar huella"
           >
             <EditOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         ) : (
-          <BaseActionButton
+          <AppActionButton
             tooltip="Ver huella"
             onClick={onViewClick}
             aria-label="Ver huella"
           >
             <VisibilityOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         )}
 
         {/* Descargar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip={
             isDownloading
               ? "Descargando..."
@@ -284,11 +284,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           ) : (
             <FileDownloadOutlined fontSize="small" />
           )}
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Postular a reconocimiento de medición */}
         {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
-          <BaseActionButton
+          <AppActionButton
             tooltip="Postular a reconocimiento de medición"
             onClick={onCalculationClick}
             disabled={!canRequestMeasurement || !carbonInventory.isSelfDeclared}
@@ -296,11 +296,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             aria-label="Postular a reconocimiento de medición"
           >
             <SendOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         )}
 
         {/* Postular a Reconocimiento */}
-        <BaseActionButton
+        <AppActionButton
           tooltip="Postular a reconocimiento de verificación"
           onClick={onVerifyClick}
           disabled={!canRequestVerification}
@@ -308,7 +308,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           sx={primaryActionButtonSx}
         >
           <VerifiedOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Historial */}
         <Badge
@@ -328,24 +328,24 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             },
           }}
         >
-          <BaseActionButton
+          <AppActionButton
             tooltip="Historial"
             onClick={() => setHistoryDialogOpen(true)}
             aria-label="Historial"
           >
             <DescriptionOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         </Badge>
 
         {/* Duplicar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip="Duplicar huella"
           onClick={onDuplicateClick}
           disabled={isDuplicating}
           aria-label="Duplicar huella"
         >
           <FileCopyOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
       </Box>
 
       <CalculationConfirmationDialog

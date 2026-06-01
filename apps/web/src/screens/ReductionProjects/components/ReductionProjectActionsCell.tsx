@@ -15,7 +15,7 @@ import { isReductionProjectEditable } from "@repo/utils";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { ViewSubmissionDialog } from "@/components/dialogs/SubmissionHistory";
-import { BaseActionButton } from "@/components";
+import { AppActionButton } from "@/components";
 
 interface ReductionProjectActionsCellProps {
   reductionProject: GetAllReductionProjectsResponse[number];
@@ -52,21 +52,21 @@ export const ReductionProjectActionsCell: FC<
     <>
       <Box className="flex justify-center gap-1">
         {canEdit ? (
-          <BaseActionButton
+          <AppActionButton
             tooltip="Editar proyecto"
             onClick={onEditClick}
             aria-label="Editar proyecto"
           >
             <EditOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         ) : (
-          <BaseActionButton
+          <AppActionButton
             tooltip="Ver proyecto"
             onClick={onViewClick}
             aria-label="Ver proyecto"
           >
             <VisibilityOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         )}
 
         {/* Historial */}
@@ -85,23 +85,23 @@ export const ReductionProjectActionsCell: FC<
             },
           }}
         >
-          <BaseActionButton
+          <AppActionButton
             tooltip="Historial"
             onClick={() => setHistoryDialogOpen(true)}
             aria-label="Historial"
           >
             <DescriptionOutlined fontSize="small" />
-          </BaseActionButton>
+          </AppActionButton>
         </Badge>
 
-        <BaseActionButton
+        <AppActionButton
           tooltip="Descargar proyecto"
           onClick={onDownloadClick}
           disabled={isDownloading}
           aria-label="Descargar proyecto"
         >
           <FileDownloadOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
       </Box>
 
       {historyDialogOpen && (

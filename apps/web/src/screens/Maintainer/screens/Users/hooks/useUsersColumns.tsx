@@ -5,7 +5,7 @@ import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { UserRoleChip } from "../components/UserRoleChip";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import {
   ACTION_LABELS,
   COLUMN_HEADERS,
@@ -142,7 +142,7 @@ export const useUsersColumns = ({
           const showChangeRoleButton = showChangeRole && !isOwnRow;
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <ActionIconButton
+              <AdminActionButton
                 icon={HistoryOutlined}
                 tooltip={ACTION_LABELS.viewHistory}
                 onClick={() => onViewHistory(params.row.id)}
@@ -153,7 +153,7 @@ export const useUsersColumns = ({
                     visibility: showChangeRoleButton ? "visible" : "hidden",
                   }}
                 >
-                  <ActionIconButton
+                  <AdminActionButton
                     icon={ManageAccountsOutlined}
                     tooltip={ACTION_LABELS.changeRole}
                     onClick={() => onChangeRole(params.row.id)}

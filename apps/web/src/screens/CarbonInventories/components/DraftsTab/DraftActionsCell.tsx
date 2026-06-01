@@ -32,7 +32,7 @@ import {
 import { useMyOrganizations } from "@/api/query/organizations/useMyOrganizations";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
-import { BaseActionButton, primaryActionButtonSx } from "@/components";
+import { AppActionButton, primaryActionButtonSx } from "@/components";
 import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
@@ -203,26 +203,26 @@ export const DraftActionsCell: FC<Props> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {/* Editar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip="Editar huella"
           onClick={onEditClick}
           aria-label="Editar huella"
         >
           <EditOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Duplicar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip="Duplicar huella"
           onClick={onDuplicateClick}
           disabled={isDuplicating}
           aria-label="Duplicar huella"
         >
           <FileCopyOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Descargar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip={
             isDownloading
               ? "Descargando..."
@@ -239,10 +239,10 @@ export const DraftActionsCell: FC<Props> = ({
           ) : (
             <FileDownloadOutlined fontSize="small" />
           )}
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Asociar organización */}
-        <BaseActionButton
+        <AppActionButton
           tooltip={
             hasOrganization
               ? `Esta huella ya tiene una ${VOCAB.organization.noun.singular} asociada`
@@ -255,27 +255,27 @@ export const DraftActionsCell: FC<Props> = ({
           aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
         >
           <BusinessOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Autodeclarar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip="Autodeclarar"
           onClick={onSelfDeclareClick}
           sx={primaryActionButtonSx}
           aria-label="Autodeclarar"
         >
           <TaskAltRounded sx={{ fontSize: 16 }} />
-        </BaseActionButton>
+        </AppActionButton>
 
         {/* Eliminar */}
-        <BaseActionButton
+        <AppActionButton
           tooltip={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
           onClick={() => setDeleteDialogOpen(true)}
           disabled={!canDelete}
           aria-label="Eliminar"
         >
           <DeleteOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
       </Box>
 
       <SelfDeclareValidationDialog

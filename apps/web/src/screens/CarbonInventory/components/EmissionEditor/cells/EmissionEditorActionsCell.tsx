@@ -6,7 +6,7 @@ import {
 } from "@mui/icons-material";
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
-import { BaseActionButton } from "@/components";
+import { AppActionButton } from "@/components";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -61,7 +61,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <BaseActionButton
+          <AppActionButton
             tooltip="Adjuntar archivos"
             aria-label="Adjuntar archivos"
             onClick={() => uploadFiles(rowId)}
@@ -69,7 +69,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             sx={iconSx}
           >
             <UploadFileOutlined />
-          </BaseActionButton>
+          </AppActionButton>
         </Badge>
       )}
       {updateComment && (
@@ -85,7 +85,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <BaseActionButton
+          <AppActionButton
             tooltip="Agregar información adicional"
             aria-label="Agregar información adicional"
             onClick={() => updateComment(rowId)}
@@ -93,11 +93,11 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             sx={iconSx}
           >
             <CommentOutlined />
-          </BaseActionButton>
+          </AppActionButton>
         </Badge>
       )}
       {deleteSource && (
-        <BaseActionButton
+        <AppActionButton
           tooltip="Eliminar fuente"
           aria-label="Eliminar fuente"
           onClick={() => deleteSource(rowId)}
@@ -105,7 +105,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           sx={iconSx}
         >
           <DeleteOutlined />
-        </BaseActionButton>
+        </AppActionButton>
       )}
     </Box>
   );

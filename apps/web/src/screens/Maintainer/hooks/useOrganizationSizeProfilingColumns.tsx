@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CountryOrganizationSizeStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({
@@ -186,7 +186,7 @@ export const useOrganizationSizeProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <ActionIconButton
+              <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
                 onClick={() => onRestore(params.row)}

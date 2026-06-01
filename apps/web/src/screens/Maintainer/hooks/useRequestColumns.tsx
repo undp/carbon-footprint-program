@@ -3,7 +3,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { Stack, useTheme } from "@mui/material";
 import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
 import { RequestStatusChip } from "../components/RequestStatusChip";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
 import {
   GetAllAdminRequestsResponse,
@@ -121,7 +121,7 @@ export const useRequestColumns = ({
               alignItems="center"
               justifyContent="center"
             >
-              <ActionIconButton
+              <AdminActionButton
                 icon={isPending ? EditOutlined : VisibilityOutlined}
                 tooltip={isPending ? "Editar solicitud" : "Ver solicitud"}
                 onClick={() => handleView(params.row)}

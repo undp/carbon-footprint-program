@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
 import { OrganizationRole } from "@repo/types";
-import { BaseActionButton } from "@/components";
+import { AppActionButton } from "@/components";
 
 interface OrganizationUserActionsCellProps {
   userId: string;
@@ -32,7 +32,7 @@ export const OrganizationUserActionsCell: FC<
 
   return (
     <Box className="flex items-center justify-center gap-2">
-      <BaseActionButton
+      <AppActionButton
         tooltip={editTooltip}
         onClick={() =>
           currentRole && onEdit(userId, userEmail ?? "", currentRole)
@@ -41,15 +41,15 @@ export const OrganizationUserActionsCell: FC<
         aria-label="Editar usuario"
       >
         <EditOutlined fontSize="small" />
-      </BaseActionButton>
-      <BaseActionButton
+      </AppActionButton>
+      <AppActionButton
         tooltip={deleteTooltip}
         onClick={() => onDelete(userId, userEmail ?? "")}
         disabled={isCurrentUser}
         aria-label="Eliminar usuario"
       >
         <DeleteOutlined fontSize="small" />
-      </BaseActionButton>
+      </AppActionButton>
     </Box>
   );
 };

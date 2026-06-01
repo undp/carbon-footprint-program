@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { EmojiEventsOutlined } from "@mui/icons-material";
 import { GridColDef } from "@mui/x-data-grid";
-import { BaseActionButton, InfoButton, StylizedDataGrid } from "@/components";
+import { AppActionButton, InfoButton, StylizedDataGrid } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import {
   GetOrganizationRecognitionsResponse,
@@ -56,7 +56,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     cellClassName: "content-center",
     renderCell: (params) =>
       params.row.recognitionFileUrl ? (
-        <BaseActionButton
+        <AppActionButton
           tooltip="Ver archivo"
           tooltipPlacement="top"
           color="success"
@@ -70,16 +70,16 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
           aria-label="Ver archivo"
         >
           <EmojiEventsOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
       ) : (
-        <BaseActionButton
+        <AppActionButton
           tooltip="No hay un archivo disponible"
           tooltipPlacement="top"
           disabled
           aria-label="No hay un archivo disponible"
         >
           <EmojiEventsOutlined fontSize="small" />
-        </BaseActionButton>
+        </AppActionButton>
       ),
   },
 ];

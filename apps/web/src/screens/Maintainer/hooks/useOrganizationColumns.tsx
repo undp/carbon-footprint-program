@@ -8,7 +8,7 @@ import {
   LockOpenOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
 import { capitalize } from "lodash-es";
@@ -128,24 +128,24 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <ActionIconButton
+              <AdminActionButton
                 icon={VisibilityOutlined}
                 tooltip={`Ver detalles de ${VOCAB.organization.noun.singular}`}
                 onClick={() => onView(params.row.id)}
               />
-              <ActionIconButton
+              <AdminActionButton
                 icon={HistoryOutlined}
                 tooltip={`Ver historial de ${VOCAB.organization.noun.singular}`}
                 onClick={() => onViewHistory(params.row.id)}
               />
               {isBlocked ? (
-                <ActionIconButton
+                <AdminActionButton
                   icon={LockOpenOutlined}
                   tooltip={`Desbloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onUnblock(params.row.id)}
                 />
               ) : (
-                <ActionIconButton
+                <AdminActionButton
                   icon={BlockOutlined}
                   tooltip={`Bloquear ${VOCAB.organization.noun.singular}`}
                   onClick={() => onBlock(params.row.id)}
