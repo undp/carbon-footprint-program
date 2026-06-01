@@ -47,30 +47,39 @@ Aplica cuando `enableFrontDoor = false`. Dos opciones según se quiera manejar e
 
 Bicep crea el recurso `customDomain` en el Static Web App (validación `cname-delegation`) y propaga el dominio como origen autorizado a App Service CORS + Blob Storage CORS + `ALLOWED_ORIGIN` de Fastify. No requiere pasos manuales en el portal.
 
-1. Crear el CNAME en GoDaddy **antes** del deploy (validación CNAME requiere que el registro exista al crearse el recurso):
+> 🔁 **El flujo tiene dos deploys.** El CNAME debe apuntar al hostname del SWA, que solo existe **después** de crearlo. Por eso: (1) un primer `deploy.sh` crea el SWA y te da su hostname, (2) con ese hostname armás el CNAME, y (3) un segundo `deploy.sh` —ya con `FRONTEND_CUSTOM_DOMAIN` seteado y el CNAME propagado— ata el dominio. Si el stack ya existe, el hostname ya está disponible y arrancás directo en el paso 2.
+
+1. **Obtener el hostname del SWA.** Si el stack todavía no existe (RG nuevo / primer deploy), correr `./infra/deploy.sh` con `FRONTEND_CUSTOM_DOMAIN=""` para crear el SWA. Luego leer su hostname default (es **estable**: no cambia entre deploys):
+   ```bash
+   az stack group show --name "undp-huella-latam-stack-$ENVIRONMENT" \
+     --resource-group "$AZURE_RESOURCE_GROUP" \
+     --query outputs.staticWebAppHostname.value -o tsv
+   ```
+   Ese valor es `<swa-default-host>` (ej. `kind-rock-0abc123.azurestaticapps.net`).
+2. Crear el CNAME en GoDaddy apuntando al hostname del paso 1. Debe existir y propagar **antes del deploy que ata el dominio** (paso 5), no antes del deploy inicial del paso 1:
    - **Type**: `CNAME`
    - **Name**: `<subdomain>` (resulta en `<custom-domain>`)
    - **Value**: `<swa-default-host>` (sin `https://`, sin slash final)
    - **TTL**: `1 Hour`
-     Verificar con `dig <custom-domain> CNAME +short` antes de continuar.
-2. Editar `infra/.envrc`:
+     Verificar con `dig <custom-domain> CNAME +short` antes de continuar (debe devolver el `<swa-default-host>`).
+3. Editar `infra/.envrc`:
    ```bash
    export FRONTEND_CUSTOM_DOMAIN="<custom-domain>"
    ```
    (No setees `VITE_FRONT_BASE_URL`: `deploy-web.sh` lo deriva desde `FRONTEND_CUSTOM_DOMAIN` y un valor manual sería ignorado.)
-3. Asegurar en el archivo de parámetros (`infra/params/main.<env>.bicepparam`):
+4. Asegurar en el archivo de parámetros (`infra/params/main.<env>.bicepparam`):
    ```bicep
    param enableFrontDoor = false
    ```
-4. Ejecutar `./infra/deploy.sh`. Bicep:
+5. Ejecutar `./infra/deploy.sh` (este es el deploy que ata el dominio). Bicep:
    - Crea el `customDomain` en el SWA (valida CNAME automáticamente; toma 2–15 min).
    - Setea `siteConfig.cors.allowedOrigins` del App Service del API al dominio custom.
    - Setea las `corsRules` del Storage Account al dominio custom.
-5. Ejecutar `./infra/deploy-web.sh` — rebuildea el bundle con el dominio custom (deriva `VITE_FRONT_BASE_URL` desde `FRONTEND_CUSTOM_DOMAIN` o, si no está exportado, desde el output `frontendCustomDomain` del stack).
-6. Ejecutar `./infra/deploy-api.sh` — setea `ALLOWED_ORIGIN` de Fastify con la misma prioridad.
-7. Saltar a [Post-configuración](#post-configuración-actualizar-entra-id-frontend-y-api) (Entra ID redirect URIs siguen siendo manuales).
+6. Ejecutar `./infra/deploy-web.sh` — rebuildea el bundle con el dominio custom (deriva `VITE_FRONT_BASE_URL` desde `FRONTEND_CUSTOM_DOMAIN` o, si no está exportado, desde el output `frontendCustomDomain` del stack).
+7. Ejecutar `./infra/deploy-api.sh` — setea `ALLOWED_ORIGIN` de Fastify con la misma prioridad.
+8. Saltar a [Post-configuración](#post-configuración-actualizar-entra-id-frontend-y-api) (Entra ID redirect URIs siguen siendo manuales).
 
-> ⚠️ **El CNAME debe existir y estar propagado ANTES de `deploy.sh`.** La validación `cname-delegation` es **síncrona**: Azure resuelve el CNAME al crear el recurso `customDomains`. Si el registro todavía no resuelve al `<swa-default-host>`, la creación del recurso falla — y como vive dentro del deployment stack, **la corrida completa de `deploy.sh` falla** (no solo el binding del dominio). Los recursos ya existentes no se borran, pero el dominio no queda atado: corregir el DNS, esperar propagación (`dig <custom-domain> CNAME +short`) y re-correr `deploy.sh`.
+> ⚠️ **El CNAME debe existir y estar propagado ANTES del deploy que ata el dominio** (paso 5, no el deploy inicial del paso 1). La validación `cname-delegation` es **síncrona**: Azure resuelve el CNAME al crear el recurso `customDomains`. Si el registro todavía no resuelve al `<swa-default-host>`, la creación del recurso falla — y como vive dentro del deployment stack, **la corrida completa de `deploy.sh` falla** (no solo el binding del dominio). Los recursos ya existentes no se borran, pero el dominio no queda atado: corregir el DNS, esperar propagación (`dig <custom-domain> CNAME +short`) y re-correr `deploy.sh`.
 
 > ⚠️ **Apex domains** no se soportan en esta opción — el módulo SWA usa `cname-delegation`, que no aplica a registros `@`. Usar la opción manual (abajo) con validación TXT.
 
