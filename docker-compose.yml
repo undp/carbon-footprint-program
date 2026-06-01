@@ -114,7 +114,10 @@ services:
     ports:
       - "${WEB_PORT:-3000}:8080"
     depends_on:
-      - api
+      # Wait until the API passes its /health check, not just until its
+      # container starts — so the whole stack is coherent before web is up.
+      api:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - huella-network
