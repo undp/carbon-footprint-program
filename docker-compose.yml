@@ -19,7 +19,7 @@ services:
       - -c
       - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/database prod:seed"
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
+      - NODE_ENV=${NODE_ENV:-development}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       # Storage — needed to seed badges & terms (empty disables those seeds)
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
@@ -48,7 +48,7 @@ services:
       - "${API_PORT:-8080}:8080"
     environment:
       # --- Core ---
-      - NODE_ENV=${NODE_ENV:-production}
+      - NODE_ENV=${NODE_ENV:-development}
       - API_HOST=${API_HOST:-0.0.0.0}
       - API_PORT=8080
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
