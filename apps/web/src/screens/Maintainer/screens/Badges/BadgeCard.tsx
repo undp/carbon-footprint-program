@@ -8,11 +8,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  CheckCircleOutlined,
-  CloudUploadOutlined,
-  HistoryOutlined,
-} from "@mui/icons-material";
+import { CloudUploadOutlined, HistoryOutlined } from "@mui/icons-material";
 import { StatusChip } from "@/components/StatusChip";
 import { BADGE_STATUS_CONFIG } from "@/labels/chips/badge";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
@@ -183,7 +179,6 @@ export const BadgeCard: FC<BadgeCardProps> = ({
                     ? BADGE_STATUS_CONFIG.ACTIVE
                     : BADGE_STATUS_CONFIG.INACTIVE
                 }
-                icon={<CheckCircleOutlined />}
               />
             </Typography>
           </Stack>
