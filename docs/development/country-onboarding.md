@@ -313,6 +313,8 @@ DATABASE_URL="postgresql://..." pnpm prod:deploy
 DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm dev:seed
 ```
 
+> The seed only runs against a fresh database. If the target database already contains data, `dev:seed` logs a message and exits without changes — so it is safe to run by mistake, but it will **not** apply seed updates to an already-populated environment. Updating reference data in an existing environment must be done through the admin UI or a migration.
+
 > Never run `dev:reset` against a production database — it drops all data first.
 
 ---
