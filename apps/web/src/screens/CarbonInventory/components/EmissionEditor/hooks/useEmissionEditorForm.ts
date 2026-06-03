@@ -424,9 +424,13 @@ export const useEmissionEditorForm = ({
   const handleSetTotalEmission = useCallback(
     (total: number | null) => {
       const lines = getValues(`subcategories.${subcategoryId}.lines`) || {};
-      // Filter to get only non-deleted lines
+      // Filter to get only valid, non-deleted lines. The `lineId` guard skips
+      // id-less partial objects that RHF reconciliation can leave behind (see
+      // the `rows` filter above): without it the total would be written onto a
+      // partial that the display (`manualModeLine` = `rows[0]`) ignores and the
+      // sync transform drops, so the entered value would silently disappear.
       const existingLineIds = Object.keys(lines).filter(
-        (id) => lines[id] && !lines[id].isDeleted
+        (id) => lines[id] && lines[id].lineId && !lines[id].isDeleted
       );
 
       if (existingLineIds.length > 0) {
