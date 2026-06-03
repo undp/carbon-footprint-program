@@ -25,8 +25,8 @@ export const TermsAlert: FC = () => {
         Esta plataforma es una demo con fines exclusivamente ilustrativos,
         formativos y de evaluación funcional.{" "}
         <b>NO es una plataforma productiva</b>, no constituye una fuente oficial
-        de datos ni un sistema de reporte regulatorio. Se recomienda
-        enfáticamente{" "}
+        de datos ni un sistema de reporte regulatorio. Los factores de emisión
+        considerados son solo referenciales. Se recomienda enfáticamente{" "}
         <b>NO ingresar datos reales, sensibles o confidenciales.</b> Consulta
         los{" "}
         {isLoading || !hasTerms ? (
