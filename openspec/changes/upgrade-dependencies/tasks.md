@@ -39,9 +39,9 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 ### apps/web
 
 - [x] 2.20/2.21 `@fontsource/roboto` family 5.2.9 → 5.2.10 (grouped, commit `ce9e46edc`)
-- [x] 2.22 `@hookform/resolvers` 5.2.2 → 5.4.0 (commit `8bc8a6834`)
+- [x] 2.22 ~~`@hookform/resolvers` 5.2.2 → 5.4.0~~ — moved to PR 1b (form/grid behavioral split, §2b)
 - [x] 2.23/2.24 `@mui/material` + `@mui/icons-material` 7.3.5 → 7.3.11 (grouped, commit `d7c91a795`)
-- [x] 2.25/2.26/2.27 mui-x trio (charts/data-grid/date-pickers) to latest 8.x (grouped, commit `d250294d0`)
+- [x] 2.25/2.26/2.27 ~~mui-x trio (charts/data-grid/date-pickers) to latest 8.x~~ — moved to PR 1b (form/grid behavioral split, §2b)
 - [x] 2.28 ~~`@tailwindcss/typography`~~ — skipped, already at latest 0.5.19
 - [x] 2.29/2.41 `tailwindcss` + `@tailwindcss/vite` 4.1.17 → 4.3.0 (grouped, commit `56f7b9837`)
 - [x] 2.30/2.43 `@tanstack/react-query` + devtools → 5.100.11 (grouped, commit `964eb32bb`)
@@ -53,7 +53,7 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 - [x] 2.36 `fuse.js` 7.1.0 → 7.3.0 (commit `337f4aa95`)
 - [x] 2.37 `lodash-es` 4.17.22 → 4.18.1 (bumped in both api + web, commit `d2761be59`)
 - [x] 2.38/2.39 `react` + `react-dom` 19.2.0 → 19.2.6 (grouped, commit `72e36d184`)
-- [x] 2.40 `react-hook-form` 7.66.1 → 7.76.0 (commit `7f0cc76d3`; made `FormDebugPanel` generic over `T extends FieldValues` because v7.76 made `Control<T>` invariant)
+- [x] 2.40 ~~`react-hook-form` 7.66.1 → 7.76.0~~ — moved to PR 1b (form/grid behavioral split, §2b)
 - [x] 2.42 `zustand` 5.0.8 → 5.0.13 (commit `09fe5c4d6`)
 
 ### packages/database
@@ -81,6 +81,19 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 - [ ] 2.60 Wait for human review and merge to `main` (user action)
 - [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
 - [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
+
+## 2b. PR 1b — RHF + MUI X form/grid behavioral split (branch `feat/mati/upgrade-rhf-muix`)
+
+Extracted from PR 1: although these are minor bumps, they changed runtime form/grid behavior on the Emission Capture screen and required source fixes, so they are not "low-risk" in practice. RHF 7.76 rewrote `FormProvider` context forwarding and reassigns the `dirtyFields` identity on `setValue`; MUI X DataGrid 8.28 loops its auto-height `ResizeObserver` inside a collapsed container. They ship as one reviewable PR together with their fixes so cause and remedy stay co-located and revertible as a unit.
+
+- [x] 2b.1 `@hookform/resolvers` 5.2.2 → 5.4.0
+- [x] 2b.2 `react-hook-form` 7.66.1 → 7.76.1 (made `FormDebugPanel` generic over `T extends FieldValues` because v7.76 made `Control<T>` invariant)
+- [x] 2b.3 mui-x trio (charts/data-grid/date-pickers) → latest 8.x
+- [x] 2b.4 fix: route emission-capture line actions through a dedicated `EmissionCaptureActions` context (RHF 7.76 `FormProvider` no longer forwards custom methods)
+- [x] 2b.5 fix: unmount emission grid in manual-total mode (MUI X 8.28 `ResizeObserver` loop)
+- [x] 2b.6 fix: exclude `dirtyFields` from the emission-capture reconcile effect (RHF 7.76 identity reassignment caused an infinite loop)
+- [ ] 2b.7 Run `pnpm install` to regenerate `pnpm-lock.yaml` on this branch (user action)
+- [ ] 2b.8 Push branch and open PR titled `chore(deps): upgrade react-hook-form + mui-x with emission-capture fixes` (user action)
 
 ## 3. PR 2 — Medium-risk (branch `chore/upgrade-deps-medium-risk`)
 
