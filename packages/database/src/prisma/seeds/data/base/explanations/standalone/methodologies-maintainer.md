@@ -32,7 +32,14 @@ Campos y validaciones:
 
 ### Editar Metodología
 
-Hacer clic sobre la fila para entrar en modo edición y modificar los campos editables. El identificador interno y el país no se modifican desde esta pantalla. Las pantallas asociadas (Categorías, Sub-categorías, Factores de Emisión) se acceden mediante las acciones "Ver" y "Editar" de la fila.
+Hacer clic sobre la fila para entrar en modo edición y modificar los campos editables (nombre, descripción, normativa y versión). El identificador interno y el país no se modifican desde esta pantalla.
+
+### Ajustar Metodología
+
+El ícono de ajustes (engranaje) de la fila, con la acción "Ajustar metodología", abre la configuración de la Metodología seleccionada: sus alcances (Categorías y Sub-categorías) y Factores de Emisión, que se editan en sus mantenedores específicos dentro del contexto de esa versión.
+
+- La Metodología activa (publicada) es de solo lectura: su acción de ajuste aparece deshabilitada, ya que sus alcances no pueden modificarse mientras esté en uso.
+- Mientras se está configurando una Metodología, las acciones de las demás versiones (ajustar, duplicar, descargar, eliminar), el interruptor de estado y la edición de celdas quedan bloqueados para mantener el foco en la versión que se está editando. Un aviso de "Editando" se muestra en la pestaña de versiones; usar "Salir de modo edición" para terminar y reactivar el resto de las acciones.
 
 ### Activar Metodología
 
