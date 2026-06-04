@@ -1,3 +1,18 @@
+/**
+ * Triggers a browser download for an in-memory Blob. The Blob's own `type` is
+ * preserved (e.g. `application/zip` for an archive), so the download is tagged
+ * with the correct MIME type and no extra copy of the bytes is materialized.
+ */
+export const downloadBlob = (blob: Blob, filename: string): void => {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  anchor.remove();
+};
+
 export const formatFileSize = (bytes: number): string => {
   if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
   if (bytes >= 1_000) return `${Math.round(bytes / 1_000)} KB`;

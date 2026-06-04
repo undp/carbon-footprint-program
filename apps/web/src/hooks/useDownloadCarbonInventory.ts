@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type {
   FilesManifestEntry,
   GetCarbonInventoryFilesManifestResponse,
@@ -18,14 +18,21 @@ import {
   CARBON_INVENTORY_ZIP_README_ENTRY_NAME,
 } from "@/config/constants";
 import { useAuth } from "@/contexts/AuthContext";
-import { downloadBuffer } from "@/services/excel";
 import { buildCarbonInventoryZipReadme } from "@/utils/buildCarbonInventoryZipReadme";
 import { buildCarbonInventoryWorkbook } from "@/utils/exportCarbonInventoryToExcel";
 import { buildMethodologyWorkbook } from "@/utils/exportMethodologyToExcel";
+import { downloadBlob } from "@/utils/files";
 
 const GENERIC_DOWNLOAD_ERROR = "No se pudo descargar la huella";
 const FILE_FETCH_ERROR =
   "No se pudo descargar uno o más archivos. Intenta de nuevo.";
+
+class FileFetchError extends Error {
+  constructor(originalName: string, options?: ErrorOptions) {
+    super(`Failed to download file: ${originalName}`, options);
+    this.name = "FileFetchError";
+  }
+}
 
 // `client-zip` materializes the ZIP entirely in browser memory before the
 // `.blob()` resolves; the practical ceiling is in the low hundreds of MB.
@@ -62,7 +69,12 @@ function buildArchiveFilename(
 export function useDownloadCarbonInventory() {
   const [isDownloading, setIsDownloading] = useState(false);
   const isDownloadingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { isAuthenticated } = useAuth();
+
+  // Abort any in-flight download (and its streaming SAS fetches) when the
+  // consumer unmounts, so navigation doesn't leave dangling requests running.
+  useEffect(() => () => abortControllerRef.current?.abort(), []);
 
   const download = useCallback(
     async (id: string, name: string | null, year: number | null) => {
@@ -71,6 +83,7 @@ export function useDownloadCarbonInventory() {
       setIsDownloading(true);
 
       const controller = new AbortController();
+      abortControllerRef.current = controller;
       const { signal } = controller;
 
       try {
@@ -175,19 +188,27 @@ export function useDownloadCarbonInventory() {
           });
         }
 
+        // `client-zip` already hands back a Blob typed `application/zip`;
+        // stream it straight to the browser instead of round-tripping through
+        // an ArrayBuffer, which would both double peak memory and mislabel the
+        // download's MIME type.
         const zipBlob = await downloadZip(entries).blob();
         const safeName = sanitizeForFilename(name ?? "", "huella");
         const filename = `${safeName}-${year ?? "sin-anio"}.zip`;
-        downloadBuffer(await zipBlob.arrayBuffer(), filename);
+        downloadBlob(zipBlob, filename);
 
         enqueueSnackbar("Huella descargada", { variant: "success" });
       } catch (error) {
+        // The download was cancelled (e.g. the component unmounted) — stay
+        // silent; the user intentionally left and there is nothing to report.
+        if (signal.aborted) return;
         if (error instanceof FileFetchError) {
           enqueueSnackbar(FILE_FETCH_ERROR, { variant: "error" });
         } else {
           enqueueSnackbar(GENERIC_DOWNLOAD_ERROR, { variant: "error" });
         }
       } finally {
+        abortControllerRef.current = null;
         isDownloadingRef.current = false;
         setIsDownloading(false);
       }
@@ -196,11 +217,4 @@ export function useDownloadCarbonInventory() {
   );
 
   return { download, isDownloading };
-}
-
-class FileFetchError extends Error {
-  constructor(originalName: string, options?: ErrorOptions) {
-    super(`Failed to download file: ${originalName}`, options);
-    this.name = "FileFetchError";
-  }
 }
