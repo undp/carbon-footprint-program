@@ -1,4 +1,5 @@
 import { AuthProviderType } from "../auth/types.js";
+import { StorageProvider } from "./constants.js";
 
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
@@ -260,3 +261,78 @@ export const AZURE_STORAGE_TENANT_ID = process.env.AZURE_STORAGE_TENANT_ID;
 export const AZURE_STORAGE_CLIENT_ID = process.env.AZURE_STORAGE_CLIENT_ID;
 export const AZURE_STORAGE_CLIENT_SECRET =
   process.env.AZURE_STORAGE_CLIENT_SECRET;
+
+// ============================================================================
+// Object Storage Provider Selection
+// ============================================================================
+// STORAGE_PROVIDER selects which object storage backend the API uses.
+// Required at startup — no silent "disabled" fallback.
+
+/**
+ * Object storage backend selected at runtime.
+ * Validated against the StorageProvider enum at startup.
+ */
+export const STORAGE_PROVIDER: StorageProvider = (() => {
+  const raw = process.env.STORAGE_PROVIDER;
+  const allowed = Object.values(StorageProvider);
+  if (!raw) {
+    throw new Error(
+      `STORAGE_PROVIDER is required. Allowed values are: ${allowed.join(", ")}.`
+    );
+  }
+  if (!allowed.includes(raw as StorageProvider)) {
+    throw new Error(
+      `Invalid STORAGE_PROVIDER value: "${raw}". Allowed values are: ${allowed.join(", ")}.`
+    );
+  }
+  return raw as StorageProvider;
+})();
+
+// ============================================================================
+// MinIO Configuration
+// ============================================================================
+// Required when STORAGE_PROVIDER=minio. The country deployments that use MinIO
+// (or any S3-compatible object store) configure these.
+
+/** Base endpoint URL of the MinIO/S3-compatible service (e.g. http://minio:9000). */
+export const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT;
+
+/** MinIO access key (S3 access key id). */
+export const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY;
+
+/** MinIO secret key (S3 secret access key). */
+export const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY;
+
+/** Bucket where files are stored. Defaults to "files". */
+export const MINIO_BUCKET = process.env.MINIO_BUCKET ?? "files";
+
+/** Region passed to the S3 client. Defaults to "us-east-1" (MinIO ignores it). */
+export const MINIO_REGION = process.env.MINIO_REGION ?? "us-east-1";
+
+/**
+ * MinIO requires path-style URLs by default. Set to "false" only for
+ * S3-compatible deployments that need virtual-hosted-style URLs.
+ */
+export const MINIO_FORCE_PATH_STYLE =
+  process.env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false";
+
+// Conditional requirements: per-provider variables must be present at startup.
+if (STORAGE_PROVIDER === StorageProvider.MINIO) {
+  const missing: string[] = [];
+  if (!MINIO_ENDPOINT) missing.push("MINIO_ENDPOINT");
+  if (!MINIO_ACCESS_KEY) missing.push("MINIO_ACCESS_KEY");
+  if (!MINIO_SECRET_KEY) missing.push("MINIO_SECRET_KEY");
+  if (missing.length > 0) {
+    throw new Error(
+      `STORAGE_PROVIDER is 'minio' but the following variables are missing: ${missing.join(", ")}.`
+    );
+  }
+}
+
+if (STORAGE_PROVIDER === StorageProvider.AZURE_BLOB_STORAGE) {
+  if (!AZURE_STORAGE_ACCOUNT_NAME) {
+    throw new Error(
+      "STORAGE_PROVIDER is 'azure_blob_storage' but AZURE_STORAGE_ACCOUNT_NAME is missing."
+    );
+  }
+}
