@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  EditOutlined,
+  SettingsOutlined,
   VisibilityOutlined,
   ContentCopyOutlined,
   DeleteOutlined,
@@ -107,8 +107,8 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         )}
         {onEdit && !isActiveRow && !isEditing && (
           <ActionIconButton
-            icon={EditOutlined}
-            tooltip="Editar alcances"
+            icon={SettingsOutlined}
+            tooltip="Ajustar metodología"
             onClick={onEdit}
           />
         )}

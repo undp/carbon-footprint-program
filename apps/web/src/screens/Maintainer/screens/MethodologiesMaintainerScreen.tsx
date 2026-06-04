@@ -389,9 +389,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Metodologías"
-        subtitle="Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa."
+        subtitle="Gestiona las metodologías de cálculo. Haz clic en el ícono de
+          ajustes para modificar alcances, subcategorías y factores de emisión.
+          Siempre debe existir una única metodología activa."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
