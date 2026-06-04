@@ -37,6 +37,10 @@ interface ActionButtonProps {
   onMoveDown?: () => void;
   onConfigureVariables?: () => void;
   onDownloadExcel?: () => void;
+  editDisabled?: boolean;
+  editTooltipTitle?: string;
+  duplicateDisabled?: boolean;
+  duplicateTooltipTitle?: string;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
   downloadExcelDisabled?: boolean;
@@ -70,6 +74,10 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onMoveDown,
   onConfigureVariables,
   onDownloadExcel,
+  editDisabled = false,
+  editTooltipTitle,
+  duplicateDisabled = false,
+  duplicateTooltipTitle,
   moveUpDisabled = false,
   moveDownDisabled = false,
   downloadExcelDisabled = false,
@@ -108,8 +116,13 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         {onEdit && !isActiveRow && !isEditing && (
           <ActionIconButton
             icon={SettingsOutlined}
-            tooltip="Ajustar metodología"
+            tooltip={
+              editDisabled && editTooltipTitle
+                ? editTooltipTitle
+                : "Ajustar metodología"
+            }
             onClick={onEdit}
+            disabled={editDisabled}
           />
         )}
         {onView && isActiveRow && (
@@ -152,8 +165,13 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         {!isEditing && onDuplicate && (
           <ActionIconButton
             icon={ContentCopyOutlined}
-            tooltip="Duplicar"
+            tooltip={
+              duplicateDisabled && duplicateTooltipTitle
+                ? duplicateTooltipTitle
+                : "Duplicar"
+            }
             onClick={onDuplicate}
+            disabled={duplicateDisabled}
           />
         )}
         {!isEditing && onDownloadExcel && (

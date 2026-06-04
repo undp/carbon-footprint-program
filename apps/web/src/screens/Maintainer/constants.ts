@@ -10,6 +10,12 @@ export const METHODOLOGY_STATUS_LABELS: Record<
   [MethodologyVersionStatus.DELETED]: "Eliminada",
 };
 
+export const METHODOLOGY_ACTION_TOOLTIPS = {
+  editActive: "No se puede ajustar la metodología activa",
+  deleteActive: "No se puede eliminar una metodología activa",
+  lockedWhileEditing: "Termina de editar la metodología actual para continuar",
+} as const;
+
 export const PROFILING_STATUS_LABELS = {
   ACTIVE: "Activo",
   DELETED: "Eliminado",

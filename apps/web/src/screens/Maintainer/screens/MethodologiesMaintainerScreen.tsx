@@ -391,6 +391,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const columns = useMethodologyColumns({
     editingRowId,
+    actionsLocked: !!editingMethodology,
     onCellChange: handleCellChange,
     onToggle: handleToggle,
     onStartEditRow: handleStartEditRow,

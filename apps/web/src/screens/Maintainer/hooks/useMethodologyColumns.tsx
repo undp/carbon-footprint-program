@@ -11,12 +11,21 @@ import {
 } from "../components/cells";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
-import { METHODOLOGY_STATUS_LABELS } from "../constants";
+import {
+  METHODOLOGY_ACTION_TOOLTIPS,
+  METHODOLOGY_STATUS_LABELS,
+} from "../constants";
 
 type Methodology = GetAllMethodologiesResponse[number];
 
 interface UseMethodologyColumnsParams {
   editingRowId: string | null;
+  /**
+   * When true, the maintainer is in methodology edit mode (configuring a
+   * methodology's scopes), so all version row actions must be locked to keep
+   * the focus on the methodology being edited.
+   */
+  actionsLocked: boolean;
   onCellChange: (
     rowIndex: number,
     field: keyof MethodologyVersionForm,
@@ -37,6 +46,7 @@ interface UseMethodologyColumnsParams {
 
 export const useMethodologyColumns = ({
   editingRowId,
+  actionsLocked,
   onCellChange,
   onToggle,
   onStartEditRow,
@@ -73,7 +83,7 @@ export const useMethodologyColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const isActive = params.row.status === "PUBLISHED";
-          const canEdit = !editing && !isActive;
+          const canEdit = !editing && !isActive && !actionsLocked;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
@@ -98,7 +108,7 @@ export const useMethodologyColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const isActive = params.row.status === "PUBLISHED";
-          const canEdit = !editing && !isActive;
+          const canEdit = !editing && !isActive && !actionsLocked;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
@@ -124,7 +134,7 @@ export const useMethodologyColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const isActive = params.row.status === "PUBLISHED";
-          const canEdit = !editing && !isActive;
+          const canEdit = !editing && !isActive && !actionsLocked;
           return (
             <MethodologyRegulationCell
               rowIndex={rowIndex}
@@ -146,7 +156,7 @@ export const useMethodologyColumns = ({
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           const isActive = params.row.status === "PUBLISHED";
-          const canEdit = !editing && !isActive;
+          const canEdit = !editing && !isActive && !actionsLocked;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
@@ -174,7 +184,7 @@ export const useMethodologyColumns = ({
           <ToggleCell
             value={params.row.status === "PUBLISHED"}
             onChange={(checked) => onToggle(params.row, checked)}
-            disabled={editingRowId !== null}
+            disabled={editingRowId !== null || actionsLocked}
           />
         ),
       },
@@ -190,6 +200,7 @@ export const useMethodologyColumns = ({
         cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const isPublished = params.row.status === "PUBLISHED";
+          const isDownloading = downloadingRowId === params.row.id;
           return (
             <ActionButtons
               isActiveRow={editingRowId !== null && !isEditing(params.row.id)}
@@ -197,21 +208,39 @@ export const useMethodologyColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onEdit={() => onEdit(params.row)}
+              editDisabled={isPublished || actionsLocked}
+              editTooltipTitle={
+                actionsLocked
+                  ? METHODOLOGY_ACTION_TOOLTIPS.lockedWhileEditing
+                  : isPublished
+                    ? METHODOLOGY_ACTION_TOOLTIPS.editActive
+                    : undefined
+              }
               onView={() => onView(params.row)}
               onDuplicate={() => onDuplicate(params.row)}
+              duplicateDisabled={actionsLocked}
+              duplicateTooltipTitle={
+                actionsLocked
+                  ? METHODOLOGY_ACTION_TOOLTIPS.lockedWhileEditing
+                  : undefined
+              }
               onDownloadExcel={() => onDownloadExcel(params.row)}
-              downloadExcelDisabled={downloadingRowId === params.row.id}
+              downloadExcelDisabled={isDownloading || actionsLocked}
               downloadExcelTooltipTitle={
-                downloadingRowId === params.row.id
+                isDownloading
                   ? "Generando archivo..."
-                  : "Descargar"
+                  : actionsLocked
+                    ? METHODOLOGY_ACTION_TOOLTIPS.lockedWhileEditing
+                    : "Descargar"
               }
               onDelete={() => onDelete(params.row)}
-              deleteDisabled={isPublished}
+              deleteDisabled={isPublished || actionsLocked}
               deleteTooltipTitle={
-                isPublished
-                  ? "No se puede eliminar una metodología activa"
-                  : undefined
+                actionsLocked
+                  ? METHODOLOGY_ACTION_TOOLTIPS.lockedWhileEditing
+                  : isPublished
+                    ? METHODOLOGY_ACTION_TOOLTIPS.deleteActive
+                    : undefined
               }
             />
           );
@@ -221,6 +250,7 @@ export const useMethodologyColumns = ({
     [
       getRowIndex,
       isEditing,
+      actionsLocked,
       onCellChange,
       onToggle,
       editingRowId,
