@@ -3,12 +3,7 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
 } from "@repo/types";
-import {
-  downloadBuffer,
-  sanitizeFilenamePart,
-  display,
-  BASE_FONT_SIZE,
-} from "@/services/excel";
+import { display, BASE_FONT_SIZE } from "@/services/excel";
 import { formatter } from "@/utils/formatting";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
@@ -43,7 +38,7 @@ function buildSummarySheet(
           : null
       ),
     ],
-    ["Archivo adjuntos", attachmentCount],
+    ["Archivos adjuntos", attachmentCount],
   ];
 
   for (const [label, value] of attributes) {
@@ -218,23 +213,4 @@ export async function buildCarbonInventoryWorkbook(
   buildDetailTableSheet(workbook, summaryData);
   buildFactorsSheet(workbook, factorsData);
   return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
-}
-
-export async function exportCarbonInventoryToExcel(
-  inventoryName: string | null,
-  year: number | null,
-  summaryData: GetEmissionsDetailedSummaryResponse,
-  factorsData: GetEmissionFactorsResponse,
-  attachmentCount: number
-) {
-  const buffer = await buildCarbonInventoryWorkbook(
-    year,
-    summaryData,
-    factorsData,
-    attachmentCount
-  );
-  const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
-  const yearSuffix = year != null ? `-${year}` : "";
-  const filename = `${safeName}${yearSuffix}-resumen-emisiones.xlsx`;
-  downloadBuffer(buffer, filename);
 }
