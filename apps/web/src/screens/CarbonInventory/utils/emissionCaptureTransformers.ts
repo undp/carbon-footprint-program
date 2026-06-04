@@ -86,6 +86,17 @@ export function mapLinesToSyncRequest(
   const deleteItems: SyncDeleteLineItem[] = [];
 
   for (const line of lines) {
+    // Skip malformed/partial line objects that lack an id. RHF reconciliation
+    // (`reset(..., { keepDirtyValues: true })`) can reconstruct an id-less
+    // object (e.g. `{ quantity: null }`) when a dirty cell path is reapplied
+    // onto a lines record whose line was dropped by the manual-mode toggle.
+    // Such an object is not a real line: it would otherwise be classified as an
+    // update and serialized with an undefined `id`, which the sync endpoint
+    // rejects.
+    if (!line.lineId) {
+      continue;
+    }
+
     // Skip new lines that were also deleted (never saved to server)
     if (line.isNew && line.isDeleted) {
       continue;

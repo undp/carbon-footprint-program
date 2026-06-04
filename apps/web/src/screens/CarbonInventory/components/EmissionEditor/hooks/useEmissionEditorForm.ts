@@ -107,12 +107,18 @@ export const useEmissionEditorForm = ({
     name: `subcategories.${subcategoryId}.lines` as const,
   }) as Record<string, EmissionCaptureFormLine> | undefined;
 
-  // Filter out deleted lines for display and convert to array
+  // Filter out deleted lines for display and convert to array.
+  // The `line.lineId` guard discards partial line objects that RHF can
+  // reconstruct during reconciliation: `reset(..., { keepDirtyValues: true })`
+  // reapplies a still-dirty cell path (e.g. `lines.<id>.quantity`) onto a lines
+  // record whose line was dropped by the manual-mode toggle, producing an
+  // id-less object like `{ quantity: null }`. The grid's `getRowId` requires a
+  // unique `lineId`, so such a row would crash the DataGrid.
   const rows = useMemo(() => {
     const linesRecord = formLines || {};
     return Object.values(linesRecord).filter(
       (line): line is EmissionCaptureFormLine =>
-        line !== undefined && !line.isDeleted
+        line !== undefined && !!line.lineId && !line.isDeleted
     );
   }, [formLines]);
 
@@ -418,9 +424,13 @@ export const useEmissionEditorForm = ({
   const handleSetTotalEmission = useCallback(
     (total: number | null) => {
       const lines = getValues(`subcategories.${subcategoryId}.lines`) || {};
-      // Filter to get only non-deleted lines
+      // Filter to get only valid, non-deleted lines. The `lineId` guard skips
+      // id-less partial objects that RHF reconciliation can leave behind (see
+      // the `rows` filter above): without it the total would be written onto a
+      // partial that the display (`manualModeLine` = `rows[0]`) ignores and the
+      // sync transform drops, so the entered value would silently disappear.
       const existingLineIds = Object.keys(lines).filter(
-        (id) => lines[id] && !lines[id].isDeleted
+        (id) => lines[id] && lines[id].lineId && !lines[id].isDeleted
       );
 
       if (existingLineIds.length > 0) {
