@@ -1,28 +1,21 @@
 import { useCallback, useState } from "react";
 import { apiClient } from "@/api/http/client";
-import { FileType } from "@repo/types";
+import { uploadFile } from "@/api/lib/uploadFile";
+import { FileType, type RequestUploadResponse } from "@repo/types";
 
 const preUploadOneFile = async (file: File): Promise<string> => {
-  const { uuid, uploadUrl } = await apiClient
+  const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
     .post("files/request-upload", {
       json: { originalName: file.name, fileType: FileType.SUBMISSION },
     })
-    .json<{ uuid: string; uploadUrl: string }>();
+    .json<RequestUploadResponse>();
 
-  const response = await fetch(uploadUrl, {
-    method: "PUT",
+  await uploadFile({
+    url: uploadUrl,
+    method: uploadMethod,
+    headers: uploadHeaders,
     body: file,
-    headers: {
-      "x-ms-blob-type": "BlockBlob",
-      "Content-Type": file.type || "application/octet-stream",
-    },
   });
-
-  if (!response.ok) {
-    throw new Error(
-      `File upload failed (${response.status}): ${await response.text()}`
-    );
-  }
 
   await apiClient
     .post("files/confirm-upload", {

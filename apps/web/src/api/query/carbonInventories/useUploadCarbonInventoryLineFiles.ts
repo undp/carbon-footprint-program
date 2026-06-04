@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { apiClient } from "@/api/http/client";
+import { uploadFile } from "@/api/lib/uploadFile";
 import type {
   ConfirmLineFileUploadResponse,
   RequestLineFileUploadResponse,
@@ -13,27 +14,19 @@ const uploadOneFile = async (
   file: File,
   headers: Record<string, string>
 ): Promise<UploadedLineFile> => {
-  const { uuid, uploadUrl } = await apiClient
+  const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
     .post(`carbon-inventories/${inventoryId}/files/request-upload`, {
       json: { originalName: file.name },
       headers,
     })
     .json<RequestLineFileUploadResponse>();
 
-  const putResponse = await fetch(uploadUrl, {
-    method: "PUT",
+  await uploadFile({
+    url: uploadUrl,
+    method: uploadMethod,
+    headers: uploadHeaders,
     body: file,
-    headers: {
-      "x-ms-blob-type": "BlockBlob",
-      "Content-Type": file.type || "application/octet-stream",
-    },
   });
-
-  if (!putResponse.ok) {
-    throw new Error(
-      `File upload failed (${putResponse.status}): ${await putResponse.text()}`
-    );
-  }
 
   return apiClient
     .post(`carbon-inventories/${inventoryId}/files/confirm-upload`, {

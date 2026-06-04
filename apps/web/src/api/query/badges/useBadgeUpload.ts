@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
+import { uploadFile } from "@/api/lib/uploadFile";
 import type {
   BadgeType,
   RequestBadgeUploadResponse,
@@ -35,26 +36,18 @@ export const useBadgeUpload = (): UseBadgeUploadResult => {
       setIsUploading(true);
       setError(null);
       try {
-        const { uuid, uploadUrl } = await apiClient
+        const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
           .post(`files/badge/${badgeType}/request-upload`, {
             json: { originalName: file.name },
           })
           .json<RequestBadgeUploadResponse>();
 
-        const putResponse = await fetch(uploadUrl, {
-          method: "PUT",
+        await uploadFile({
+          url: uploadUrl,
+          method: uploadMethod,
+          headers: uploadHeaders,
           body: file,
-          headers: {
-            "x-ms-blob-type": "BlockBlob",
-            "Content-Type": file.type || "application/octet-stream",
-          },
         });
-
-        if (!putResponse.ok) {
-          throw new Error(
-            `Upload to blob storage failed (${putResponse.status})`
-          );
-        }
 
         const result = await apiClient
           .post(`files/badge/${badgeType}/confirm-upload`, {
