@@ -6,13 +6,29 @@ export AZURE_TENANT_SUBDOMAIN=""     # Tenant subdomain (only required for AZURE
 export AZURE_API_CLIENT_ID=""        # API App Registration ID
 export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
 
-# Azure Blob Storage (local development only)
+# Object Storage Provider Selection
+# Required. Selects which backend the API uses for object storage.
+# Allowed values: "azure_blob_storage" or "minio".
+export STORAGE_PROVIDER="minio"
+
+# Azure Blob Storage (only required when STORAGE_PROVIDER=azure_blob_storage)
 # In production these are set automatically by the Bicep infrastructure (appService.bicep).
 # For local development, set AZURE_STORAGE_ACCOUNT_NAME to your Azure Storage account
 # and run `az login` so DefaultAzureCredential can authenticate.
-# Leave empty to disable file upload/download locally.
 export AZURE_STORAGE_ACCOUNT_NAME=""    # Storage account name (e.g., "stj7k8m9n0p1")
 export AZURE_STORAGE_CONTAINER_NAME=""  # Blob container name. Defaults to "files" if empty.
+
+# MinIO / S3-compatible Storage (only required when STORAGE_PROVIDER=minio)
+# The docker-compose `minio` and `minio-init` services pre-create the bucket
+# with these credentials. Set them BEFORE `docker compose up`.
+export MINIO_ENDPOINT="http://localhost:9000"   # MinIO endpoint URL (use http://minio:9000 inside compose)
+export MINIO_ACCESS_KEY="minioadmin"             # MinIO root user / S3 access key id
+export MINIO_SECRET_KEY="minioadmin"             # MinIO root password / S3 secret access key
+export MINIO_BUCKET="files"                      # Bucket name. Defaults to "files".
+export MINIO_REGION="us-east-1"                  # Region passed to the S3 client.
+export MINIO_FORCE_PATH_STYLE="true"             # MinIO requires path-style URLs (default true).
+# MINIO_API_CORS_ALLOW_ORIGIN: configure on the MinIO container so browser
+# presigned PUTs from the web dev origin succeed. Defaults to "*" in compose.
 
 # Database
 export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:password@localhost:5432/dbname
