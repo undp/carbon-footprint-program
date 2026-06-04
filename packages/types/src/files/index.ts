@@ -1,5 +1,6 @@
 export * from "./schemas.js";
 export * from "./types.js";
+export * from "./httpMethod.js";
 export * from "./requestUpload/schemas.js";
 export * from "./requestUpload/types.js";
 export * from "./confirmUpload/schemas.js";
