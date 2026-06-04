@@ -215,7 +215,17 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         }
       }
     });
-  }, [data, reset, getValues, resetField, setValue, dirtyFields]);
+    // `dirtyFields` se excluye a propósito: la reconciliación debe dispararse
+    // solo cuando cambian los datos del servidor (`data`). El efecto LEE el
+    // estado dirty (para detectar cambio de modo) pero no debe ser RE-DISPARADO
+    // por él. RHF 7.76 reasigna la identidad de dirtyFields en cada
+    // setValue(shouldDirty) sobre un campo no-prístino (updateTouchAndDirty), y
+    // STEP 4 hace justamente eso → mantenerlo como dependencia hacía que el
+    // efecto se auto-disparara sin fin (el DataGrid auto-height era el primero
+    // en cruzar el límite de updates de React). Pre-7.76 RHF mutaba dirtyFields
+    // in-place, así que el bucle estaba latente.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, reset, getValues, resetField, setValue]);
 
   /**
    * Adds a new line to a subcategory locally.
