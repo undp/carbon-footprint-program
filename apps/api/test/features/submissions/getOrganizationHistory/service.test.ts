@@ -1,47 +1,19 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-  type MockedFunction,
-} from "vitest";
-import type { BlobServiceClient } from "@azure/storage-blob";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   SubmissionStatus,
   SubmissionType,
   SubmissionFileType,
   type PrismaClient,
 } from "@repo/database";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { getOrganizationHistoryService } from "@/features/submissions/getOrganizationHistory/service.js";
-
-const { mockCreateReadSasUrlSigner, mockSignReadSasUrl } = vi.hoisted(() => ({
-  mockCreateReadSasUrlSigner: vi.fn(),
-  mockSignReadSasUrl: vi.fn(),
-}));
-
-vi.mock("@/services/blobService.js", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/services/blobService.js")
-  >("@/services/blobService.js");
-
-  return {
-    ...actual,
-    createReadSasUrlSigner: mockCreateReadSasUrlSigner,
-  };
-});
+import { createMockStorageAdapter } from "@test/factories/mockStorageAdapter.js";
 
 describe("getOrganizationHistoryService", () => {
+  let mockStorage: ReturnType<typeof createMockStorageAdapter>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCreateReadSasUrlSigner.mockResolvedValue(mockSignReadSasUrl);
-    mockSignReadSasUrl.mockImplementation((blobPath: string) =>
-      Promise.resolve({
-        url: `https://mock.blob.core.windows.net/test/${blobPath}?sig=mock`,
-        expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-      })
-    );
+    mockStorage = createMockStorageAdapter();
   });
 
   it("creates one request-scoped signer for all file groups in the history response", async () => {
@@ -111,10 +83,18 @@ describe("getOrganizationHistoryService", () => {
       },
     } as unknown as PrismaClient;
 
+    // Spy on the inner signer so we can count its invocations.
+    const signerSpy = vi.fn((blobPath: string) =>
+      Promise.resolve({
+        url: `https://mock.storage.local/test/${blobPath}?sig=mock`,
+        expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+      })
+    );
+    mockStorage.createReadUrlSigner.mockResolvedValue(signerSpy);
+
     const history = await getOrganizationHistoryService(
       prisma,
-      {} as BlobServiceClient,
-      "test-container",
+      mockStorage,
       "1"
     );
 
@@ -122,9 +102,7 @@ describe("getOrganizationHistoryService", () => {
     expect(history[0]?.eventType).toBe("REVIEWED");
     expect(history[1]?.eventType).toBe("ON_REVIEW");
     expect(history[2]?.eventType).toBe("POSTULATION");
-    expect(
-      createReadSasUrlSigner as MockedFunction<typeof createReadSasUrlSigner>
-    ).toHaveBeenCalledTimes(1);
-    expect(mockSignReadSasUrl).toHaveBeenCalledTimes(3);
+    expect(mockStorage.createReadUrlSigner).toHaveBeenCalledTimes(1);
+    expect(signerSpy).toHaveBeenCalledTimes(3);
   });
 });

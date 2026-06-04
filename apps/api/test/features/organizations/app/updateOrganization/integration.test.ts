@@ -33,15 +33,6 @@ import {
   cleanupTestFiles,
 } from "@test/factories/fileFactory.js";
 
-// Mock blob service operations to prevent actual Azure storage calls
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn(),
-  generateReadSasUrl: vi.fn(),
-  copyBlob: vi.fn().mockResolvedValue(undefined),
-  deleteBlob: vi.fn().mockResolvedValue(undefined),
-  moveBlob: vi.fn().mockResolvedValue(undefined),
-}));
-
 describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -55,9 +46,13 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl, {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
+    // Tests assert DB state, not real blob movement; stub copy/delete so they
+    // pass without first uploading a fixture (the original suite mocked these
+    // out at the module level — that module no longer exists).
+    vi.spyOn(app.storage, "copyObject").mockResolvedValue(undefined);
+    vi.spyOn(app.storage, "deleteObject").mockResolvedValue(undefined);
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
 

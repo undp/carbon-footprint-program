@@ -2,9 +2,13 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { AzuriteContainer } from "@testcontainers/azurite";
 import type { StartedAzuriteContainer } from "@testcontainers/azurite";
+import { GenericContainer } from "testcontainers";
+import type { StartedTestContainer } from "testcontainers";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { CreateBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { execSync } from "node:child_process";
 import path from "node:path";
+import { StorageProvider } from "@/config/constants.js";
 
 const TEST_DATABASE_CONFIG = {
   image: "postgres:18-alpine",
@@ -84,32 +88,141 @@ export async function setupTestDatabase(): Promise<{
   return { databaseUrl, container };
 }
 
-const TEST_STORAGE_CONFIG = {
+const AZURE_TEST_CONFIG = {
   image: "mcr.microsoft.com/azure-storage/azurite",
   containerName: "test-files",
 } as const;
 
-export async function setupTestStorage(): Promise<{
-  connectionString: string;
+const MINIO_TEST_CONFIG = {
+  image: "minio/minio:latest",
+  bucket: "test-files",
+  accessKey: "minioadmin",
+  secretKey: "minioadmin",
+  region: "us-east-1",
+} as const;
+
+/**
+ * Provider-agnostic test storage descriptor. Carries the values workers need to
+ * construct a real adapter against the running testcontainer.
+ */
+export interface TestStorageDescriptor {
+  provider: StorageProvider;
+  /** Azure: full connection string. MinIO: unused (empty). */
+  azureConnectionString: string;
+  /** MinIO: base endpoint, e.g. http://localhost:32768. Azure: unused. */
+  minioEndpoint: string;
+  /** Bucket / container name. */
   containerName: string;
+  /** MinIO credentials; empty for Azure. */
+  minioAccessKey: string;
+  minioSecretKey: string;
+  minioRegion: string;
+}
+
+export type TestStorageContainer =
+  | StartedAzuriteContainer
+  | StartedTestContainer;
+
+async function setupAzureTestStorage(): Promise<{
+  descriptor: TestStorageDescriptor;
   container: StartedAzuriteContainer;
 }> {
-  const container = await new AzuriteContainer(TEST_STORAGE_CONFIG.image)
+  const container = await new AzuriteContainer(AZURE_TEST_CONFIG.image)
     .withInMemoryPersistence()
     .withSkipApiVersionCheck()
-    .withStartupTimeout(120000) // 2 minutes – accounts for first-run image pull in CI
+    .withStartupTimeout(120000)
     .start();
 
   const connectionString = container.getConnectionString();
-  const containerName = TEST_STORAGE_CONFIG.containerName;
-
-  // Pre-create the test container in Azurite
   const blobServiceClient =
     BlobServiceClient.fromConnectionString(connectionString);
-  await blobServiceClient.getContainerClient(containerName).createIfNotExists();
+  await blobServiceClient
+    .getContainerClient(AZURE_TEST_CONFIG.containerName)
+    .createIfNotExists();
 
   // eslint-disable-next-line no-console
   console.log("Azurite storage started successfully");
 
-  return { connectionString, containerName, container };
+  return {
+    container,
+    descriptor: {
+      provider: StorageProvider.AZURE_BLOB_STORAGE,
+      azureConnectionString: connectionString,
+      minioEndpoint: "",
+      containerName: AZURE_TEST_CONFIG.containerName,
+      minioAccessKey: "",
+      minioSecretKey: "",
+      minioRegion: "",
+    },
+  };
+}
+
+async function setupMinioTestStorage(): Promise<{
+  descriptor: TestStorageDescriptor;
+  container: StartedTestContainer;
+}> {
+  const container = await new GenericContainer(MINIO_TEST_CONFIG.image)
+    .withCommand(["server", "/data"])
+    .withExposedPorts(9000)
+    .withEnvironment({
+      MINIO_ROOT_USER: MINIO_TEST_CONFIG.accessKey,
+      MINIO_ROOT_PASSWORD: MINIO_TEST_CONFIG.secretKey,
+    })
+    .withStartupTimeout(120000)
+    .start();
+
+  const host = container.getHost();
+  const port = container.getMappedPort(9000);
+  const endpoint = `http://${host}:${port}`;
+
+  const s3 = new S3Client({
+    endpoint,
+    region: MINIO_TEST_CONFIG.region,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: MINIO_TEST_CONFIG.accessKey,
+      secretAccessKey: MINIO_TEST_CONFIG.secretKey,
+    },
+  });
+
+  await s3.send(new CreateBucketCommand({ Bucket: MINIO_TEST_CONFIG.bucket }));
+
+  // eslint-disable-next-line no-console
+  console.log("MinIO storage started successfully");
+
+  return {
+    container,
+    descriptor: {
+      provider: StorageProvider.MINIO,
+      azureConnectionString: "",
+      minioEndpoint: endpoint,
+      containerName: MINIO_TEST_CONFIG.bucket,
+      minioAccessKey: MINIO_TEST_CONFIG.accessKey,
+      minioSecretKey: MINIO_TEST_CONFIG.secretKey,
+      minioRegion: MINIO_TEST_CONFIG.region,
+    },
+  };
+}
+
+/**
+ * Starts the storage testcontainer matching `STORAGE_PROVIDER`.
+ * Defaults to Azure Blob (Azurite) when the env var is unset, to preserve the
+ * existing developer workflow.
+ */
+export async function setupTestStorage(): Promise<{
+  descriptor: TestStorageDescriptor;
+  container: TestStorageContainer;
+}> {
+  const provider = (process.env.STORAGE_PROVIDER ??
+    StorageProvider.AZURE_BLOB_STORAGE) as StorageProvider;
+
+  if (provider === StorageProvider.MINIO) {
+    return setupMinioTestStorage();
+  }
+  if (provider === StorageProvider.AZURE_BLOB_STORAGE) {
+    return setupAzureTestStorage();
+  }
+  throw new Error(
+    `Invalid STORAGE_PROVIDER for tests: "${String(provider)}". Expected ${Object.values(StorageProvider).join(" or ")}.`
+  );
 }

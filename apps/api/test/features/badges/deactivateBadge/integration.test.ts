@@ -6,7 +6,6 @@ import {
   afterAll,
   afterEach,
   inject,
-  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -19,23 +18,6 @@ import type { PrismaClient, User } from "@repo/database";
 import { BadgeType, BadgeStatus } from "@repo/database";
 import type { DeactivateBadgeResponse } from "@repo/types";
 
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn().mockResolvedValue({
-    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
-    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-  }),
-  generateReadSasUrl: vi.fn().mockResolvedValue({
-    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
-    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-  }),
-  createReadSasUrlSigner: vi.fn().mockResolvedValue(
-    vi.fn().mockResolvedValue({
-      url: "https://mock.blob.core.windows.net/test/preview?sig=mock",
-      expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-    })
-  ),
-}));
-
 describe("POST /api/badges/:id/deactivate - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -43,8 +25,7 @@ describe("POST /api/badges/:id/deactivate - Integration Tests", () => {
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"), {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);

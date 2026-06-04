@@ -6,12 +6,11 @@ import {
   afterAll,
   afterEach,
   inject,
-  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
-import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
+import { uploadFixture } from "@test/factories/storageHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { ConfirmUploadResponse } from "@repo/types";
@@ -21,12 +20,6 @@ import {
 } from "@/commonSchemas/errors.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
-// SAS generation requires Azure AD auth, not supported by Azurite shared-key mode.
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn(),
-  generateReadSasUrl: vi.fn(),
-}));
-
 describe("POST /api/files/confirm-upload - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -34,8 +27,7 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"), {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
@@ -57,7 +49,7 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
 
       // Blob lands at the tmp namespace: SUBMISSION/tmp/uuid-name
       const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
-      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+      await uploadFixture(app.storage, blobPath, {
         contentType: "application/pdf",
       });
 
@@ -77,7 +69,7 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       const originalName = "document.pdf";
       const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
 
-      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+      await uploadFixture(app.storage, blobPath, {
         contentType: "application/pdf",
       });
 
@@ -98,8 +90,8 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       const uuid = "550e8400-e29b-41d4-a716-446655440002";
       const originalName = "attachment.pdf";
 
-      await uploadBlobToAzurite(
-        app.blobStorage!,
+      await uploadFixture(
+        app.storage,
         `SUBMISSION/tmp/${uuid}-${originalName}`,
         { contentType: "application/pdf" }
       );
@@ -171,7 +163,7 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       const originalName = "duplicate.pdf";
       const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
 
-      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+      await uploadFixture(app.storage, blobPath, {
         contentType: "application/pdf",
       });
 
