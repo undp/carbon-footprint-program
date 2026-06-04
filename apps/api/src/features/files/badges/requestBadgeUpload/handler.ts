@@ -3,7 +3,6 @@ import type {
   RequestBadgeUploadBody,
   RequestBadgeUploadParams,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "../../errors.js";
 import { badgeRequestUploadService } from "./service.js";
 
 export const badgeRequestUploadHandler = async (
@@ -17,18 +16,11 @@ export const badgeRequestUploadHandler = async (
   const { badgeType } = request.params;
   const { originalName } = request.body;
 
-  const { storageContainerName, blobServiceClient } = request.server;
-
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
   log.info({ badgeType }, "Generating badge upload URL...");
 
-  const prisma = request.server.prisma;
   const result = await badgeRequestUploadService(
-    prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.prisma,
+    request.server.storage,
     {
       badgeType,
       originalName,

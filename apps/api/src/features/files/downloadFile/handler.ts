@@ -1,5 +1,4 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { StorageNotConfiguredError } from "../errors.js";
 import { downloadFileService } from "./service.js";
 import { DownloadFileParams } from "@repo/types";
 
@@ -13,16 +12,10 @@ export const downloadFileHandler = async (
   const log = request.log.child({ module: "files" });
   const { uuid } = request.params;
 
-  const { blobServiceClient, storageContainerName, prisma } = request.server;
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   log.info({ uuid }, "Generating download URL...");
   const result = await downloadFileService(
-    prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.prisma,
+    request.server.storage,
     uuid
   );
 

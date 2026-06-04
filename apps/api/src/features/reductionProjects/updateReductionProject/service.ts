@@ -4,15 +4,15 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateReductionProjectRequest,
   UpdateReductionProjectResponse,
   User,
 } from "@repo/types";
+import type { StorageAdapter } from "@/services/storage/index.js";
 import {
   linkFilesToSubmission,
-  cleanupSourceBlobs,
+  cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
@@ -35,8 +35,7 @@ export const updateReductionProjectService = async (
   id: string,
   data: UpdateReductionProjectRequest,
   user: User | null,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  storage: StorageAdapter
 ): Promise<UpdateReductionProjectResponse> => {
   const userId = user?.id ? BigInt(user.id) : null;
 
@@ -109,15 +108,14 @@ export const updateReductionProjectService = async (
       tx,
       submissionId,
       data.fileUuids,
-      blobServiceClient,
-      containerName
+      storage
     );
 
     return cleanup;
   });
 
-  // Cleanup source blobs after the transaction commits
-  await cleanupSourceBlobs(sourceCleanup);
+  // Cleanup source objects after the transaction commits
+  await cleanupSourceObjects(sourceCleanup);
 
   return {};
 };

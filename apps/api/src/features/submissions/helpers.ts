@@ -1,11 +1,9 @@
 import { Prisma, SubmissionFileType, type PrismaClient } from "@repo/database";
-import { BlobServiceClient } from "@azure/storage-blob";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
-import {
-  ReadSasUrlSigner,
-  createReadSasUrlSigner,
-} from "../../services/blobService.js";
-import { StorageNotConfiguredError } from "../files/errors.js";
+import type {
+  ReadUrlSigner,
+  StorageAdapter,
+} from "@/services/storage/index.js";
 import { mapOrganizationSummary } from "../../mappers/mapOrganizationSummary.js";
 import type { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 
@@ -149,9 +147,8 @@ export async function getOrgSummaryDetails(
 /** Returns a SAS signer when submissions have files; null otherwise. */
 export const createHistoryReadSasSigner = async (
   submissions: SubmissionHistoryRow[],
-  blobServiceClient: BlobServiceClient | null,
-  containerName: string | null
-): Promise<ReadSasUrlSigner | null> => {
+  storage: StorageAdapter
+): Promise<ReadUrlSigner | null> => {
   const hasFiles = submissions.some(
     (submission) => submission.files.length > 0
   );
@@ -160,11 +157,7 @@ export const createHistoryReadSasSigner = async (
     return null;
   }
 
-  if (!blobServiceClient || !containerName) {
-    throw new StorageNotConfiguredError();
-  }
-
-  return createReadSasUrlSigner(blobServiceClient, containerName);
+  return storage.createReadUrlSigner();
 };
 
 // ---------------------------------------------------------------------------

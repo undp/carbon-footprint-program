@@ -1,6 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { RequestUploadBody } from "@repo/types";
-import { StorageNotConfiguredError } from "../errors.js";
 import { requestUploadService } from "./service.js";
 
 export const requestUploadHandler = async (
@@ -10,19 +9,12 @@ export const requestUploadHandler = async (
   const log = request.log.child({ module: "files/requestUpload" });
   const { originalName, fileType } = request.body;
 
-  const { storageContainerName, blobServiceClient } = request.server;
-
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   log.info({ fileType }, "Generating upload URL...");
 
-  const result = await requestUploadService(
-    blobServiceClient,
-    storageContainerName,
-    { originalName, fileType }
-  );
+  const result = await requestUploadService(request.server.storage, {
+    originalName,
+    fileType,
+  });
 
   log.info({ uuid: result.uuid, fileType }, "Upload URL generated");
   return reply.status(200).send(result);

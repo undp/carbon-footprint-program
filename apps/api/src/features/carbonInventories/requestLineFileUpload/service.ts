@@ -1,8 +1,7 @@
 import { randomUUID } from "crypto";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileType, type RequestLineFileUploadResponse } from "@repo/types";
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "@/services/blobService.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 interface RequestLineFileUploadInput {
   carbonInventoryId: string;
@@ -10,8 +9,7 @@ interface RequestLineFileUploadInput {
 }
 
 export const requestLineFileUploadService = async (
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: RequestLineFileUploadInput
 ): Promise<RequestLineFileUploadResponse> => {
   const { carbonInventoryId, originalName } = input;
@@ -25,15 +23,14 @@ export const requestLineFileUploadService = async (
     name: originalName,
   });
 
-  const { url, expiresAt } = await generateWriteSasUrl(
-    blobServiceClient,
-    containerName,
-    blobPath
-  );
+  const { url, method, headers, expiresAt } =
+    await storage.generateWriteUrl(blobPath);
 
   return {
     uuid: fileUuid,
     uploadUrl: url,
+    uploadMethod: method,
+    uploadHeaders: headers,
     expiresAt: expiresAt.toISOString(),
   };
 };

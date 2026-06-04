@@ -1,4 +1,3 @@
-import { BlobServiceClient } from "@azure/storage-blob";
 import {
   InventoryStatus,
   PrismaClient,
@@ -13,7 +12,7 @@ import {
 import { kgToTon } from "@repo/utils";
 
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
-import { generateReadSasUrl } from "@/services/index.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 type SubmissionForRecognition = {
   id: bigint;
@@ -28,33 +27,26 @@ type MapApprovedSubmissionsToRecognitionsParams = {
   submissions: SubmissionForRecognition[];
   measurementYear: number;
   totalEmissions: number | null;
-  blobServiceClient: BlobServiceClient | null | undefined;
-  containerName: string | null | undefined;
-};
-
-type BlobConfig = {
-  blobServiceClient: BlobServiceClient | null | undefined;
-  containerName: string | null | undefined;
+  storage: StorageAdapter;
 };
 
 export const mapApprovedSubmissionsToRecognitions = async ({
   submissions,
   measurementYear,
   totalEmissions,
-  blobServiceClient,
-  containerName,
+  storage,
 }: MapApprovedSubmissionsToRecognitionsParams) =>
   Promise.all(
     submissions.map(async (submission) => {
       const recognitionFile = submission.files[0]?.file;
       let recognitionFileUrl: string | null = null;
 
-      if (recognitionFile?.blobPath && blobServiceClient && containerName) {
-        const { url } = await generateReadSasUrl(
-          blobServiceClient,
-          containerName,
+      if (recognitionFile?.blobPath) {
+        const { url } = await storage.generateReadUrl(
           recognitionFile.blobPath,
-          { contentType: recognitionFile.mimeType ?? undefined }
+          {
+            contentType: recognitionFile.mimeType ?? undefined,
+          }
         );
         recognitionFileUrl = url;
       }
@@ -75,7 +67,7 @@ export const fetchCarbonInventoryRecognitions = async (
   organizationId: bigint,
   yearFilter: number | undefined,
   requestedSubmissionTypes: SubmissionType[],
-  blobConfig: BlobConfig
+  storage: StorageAdapter
 ): Promise<GetOrganizationRecognitionsResponse> => {
   if (!requestedSubmissionTypes.length) return [];
 
@@ -156,7 +148,7 @@ export const fetchCarbonInventoryRecognitions = async (
         submissions,
         measurementYear: inventory.year,
         totalEmissions,
-        ...blobConfig,
+        storage,
       });
     })
   );
@@ -169,7 +161,7 @@ export const fetchReductionProjectRecognitions = async (
   organizationId: bigint,
   yearFilter: number | undefined,
   requestedSubmissionTypes: SubmissionType[],
-  blobConfig: BlobConfig
+  storage: StorageAdapter
 ): Promise<GetOrganizationRecognitionsResponse> => {
   if (!requestedSubmissionTypes.length) return [];
 
@@ -241,7 +233,7 @@ export const fetchReductionProjectRecognitions = async (
         submissions,
         measurementYear: project.year,
         totalEmissions: null,
-        ...blobConfig,
+        storage,
       });
     })
   );

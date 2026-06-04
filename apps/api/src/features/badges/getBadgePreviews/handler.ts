@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getBadgePreviewsService } from "./service.js";
-import { StorageNotConfiguredError } from "../../files/errors.js";
 import { GetBadgePreviewsQuery } from "@repo/types";
 
 export const getBadgePreviewsHandler = async (
@@ -11,18 +10,10 @@ export const getBadgePreviewsHandler = async (
 
   log.info("Getting badge previews...");
 
-  const { blobServiceClient, storageContainerName } = request.server;
-
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
-  const prisma = request.server.prisma;
   const { badgeTypes } = request.query;
   const data = await getBadgePreviewsService(
-    prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.prisma,
+    request.server.storage,
     badgeTypes
   );
 

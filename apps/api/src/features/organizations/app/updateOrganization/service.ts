@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateOrganizationBody,
   UpdateOrganizationResponse,
 } from "@repo/types";
+import type { StorageAdapter } from "@/services/storage/index.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
@@ -22,7 +22,7 @@ import {
 } from "../../helpers.js";
 import {
   linkFilesToSubmission,
-  cleanupSourceBlobs,
+  cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
 
 /**
@@ -62,8 +62,7 @@ export const updateOrganizationService = async (
   userId: string,
   body: Omit<UpdateOrganizationBody, "fileUuids">,
   fileUuids?: string[],
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  storage?: StorageAdapter
 ): Promise<UpdateOrganizationResponse> => {
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -122,15 +121,14 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      if (blobServiceClient && containerName) {
+      if (storage) {
         const { sourceCleanup } = await linkFilesToSubmission(
           tx,
           submission.id,
           fileUuids,
-          blobServiceClient,
-          containerName
+          storage
         );
-        await cleanupSourceBlobs(sourceCleanup);
+        await cleanupSourceObjects(sourceCleanup);
       }
       return { id: organization.id.toString() };
     }

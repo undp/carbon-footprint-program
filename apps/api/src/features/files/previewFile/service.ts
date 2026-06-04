@@ -1,15 +1,12 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { PreviewFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-import { generateReadSasUrl } from "@/services/blobService.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 export const previewFileService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-
-  containerName: string,
+  storage: StorageAdapter,
   uuid: string
 ): Promise<PreviewFileResponse> => {
   // TODO: Add actorId param and scope query by ownership/permission relation.
@@ -19,12 +16,9 @@ export const previewFileService = async (
   });
   if (!file) throw new FileNotFoundError(uuid);
 
-  const { url, expiresAt } = await generateReadSasUrl(
-    blobServiceClient,
-    containerName,
-    file.blobPath,
-    { contentType: file.mimeType }
-  );
+  const { url, expiresAt } = await storage.generateReadUrl(file.blobPath, {
+    contentType: file.mimeType,
+  });
 
   return { url, expiresAt: expiresAt.toISOString() };
 };

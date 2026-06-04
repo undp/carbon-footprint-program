@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
 import {
   type ConfirmLegalUploadBody,
   type ConfirmLegalUploadResponse,
@@ -8,12 +7,13 @@ import {
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { persistLegalFileRecord } from "../../helpers/persistLegalFileRecord.js";
 import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 type ConfirmLegalUploadInput = ConfirmLegalUploadBody & { userId?: string };
 
 export const confirmLegalUploadService = async (
   prisma: PrismaClient,
-  blobStorage: ContainerClient,
+  storage: StorageAdapter,
   input: ConfirmLegalUploadInput
 ): Promise<ConfirmLegalUploadResponse> => {
   const { uuid, originalName, userId } = input;
@@ -25,7 +25,7 @@ export const confirmLegalUploadService = async (
     name: originalName,
   });
 
-  return persistLegalFileRecord(prisma, blobStorage, {
+  return persistLegalFileRecord(prisma, storage, {
     uuid,
     blobPath,
     originalName,

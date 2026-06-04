@@ -19,7 +19,10 @@ Content-Type: application/json
 }
 
 
-### Step 2: Upload file directly to Azure (tmp namespace)
+### Step 2: Upload file to the presigned URL (tmp namespace)
+### NOTE: When STORAGE_PROVIDER=azure_blob_storage, x-ms-blob-type=BlockBlob is required.
+### When STORAGE_PROVIDER=minio, drop the x-ms-blob-type line. The API response carries
+### uploadMethod and uploadHeaders — code clients should always use those values.
 PUT {{requestUpload.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: application/pdf

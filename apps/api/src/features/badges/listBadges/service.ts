@@ -1,13 +1,12 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { ListBadgesResponse } from "@repo/types";
 import { BadgeType } from "@repo/database";
 import { buildAllBadgeCatalogEntries } from "../helpers.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 export async function listBadgesService(
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  storage: StorageAdapter
 ): Promise<ListBadgesResponse> {
   const badges = await prisma.badge.findMany({
     include: {
@@ -25,5 +24,5 @@ export async function listBadgesService(
     byType.get(badge.type)!.push(badge);
   }
 
-  return buildAllBadgeCatalogEntries(byType, blobServiceClient, containerName);
+  return buildAllBadgeCatalogEntries(byType, storage);
 }

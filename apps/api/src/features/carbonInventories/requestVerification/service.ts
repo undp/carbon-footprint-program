@@ -3,7 +3,6 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { User } from "@repo/types";
 import {
   CarbonInventoryCannotRequestVerificationError,
@@ -19,16 +18,16 @@ import {
 import { canSubmitToVerification } from "@repo/utils";
 import {
   linkFilesToSubmission,
-  cleanupSourceBlobs,
+  cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string,
   user: User | null,
   fileUuids?: string[],
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  storage?: StorageAdapter
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
@@ -71,15 +70,14 @@ export const requestVerificationService = async (
       createdById
     );
 
-    if (fileUuids?.length && blobServiceClient && containerName) {
+    if (fileUuids?.length && storage) {
       const { sourceCleanup } = await linkFilesToSubmission(
         tx,
         submissionId,
         fileUuids,
-        blobServiceClient,
-        containerName
+        storage
       );
-      await cleanupSourceBlobs(sourceCleanup);
+      await cleanupSourceObjects(sourceCleanup);
     }
   });
 };

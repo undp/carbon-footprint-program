@@ -1,11 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { PreviewLineFileResponse } from "@repo/types";
 import { FileNotFoundError } from "@/features/files/errors.js";
 import { CrossInventoryFileLinkingError } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
-import { generateReadSasUrl } from "@/services/blobService.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 interface PreviewLineFileInput {
   carbonInventoryId: string;
@@ -14,8 +13,7 @@ interface PreviewLineFileInput {
 
 export const previewLineFileService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: PreviewLineFileInput
 ): Promise<PreviewLineFileResponse> => {
   const { carbonInventoryId, uuid } = input;
@@ -41,15 +39,10 @@ export const previewLineFileService = async (
 
   const encodedName = encodeURIComponent(file.originalName);
 
-  const { url, expiresAt } = await generateReadSasUrl(
-    blobServiceClient,
-    containerName,
-    file.blobPath,
-    {
-      contentType: file.mimeType,
-      contentDisposition: `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`,
-    }
-  );
+  const { url, expiresAt } = await storage.generateReadUrl(file.blobPath, {
+    contentType: file.mimeType,
+    contentDisposition: `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`,
+  });
 
   return { url, expiresAt: expiresAt.toISOString() };
 };

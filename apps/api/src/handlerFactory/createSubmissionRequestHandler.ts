@@ -1,8 +1,7 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { User } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 interface WithId {
   id: string;
@@ -14,7 +13,7 @@ interface WithId {
  * file UUIDs and may require blob storage access.
  *
  * The supplied `serviceFn` is called with the resolved prisma client,
- * resource id, current user, fileUuids, and storage credentials.
+ * resource id, current user, fileUuids, and the storage adapter.
  */
 export const createSubmissionRequestHandler = <
   TParams extends WithId,
@@ -26,8 +25,7 @@ export const createSubmissionRequestHandler = <
     id: string,
     user: User | null,
     fileUuids?: string[],
-    blobServiceClient?: BlobServiceClient,
-    containerName?: string
+    storage?: StorageAdapter
   ) => Promise<TResponse>,
   resourceName: string
 ) => {
@@ -44,21 +42,12 @@ export const createSubmissionRequestHandler = <
 
     log.info(`Performing action on ${resourceName} ${id}...`);
 
-    const prisma = request.server.prisma;
-    const user = request.currentUser ?? null;
-    const { blobServiceClient, storageContainerName } = request.server;
-
-    if (fileUuids?.length && (!blobServiceClient || !storageContainerName)) {
-      throw new StorageNotConfiguredError();
-    }
-
     const data = await serviceFn(
-      prisma,
+      request.server.prisma,
       id,
-      user,
+      request.currentUser ?? null,
       fileUuids,
-      blobServiceClient ?? undefined,
-      storageContainerName ?? undefined
+      request.server.storage
     );
 
     log.info(`${resourceName} ${id} action completed successfully`);

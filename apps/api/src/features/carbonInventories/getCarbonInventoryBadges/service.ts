@@ -6,8 +6,7 @@ import {
   ReductionProjectStatus,
 } from "@repo/types";
 import { sortBy } from "lodash-es";
-import { BlobServiceClient } from "@azure/storage-blob";
-import { generateReadSasUrl } from "../../../services/index.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 const BADGE_SORT_ORDER: Record<BadgeType, number> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: 1,
@@ -19,8 +18,7 @@ const BADGE_SORT_ORDER: Record<BadgeType, number> = {
 
 export const getCarbonInventoryBadgesService = async (
   prismaClient: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   id: string
 ): Promise<GetCarbonInventoryBadgesResponse> => {
   const whereClause: Prisma.CarbonInventoryWhereUniqueInput = {
@@ -157,12 +155,9 @@ export const getCarbonInventoryBadgesService = async (
     sortedBadged.map(async (badge) => {
       const file = badge.file;
 
-      const { url: previewUrl } = await generateReadSasUrl(
-        blobServiceClient,
-        containerName,
-        file.blobPath,
-        { contentType: file.mimeType }
-      );
+      const { url: previewUrl } = await storage.generateReadUrl(file.blobPath, {
+        contentType: file.mimeType,
+      });
 
       return {
         badgeType: badge.type,

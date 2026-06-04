@@ -1,9 +1,8 @@
 import type { Badge, File } from "@repo/database";
 import { BadgeStatus, BadgeType } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 type BadgeWithFile = Badge & {
   file: Pick<File, "originalName" | "mimeType" | "blobPath">;
@@ -54,13 +53,9 @@ export async function buildBadgeCatalogEntry(
 
 export async function buildAllBadgeCatalogEntries(
   badgesByType: Map<BadgeType, BadgeWithFile[]>,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  storage: StorageAdapter
 ): Promise<BadgeCatalogEntry[]> {
-  const signUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName
-  );
+  const signUrl = await storage.createReadUrlSigner();
 
   return Promise.all(
     Object.values(BadgeType).map((type) => {

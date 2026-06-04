@@ -1,5 +1,4 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
 import {
   type ConfirmLegalUploadResponse,
   FileStatus,
@@ -13,6 +12,7 @@ import {
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
 } from "@repo/constants";
 import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 export interface PersistLegalFileRecordParams {
   uuid: string;
@@ -23,11 +23,11 @@ export interface PersistLegalFileRecordParams {
 
 export async function persistLegalFileRecord(
   prisma: PrismaClient,
-  blobStorage: ContainerClient,
+  storage: StorageAdapter,
   params: PersistLegalFileRecordParams
 ): Promise<ConfirmLegalUploadResponse> {
   const { sizeBytes, mimeType } = await checkFileRecordExists(
-    blobStorage,
+    storage,
     params.blobPath,
     params.uuid
   );
@@ -38,7 +38,7 @@ export async function persistLegalFileRecord(
   // disguised as legal documents. The blob is also removed from storage so
   // invalid uploads do not accumulate.
   if (mimeType !== LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE) {
-    await blobStorage.getBlockBlobClient(params.blobPath).deleteIfExists();
+    await storage.deleteObject(params.blobPath);
     throw new LegalUploadValidationError(
       `unsupported file type "${mimeType}". Allowed: ${LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE}`
     );

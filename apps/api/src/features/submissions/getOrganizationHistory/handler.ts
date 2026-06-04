@@ -9,14 +9,9 @@ export const getOrganizationHistoryHandler = async (
   const log = request.log.child({ module: "submissions" });
   log.info("Fetching organization submission history...");
 
-  const prisma = request.server.prisma;
-  const blobServiceClient = request.server.blobServiceClient ?? null;
-  const containerName = request.server.storageContainerName ?? null;
-
   const result = await getOrganizationHistoryService(
-    prisma,
-    blobServiceClient,
-    containerName,
+    request.server.prisma,
+    request.server.storage,
     request.params.id
   );
 

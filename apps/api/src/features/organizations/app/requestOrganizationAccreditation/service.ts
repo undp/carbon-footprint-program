@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   RequestOrganizationAccreditationResponse,
   User,
 } from "@repo/types";
+import type { StorageAdapter } from "@/services/storage/index.js";
 import {
   OrganizationDataStatus,
   SubmissionStatus,
@@ -11,7 +11,7 @@ import {
 } from "@repo/database";
 import {
   linkFilesToSubmission,
-  cleanupSourceBlobs,
+  cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
 import {
   OrganizationDataNotFoundError,
@@ -32,8 +32,7 @@ export const requestOrganizationAccreditationService = async (
   organizationId: string,
   user: User | null,
   fileUuids?: string[],
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  storage?: StorageAdapter
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
@@ -151,15 +150,14 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    if (blobServiceClient && containerName) {
+    if (storage) {
       const fileMetadata = await linkFilesToSubmission(
         tx,
         submission.id,
         fileUuids,
-        blobServiceClient,
-        containerName
+        storage
       );
-      await cleanupSourceBlobs(fileMetadata.sourceCleanup);
+      await cleanupSourceObjects(fileMetadata.sourceCleanup);
     }
 
     return { submissionId: submission.id.toString() };

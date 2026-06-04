@@ -1,74 +1,70 @@
 import { Prisma, SubmissionFileType } from "@repo/database";
 import { FileType } from "@repo/types";
 import { buildBlobPath } from "./buildBlobPath.js";
-import { copyBlob, deleteBlob } from "@/services/blobService.js";
-import { BlobMoveError, MissingFilesError } from "../errors.js";
-import { BlobServiceClient } from "@azure/storage-blob";
+import { ObjectMoveError, MissingFilesError } from "../errors.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 
 /**
- * Deletes source blobs that were copied during linkFilesToSubmission.
+ * Deletes the source objects that were copied during linkFilesToSubmission.
  * Call this AFTER linkFilesToSubmission succeeds.
  *
- * @param cleanup - BlobCleanup object returned by linkFilesToSubmission.
+ * @param cleanup - Cleanup context returned by linkFilesToSubmission.
  * @returns {Promise<void>}
  *
  * @see linkFilesToSubmission for the main function.
  */
-export async function cleanupSourceBlobs(
-  cleanup: BlobCleanupContext
+export async function cleanupSourceObjects(
+  cleanup: ObjectCleanupContext
 ): Promise<void> {
-  // we use allSettled to avoid throwing errors if a blob deletion fails
-  // since the copy already succeeded and source blobs in tmp are safe to leave as orphans
+  // we use allSettled to avoid throwing if a deletion fails — the copy already
+  // succeeded and source objects in tmp are safe to leave as orphans
   await Promise.allSettled(
     cleanup.sourcePaths.map((sourcePath) =>
-      deleteBlob(cleanup.blobServiceClient, cleanup.containerName, sourcePath)
+      cleanup.storage.deleteObject(sourcePath)
     )
   );
 }
 
-export interface BlobCleanupContext {
+export interface ObjectCleanupContext {
   sourcePaths: string[];
-  blobServiceClient: BlobServiceClient;
-  containerName: string;
+  storage: StorageAdapter;
 }
 
-export interface BlobCopyResult {
-  sourceCleanup: BlobCleanupContext;
+export interface ObjectCopyResult {
+  sourceCleanup: ObjectCleanupContext;
 }
 
 /**
- * Copies file blobs to their final submission paths and creates SubmissionFile
- * records in the database.
+ * Copies the files' objects to their final submission paths and creates
+ * SubmissionFile records in the database.
  *
- * Uses a two-phase approach: first copies all blobs in parallel via
+ * Uses a two-phase approach: first copies all objects in parallel via
  * `Promise.allSettled`, then updates the DB only if every copy succeeded.
- * If any copy fails, successfully copied destination blobs are deleted
- * before throwing, preventing orphaned blobs in permanent storage.
+ * If any copy fails, the successfully copied destinations are deleted
+ * before throwing, preventing orphaned objects in permanent storage.
  *
  * @important Must be called inside a Prisma transaction.
  *
  * @param tx - Prisma transaction client.
  * @param submissionId - The ID of the submission to link files to.
  * @param fileUuids - Array of file UUIDs to link.
- * @param blobServiceClient - Azure Blob Service client.
- * @param containerName - Azure Blob container name.
+ * @param storage - Storage adapter.
  * @param fileType - The type of submission file (defaults to SUBMIT_ATTACHMENT).
  *
- * @returns {Promise<BlobCopyResult>} Cleanup context for deleting source blobs after commit.
+ * @returns {Promise<ObjectCopyResult>} Cleanup context for deleting source objects after commit.
  *
  * @throws {MissingFilesError} If any of the provided UUIDs are not found in the database.
- * @throws {BlobMoveError} If any blob copy fails (after cleaning up successful copies).
+ * @throws {ObjectMoveError} If any copy fails (after cleaning up successful copies).
  *
- * @see cleanupSourceBlobs for post-copy source blob cleanup.
+ * @see cleanupSourceObjects for post-copy source cleanup.
  */
 export async function linkFilesToSubmission(
   tx: Prisma.TransactionClient,
   submissionId: bigint,
   fileUuids: string[],
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   fileType: SubmissionFileType = SubmissionFileType.SUBMIT_ATTACHMENT
-): Promise<BlobCopyResult> {
+): Promise<ObjectCopyResult> {
   const uniqueUuids = [...new Set(fileUuids)];
   const sourcePaths: string[] = [];
 
@@ -96,15 +92,10 @@ export async function linkFilesToSubmission(
     }),
   }));
 
-  // Step 2: Copy all blobs in parallel
+  // Step 2: Copy all objects in parallel
   const copyResults = await Promise.allSettled(
     filesPlans.map((plan) =>
-      copyBlob(
-        blobServiceClient,
-        containerName,
-        plan.currentBlobPath,
-        plan.finalBlobPath
-      )
+      storage.copyObject(plan.currentBlobPath, plan.finalBlobPath)
     )
   );
 
@@ -119,12 +110,10 @@ export async function linkFilesToSubmission(
       .map((plan) => plan.finalBlobPath);
 
     await Promise.allSettled(
-      successfulDests.map((dest) =>
-        deleteBlob(blobServiceClient, containerName, dest)
-      )
+      successfulDests.map((dest) => storage.deleteObject(dest))
     );
 
-    throw new BlobMoveError(
+    throw new ObjectMoveError(
       failedPlans.map((plan) => plan.currentBlobPath).join(", "),
       failedPlans.map((plan) => plan.finalBlobPath).join(", ")
     );
@@ -155,8 +144,7 @@ export async function linkFilesToSubmission(
   return {
     sourceCleanup: {
       sourcePaths,
-      blobServiceClient,
-      containerName,
+      storage,
     },
   };
 }

@@ -2,7 +2,7 @@ import { SubmissionStatus } from "@repo/database";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
-import { ReadSasUrlSigner } from "../../services/blobService.js";
+import type { ReadUrlSigner } from "@/services/storage/index.js";
 import {
   SignedFile,
   SubmissionHistoryRow,
@@ -22,11 +22,11 @@ import {
 /** Signs blob URLs for a submission's files grouped by type. Returns empty arrays when no signer exists. */
 const mapSubmissionFiles = async (
   files: SubmissionHistoryRow["files"],
-  signReadSasUrl: ReadSasUrlSigner | null
+  signReadUrl: ReadUrlSigner | null
 ) => {
   const groupedFiles = groupSubmissionHistoryFiles(files);
 
-  if (!signReadSasUrl) {
+  if (!signReadUrl) {
     return {
       attachments: [] as SignedFile[],
       recognitions: [] as SignedFile[],
@@ -35,9 +35,9 @@ const mapSubmissionFiles = async (
   }
 
   const [attachments, recognitions, revisionAttachments] = await Promise.all([
-    mapFilesWithUrls(groupedFiles.attachments, signReadSasUrl),
-    mapFilesWithUrls(groupedFiles.recognitions, signReadSasUrl),
-    mapFilesWithUrls(groupedFiles.revisionAttachments, signReadSasUrl),
+    mapFilesWithUrls(groupedFiles.attachments, signReadUrl),
+    mapFilesWithUrls(groupedFiles.recognitions, signReadUrl),
+    mapFilesWithUrls(groupedFiles.revisionAttachments, signReadUrl),
   ]);
 
   return { attachments, recognitions, revisionAttachments };
@@ -50,10 +50,10 @@ const mapSubmissionFiles = async (
 export const mapSubmissionEventGroup = async (
   submission: SubmissionHistoryRow,
   context: OrgSummaryInfo,
-  signReadSasUrl: ReadSasUrlSigner | null
+  signReadUrl: ReadUrlSigner | null
 ): Promise<SubmissionEventGroup> => {
   const { attachments, recognitions, revisionAttachments } =
-    await mapSubmissionFiles(submission.files, signReadSasUrl);
+    await mapSubmissionFiles(submission.files, signReadUrl);
 
   const baseEntry = buildSubmissionBaseEntry(submission, context);
 
