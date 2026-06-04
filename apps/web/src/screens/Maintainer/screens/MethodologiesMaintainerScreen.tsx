@@ -1,6 +1,14 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
-import { Box } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -22,6 +30,10 @@ import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import {
+  EditModeToolbar,
+  EDIT_MODE_TOOLBAR_HEIGHT,
+} from "../components/EditModeToolbar";
 
 const METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "methodologies-maintainer",
@@ -32,6 +44,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
 
   // --- Data fetching ---
   const { data: methodologies = [], isLoading } = useMethodologies();
@@ -47,6 +60,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
     useMethodologiesForm(methodologies);
   const startEditing = useMaintainerStore((s) => s.startEditing);
   const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
+  const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
+  const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const currentRows = form.watch("methodologies");
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
@@ -269,6 +284,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [isNewRow, enqueueSnackbar, startEditing, navigate]
   );
 
+  const handleExitEditMode = useCallback(() => {
+    setExitEditModeOpen(false);
+    stopEditing();
+  }, [stopEditing]);
+
   const handleDuplicate = useCallback(
     async (row: MethodologyVersionForm) => {
       if (isNewRow(row.id)) {
@@ -371,6 +391,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const columns = useMethodologyColumns({
     editingRowId,
+    actionsLocked: !!editingMethodology,
     onCellChange: handleCellChange,
     onToggle: handleToggle,
     onStartEditRow: handleStartEditRow,
@@ -389,15 +410,22 @@ export const MethodologiesMaintainerScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Metodologías"
-        subtitle="Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa."
+        subtitle="Gestiona las metodologías de cálculo. Haz clic en el ícono de
+          ajustes para modificar alcances, subcategorías y factores de emisión.
+          Siempre debe existir una única metodología activa."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
         explanationSlug={METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
-      <Box className="rounded-sm bg-white p-3">
+      <Box
+        className="rounded-sm bg-white p-3"
+        sx={
+          editingMethodology
+            ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` }
+            : undefined
+        }
+      >
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
             <MaintainerDataGrid<MethodologyVersionForm>
@@ -419,6 +447,35 @@ export const MethodologiesMaintainerScreen: FC = () => {
           </Box>
         </form>
       </Box>
+      {editingMethodology && (
+        <EditModeToolbar
+          methodologyName={editingMethodology.name}
+          onExitClick={() => setExitEditModeOpen(true)}
+        />
+      )}
+      <Dialog
+        open={exitEditModeOpen}
+        onClose={() => setExitEditModeOpen(false)}
+      >
+        <DialogTitle>Salir de modo edición</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Estás a punto de salir del modo edición de{" "}
+            <strong>{editingMethodology?.name ?? ""}</strong>. Podrás volver a
+            ajustarla desde esta pantalla cuando quieras.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleExitEditMode}
+          >
+            Salir
+          </Button>
+        </DialogActions>
+      </Dialog>
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
