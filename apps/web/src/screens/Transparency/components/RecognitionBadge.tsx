@@ -38,11 +38,8 @@ const BADGE_CONFIG: {
     tooltip: `Reconocimiento Reducción — ${orgArticle} ha reducido su huella de carbono.`,
     letter: "R",
   },
-  {
-    type: SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-    tooltip: `Reconocimiento Neutralización — ${orgArticle} ha neutralizado su huella de carbono.`,
-    letter: "N",
-  },
+  // TODO: Re-enable the NEUTRALIZATION_PLAN_VERIFICATION badge here once the admin
+  // neutralization module is implemented.
 ];
 
 export const RecognitionBadge: FC<Props> = ({

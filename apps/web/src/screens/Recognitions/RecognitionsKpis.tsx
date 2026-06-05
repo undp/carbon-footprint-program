@@ -27,8 +27,10 @@ export const RecognitionsKpis: FC<RecognitionsKpisProps> = ({
     return counts;
   }, [recognitions]);
 
+  // TODO: Restore grid-cols-4 once the admin neutralization module is implemented
+  // and NEUTRALIZATION_PLAN_VERIFICATION is added back to RECOGNITION_SUBMISSION_TYPES.
   return (
-    <Box className="grid grid-cols-4 gap-6 rounded-lg bg-white p-6">
+    <Box className="grid grid-cols-3 gap-6 rounded-lg bg-white p-6">
       {RECOGNITION_SUBMISSION_TYPES.map((submissionType) => (
         <RecognitionCard
           key={submissionType}
