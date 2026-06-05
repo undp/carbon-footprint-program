@@ -20,9 +20,14 @@ export const getEmissionsDetailedSummaryService = async (
   id: string
 ): Promise<GetEmissionsDetailedSummaryResponse> => {
   const inventory = await fetchInventory(prismaClient, id);
+  // Include subcategories that have active lines but no computed emissions yet,
+  // so the review screen lists every active line (complete or incomplete) and
+  // the user can see what is still pending. Incomplete lines surface with null
+  // factor/quantity and zero emissions in the mapping below.
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,
-    inventory
+    inventory,
+    { includeZeroEmissionSubcategories: true }
   );
 
   // 1. Resolve inventory attributes

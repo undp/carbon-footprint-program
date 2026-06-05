@@ -141,10 +141,23 @@ export async function fetchInventory(
 /**
  * Fetches the methodology categories/subcategories, subtotals from the DB view,
  * and builds category data with totals.
+ *
+ * By default only subcategories with computed emissions (`subtotal > 0`) are
+ * returned — the right behavior for rankings and reduction suggestions, which
+ * must not be polluted by subcategories that produce zero emissions.
+ *
+ * Pass `includeZeroEmissionSubcategories: true` to also return subcategories
+ * that have at least one ACTIVE line but no computed emissions yet (e.g. lines
+ * the user started but hasn't completed). The subtotals view INNER-joins ACTIVE
+ * lines, so a subcategory has a view row iff it has ≥1 active line; presence in
+ * `subtotalMap` is therefore the exact "has active lines" signal. The detailed
+ * summary uses this so the review screen lists every active line — complete or
+ * not — letting the user see what is still pending.
  */
 export async function fetchCategoryData(
   prismaClient: PrismaClient,
-  inventory: InventoryBase
+  inventory: InventoryBase,
+  options: { includeZeroEmissionSubcategories?: boolean } = {}
 ): Promise<{ categoryData: CategoryData[]; totalEmissions: number }> {
   const methodology = await prismaClient.methodologyVersion.findUnique({
     where: { id: inventory.methodologyVersionId },
@@ -188,7 +201,11 @@ export async function fetchCategoryData(
         icon: IconNameSchema.parse(sub.icon),
         subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
       }))
-      .filter((sub) => sub.subtotal > 0);
+      .filter((sub) =>
+        options.includeZeroEmissionSubcategories
+          ? subtotalMap.has(sub.id)
+          : sub.subtotal > 0
+      );
 
     const categorySubtotal = subcategories.reduce(
       (sum, sub) => sum + sub.subtotal,
