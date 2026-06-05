@@ -10,7 +10,8 @@ const BADGE_TYPE_ORDER: BadgeType[] = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
   BadgeType.CARBON_INVENTORY_VERIFICATION,
   BadgeType.REDUCTION_PROJECT_VERIFICATION,
-  BadgeType.NEUTRALIZATION_PLAN_VERIFICATION,
+  // TODO: Re-enable BadgeType.NEUTRALIZATION_PLAN_VERIFICATION here once the admin
+  // neutralization module is implemented.
   BadgeType.ORGANIZATION_ACCREDITATION,
 ];
 

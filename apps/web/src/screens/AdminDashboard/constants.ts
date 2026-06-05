@@ -6,7 +6,8 @@ export const RECOGNITION_TYPES: CarbonInventoryRecognitionsType[] = [
   SubmissionType.CARBON_INVENTORY_CALCULATION,
   SubmissionType.CARBON_INVENTORY_VERIFICATION,
   SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+  // TODO: Re-enable NEUTRALIZATION_PLAN_VERIFICATION here once the admin
+  // neutralization module is implemented.
 ];
 
 export const RECOGNITION_TYPES_SET = new Set<string>(RECOGNITION_TYPES);
