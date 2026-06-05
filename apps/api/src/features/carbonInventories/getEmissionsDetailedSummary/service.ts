@@ -27,7 +27,7 @@ export const getEmissionsDetailedSummaryService = async (
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,
     inventory,
-    { includeZeroEmissionSubcategories: true }
+    { includeIncompleteSubcategories: true }
   );
 
   // 1. Resolve inventory attributes
@@ -163,7 +163,12 @@ export const getEmissionsDetailedSummaryService = async (
       };
     });
 
-    // Build GHG breakdown for category position=1
+    // Build GHG breakdown for category position=1.
+    // NOTE: since incomplete subcategories are now included, this may contain
+    // zero-valued rows (subcategories whose lines have no result yet). The
+    // GHGBreakdownTable is currently not rendered (see the TODO in
+    // EmissionSummaryScreen.tsx); when it is re-enabled, filter out the
+    // zero-emission rows there if they should not be displayed.
     const ghgBreakdown =
       category.position === 1
         ? buildGHGBreakdown(category, linesBySubcategory)
