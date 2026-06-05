@@ -13,6 +13,7 @@ import {
   cleanupCarbonInventoryTestData,
   createCarbonInventory,
   createCarbonInventoryLine,
+  createCarbonInventoryLineFactor,
   createCarbonInventoryLineInput,
   createCarbonInventoryLineResult,
   getSubcategoryIds,
@@ -30,12 +31,22 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
   let app: FastifyInstance;
   let prisma: PrismaClient;
   let methodologyVersionId: bigint;
+  let rateUnitId: bigint;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
     methodologyVersionId = await getTestMethodologyVersionId(prisma);
+
+    // Any seeded rate unit works as the factor's applied rate unit (FK target).
+    const rateUnit = await prisma.rateMeasurementUnit.findFirst({
+      select: { id: true },
+    });
+    if (!rateUnit) {
+      throw new Error("No RateMeasurementUnit seeded for testing");
+    }
+    rateUnitId = rateUnit.id;
   });
 
   afterAll(async () => {
@@ -187,6 +198,86 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       expect(subcategoryIds).toEqual(
         [subAId.toString(), subBId.toString()].sort()
       );
+    });
+
+    it("exposes factor details for a completed factor-based line", async () => {
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+      const [subId] = await getSubcategoryIds(prisma, methodologyVersionId);
+
+      const line = await createCarbonInventoryLine(prisma, inventory.id, subId);
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "SIMPLIFIED",
+        quantity: new Prisma.Decimal(10),
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(2.5),
+        appliedFactorRateUnitId: rateUnitId,
+        appliedFactorSource: "IPCC 2019",
+      });
+      await createCarbonInventoryLineResult(prisma, input.id, 1000);
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emissions-summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionsDetailedSummaryResponse;
+
+      const subcategory = flattenSubcategories(body).find(
+        (s) => s.id === subId.toString()
+      );
+      expect(subcategory).toBeDefined();
+
+      const lineRow = subcategory!.lines.find(
+        (l) => l.lineId === line.id.toString()
+      );
+      expect(lineRow).toBeDefined();
+      expect(lineRow!.quantity).toBe(10);
+      expect(lineRow!.factorValue).toBe(2.5);
+      expect(lineRow!.factorSource).toBe("IPCC 2019");
+      expect(lineRow!.emissions).toBe(1); // 1000 kg → 1 tCO2e
+    });
+
+    it("includes an incomplete total-mode (DIRECT) subcategory as a manual row", async () => {
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+      const [subId] = await getSubcategoryIds(prisma, methodologyVersionId);
+
+      // Total-mode entry the user started but hasn't filled: a DIRECT input
+      // with no directTotalEmissions and no result.
+      const line = await createCarbonInventoryLine(prisma, inventory.id, subId);
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emissions-summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionsDetailedSummaryResponse;
+
+      expect(body.totalEmissions).toBe(0);
+
+      const subcategory = flattenSubcategories(body).find(
+        (s) => s.id === subId.toString()
+      );
+      expect(subcategory).toBeDefined();
+      // No factor-based lines → rendered as a SubcategoryManualRow on the FE.
+      expect(subcategory!.hasLines).toBe(false);
+      expect(subcategory!.lines).toHaveLength(0);
+      expect(subcategory!.subtotal).toBe(0);
     });
   });
 
