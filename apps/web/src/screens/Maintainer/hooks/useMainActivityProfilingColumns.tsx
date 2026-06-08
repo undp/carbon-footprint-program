@@ -6,11 +6,7 @@ import { OrganizationMainActivityStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { StatusChip } from "@/components/StatusChip";
-import {
-  PROFILING_STATUS_CONFIG,
-  resolveProfilingStatusKey,
-} from "@/labels/chips/profiling";
+import { profilingStatusColumn } from "./profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const MainActivityRowSchema = z.object({
@@ -217,20 +213,7 @@ export const useMainActivityProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: MainActivityFormRow) =>
-          PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)].label,
-        renderCell: ({ row }: GridRenderCellParams<MainActivityFormRow>) => (
-          <StatusChip
-            config={
-              PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
-            }
-          />
-        ),
-      },
+      profilingStatusColumn<MainActivityFormRow>(),
       {
         field: "actions",
         headerName: "Acciones",

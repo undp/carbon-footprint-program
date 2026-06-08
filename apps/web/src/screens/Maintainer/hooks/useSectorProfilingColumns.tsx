@@ -1,11 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { RestoreOutlined } from "@mui/icons-material";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { StatusChip } from "@/components/StatusChip";
-import {
-  PROFILING_STATUS_CONFIG,
-  resolveProfilingStatusKey,
-} from "@/labels/chips/profiling";
+import { profilingStatusColumn } from "./profilingStatusColumn";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";
@@ -130,20 +126,7 @@ export const useSectorProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: SectorFormRow) =>
-          PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)].label,
-        renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) => (
-          <StatusChip
-            config={
-              PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
-            }
-          />
-        ),
-      },
+      profilingStatusColumn<SectorFormRow>(),
       {
         field: "actions",
         headerName: "Acciones",

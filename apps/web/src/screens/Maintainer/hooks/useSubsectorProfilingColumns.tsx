@@ -6,11 +6,7 @@ import { CountrySubsectorStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { StatusChip } from "@/components/StatusChip";
-import {
-  PROFILING_STATUS_CONFIG,
-  resolveProfilingStatusKey,
-} from "@/labels/chips/profiling";
+import { profilingStatusColumn } from "./profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const SubsectorRowSchema = z.object({
@@ -168,20 +164,7 @@ export const useSubsectorProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: SubsectorFormRow) =>
-          PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)].label,
-        renderCell: ({ row }: GridRenderCellParams<SubsectorFormRow>) => (
-          <StatusChip
-            config={
-              PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
-            }
-          />
-        ),
-      },
+      profilingStatusColumn<SubsectorFormRow>(),
       {
         field: "actions",
         disableExport: true,

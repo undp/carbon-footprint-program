@@ -6,11 +6,7 @@ import { CountryOrganizationSizeStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { StatusChip } from "@/components/StatusChip";
-import {
-  PROFILING_STATUS_CONFIG,
-  resolveProfilingStatusKey,
-} from "@/labels/chips/profiling";
+import { profilingStatusColumn } from "./profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({
@@ -149,25 +145,11 @@ export const useOrganizationSizeProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
+      profilingStatusColumn<OrganizationSizeFormRow>({
         disableColumnMenu: true,
         sortable: false,
         filterable: false,
-        valueGetter: (_value, row: OrganizationSizeFormRow) =>
-          PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)].label,
-        renderCell: ({
-          row,
-        }: GridRenderCellParams<OrganizationSizeFormRow>) => (
-          <StatusChip
-            config={
-              PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
-            }
-          />
-        ),
-      },
+      }),
       {
         field: "actions",
         headerName: "Acciones",
