@@ -22,11 +22,10 @@ export const getCarbonInventoryFilesManifestService = async (
     where: {
       carbonInventoryId: BigInt(carbonInventoryId),
       status: CarbonInventoryLineStatus.ACTIVE,
-      // get files just for completed lines
+      // files for any active line with an active input, complete or not
       inputs: {
         some: {
           isActive: true,
-          result: { isNot: null },
         },
       },
     },

@@ -265,7 +265,7 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
     expect(body.files.map((f) => f.originalName)).toEqual(["kept.pdf"]);
   });
 
-  it("excludes files attached to ACTIVE lines without a calculated result", async () => {
+  it("includes files for ACTIVE lines with an active input even without a result, but excludes lines without any active input", async () => {
     const user = await getTestLoggedUser(prisma);
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -318,7 +318,10 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
     const body = JSON.parse(
       response.body
     ) as GetCarbonInventoryFilesManifestResponse;
-    expect(body.files.map((f) => f.originalName)).toEqual(["calculated.pdf"]);
+    expect(body.files.map((f) => f.originalName).sort()).toEqual([
+      "calculated.pdf",
+      "in-progress.pdf",
+    ]);
   });
 
   it("excludes files whose status is DELETED or that are soft-deleted", async () => {
