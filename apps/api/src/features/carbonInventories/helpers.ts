@@ -106,6 +106,7 @@ export type CategoryData = Pick<
     name: string;
     icon: IconName;
     subtotal: number;
+    hasIncompleteLines: boolean;
   }[];
 };
 
@@ -188,19 +189,35 @@ export async function fetchCategoryData(
     where: { carbonInventoryId: inventory.id },
   });
 
-  const subtotalMap = new Map<string, number>();
+  // The view INNER-joins ACTIVE lines, so a row exists iff the subcategory has
+  // ≥1 active line. `activeCompletedLinesCount < activeLinesCount` means some of
+  // those lines have no computed result yet — i.e. the subtotal is provisional.
+  const subtotalMap = new Map<
+    string,
+    { subtotal: number; activeLines: number; completedLines: number }
+  >();
   for (const row of subtotals) {
-    subtotalMap.set(row.subcategoryId.toString(), kgToTon(Number(row.value)));
+    subtotalMap.set(row.subcategoryId.toString(), {
+      subtotal: kgToTon(Number(row.value)),
+      activeLines: Number(row.activeLinesCount),
+      completedLines: Number(row.activeCompletedLinesCount),
+    });
   }
 
   const categoryData = methodology.categories.map((category) => {
     const subcategories = category.subcategories
-      .map((sub) => ({
-        id: sub.id.toString(),
-        name: sub.name,
-        icon: IconNameSchema.parse(sub.icon),
-        subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
-      }))
+      .map((sub) => {
+        const entry = subtotalMap.get(sub.id.toString());
+        return {
+          id: sub.id.toString(),
+          name: sub.name,
+          icon: IconNameSchema.parse(sub.icon),
+          subtotal: entry?.subtotal ?? 0,
+          hasIncompleteLines: entry
+            ? entry.completedLines < entry.activeLines
+            : false,
+        };
+      })
       .filter((sub) =>
         options.includeIncompleteSubcategories
           ? subtotalMap.has(sub.id)

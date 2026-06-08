@@ -132,9 +132,11 @@ export const getEmissionsDetailedSummaryService = async (
                   .filter(Boolean)
                   .join(" / ") || sub.name;
 
+              // Null (not 0) when there is no computed result yet, so the UI
+              // can render "—" for an incomplete line instead of a misleading 0.
               const lineEmissions = input.result
                 ? kgToTon(Number(input.result.totalEmissions))
-                : 0;
+                : null;
 
               return {
                 lineId: line.id.toString(),
@@ -160,6 +162,7 @@ export const getEmissionsDetailedSummaryService = async (
         lines: emissionLines,
         subtotal: sub.subtotal,
         percentage: subcategoryPercentages[subIdx],
+        hasIncompleteLines: sub.hasIncompleteLines,
       };
     });
 

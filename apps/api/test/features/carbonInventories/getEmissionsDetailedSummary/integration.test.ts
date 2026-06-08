@@ -126,12 +126,14 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       const subcategory = subcategories.find((s) => s.id === subId.toString());
       expect(subcategory).toBeDefined();
       expect(subcategory!.subtotal).toBe(0);
+      expect(subcategory!.hasIncompleteLines).toBe(true);
       expect(subcategory!.lines).toHaveLength(1);
 
       const line = subcategory!.lines[0];
       expect(line.lineId).toBe(incompleteLine.id.toString());
       expect(line.factorValue).toBeNull();
-      expect(line.emissions).toBe(0);
+      // No computed result yet → null (renders as "—"), not a misleading 0.
+      expect(line.emissions).toBeNull();
     });
 
     it("shows both complete and incomplete lines within the same subcategory", async () => {
@@ -161,11 +163,12 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       );
       expect(subcategory).toBeDefined();
       expect(subcategory!.subtotal).toBe(1);
+      expect(subcategory!.hasIncompleteLines).toBe(true);
       expect(subcategory!.lines).toHaveLength(2);
 
       const linesById = new Map(subcategory!.lines.map((l) => [l.lineId, l]));
       expect(linesById.get(completeLine.id.toString())?.emissions).toBe(1);
-      expect(linesById.get(incompleteLine.id.toString())?.emissions).toBe(0);
+      expect(linesById.get(incompleteLine.id.toString())?.emissions).toBeNull();
     });
 
     it("omits subcategories with no active lines", async () => {
@@ -238,6 +241,7 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
         (l) => l.lineId === line.id.toString()
       );
       expect(lineRow).toBeDefined();
+      expect(subcategory!.hasIncompleteLines).toBe(false);
       expect(lineRow!.quantity).toBe(10);
       expect(lineRow!.factorValue).toBe(2.5);
       expect(lineRow!.factorSource).toBe("IPCC 2019");
@@ -278,6 +282,8 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       expect(subcategory!.hasLines).toBe(false);
       expect(subcategory!.lines).toHaveLength(0);
       expect(subcategory!.subtotal).toBe(0);
+      // Provisional: the total-mode entry has no result yet.
+      expect(subcategory!.hasIncompleteLines).toBe(true);
     });
   });
 
