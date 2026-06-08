@@ -3,6 +3,7 @@ import { Box, Typography } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
+import { PROVISIONAL_SUBTOTAL_TOOLTIP } from "../../constants";
 
 interface SubcategoryManualRowProps {
   subcategory: GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
@@ -29,6 +30,11 @@ export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
         emissions={subcategory.subtotal}
         percentage={subcategory.percentage}
         categoryColor={categoryColor}
+        provisionalTooltip={
+          subcategory.hasIncompleteLines
+            ? PROVISIONAL_SUBTOTAL_TOOLTIP
+            : undefined
+        }
       />
     </Box>
   );

@@ -1,3 +1,6 @@
+export const PROVISIONAL_SUBTOTAL_TOOLTIP =
+  "Total provisional: esta subcategoría tiene actividades sin completar. El total puede aumentar cuando las completes.";
+
 export const EXIT_DIALOG_CONTENT = {
   LOGGED_IN: {
     title: "¿Salir sin guardar?",

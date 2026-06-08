@@ -4,6 +4,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
+import { PROVISIONAL_SUBTOTAL_TOOLTIP } from "../../constants";
 import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
 interface SubcategoryLinesTableProps {
@@ -86,6 +87,11 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
           emissions={subcategory.subtotal}
           percentage={subcategory.percentage}
           categoryColor={categoryColor}
+          provisionalTooltip={
+            subcategory.hasIncompleteLines
+              ? PROVISIONAL_SUBTOTAL_TOOLTIP
+              : undefined
+          }
         />
       </Box>
     </Box>
