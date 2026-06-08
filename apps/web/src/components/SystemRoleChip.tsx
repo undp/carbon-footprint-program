@@ -1,9 +1,8 @@
 import { FC } from "react";
 import { useTheme } from "@mui/material";
 import { SystemRole } from "@repo/types";
-import { CustomPaletteChip } from "./CustomPaletteChip";
+import { BaseChip } from "./BaseChip";
 import { SYSTEM_ROLE_LABELS } from "@/labels/chips/role";
-import type { CustomPaletteConfig } from "@/labels/chips/types";
 
 interface SystemRoleChipProps {
   role: SystemRole;
@@ -11,9 +10,13 @@ interface SystemRoleChipProps {
 
 export const SystemRoleChip: FC<SystemRoleChipProps> = ({ role }) => {
   const theme = useTheme();
-  const config: CustomPaletteConfig = {
-    ...SYSTEM_ROLE_LABELS[role],
-    color: theme.palette.roleColors[role],
-  };
-  return <CustomPaletteChip config={config} />;
+  const { label, tooltip } = SYSTEM_ROLE_LABELS[role];
+
+  return (
+    <BaseChip
+      color={theme.palette.roleColors[role]}
+      label={label}
+      tooltip={tooltip}
+    />
+  );
 };
