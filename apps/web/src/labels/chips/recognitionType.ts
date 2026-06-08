@@ -12,6 +12,10 @@ type RecognitionLabelEntry = {
   icon: SvgIconComponent;
 };
 
+// Sibling of SUBMISSION_TYPE_LABELS (./submissionType): the same recognition
+// types, but Title-case labels + short chip labels + icons for the
+// RecognitionChip. Wording intentionally differs from SUBMISSION_TYPE_LABELS
+// (different surface); keep the type set in sync if a recognition type changes.
 export const RECOGNITION_TYPE_LABELS: Record<
   CarbonInventoryRecognitionsType,
   RecognitionLabelEntry
