@@ -22,30 +22,31 @@ export function buildCarbonInventoryZipReadme({
 Generado: ${generated}
 
 IMPORTANTE
-Este archivo contiene únicamente información de las líneas con
-emisiones calculadas. Una línea queda sin completar cuando le falta
-algún dato necesario para calcularlas: cantidad, unidad, fuente del
+Este resumen refleja lo mismo que ves en pantalla: incluye todas las
+líneas y subcategorías activas del inventario, estén completas o
+incompletas. Una línea queda incompleta cuando le falta algún dato
+necesario para calcular sus emisiones: cantidad, unidad, fuente del
 factor o valor del factor. En el modo manual, una subcategoría queda
-sin completar mientras no se haya ingresado su total de emisiones.
+incompleta mientras no se haya ingresado su total de emisiones.
 
-Si esperabas ver una línea o una subcategoría aquí y no la
-encuentras, regresa al inventario, completa los datos faltantes y
-vuelve a descargar.
+Las líneas incompletas aparecen sin valor de emisiones. El total de
+emisiones solo considera las líneas completas, por lo que puede aumentar
+a medida que completes los datos pendientes.
 
 Contenido:
 
 - resumen-emisiones.xlsx
   Resumen detallado de emisiones, con desglose por categoría,
-  subcategoría y línea. La columna "Item ID" identifica cada línea
-  y se corresponde con el segmento "item-{id}" de los archivos en
-  la carpeta archivos/.
+  subcategoría y línea (completas e incompletas). La columna "Item ID"
+  identifica cada línea y se corresponde con el segmento "item-{id}" de
+  los archivos en la carpeta archivos/.
 
 - metodologia.xlsx
   Metodología aplicada al inventario (categorías, subcategorías,
   factores de emisión).
 
 - archivos/
-  Archivos de respaldo adjuntos a cada línea calculada del
-  inventario.
+  Archivos de respaldo adjuntos a las líneas del inventario, tanto
+  completas como incompletas.
 `;
 }

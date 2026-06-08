@@ -99,8 +99,10 @@ export const EmissionSummaryScreen: FC = () => {
   const hideOwnerNavigation = isEditBlocked && !hasMembership;
 
   const { download, isDownloading } = useDownloadCarbonInventory();
-  const totalEmissions = summaryData?.totalEmissions ?? 0;
-  const canDownload = !!metadataData && !isSummaryLoading && totalEmissions > 0;
+  const hasReviewableData = categories.some(
+    (category) => category.subcategories.length > 0
+  );
+  const canDownload = !!metadataData && !isSummaryLoading && hasReviewableData;
 
   const onDownloadClick = useCallback(() => {
     if (!metadataData) return;
@@ -113,8 +115,8 @@ export const EmissionSummaryScreen: FC = () => {
       ? "Error al cargar datos"
       : isMetadataLoading || isSummaryLoading
         ? "Cargando datos"
-        : totalEmissions === 0
-          ? "Sin datos de emisiones"
+        : !hasReviewableData
+          ? "Sin actividades registradas"
           : "Descargar huella";
 
   const backButton: FooterButton = {
