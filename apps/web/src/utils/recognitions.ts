@@ -4,7 +4,6 @@ import {
   RECOGNITION_SUBMISSION_TYPES as ALL_RECOGNITION_SUBMISSION_TYPES,
   SubmissionType,
 } from "@repo/types";
-import { SvgIconComponent } from "@mui/icons-material";
 import { mapValues } from "lodash-es";
 import { CarbonInventoryRecognitionsBadgeType } from "@/screens/Recognitions/constants";
 import { RECOGNITION_TYPE_LABELS } from "@/labels/chips/recognitionType";
@@ -18,16 +17,6 @@ export const RECOGNITION_TYPE_CHIP_LABEL: Record<
   CarbonInventoryRecognitionsType,
   string
 > = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.chipLabel);
-
-export const RECOGNITION_ICON: Record<
-  CarbonInventoryRecognitionsType,
-  SvgIconComponent
-> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.icon);
-
-export const RECOGNITION_TOOLTIP: Record<
-  CarbonInventoryRecognitionsType,
-  string
-> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.tooltip);
 
 // Neutralization recognitions are hidden in the front until the admin
 // neutralization module is implemented.

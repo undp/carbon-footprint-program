@@ -1,12 +1,7 @@
 import { FC } from "react";
 import { useTheme } from "@mui/material";
 import { darken } from "@mui/material/styles";
-import {
-  RECOGNITION_ICON,
-  RECOGNITION_TOOLTIP,
-  RECOGNITION_TYPE_LABEL,
-  RECOGNITION_TYPE_CHIP_LABEL,
-} from "@/utils/recognitions";
+import { RECOGNITION_TYPE_LABELS } from "@/labels/chips/recognitionType";
 import { CarbonInventoryRecognitionsType } from "@repo/types";
 import { TypeChip } from "./TypeChip";
 
@@ -21,19 +16,20 @@ export const RecognitionChip: FC<RecognitionChipProps> = ({
 }) => {
   const theme = useTheme();
   const color = theme.palette.recognitionTypeColors[type];
-  const label =
-    variant === "full"
-      ? RECOGNITION_TYPE_LABEL[type]
-      : RECOGNITION_TYPE_CHIP_LABEL[type];
-  const IconComponent = RECOGNITION_ICON[type];
+  const {
+    fullLabel,
+    chipLabel,
+    tooltip,
+    icon: Icon,
+  } = RECOGNITION_TYPE_LABELS[type];
 
   return (
     <TypeChip
       color={color}
-      label={label}
-      tooltip={RECOGNITION_TOOLTIP[type]}
+      label={variant === "full" ? fullLabel : chipLabel}
+      tooltip={tooltip}
       icon={
-        <IconComponent
+        <Icon
           sx={{
             fontSize: "0.875rem", //14px
             color: `${darken(color, 0.7)} !important`,
