@@ -243,7 +243,7 @@ export async function buildMethodologyWorkbook(
   ]);
   fillEmissionFactorsSheet(factorsSheet, methodology.categories);
 
-  return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
+  return workbook.xlsx.writeBuffer();
 }
 
 export async function exportMethodologyToExcel(
