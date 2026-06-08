@@ -29,7 +29,7 @@ export const CurrentStatusBanner: FC<Props> = ({
   return (
     <Box
       sx={{
-        bgcolor: statusColor ? alpha(statusColor, 0.18) : undefined,
+        bgcolor: alpha(statusColor, 0.18),
         display: "flex",
         alignItems: "center",
         gap: 1.5,
