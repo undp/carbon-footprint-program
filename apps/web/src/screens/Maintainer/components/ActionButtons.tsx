@@ -7,8 +7,6 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import {
   SettingsOutlined,
@@ -175,18 +173,12 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           />
         )}
         {!isEditing && onDownloadExcel && (
-          <Tooltip title={downloadExcelTooltipTitle}>
-            <span className="content-center">
-              <IconButton
-                size="small"
-                onClick={onDownloadExcel}
-                disabled={downloadExcelDisabled}
-                aria-label={downloadExcelTooltipTitle}
-              >
-                <FileDownloadOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <AdminActionButton
+            icon={FileDownloadOutlined}
+            tooltip={downloadExcelTooltipTitle}
+            onClick={onDownloadExcel}
+            disabled={downloadExcelDisabled}
+          />
         )}
         {!isEditing && onDelete && (
           <AdminActionButton
