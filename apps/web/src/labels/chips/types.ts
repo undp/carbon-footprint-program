@@ -1,5 +1,3 @@
-import type { ChipProps } from "@mui/material";
-
 export enum StatusFamily {
   POSITIVE = "positive",
   IN_REVIEW = "in_review",
@@ -14,7 +12,6 @@ export interface StatusConfig {
   tooltip: string;
   // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
   sortOrder?: number;
-  icon?: ChipProps["icon"];
 }
 
 export interface CustomPaletteConfig {
@@ -23,7 +20,6 @@ export interface CustomPaletteConfig {
   tooltip: string;
   // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
   sortOrder?: number;
-  icon?: ChipProps["icon"];
 }
 
 export const sortOrderByKey = <K extends string>(

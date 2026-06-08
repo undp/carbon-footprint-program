@@ -6,10 +6,9 @@ import { BaseChip } from "./BaseChip";
 interface StatusChipProps {
   config: StatusConfig;
   size?: ChipProps["size"];
-  icon?: ChipProps["icon"];
 }
 
-export const StatusChip: FC<StatusChipProps> = ({ config, size, icon }) => {
+export const StatusChip: FC<StatusChipProps> = ({ config, size }) => {
   const theme = useTheme();
   return (
     <BaseChip
@@ -17,7 +16,6 @@ export const StatusChip: FC<StatusChipProps> = ({ config, size, icon }) => {
       label={config.label}
       tooltip={config.tooltip}
       size={size}
-      icon={icon ?? config.icon}
     />
   );
 };
