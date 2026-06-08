@@ -32,7 +32,7 @@ export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   [AdminOrganizationDisplayStatus.BLOCKED]: {
     family: StatusFamily.NEGATIVE,
     label: "Bloqueada",
-    tooltip: `${capitalize(VOCAB.organization.noun.singular)} bloqueada por la administración`,
+    tooltip: `${capitalize(VOCAB.organization.noun.singular)} bloqueada`,
     sortOrder: 3,
   },
 };
