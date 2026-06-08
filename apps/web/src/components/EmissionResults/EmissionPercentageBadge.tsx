@@ -11,9 +11,9 @@ interface EmissionPercentageBadgeProps {
   highlighted?: boolean;
   /**
    * When set, renders a warning icon with this tooltip next to the value to
-   * flag that the total is provisional (e.g. it has activities still pending).
+   * flag that the total only accounts for completed emission sources.
    */
-  provisionalTooltip?: string;
+  incompleteTooltip?: string;
 }
 
 export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
@@ -21,7 +21,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
   percentage,
   categoryColor,
   highlighted = false,
-  provisionalTooltip,
+  incompleteTooltip,
 }) => {
   const categoryColorPalette = getColorPalette(categoryColor);
   const fontWeight = highlighted ? "600" : "400";
@@ -29,8 +29,15 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
   return (
     <Box className="flex items-center gap-4">
       <Box className="flex items-center gap-1">
-        {provisionalTooltip && (
-          <Tooltip title={provisionalTooltip} placement="top">
+        <Typography
+          variant="body1"
+          fontWeight={fontWeight}
+          sx={{ color: categoryColorPalette.dark }}
+        >
+          {formatter.emissions(emissions)}
+        </Typography>
+        {incompleteTooltip && (
+          <Tooltip title={incompleteTooltip} placement="top">
             <WarningRounded
               sx={(theme) => ({
                 color: theme.palette.warning.main,
@@ -39,13 +46,6 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
             />
           </Tooltip>
         )}
-        <Typography
-          variant="body1"
-          fontWeight={fontWeight}
-          sx={{ color: categoryColorPalette.dark }}
-        >
-          {formatter.emissions(emissions)}
-        </Typography>
       </Box>
       {hasPercentage && (
         <Box className="flex min-w-[60px] justify-end">
