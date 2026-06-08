@@ -41,7 +41,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
             <WarningRounded
               sx={(theme) => ({
                 color: theme.palette.warning.main,
-                height: 20,
+                fontSize: 20,
               })}
             />
           </Tooltip>
