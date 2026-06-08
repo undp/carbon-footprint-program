@@ -127,6 +127,12 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       expect(subcategory).toBeDefined();
       expect(subcategory!.subtotal).toBe(0);
       expect(subcategory!.hasIncompleteLines).toBe(true);
+      // The containing category is provisional too.
+      expect(
+        body.categories.find((c) =>
+          c.subcategories.some((s) => s.id === subId.toString())
+        )?.hasIncompleteLines
+      ).toBe(true);
       expect(subcategory!.lines).toHaveLength(1);
 
       const line = subcategory!.lines[0];
@@ -242,6 +248,11 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       );
       expect(lineRow).toBeDefined();
       expect(subcategory!.hasIncompleteLines).toBe(false);
+      expect(
+        body.categories.find((c) =>
+          c.subcategories.some((s) => s.id === subId.toString())
+        )?.hasIncompleteLines
+      ).toBe(false);
       expect(lineRow!.quantity).toBe(10);
       expect(lineRow!.factorValue).toBe(2.5);
       expect(lineRow!.factorSource).toBe("IPCC 2019");

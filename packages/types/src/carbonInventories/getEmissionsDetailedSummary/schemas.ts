@@ -110,6 +110,11 @@ const CategorySummaryItemSchema = CategoryBaseSchema.pick({
       .describe(
         "GHG gas breakdown per subcategory. Only present for category position=1, null for others."
       ),
+    hasIncompleteLines: z
+      .boolean()
+      .describe(
+        "True when any subcategory in the category has incomplete lines; its subtotal is provisional"
+      ),
   })
   .strict();
 

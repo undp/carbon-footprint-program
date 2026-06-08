@@ -188,6 +188,7 @@ export const getEmissionsDetailedSummaryService = async (
       subtotal: category.subtotal,
       percentage: categoryPercentages[catIdx],
       ghgBreakdown,
+      hasIncompleteLines: subcategories.some((sub) => sub.hasIncompleteLines),
     };
   });
 
