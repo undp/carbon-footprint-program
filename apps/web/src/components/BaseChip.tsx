@@ -26,14 +26,24 @@ export const BaseChip: FC<BaseChipProps> = ({
         icon={icon}
         size={size}
         sx={{
-          padding: "6px 8px",
+          height: "auto",
+          padding: "4px 8px",
           backgroundColor: alpha(color, 0.2),
           color: darken(color, 0.3),
           border: `1px solid ${alpha(color, 0.3)}`,
           textTransform: "uppercase",
+          "& .MuiChip-label": {
+            display: "flex",
+            alignItems: "center",
+          },
         }}
         label={
-          <Typography variant={variant} fontWeight={fontWeight}>
+          <Typography
+            component="span"
+            variant={variant}
+            fontWeight={fontWeight}
+            lineHeight={1.2}
+          >
             {label}
           </Typography>
         }
