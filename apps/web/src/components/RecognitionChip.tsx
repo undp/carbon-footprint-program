@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material";
 import { darken } from "@mui/material/styles";
 import {
   RECOGNITION_ICON,
+  RECOGNITION_TOOLTIP,
   RECOGNITION_TYPE_LABEL,
   RECOGNITION_TYPE_CHIP_LABEL,
 } from "@/utils/recognitions";
@@ -30,6 +31,7 @@ export const RecognitionChip: FC<RecognitionChipProps> = ({
     <TypeChip
       color={color}
       label={label}
+      tooltip={RECOGNITION_TOOLTIP[type]}
       icon={
         <IconComponent
           sx={{

@@ -24,6 +24,11 @@ export const RECOGNITION_ICON: Record<
   SvgIconComponent
 > = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.icon);
 
+export const RECOGNITION_TOOLTIP: Record<
+  CarbonInventoryRecognitionsType,
+  string
+> = mapValues(RECOGNITION_TYPE_LABELS, (entry) => entry.tooltip);
+
 // Neutralization recognitions are hidden in the front until the admin
 // neutralization module is implemented.
 // TODO: Re-export RECOGNITION_SUBMISSION_TYPES directly (drop this filter) once the
