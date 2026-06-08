@@ -258,7 +258,7 @@ export const DraftActionsCell: FC<Props> = ({
           onClick={onSelfDeclareClick}
           sx={primaryActionButtonSx}
         >
-          <TaskAltRounded sx={{ fontSize: 16 }} />
+          <TaskAltRounded fontSize="small" />
         </AppActionButton>
 
         {/* Eliminar */}
