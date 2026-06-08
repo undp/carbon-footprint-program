@@ -29,9 +29,9 @@ The ZIP filename SHALL be `{sanitize(inventoryName) || "huella"}-{year}.zip`, mi
 
 ### Requirement: ZIP archive layout
 
-The ZIP SHALL contain at minimum three files at root: `LEEME.txt` (a human-readable README explaining the archive contents and the "completed line" filter), `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_item-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
+The ZIP SHALL contain at minimum three files at root: `LEEME.txt` (a human-readable README explaining the archive contents), `resumen-emisiones.xlsx` (the emissions summary workbook) and `metodologia.xlsx` (the methodology export workbook). It SHALL additionally contain one entry per active line file under `archivos/{sanitize(categoryName)}_{sanitize(subcategoryName)}_item-{lineId}_{sanitize(stem(originalName))}{ext}`, in a single flat `archivos/` folder.
 
-The `LEEME.txt` SHALL state, in Spanish, that the archive only includes information for lines whose emissions have been calculated, and SHALL list the conditions under which a line stays incomplete (missing cantidad, unidad, fuente del factor, valor del factor, or — in manual mode — a subcategory total).
+The `LEEME.txt` SHALL state, in Spanish, that the archive includes every active line of the inventory — complete or incomplete, mirroring the summary screen — and SHALL list the conditions under which a line stays incomplete (missing cantidad, unidad, fuente del factor, valor del factor, or — in manual mode — a subcategory total). It SHALL note that incomplete lines appear without an emissions value and that the total only counts completed lines.
 
 Within the same line, same-filename collisions SHALL be disambiguated by appending `-2`, `-3`, … before the extension. Across-line collisions are impossible because `item-{lineId}` partitions the namespace.
 
@@ -46,11 +46,11 @@ Within the same line, same-filename collisions SHALL be disambiguated by appendi
 - **WHEN** the user downloads an inventory with no file attachments
 - **THEN** the unzipped archive still contains `LEEME.txt`, `resumen-emisiones.xlsx` and `metodologia.xlsx` at root and an empty `archivos/` directory (or no `archivos/` entry — implementation choice)
 
-#### Scenario: README explains the completed-line filter
+#### Scenario: README explains incomplete lines
 
 - **WHEN** the user opens `LEEME.txt`
-- **THEN** the file states (in Spanish) that the archive only contains information for lines whose emissions have been calculated
-- **AND** it enumerates the data points whose absence leaves a line uncalculated (cantidad, unidad, fuente del factor, valor del factor) and the manual-mode equivalent (subcategory total)
+- **THEN** the file states (in Spanish) that the archive includes every active line, complete or incomplete, and that incomplete lines appear without an emissions value
+- **AND** it enumerates the data points whose absence leaves a line incomplete (cantidad, unidad, fuente del factor, valor del factor) and the manual-mode equivalent (subcategory total)
 
 #### Scenario: Duplicate filenames within a single line
 
@@ -126,7 +126,7 @@ If any of the four primary fetches — emissions summary, emission factors, file
 
 The system SHALL expose `GET /carbon-inventories/:id/files-manifest`. The endpoint SHALL be gated by `requireCarbonInventoryAccess(idRequestExtractor)` and SHALL be registered `public: true` so the anonymous calculator flow (using the `x-carbon-inventory-uuid` header) can call it.
 
-The response SHALL include one entry per attached file belonging to a **completed** ACTIVE line of the inventory whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. A line is considered completed using the same definition as `CarbonInventorySubtotalsView.active_completed_lines_count`: its active `CarbonInventoryLineInput` has a `CarbonInventoryLineResult` row. Files attached to OUTDATED or DELETED lines, or to ACTIVE lines that have not been calculated yet, SHALL NOT appear. This keeps the ZIP's `archivos/` content in 1:1 alignment with the `item-{lineId}` rows that surface in `resumen-emisiones.xlsx` — incomplete lines have no calculated row in the workbook, so their attachments would be orphans in the archive. Each entry SHALL include `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `sasUrl`, `expiresAt`, `sizeBytes`, and `mimeType`. The response SHALL also include a top-level `expiresAt`.
+The response SHALL include one entry per attached file belonging to an ACTIVE line of the inventory that has an active `CarbonInventoryLineInput`, whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. Both complete and incomplete lines are included, mirroring the lines emitted in `resumen-emisiones.xlsx`. Files attached to OUTDATED or DELETED lines, or to ACTIVE lines without any active input (which are not emitted in the workbook either), SHALL NOT appear. This keeps the ZIP's `archivos/` content aligned with the `item-{lineId}` rows that surface in `resumen-emisiones.xlsx`. Each entry SHALL include `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `sasUrl`, `expiresAt`, `sizeBytes`, and `mimeType`. The response SHALL also include a top-level `expiresAt`.
 
 All SAS URLs in a single response SHALL be signed using a single user-delegation key (one Azure call per request, regardless of file count). Rows whose `File.blobPath` does not start with `CARBON_INVENTORY/{inventoryId}/LINES/` SHALL be logged and skipped (the existing safety pattern from `previewLineFile`).
 
@@ -141,10 +141,11 @@ All SAS URLs in a single response SHALL be signed using a single user-delegation
 - **WHEN** the inventory has files attached to lines whose status is OUTDATED or DELETED
 - **THEN** those files are NOT present in the manifest
 
-#### Scenario: Files attached to ACTIVE lines without a calculated result are excluded
+#### Scenario: Files attached to incomplete ACTIVE lines are included
 
-- **WHEN** an ACTIVE line has attached files but its active input has no `CarbonInventoryLineResult` row (no calculated total)
-- **THEN** those files are NOT present in the manifest
+- **WHEN** an ACTIVE line has attached files and an active input but no `CarbonInventoryLineResult` row (no calculated total)
+- **THEN** those files ARE present in the manifest
+- **AND** files attached to an ACTIVE line without any active input are NOT present
 
 #### Scenario: Soft-deleted files are excluded
 
