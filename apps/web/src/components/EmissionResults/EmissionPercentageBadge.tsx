@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
+import { WarningRounded } from "@mui/icons-material";
 import { formatter } from "@/utils/formatting";
 import { getColorPalette } from "@/utils/categoryColors";
 
@@ -8,6 +9,11 @@ interface EmissionPercentageBadgeProps {
   percentage?: number | null;
   categoryColor: string;
   highlighted?: boolean;
+  /**
+   * When set, renders a warning icon with this tooltip next to the value to
+   * flag that the total only accounts for completed emission sources.
+   */
+  incompleteTooltip?: string;
 }
 
 export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
@@ -15,19 +21,32 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
   percentage,
   categoryColor,
   highlighted = false,
+  incompleteTooltip,
 }) => {
   const categoryColorPalette = getColorPalette(categoryColor);
   const fontWeight = highlighted ? "600" : "400";
   const hasPercentage = percentage !== null && percentage !== undefined;
   return (
     <Box className="flex items-center gap-4">
-      <Typography
-        variant="body1"
-        fontWeight={fontWeight}
-        sx={{ color: categoryColorPalette.dark }}
-      >
-        {formatter.emissions(emissions)}
-      </Typography>
+      <Box className="flex items-center gap-1">
+        <Typography
+          variant="body1"
+          fontWeight={fontWeight}
+          sx={{ color: categoryColorPalette.dark }}
+        >
+          {formatter.emissions(emissions)}
+        </Typography>
+        {incompleteTooltip && (
+          <Tooltip title={incompleteTooltip} placement="top">
+            <WarningRounded
+              sx={(theme) => ({
+                color: theme.palette.warning.main,
+                fontSize: 20,
+              })}
+            />
+          </Tooltip>
+        )}
+      </Box>
       {hasPercentage && (
         <Box className="flex min-w-[60px] justify-end">
           <Box

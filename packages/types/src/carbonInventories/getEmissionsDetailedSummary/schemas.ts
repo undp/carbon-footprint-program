@@ -27,7 +27,13 @@ const EmissionLineItemSchema = z
     quantity: CarbonInventoryLineInputBaseSchema.shape.quantity,
     factorValue: z.number().nullable(),
     factorSource: EmissionFactorBaseSchema.shape.source.nullable(),
-    emissions: z.number().nonnegative().describe("Line emissions in tCO2e"),
+    emissions: z
+      .number()
+      .nonnegative()
+      .nullable()
+      .describe(
+        "Line emissions in tCO2e; null when the line has no computed result yet (incomplete)"
+      ),
   })
   .strict();
 
@@ -52,6 +58,11 @@ const SubcategorySummaryItemSchema = SubcategoryBaseSchema.pick({
       .min(0)
       .max(1)
       .describe("Percentage relative to total emissions (0-1)"),
+    hasIncompleteLines: z
+      .boolean()
+      .describe(
+        "True when the subcategory has active lines without a computed result; its subtotal is provisional and may grow once they are completed"
+      ),
   })
   .strict();
 
@@ -98,6 +109,11 @@ const CategorySummaryItemSchema = CategoryBaseSchema.pick({
       .nullable()
       .describe(
         "GHG gas breakdown per subcategory. Only present for category position=1, null for others."
+      ),
+    hasIncompleteLines: z
+      .boolean()
+      .describe(
+        "True when any subcategory in the category has incomplete lines; its subtotal is provisional"
       ),
   })
   .strict();

@@ -20,9 +20,14 @@ export const getEmissionsDetailedSummaryService = async (
   id: string
 ): Promise<GetEmissionsDetailedSummaryResponse> => {
   const inventory = await fetchInventory(prismaClient, id);
+  // Include subcategories that have active lines but no computed emissions yet,
+  // so the review screen lists every active line (complete or incomplete) and
+  // the user can see what is still pending. An incomplete line surfaces with a
+  // null factor and null emissions in the mapping below.
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,
-    inventory
+    inventory,
+    { includeIncompleteSubcategories: true }
   );
 
   // 1. Resolve inventory attributes
@@ -127,9 +132,11 @@ export const getEmissionsDetailedSummaryService = async (
                   .filter(Boolean)
                   .join(" / ") || sub.name;
 
+              // Null (not 0) when there is no computed result yet, so the UI
+              // can render "—" for an incomplete line instead of a misleading 0.
               const lineEmissions = input.result
                 ? kgToTon(Number(input.result.totalEmissions))
-                : 0;
+                : null;
 
               return {
                 lineId: line.id.toString(),
@@ -155,10 +162,16 @@ export const getEmissionsDetailedSummaryService = async (
         lines: emissionLines,
         subtotal: sub.subtotal,
         percentage: subcategoryPercentages[subIdx],
+        hasIncompleteLines: sub.hasIncompleteLines,
       };
     });
 
-    // Build GHG breakdown for category position=1
+    // Build GHG breakdown for category position=1.
+    // NOTE: since incomplete subcategories are now included, this may contain
+    // zero-valued rows (subcategories whose lines have no result yet). The
+    // GHGBreakdownTable is currently not rendered (see the TODO in
+    // EmissionSummaryScreen.tsx); when it is re-enabled, filter out the
+    // zero-emission rows there if they should not be displayed.
     const ghgBreakdown =
       category.position === 1
         ? buildGHGBreakdown(category, linesBySubcategory)
@@ -175,6 +188,7 @@ export const getEmissionsDetailedSummaryService = async (
       subtotal: category.subtotal,
       percentage: categoryPercentages[catIdx],
       ghgBreakdown,
+      hasIncompleteLines: subcategories.some((sub) => sub.hasIncompleteLines),
     };
   });
 

@@ -1,3 +1,6 @@
+export const INCOMPLETE_SOURCES_TOOLTIP =
+  "Hay fuentes de emisión incompletas; el total solo considera las completadas.";
+
 export const EXIT_DIALOG_CONTENT = {
   LOGGED_IN: {
     title: "¿Salir sin guardar?",
