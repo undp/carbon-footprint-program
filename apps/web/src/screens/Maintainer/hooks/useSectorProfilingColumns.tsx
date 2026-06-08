@@ -2,7 +2,10 @@ import { useCallback, useMemo } from "react";
 import { RestoreOutlined } from "@mui/icons-material";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { StatusChip } from "@/components/StatusChip";
-import { PROFILING_STATUS_CONFIG } from "@/labels/chips/profiling";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";
@@ -132,19 +135,14 @@ export const useSectorProfilingColumns = ({
         headerName: "Estado",
         width: 130,
         valueGetter: (_value, row: SectorFormRow) =>
-          row.status === CountrySectorStatus.ACTIVE
-            ? PROFILING_STATUS_CONFIG.ACTIVE.label
-            : row.status === CountrySectorStatus.DELETED
-              ? PROFILING_STATUS_CONFIG.DELETED.label
-              : PROFILING_STATUS_CONFIG.NEW.label,
-        renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) =>
-          row.status === CountrySectorStatus.ACTIVE ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG.ACTIVE} />
-          ) : row.status === CountrySectorStatus.DELETED ? (
-            <StatusChip config={PROFILING_STATUS_CONFIG.DELETED} />
-          ) : (
-            <StatusChip config={PROFILING_STATUS_CONFIG.NEW} />
-          ),
+          PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)].label,
+        renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) => (
+          <StatusChip
+            config={
+              PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            }
+          />
+        ),
       },
       {
         field: "actions",
