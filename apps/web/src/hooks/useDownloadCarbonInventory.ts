@@ -51,19 +51,10 @@ function buildArchiveFilename(
 ): string {
   const { stem, ext } = splitExtension(entry.originalName);
   const suffix = collisionIndex > 1 ? `-${collisionIndex}` : "";
-  return [
-    CARBON_INVENTORY_ZIP_FILES_DIR,
-    "/",
-    sanitizeForFilename(entry.categoryName),
-    "_",
-    sanitizeForFilename(entry.subcategoryName),
-    "_item-",
-    entry.lineId,
-    "_",
-    sanitizeForFilename(stem, "archivo"),
-    suffix,
-    ext,
-  ].join("");
+  const category = sanitizeForFilename(entry.categoryName);
+  const subcategory = sanitizeForFilename(entry.subcategoryName);
+  const fileStem = sanitizeForFilename(stem, "archivo");
+  return `${CARBON_INVENTORY_ZIP_FILES_DIR}/${category}_${subcategory}_item-${entry.lineId}_${fileStem}${suffix}${ext}`;
 }
 
 export function useDownloadCarbonInventory() {
