@@ -1,10 +1,9 @@
 import { FC, useCallback, useState } from "react";
-import { Badge, Box } from "@mui/material";
+import { Box } from "@mui/material";
 import {
   EditOutlined,
   VisibilityOutlined,
   FileDownloadOutlined,
-  DescriptionOutlined,
 } from "@mui/icons-material";
 import { useDownloadReductionProject } from "../hooks/useDownloadReductionProject";
 import {
@@ -15,7 +14,7 @@ import { isReductionProjectEditable } from "@repo/utils";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { ViewSubmissionDialog } from "@/components/dialogs/SubmissionHistory";
-import { AppActionButton } from "@/components";
+import { AppActionButton, HistoryActionButton } from "@/components";
 
 interface ReductionProjectActionsCellProps {
   reductionProject: GetAllReductionProjectsResponse[number];
@@ -62,28 +61,13 @@ export const ReductionProjectActionsCell: FC<
         )}
 
         {/* Historial */}
-        <Badge
-          variant="dot"
-          invisible={
-            reductionProject.status !==
+        <HistoryActionButton
+          hasUpdate={
+            reductionProject.status ===
             ReductionProjectDisplayStatusEnum.REVIEWED
           }
-          overlap="circular"
-          sx={{
-            "& .MuiBadge-badge": {
-              top: 2,
-              right: 2,
-              backgroundColor: (theme) => theme.palette.warning.main,
-            },
-          }}
-        >
-          <AppActionButton
-            tooltip="Historial"
-            onClick={() => setHistoryDialogOpen(true)}
-          >
-            <DescriptionOutlined fontSize="small" />
-          </AppActionButton>
-        </Badge>
+          onClick={() => setHistoryDialogOpen(true)}
+        />
 
         <AppActionButton
           tooltip="Descargar proyecto"

@@ -1,11 +1,10 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Badge, Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import {
   VisibilityOutlined,
   FileDownloadOutlined,
   SendOutlined,
   VerifiedOutlined,
-  DescriptionOutlined,
   FileCopyOutlined,
   EditOutlined,
 } from "@mui/icons-material";
@@ -21,7 +20,11 @@ import {
   canSubmitToMeasurement,
   isCarbonInventoryEditable,
 } from "@repo/utils";
-import { AppActionButton, primaryActionButtonSx } from "@/components";
+import {
+  AppActionButton,
+  HistoryActionButton,
+  primaryActionButtonSx,
+} from "@/components";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
 import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
@@ -301,30 +304,15 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         </AppActionButton>
 
         {/* Historial */}
-        <Badge
-          variant="dot"
-          invisible={
-            carbonInventory.status !==
-              CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED &&
-            carbonInventory.status !==
+        <HistoryActionButton
+          hasUpdate={
+            carbonInventory.status ===
+              CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED ||
+            carbonInventory.status ===
               CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED
           }
-          overlap="circular"
-          sx={{
-            "& .MuiBadge-badge": {
-              top: 2,
-              right: 2,
-              backgroundColor: (theme) => theme.palette.warning.main,
-            },
-          }}
-        >
-          <AppActionButton
-            tooltip="Historial"
-            onClick={() => setHistoryDialogOpen(true)}
-          >
-            <DescriptionOutlined fontSize="small" />
-          </AppActionButton>
-        </Badge>
+          onClick={() => setHistoryDialogOpen(true)}
+        />
 
         {/* Duplicar */}
         <AppActionButton

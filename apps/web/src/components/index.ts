@@ -20,3 +20,4 @@ export * from "./SearchBar";
 export * from "./BaseActionButton";
 export * from "./AppActionButton";
 export * from "./AdminActionButton";
+export * from "./HistoryActionButton";
