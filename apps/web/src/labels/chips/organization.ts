@@ -49,18 +49,15 @@ export const ORGANIZATION_DISPLAY_STATUS_CONFIG: Record<
     family: StatusFamily.POSITIVE,
     label: capitalize(VOCAB.inscription.adjective.singular),
     tooltip: `${capitalize(VOCAB.organization.noun.singular)} ${VOCAB.inscription.adjective.singular}`,
-    sortOrder: 0,
   },
   [OrganizationDisplayStatusValues.NOT_ACCREDITED]: {
     family: StatusFamily.NEUTRAL,
     label: `No ${capitalize(VOCAB.inscription.adjective.singular)}`,
     tooltip: `${capitalize(VOCAB.organization.noun.singular)} sin proceso de ${VOCAB.inscription.noun.singular}`,
-    sortOrder: 1,
   },
   [OrganizationDisplayStatusValues.BLOCKED]: {
     family: StatusFamily.NEGATIVE,
     label: "Bloqueada",
     tooltip: `${capitalize(VOCAB.organization.noun.singular)} bloqueada`,
-    sortOrder: 2,
   },
 };

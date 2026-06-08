@@ -8,12 +8,10 @@ export const BADGE_STATUS_CONFIG: Record<BadgeActivationStatus, StatusConfig> =
       family: StatusFamily.POSITIVE,
       label: "Activo",
       tooltip: "Sello activo y disponible",
-      sortOrder: 0,
     },
     INACTIVE: {
       family: StatusFamily.NEUTRAL,
       label: "Inactivo",
       tooltip: "Sello inactivo",
-      sortOrder: 1,
     },
   };

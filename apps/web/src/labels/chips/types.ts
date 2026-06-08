@@ -12,7 +12,8 @@ export interface StatusConfig {
   family: StatusFamily;
   label: string;
   tooltip: string;
-  sortOrder: number;
+  // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
+  sortOrder?: number;
   icon?: ChipProps["icon"];
 }
 
@@ -20,19 +21,16 @@ export interface CustomPaletteConfig {
   color: string;
   label: string;
   tooltip: string;
-  sortOrder: number;
+  // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
+  sortOrder?: number;
   icon?: ChipProps["icon"];
 }
 
-export const sortOrderByKey = <
-  K extends string,
-  T extends { sortOrder: number },
->(
-  config: Record<K, T>
+export const sortOrderByKey = <K extends string>(
+  config: Record<K, { sortOrder?: number }>
 ): Record<K, number> =>
   Object.fromEntries(
-    (Object.entries(config) as [K, T][]).map(([key, value]) => [
-      key,
-      value.sortOrder,
-    ])
+    (Object.entries(config) as [K, { sortOrder?: number }][]).map(
+      ([key, value]) => [key, value.sortOrder ?? 0]
+    )
   ) as Record<K, number>;
