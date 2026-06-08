@@ -1,12 +1,13 @@
 import { FC } from "react";
-import { Chip, useTheme } from "@mui/material";
-import { alpha, darken } from "@mui/material/styles";
+import { useTheme } from "@mui/material";
+import { darken } from "@mui/material/styles";
 import {
   RECOGNITION_ICON,
   RECOGNITION_TYPE_LABEL,
   RECOGNITION_TYPE_CHIP_LABEL,
 } from "@/utils/recognitions";
 import { CarbonInventoryRecognitionsType } from "@repo/types";
+import { TypeChip } from "./TypeChip";
 
 interface RecognitionChipProps {
   type: CarbonInventoryRecognitionsType;
@@ -26,7 +27,9 @@ export const RecognitionChip: FC<RecognitionChipProps> = ({
   const IconComponent = RECOGNITION_ICON[type];
 
   return (
-    <Chip
+    <TypeChip
+      color={color}
+      label={label}
       icon={
         <IconComponent
           sx={{
@@ -35,14 +38,6 @@ export const RecognitionChip: FC<RecognitionChipProps> = ({
           }}
         />
       }
-      label={label}
-      sx={{
-        height: 26,
-        backgroundColor: alpha(color, 0.6),
-        border: `1px solid ${color}`,
-        color: darken(color, 0.7),
-        fontWeight: 500,
-      }}
     />
   );
 };

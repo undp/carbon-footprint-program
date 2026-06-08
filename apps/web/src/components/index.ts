@@ -16,6 +16,7 @@ export * from "./ResponsiveTypography";
 export * from "./RecognitionChip";
 export * from "./StatusChip";
 export * from "./CustomPaletteChip";
+export * from "./TypeChip";
 export * from "./SubmissionTypeChip";
 export * from "./SystemRoleChip";
 export * from "./OverflowTooltipText";
