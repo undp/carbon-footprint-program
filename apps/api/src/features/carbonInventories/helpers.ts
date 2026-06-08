@@ -194,13 +194,13 @@ export async function fetchCategoryData(
   // those lines have no computed result yet — i.e. the subtotal is provisional.
   const subtotalMap = new Map<
     string,
-    { subtotal: number; activeLines: number; completedLines: number }
+    { subtotal: number; hasIncompleteLines: boolean }
   >();
   for (const row of subtotals) {
     subtotalMap.set(row.subcategoryId.toString(), {
       subtotal: kgToTon(Number(row.value)),
-      activeLines: Number(row.activeLinesCount),
-      completedLines: Number(row.activeCompletedLinesCount),
+      hasIncompleteLines:
+        Number(row.activeCompletedLinesCount) < Number(row.activeLinesCount),
     });
   }
 
@@ -213,9 +213,7 @@ export async function fetchCategoryData(
           name: sub.name,
           icon: IconNameSchema.parse(sub.icon),
           subtotal: entry?.subtotal ?? 0,
-          hasIncompleteLines: entry
-            ? entry.completedLines < entry.activeLines
-            : false,
+          hasIncompleteLines: entry?.hasIncompleteLines ?? false,
         };
       })
       .filter((sub) =>
