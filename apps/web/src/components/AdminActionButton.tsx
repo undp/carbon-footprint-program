@@ -3,11 +3,10 @@ import { IconButtonProps } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { BaseActionButton } from "./BaseActionButton";
 
-interface AdminActionButtonProps
-  extends Pick<
-    IconButtonProps,
-    "onClick" | "disabled" | "color" | "className" | "sx" | "size"
-  > {
+interface AdminActionButtonProps extends Pick<
+  IconButtonProps,
+  "onClick" | "disabled" | "color" | "className" | "sx" | "size"
+> {
   icon: SvgIconComponent;
   tooltip: string;
   ariaLabel?: string;
