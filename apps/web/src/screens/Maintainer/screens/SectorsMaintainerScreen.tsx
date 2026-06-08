@@ -112,9 +112,7 @@ export const SectorsMaintainerScreen: FC = () => {
           : value) as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `sectors.${rowIndex}.${field}` as `sectors.${number}.name`
-      );
+      void form.trigger(`sectors.${rowIndex}.${field}`);
     },
     [form]
   );

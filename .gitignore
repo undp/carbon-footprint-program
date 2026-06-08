@@ -72,6 +72,7 @@ Thumbs.db
 coverage/
 *.lcov
 .nyc_output/
+vitest-report/
 
 # Legacy paths (if any)
 server/dist

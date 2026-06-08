@@ -37,7 +37,7 @@ function addSheet(
   columns: SheetColumn[]
 ): ExcelJS.Worksheet {
   const sheet = workbook.addWorksheet(sanitizeExcelSheetName(name));
-  sheet.columns = columns as ExcelJS.Column[];
+  sheet.columns = columns;
   sheet.getRow(1).font = HEADER_FONT;
   return sheet;
 }
@@ -243,7 +243,7 @@ export async function buildMethodologyWorkbook(
   ]);
   fillEmissionFactorsSheet(factorsSheet, methodology.categories);
 
-  return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
+  return workbook.xlsx.writeBuffer();
 }
 
 export async function exportMethodologyToExcel(

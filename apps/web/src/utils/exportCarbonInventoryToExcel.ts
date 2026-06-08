@@ -212,5 +212,5 @@ export async function buildCarbonInventoryWorkbook(
   buildSummarySheet(workbook, summaryData, year, attachmentCount);
   buildDetailTableSheet(workbook, summaryData);
   buildFactorsSheet(workbook, factorsData);
-  return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
+  return workbook.xlsx.writeBuffer();
 }

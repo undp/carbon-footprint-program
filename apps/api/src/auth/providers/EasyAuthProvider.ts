@@ -13,24 +13,6 @@ import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser } from "../types.js";
 import { treeifyError, z } from "zod";
 
-/**
- * Structure of a claim in the Easy Auth principal.
- */
-interface EasyAuthClaim {
-  typ: string;
-  val: string;
-}
-
-/**
- * Structure of the X-MS-CLIENT-PRINCIPAL header payload.
- */
-interface EasyAuthPrincipal {
-  auth_typ: string;
-  claims: EasyAuthClaim[];
-  name_typ: string;
-  role_typ: string;
-}
-
 const EasyAuthClaimSchema = z.object({
   typ: z.string(),
   val: z.string(),
@@ -104,7 +86,7 @@ export class EasyAuthProvider implements AuthProvider {
         });
       }
 
-      const principal = parsed.data as EasyAuthPrincipal;
+      const principal = parsed.data;
 
       // Convert claims array to a map for easier access
       const claimsMap: Record<string, string> = {};

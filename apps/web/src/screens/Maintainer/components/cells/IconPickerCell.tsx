@@ -77,20 +77,10 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
     control,
     name: hideColor ? [iconFieldName] : [iconFieldName, colorFieldName],
   });
-  const iconError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    "icon"
-  );
+  const iconError = getNestedError(errors, formArrayName, rowIndex, "icon");
   const colorError = hideColor
     ? undefined
-    : getNestedError(
-        errors as unknown as Record<string, unknown>,
-        formArrayName,
-        rowIndex,
-        "color"
-      );
+    : getNestedError(errors, formArrayName, rowIndex, "color");
   const hasError = isEditing && (!!iconError || !!colorError);
 
   const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;

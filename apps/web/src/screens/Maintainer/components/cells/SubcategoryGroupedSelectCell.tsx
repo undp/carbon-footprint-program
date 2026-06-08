@@ -31,12 +31,7 @@ export const SubcategoryGroupedSelectCell: FC<Props> = ({
     control,
     name: `${formArrayName}.${rowIndex}.${fieldName}`,
   });
-  const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    fieldName
-  );
+  const fieldError = getNestedError(errors, formArrayName, rowIndex, fieldName);
 
   const items: ReactNode[] = [];
   let lastCategory = "";

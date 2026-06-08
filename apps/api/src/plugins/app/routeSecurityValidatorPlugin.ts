@@ -1,10 +1,5 @@
 import fp from "fastify-plugin";
-import type {
-  FastifyPluginCallback,
-  RouteOptions,
-  onRequestHookHandler,
-  preHandlerHookHandler,
-} from "fastify";
+import type { FastifyPluginCallback, RouteOptions } from "fastify";
 
 import { getHookKind, type HookKind } from "@/routing/hookTags.js";
 
@@ -29,15 +24,12 @@ export class RouteSecurityViolationError extends Error {
   }
 }
 
-type HookList =
-  | preHandlerHookHandler
-  | preHandlerHookHandler[]
-  | onRequestHookHandler
-  | onRequestHookHandler[]
-  | undefined;
+// Hooks come from Fastify's RouteOptions and may be sync or async; we never
+// invoke them here, only inspect their identity via getHookKind.
+type HookList = RouteOptions["onRequest"] | RouteOptions["preHandler"];
 
 function normalizeHooks(hooks: HookList): unknown[] {
-  if (!hooks) return [];
+  if (hooks == null) return [];
   return Array.isArray(hooks) ? hooks : [hooks];
 }
 
@@ -66,9 +58,7 @@ const DOMAIN_ACCESS_KINDS: ReadonlySet<HookKind> = new Set([
  */
 export function collectSecurityIssues(routeOpts: RouteOptions): string[] {
   const issues: string[] = [];
-  const config = routeOpts.config as
-    | { allowPublicAccess?: boolean; allowAnonymousAccess?: boolean }
-    | undefined;
+  const config = routeOpts.config;
 
   const isPublic = config?.allowPublicAccess === true;
   const isAnonymous = config?.allowAnonymousAccess === true;

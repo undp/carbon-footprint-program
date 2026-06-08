@@ -18,7 +18,7 @@ function makeRoute(overrides: Partial<RouteOptions>): RouteOptions {
     method: "GET",
     handler: () => Promise.resolve(),
     ...overrides,
-  } as RouteOptions;
+  };
 }
 
 describe("collectSecurityIssues", () => {

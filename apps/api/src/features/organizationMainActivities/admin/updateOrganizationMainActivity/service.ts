@@ -72,7 +72,7 @@ export const updateOrganizationMainActivityService = async (
         if (!sector) {
           throw new ResourceNotFoundError(
             "CountrySector",
-            data.countrySectorId as string
+            data.countrySectorId
           );
         }
       }
@@ -91,7 +91,7 @@ export const updateOrganizationMainActivityService = async (
         if (!subsector) {
           throw new ResourceNotFoundError(
             "CountrySubsector",
-            data.countrySubsectorId as string
+            data.countrySubsectorId
           );
         }
         validatedSubsector = { countrySectorId: subsector.countrySectorId };

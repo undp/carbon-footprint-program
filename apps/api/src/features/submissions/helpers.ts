@@ -6,10 +6,7 @@ import {
   createReadSasUrlSigner,
 } from "../../services/blobService.js";
 import { StorageNotConfiguredError } from "../files/errors.js";
-import {
-  mapOrganizationSummary,
-  OrganizationSummaryWithData,
-} from "../../mappers/mapOrganizationSummary.js";
+import { mapOrganizationSummary } from "../../mappers/mapOrganizationSummary.js";
 import type { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 
 export type SubmissionHistoryFileRow = {
@@ -145,9 +142,7 @@ export async function getOrgSummaryDetails(
     organizationId,
     organizationIdString: organizationId.toString(),
     orgName: orgSummary?.name ?? null,
-    organizationData: hasOrgData
-      ? mapOrganizationSummary(orgSummary as OrganizationSummaryWithData)
-      : null,
+    organizationData: hasOrgData ? mapOrganizationSummary(orgSummary) : null,
   };
 }
 

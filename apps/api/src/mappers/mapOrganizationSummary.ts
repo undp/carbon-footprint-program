@@ -1,6 +1,5 @@
 import {
   OrganizationDisplayStatusValues,
-  type OrganizationDisplayStatus,
   type GetOrganizationByIdResponse,
 } from "@repo/types";
 import {
@@ -35,7 +34,7 @@ export const mapOrganizationSummary = (
     taxId: orgData.taxId,
     legalName: orgData.legalName,
     tradeName: orgData.tradeName,
-    status: org.displayStatus as OrganizationDisplayStatus,
+    status: org.displayStatus,
     lastSubmissionStatus: org.lastSubmissionStatus,
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
     isEditable:

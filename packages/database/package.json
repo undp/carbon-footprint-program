@@ -41,7 +41,7 @@
     "@repo/eslint-config": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
-    "prisma": "^7.0.1",
+    "prisma": "^7.8.0",
     "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
@@ -49,9 +49,9 @@
   "dependencies": {
     "@azure/identity": "^4.13.0",
     "@azure/storage-blob": "^12.31.0",
-    "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/client": "^7.0.1",
-    "@prisma/client-runtime-utils": "^7.0.1",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@prisma/client-runtime-utils": "^7.8.0",
     "@repo/constants": "workspace:*",
     "zod": "catalog:shared"
   }

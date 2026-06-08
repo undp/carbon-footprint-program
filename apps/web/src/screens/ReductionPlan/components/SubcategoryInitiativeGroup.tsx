@@ -8,8 +8,10 @@ import { InitiativeCard } from "./InitiativeCard";
 type Subcategory =
   GetReductionPlanResponse["categories"][number]["subcategories"][number];
 
-interface SubcategoryInitiativeGroupProps
-  extends Pick<Subcategory, "name" | "icon" | "description" | "initiatives"> {
+interface SubcategoryInitiativeGroupProps extends Pick<
+  Subcategory,
+  "name" | "icon" | "description" | "initiatives"
+> {
   categoryColor: string;
 }
 

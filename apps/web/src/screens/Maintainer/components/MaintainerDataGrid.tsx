@@ -128,11 +128,7 @@ export const MaintainerDataGrid = <
     };
   }, [searchable, slotProps, searchQuery]);
 
-  const sxArray: SxArrayItem[] = isSxArray(sx)
-    ? [...sx]
-    : sx
-      ? [sx as SxArrayItem]
-      : [];
+  const sxArray: SxArrayItem[] = isSxArray(sx) ? [...sx] : sx ? [sx] : [];
 
   useEffect(() => {
     if (errorMessage)

@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Set loading to false once MSAL finishes initialization
     if (inProgress === "none") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- MSAL lifecycle transition; deriving from inProgress is not viable since we need to flip loading exactly once
       setIsLoading(false);
     }
   }, [inProgress]);

@@ -127,9 +127,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `organizationSizes.${rowIndex}.${field}` as `organizationSizes.${number}.name`
-      );
+      void form.trigger(`organizationSizes.${rowIndex}.${field}`);
     },
     [form]
   );

@@ -50,7 +50,7 @@ export const downloadWorkbook = async (
   filename: string
 ) => {
   const buffer = await workbook.xlsx.writeBuffer();
-  downloadBuffer(buffer as ArrayBuffer, filename);
+  downloadBuffer(buffer, filename);
 };
 
 /**

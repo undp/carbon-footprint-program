@@ -53,7 +53,7 @@ const VariablesCell: React.FC<{
   const { control } = useFormContext();
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     "dimensions",
     rowIndex,
     "variables"
