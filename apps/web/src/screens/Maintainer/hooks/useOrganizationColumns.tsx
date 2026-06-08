@@ -91,18 +91,15 @@ export const useOrganizationColumns = ({
           ADMIN_ORGANIZATION_STATUS_SORT_ORDER[v2],
         cellClassName,
         flex: 0.9,
-        renderCell: (params) => {
-          const displayStatus = getDisplayStatus(
-            params.row.status,
-            params.row.isAccredited,
-            params.row.hasCarbonInventories
-          );
-          return (
-            <StatusChip
-              config={ADMIN_ORGANIZATION_STATUS_CONFIG[displayStatus]}
-            />
-          );
-        },
+        renderCell: (params) => (
+          <StatusChip
+            config={
+              ADMIN_ORGANIZATION_STATUS_CONFIG[
+                params.value as AdminOrganizationDisplayStatus
+              ]
+            }
+          />
+        ),
       },
       {
         field: "lastMeasurement",
