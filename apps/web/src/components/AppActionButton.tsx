@@ -9,11 +9,6 @@ import { BaseActionButton, BaseActionButtonProps } from "./BaseActionButton";
  */
 export const primaryActionButtonSx: SxProps<Theme> = (theme) => ({
   color: theme.palette.common.white,
-  minHeight: 30,
-  minWidth: "auto",
-  px: 1.5,
-  py: 0.5,
-  borderRadius: "4px",
   backgroundColor: theme.palette.primary.main,
   border: "none",
   "&:hover": {
