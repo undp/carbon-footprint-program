@@ -269,15 +269,15 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           title={
             isDownloading
               ? "Descargando..."
-              : carbonInventory.totalEmissions === 0
-                ? "Sin datos de emisiones"
+              : !carbonInventory.hasActiveLines
+                ? "Sin actividades registradas"
                 : "Descargar"
           }
         >
           <span>
             <BaseActionButton
               onClick={onDownloadClick}
-              disabled={isDownloading || carbonInventory.totalEmissions === 0}
+              disabled={isDownloading || !carbonInventory.hasActiveLines}
               aria-label="Descargar"
             >
               {isDownloading ? (

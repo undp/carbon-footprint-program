@@ -3,6 +3,7 @@ import { IdSchema } from "../../zod.js";
 import { OrganizationSummaryBaseSchema } from "../../baseSchemas/organizationSummary.js";
 import { CountryBaseSchema } from "../../baseSchemas/country.js";
 import { CountrySectorBaseSchema } from "../../baseSchemas/countrySector.js";
+import { CountrySubsectorBaseSchema } from "../../baseSchemas/countrySubsector.js";
 import { CountryOrganizationSizeBaseSchema } from "../../baseSchemas/organizationSize.js";
 import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
 import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
@@ -34,6 +35,10 @@ const EmissionLineItemSchema = z
       .describe(
         "Line emissions in tCO2e; null when the line has no computed result yet (incomplete)"
       ),
+    comment: z
+      .string()
+      .nullable()
+      .describe("Optional user-provided comment for the line input"),
   })
   .strict();
 
@@ -51,7 +56,9 @@ const SubcategorySummaryItemSchema = SubcategoryBaseSchema.pick({
       ),
     lines: z
       .array(EmissionLineItemSchema)
-      .describe("Emission lines, present only when hasLines=true"),
+      .describe(
+        "Emission lines under this subcategory. Factor-based subcategories populate the factor/quantity fields; DIRECT (manual mode) subcategories leave them null and carry only `lineId` + `emissions`. A subcategory is never mixed."
+      ),
     subtotal: z.number().nonnegative().describe("Subtotal emissions in tCO2e"),
     percentage: z
       .number()
@@ -124,12 +131,8 @@ const InventoryAttributesSchema = z
     companyName: OrganizationSummaryBaseSchema.shape.name.nullable(),
     countryName: CountryBaseSchema.shape.name.nullable(),
     sectorName: CountrySectorBaseSchema.shape.name.nullable(),
+    subsectorName: CountrySubsectorBaseSchema.shape.name.nullable(),
     sizeName: CountryOrganizationSizeBaseSchema.shape.name.nullable(),
-    branchCount: z
-      .number()
-      .int()
-      .nullable()
-      .describe("Number of branches/sedes"),
     mainActivityName: OrganizationMainActivityBaseSchema.shape.name.nullable(),
     mainActivityQuantity: z
       .int()

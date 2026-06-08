@@ -289,9 +289,11 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
         (s) => s.id === subId.toString()
       );
       expect(subcategory).toBeDefined();
-      // No factor-based lines → rendered as a SubcategoryManualRow on the FE.
       expect(subcategory!.hasLines).toBe(false);
-      expect(subcategory!.lines).toHaveLength(0);
+      expect(subcategory!.lines).toHaveLength(1);
+      const emittedLine = subcategory!.lines[0];
+      expect(emittedLine.lineId).toBe(line.id.toString());
+      expect(emittedLine.emissions).toBeNull();
       expect(subcategory!.subtotal).toBe(0);
       // Provisional: the total-mode entry has no result yet.
       expect(subcategory!.hasIncompleteLines).toBe(true);

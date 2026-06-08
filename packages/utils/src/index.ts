@@ -13,3 +13,4 @@ export {
   canRequestReductionProjectVerification,
 } from "./reductionProject.js";
 export { arraysEqualUnordered } from "./arrays.js";
+export { sanitizeForFilename } from "./sanitize.js";

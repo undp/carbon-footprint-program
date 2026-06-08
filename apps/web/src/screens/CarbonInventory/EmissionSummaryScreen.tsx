@@ -2,9 +2,11 @@ import { FC, useCallback, useEffect } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { ArrowRightAltRounded } from "@mui/icons-material";
+import {
+  ArrowRightAltRounded,
+  FileDownloadOutlined,
+} from "@mui/icons-material";
 import { useDownloadCarbonInventory } from "@/hooks";
-import { ExcelIcon } from "@/icons";
 import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import {
@@ -97,8 +99,10 @@ export const EmissionSummaryScreen: FC = () => {
   const hideOwnerNavigation = isEditBlocked && !hasMembership;
 
   const { download, isDownloading } = useDownloadCarbonInventory();
-  const totalEmissions = summaryData?.totalEmissions ?? 0;
-  const canDownload = !!metadataData && !isSummaryLoading && totalEmissions > 0;
+  const hasReviewableData = categories.some(
+    (category) => category.subcategories.length > 0
+  );
+  const canDownload = !!metadataData && !isSummaryLoading && hasReviewableData;
 
   const onDownloadClick = useCallback(() => {
     if (!metadataData) return;
@@ -111,8 +115,8 @@ export const EmissionSummaryScreen: FC = () => {
       ? "Error al cargar datos"
       : isMetadataLoading || isSummaryLoading
         ? "Cargando datos"
-        : totalEmissions === 0
-          ? "Sin datos de emisiones"
+        : !hasReviewableData
+          ? "Sin actividades registradas"
           : "Descargar huella";
 
   const backButton: FooterButton = {
@@ -174,7 +178,7 @@ export const EmissionSummaryScreen: FC = () => {
                   onClick={onDownloadClick}
                   disabled={!canDownload || isDownloading}
                   loading={isDownloading}
-                  startIcon={<ExcelIcon fontSize="small" />}
+                  startIcon={<FileDownloadOutlined fontSize="small" />}
                   aria-label="Descargar huella"
                 >
                   Descargar

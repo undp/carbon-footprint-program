@@ -5,7 +5,7 @@ import {
 } from "@repo/types";
 import {
   display,
-  downloadWorkbook,
+  downloadBuffer,
   sanitizeExcelSheetName,
   sanitizeFilenamePart,
 } from "@/services/excel";
@@ -179,9 +179,15 @@ function fillEmissionFactorsSheet(
   }
 }
 
-export async function exportMethodologyToExcel(
+/**
+ * Pure builder — produces the methodology workbook as an ArrayBuffer.
+ * Shared between the maintainer's standalone download and the ZIP
+ * orchestrator's `metodologia.xlsx` entry, so both render the exact same
+ * workbook bytes.
+ */
+export async function buildMethodologyWorkbook(
   methodology: Methodology
-): Promise<void> {
+): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
 
   buildMethodologySheet(workbook, methodology);
@@ -237,5 +243,12 @@ export async function exportMethodologyToExcel(
   ]);
   fillEmissionFactorsSheet(factorsSheet, methodology.categories);
 
-  await downloadWorkbook(workbook, buildFilename(methodology.name));
+  return workbook.xlsx.writeBuffer() as Promise<ArrayBuffer>;
+}
+
+export async function exportMethodologyToExcel(
+  methodology: Methodology
+): Promise<void> {
+  const buffer = await buildMethodologyWorkbook(methodology);
+  downloadBuffer(buffer, buildFilename(methodology.name));
 }
