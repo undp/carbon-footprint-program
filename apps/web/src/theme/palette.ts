@@ -11,19 +11,19 @@ import {
 } from "@repo/types";
 import { StatusFamily } from "@/labels/chips/types";
 
-const requestTypeColors: Record<RequestType, string> = {
-  [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
-  [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
-  [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
-  [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#B8860B",
-  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
-};
-
 const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
   [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
+};
+
+// Submission-type chips reuse the recognition hues for the four recognition
+// types and add a pastel blue for organization accreditation (no recognition
+// equivalent), keeping the two chip families color-consistent by construction.
+const submissionTypeColors: Record<RequestType, string> = {
+  ...recognitionTypeColors,
+  [RequestType.ORGANIZATION_ACCREDITATION]: "#89B8F8",
 };
 
 const SUCCESS_MAIN = "#2E7D32";
@@ -150,7 +150,7 @@ export const palette: PaletteOptions = {
   },
   // Divider
   divider: alpha("#000000", 0.12),
-  requestTypeColors,
+  submissionTypeColors,
   recognitionTypeColors,
   roleColors: {
     USER: "#0288D1",

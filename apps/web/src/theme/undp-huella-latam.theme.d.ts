@@ -24,7 +24,7 @@ declare module "@mui/material/styles" {
       gradient: string;
       gradient20: string;
     };
-    requestTypeColors: Record<SubmissionType, string>;
+    submissionTypeColors: Record<SubmissionType, string>;
     recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string>;
     roleColors: Record<"USER" | "ADMIN" | "SUPERADMIN", string>;
     statusFamilyColors: Record<StatusFamily, string>;
@@ -41,7 +41,7 @@ declare module "@mui/material/styles" {
       gradient?: string;
       gradient20?: string;
     };
-    requestTypeColors?: Record<SubmissionType, string>;
+    submissionTypeColors?: Record<SubmissionType, string>;
     recognitionTypeColors?: Record<CarbonInventoryRecognitionsType, string>;
     roleColors?: Record<"USER" | "ADMIN" | "SUPERADMIN", string>;
     statusFamilyColors?: Record<StatusFamily, string>;

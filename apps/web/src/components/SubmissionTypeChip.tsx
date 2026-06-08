@@ -1,9 +1,8 @@
 import { FC } from "react";
 import { useTheme } from "@mui/material";
 import { SubmissionType } from "@repo/types";
-import { CustomPaletteChip } from "./CustomPaletteChip";
+import { TypeChip } from "./TypeChip";
 import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
-import type { CustomPaletteConfig } from "@/labels/chips/types";
 
 interface SubmissionTypeChipProps {
   type: SubmissionType;
@@ -11,9 +10,13 @@ interface SubmissionTypeChipProps {
 
 export const SubmissionTypeChip: FC<SubmissionTypeChipProps> = ({ type }) => {
   const theme = useTheme();
-  const config: CustomPaletteConfig = {
-    ...SUBMISSION_TYPE_LABELS[type],
-    color: theme.palette.requestTypeColors[type],
-  };
-  return <CustomPaletteChip config={config} />;
+  const { label, tooltip } = SUBMISSION_TYPE_LABELS[type];
+
+  return (
+    <TypeChip
+      color={theme.palette.submissionTypeColors[type]}
+      label={label}
+      tooltip={tooltip}
+    />
+  );
 };
