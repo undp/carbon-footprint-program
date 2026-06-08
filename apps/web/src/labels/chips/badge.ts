@@ -13,7 +13,7 @@ export const BADGE_STATUS_CONFIG: Record<BadgeActivationStatus, StatusConfig> =
     INACTIVE: {
       family: StatusFamily.NEUTRAL,
       label: "Inactivo",
-      tooltip: "Sello no activado",
+      tooltip: "Sello inactivo",
       sortOrder: 1,
     },
   };
