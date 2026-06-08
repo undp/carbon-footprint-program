@@ -14,7 +14,7 @@ export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: {
     family: StatusFamily.POSITIVE,
     label: "con Mediciones",
-    tooltip: `${capitalize(VOCAB.organization.noun.singular)} con mediciones de huella registradas`,
+    tooltip: `${capitalize(VOCAB.organization.noun.singular)} ${VOCAB.inscription.adjective.singular} con mediciones de huella registradas`,
     sortOrder: 0,
   },
   [AdminOrganizationDisplayStatus.ACCREDITED]: {
