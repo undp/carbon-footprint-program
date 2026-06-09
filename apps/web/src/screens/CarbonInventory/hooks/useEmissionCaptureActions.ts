@@ -10,10 +10,10 @@ import {
  * of react-hook-form's `UseFormReturn` (adding/removing lines, scoped reset).
  *
  * These used to be spread onto `<FormProvider {...methods}>` and read back via
- * `useFormContext()`. react-hook-form 7.76 rewrote `FormProvider` to forward
- * only the known `UseFormReturn` members into context and drop every other prop,
- * so custom methods no longer survive that round-trip. They now travel through
- * this dedicated context instead.
+ * `useFormContext()`. react-hook-form's `FormProvider` forwards only the known
+ * `UseFormReturn` members into context and drops every other prop, so custom
+ * methods don't survive that round-trip. They now travel through this dedicated
+ * context instead.
  */
 export interface EmissionCaptureActions {
   addLine: (subcategoryId: SubcategoryId) => EmissionCaptureFormLine;

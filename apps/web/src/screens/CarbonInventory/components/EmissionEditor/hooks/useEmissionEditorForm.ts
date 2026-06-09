@@ -91,8 +91,8 @@ export const useEmissionEditorForm = ({
   const { setValue, getValues } = formContext;
 
   // Get imperative emission-capture actions (addLine, removeLine, ...) from
-  // their dedicated context — react-hook-form 7.76's FormProvider no longer
-  // forwards non-UseFormReturn props, so these can't ride on the form context.
+  // their dedicated context — react-hook-form's FormProvider doesn't forward
+  // non-UseFormReturn props, so these can't ride on the form context.
   const { addLine, removeLine, resetAfterSaveForSubcategory } =
     useEmissionCaptureActions();
 

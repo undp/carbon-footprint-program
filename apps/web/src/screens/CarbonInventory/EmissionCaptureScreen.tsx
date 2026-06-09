@@ -92,9 +92,9 @@ export const EmissionCaptureScreen: FC = () => {
     resetAfterSaveForSubcategory,
   } = methods;
 
-  // Imperative line actions are not part of UseFormReturn, so they no longer
-  // ride on FormProvider (react-hook-form 7.76 drops unknown props). Expose
-  // them to descendant editors through a dedicated context instead.
+  // Imperative line actions are not part of UseFormReturn, so they can't ride on
+  // FormProvider (react-hook-form drops unknown props). Expose them to descendant
+  // editors through a dedicated context instead.
   const emissionCaptureActions = useMemo(
     () => ({ addLine, removeLine, resetAfterSaveForSubcategory }),
     [addLine, removeLine, resetAfterSaveForSubcategory]
