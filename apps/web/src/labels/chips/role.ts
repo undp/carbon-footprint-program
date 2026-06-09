@@ -1,7 +1,7 @@
 import { OrganizationRole, SystemRole } from "@repo/types";
-import { CustomPaletteConfig } from "./types";
+import { ChipLabel } from "./types";
 
-type RoleLabelEntry = Pick<CustomPaletteConfig, "label" | "tooltip">;
+type RoleLabelEntry = Pick<ChipLabel, "label" | "tooltip">;
 
 export const SYSTEM_ROLE_LABELS: Record<SystemRole, RoleLabelEntry> = {
   [SystemRole.USER]: {

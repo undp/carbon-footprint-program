@@ -1,22 +1,14 @@
 import { SubmissionType } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
-import { CustomPaletteConfig, sortOrderByKey } from "./types";
-
-type SubmissionTypeLabelEntry = Pick<
-  CustomPaletteConfig,
-  "label" | "tooltip" | "sortOrder"
->;
+import { ChipLabel, sortOrderByKey } from "./types";
 
 // Sibling of RECOGNITION_TYPE_LABELS (./recognitionType): the four recognition
 // types plus organization accreditation, with sentence-case labels and
 // "Solicitud de…" tooltips for the SubmissionTypeChip. Wording intentionally
 // differs from RECOGNITION_TYPE_LABELS (different surface); keep the type set in
 // sync if a recognition type is added or removed.
-export const SUBMISSION_TYPE_LABELS: Record<
-  SubmissionType,
-  SubmissionTypeLabelEntry
-> = {
+export const SUBMISSION_TYPE_LABELS: Record<SubmissionType, ChipLabel> = {
   [SubmissionType.ORGANIZATION_ACCREDITATION]: {
     label: `${capitalize(VOCAB.inscription.noun.singular)} ${VOCAB.organization.noun.singular}`,
     tooltip: `Solicitud de ${VOCAB.inscription.noun.singular} de ${VOCAB.organization.noun.singular}`,

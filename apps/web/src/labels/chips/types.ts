@@ -6,20 +6,15 @@ export enum StatusFamily {
   NEUTRAL = "neutral",
 }
 
-export interface StatusConfig {
-  family: StatusFamily;
+export interface ChipLabel {
   label: string;
   tooltip: string;
   // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
   sortOrder?: number;
 }
 
-export interface CustomPaletteConfig {
-  color: string;
-  label: string;
-  tooltip: string;
-  // Only set on configs whose grid sorts via `sortOrderByKey`; omitted elsewhere.
-  sortOrder?: number;
+export interface StatusConfig extends ChipLabel {
+  family: StatusFamily;
 }
 
 export const sortOrderByKey = <K extends string>(
