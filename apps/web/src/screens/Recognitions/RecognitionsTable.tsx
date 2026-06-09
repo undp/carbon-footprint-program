@@ -54,31 +54,24 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerAlign: "center",
     align: "center",
     cellClassName: "content-center",
-    renderCell: (params) =>
-      params.row.recognitionFileUrl ? (
+    renderCell: (params) => {
+      const fileUrl = params.row.recognitionFileUrl;
+      return (
         <AppActionButton
-          tooltip="Ver archivo"
+          tooltip={fileUrl ? "Ver archivo" : "No hay un archivo disponible"}
           tooltipPlacement="top"
-          color="success"
-          onClick={() =>
-            window.open(
-              params.row.recognitionFileUrl!,
-              "_blank",
-              "noopener,noreferrer"
-            )
+          color={fileUrl ? "success" : undefined}
+          disabled={!fileUrl}
+          onClick={
+            fileUrl
+              ? () => window.open(fileUrl, "_blank", "noopener,noreferrer")
+              : undefined
           }
         >
           <EmojiEventsOutlined fontSize="small" />
         </AppActionButton>
-      ) : (
-        <AppActionButton
-          tooltip="No hay un archivo disponible"
-          tooltipPlacement="top"
-          disabled
-        >
-          <EmojiEventsOutlined fontSize="small" />
-        </AppActionButton>
-      ),
+      );
+    },
   },
 ];
 
