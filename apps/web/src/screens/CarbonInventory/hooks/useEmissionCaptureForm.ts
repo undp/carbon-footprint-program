@@ -215,7 +215,15 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         }
       }
     });
-  }, [data, reset, getValues, resetField, setValue, dirtyFields]);
+    // `dirtyFields` is intentionally excluded: reconciliation must run only when
+    // the server data (`data`) changes. The effect READS dirty state (to detect a
+    // mode change) but must not be RE-TRIGGERED by it. react-hook-form reassigns
+    // the dirtyFields identity on every setValue(shouldDirty) over a non-pristine
+    // field (updateTouchAndDirty), and STEP 4 does exactly that → keeping it as a
+    // dependency makes the effect re-trigger itself endlessly (the auto-height
+    // DataGrid is the first to cross React's update limit).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, reset, getValues, resetField, setValue]);
 
   /**
    * Adds a new line to a subcategory locally.

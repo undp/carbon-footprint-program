@@ -139,7 +139,17 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         hasEmissionFactors={subcategory.emissionFactors.length > 0}
       />
 
-      <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>
+      {/* unmountOnExit: in manual-total mode the grid must not stay mounted.
+          Its dynamic row height (getRowHeight: "auto") drives a ResizeObserver
+          that loops ("Maximum update depth exceeded" in GridVirtualScroller)
+          when measuring rows inside the zero-height collapsed container. This
+          also matches the design assumption in resetAfterSaveForSubcategory
+          that the line cells unmount in total mode. */}
+      <Collapse
+        in={!isTotalManualEmissionsModeActive}
+        collapsedSize={0}
+        unmountOnExit
+      >
         <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
