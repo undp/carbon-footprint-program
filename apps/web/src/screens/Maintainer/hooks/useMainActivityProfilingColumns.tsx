@@ -6,7 +6,7 @@ import { z } from "zod";
 import { OrganizationMainActivityStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const MainActivityRowSchema = z.object({
@@ -251,7 +251,7 @@ export const useMainActivityProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <ActionIconButton
+              <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
                 onClick={() => onRestore(params.row)}

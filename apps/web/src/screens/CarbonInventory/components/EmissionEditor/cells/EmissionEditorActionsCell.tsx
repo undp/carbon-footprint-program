@@ -6,7 +6,7 @@ import {
 } from "@mui/icons-material";
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AppActionButton } from "@/components";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -37,16 +37,12 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
     : undefined;
 
   const iconSx: SxProps<Theme> = {
-    borderRadius: 1,
-    border: "1px solid",
     width: 32,
     height: 32,
     color: (theme) =>
-      disabled
-        ? theme.palette.action.disabled
-        : categoryColorPalette
-          ? categoryColorPalette.main
-          : theme.palette.text.primary,
+      categoryColorPalette
+        ? categoryColorPalette.main
+        : theme.palette.text.primary,
   };
 
   return (
@@ -65,15 +61,14 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <ActionIconButton
-            icon={UploadFileOutlined}
+          <AppActionButton
             tooltip="Adjuntar archivos"
-            aria-label="uploadFiles"
             onClick={() => uploadFiles(rowId)}
             disabled={disabled}
-            size="medium"
             sx={iconSx}
-          />
+          >
+            <UploadFileOutlined />
+          </AppActionButton>
         </Badge>
       )}
       {updateComment && (
@@ -89,27 +84,25 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
             },
           }}
         >
-          <ActionIconButton
-            icon={CommentOutlined}
+          <AppActionButton
             tooltip="Agregar información adicional"
-            aria-label="addComment"
             onClick={() => updateComment(rowId)}
             disabled={disabled}
-            size="medium"
             sx={iconSx}
-          />
+          >
+            <CommentOutlined />
+          </AppActionButton>
         </Badge>
       )}
       {deleteSource && (
-        <ActionIconButton
-          icon={DeleteOutlined}
+        <AppActionButton
           tooltip="Eliminar fuente"
-          aria-label="delete"
           onClick={() => deleteSource(rowId)}
           disabled={disabled}
-          size="medium"
           sx={iconSx}
-        />
+        >
+          <DeleteOutlined />
+        </AppActionButton>
       )}
     </Box>
   );

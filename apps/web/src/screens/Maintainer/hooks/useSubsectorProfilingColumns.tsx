@@ -6,7 +6,7 @@ import { z } from "zod";
 import { CountrySubsectorStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const SubsectorRowSchema = z.object({
@@ -202,10 +202,10 @@ export const useSubsectorProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <ActionIconButton
+              <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
-                ariaLabel="Restaurar subrubro"
+                aria-label="Restaurar subrubro"
                 onClick={() => onRestore(params.row)}
                 disabled={restoreDisabled || anyEditing}
               />
