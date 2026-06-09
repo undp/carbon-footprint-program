@@ -5,11 +5,10 @@ import { BaseActionButton } from "./BaseActionButton";
 
 interface AdminActionButtonProps extends Pick<
   IconButtonProps,
-  "onClick" | "disabled" | "color" | "className" | "sx" | "size"
+  "onClick" | "disabled" | "color" | "className" | "sx" | "size" | "aria-label"
 > {
   icon: SvgIconComponent;
   tooltip: string;
-  ariaLabel?: string;
 }
 
 /**
@@ -22,10 +21,9 @@ interface AdminActionButtonProps extends Pick<
 export const AdminActionButton: FC<AdminActionButtonProps> = ({
   icon: Icon,
   tooltip,
-  ariaLabel,
   ...rest
 }) => (
-  <BaseActionButton tooltip={tooltip} aria-label={ariaLabel} {...rest}>
+  <BaseActionButton tooltip={tooltip} {...rest}>
     <Icon fontSize="inherit" />
   </BaseActionButton>
 );

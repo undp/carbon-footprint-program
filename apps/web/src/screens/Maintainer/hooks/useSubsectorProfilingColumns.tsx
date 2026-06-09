@@ -205,7 +205,7 @@ export const useSubsectorProfilingColumns = ({
               <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
-                ariaLabel="Restaurar subrubro"
+                aria-label="Restaurar subrubro"
                 onClick={() => onRestore(params.row)}
                 disabled={restoreDisabled || anyEditing}
               />
