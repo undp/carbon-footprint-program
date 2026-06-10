@@ -346,7 +346,7 @@ else
   if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
     echo "🔐 Authentication Configuration:"
     echo "  - Azure auth is ENABLED"
-    echo "  - Tenant ID: ${TENANT_ID:0:8}..."
+    echo "  - Tenant ID: ${EXTERNAL_TENANT_ID:0:8}..."
     echo "  - Frontend Client ID: ${AUTH_FRONTEND_CLIENT_ID:0:8}..."
     if [ -n "$AUTH_API_CLIENT_ID" ]; then
       echo "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
