@@ -76,11 +76,10 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 ### PR 1 wrap-up
 
 - [x] 2.57 Final full cycle: install + format + lint + type-check + test + build all green. Required follow-up fix: vitest 4.1+ regresses on `outputFile.html` inside `coverage/` dir → moved to `vitest-report/` and added to `.gitignore` (commits `d22e98a28` + `4f8b554d2`)
-- [ ] 2.58 Push branch and open PR titled `chore(deps): upgrade low-risk dependencies (patch + minor)` (user action)
-- [ ] 2.59 PR body checklist (user action)
-- [ ] 2.60 Wait for human review and merge to `main` (user action)
-- [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
-- [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
+- [x] 2.58 Pushed and opened PR `[Fullstack] Chore: upgrade low-risk dependencies (patch + minor)` (#348)
+- [x] 2.59 PR body checklist posted in #348
+- [x] 2.60 PR #348 reviewed and MERGED to `main`
+- [x] ~~2.53/2.54 (duplicated lines)~~ — already done above (commits `a221404e4`, `ddf340050`)
 
 ## 2b. PR 1b — RHF + MUI X form/grid behavioral split (branch `feat/mati/upgrade-rhf-muix`)
 
@@ -92,8 +91,8 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 - [x] 2b.4 fix: route emission-capture line actions through a dedicated `EmissionCaptureActions` context (RHF 7.76 `FormProvider` no longer forwards custom methods)
 - [x] 2b.5 fix: unmount emission grid in manual-total mode (MUI X 8.28 `ResizeObserver` loop)
 - [x] 2b.6 fix: exclude `dirtyFields` from the emission-capture reconcile effect (RHF 7.76 identity reassignment caused an infinite loop)
-- [ ] 2b.7 Run `pnpm install` to regenerate `pnpm-lock.yaml` on this branch (user action)
-- [ ] 2b.8 Push branch and open PR titled `chore(deps): upgrade react-hook-form + mui-x with emission-capture fixes` (user action)
+- [x] 2b.7 Lockfile regenerated on the branch
+- [x] 2b.8 Pushed and opened PR `[FRONT] Chore: upgrade react-hook-form and mui-x with emission-capture fixes` (#365) — MERGED
 
 ## 3. PR 2 — Medium-risk (branch `chore/upgrade-deps-medium-risk`)
 
@@ -118,12 +117,12 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 - [x] 3.12 Final full cycle: install + format + lint + type-check + test + build all green
 - [x] 3.13 Pushed and opened PR 371 (`[Fullstack] Chore: upgrade medium-risk dependencies (scoped majors)`)
 - [x] 3.14 PR body posted: bump table with migration links, decisions (ky migration, vitest-report lint fix, plugin-react deferral), deviations, smoke checklist:
-  - [ ] Login (MSAL flow) works end-to-end against the dev tenant
-  - [ ] Authenticated API call returns 200 (jwks-rsa + ky path verified)
-  - [ ] Evidence file upload works (multipart 10)
+  - [x] Login (MSAL flow) works end-to-end against the dev tenant — validated post-merge via E2E smoke on the PR 3 branch (2026-06-10)
+  - [x] Authenticated API call returns 200 (jwks-rsa + ky path verified) — same E2E smoke
+  - [x] Evidence file upload works (multipart 10) — same E2E smoke (org docs + per-line evidence + submission attachments)
   - [x] ~~`pnpm dev:web` HMR works (vite-plugin-react 6)~~ — N/A, bump deferred (needs Vite 8)
   - [x] `pnpm test --filter=api` is fully green (testcontainers 12) — 148/148 test files
-- [ ] 3.15 Wait for human review and merge. Do NOT proceed to PR 3 until merged.
+- [x] 3.15 PR #371 reviewed and MERGED to `main`
 
 ## 4. PR 3 — High-risk (branch `chore/mati/upgrade-deps-high-risk`)
 
@@ -165,12 +164,32 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 - [x] 4.F.1 Final full cycle: install + format + lint + type-check + test (6/6 tasks, coverage 80.4%) + build all green
 - [x] 4.F.2 Pushed and opened PR `[Fullstack] Chore: upgrade high-risk dependencies (TS6, Vite8, MSAL5)`
 - [x] 4.F.3 PR body posted: bump table, migration guide links, manually edited files, smoke-test checklist (user action):
-  - [ ] MSAL login + logout + authenticated API call (msal v5)
-  - [ ] `pnpm dev:web` HMR works (vite 8 + plugin-react 6)
-  - [ ] CRUD básico (organizations / inventories) end-to-end
-- [ ] 4.F.4 Wait for human review and merge
+  - [x] MSAL login + logout + authenticated API call (msal v5) — E2E smoke 2026-06-10 (full chain in browser, documented in the PR with screenshots)
+  - [ ] `pnpm dev:web` HMR works (vite 8 + plugin-react 6) — pending quick local check before merge
+  - [x] CRUD básico (organizations / inventories) end-to-end — E2E smoke: org accredited → inventory verified → reduction project approved
+- [ ] 4.F.4 Wait for human review and merge — **PR #373 OPEN at archive time** (CI green, smoke documented)
 
 ## 5. Post-upgrade reporting
 
-- [ ] 5.1 Produce a final report listing: total libraries bumped, links to the 3 merged PRs, total commits, any libraries deferred (with reason), any follow-up tickets opened
-- [ ] 5.2 Update or archive this OpenSpec change (run `/opsx:archive` once all PRs are merged)
+- [x] 5.1 Final report (see below)
+- [x] 5.2 Change archived 2026-06-10 via `/opsx:archive` (PR 3 open at archive time; delta spec synced to `openspec/specs/dependency-upgrade-policy/`)
+
+### Final report (5.1)
+
+**PRs shipped (4):**
+
+| PR                                                                | Scope                                                                                                 | Status                                                 |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [#348](https://github.com/undp/carbon-footprint-program/pull/348) | Low-risk (patch + minor, ~50 bumps)                                                                   | MERGED                                                 |
+| [#365](https://github.com/undp/carbon-footprint-program/pull/365) | PR 1b — RHF 7.76 + MUI X 8.28 with emission-capture behavioral fixes                                  | MERGED                                                 |
+| [#371](https://github.com/undp/carbon-footprint-program/pull/371) | Medium-risk (scoped majors: multipart 10, testcontainers 12, jwks-rsa 4, ky 2, cpy-cli 7, globals 17) | MERGED                                                 |
+| [#373](https://github.com/undp/carbon-footprint-program/pull/373) | High-risk (TS 6.0.3, @types/node 25, Vite 8 + plugin-react 6 + vite-tsconfig-paths 6, MSAL 5)         | OPEN — CI green, E2E smoke documented with screenshots |
+
+**Deferred / excluded:**
+
+- **ESLint 10** — deferred: `eslint-plugin-react` (peer cap `^9.7`) and `eslint-plugin-jsx-a11y` (peer cap `^9`) have no eslint-10-compatible releases (re-checked 2026-06-10). Re-evaluate when they ship support.
+- **MUI core 7→9 / MUI X 8→9** — excluded by user decision (2026-06-10): migration cost (150+ files) far exceeds the value. Core stays on v7, X on v8. POC commits exist on `feat/mati/upgrade-high-risk-dependencies` if ever revisited.
+
+**Notable migration work:** ky 2 hook signatures, fastify 5.8 `HookList` widening, RHF 7.76 `FormProvider`/`dirtyFields` behavioral fixes (own PR), TS6 `types: []` default (reworked `packages/types/src/environment.ts` to `globalThis.process`), msal-browser 5 `navigateToLoginRequestUrl` moved to per-call option (fix `9ccba79bb` preserves landing→`/app/home`).
+
+**Follow-ups:** none opened — ESLint 10 re-evaluation is tracked here; node engine bump explicitly out of scope.
