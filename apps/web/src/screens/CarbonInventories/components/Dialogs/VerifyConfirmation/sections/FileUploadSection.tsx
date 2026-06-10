@@ -48,6 +48,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
         <FormFileUpload
           control={control}
           name="files"
+          useCase="SUBMISSION"
           disabled={isLoading}
           required
           requiredMessage="Debes adjuntar al menos un documento antes de enviar la postulación."

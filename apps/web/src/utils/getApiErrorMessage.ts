@@ -158,6 +158,16 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",
   INSUFFICIENT_PERMISSIONS: "No tienes permisos para realizar esta acción.",
   INVALID_ROLE_TRANSITION: "La transición de rol solicitada no es válida.",
+
+  // File upload validation
+  FILE_TOO_SMALL: "El archivo es más pequeño que el tamaño mínimo permitido.",
+  FILE_TOO_LARGE: "El archivo excede el tamaño máximo permitido.",
+  FILE_MIME_TYPE_NOT_ALLOWED:
+    "El tipo de archivo no está permitido para este caso de uso.",
+  FILE_EXTENSION_NOT_ALLOWED:
+    "La extensión del archivo no está permitida para este caso de uso.",
+  FILE_MIME_EXTENSION_MISMATCH:
+    "La extensión del archivo no coincide con su tipo MIME declarado.",
 };
 
 /**

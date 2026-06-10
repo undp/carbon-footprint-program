@@ -21,10 +21,7 @@ import {
   InsertDriveFileOutlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
-import {
-  CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES,
-  CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB,
-} from "@repo/constants";
+import { CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES } from "@repo/constants";
 import { FileUpload } from "@/components/FileUpload";
 import { OverflowTooltipText } from "@/components/OverflowTooltipText";
 import { buildDropzoneAcceptMap, formatFileSize } from "@/utils/files";
@@ -280,8 +277,8 @@ export const EmissionEditorFilesDialog: FC<Props> = ({
           <FileUpload
             value={[]}
             onChange={handleFilesPicked}
+            useCase="CARBON_INVENTORY"
             accept={acceptMap}
-            maxSizeMB={CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB}
             disabled={disabled || isUploading}
           />
 

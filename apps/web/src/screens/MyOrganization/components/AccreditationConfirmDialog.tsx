@@ -94,6 +94,7 @@ export const AccreditationConfirmDialog: FC<
           <FormFileUpload
             control={control}
             name="files"
+            useCase="SUBMISSION"
             disabled={isLoading}
             required
             requiredMessage="Al menos un archivo es requerido"
