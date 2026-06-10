@@ -1,3 +1,20 @@
+/**
+ * This package is consumed as source (`"types": "./src/index.ts"`), so this
+ * file is type-checked under each consumer's tsconfig — including apps/web,
+ * a browser app whose compilation has no node globals: TypeScript 6.0 changed
+ * the default of `types` to `[]`, so `node_modules/@types` (and with it the
+ * global `process` from @types/node) is no longer auto-included.
+ *
+ * Reading `process` off `globalThis` with a local structural type keeps this
+ * file free of any @types/node requirement while behaving exactly like the
+ * old `typeof process !== "undefined"` guard at runtime (node: same object;
+ * browser: undefined).
+ *
+ * Alternatives rejected: `"types": ["node"]` in browser consumers or a
+ * `/// <reference types="node" />` here would leak all node globals into the
+ * web compilation; exporting compiled .d.ts instead of source would require
+ * building this package before every consumer type-check.
+ */
 type ProcessLike = { env: Record<string, string | undefined> };
 
 const getEnv = (key: string): string | undefined => {
