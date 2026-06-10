@@ -32,7 +32,7 @@ The system SHALL expose all object-storage operations through a single `StorageA
 #### Scenario: Adapter provides the canonical operation set
 
 - **WHEN** any feature handler or service needs to interact with object storage
-- **THEN** it accesses `fastify.storage` and calls one of: `generateReadUrl`, `createReadUrlSigner`, `generateWriteUrl`, `headObject`, `deleteObject`, `copyObject`, `moveObject`, `healthCheck`
+- **THEN** it accesses `fastify.storage` and calls one of: `generateReadUrl`, `createReadUrlSigner`, `generateWriteUrl`, `headObject`, `streamObject`, `putObject`, `deleteObject`, `copyObject`, `healthCheck`
 - **AND** no feature outside `apps/api/src/services/storage/adapters/azureBlobAdapter.ts` imports from `@azure/storage-blob`
 - **AND** no feature outside `apps/api/src/services/storage/adapters/minioAdapter.ts` imports from `@aws-sdk/client-s3` or `@aws-sdk/s3-request-presigner`
 
@@ -86,20 +86,15 @@ The system SHALL surface object-presence and deletion operations with consistent
 - **WHEN** a caller invokes `storage.deleteObject(path)` on a path that does not exist
 - **THEN** the call returns successfully (idempotent semantics) — no error is thrown
 
-### Requirement: Copy and move operations complete synchronously from the caller's perspective
+### Requirement: Copy operations complete synchronously from the caller's perspective
 
-The system SHALL ensure that `copyObject` and `moveObject` only return after the operation has completed in the backend.
+The system SHALL ensure that `copyObject` only returns after the operation has completed in the backend. The interface deliberately omits a move primitive — the only consumer pattern is copy-then-cleanup (`linkFilesToSubmission` + `cleanupSourceObjects`), so a `moveObject` would have no callers (YAGNI).
 
 #### Scenario: Copy returns after backend confirms completion
 
 - **WHEN** a caller awaits `storage.copyObject(src, dst)`
 - **THEN** by the time the promise resolves, the destination object exists and is readable
 - **AND** on Azure the adapter polls the asynchronous copy until done; on MinIO/S3 the adapter awaits the synchronous copy command directly
-
-#### Scenario: Move is copy + delete with the same semantics
-
-- **WHEN** a caller awaits `storage.moveObject(src, dst)`
-- **THEN** by the time the promise resolves, the destination exists and the source has been deleted
 
 ### Requirement: Read URL options propagate response content-type and disposition
 

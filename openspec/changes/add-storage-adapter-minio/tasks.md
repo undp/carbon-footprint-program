@@ -7,14 +7,14 @@
 
 ## 2. Facade + Azure adapter (ports existing logic)
 
-- [x] 2.1 Create `apps/api/src/services/storage/adapters/azureBlobAdapter.ts`; port `createReadSasUrlSigner`, `generateReadSasUrl`, `generateWriteSasUrl`, `copyBlob` (with `pollUntilDone`), `deleteBlob` (with `deleteIfExists`), `moveBlob` from `apps/api/src/services/blobService.ts`. `generateWriteUrl` returns `headers: { "x-ms-blob-type": "BlockBlob" }`, `method: HttpUploadMethod.PUT`. Implement `headObject` (translates `RestError` 404 → `ObjectNotFoundError`) and `healthCheck` (`ContainerClient.exists()`).
+- [x] 2.1 Create `apps/api/src/services/storage/adapters/azureBlobAdapter.ts`; port `createReadSasUrlSigner`, `generateReadSasUrl`, `generateWriteSasUrl`, `copyBlob` (with `pollUntilDone`), and `deleteBlob` (with `deleteIfExists`) from `apps/api/src/services/blobService.ts` (`moveBlob` dropped — no callers; the interface omits a move primitive). `generateWriteUrl` returns `headers: { "x-ms-blob-type": "BlockBlob" }`, `method: HttpUploadMethod.PUT`. Implement `headObject` (translates `RestError` 404 → `ObjectNotFoundError`) and `healthCheck` (`ContainerClient.exists()`).
 - [x] 2.2 Implement `createStorageAdapter(provider, env)` in `apps/api/src/services/storage/index.ts`; for `AZURE_BLOB_STORAGE` construct `BlobServiceClient` via `DefaultAzureCredential` and return `AzureBlobAdapter`.
 - [x] 2.3 Adapter behavior covered by existing Azurite integration tests via `test/factories/appFactory.ts` + per-feature integration tests under `apps/api/test/features/`; no standalone unit tests added because the integration suite runs against real Azurite (no SDK mocks per project policy) and exercises every adapter method end-to-end.
 
 ## 3. MinIO adapter
 
 - [x] 3.1 Add `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` to `apps/api/package.json`. **User must run `pnpm install` after merge** (per workspace policy, build commands are not run by the assistant).
-- [x] 3.2 Create `apps/api/src/services/storage/adapters/minioAdapter.ts`. Implements `generateReadUrl` (uses `GetObjectCommand` with `ResponseContentType` / `ResponseContentDisposition`), `createReadUrlSigner` (closure over `generateReadUrl`), `generateWriteUrl` (uses `PutObjectCommand`, returns `method: PUT`, `headers: {}`), `headObject` (uses `HeadObjectCommand`, 404 → `ObjectNotFoundError`), `deleteObject` (uses `DeleteObjectCommand`, idempotent), `copyObject` (uses `CopyObjectCommand`, awaits directly), `moveObject` (copy + delete), `healthCheck` (uses `HeadBucketCommand`).
+- [x] 3.2 Create `apps/api/src/services/storage/adapters/minioAdapter.ts`. Implements `generateReadUrl` (uses `GetObjectCommand` with `ResponseContentType` / `ResponseContentDisposition`), `createReadUrlSigner` (closure over `generateReadUrl`), `generateWriteUrl` (uses `PutObjectCommand`, returns `method: PUT`, `headers: {}`), `headObject` (uses `HeadObjectCommand`, 404 → `ObjectNotFoundError`), `deleteObject` (uses `DeleteObjectCommand`, idempotent), `copyObject` (uses `CopyObjectCommand`, awaits directly), `healthCheck` (uses `HeadBucketCommand`). No `moveObject` — the interface omits a move primitive (YAGNI).
 - [x] 3.3 `createStorageAdapter` dispatches `MINIO` → `createMinioAdapter()` (in `index.ts`). The MinIO adapter factory constructs `S3Client` with `endpoint`, `region`, `forcePathStyle`, and credentials from the `MINIO_*` env vars.
 - [x] 3.4 Adapter behavior covered by the integration test suite under CI matrix `STORAGE_PROVIDER=minio` (task 9 + 10.5); no standalone unit tests added because the integration suite runs against real MinIO via `GenericContainer` and exercises every adapter method end-to-end.
 
@@ -60,15 +60,15 @@
 - [x] 9.1 Updated `apps/api/test/setup/testcontainers.ts`: now branches on `STORAGE_PROVIDER`. Azurite path preserved; `minio` path uses `GenericContainer("minio/minio")` with `["server","/data"]` and post-start `CreateBucketCommand`. Returns a unified `TestStorageDescriptor`.
 - [x] 9.2 Updated `apps/api/test/setup/globalSetup.ts`: provides `storageDescriptor` (replacing `storageConnectionString` / `storageContainerName`) and sets the matching `process.env` vars before workers boot so `environment.ts` validation passes.
 - [x] 9.3 Updated `apps/api/test/factories/appFactory.ts`: removed the `BlobServiceClient.fromConnectionString` hardcode. Now builds the right `StorageAdapter` from the descriptor (Azurite via `createAzureBlobAdapterFromClient`, MinIO via `createMinioAdapterFromClient`) and assigns it to `app.storage` after `app.ready()`. Required two new test-only factories in the adapter files.
-- [x] 9.4 Renamed `apps/api/test/factories/blobHelper.ts` → `storageHelper.ts`; replaced `uploadBlobToAzurite` with provider-agnostic `uploadFixture(storage, path, options)` that uses `generateWriteUrl` + `fetch`. Added `testcontainers@^11.12.0` to apps/api devDependencies.
+- [x] 9.4 Renamed `apps/api/test/factories/blobHelper.ts` → `storageHelper.ts`; replaced `uploadBlobToAzurite` with provider-agnostic `uploadFixture(storage, path, options)` that seeds the fixture via the adapter's direct `putObject` (Azurite's shared-key mode cannot issue the presigned URLs a `generateWriteUrl` + `fetch` approach would need). Added `testcontainers@^11.12.0` to apps/api devDependencies.
 - [x] 9.5 Batch-migrated all integration tests via sed: `blobHelper` → `storageHelper`, `uploadBlobToAzurite` → `uploadFixture`, `app.blobStorage!` → `app.storage`, `storageContainerName/storageConnectionString` inject params → `storageDescriptor`. Cleaned up `getOrganizationHistory/integration.test.ts` (removed the now-unsupported "storage-disabled" test path and its `vi.mock("@/services/blobService.js")` block).
-- [ ] 9.5b (FOLLOW-UP) ~15 other integration test files still call `vi.mock("@/services/blobService.js", ...)` — the module no longer exists. These mocks worked around Azurite's lack of user-delegation-SAS support. They need to be re-pointed at the adapter instances (e.g. by overriding `app.storage.generateWriteUrl` with `vi.fn()` after `createTestApp`, or by mocking `@/services/storage/adapters/azureBlobAdapter.js`). Pattern is identical across files; defer to a focused commit.
-- [ ] 9.6 Awaits `pnpm install` (user task) + the 9.5b cleanup before `STORAGE_PROVIDER=azure_blob_storage` and `STORAGE_PROVIDER=minio` test runs can be exercised.
+- [x] 9.5b All `vi.mock("@/services/blobService.js", ...)` blocks removed. Most became unnecessary once the Azure adapter gained shared-key SAS signing (Azurite can sign for real now); the few suites that still need inert copy/delete use `vi.spyOn(app.storage, ...)` after `createTestApp`, and pure service tests use the `createMockStorageAdapter` factory (`test/factories/mockStorageAdapter.ts`).
+- [x] 9.6 Both provider suites ran green: `STORAGE_PROVIDER=azure_blob_storage` and `STORAGE_PROVIDER=minio` → 1302 passed / 1 skipped each. CI runs both legs per PR (task 10.5).
 
 ## 10. Infra and CI
 
-- [x] 10.1 Added `minio` (`/minio/health/live` healthcheck, ports 9000/9001) and `minio-init` (one-shot `mc mb --ignore-existing`) services to `docker-compose.yml`. Both on `huella-network`. New `minio-data` volume.
-- [x] 10.2 Updated the `api` compose service: added `STORAGE_PROVIDER`, `AZURE_STORAGE_*`, and `MINIO_*` env passthroughs; added `depends_on: minio-init: { condition: service_completed_successfully }`.
+- [x] 10.1 Added `minio` (`/minio/health/live` healthcheck, ports 9000/9001) and `minio-init` (one-shot `mc mb --ignore-existing`) services in a dedicated opt-in `docker-compose.minio.yml` (MinIO is only needed when `STORAGE_PROVIDER=minio`, so it stays out of the main compose file; both files merge into one project via `-f docker-compose.yml -f docker-compose.minio.yml`). New `minio-data` volume.
+- [x] 10.2 Updated the `api` service in `docker-compose.yml`: added `STORAGE_PROVIDER` and `MINIO_*` env passthroughs alongside the existing `AZURE_STORAGE_*` ones. No `depends_on` on the MinIO services — they live in the opt-in compose file.
 - [x] 10.3 Added `MINIO_API_CORS_ALLOW_ORIGIN` env on the MinIO service (defaults to `"*"`; override in `.envrc` for stricter dev origins).
 - [x] 10.4 Updated `.envrc.template`: added `STORAGE_PROVIDER` (defaults to `"minio"`) and the full `MINIO_*` block. Kept the Azure block with a "only required when…" note.
 - [x] 10.5 Updated `.github/workflows/ci.yml`: added `strategy.matrix.storage_provider: [azure_blob_storage, minio]` to the `test` job with `fail-fast: false`. Each matrix run gets its own `STORAGE_PROVIDER` env and provider-specific dummy values that satisfy startup validation; testcontainer overrides them with real values. Coverage artifact name now includes the provider so both reports survive upload. Other jobs (lint, type-check, format, build) stay single-run.
@@ -77,7 +77,7 @@
 
 - [x] 11.1 Deleted `apps/api/src/services/blobService.ts` and the now-empty barrel `apps/api/src/services/index.ts`. Grep confirms zero remaining references.
 - [x] 11.2 Deleted `apps/api/src/plugins/app/blobStoragePlugin.ts` in step 4.6 (moved up to avoid TS errors during the callsite migration window).
-- [ ] 11.3 (USER) Run `pnpm install` (adds `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `testcontainers`), then `pnpm format && pnpm lint && pnpm type-check` at the repo root and resolve any remaining warnings/errors. Per project policy, the assistant does not run install/build commands.
+- [x] 11.3 `pnpm install` ran (adds `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `testcontainers`); `pnpm format && pnpm lint && pnpm type-check` all green at the repo root.
 
 ## 12. Documentation
 
@@ -87,5 +87,5 @@
 
 - [ ] 13.1 Bring up MinIO locally: `docker compose up minio minio-init postgres api` with `STORAGE_PROVIDER=minio`. Exercise upload/preview/replace/delete via the UI for badges, carbon-inventory line files, and submission pre-upload. Confirm objects appear in the MinIO console (`http://localhost:9001`).
 - [ ] 13.2 Switch to `STORAGE_PROVIDER=azure_blob_storage` (against Azurite or a real account); repeat the same UI flow.
-- [ ] 13.3 Run the API test suite under both providers (see 9.6). Both green.
-- [ ] 13.4 Final `pnpm format && pnpm lint && pnpm type-check` — zero warnings/errors.
+- [x] 13.3 Ran the API test suite under both providers (see 9.6). Both green: 1302 passed / 1 skipped each. CI matrix legs (`Test (azure_blob_storage)`, `Test (minio)`) also pass on the PR.
+- [x] 13.4 Final `pnpm format && pnpm lint && pnpm type-check` — zero warnings/errors.
