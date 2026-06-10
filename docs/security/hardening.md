@@ -142,28 +142,63 @@ Validation happens in the Fastify `preValidation` lifecycle phase and returns a 
 
 ## File Upload Security
 
-File uploads are handled via `@fastify/multipart` with the following limits:
+Browser uploads use the SAS-URL flow: the API issues a short-lived
+User Delegation SAS pointing at a server-generated blob path, the
+client PUTs the bytes directly to Azure, and then calls
+`POST /files/confirm-upload` so the API can verify the blob and
+persist the `File` row. The SAS itself **cannot enforce a size or
+content-type cap** (Azure's SAS spec has no `signedmaxsize` and
+`x-ms-blob-content-length` applies only to page blobs), so the
+hardening is applied in three layers around it.
 
-| Limit                       | Value          |
-| --------------------------- | -------------- |
-| Maximum file size           | 20 MB per file |
-| Maximum files per request   | 5              |
-| Maximum non-file field size | 10 KB          |
-| Maximum non-file fields     | 20             |
+### Layered limits
+
+| Layer                                | Enforcement                                                                                                                                                                                                                                                                                           |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Client (FileUpload component)     | `react-dropzone` rejects files outside the allowed `accept` map and over the effective max size; both are derived from `FILE_UPLOAD_POLICIES[useCase]` and the global `FILE_UPLOAD_MAX_BYTES` constant via `getFileUploadLimits()`.                                                                   |
+| 2. API at request-upload time        | `RequestUploadBodySchema` requires `originalName`, `fileType`, `sizeBytes` and `mimeType`. The service resolves effective limits via `getFileUploadLimits()` and rejects with `FILE_TOO_SMALL`, `FILE_TOO_LARGE`, `FILE_MIME_TYPE_NOT_ALLOWED`, or `FILE_EXTENSION_NOT_ALLOWED` before signing a SAS. |
+| 3. API at confirm-upload time (HEAD) | After the client uploads, `confirmUpload` calls `getProperties()` on the blob and revalidates `contentLength` and `contentType` against the same limits. If validation fails, the blob is deleted with `deleteIfExists()` and no `File` row is created.                                               |
+
+The two API-side checks are the authoritative layer; the client check
+is a UX accelerator and is not relied upon for safety.
+
+All limits live in `packages/constants/src/files.ts`: the global
+`FILE_UPLOAD_MIN_BYTES` / `FILE_UPLOAD_MAX_BYTES` bounds (defaults
+1 byte / 20 MiB; country deployments adjust them there) and the
+per-use-case `FILE_UPLOAD_POLICIES` map (MIME and extension
+allowlists, optional stricter `maxBytes`). `getFileUploadLimits()`
+resolves the effective max as
+`min(FILE_UPLOAD_MAX_BYTES, policy.maxBytes ?? Infinity)`.
 
 ### Filename validation
 
-File names are validated via a Zod schema in `packages/types/src/files/requestUpload/schemas.ts`:
+All upload endpoints validate `originalName` through a single Zod
+schema (`FilenameSchema` in `packages/types/src/baseSchemas/filename.ts`):
+1–255 characters after trim, any Unicode-printable name, rejecting
+control characters, path separators, Windows-reserved characters, and
+leading/trailing dots or spaces. Centralization is intentional: Azure
+tolerates a wide range of Unicode in blob names but other targets
+(S3, GCS, local file systems) do not. Validating in one place keeps
+the platform portable.
 
-- Maximum length: 255 characters
-- Character set: printable ASCII only (`^[ -~]+$`)
-- Forbidden characters: `/`, `\`, `:` (path traversal prevention)
+### Blob path
 
-### File type handling
+`buildBlobPath` always prefixes the blob name with a server-generated
+UUID (`{fileType}/{groupKey}/{uuid}-{sanitized-name}`), so the
+user-provided filename never determines the storage key. This
+eliminates path traversal, collisions, and SAS-signature mismatches
+regardless of what the validator lets through.
 
-Upload requests include a `fileType` field validated against an enum (`SUBMISSION`, `BADGE`). This restricts the purpose/category of uploads, not the MIME type.
+### Known gaps
 
-**Known gap:** No MIME type validation is performed on uploaded files. A user could upload a file with a `.pdf` extension but containing arbitrary binary content. The MIME type is extracted after upload from the blob metadata, not validated before or during upload. For deployments where file content integrity matters, server-side MIME type validation (e.g., using `file-type` package on the stream) should be added.
+- The 20 MB cap is enforced application-side. A client could still
+  PUT a larger blob to Azure with a valid SAS; the orphan is left
+  behind until `confirmUpload` rejects it or a future cleanup job
+  runs. Plan calls out an Event Grid + Function sweep as fase 2.
+- MIME type is taken from the client's declared `Content-Type` plus
+  Azure's blob metadata at HEAD time. Both can be spoofed. For higher
+  assurance (e.g., legal documents), add a magic-bytes check using
+  the `file-type` package on the first chunk of the blob.
 
 ---
 
@@ -196,15 +231,15 @@ Known package security tools applicable to this stack:
 
 ## Hardening Checklist (Pre-Production)
 
-| Item                                              | Status         | Action                                                     |
-| ------------------------------------------------- | -------------- | ---------------------------------------------------------- |
-| Helmet plugin registered                          | ❌ Missing     | Create `apps/api/src/plugins/external/helmet.ts`           |
-| `ALLOWED_ORIGIN` set in all environments          | ⚠️ Required    | Set via App Service configuration / Key Vault reference    |
-| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required    | Verify; `forced-user`/`none` must not appear in Production |
-| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify      | Review `allowedIpRanges` Bicep parameter per environment   |
-| HTTPS-only enforced on App Service                | ⚠️ Verify      | Add `httpsOnly: true` to App Service Bicep module          |
-| Front Door WAF enabled in Production              | ⚠️ Recommended | Deploy with Premium SKU for WAF rate limiting              |
-| MIME type validation on file uploads              | ❌ Missing     | Add content-type validation in file upload handler         |
-| `pnpm audit` run and issues addressed             | ⚠️ Ongoing     | Run before each release; address critical/high findings    |
-| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional    | Add VNet integration for highest-security deployments      |
-| CMK encryption for database/storage               | ⚠️ Optional    | Required only if local regulation mandates it              |
+| Item                                              | Status         | Action                                                                |
+| ------------------------------------------------- | -------------- | --------------------------------------------------------------------- |
+| Helmet plugin registered                          | ❌ Missing     | Create `apps/api/src/plugins/external/helmet.ts`                      |
+| `ALLOWED_ORIGIN` set in all environments          | ⚠️ Required    | Set via App Service configuration / Key Vault reference               |
+| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required    | Verify; `forced-user`/`none` must not appear in Production            |
+| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify      | Review `allowedIpRanges` Bicep parameter per environment              |
+| HTTPS-only enforced on App Service                | ⚠️ Verify      | Add `httpsOnly: true` to App Service Bicep module                     |
+| Front Door WAF enabled in Production              | ⚠️ Recommended | Deploy with Premium SKU for WAF rate limiting                         |
+| MIME type validation on file uploads              | ✅ Implemented | `requestUpload` + `confirmUpload` validate per `FILE_UPLOAD_POLICIES` |
+| `pnpm audit` run and issues addressed             | ⚠️ Ongoing     | Run before each release; address critical/high findings               |
+| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional    | Add VNet integration for highest-security deployments                 |
+| CMK encryption for database/storage               | ⚠️ Optional    | Required only if local regulation mandates it                         |
