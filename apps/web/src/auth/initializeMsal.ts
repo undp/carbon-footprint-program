@@ -44,7 +44,13 @@ async function doInitializeMsal(): Promise<void> {
   // Handle redirect promise before rendering
   // This is crucial for redirect flow to work properly
   try {
-    await msalInstance.handleRedirectPromise();
+    // navigateToLoginRequestUrl: false — stay on the redirectUri (/app/home)
+    // after login instead of returning to the page that initiated it (the
+    // landing has no auth redirect, so returning would strand the user there).
+    // In msal-browser v5 this moved from the global config to a per-call option.
+    await msalInstance.handleRedirectPromise({
+      navigateToLoginRequestUrl: false,
+    });
     // Event callback will handle setting active account for successful auth
   } catch (error) {
     // eslint-disable-next-line no-console

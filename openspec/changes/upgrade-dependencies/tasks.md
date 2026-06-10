@@ -153,7 +153,7 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 ### Phase 4.C — MSAL 5 (commit `fcb8ed872`)
 
 - [x] 4.C.3/4.C.4 Bumped `@azure/msal-browser` 4.x → 5.x, `@azure/msal-react` 3.x → 5.x
-- [x] 4.C.6 Removed `navigateToLoginRequestUrl` from `BrowserAuthOptions` (v5 handles return-to-original-page internally) and `storeAuthStateInCookie` from `CacheOptions` (IE 11 legacy). Both were at defaults — runtime no-op.
+- [x] 4.C.6 Removed `storeAuthStateInCookie` from `CacheOptions` (IE 11 legacy; was at its default `false` — no-op). `navigateToLoginRequestUrl` was NOT a no-op: the app set it to `false` (v4 default is `true`) so redirect login lands on `/app/home` instead of returning to the landing. In v5 the option moved from `BrowserAuthOptions` to a per-call option of `handleRedirectPromise()` (default `true`) — preserved by passing `{ navigateToLoginRequestUrl: false }` in `initializeMsal.ts`.
 - [x] 4.C.11 Manual smoke test done on POC: popup login + active account selection + authenticated API call OK against dev tenant. Re-verify on this branch before merge.
 
 ### Phase 4.D / 4.E — MUI core 7→9 and MUI X 8→9 — EXCLUDED
