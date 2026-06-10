@@ -77,11 +77,9 @@ export const UserRoleHistoryDialog: FC<UserRoleHistoryDialogProps> = ({
                           className="flex items-center gap-2"
                           sx={{ flexWrap: "wrap" }}
                         >
-                          <SystemRoleChip
-                            role={entry.previousRole as SystemRole}
-                          />
+                          <SystemRoleChip role={entry.previousRole} />
                           <Typography variant="body2">→</Typography>
-                          <SystemRoleChip role={entry.newRole as SystemRole} />
+                          <SystemRoleChip role={entry.newRole} />
                         </Box>
                       }
                       secondary={
