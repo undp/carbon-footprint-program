@@ -1,11 +1,5 @@
 import { OrganizationStatus } from "@repo/types";
-
-export enum AdminOrganizationDisplayStatus {
-  WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
-  ACCREDITED = "ACCREDITED",
-  NOT_ACCREDITED = "NOT_ACCREDITED",
-  BLOCKED = "BLOCKED",
-}
+import { AdminOrganizationDisplayStatus } from "@/labels/chips/organization";
 
 export const getDisplayStatus = (
   status: OrganizationStatus,

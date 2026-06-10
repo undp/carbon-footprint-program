@@ -3,10 +3,21 @@ import {
   OrganizationDisplayStatus,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
-import { AdminOrganizationDisplayStatus } from "@/screens/Maintainer/hooks/organizationDisplayStatus";
 import { VOCAB } from "@/config/vocab";
 import { StatusConfig, StatusFamily } from "./types";
 import { sortOrderByKey } from "@/utils/dataGrid";
+
+/**
+ * Display-only status for the admin organizations table: refines the
+ * persisted OrganizationStatus with accreditation/measurement context.
+ * Derived per row by `getDisplayStatus` (screens/Maintainer/utils).
+ */
+export enum AdminOrganizationDisplayStatus {
+  WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
+  ACCREDITED = "ACCREDITED",
+  NOT_ACCREDITED = "NOT_ACCREDITED",
+  BLOCKED = "BLOCKED",
+}
 
 export const ADMIN_ORGANIZATION_STATUS_CONFIG = {
   [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: {

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { RestoreOutlined } from "@mui/icons-material";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { profilingStatusColumn } from "./profilingStatusColumn";
+import { profilingStatusColumn } from "../utils/profilingStatusColumn";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";

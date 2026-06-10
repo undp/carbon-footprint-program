@@ -11,13 +11,11 @@ import { StatusChip } from "@/components/StatusChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import {
-  AdminOrganizationDisplayStatus,
-  getDisplayStatus,
-} from "./organizationDisplayStatus";
-import {
   ADMIN_ORGANIZATION_STATUS_CONFIG,
   ADMIN_ORGANIZATION_STATUS_SORT_ORDER,
+  AdminOrganizationDisplayStatus,
 } from "@/labels/chips/organization";
+import { getDisplayStatus } from "../utils/organizationDisplayStatus";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";
