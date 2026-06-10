@@ -10,6 +10,7 @@ Database schema reference for the Huella Latam platform. Covers domain concepts,
 | Document                                                        | Description                                                                                    |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [Conceptual Guide](./conceptual-guide.md)                       | Domain concepts and modeling principles                                                        |
+| [Data Structure Report](./data-structure-report.md)             | Master/transactional data catalog, module consumption matrix, user visibility, reporting gaps  |
 | [Developer Guide](./developer-guide.md)                         | Database developer reference: Prisma usage, migration workflow, conventions                    |
 | [ER Diagram](./er-diagram.svg)                                  | Entity-relationship diagram (SVG)                                                              |
 | [Organization Model](./organization.md)                         | Organization entity deep-dive: fields, statuses, relations                                     |
