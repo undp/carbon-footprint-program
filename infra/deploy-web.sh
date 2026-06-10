@@ -50,7 +50,7 @@ log() {
   echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
-# Shared helpers (stack_output)
+# Shared helpers (validate_frontend_custom_domain, stack_output)
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
@@ -90,6 +90,9 @@ else
   echo -e "${RED}Error: .envrc file not found in $SCRIPT_DIR${NC}"
   exit 1
 fi
+
+# Validate FRONTEND_CUSTOM_DOMAIN shape (bare hostname, no scheme/path)
+validate_frontend_custom_domain
 
 # Check required tools
 log "${YELLOW}Checking prerequisites...${NC}"

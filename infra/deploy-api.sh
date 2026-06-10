@@ -21,7 +21,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Shared helpers (stack_output)
+# Shared helpers (validate_frontend_custom_domain, stack_output)
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
@@ -29,6 +29,9 @@ source "$SCRIPT_DIR/lib/common.sh"
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
+
+# Validate FRONTEND_CUSTOM_DOMAIN shape (bare hostname, no scheme/path)
+validate_frontend_custom_domain
 
 # Optional env vars
 IMAGE_NAME="${IMAGE_NAME:-api}"

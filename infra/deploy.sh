@@ -40,6 +40,10 @@ fi
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Shared helpers (validate_frontend_custom_domain, stack_output)
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 if [ -f "$SCRIPT_DIR/.env" ]; then
   log "Loading .env..."
   # Export all variables defined in .env
@@ -70,6 +74,9 @@ if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
   log "Valid examples: production, staging, development"
   exit 1
 fi
+
+# Validate FRONTEND_CUSTOM_DOMAIN shape (bare hostname, no scheme/path)
+validate_frontend_custom_domain
 
 log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
