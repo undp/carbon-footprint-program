@@ -5,7 +5,7 @@ import { alpha, darken } from "@mui/material/styles";
 interface TypeChipProps {
   color: string;
   label: ReactNode;
-  tooltip?: string;
+  tooltip: string;
   icon?: ChipProps["icon"];
   size?: ChipProps["size"];
 }
@@ -20,8 +20,8 @@ export const TypeChip: FC<TypeChipProps> = ({
   tooltip,
   icon,
   size = "small",
-}) => {
-  const chip = (
+}) => (
+  <Tooltip title={tooltip}>
     <Chip
       icon={icon}
       size={size}
@@ -35,8 +35,5 @@ export const TypeChip: FC<TypeChipProps> = ({
         "& .MuiChip-label": { display: "flex", alignItems: "center" },
       }}
     />
-  );
-
-  if (!tooltip) return chip;
-  return <Tooltip title={tooltip}>{chip}</Tooltip>;
-};
+  </Tooltip>
+);
