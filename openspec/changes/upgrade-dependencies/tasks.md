@@ -125,101 +125,49 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
   - [x] `pnpm test --filter=api` is fully green (testcontainers 12) — 148/148 test files
 - [ ] 3.15 Wait for human review and merge. Do NOT proceed to PR 3 until merged.
 
-## 4. PR 3 — High-risk (branch `chore/upgrade-deps-high-risk`)
+## 4. PR 3 — High-risk (branch `chore/mati/upgrade-deps-high-risk`)
 
-- [ ] 4.1 Re-checkout `main`, `git pull --ff-only`, run full pre-flight again
-- [ ] 4.2 Create branch `chore/upgrade-deps-high-risk` from updated `main`
-- [ ] 4.3 Re-check latest versions with `pnpm outdated --recursive`
-- [ ] 4.0 **Inherited from PR 2**: `vite` 7 → 8 + `@vitejs/plugin-react` 5 → 6 must ship together (every plugin-react 6.x peer-requires `vite ^8.0.0` and drops Babel). Read both migration guides; verify dev-server HMR after the bump.
+- [x] 4.1 ~~Re-checkout `main`, full pre-flight~~ — baseline verified green via CI on `main` tip (PR #371 checks: build/lint/test/type-check/format all pass)
+- [x] 4.2 Create branch `chore/mati/upgrade-deps-high-risk` from updated `main` (`origin/main` @ `4003cc8cd`)
+- [x] 4.3 Re-check latest versions — commits consolidated from POC branch `feat/mati/upgrade-high-risk-dependencies`; caret ranges resolve to current latest on fresh lockfile
 
-### Phase 4.A — TypeScript 6 + @types/node 25
+### Phase 4.A — TypeScript 6 + @types/node 25 (commit `eb889c43b`)
 
-- [ ] 4.A.1 Read [TypeScript 6.0 release notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)
-- [ ] 4.A.2 Bump `typescript` to latest 6.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.A.3 Bump `@types/node` to latest 25.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.A.4 Run `pnpm install`
-- [ ] 4.A.5 Run `pnpm build` — expect possible type errors; address as below
-- [ ] 4.A.6 Run `pnpm type-check` and fix each error (no `any` patches). If errors exceed ~15 files of meaningful changes, halt and ask user.
-- [ ] 4.A.7 Run `pnpm lint && pnpm test && pnpm build` — all green
-- [ ] 4.A.8 Commit: `chore(deps): upgrade typescript 5.9 to 6.0 and @types/node 24 to 25`
+- [x] 4.A.2 Bumped `typescript` 5.9.3 → 6.0.3 in `pnpm-workspace.yaml > catalogs.shared`
+- [x] 4.A.3 Bumped `@types/node` 24.12.4 → 25.9.x in catalog
+- [x] 4.A.4–4.A.7 install + build + type-check + lint + test all green (validated on POC; re-validated on this branch)
+- Code changes: removed deprecated `baseUrl` from `apps/api/tsconfig.json` and `apps/web/tsconfig.json` (TS 7 will remove it; paths already use `./` prefix). Reworked `packages/types/src/environment.ts` to read `process.env` via `globalThis.process` so consumers don't require `@types/node`.
 
-### Phase 4.B — ESLint 10
+### Phase 4.B — ESLint 10 — DEFERRED
 
-- [ ] 4.B.1 Read [ESLint 10 migration](https://eslint.org/docs/latest/use/migrate-to-10.0.0)
-- [ ] 4.B.2 Bump `eslint` to latest 10.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.B.3 Bump `@eslint/js` (dev) to latest 10.x in `packages/eslint-config/package.json`
-- [ ] 4.B.4 Run `pnpm install`
-- [ ] 4.B.5 Update `packages/eslint-config/{base,api,web}.ts` for any removed/renamed rules or config-shape changes
-- [ ] 4.B.6 Run `pnpm lint` — fix any new warnings (zero-warning policy)
-- [ ] 4.B.7 Run `pnpm type-check && pnpm test && pnpm build` — all green
-- [ ] 4.B.8 Commit: `chore(deps): upgrade eslint 9 to 10`
+- [x] 4.B Attempted on POC (2026-05); re-checked 2026-06-10 — still blocked. Plugin ecosystem incompatible:
+  - `eslint-plugin-react@7.37.5` (latest) peer caps at eslint `^9.7`; runtime error (`contextOrFilename.getFilename is not a function`) when forced.
+  - `eslint-plugin-jsx-a11y@6.10.2` (latest) peer caps at eslint `^9`.
+  - Re-evaluate when these plugins ship eslint-10-compatible releases.
 
-### Phase 4.C — MSAL 5 (browser 4→5 + react 3→5)
+### Phase 4.X — Vite 8 + plugin-react 6 (commit `be1dc3ad0`; carved out of PR 2)
 
-- [ ] 4.C.1 Read msal-browser v4→v5 migration and msal-react v3→v5 migration on the [microsoft-authentication-library-for-js repo](https://github.com/AzureAD/microsoft-authentication-library-for-js)
-- [ ] 4.C.2 Locate all MSAL usage: `grep -rn "@azure/msal\\|PublicClientApplication\\|MsalProvider\\|useMsal\\|acquireToken" apps/web/src`
-- [ ] 4.C.3 Bump `@azure/msal-browser` to latest 5.x in `apps/web/package.json`
-- [ ] 4.C.4 Bump `@azure/msal-react` to latest 5.x in `apps/web/package.json`
-- [ ] 4.C.5 Run `pnpm install`
-- [ ] 4.C.6 Update `PublicClientApplication` config shape (v5 changes)
-- [ ] 4.C.7 Update `MsalProvider` props
-- [ ] 4.C.8 Update `acquireTokenSilent` / `acquireTokenRedirect` callsites
-- [ ] 4.C.9 Update `apps/web/src/api/http/client.ts` `beforeRequest` hook to use the new token-acquisition API
-- [ ] 4.C.10 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.C.11 Manual smoke test: clear browser storage, run `pnpm dev:web`, perform login + logout + authenticated API call. Halt and ask user to confirm before continuing.
-- [ ] 4.C.12 Commit: `chore(deps): upgrade msal-browser 4 to 5 and msal-react 3 to 5`
+- [x] Bumped `vite` 7.2.x → 8.x, `@vitejs/plugin-react` 5.x → 6.x, `vite-tsconfig-paths` 5.x → 6.x (ship together: plugin-react 6 peer-requires vite ^8).
+- Vite 8 ships Rolldown as default bundler — web build ~9× faster. No `vite.config.ts` changes required.
 
-### Phase 4.D — MUI core 7 → 9 (via v8 codemod chain)
+### Phase 4.C — MSAL 5 (commit `fcb8ed872`)
 
-- [ ] 4.D.1 Read [Upgrade to v8](https://mui.com/material-ui/migration/upgrade-to-v8/) and [Upgrade to v9](https://mui.com/material-ui/migration/upgrade-to-v9/)
-- [ ] 4.D.2 Run codemod chain (BEFORE bumping versions):
-  - `npx @mui/codemod@latest v8.0.0/preset-safe apps/web/src`
-  - `npx @mui/codemod@latest v9.0.0/preset-safe apps/web/src`
-- [ ] 4.D.3 Commit codemod output: `chore(deps): apply mui v8 and v9 codemods`
-- [ ] 4.D.4 Bump `@mui/material` to latest 9.x in `apps/web/package.json`
-- [ ] 4.D.5 Bump `@mui/icons-material` to latest 9.x in `apps/web/package.json`
-- [ ] 4.D.6 Run `pnpm install`
-- [ ] 4.D.7 Update `apps/web/src/theme/palette.ts` and `apps/web/src/undp-huella-latam.theme.d.ts` for theme augmentation changes (palette `requestTypeColors`, `recognitionTypeColors`, etc.)
-- [ ] 4.D.8 Audit and fix `Grid` API usage (v8/v9 changed it significantly)
-- [ ] 4.D.9 Fix any `sx` prop changes, removed components, moved imports
-- [ ] 4.D.10 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.D.11 If TS/lint errors exceed ~25 files of meaningful changes, halt and ask user before continuing
-- [ ] 4.D.12 Commit: `chore(deps): upgrade mui core 7 to 9 (post-codemod fixes)`
+- [x] 4.C.3/4.C.4 Bumped `@azure/msal-browser` 4.x → 5.x, `@azure/msal-react` 3.x → 5.x
+- [x] 4.C.6 Removed `navigateToLoginRequestUrl` from `BrowserAuthOptions` (v5 handles return-to-original-page internally) and `storeAuthStateInCookie` from `CacheOptions` (IE 11 legacy). Both were at defaults — runtime no-op.
+- [x] 4.C.11 Manual smoke test done on POC: popup login + active account selection + authenticated API call OK against dev tenant. Re-verify on this branch before merge.
 
-### Phase 4.E — MUI X 8 → 9 (charts, data-grid, date-pickers)
+### Phase 4.D / 4.E — MUI core 7→9 and MUI X 8→9 — EXCLUDED
 
-- [ ] 4.E.1 Read MUI X v9 migration guides for [data-grid](https://mui.com/x/migration/migration-data-grid-v8/), charts, and date-pickers (find current URLs at https://mui.com/x/)
-- [ ] 4.E.2 Run codemods:
-  - `npx @mui/x-codemod@latest v9.0.0/data-grid/preset-safe apps/web/src`
-  - `npx @mui/x-codemod@latest v9.0.0/charts/preset-safe apps/web/src`
-  - `npx @mui/x-codemod@latest v9.0.0/pickers/preset-safe apps/web/src`
-- [ ] 4.E.3 Commit codemod output: `chore(deps): apply mui-x v9 codemods`
-- [ ] 4.E.4 Bump `@mui/x-charts` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.5 Bump `@mui/x-data-grid` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.6 Bump `@mui/x-date-pickers` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.7 Run `pnpm install`
-- [ ] 4.E.8 Audit DataGrid usages (filters, sort, pagination, column defs) and fix breaking changes
-- [ ] 4.E.9 Audit `@mui/x-charts` usages in the dashboard and fix breaking changes
-- [ ] 4.E.10 Audit `@mui/x-date-pickers` usages in `FormDateField` and consumers; verify Spanish locale still wires up via `date-fns/es`
-- [ ] 4.E.11 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.E.12 Commit: `chore(deps): upgrade mui-x 8 to 9 (charts, data-grid, date-pickers)`
+- [x] **Excluded by user decision (2026-06-10)**: the MUI major migration causes too many codebase changes for too little value. MUI core stays on v7 and MUI X on v8 (patches/minors only, already current via PR 1). POC commits `59f27f467`/`b69d2044a` intentionally NOT consolidated.
 
 ### PR 3 wrap-up
 
-- [ ] 4.F.1 Final full cycle: `pnpm install && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`
-- [ ] 4.F.2 Push and open PR titled `chore(deps): upgrade high-risk dependencies (TS6, ESLint10, MSAL5, MUI9)`
-- [ ] 4.F.3 PR body: full tabulation, links to all migration guides, list of codemods run, list of manually edited files, full smoke-test checklist:
-  - [ ] MSAL login + logout + authenticated API call
-  - [ ] Sidebar / layout renders correctly
-  - [ ] CRUD organizations
-  - [ ] CRUD inventories + evidence upload
-  - [ ] CRUD reduction projects
-  - [ ] Dashboard charts (`@mui/x-charts` v9)
-  - [ ] DataGrid filters / sort / pagination (v9)
-  - [ ] Date pickers in forms (Spanish locale, `date-fns/es`)
-  - [ ] Modals / dialogs (MUI core v9)
-  - [ ] Notistack snackbars
-  - [ ] Excel export still works
+- [x] 4.F.1 Final full cycle: install + format + lint + type-check + test (6/6 tasks, coverage 80.4%) + build all green
+- [x] 4.F.2 Pushed and opened PR `[Fullstack] Chore: upgrade high-risk dependencies (TS6, Vite8, MSAL5)`
+- [x] 4.F.3 PR body posted: bump table, migration guide links, manually edited files, smoke-test checklist (user action):
+  - [ ] MSAL login + logout + authenticated API call (msal v5)
+  - [ ] `pnpm dev:web` HMR works (vite 8 + plugin-react 6)
+  - [ ] CRUD básico (organizations / inventories) end-to-end
 - [ ] 4.F.4 Wait for human review and merge
 
 ## 5. Post-upgrade reporting
