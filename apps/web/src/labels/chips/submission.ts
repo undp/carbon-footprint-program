@@ -9,28 +9,29 @@ export const SUBMISSION_STATUS_CONFIG = {
     tooltip: "Solicitud pendiente de revisión",
     sortOrder: 0,
   },
-  [SubmissionStatus.APPROVED]: {
-    family: StatusFamily.POSITIVE,
-    label: "Aprobada",
-    tooltip: "Solicitud aprobada",
-    sortOrder: 1,
-  },
+
   [SubmissionStatus.REVIEWED]: {
     family: StatusFamily.ACTION_REQUIRED,
     label: "Con Observaciones",
     tooltip: "Solicitud devuelta con observaciones",
-    sortOrder: 2,
+    sortOrder: 1,
   },
-  [SubmissionStatus.REJECTED]: {
-    family: StatusFamily.NEGATIVE,
-    label: "Rechazada",
-    tooltip: "Solicitud rechazada",
-    sortOrder: 3,
+  [SubmissionStatus.APPROVED]: {
+    family: StatusFamily.POSITIVE,
+    label: "Aprobada",
+    tooltip: "Solicitud aprobada",
+    sortOrder: 2,
   },
   [SubmissionStatus.APPROVED_AUTOMATICALLY]: {
     family: StatusFamily.POSITIVE,
     label: "Otorgado",
     tooltip: "Reconocimiento otorgado automáticamente",
+    sortOrder: 3,
+  },
+  [SubmissionStatus.REJECTED]: {
+    family: StatusFamily.NEGATIVE,
+    label: "Rechazada",
+    tooltip: "Solicitud rechazada",
     sortOrder: 4,
   },
 } satisfies Record<SubmissionStatus, StatusConfig>;
