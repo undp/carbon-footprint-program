@@ -21,6 +21,7 @@ import {
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_TYPE_SORT_ORDER,
 } from "@/labels/chips/submissionType";
+import { toValueOptions } from "@/utils/dataGrid";
 
 interface Props {
   onView: (row: GetAllAdminRequestsResponse[number]) => void;
@@ -49,9 +50,9 @@ export const useRequestColumns = ({
         headerName: "Tipo",
         cellClassName,
         flex: 1,
+        type: "singleSelect",
+        valueOptions: toValueOptions(SUBMISSION_TYPE_LABELS),
         valueGetter: (_value, row) => row.type,
-        valueFormatter: (value: SubmissionType) =>
-          SUBMISSION_TYPE_LABELS[value].label,
         sortComparator: (v1: SubmissionType, v2: SubmissionType) =>
           SUBMISSION_TYPE_SORT_ORDER[v1] - SUBMISSION_TYPE_SORT_ORDER[v2],
         renderCell: (params) => <SubmissionTypeChip type={params.row.type} />,
@@ -69,9 +70,9 @@ export const useRequestColumns = ({
         headerName: "Estado",
         cellClassName,
         flex: 0.7,
+        type: "singleSelect",
+        valueOptions: toValueOptions(SUBMISSION_STATUS_CONFIG),
         valueGetter: (_value, row) => row.status,
-        valueFormatter: (value: RequestStatus) =>
-          SUBMISSION_STATUS_CONFIG[value].label,
         sortComparator: (v1: RequestStatus, v2: RequestStatus) =>
           SUBMISSION_STATUS_SORT_ORDER[v1] - SUBMISSION_STATUS_SORT_ORDER[v2],
         renderCell: (params) => (

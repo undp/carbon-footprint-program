@@ -5,7 +5,8 @@ import {
 } from "@repo/types";
 import { AdminOrganizationDisplayStatus } from "@/screens/Maintainer/hooks/organizationDisplayStatus";
 import { VOCAB } from "@/config/vocab";
-import { sortOrderByKey, StatusConfig, StatusFamily } from "./types";
+import { StatusConfig, StatusFamily } from "./types";
+import { sortOrderByKey } from "@/utils/dataGrid";
 
 export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
   AdminOrganizationDisplayStatus,

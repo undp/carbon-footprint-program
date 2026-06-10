@@ -1,5 +1,6 @@
 import { SubmissionStatus } from "@repo/types";
-import { sortOrderByKey, StatusConfig, StatusFamily } from "./types";
+import { StatusConfig, StatusFamily } from "./types";
+import { sortOrderByKey } from "@/utils/dataGrid";
 
 export const SUBMISSION_STATUS_CONFIG: Record<SubmissionStatus, StatusConfig> =
   {

@@ -21,6 +21,7 @@ import {
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";
+import { toValueOptions } from "@/utils/dataGrid";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
@@ -75,14 +76,14 @@ export const useOrganizationColumns = ({
       {
         field: "status",
         headerName: "Estado",
+        type: "singleSelect",
+        valueOptions: toValueOptions(ADMIN_ORGANIZATION_STATUS_CONFIG),
         valueGetter: (_value, row) =>
           getDisplayStatus(
             row.status,
             row.isAccredited,
             row.hasCarbonInventories
           ),
-        valueFormatter: (value: AdminOrganizationDisplayStatus) =>
-          ADMIN_ORGANIZATION_STATUS_CONFIG[value].label,
         sortComparator: (
           v1: AdminOrganizationDisplayStatus,
           v2: AdminOrganizationDisplayStatus

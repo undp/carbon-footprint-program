@@ -11,6 +11,7 @@ import {
   ORGANIZATION_ROLE_LABELS,
   SYSTEM_ROLE_LABELS,
 } from "@/labels/chips/role";
+import { toValueOptions } from "@/utils/dataGrid";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -109,7 +110,9 @@ export const useUsersColumns = ({
               headerName: COLUMN_HEADERS.role,
               cellClassName,
               flex: 0.9,
-              valueGetter: (_, row) => SYSTEM_ROLE_LABELS[row.role].label,
+              type: "singleSelect",
+              valueOptions: toValueOptions(SYSTEM_ROLE_LABELS),
+              valueGetter: (_, row) => row.role,
               renderCell: (params: { row: UserRow }) => (
                 <SystemRoleChip role={params.row.role} />
               ),

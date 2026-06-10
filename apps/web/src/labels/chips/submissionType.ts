@@ -1,7 +1,8 @@
 import { SubmissionType } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
-import { ChipLabel, sortOrderByKey } from "./types";
+import { ChipLabel } from "./types";
+import { sortOrderByKey } from "@/utils/dataGrid";
 
 // Sibling of RECOGNITION_TYPE_LABELS (./recognitionType): the four recognition
 // types plus organization accreditation, with sentence-case labels and
