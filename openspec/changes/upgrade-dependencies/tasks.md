@@ -116,8 +116,8 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 ### PR 2 wrap-up
 
 - [x] 3.12 Final full cycle: install + format + lint + type-check + test + build all green
-- [ ] 3.13 Push and open PR titled `[Fullstack] Chore: upgrade medium-risk dependencies (scoped majors)` (user action: push)
-- [ ] 3.14 PR body: tabulate bumps, link the migration guides consulted, list manually edited files, include checklist:
+- [x] 3.13 Pushed and opened PR 371 (`[Fullstack] Chore: upgrade medium-risk dependencies (scoped majors)`)
+- [x] 3.14 PR body posted: bump table with migration links, decisions (ky migration, vitest-report lint fix, plugin-react deferral), deviations, smoke checklist:
   - [ ] Login (MSAL flow) works end-to-end against the dev tenant
   - [ ] Authenticated API call returns 200 (jwks-rsa + ky path verified)
   - [ ] Evidence file upload works (multipart 10)
