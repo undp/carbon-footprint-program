@@ -10,7 +10,10 @@ import {
 } from "@mui/material";
 import { CloudUploadOutlined, HistoryOutlined } from "@mui/icons-material";
 import { StatusChip } from "@/components/StatusChip";
-import { BADGE_STATUS_CONFIG } from "@/labels/chips/badge";
+import {
+  BADGE_STATUS_CONFIG,
+  BadgeActivationStatus,
+} from "@/labels/chips/badge";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
@@ -175,9 +178,11 @@ export const BadgeCard: FC<BadgeCardProps> = ({
               {BADGE_TYPE_LABELS[type]}
               <StatusChip
                 config={
-                  activeBadge
-                    ? BADGE_STATUS_CONFIG.ACTIVE
-                    : BADGE_STATUS_CONFIG.INACTIVE
+                  BADGE_STATUS_CONFIG[
+                    activeBadge
+                      ? BadgeActivationStatus.ACTIVE
+                      : BadgeActivationStatus.INACTIVE
+                  ]
                 }
               />
             </Typography>

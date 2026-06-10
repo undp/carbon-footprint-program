@@ -6,7 +6,11 @@ import {
 } from "@repo/types";
 import { StatusConfig, StatusFamily } from "./types";
 
-export type ProfilingStatusKey = "ACTIVE" | "DELETED" | "NEW";
+export enum ProfilingStatusKey {
+  ACTIVE = "ACTIVE",
+  DELETED = "DELETED",
+  NEW = "NEW",
+}
 
 /** Any profiling-domain status — the four enums share the same value set. */
 export type ProfilingDomainStatus =
@@ -22,22 +26,25 @@ export type ProfilingDomainStatus =
  */
 export const resolveProfilingStatusKey = (
   status: ProfilingDomainStatus | null | undefined
-): ProfilingStatusKey =>
-  status === "ACTIVE" ? "ACTIVE" : status === "DELETED" ? "DELETED" : "NEW";
+): ProfilingStatusKey => {
+  if (status === "ACTIVE") return ProfilingStatusKey.ACTIVE;
+  if (status === "DELETED") return ProfilingStatusKey.DELETED;
+  return ProfilingStatusKey.NEW;
+};
 
 export const PROFILING_STATUS_CONFIG: Record<ProfilingStatusKey, StatusConfig> =
   {
-    ACTIVE: {
+    [ProfilingStatusKey.ACTIVE]: {
       family: StatusFamily.POSITIVE,
       label: "Activo",
       tooltip: "Registro activo y disponible",
     },
-    DELETED: {
+    [ProfilingStatusKey.DELETED]: {
       family: StatusFamily.NEUTRAL,
       label: "Eliminado",
       tooltip: "Registro eliminado",
     },
-    NEW: {
+    [ProfilingStatusKey.NEW]: {
       family: StatusFamily.IN_REVIEW,
       label: "Nuevo",
       tooltip: "Registro nuevo (sin guardar)",

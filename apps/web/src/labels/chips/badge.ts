@@ -1,15 +1,18 @@
 import { StatusConfig, StatusFamily } from "./types";
 
-export type BadgeActivationStatus = "ACTIVE" | "INACTIVE";
+export enum BadgeActivationStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
 
 export const BADGE_STATUS_CONFIG: Record<BadgeActivationStatus, StatusConfig> =
   {
-    ACTIVE: {
+    [BadgeActivationStatus.ACTIVE]: {
       family: StatusFamily.POSITIVE,
       label: "Activo",
       tooltip: "Sello activo y disponible",
     },
-    INACTIVE: {
+    [BadgeActivationStatus.INACTIVE]: {
       family: StatusFamily.NEUTRAL,
       label: "Inactivo",
       tooltip: "Sello inactivo",
