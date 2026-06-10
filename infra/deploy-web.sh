@@ -245,7 +245,7 @@ export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 # A manual VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with
 # bicep's allowedOrigin, the browser would hit CORS errors.
 if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
-  log "${YELLOW}   ⚠ Ignoring VITE_FRONT_BASE_URL from environment (\$VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}); deriving from FRONTEND_CUSTOM_DOMAIN / stack instead.${NC}"
+  log "${YELLOW}   ⚠ Ignoring VITE_FRONT_BASE_URL from environment (was: ${VITE_FRONT_BASE_URL}); deriving from FRONTEND_CUSTOM_DOMAIN / stack instead.${NC}"
   unset VITE_FRONT_BASE_URL
 fi
 
