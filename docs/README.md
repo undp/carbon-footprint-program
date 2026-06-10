@@ -105,10 +105,11 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ## Reference
 
-| Document                                    | Description                                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [Glossary](./glossary.md)                   | Domain terminology reference (carbon accounting, platform workflow, technical terms)      |
-| [Governance and Licensing](./governance.md) | Digital public good status, license, contribution model, and recommended root-level files |
+| Document                                         | Description                                                                                                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Glossary](./glossary.md)                        | Domain terminology reference (carbon accounting, platform workflow, technical terms)                                                       |
+| [Governance and Licensing](./governance.md)      | Digital public good status, license, contribution model, and recommended root-level files                                                  |
+| [DPG Compliance Assessment](./dpg-assessment.md) | Assessment of the project against the Digital Public Goods Alliance (DPGA) Standard, with compliance matrix, gaps, and remediation roadmap |
 
 ## Other
 
