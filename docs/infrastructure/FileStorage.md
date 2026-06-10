@@ -31,7 +31,7 @@ The API persists every uploaded file (badge images, carbon-inventory line files,
 The `StorageAdapter` interface (`apps/api/src/services/storage/types.ts`) defines the contract every adapter must satisfy:
 
 - `generateReadUrl`, `createReadUrlSigner`, `generateWriteUrl`
-- `headObject`, `streamObject`, `deleteObject`, `copyObject`, `moveObject`
+- `headObject`, `streamObject`, `putObject`, `deleteObject`, `copyObject`
 - `healthCheck`
 
 Adapters live in `apps/api/src/services/storage/adapters/`.
@@ -163,7 +163,7 @@ CI runs the API test suite once per provider via `strategy.matrix.storage_provid
 
 ## Operational notes
 
-- **Presigned URL expiry**: defaults to 15 minutes (`SAS_URL_EXPIRY_MINUTES` in `apps/api/src/config/constants.ts`). Tune there if your country deployment needs a different default.
+- **Presigned URL expiry**: defaults to 15 minutes (`PRESIGNED_URL_EXPIRY_MINUTES` in `apps/api/src/config/constants.ts`). Tune there if your country deployment needs a different default.
 - **Copy semantics**: `storage.copyObject` returns only after the copy is complete in the backend. Azure polls via `beginCopyFromURL`; S3 returns synchronously from `CopyObjectCommand`. Callers can rely on the awaited promise.
 - **Deletes are idempotent**: `storage.deleteObject` succeeds when the path does not exist (no thrown errors, no 404 handling needed at callsites).
 - **Path-style URLs**: required by MinIO out of the box. Override `MINIO_FORCE_PATH_STYLE=false` only if your S3-compatible store explicitly needs virtual-hosted-style URLs.
