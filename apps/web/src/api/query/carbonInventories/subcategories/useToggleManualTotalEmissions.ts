@@ -15,13 +15,13 @@ export const useToggleManualTotalEmissions = (
   const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<void, Error, ToggleManualTotalEmissionsParams>({
-    mutationFn: ({ activated }) =>
-      apiClient
-        .post(
-          `carbon-inventories/${inventoryId}/subcategories/${subcategoryId}/manual-total-emissions`,
-          { json: { activated }, headers }
-        )
-        .json(),
+    // The endpoint responds 204 No Content; ky v2 .json() throws on empty bodies
+    mutationFn: async ({ activated }) => {
+      await apiClient.post(
+        `carbon-inventories/${inventoryId}/subcategories/${subcategoryId}/manual-total-emissions`,
+        { json: { activated }, headers }
+      );
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({

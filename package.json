@@ -27,7 +27,7 @@
     "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
   },
   "devDependencies": {
-    "cpy-cli": "^5.0.0",
+    "cpy-cli": "^7.0.0",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "rimraf": "^6.0.1",
