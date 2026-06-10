@@ -487,7 +487,7 @@ output authentication object = enableAzureAuth ? {
 }
 
 
-// Legacy outputs (for backward compatibility)
+// Flat outputs (consumed by the deploy scripts via `az stack group show`)
 @description('Static Web App default hostname')
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
 
