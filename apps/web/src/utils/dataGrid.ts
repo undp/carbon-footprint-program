@@ -13,11 +13,13 @@ export const toValueOptions = <K extends string>(
   );
 
 // Collapses a config into a key → sortOrder map for `sortComparator`.
+// `sortOrder` is required on every entry: declare the config with `satisfies`
+// so a key added without it fails to compile instead of silently tying.
 export const sortOrderByKey = <K extends string>(
-  config: Record<K, { sortOrder?: number }>
+  config: Record<K, { sortOrder: number }>
 ): Record<K, number> =>
   Object.fromEntries(
-    (Object.entries(config) as [K, { sortOrder?: number }][]).map(
-      ([key, value]) => [key, value.sortOrder ?? 0]
+    (Object.entries(config) as [K, { sortOrder: number }][]).map(
+      ([key, value]) => [key, value.sortOrder]
     )
   ) as Record<K, number>;

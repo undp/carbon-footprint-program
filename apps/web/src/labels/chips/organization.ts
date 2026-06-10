@@ -8,10 +8,7 @@ import { VOCAB } from "@/config/vocab";
 import { StatusConfig, StatusFamily } from "./types";
 import { sortOrderByKey } from "@/utils/dataGrid";
 
-export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
-  AdminOrganizationDisplayStatus,
-  StatusConfig
-> = {
+export const ADMIN_ORGANIZATION_STATUS_CONFIG = {
   [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: {
     family: StatusFamily.POSITIVE,
     label: "con Mediciones",
@@ -36,7 +33,7 @@ export const ADMIN_ORGANIZATION_STATUS_CONFIG: Record<
     tooltip: `${capitalize(VOCAB.organization.noun.singular)} bloqueada`,
     sortOrder: 3,
   },
-};
+} satisfies Record<AdminOrganizationDisplayStatus, StatusConfig>;
 
 export const ADMIN_ORGANIZATION_STATUS_SORT_ORDER = sortOrderByKey(
   ADMIN_ORGANIZATION_STATUS_CONFIG

@@ -9,7 +9,7 @@ import { sortOrderByKey } from "@/utils/dataGrid";
 // "Solicitud de…" tooltips for the SubmissionTypeChip. Wording intentionally
 // differs from RECOGNITION_TYPE_LABELS (different surface); keep the type set in
 // sync if a recognition type is added or removed.
-export const SUBMISSION_TYPE_LABELS: Record<SubmissionType, ChipLabel> = {
+export const SUBMISSION_TYPE_LABELS = {
   [SubmissionType.ORGANIZATION_ACCREDITATION]: {
     label: `${capitalize(VOCAB.inscription.noun.singular)} ${VOCAB.organization.noun.singular}`,
     tooltip: `Solicitud de ${VOCAB.inscription.noun.singular} de ${VOCAB.organization.noun.singular}`,
@@ -35,7 +35,7 @@ export const SUBMISSION_TYPE_LABELS: Record<SubmissionType, ChipLabel> = {
     tooltip: "Solicitud de reconocimiento de neutralización de emisiones",
     sortOrder: 4,
   },
-};
+} satisfies Record<SubmissionType, ChipLabel>;
 
 export const SUBMISSION_TYPE_SORT_ORDER = sortOrderByKey(
   SUBMISSION_TYPE_LABELS
