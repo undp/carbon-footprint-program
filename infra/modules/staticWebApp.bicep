@@ -91,9 +91,6 @@ output name string = staticWebApp.name
 @description('Default hostname of the Static Web App')
 output defaultHostname string = staticWebApp.properties.defaultHostname
 
-@description('Custom domain bound to the Static Web App (empty when not configured)')
-output customDomain string = customDomainName
-
 @description('Deployment token for CI/CD (sensitive)')
 @secure()
 output deploymentToken string = staticWebApp.listSecrets().properties.apiKey
