@@ -61,8 +61,8 @@ export const updateOrganizationService = async (
   organizationId: string,
   userId: string,
   body: Omit<UpdateOrganizationBody, "fileUuids">,
-  fileUuids?: string[],
-  storage?: StorageAdapter
+  storage: StorageAdapter,
+  fileUuids?: string[]
 ): Promise<UpdateOrganizationResponse> => {
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -121,15 +121,13 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      if (storage) {
-        const { sourceCleanup } = await linkFilesToSubmission(
-          tx,
-          submission.id,
-          fileUuids,
-          storage
-        );
-        await cleanupSourceObjects(sourceCleanup);
-      }
+      const { sourceCleanup } = await linkFilesToSubmission(
+        tx,
+        submission.id,
+        fileUuids,
+        storage
+      );
+      await cleanupSourceObjects(sourceCleanup);
       return { id: organization.id.toString() };
     }
 

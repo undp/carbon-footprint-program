@@ -31,8 +31,8 @@ export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   user: User | null,
-  fileUuids?: string[],
-  storage?: StorageAdapter
+  storage: StorageAdapter,
+  fileUuids?: string[]
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
@@ -149,16 +149,14 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    if (storage) {
-      const fileMetadata = await linkFilesToSubmission(
-        tx,
-        submission.id,
-        fileUuids,
-        storage
-      );
-      await cleanupSourceObjects(fileMetadata.sourceCleanup);
-    }
+    // 4. Create SubmissionFile records (object operations happen after transaction commits)
+    const fileMetadata = await linkFilesToSubmission(
+      tx,
+      submission.id,
+      fileUuids,
+      storage
+    );
+    await cleanupSourceObjects(fileMetadata.sourceCleanup);
 
     return { submissionId: submission.id.toString() };
   });

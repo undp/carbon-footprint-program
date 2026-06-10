@@ -10,10 +10,10 @@ interface WithId {
 /**
  * Generic handler factory for submission-style actions (e.g. request
  * verification, request accreditation) that optionally accept pre-uploaded
- * file UUIDs and may require blob storage access.
+ * file UUIDs and may require object storage access.
  *
  * The supplied `serviceFn` is called with the resolved prisma client,
- * resource id, current user, fileUuids, and the storage adapter.
+ * resource id, current user, storage adapter, and fileUuids.
  */
 export const createSubmissionRequestHandler = <
   TParams extends WithId,
@@ -24,8 +24,8 @@ export const createSubmissionRequestHandler = <
     prisma: PrismaClient,
     id: string,
     user: User | null,
-    fileUuids?: string[],
-    storage?: StorageAdapter
+    storage: StorageAdapter,
+    fileUuids?: string[]
   ) => Promise<TResponse>,
   resourceName: string
 ) => {
@@ -46,8 +46,8 @@ export const createSubmissionRequestHandler = <
       request.server.prisma,
       id,
       request.currentUser ?? null,
-      fileUuids,
-      request.server.storage
+      request.server.storage,
+      fileUuids
     );
 
     log.info(`${resourceName} ${id} action completed successfully`);

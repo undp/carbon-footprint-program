@@ -24,8 +24,8 @@ export const updateOrganizationHandler = async (
     id,
     userId,
     bodyData,
-    fileUuids,
-    request.server.storage
+    request.server.storage,
+    fileUuids
   );
 
   log.info({ organizationId: id }, "Organization updated successfully");

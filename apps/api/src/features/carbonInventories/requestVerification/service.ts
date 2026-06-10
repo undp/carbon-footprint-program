@@ -26,8 +26,8 @@ export const requestVerificationService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string,
   user: User | null,
-  fileUuids?: string[],
-  storage?: StorageAdapter
+  storage: StorageAdapter,
+  fileUuids?: string[]
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
@@ -70,7 +70,7 @@ export const requestVerificationService = async (
       createdById
     );
 
-    if (fileUuids?.length && storage) {
+    if (fileUuids?.length) {
       const { sourceCleanup } = await linkFilesToSubmission(
         tx,
         submissionId,
