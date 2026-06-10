@@ -423,8 +423,6 @@ output frontend object = {
     hostname: staticWebApp.outputs.defaultHostname
     url: 'https://${staticWebApp.outputs.defaultHostname}'
   }
-  customDomain: frontendCustomDomain
-  customDomainUrl: frontendCustomDomain != '' ? 'https://${frontendCustomDomain}' : ''
   frontDoor: enableFrontDoor ? {
     endpoint: frontDoor.?outputs.endpointHostname ?? ''
     url: 'https://${frontDoor.?outputs.endpointHostname ?? ''}'
