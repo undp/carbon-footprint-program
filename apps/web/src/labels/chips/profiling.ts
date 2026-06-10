@@ -1,6 +1,19 @@
+import {
+  CountryOrganizationSizeStatus,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+  OrganizationMainActivityStatus,
+} from "@repo/types";
 import { StatusConfig, StatusFamily } from "./types";
 
 export type ProfilingStatusKey = "ACTIVE" | "DELETED" | "NEW";
+
+/** Any profiling-domain status — the four enums share the same value set. */
+export type ProfilingDomainStatus =
+  | CountrySectorStatus
+  | CountrySubsectorStatus
+  | OrganizationMainActivityStatus
+  | CountryOrganizationSizeStatus;
 
 /**
  * Maps any profiling-domain status (sector / subsector / main activity /
@@ -8,7 +21,7 @@ export type ProfilingStatusKey = "ACTIVE" | "DELETED" | "NEW";
  * Rows without a persisted status (new/unsaved) fall back to NEW.
  */
 export const resolveProfilingStatusKey = (
-  status: string | null | undefined
+  status: ProfilingDomainStatus | null | undefined
 ): ProfilingStatusKey =>
   status === "ACTIVE" ? "ACTIVE" : status === "DELETED" ? "DELETED" : "NEW";
 

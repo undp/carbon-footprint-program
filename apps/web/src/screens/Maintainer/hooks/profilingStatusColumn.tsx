@@ -3,6 +3,7 @@ import { StatusChip } from "@/components/StatusChip";
 import {
   PROFILING_STATUS_CONFIG,
   resolveProfilingStatusKey,
+  type ProfilingDomainStatus,
 } from "@/labels/chips/profiling";
 import { toValueOptions } from "@/utils/dataGrid";
 
@@ -11,7 +12,9 @@ import { toValueOptions } from "@/utils/dataGrid";
  * main activity, organization size). Pass `overrides` for grid-specific flags
  * such as disabling sort/filter.
  */
-export const profilingStatusColumn = <T extends { status: string | null }>(
+export const profilingStatusColumn = <
+  T extends { status: ProfilingDomainStatus | null },
+>(
   overrides?: Partial<GridColDef<T>>
 ): GridColDef<T> => ({
   field: "status",
