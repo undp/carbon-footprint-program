@@ -26,6 +26,7 @@ packages/database/generated/**
 .envrc
 # docker-compose env
 .env.dockercompose
+.env.prod.dockercompose
 
 # Logs
 logs
