@@ -18,7 +18,6 @@ export * from "./badges/requestBadgeUpload/schemas.js";
 export * from "./badges/requestBadgeUpload/types.js";
 export * from "./badges/confirmBadgeUpload/schemas.js";
 export * from "./badges/confirmBadgeUpload/types.js";
-export * from "./legal/baseSchemas.js";
 export * from "./legal/requestLegalUpload/schemas.js";
 export * from "./legal/requestLegalUpload/types.js";
 export * from "./legal/confirmLegalUpload/schemas.js";

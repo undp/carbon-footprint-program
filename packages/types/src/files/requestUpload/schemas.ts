@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { RouteFileTypeSchema } from "../../baseSchemas/file.js";
+import { FilenameSchema } from "../../baseSchemas/filename.js";
 
 export const RequestUploadBodySchema = z.object({
-  originalName: z
+  originalName: FilenameSchema.describe("The original file name"),
+  fileType: RouteFileTypeSchema.describe("The type of file being uploaded"),
+  sizeBytes: z
+    .number()
+    .int()
+    .positive()
+    .describe("The file size in bytes declared by the client"),
+  mimeType: z
     .string()
     .min(1)
     .max(255)
-    .trim()
-    .regex(/^[ -~]+$/, "File name must only contain printable ASCII characters")
-    .refine(
-      (name) => !/[/\\:]/.test(name),
-      "File name must not contain path separators or colons"
-    )
-    .describe("The original file name"),
-  fileType: RouteFileTypeSchema.describe("The type of file being uploaded"),
+    .describe("The MIME type declared by the client"),
 });
 
 export const RequestUploadResponseSchema = z.object({

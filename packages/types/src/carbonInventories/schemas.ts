@@ -1,20 +1,10 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
+import { FilenameSchema } from "../baseSchemas/filename.js";
 
-export const LineFileOriginalNameSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(255)
-  .refine(
-    (name) => !/\p{Cc}/u.test(name),
-    "File name must not contain control characters"
-  )
-  .refine(
-    (name) => !/[/\\]/.test(name),
-    "File name must not contain path separators"
-  )
-  .describe("The original file name");
+export const LineFileOriginalNameSchema = FilenameSchema.describe(
+  "The original file name"
+);
 
 export const LineFileSummarySchema = z
   .object({
