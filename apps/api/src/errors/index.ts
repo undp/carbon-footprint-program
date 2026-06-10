@@ -1,4 +1,5 @@
 export * from "./DataIntegrityError.js";
+export * from "./FileUploadValidationError.js";
 export * from "./ApplicationConfigError.js";
 export * from "./EmptyResourceError.js";
 export * from "./ResourceNotFoundError.js";

@@ -1,11 +1,14 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
+import type { FastifyBaseLogger } from "fastify";
 import {
   type ConfirmUploadBody,
   type ConfirmUploadResponse,
 } from "@repo/types";
+import { getFileUploadLimits } from "@repo/constants";
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "../helpers/persistFileRecord.js";
+import { validateFileUploadDeclaration } from "../helpers/validateFileUploadDeclaration.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
@@ -13,7 +16,8 @@ type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
 export const confirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
-  input: ConfirmUploadInput
+  input: ConfirmUploadInput,
+  log?: FastifyBaseLogger
 ): Promise<ConfirmUploadResponse> => {
   const { uuid, originalName, fileType, userId } = input;
 
@@ -29,6 +33,27 @@ export const confirmUploadService = async (
     blobPath,
     uuid
   );
+
+  const limits = getFileUploadLimits(fileType);
+  try {
+    validateFileUploadDeclaration(
+      { fileType, originalName, sizeBytes, mimeType },
+      limits
+    );
+  } catch (validationError) {
+    // Best-effort cleanup. A storage failure here must not mask the 400
+    // validation error the client deserves; any orphan left behind is handled
+    // by the future fase-2 sweep.
+    try {
+      await blobStorage.getBlockBlobClient(blobPath).deleteIfExists();
+    } catch (cleanupError) {
+      log?.warn(
+        { err: cleanupError, blobPath, uuid },
+        "Failed to delete orphaned blob after validation failure"
+      );
+    }
+    throw validationError;
+  }
 
   try {
     await prisma.file.create({

@@ -1,14 +1,11 @@
 import { type BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
 import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { ConfirmBadgeUploadResponse, BadgeDTO } from "@repo/types";
+import { FILE_UPLOAD_POLICIES } from "@repo/constants";
 import {
   checkFileRecordExists,
   type PersistFileRecordParams,
 } from "../helpers/persistFileRecord.js";
-import {
-  BADGE_ALLOWED_MIME_TYPES,
-  BADGE_UPLOAD_MAX_BYTES,
-} from "@/config/constants.js";
 import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { BadgeUploadValidationError } from "./errors.js";
 
@@ -26,15 +23,16 @@ export async function persistBadgeFileRecord(
     params.uuid
   );
 
-  if (!(BADGE_ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType)) {
+  const { allowedMimeTypes, maxBytes } = FILE_UPLOAD_POLICIES.BADGE;
+  if (!allowedMimeTypes.includes(mimeType)) {
     throw new BadgeUploadValidationError(
-      `Unsupported file type "${mimeType}". Allowed types: ${BADGE_ALLOWED_MIME_TYPES.join(", ")}`
+      `Unsupported file type "${mimeType}". Allowed types: ${allowedMimeTypes.join(", ")}`
     );
   }
 
-  if (sizeBytes > BADGE_UPLOAD_MAX_BYTES) {
+  if (maxBytes !== undefined && sizeBytes > maxBytes) {
     throw new BadgeUploadValidationError(
-      `File size ${sizeBytes} bytes exceeds the maximum allowed size of ${BADGE_UPLOAD_MAX_BYTES} bytes`
+      `File size ${sizeBytes} bytes exceeds the maximum allowed size of ${maxBytes} bytes`
     );
   }
 
