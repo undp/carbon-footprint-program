@@ -113,6 +113,11 @@ APP_SETTINGS=(
 if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   ALLOWED_ORIGIN_VALUE="https://${FRONTEND_CUSTOM_DOMAIN}"
   log "Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: $ALLOWED_ORIGIN_VALUE"
+  STACK_ALLOWED_ORIGIN=$(stack_output allowedOrigin)
+  if [ "$STACK_ALLOWED_ORIGIN" != "$ALLOWED_ORIGIN_VALUE" ]; then
+    log "Warning: stack output allowedOrigin (${STACK_ALLOWED_ORIGIN:-<missing>}) does not match FRONTEND_CUSTOM_DOMAIN."
+    log "         App Service platform CORS and Storage CORS still authorize the old origin — run ./deploy.sh to align them."
+  fi
 else
   ALLOWED_ORIGIN_VALUE=$(stack_output allowedOrigin)
   if [ -n "$ALLOWED_ORIGIN_VALUE" ]; then

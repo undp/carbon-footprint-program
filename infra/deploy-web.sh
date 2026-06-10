@@ -255,6 +255,11 @@ fi
 if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   export VITE_FRONT_BASE_URL="https://${FRONTEND_CUSTOM_DOMAIN}"
   log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from FRONTEND_CUSTOM_DOMAIN env: ${VITE_FRONT_BASE_URL}${NC}"
+  STACK_ALLOWED_ORIGIN=$(stack_output allowedOrigin)
+  if [ "$STACK_ALLOWED_ORIGIN" != "$VITE_FRONT_BASE_URL" ]; then
+    log "${YELLOW}   ⚠ Stack output allowedOrigin (${STACK_ALLOWED_ORIGIN:-<missing>}) does not match FRONTEND_CUSTOM_DOMAIN.${NC}"
+    log "${YELLOW}     App Service CORS, Fastify ALLOWED_ORIGIN and Storage CORS still authorize the old origin — run ./deploy.sh to align them.${NC}"
+  fi
 else
   ALLOWED_ORIGIN_OUTPUT=$(stack_output allowedOrigin)
   if [ -n "$ALLOWED_ORIGIN_OUTPUT" ]; then
