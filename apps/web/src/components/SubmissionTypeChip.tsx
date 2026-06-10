@@ -1,31 +1,22 @@
 import { FC } from "react";
-import { alpha, Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material";
+import { SubmissionType } from "@repo/types";
+import { TypeChip } from "./TypeChip";
+import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
 
 interface SubmissionTypeChipProps {
-  label: string;
-  color: string;
+  type: SubmissionType;
 }
 
-export const SubmissionTypeChip: FC<SubmissionTypeChipProps> = ({
-  label,
-  color,
-}) => {
+export const SubmissionTypeChip: FC<SubmissionTypeChipProps> = ({ type }) => {
+  const theme = useTheme();
+  const { label, tooltip } = SUBMISSION_TYPE_LABELS[type];
+
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        width: "fit-content",
-        px: 1.5,
-        height: "24px",
-        borderRadius: "6px",
-        backgroundColor: alpha(color, 0.2),
-        color: color,
-      }}
-    >
-      <Typography variant="caption" fontWeight="fontWeightMedium">
-        {label}
-      </Typography>
-    </Box>
+    <TypeChip
+      color={theme.palette.submissionTypeColors[type]}
+      label={label}
+      tooltip={tooltip}
+    />
   );
 };

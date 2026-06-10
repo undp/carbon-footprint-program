@@ -1,4 +1,3 @@
-import { SystemRole } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
 import capitalize from "lodash-es/capitalize";
 
@@ -18,12 +17,6 @@ export const KPI_LABELS = {
   actividad: "Actividad",
   administradores: "Administradores",
   superAdministradores: "Super Administradores",
-};
-
-export const ROLE_LABELS: Record<SystemRole, string> = {
-  [SystemRole.USER]: "Usuario",
-  [SystemRole.ADMIN]: "Admin",
-  [SystemRole.SUPERADMIN]: "Superadmin",
 };
 
 export const COLUMN_HEADERS = {

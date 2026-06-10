@@ -15,7 +15,8 @@ import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { useUpdateUserRole } from "@/api/query/users";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { ROLE_LABELS, DIALOG_COPY } from "../constants";
+import { DIALOG_COPY } from "../constants";
+import { SYSTEM_ROLE_LABELS } from "@/labels/chips/role";
 
 interface PromoteUserDialogProps {
   open: boolean;
@@ -97,7 +98,7 @@ export const PromoteUserDialog: FC<PromoteUserDialogProps> = ({
           >
             {PROMOTABLE_ROLES.map((role) => (
               <MenuItem key={role} value={role}>
-                {ROLE_LABELS[role]}
+                {SYSTEM_ROLE_LABELS[role].label}
               </MenuItem>
             ))}
           </TextField>

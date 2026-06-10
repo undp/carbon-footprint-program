@@ -4,7 +4,8 @@ import { enqueueSnackbar } from "notistack";
 import type { IFuseOptions } from "fuse.js";
 import { MaintainerDataGrid } from "./MaintainerDataGrid";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
-import { useOrganizationDisplayStatus } from "../hooks/useOrganizationDisplayStatus";
+import { ADMIN_ORGANIZATION_STATUS_CONFIG } from "@/labels/chips/organization";
+import { getDisplayStatus } from "../utils/organizationDisplayStatus";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
 import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";
 import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrganization";
@@ -48,7 +49,6 @@ type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
 export const OrganizationScreenTable: FC = () => {
   const { data, isLoading } = useAdminOrganizations();
-  const { getDisplayStatus, STATUS_LABEL } = useOrganizationDisplayStatus();
   const blockMutation = useBlockOrganization();
   const unblockMutation = useUnblockOrganization();
   const [blockOrgId, setBlockOrgId] = useState<string | null>(null);
@@ -152,18 +152,18 @@ export const OrganizationScreenTable: FC = () => {
         {
           name: "status",
           getFn: (row) =>
-            STATUS_LABEL[
+            ADMIN_ORGANIZATION_STATUS_CONFIG[
               getDisplayStatus(
                 row.status,
                 row.isAccredited,
                 row.hasCarbonInventories
               )
-            ],
+            ].label,
         },
       ],
       threshold: 0.3,
     }),
-    [STATUS_LABEL, getDisplayStatus]
+    []
   );
 
   if (isLoading) {

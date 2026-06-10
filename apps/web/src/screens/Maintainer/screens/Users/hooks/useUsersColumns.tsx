@@ -4,15 +4,14 @@ import { Box, Chip, Stack, Typography } from "@mui/material";
 import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
-import { UserRoleChip } from "../components/UserRoleChip";
+import { SystemRoleChip } from "@/components/SystemRoleChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
+import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
 import {
-  ACTION_LABELS,
-  COLUMN_HEADERS,
-  ROLE_LABELS,
-  type TabKey,
-} from "../constants";
-import { ORGANIZATION_ROLE_LABELS } from "@/labels";
+  ORGANIZATION_ROLE_LABELS,
+  SYSTEM_ROLE_LABELS,
+} from "@/labels/chips/role";
+import { toValueOptions } from "@/utils/dataGrid";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -111,9 +110,11 @@ export const useUsersColumns = ({
               headerName: COLUMN_HEADERS.role,
               cellClassName,
               flex: 0.9,
-              valueGetter: (_, row) => ROLE_LABELS[row.role],
+              type: "singleSelect",
+              valueOptions: toValueOptions(SYSTEM_ROLE_LABELS),
+              valueGetter: (_, row) => row.role,
               renderCell: (params: { row: UserRow }) => (
-                <UserRoleChip role={params.row.role} />
+                <SystemRoleChip role={params.row.role} />
               ),
             } satisfies GridColDef<UserRow>,
           ]

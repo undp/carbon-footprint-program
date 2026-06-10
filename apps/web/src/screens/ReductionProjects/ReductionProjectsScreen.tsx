@@ -21,7 +21,8 @@ import {
 } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
-import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import {
   useReductionProjects,
   useReductionProjectsMinimal,
@@ -242,7 +243,11 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number],
               ReductionProjectDisplayStatus
             >
-          ) => <ReductionProjectStatusChip status={params.value!} />,
+          ) => (
+            <StatusChip
+              config={REDUCTION_PROJECT_STATUS_CONFIG[params.value!]}
+            />
+          ),
         },
         {
           field: "actions",

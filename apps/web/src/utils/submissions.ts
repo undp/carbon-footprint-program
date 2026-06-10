@@ -1,30 +1,10 @@
-import { capitalize, type Theme } from "@mui/material";
+import { capitalize } from "@mui/material";
 import {
   SubmissionEventType,
   SubmissionHistoryEntry,
-  SubmissionStatus,
   SubmissionType,
 } from "@repo/types";
 import { VOCAB } from "../config/vocab";
-
-export const REQUEST_STATUS_LABEL: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.PENDING]: "Pendiente",
-  [SubmissionStatus.APPROVED]: "Aprobada",
-  [SubmissionStatus.REVIEWED]: "Con Observaciones",
-  [SubmissionStatus.REJECTED]: "Rechazada",
-  [SubmissionStatus.APPROVED_AUTOMATICALLY]: "Otorgado",
-};
-
-export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
-  [SubmissionType.ORGANIZATION_ACCREDITATION]: `${capitalize(VOCAB.inscription.noun.singular)} ${VOCAB.organization.noun.singular}`,
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Reconocimiento de medición",
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
-    "Reconocimiento de verificación",
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
-    "Reconocimiento de reducción",
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
-    "Reconocimiento de neutralización",
-};
 
 export const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
   [SubmissionEventType.POSTULATION]: "POSTULACIÓN",
@@ -76,18 +56,4 @@ const REVIEW_TITLE_MAP: Partial<Record<SubmissionType, string>> = {
 export const getReviewTitle = (type?: SubmissionType): string => {
   if (!type) return "Solicitud";
   return `Revisión de la postulación ${REVIEW_TITLE_MAP[type] ?? ""}`.trim();
-};
-
-export const getRequestStatusColor = (
-  status: SubmissionStatus,
-  theme: Theme
-): string => {
-  const map: Record<SubmissionStatus, string> = {
-    [SubmissionStatus.PENDING]: theme.palette.info.dark,
-    [SubmissionStatus.APPROVED]: theme.palette.success.light,
-    [SubmissionStatus.REVIEWED]: theme.palette.warning.light,
-    [SubmissionStatus.REJECTED]: theme.palette.error.light,
-    [SubmissionStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
-  };
-  return map[status];
 };

@@ -9,6 +9,7 @@ import {
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
+import { SUBMISSION_TYPE_SORT_ORDER } from "@/labels/chips/submissionType";
 import { formatter } from "@/utils/formatting";
 
 const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
@@ -38,6 +39,10 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     cellClassName: "content-center",
     valueFormatter: (value: CarbonInventoryRecognitionsType) =>
       RECOGNITION_TYPE_LABEL[value],
+    sortComparator: (
+      v1: CarbonInventoryRecognitionsType,
+      v2: CarbonInventoryRecognitionsType
+    ) => SUBMISSION_TYPE_SORT_ORDER[v1] - SUBMISSION_TYPE_SORT_ORDER[v2],
   },
   {
     field: "totalEmissions",

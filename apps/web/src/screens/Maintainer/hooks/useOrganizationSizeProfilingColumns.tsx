@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { CountryOrganizationSizeStatus } from "@repo/types";
 import { EditableTextCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
+import { profilingStatusColumn } from "../utils/profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const OrganizationSizeRowSchema = z.object({
@@ -145,28 +145,11 @@ export const useOrganizationSizeProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
+      profilingStatusColumn<OrganizationSizeFormRow>({
         disableColumnMenu: true,
         sortable: false,
         filterable: false,
-        valueGetter: (_value, row: OrganizationSizeFormRow) =>
-          row.status === CountryOrganizationSizeStatus.ACTIVE
-            ? "Activo"
-            : row.status === CountryOrganizationSizeStatus.DELETED
-              ? "Eliminado"
-              : "Nuevo",
-        renderCell: ({ row }: GridRenderCellParams<OrganizationSizeFormRow>) =>
-          row.status === CountryOrganizationSizeStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : row.status === CountryOrganizationSizeStatus.DELETED ? (
-            <Chip label="Eliminado" size="small" color="default" />
-          ) : (
-            <Chip label="Nuevo" size="small" color="info" />
-          ),
-      },
+      }),
       {
         field: "actions",
         headerName: "Acciones",

@@ -9,20 +9,35 @@ import {
   SubmissionType as RequestType,
   CarbonInventoryRecognitionsType,
 } from "@repo/types";
-
-const requestTypeColors: Record<RequestType, string> = {
-  [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
-  [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
-  [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
-  [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#B8860B",
-  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
-};
+import { StatusFamily } from "@/labels/chips/types";
 
 const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
   [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
+};
+
+// Submission-type chips reuse the recognition hues for the four recognition
+// types and add a pastel blue for organization accreditation (no recognition
+// equivalent), keeping the two chip families color-consistent by construction.
+const submissionTypeColors: Record<RequestType, string> = {
+  ...recognitionTypeColors,
+  [RequestType.ORGANIZATION_ACCREDITATION]: "#89B8F8",
+};
+
+const SUCCESS_MAIN = "#2E7D32";
+const INFO_MAIN = "#0288D1";
+const WARNING_MAIN = "#ED6C02";
+const ERROR_MAIN = "#D32F2F";
+const GREY_500 = "#9E9E9E";
+
+const statusFamilyColors: Record<StatusFamily, string> = {
+  [StatusFamily.POSITIVE]: SUCCESS_MAIN,
+  [StatusFamily.IN_REVIEW]: INFO_MAIN,
+  [StatusFamily.ACTION_REQUIRED]: WARNING_MAIN,
+  [StatusFamily.NEGATIVE]: ERROR_MAIN,
+  [StatusFamily.NEUTRAL]: GREY_500,
 };
 
 export const palette: PaletteOptions = {
@@ -43,28 +58,28 @@ export const palette: PaletteOptions = {
   },
   // Error colors
   error: {
-    main: "#D32F2F",
+    main: ERROR_MAIN,
     light: "#EF5350",
     dark: "#C62828",
     contrastText: "#FFFFFF",
   },
   // Warning colors
   warning: {
-    main: "#ED6C02",
+    main: WARNING_MAIN,
     light: "#FF9800",
     dark: "#E65100",
     contrastText: "#FFFFFF",
   },
   // Info colors
   info: {
-    main: "#0288D1",
+    main: INFO_MAIN,
     light: "#03A9F4",
     dark: "#01579B",
     contrastText: "#FFFFFF",
   },
   // Success colors
   success: {
-    main: "#2E7D32",
+    main: SUCCESS_MAIN,
     light: "#4CAF50",
     dark: "#1B5E20",
     contrastText: "#FFFFFF",
@@ -102,7 +117,7 @@ export const palette: PaletteOptions = {
     200: "#EEEEEE",
     300: "#E0E0E0",
     400: "#BDBDBD",
-    500: "#9E9E9E",
+    500: GREY_500,
     600: "#757575",
     700: "#616161",
     800: "#424242",
@@ -135,11 +150,12 @@ export const palette: PaletteOptions = {
   },
   // Divider
   divider: alpha("#000000", 0.12),
-  requestTypeColors,
+  submissionTypeColors,
   recognitionTypeColors,
   roleColors: {
     USER: "#0288D1",
     ADMIN: "#2E7D32",
     SUPERADMIN: "#B8860B",
   },
+  statusFamilyColors,
 } as const;

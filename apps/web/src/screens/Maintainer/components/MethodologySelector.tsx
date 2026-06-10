@@ -1,7 +1,8 @@
 import { FC, useId } from "react";
 import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { GetAllMethodologiesResponse } from "@repo/types";
-import { MethodologyStatusChip } from "./MethodologyStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
 
 interface Props {
   methodologies: GetAllMethodologiesResponse;
@@ -36,7 +37,9 @@ export const MethodologySelector: FC<Props> = ({
           selectedMethodology ? (
             <Box className="flex items-center gap-2">
               <span>{selectedMethodology.name}</span>
-              <MethodologyStatusChip status={selectedMethodology.status} />
+              <StatusChip
+                config={METHODOLOGY_STATUS_CONFIG[selectedMethodology.status]}
+              />
             </Box>
           ) : null
         }
@@ -45,7 +48,7 @@ export const MethodologySelector: FC<Props> = ({
           <MenuItem key={m.id} value={m.id}>
             <Box className="flex w-full items-center justify-between gap-2">
               <span>{m.name}</span>
-              <MethodologyStatusChip status={m.status} />
+              <StatusChip config={METHODOLOGY_STATUS_CONFIG[m.status]} />
             </Box>
           </MenuItem>
         ))}

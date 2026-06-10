@@ -28,7 +28,8 @@ import {
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
-import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
@@ -186,8 +187,8 @@ export const EmissionSummaryScreen: FC = () => {
               </span>
             </Tooltip>
             {metadataData?.status && (
-              <CarbonInventoryStatusChip
-                status={metadataData.status}
+              <StatusChip
+                config={CARBON_INVENTORY_STATUS_CONFIG[metadataData.status]}
                 size="medium"
               />
             )}

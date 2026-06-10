@@ -1,38 +1,27 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { Stack, useTheme } from "@mui/material";
+import { Stack } from "@mui/material";
 import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
-import { RequestStatusChip } from "../components/RequestStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { SubmissionTypeChip } from "@/components/SubmissionTypeChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
-import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
 import {
   GetAllAdminRequestsResponse,
   SubmissionStatus as RequestStatus,
-  SubmissionType as RequestType,
+  SubmissionType,
 } from "@repo/types";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 import { formatter } from "@/utils/formatting";
 import {
-  REQUEST_STATUS_LABEL as STATUS_LABEL,
-  REQUEST_TYPE_LABEL as TYPE_LABEL,
-  getRequestStatusColor,
-} from "@/utils/submissions";
-
-const STATUS_SORT_ORDER: Record<string, number> = {
-  [STATUS_LABEL[RequestStatus.PENDING]]: 0,
-  [STATUS_LABEL[RequestStatus.APPROVED]]: 1,
-  [STATUS_LABEL[RequestStatus.REVIEWED]]: 2,
-  [STATUS_LABEL[RequestStatus.REJECTED]]: 3,
-};
-
-const TYPE_SORT_ORDER: Record<string, number> = {
-  [TYPE_LABEL[RequestType.ORGANIZATION_ACCREDITATION]]: 0,
-  [TYPE_LABEL[RequestType.CARBON_INVENTORY_CALCULATION]]: 1,
-  [TYPE_LABEL[RequestType.CARBON_INVENTORY_VERIFICATION]]: 2,
-  [TYPE_LABEL[RequestType.REDUCTION_PROJECT_VERIFICATION]]: 3,
-  [TYPE_LABEL[RequestType.NEUTRALIZATION_PLAN_VERIFICATION]]: 4,
-};
+  SUBMISSION_STATUS_CONFIG,
+  SUBMISSION_STATUS_SORT_ORDER,
+} from "@/labels/chips/submission";
+import {
+  SUBMISSION_TYPE_LABELS,
+  SUBMISSION_TYPE_SORT_ORDER,
+} from "@/labels/chips/submissionType";
+import { toValueOptions } from "@/utils/dataGrid";
 
 interface Props {
   onView: (row: GetAllAdminRequestsResponse[number]) => void;
@@ -41,7 +30,6 @@ interface Props {
 export const useRequestColumns = ({
   onView,
 }: Props): GridColDef<GetAllAdminRequestsResponse[number]>[] => {
-  const theme = useTheme();
   const cellClassName = "content-center";
 
   const handleView = useCallback(
@@ -62,15 +50,12 @@ export const useRequestColumns = ({
         headerName: "Tipo",
         cellClassName,
         flex: 1,
-        valueGetter: (_value, row) => TYPE_LABEL[row.type],
-        sortComparator: (value1: string, value2: string, _, __) =>
-          TYPE_SORT_ORDER[value1] - TYPE_SORT_ORDER[value2],
-        renderCell: (params) => (
-          <SubmissionTypeChip
-            label={TYPE_LABEL[params.row.type]}
-            color={theme.palette.requestTypeColors[params.row.type]}
-          />
-        ),
+        type: "singleSelect",
+        valueOptions: toValueOptions(SUBMISSION_TYPE_LABELS),
+        valueGetter: (_value, row) => row.type,
+        sortComparator: (v1: SubmissionType, v2: SubmissionType) =>
+          SUBMISSION_TYPE_SORT_ORDER[v1] - SUBMISSION_TYPE_SORT_ORDER[v2],
+        renderCell: (params) => <SubmissionTypeChip type={params.row.type} />,
       },
       {
         field: "year",
@@ -85,14 +70,13 @@ export const useRequestColumns = ({
         headerName: "Estado",
         cellClassName,
         flex: 0.7,
-        valueGetter: (_value, row) => STATUS_LABEL[row.status],
-        sortComparator: (value1: string, value2: string, _, __) =>
-          STATUS_SORT_ORDER[value1] - STATUS_SORT_ORDER[value2],
+        type: "singleSelect",
+        valueOptions: toValueOptions(SUBMISSION_STATUS_CONFIG),
+        valueGetter: (_value, row) => row.status,
+        sortComparator: (v1: RequestStatus, v2: RequestStatus) =>
+          SUBMISSION_STATUS_SORT_ORDER[v1] - SUBMISSION_STATUS_SORT_ORDER[v2],
         renderCell: (params) => (
-          <RequestStatusChip
-            label={STATUS_LABEL[params.row.status]}
-            color={getRequestStatusColor(params.row.status, theme)}
-          />
+          <StatusChip config={SUBMISSION_STATUS_CONFIG[params.row.status]} />
         ),
       },
       {
@@ -131,6 +115,6 @@ export const useRequestColumns = ({
         },
       },
     ],
-    [theme, handleView]
+    [handleView]
   );
 };

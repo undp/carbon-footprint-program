@@ -6,7 +6,8 @@ import { useRequestColumns } from "../hooks/useRequestColumns";
 import { useAdminRequests } from "@/api/query/requests/useAdminRequests";
 import { GetAllAdminRequestsResponse, SubmissionType } from "@repo/types";
 import { ViewSubmissionDialog } from "@/components/dialogs";
-import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL } from "@/utils/submissions";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
+import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
 
 const TABLE_ROW_COUNT = 6;
 
@@ -71,8 +72,14 @@ export const RequestScreenTable: FC = () => {
     () => ({
       keys: [
         "organizationName",
-        { name: "type", getFn: (row) => REQUEST_TYPE_LABEL[row.type] },
-        { name: "status", getFn: (row) => REQUEST_STATUS_LABEL[row.status] },
+        {
+          name: "type",
+          getFn: (row) => SUBMISSION_TYPE_LABELS[row.type].label,
+        },
+        {
+          name: "status",
+          getFn: (row) => SUBMISSION_STATUS_CONFIG[row.status].label,
+        },
         {
           name: "year",
           getFn: (row) => (row.year != null ? String(row.year) : ""),

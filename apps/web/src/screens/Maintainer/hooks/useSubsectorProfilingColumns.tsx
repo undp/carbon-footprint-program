@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { CountrySubsectorStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
+import { profilingStatusColumn } from "../utils/profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const SubsectorRowSchema = z.object({
@@ -164,25 +164,7 @@ export const useSubsectorProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: SubsectorFormRow) =>
-          row.status === CountrySubsectorStatus.ACTIVE
-            ? "Activo"
-            : row.status === CountrySubsectorStatus.DELETED
-              ? "Eliminado"
-              : "Nuevo",
-        renderCell: ({ row }: GridRenderCellParams<SubsectorFormRow>) =>
-          row.status === CountrySubsectorStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : row.status === CountrySubsectorStatus.DELETED ? (
-            <Chip label="Eliminado" size="small" color="default" />
-          ) : (
-            <Chip label="Nuevo" size="small" color="info" />
-          ),
-      },
+      profilingStatusColumn<SubsectorFormRow>(),
       {
         field: "actions",
         disableExport: true,

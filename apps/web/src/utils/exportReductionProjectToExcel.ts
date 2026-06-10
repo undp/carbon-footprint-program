@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
 import { formatter } from "./formatting";
-import { getReductionProjectStatusLabel } from "./reductionProject";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(
@@ -37,7 +37,7 @@ export async function exportReductionProjectToExcel(
     ["GEI Considerados", project.consideredGei.join(", ") || "—"],
     ["Reportado en Otra Iniciativa", project.reportedElsewhere ? "Sí" : "No"],
     ["Detalle Reporte Externo", project.reportedElsewhereDescription ?? "—"],
-    ["Estado", getReductionProjectStatusLabel(project.status)],
+    ["Estado", REDUCTION_PROJECT_STATUS_CONFIG[project.status].label],
     ["Fecha de Creación", formatter.dateDDMMYYYY(project.createdAt)],
   ];
 

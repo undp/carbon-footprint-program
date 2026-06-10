@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { OrganizationMainActivityStatus } from "@repo/types";
 import { EditableTextCell, EditableSelectCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import { AdminActionButton } from "@/components/AdminActionButton";
+import { profilingStatusColumn } from "../utils/profilingStatusColumn";
 import { DeleteWarningDialog } from "../components/dialogs/DeleteWarningDialog";
 
 export const MainActivityRowSchema = z.object({
@@ -213,25 +213,7 @@ export const useMainActivityProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: MainActivityFormRow) =>
-          row.status === OrganizationMainActivityStatus.ACTIVE
-            ? "Activo"
-            : row.status === OrganizationMainActivityStatus.DELETED
-              ? "Eliminado"
-              : "Nueva",
-        renderCell: ({ row }: GridRenderCellParams<MainActivityFormRow>) =>
-          row.status === OrganizationMainActivityStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : row.status === OrganizationMainActivityStatus.DELETED ? (
-            <Chip label="Eliminado" size="small" color="default" />
-          ) : (
-            <Chip label="Nueva" size="small" color="info" />
-          ),
-      },
+      profilingStatusColumn<MainActivityFormRow>(),
       {
         field: "actions",
         headerName: "Acciones",

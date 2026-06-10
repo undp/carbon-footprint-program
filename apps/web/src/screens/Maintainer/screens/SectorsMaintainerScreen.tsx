@@ -6,7 +6,6 @@ import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
 import {
-  CountrySectorStatus,
   type AdminCountrySector,
   type CreateCountrySectorRequest,
   type UpdateCountrySectorRequest,
@@ -32,7 +31,10 @@ import {
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SECTORS_MAINTAINER_EXPLANATION_SLUGS = {
@@ -66,9 +68,8 @@ export const SectorsMaintainerScreen: FC = () => {
       getFn: (row, path) => {
         const key = Array.isArray(path) ? path[0] : path;
         if (key === "statusLabel") {
-          return row.status === CountrySectorStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";

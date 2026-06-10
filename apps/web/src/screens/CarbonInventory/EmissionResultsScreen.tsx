@@ -13,7 +13,8 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useAuth } from "../../contexts";
 import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
-import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
+import { StatusChip } from "@/components/StatusChip";
+import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
@@ -102,8 +103,12 @@ export const EmissionResultsScreen: FC = () => {
             explanationSlug={EMISSION_RESULTS_EXPLANATION_SLUGS.MAIN}
           />
           {summaryData?.carbonInventory.status && (
-            <CarbonInventoryStatusChip
-              status={summaryData.carbonInventory.status}
+            <StatusChip
+              config={
+                CARBON_INVENTORY_STATUS_CONFIG[
+                  summaryData.carbonInventory.status
+                ]
+              }
               size="medium"
             />
           )}

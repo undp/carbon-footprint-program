@@ -11,10 +11,9 @@ import {
 } from "../components/cells";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
-import {
-  METHODOLOGY_ACTION_TOOLTIPS,
-  METHODOLOGY_STATUS_LABELS,
-} from "../constants";
+import { METHODOLOGY_ACTION_TOOLTIPS } from "../constants";
+import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
+import { toValueOptions } from "@/utils/dataGrid";
 
 type Methodology = GetAllMethodologiesResponse[number];
 
@@ -178,8 +177,9 @@ export const useMethodologyColumns = ({
         cellClassName,
         headerAlign: "center",
         align: "center",
-        valueGetter: (_, row: Methodology) =>
-          METHODOLOGY_STATUS_LABELS[row.status],
+        type: "singleSelect",
+        valueOptions: toValueOptions(METHODOLOGY_STATUS_CONFIG),
+        valueGetter: (_, row: Methodology) => row.status,
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ToggleCell
             value={params.row.status === "PUBLISHED"}

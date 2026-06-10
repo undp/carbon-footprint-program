@@ -8,7 +8,6 @@ import type { IFuseOptions } from "fuse.js";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
-  OrganizationMainActivityStatus,
   type AdminOrganizationMainActivity,
   type CreateOrganizationMainActivityRequest,
   type UpdateOrganizationMainActivityRequest,
@@ -36,7 +35,10 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS = {
@@ -116,9 +118,8 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             : "";
         }
         if (key === "statusLabel") {
-          return row.status === OrganizationMainActivityStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";

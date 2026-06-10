@@ -4,9 +4,9 @@ import { CalendarTodayOutlined } from "@mui/icons-material";
 import { type SubmissionHistoryEntry } from "@repo/types";
 import { formatter } from "@/utils/formatting";
 import { FilesSection } from "./FilesSection";
-import { getEventLabel, REQUEST_TYPE_LABEL } from "../../../utils/submissions";
+import { getEventLabel } from "../../../utils/submissions";
 import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
-import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
+import { SubmissionTypeChip } from "@/components/SubmissionTypeChip";
 
 type Props = {
   history: SubmissionHistoryEntry[];
@@ -59,10 +59,7 @@ export const HistoryCard: FC<{
                 />
               </Box>
               {entry.submissionType && (
-                <SubmissionTypeChip
-                  label={REQUEST_TYPE_LABEL[entry.submissionType]}
-                  color={theme.palette.requestTypeColors[entry.submissionType]}
-                />
+                <SubmissionTypeChip type={entry.submissionType} />
               )}
             </Box>
           </Stack>
