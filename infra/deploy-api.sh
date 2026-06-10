@@ -101,33 +101,21 @@ APP_SETTINGS=(
   "APP_VERSION=${APP_VERSION:-unknown}"
 )
 
-# Resolve ALLOWED_ORIGIN for the Fastify container. This MUST mirror the
-# `allowedOrigin` precedence in infra/main.bicep so a standalone deploy-api.sh
-# never overwrites the origin bicep wrote to App Service / Storage CORS:
-#   1. FRONTEND_CUSTOM_DOMAIN (env var, then stack output) — wins for any front end.
-#   2. Front Door endpoint — when Front Door is enabled without a custom domain.
-#   3. Static Web App default hostname — plain deployments.
+# Resolve ALLOWED_ORIGIN for the Fastify container:
+#   1. FRONTEND_CUSTOM_DOMAIN env var — current intent, wins before a redeploy.
+#   2. Stack output `allowedOrigin` — the exact origin bicep wrote to App
+#      Service platform CORS and Blob Storage CORS (custom domain, Front Door
+#      endpoint, or SWA default hostname, per bicep's own precedence).
 # A manual VITE_FRONT_BASE_URL is intentionally ignored to keep this in sync.
 if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   ALLOWED_ORIGIN_VALUE="https://${FRONTEND_CUSTOM_DOMAIN}"
   log "Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: $ALLOWED_ORIGIN_VALUE"
 else
-  ORIGIN_HOST=""
-  ORIGIN_SOURCE=""
-  if ORIGIN_HOST=$(stack_output frontendCustomDomain); [ -n "$ORIGIN_HOST" ]; then
-    ORIGIN_SOURCE="stack output frontendCustomDomain"
-  elif ORIGIN_HOST=$(stack_output frontDoorEndpoint); [ -n "$ORIGIN_HOST" ]; then
-    ORIGIN_SOURCE="stack output frontDoorEndpoint"
-  elif ORIGIN_HOST=$(stack_output staticWebAppHostname); [ -n "$ORIGIN_HOST" ]; then
-    ORIGIN_SOURCE="Static Web App default hostname"
-  fi
-
-  if [ -n "$ORIGIN_HOST" ]; then
-    ALLOWED_ORIGIN_VALUE="https://${ORIGIN_HOST}"
-    log "Resolved ALLOWED_ORIGIN from ${ORIGIN_SOURCE}: $ALLOWED_ORIGIN_VALUE"
+  ALLOWED_ORIGIN_VALUE=$(stack_output allowedOrigin)
+  if [ -n "$ALLOWED_ORIGIN_VALUE" ]; then
+    log "Resolved ALLOWED_ORIGIN from stack output allowedOrigin: $ALLOWED_ORIGIN_VALUE"
   else
-    ALLOWED_ORIGIN_VALUE=""
-    log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or stack outputs; leaving unchanged."
+    log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or the allowedOrigin stack output (stack missing or predates the output); leaving unchanged."
   fi
 fi
 

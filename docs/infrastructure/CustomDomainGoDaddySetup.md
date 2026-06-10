@@ -75,7 +75,7 @@ Bicep crea el recurso `customDomain` en el Static Web App (validación `cname-de
    - Crea el `customDomain` en el SWA (valida CNAME automáticamente; toma 2–15 min).
    - Setea `siteConfig.cors.allowedOrigins` del App Service del API al dominio custom.
    - Setea las `corsRules` del Storage Account al dominio custom.
-6. Ejecutar `./infra/deploy-web.sh` — rebuildea el bundle con el dominio custom (deriva `VITE_FRONT_BASE_URL` desde `FRONTEND_CUSTOM_DOMAIN` o, si no está exportado, desde el output `frontendCustomDomain` del stack).
+6. Ejecutar `./infra/deploy-web.sh` — rebuildea el bundle con el dominio custom (deriva `VITE_FRONT_BASE_URL` desde `FRONTEND_CUSTOM_DOMAIN` o, si no está exportado, desde el output `allowedOrigin` del stack).
 7. Ejecutar `./infra/deploy-api.sh` — setea `ALLOWED_ORIGIN` de Fastify con la misma prioridad.
 8. Saltar a [Post-configuración](#post-configuración-actualizar-entra-id-frontend-y-api) (Entra ID redirect URIs siguen siendo manuales).
 
@@ -242,7 +242,7 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 
 `FRONTEND_CUSTOM_DOMAIN` es la **única fuente de verdad** del hostname público:
 
-- **`FRONTEND_CUSTOM_DOMAIN`**: lo consumen **bicep** (`deploy.sh`), **`deploy-web.sh`** y **`deploy-api.sh`**. Bicep enruta el dominio al recurso correcto según `enableFrontDoor` (Front Door o Static Web App) y deriva la variable local `allowedOrigin` (`infra/main.bicep:221`), que se aplica a `siteConfig.cors.allowedOrigins` del App Service, al app setting `ALLOWED_ORIGIN` (Fastify) y a las `corsRules` del Storage Account. `deploy-web.sh` deriva `VITE_FRONT_BASE_URL` desde esta variable (o desde el output `frontendCustomDomain` del stack como fallback). `deploy-api.sh` resuelve `ALLOWED_ORIGIN` con la misma prioridad.
+- **`FRONTEND_CUSTOM_DOMAIN`**: lo consumen **bicep** (`deploy.sh`), **`deploy-web.sh`** y **`deploy-api.sh`**. Bicep enruta el dominio al recurso correcto según `enableFrontDoor` (Front Door o Static Web App) y deriva la variable local `allowedOrigin` (`infra/main.bicep:221`), que se aplica a `siteConfig.cors.allowedOrigins` del App Service, al app setting `ALLOWED_ORIGIN` (Fastify) y a las `corsRules` del Storage Account, y se expone como output `allowedOrigin` del stack. `deploy-web.sh` deriva `VITE_FRONT_BASE_URL` desde esta variable (o desde el output `allowedOrigin` como fallback). `deploy-api.sh` resuelve `ALLOWED_ORIGIN` con la misma prioridad.
 - **`VITE_FRONT_BASE_URL`**: variable interna del build Vite. **No la setees manualmente** — `deploy-web.sh` la calcula desde `FRONTEND_CUSTOM_DOMAIN` para mantenerla alineada con el `allowedOrigin` que escribió bicep. Si la exportás, el script la ignora con un warning para evitar mismatches CORS.
 
 | Ruta                                                   | `FRONTEND_CUSTOM_DOMAIN` | Comportamiento de los scripts                                                                                                                                                                                                              |
@@ -251,7 +251,7 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 | **A** (custom domain directo a SWA, **opción manual**) | No aplica                | Sin `FRONTEND_CUSTOM_DOMAIN` ni custom domain en el stack, `deploy-web.sh` y `deploy-api.sh` caen al hostname default del SWA. El custom domain creado a mano en el portal no se propaga a las CORS — completar manualmente pasos 3b y 3c. |
 | **B** (Front Door + custom domain)                     | **Obligatorio**          | Idéntico a Ruta A IaC, pero bicep ata el dominio a Front Door en vez del SWA.                                                                                                                                                              |
 
-> **Nota standalone `deploy-api.sh`**: el script prefiere `FRONTEND_CUSTOM_DOMAIN` del entorno, luego el output `frontendCustomDomain` del stack, luego el hostname default del SWA. No requiere `.envrc` cargado si el stack ya tiene el output.
+> **Nota standalone `deploy-api.sh`**: el script prefiere `FRONTEND_CUSTOM_DOMAIN` del entorno, luego el output `allowedOrigin` del stack (el origen exacto que bicep escribió en las CORS). No requiere `.envrc` cargado si el stack ya tiene el output.
 
 ### Checklist (orden recomendado)
 
@@ -288,8 +288,8 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
 `deploy-web.sh` resuelve `VITE_FRONT_BASE_URL` con esta prioridad:
 
 1. `FRONTEND_CUSTOM_DOMAIN` env var (current intent).
-2. Output bicep `frontendCustomDomain` (cuando `FRONTEND_CUSTOM_DOMAIN` se pasó a `deploy.sh`).
-3. Hostname default del Static Web App (`*.azurestaticapps.net`).
+2. Output bicep `allowedOrigin` — el origen exacto que bicep autorizó en las CORS (dominio custom, endpoint de Front Door o hostname default, según su propia precedencia).
+3. Hostname default del Static Web App (`*.azurestaticapps.net`) — solo si el stack no existe o es previo al output `allowedOrigin`.
 
 Si exportás manualmente `VITE_FRONT_BASE_URL`, el script lo ignora con un warning. Es deliberado: el dominio que sirve el bundle debe coincidir con el que bicep autorizó en App Service CORS, Fastify `ALLOWED_ORIGIN` y Storage CORS — un override manual rompería esa coherencia.
 
@@ -336,7 +336,7 @@ source .envrc    # o direnv allow; deploy-api.sh NO hace source por sí solo
 ./deploy-api.sh
 ```
 
-Debe aparecer en el log: `Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: https://<custom-domain>`. Si no setiaste `FRONTEND_CUSTOM_DOMAIN` pero el stack ya tiene el output (corriste `deploy.sh` antes), el script lee el output y muestra `Resolved ALLOWED_ORIGIN from stack output frontendCustomDomain`.
+Debe aparecer en el log: `Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: https://<custom-domain>`. Si no setiaste `FRONTEND_CUSTOM_DOMAIN` pero el stack ya tiene el output (corriste `deploy.sh` antes), el script lee el output y muestra `Resolved ALLOWED_ORIGIN from stack output allowedOrigin`.
 
 **Alternativa manual:** Portal → App Service del API → **Settings** → **Environment variables** → `ALLOWED_ORIGIN=https://<custom-domain>` → Apply → reiniciar.
 
@@ -458,14 +458,14 @@ En el navegador (idealmente ventana de incógnito):
 
 ## Referencias internas
 
-- `infra/main.bicep`: orquestación general. Define el param `frontendCustomDomain` y lo enruta al recurso correcto (Front Door cuando `enableFrontDoor=true`, SWA en caso contrario). Computa `allowedOrigin` (línea ~221) usando ese valor cuando está seteado, o el hostname default Azure en caso contrario. Expone el output `frontendCustomDomain`.
-- `infra/modules/staticWebApp.bicep`: recurso Static Web App, expone `defaultHostname` y `customDomain`. Crea el child resource `customDomains` con validación `cname-delegation` cuando `customDomainName` está seteado.
+- `infra/main.bicep`: orquestación general. Define el param `frontendCustomDomain` y lo enruta al recurso correcto (Front Door cuando `enableFrontDoor=true`, SWA en caso contrario). Computa `allowedOrigin` (línea ~221) usando ese valor cuando está seteado, o el hostname default Azure en caso contrario. Expone los outputs `frontendCustomDomain` y `allowedOrigin` (consumidos por los scripts de deploy).
+- `infra/modules/staticWebApp.bicep`: recurso Static Web App, expone `defaultHostname`. Crea el child resource `customDomains` con validación `cname-delegation` cuando `customDomainName` está seteado.
 - `infra/modules/storage.bicep`: Blob service `corsRules` usa `allowedOrigin` (más `devAllowedOrigin` opcional para localhost).
 - `infra/modules/frontDoor.bicep`: recurso Front Door, define `customDomain` con `ManagedCertificate` (líneas 199–209).
 - `infra/params/main.development.bicepparam`: parámetros entorno development, incluye `frontendCustomDomain` y `enableFrontDoor`.
 - `infra/deploy.sh`: script de deploy completo de infraestructura.
 - `infra/deploy-web.sh`: build y deploy del frontend (inyecta `VITE_*` en build time).
-- `infra/deploy-api.sh`: deploy del contenedor API; resuelve `ALLOWED_ORIGIN` con prioridad `FRONTEND_CUSTOM_DOMAIN` env → output `frontendCustomDomain` del stack → hostname default del SWA.
+- `infra/deploy-api.sh`: deploy del contenedor API; resuelve `ALLOWED_ORIGIN` con prioridad `FRONTEND_CUSTOM_DOMAIN` env → output `allowedOrigin` del stack.
 - `infra/modules/appService.bicep`: define `siteConfig.cors` (plataforma) y app setting `ALLOWED_ORIGIN` (Fastify).
 - `infra/monitor-ssl.sh`: script para monitorear el aprovisionamiento del certificado SSL en Front Door.
 - `docs/infrastructure/StaticWebAppDeployment.md`: deployment general del frontend.

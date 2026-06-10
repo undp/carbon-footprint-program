@@ -237,16 +237,13 @@ export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 
-# Resolve frontend base URL (used by Vite build for redirect URIs, etc.).
-# This MUST mirror the `allowedOrigin` precedence in infra/main.bicep so the
-# bundle is served from the same origin bicep authorized for CORS. A manual
-# VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with bicep's
-# allowedOrigin (App Service CORS + Fastify ALLOWED_ORIGIN + Storage CORS), the
-# browser would hit CORS errors. Priority:
-#   1. FRONTEND_CUSTOM_DOMAIN env var (current intent).
-#   2. Stack output frontendCustomDomain (what was actually deployed).
-#   3. Front Door endpoint — when Front Door is enabled without a custom domain.
-#   4. Static Web App default hostname (no custom domain configured).
+# Resolve frontend base URL (used by Vite build for redirect URIs, etc.):
+#   1. FRONTEND_CUSTOM_DOMAIN env var — current intent, wins before a redeploy.
+#   2. Stack output `allowedOrigin` — the exact origin bicep authorized for
+#      CORS (App Service platform CORS + Fastify ALLOWED_ORIGIN + Storage CORS).
+#   3. Static Web App default hostname — stack missing or predates the output.
+# A manual VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with
+# bicep's allowedOrigin, the browser would hit CORS errors.
 if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
   log "${YELLOW}   ⚠ Ignoring VITE_FRONT_BASE_URL from environment (\$VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}); deriving from FRONTEND_CUSTOM_DOMAIN / stack instead.${NC}"
   unset VITE_FRONT_BASE_URL
@@ -256,19 +253,14 @@ if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   export VITE_FRONT_BASE_URL="https://${FRONTEND_CUSTOM_DOMAIN}"
   log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from FRONTEND_CUSTOM_DOMAIN env: ${VITE_FRONT_BASE_URL}${NC}"
 else
-  FRONT_BASE_HOST=""
-  FRONT_BASE_SOURCE=""
-  if FRONT_BASE_HOST=$(stack_output frontendCustomDomain); [ -n "$FRONT_BASE_HOST" ]; then
-    FRONT_BASE_SOURCE="stack output frontendCustomDomain"
-  elif FRONT_BASE_HOST=$(stack_output frontDoorEndpoint); [ -n "$FRONT_BASE_HOST" ]; then
-    FRONT_BASE_SOURCE="stack output frontDoorEndpoint"
+  ALLOWED_ORIGIN_OUTPUT=$(stack_output allowedOrigin)
+  if [ -n "$ALLOWED_ORIGIN_OUTPUT" ]; then
+    export VITE_FRONT_BASE_URL="$ALLOWED_ORIGIN_OUTPUT"
+    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from stack output allowedOrigin: ${VITE_FRONT_BASE_URL}${NC}"
   else
-    FRONT_BASE_HOST="$SWA_HOSTNAME"
-    FRONT_BASE_SOURCE="Static Web App hostname"
+    export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
   fi
-
-  export VITE_FRONT_BASE_URL="https://${FRONT_BASE_HOST}"
-  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from ${FRONT_BASE_SOURCE}: ${VITE_FRONT_BASE_URL}${NC}"
 fi
 
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"

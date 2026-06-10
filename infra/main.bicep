@@ -494,6 +494,9 @@ output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
 @description('Custom domain bound to the public frontend (Front Door or SWA depending on enableFrontDoor). Empty when not configured.')
 output frontendCustomDomain string = frontendCustomDomain
 
+@description('Origin authorized for CORS on App Service, Fastify and Blob Storage (includes https://). Single source of truth for deploy-web.sh / deploy-api.sh.')
+output allowedOrigin string = allowedOrigin
+
 @description('Static Web App name')
 output staticWebAppName string = staticWebApp.outputs.name
 
