@@ -21,6 +21,10 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Shared helpers (stack_output)
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 # Required env vars
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
@@ -33,35 +37,35 @@ API_PORT="${API_PORT:-8080}"
 APP_VERSION="${APP_VERSION:-$IMAGE_TAG}"
 
 # Stack for the current environment (App Service, DB, ACR, etc.)
-STACK_NAME_ENV="undp-huella-latam-stack-$ENVIRONMENT"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 log "Setting subscription..."
 az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 
-log "Fetching App Service from environment stack: $STACK_NAME_ENV (RG: $AZURE_RESOURCE_GROUP)"
+log "Fetching App Service from environment stack: $STACK_NAME (RG: $AZURE_RESOURCE_GROUP)"
 APP_SERVICE_NAME=$(az stack group show \
-  --name "$STACK_NAME_ENV" \
+  --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.api.value.appService.name" -o tsv 2>/dev/null || echo "")
 
-log "Fetching ACR outputs from environment stack: $STACK_NAME_ENV (RG: $AZURE_RESOURCE_GROUP)"
+log "Fetching ACR outputs from environment stack: $STACK_NAME (RG: $AZURE_RESOURCE_GROUP)"
 ACR_ID=$(az stack group show \
-  --name "$STACK_NAME_ENV" \
+  --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.containerRegistryId.value" -o tsv 2>/dev/null || echo "")
 ACR_LOGIN_SERVER=$(az stack group show \
-  --name "$STACK_NAME_ENV" \
+  --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.acrLoginServer.value" -o tsv 2>/dev/null || echo "")
 
 if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
-  log "Error: App Service name not found in stack '$STACK_NAME_ENV' (resource group: $AZURE_RESOURCE_GROUP)."
+  log "Error: App Service name not found in stack '$STACK_NAME' (resource group: $AZURE_RESOURCE_GROUP)."
   log "Make sure you have deployed the infrastructure with: ./deploy.sh"
   exit 1
 fi
 
 if [ -z "$ACR_LOGIN_SERVER" ] || [ "$ACR_LOGIN_SERVER" = "null" ]; then
-  log "Error: ACR login server not found in stack '$STACK_NAME_ENV' (resource group: $AZURE_RESOURCE_GROUP)."
+  log "Error: ACR login server not found in stack '$STACK_NAME' (resource group: $AZURE_RESOURCE_GROUP)."
   log "Make sure the infrastructure stack is deployed and outputs.acrLoginServer is present. Run ./deploy.sh."
   exit 1
 fi
@@ -96,20 +100,6 @@ APP_SETTINGS=(
   "WEBSITES_PORT=$API_PORT"
   "APP_VERSION=${APP_VERSION:-unknown}"
 )
-
-# Read a single deployment-stack output, normalizing a missing/null output to
-# an empty string (az may emit the literal "null" for an absent value).
-stack_output() {
-  local value
-  value=$(az stack group show \
-    --name "$STACK_NAME_ENV" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query "outputs.$1.value" -o tsv 2>/dev/null || echo "")
-  if [ "$value" = "null" ]; then
-    value=""
-  fi
-  printf '%s' "$value"
-}
 
 # Resolve ALLOWED_ORIGIN for the Fastify container. This MUST mirror the
 # `allowedOrigin` precedence in infra/main.bicep so a standalone deploy-api.sh

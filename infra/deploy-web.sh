@@ -50,19 +50,9 @@ log() {
   echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
-# Read a single deployment-stack output, normalizing a missing/null output to
-# an empty string (az may emit the literal "null" for an absent value).
-stack_output() {
-  local value
-  value=$(az stack group show \
-    --name "$STACK_NAME" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query "outputs.$1.value" -o tsv 2>/dev/null || echo "")
-  if [ "$value" = "null" ]; then
-    value=""
-  fi
-  printf '%s' "$value"
-}
+# Shared helpers (stack_output)
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
 
 # Function to execute or simulate command
 run_cmd() {
