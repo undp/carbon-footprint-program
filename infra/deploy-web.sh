@@ -50,7 +50,7 @@ log() {
   echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
-# Shared helpers (validate_frontend_custom_domain, stack_output)
+# Shared infra helpers
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 

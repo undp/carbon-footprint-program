@@ -40,7 +40,7 @@ fi
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Shared helpers (validate_frontend_custom_domain, stack_output)
+# Shared infra helpers
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 

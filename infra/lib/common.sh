@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Shared helpers for the infra deploy scripts. Source this file after defining
-# SCRIPT_DIR; STACK_NAME and AZURE_RESOURCE_GROUP are read at call time, so
-# they only need to be set before the first helper call.
+# Shared helpers for the infra deploy scripts. STACK_NAME and
+# AZURE_RESOURCE_GROUP are read at call time, so they only need to be set
+# before the first helper call.
 
 # Validate that FRONTEND_CUSTOM_DOMAIN is a bare hostname (e.g. app.example.com).
 # A scheme would produce origins like "https://https://…" across every CORS
