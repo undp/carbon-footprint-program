@@ -34,7 +34,11 @@ services:
       # Full connection string to the EXTERNAL PostgreSQL server (application
       # user, URL-encoded password) — see .env.prod.dockercompose.example.
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (external PostgreSQL connection string)}
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required (generate with `openssl rand -base64 48`)}
+      # Unused when AUTH_PROVIDER=jwks/easy-auth is fully configured (tokens are
+      # verified against the IdP's public keys). It is only the static HMAC
+      # fallback if the JWKS config is incomplete — setting a strong value
+      # (`openssl rand -base64 48`) keeps that fallback unforgeable.
+      - JWT_SECRET=${JWT_SECRET:-}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-prod}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
