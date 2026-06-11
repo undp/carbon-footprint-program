@@ -225,6 +225,11 @@ log "Running Bicep deployment using Deployment Stack..."
 
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
+# Fail fast if a custom domain can't be bound on this run (SWA-direct path only):
+# bicep's cname-delegation validation is synchronous, so a missing SWA (bootstrap)
+# or an unresolved CNAME would otherwise fail the entire stack deploy minutes in.
+preflight_swa_custom_domain "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
+
 echo "═══════════════════════════════════════════════════════════════"
 
 # Build parameters array
