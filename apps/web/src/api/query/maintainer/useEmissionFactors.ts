@@ -73,8 +73,9 @@ export const useUpdateEmissionFactor = (methodologyVersionId?: string) => {
 export const useDeleteEmissionFactor = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
-    mutationFn: (emissionFactorId) =>
-      apiClient.delete(`emission-factors/${emissionFactorId}`).json(),
+    mutationFn: async (emissionFactorId) => {
+      await apiClient.delete(`emission-factors/${emissionFactorId}`);
+    },
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({

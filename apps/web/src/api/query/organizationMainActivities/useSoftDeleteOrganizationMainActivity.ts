@@ -5,9 +5,10 @@ import { apiClient } from "@/api/http";
 
 export const useSoftDeleteOrganizationMainActivity = () => {
   const queryClient = useQueryClient();
-  return useMutation<null, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`admin/organization-main-activities/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`admin/organization-main-activities/${id}`);
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({

@@ -8,7 +8,6 @@ import type {
   CreateCategoryResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
-  DeleteCategoryResponse,
   SwapCategoryPositionsRequest,
   SwapCategoryPositionsResponse,
 } from "@repo/types";
@@ -64,8 +63,10 @@ export const useUpdateCategory = (methodologyVersionId?: string) => {
 
 export const useDeleteCategory = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
-  return useMutation<DeleteCategoryResponse, Error, string>({
-    mutationFn: (id) => apiClient.delete(`categories/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`categories/${id}`);
+    },
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({

@@ -85,8 +85,9 @@ export const useDeleteEmissionFactorDimension = (
 ) => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, DeleteEmissionFactorDimensionParams>({
-    mutationFn: ({ id }) =>
-      apiClient.delete(`emission-factor-dimensions/${id}`).json(),
+    mutationFn: async ({ id }) => {
+      await apiClient.delete(`emission-factor-dimensions/${id}`);
+    },
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
