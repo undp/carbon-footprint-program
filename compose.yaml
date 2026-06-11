@@ -1,0 +1,104 @@
+# =============================================================================
+# Huella Latam — base compose (api + web)
+# =============================================================================
+# Production-grade base shared by EVERY deployment scenario. It is not meant
+# to run on its own: each scenario stacks exactly one database overlay on top
+# (compose/db.external.yaml or compose/db.bundled.yaml) and, for local work,
+# compose/dev.yaml. The overlay chain is selected by the COMPOSE_FILE variable
+# inside the env file — see deploy/README.md.
+#
+# Usage (identical for every scenario, run from the repo root):
+#   cp deploy/<scenario>/.env.example .env.dockercompose   # then fill it in
+#   docker compose --env-file .env.dockercompose up -d
+#
+# Guides: docs/operations/docker-compose.md           (local dev stack)
+#         docs/operations/production-deployment.md    (on-premise production)
+# =============================================================================
+
+# Default project name — each scenario's env file overrides it with
+# COMPOSE_PROJECT_NAME so different stacks (dev / prod) never collide on the
+# same host: containers, networks, and volumes are all namespaced by it.
+name: huella-latam
+
+services:
+  api:
+    image: huella-latam-api:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      # Host port is configurable; the container always listens on 8080.
+      - "${API_PORT:-8080}:8080"
+    environment:
+      # --- Core ---
+      # Production by default; compose/dev.yaml switches it for local work.
+      - NODE_ENV=production
+      - API_HOST=0.0.0.0
+      - API_PORT=8080
+      # DATABASE_URL is contributed by the database overlay (db.external.yaml
+      # or db.bundled.yaml) — including one of them is mandatory.
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required (generate with `openssl rand -base64 48`)}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - APP_VERSION=${APP_VERSION:-prod}
+      # CORS: must match the web app's browser origin EXACTLY (scheme + host +
+      # port, no trailing slash). Same value as VITE_FRONT_BASE_URL below.
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
+      # --- Auth: jwks | easy-auth (production options; dev may use none) ---
+      - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks or easy-auth in production)}
+      - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
+      # --- Azure Entra ID (used when AUTH_PROVIDER=jwks) ---
+      - AZURE_TENANT_TYPE=${AZURE_TENANT_TYPE:-external}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_TENANT_SUBDOMAIN=${AZURE_TENANT_SUBDOMAIN:-}
+      - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:-}
+      # --- Generic JWKS overrides (optional, non-Azure IdPs) ---
+      - JWKS_URI=${JWKS_URI:-}
+      - JWKS_ISSUER=${JWKS_ISSUER:-}
+      - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
+      - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
+      - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
+      # --- Azure Blob Storage (empty disables file upload/download) ---
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      # Dedicated service principal for storage (different tenant than JWKS).
+      # Hosts without an Azure Managed Identity (local docker, on-premise) must
+      # set all three together; Azure-hosted compute leaves them empty and
+      # falls back to DefaultAzureCredential → Managed Identity.
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    image: huella-latam-web:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?VITE_API_BASE_URL is required (browser-reachable API URL)}
+        VITE_AZURE_FRONT_CLIENT_ID: ${VITE_AZURE_FRONT_CLIENT_ID}
+        VITE_AZURE_AUTH_AUTHORITY: ${VITE_AZURE_AUTH_AUTHORITY}
+        VITE_FRONT_BASE_URL: ${VITE_FRONT_BASE_URL:?VITE_FRONT_BASE_URL is required (browser-reachable web URL)}
+        VITE_AZURE_API_CLIENT_ID: ${VITE_AZURE_API_CLIENT_ID}
+        VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-prod}
+    ports:
+      - "${WEB_PORT:-80}:8080"
+    depends_on:
+      # Wait until the API passes its /health check, not just until its
+      # container starts — so the whole stack is coherent before web is up.
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
