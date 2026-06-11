@@ -76,11 +76,10 @@ Per-bump cycle was `install → build → format → lint → type-check → com
 ### PR 1 wrap-up
 
 - [x] 2.57 Final full cycle: install + format + lint + type-check + test + build all green. Required follow-up fix: vitest 4.1+ regresses on `outputFile.html` inside `coverage/` dir → moved to `vitest-report/` and added to `.gitignore` (commits `d22e98a28` + `4f8b554d2`)
-- [ ] 2.58 Push branch and open PR titled `chore(deps): upgrade low-risk dependencies (patch + minor)` (user action)
-- [ ] 2.59 PR body checklist (user action)
-- [ ] 2.60 Wait for human review and merge to `main` (user action)
-- [ ] 2.53 Bump `eslint-plugin-turbo` (dev) to latest 2.x → install → build → checks → commit
-- [ ] 2.54 Bump `typescript-eslint` (dev) to latest 8.x (NOT next major) → install → build → checks → commit
+- [x] 2.58 Pushed and opened PR `[Fullstack] Chore: upgrade low-risk dependencies (patch + minor)` (#348)
+- [x] 2.59 PR body checklist posted in #348
+- [x] 2.60 PR #348 reviewed and MERGED to `main`
+- [x] ~~2.53/2.54 (duplicated lines)~~ — already done above (commits `a221404e4`, `ddf340050`)
 
 ## 2b. PR 1b — RHF + MUI X form/grid behavioral split (branch `feat/mati/upgrade-rhf-muix`)
 
@@ -92,8 +91,8 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 - [x] 2b.4 fix: route emission-capture line actions through a dedicated `EmissionCaptureActions` context (RHF 7.76 `FormProvider` no longer forwards custom methods)
 - [x] 2b.5 fix: unmount emission grid in manual-total mode (MUI X 8.28 `ResizeObserver` loop)
 - [x] 2b.6 fix: exclude `dirtyFields` from the emission-capture reconcile effect (RHF 7.76 identity reassignment caused an infinite loop)
-- [ ] 2b.7 Run `pnpm install` to regenerate `pnpm-lock.yaml` on this branch (user action)
-- [ ] 2b.8 Push branch and open PR titled `chore(deps): upgrade react-hook-form + mui-x with emission-capture fixes` (user action)
+- [x] 2b.7 Lockfile regenerated on the branch
+- [x] 2b.8 Pushed and opened PR `[FRONT] Chore: upgrade react-hook-form and mui-x with emission-capture fixes` (#365) — MERGED
 
 ## 3. PR 2 — Medium-risk (branch `chore/upgrade-deps-medium-risk`)
 
@@ -118,111 +117,79 @@ Extracted from PR 1: although these are minor bumps, they changed runtime form/g
 - [x] 3.12 Final full cycle: install + format + lint + type-check + test + build all green
 - [x] 3.13 Pushed and opened PR 371 (`[Fullstack] Chore: upgrade medium-risk dependencies (scoped majors)`)
 - [x] 3.14 PR body posted: bump table with migration links, decisions (ky migration, vitest-report lint fix, plugin-react deferral), deviations, smoke checklist:
-  - [ ] Login (MSAL flow) works end-to-end against the dev tenant
-  - [ ] Authenticated API call returns 200 (jwks-rsa + ky path verified)
-  - [ ] Evidence file upload works (multipart 10)
+  - [x] Login (MSAL flow) works end-to-end against the dev tenant — validated post-merge via E2E smoke on the PR 3 branch (2026-06-10)
+  - [x] Authenticated API call returns 200 (jwks-rsa + ky path verified) — same E2E smoke
+  - [x] Evidence file upload works (multipart 10) — same E2E smoke (org docs + per-line evidence + submission attachments)
   - [x] ~~`pnpm dev:web` HMR works (vite-plugin-react 6)~~ — N/A, bump deferred (needs Vite 8)
   - [x] `pnpm test --filter=api` is fully green (testcontainers 12) — 148/148 test files
-- [ ] 3.15 Wait for human review and merge. Do NOT proceed to PR 3 until merged.
+- [x] 3.15 PR #371 reviewed and MERGED to `main`
 
-## 4. PR 3 — High-risk (branch `chore/upgrade-deps-high-risk`)
+## 4. PR 3 — High-risk (branch `chore/mati/upgrade-deps-high-risk`)
 
-- [ ] 4.1 Re-checkout `main`, `git pull --ff-only`, run full pre-flight again
-- [ ] 4.2 Create branch `chore/upgrade-deps-high-risk` from updated `main`
-- [ ] 4.3 Re-check latest versions with `pnpm outdated --recursive`
-- [ ] 4.0 **Inherited from PR 2**: `vite` 7 → 8 + `@vitejs/plugin-react` 5 → 6 must ship together (every plugin-react 6.x peer-requires `vite ^8.0.0` and drops Babel). Read both migration guides; verify dev-server HMR after the bump.
+- [x] 4.1 ~~Re-checkout `main`, full pre-flight~~ — baseline verified green via CI on `main` tip (PR #371 checks: build/lint/test/type-check/format all pass)
+- [x] 4.2 Create branch `chore/mati/upgrade-deps-high-risk` from updated `main` (`origin/main` @ `4003cc8cd`)
+- [x] 4.3 Re-check latest versions — commits consolidated from POC branch `feat/mati/upgrade-high-risk-dependencies`; caret ranges resolve to current latest on fresh lockfile
 
-### Phase 4.A — TypeScript 6 + @types/node 25
+### Phase 4.A — TypeScript 6 + @types/node 25 (commit `eb889c43b`)
 
-- [ ] 4.A.1 Read [TypeScript 6.0 release notes](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)
-- [ ] 4.A.2 Bump `typescript` to latest 6.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.A.3 Bump `@types/node` to latest 25.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.A.4 Run `pnpm install`
-- [ ] 4.A.5 Run `pnpm build` — expect possible type errors; address as below
-- [ ] 4.A.6 Run `pnpm type-check` and fix each error (no `any` patches). If errors exceed ~15 files of meaningful changes, halt and ask user.
-- [ ] 4.A.7 Run `pnpm lint && pnpm test && pnpm build` — all green
-- [ ] 4.A.8 Commit: `chore(deps): upgrade typescript 5.9 to 6.0 and @types/node 24 to 25`
+- [x] 4.A.2 Bumped `typescript` 5.9.3 → 6.0.3 in `pnpm-workspace.yaml > catalogs.shared`
+- [x] 4.A.3 Bumped `@types/node` 24.12.4 → 25.9.x in catalog
+- [x] 4.A.4–4.A.7 install + build + type-check + lint + test all green (validated on POC; re-validated on this branch)
+- Code changes: removed deprecated `baseUrl` from `apps/api/tsconfig.json` and `apps/web/tsconfig.json` (TS 7 will remove it; paths already use `./` prefix). Reworked `packages/types/src/environment.ts` to read `process.env` via `globalThis.process` so consumers don't require `@types/node`.
 
-### Phase 4.B — ESLint 10
+### Phase 4.B — ESLint 10 — DEFERRED
 
-- [ ] 4.B.1 Read [ESLint 10 migration](https://eslint.org/docs/latest/use/migrate-to-10.0.0)
-- [ ] 4.B.2 Bump `eslint` to latest 10.x in `pnpm-workspace.yaml > catalogs.shared`
-- [ ] 4.B.3 Bump `@eslint/js` (dev) to latest 10.x in `packages/eslint-config/package.json`
-- [ ] 4.B.4 Run `pnpm install`
-- [ ] 4.B.5 Update `packages/eslint-config/{base,api,web}.ts` for any removed/renamed rules or config-shape changes
-- [ ] 4.B.6 Run `pnpm lint` — fix any new warnings (zero-warning policy)
-- [ ] 4.B.7 Run `pnpm type-check && pnpm test && pnpm build` — all green
-- [ ] 4.B.8 Commit: `chore(deps): upgrade eslint 9 to 10`
+- [x] 4.B Attempted on POC (2026-05); re-checked 2026-06-10 — still blocked. Plugin ecosystem incompatible:
+  - `eslint-plugin-react@7.37.5` (latest) peer caps at eslint `^9.7`; runtime error (`contextOrFilename.getFilename is not a function`) when forced.
+  - `eslint-plugin-jsx-a11y@6.10.2` (latest) peer caps at eslint `^9`.
+  - Re-evaluate when these plugins ship eslint-10-compatible releases.
 
-### Phase 4.C — MSAL 5 (browser 4→5 + react 3→5)
+### Phase 4.X — Vite 8 + plugin-react 6 (commit `be1dc3ad0`; carved out of PR 2)
 
-- [ ] 4.C.1 Read msal-browser v4→v5 migration and msal-react v3→v5 migration on the [microsoft-authentication-library-for-js repo](https://github.com/AzureAD/microsoft-authentication-library-for-js)
-- [ ] 4.C.2 Locate all MSAL usage: `grep -rn "@azure/msal\\|PublicClientApplication\\|MsalProvider\\|useMsal\\|acquireToken" apps/web/src`
-- [ ] 4.C.3 Bump `@azure/msal-browser` to latest 5.x in `apps/web/package.json`
-- [ ] 4.C.4 Bump `@azure/msal-react` to latest 5.x in `apps/web/package.json`
-- [ ] 4.C.5 Run `pnpm install`
-- [ ] 4.C.6 Update `PublicClientApplication` config shape (v5 changes)
-- [ ] 4.C.7 Update `MsalProvider` props
-- [ ] 4.C.8 Update `acquireTokenSilent` / `acquireTokenRedirect` callsites
-- [ ] 4.C.9 Update `apps/web/src/api/http/client.ts` `beforeRequest` hook to use the new token-acquisition API
-- [ ] 4.C.10 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.C.11 Manual smoke test: clear browser storage, run `pnpm dev:web`, perform login + logout + authenticated API call. Halt and ask user to confirm before continuing.
-- [ ] 4.C.12 Commit: `chore(deps): upgrade msal-browser 4 to 5 and msal-react 3 to 5`
+- [x] Bumped `vite` 7.2.x → 8.x, `@vitejs/plugin-react` 5.x → 6.x, `vite-tsconfig-paths` 5.x → 6.x (ship together: plugin-react 6 peer-requires vite ^8).
+- Vite 8 ships Rolldown as default bundler — web build ~9× faster. No `vite.config.ts` changes required.
 
-### Phase 4.D — MUI core 7 → 9 (via v8 codemod chain)
+### Phase 4.C — MSAL 5 (commit `fcb8ed872`)
 
-- [ ] 4.D.1 Read [Upgrade to v8](https://mui.com/material-ui/migration/upgrade-to-v8/) and [Upgrade to v9](https://mui.com/material-ui/migration/upgrade-to-v9/)
-- [ ] 4.D.2 Run codemod chain (BEFORE bumping versions):
-  - `npx @mui/codemod@latest v8.0.0/preset-safe apps/web/src`
-  - `npx @mui/codemod@latest v9.0.0/preset-safe apps/web/src`
-- [ ] 4.D.3 Commit codemod output: `chore(deps): apply mui v8 and v9 codemods`
-- [ ] 4.D.4 Bump `@mui/material` to latest 9.x in `apps/web/package.json`
-- [ ] 4.D.5 Bump `@mui/icons-material` to latest 9.x in `apps/web/package.json`
-- [ ] 4.D.6 Run `pnpm install`
-- [ ] 4.D.7 Update `apps/web/src/theme/palette.ts` and `apps/web/src/undp-huella-latam.theme.d.ts` for theme augmentation changes (palette `requestTypeColors`, `recognitionTypeColors`, etc.)
-- [ ] 4.D.8 Audit and fix `Grid` API usage (v8/v9 changed it significantly)
-- [ ] 4.D.9 Fix any `sx` prop changes, removed components, moved imports
-- [ ] 4.D.10 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.D.11 If TS/lint errors exceed ~25 files of meaningful changes, halt and ask user before continuing
-- [ ] 4.D.12 Commit: `chore(deps): upgrade mui core 7 to 9 (post-codemod fixes)`
+- [x] 4.C.3/4.C.4 Bumped `@azure/msal-browser` 4.x → 5.x, `@azure/msal-react` 3.x → 5.x
+- [x] 4.C.6 Removed `storeAuthStateInCookie` from `CacheOptions` (IE 11 legacy; was at its default `false` — no-op). `navigateToLoginRequestUrl` was NOT a no-op: the app set it to `false` (v4 default is `true`) so redirect login lands on `/app/home` instead of returning to the landing. In v5 the option moved from `BrowserAuthOptions` to a per-call option of `handleRedirectPromise()` (default `true`) — preserved by passing `{ navigateToLoginRequestUrl: false }` in `initializeMsal.ts`.
+- [x] 4.C.11 Manual smoke test done on POC: popup login + active account selection + authenticated API call OK against dev tenant. Re-verify on this branch before merge.
 
-### Phase 4.E — MUI X 8 → 9 (charts, data-grid, date-pickers)
+### Phase 4.D / 4.E — MUI core 7→9 and MUI X 8→9 — EXCLUDED
 
-- [ ] 4.E.1 Read MUI X v9 migration guides for [data-grid](https://mui.com/x/migration/migration-data-grid-v8/), charts, and date-pickers (find current URLs at https://mui.com/x/)
-- [ ] 4.E.2 Run codemods:
-  - `npx @mui/x-codemod@latest v9.0.0/data-grid/preset-safe apps/web/src`
-  - `npx @mui/x-codemod@latest v9.0.0/charts/preset-safe apps/web/src`
-  - `npx @mui/x-codemod@latest v9.0.0/pickers/preset-safe apps/web/src`
-- [ ] 4.E.3 Commit codemod output: `chore(deps): apply mui-x v9 codemods`
-- [ ] 4.E.4 Bump `@mui/x-charts` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.5 Bump `@mui/x-data-grid` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.6 Bump `@mui/x-date-pickers` to latest 9.x in `apps/web/package.json`
-- [ ] 4.E.7 Run `pnpm install`
-- [ ] 4.E.8 Audit DataGrid usages (filters, sort, pagination, column defs) and fix breaking changes
-- [ ] 4.E.9 Audit `@mui/x-charts` usages in the dashboard and fix breaking changes
-- [ ] 4.E.10 Audit `@mui/x-date-pickers` usages in `FormDateField` and consumers; verify Spanish locale still wires up via `date-fns/es`
-- [ ] 4.E.11 Run `pnpm build && pnpm type-check && pnpm lint && pnpm test` — all green
-- [ ] 4.E.12 Commit: `chore(deps): upgrade mui-x 8 to 9 (charts, data-grid, date-pickers)`
+- [x] **Excluded by user decision (2026-06-10)**: the MUI major migration causes too many codebase changes for too little value. MUI core stays on v7 and MUI X on v8 (patches/minors only, already current via PR 1). POC commits `59f27f467`/`b69d2044a` intentionally NOT consolidated.
 
 ### PR 3 wrap-up
 
-- [ ] 4.F.1 Final full cycle: `pnpm install && pnpm format && pnpm lint && pnpm type-check && pnpm test && pnpm build`
-- [ ] 4.F.2 Push and open PR titled `chore(deps): upgrade high-risk dependencies (TS6, ESLint10, MSAL5, MUI9)`
-- [ ] 4.F.3 PR body: full tabulation, links to all migration guides, list of codemods run, list of manually edited files, full smoke-test checklist:
-  - [ ] MSAL login + logout + authenticated API call
-  - [ ] Sidebar / layout renders correctly
-  - [ ] CRUD organizations
-  - [ ] CRUD inventories + evidence upload
-  - [ ] CRUD reduction projects
-  - [ ] Dashboard charts (`@mui/x-charts` v9)
-  - [ ] DataGrid filters / sort / pagination (v9)
-  - [ ] Date pickers in forms (Spanish locale, `date-fns/es`)
-  - [ ] Modals / dialogs (MUI core v9)
-  - [ ] Notistack snackbars
-  - [ ] Excel export still works
-- [ ] 4.F.4 Wait for human review and merge
+- [x] 4.F.1 Final full cycle: install + format + lint + type-check + test (6/6 tasks, coverage 80.4%) + build all green
+- [x] 4.F.2 Pushed and opened PR `[Fullstack] Chore: upgrade high-risk dependencies (TS6, Vite8, MSAL5)`
+- [x] 4.F.3 PR body posted: bump table, migration guide links, manually edited files, smoke-test checklist (user action):
+  - [x] MSAL login + logout + authenticated API call (msal v5) — E2E smoke 2026-06-10 (full chain in browser, documented in the PR with screenshots)
+  - [ ] `pnpm dev:web` HMR works (vite 8 + plugin-react 6) — pending quick local check before merge
+  - [x] CRUD básico (organizations / inventories) end-to-end — E2E smoke: org accredited → inventory verified → reduction project approved
+- [ ] 4.F.4 Wait for human review and merge — **PR #373 OPEN at archive time** (CI green, smoke documented)
 
 ## 5. Post-upgrade reporting
 
-- [ ] 5.1 Produce a final report listing: total libraries bumped, links to the 3 merged PRs, total commits, any libraries deferred (with reason), any follow-up tickets opened
-- [ ] 5.2 Update or archive this OpenSpec change (run `/opsx:archive` once all PRs are merged)
+- [x] 5.1 Final report (see below)
+- [x] 5.2 Change archived 2026-06-10 via `/opsx:archive` (PR 3 open at archive time; delta spec synced to `openspec/specs/dependency-upgrade-policy/`)
+
+### Final report (5.1)
+
+**PRs shipped (4):**
+
+| PR                                                                | Scope                                                                                                 | Status                                                 |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [#348](https://github.com/undp/carbon-footprint-program/pull/348) | Low-risk (patch + minor, ~50 bumps)                                                                   | MERGED                                                 |
+| [#365](https://github.com/undp/carbon-footprint-program/pull/365) | PR 1b — RHF 7.76 + MUI X 8.28 with emission-capture behavioral fixes                                  | MERGED                                                 |
+| [#371](https://github.com/undp/carbon-footprint-program/pull/371) | Medium-risk (scoped majors: multipart 10, testcontainers 12, jwks-rsa 4, ky 2, cpy-cli 7, globals 17) | MERGED                                                 |
+| [#373](https://github.com/undp/carbon-footprint-program/pull/373) | High-risk (TS 6.0.3, @types/node 25, Vite 8 + plugin-react 6 + vite-tsconfig-paths 6, MSAL 5)         | OPEN — CI green, E2E smoke documented with screenshots |
+
+**Deferred / excluded:**
+
+- **ESLint 10** — deferred: `eslint-plugin-react` (peer cap `^9.7`) and `eslint-plugin-jsx-a11y` (peer cap `^9`) have no eslint-10-compatible releases (re-checked 2026-06-10). Re-evaluate when they ship support.
+- **MUI core 7→9 / MUI X 8→9** — excluded by user decision (2026-06-10): migration cost (150+ files) far exceeds the value. Core stays on v7, X on v8. POC commits exist on `feat/mati/upgrade-high-risk-dependencies` if ever revisited.
+
+**Notable migration work:** ky 2 hook signatures, fastify 5.8 `HookList` widening, RHF 7.76 `FormProvider`/`dirtyFields` behavioral fixes (own PR), TS6 `types: []` default (reworked `packages/types/src/environment.ts` to `globalThis.process`), msal-browser 5 `navigateToLoginRequestUrl` moved to per-call option (fix `9ccba79bb` preserves landing→`/app/home`).
+
+**Follow-ups:** none opened — ESLint 10 re-evaluation is tracked here; node engine bump explicitly out of scope.
