@@ -7,9 +7,10 @@ import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
   const queryClient = useQueryClient();
-  return useMutation<null, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`admin/country-subsectors/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`admin/country-subsectors/${id}`);
+    },
     onSuccess: async () => {
       // Cascade soft-delete also affects main activities; sector list refreshes
       // because its impactedChildren counts shift.

@@ -60,8 +60,9 @@ export const useUpdateMagnitude = () => {
 export const useDeleteMagnitude = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`magnitudes/${id}`).then(() => undefined),
+    mutationFn: async (id) => {
+      await apiClient.delete(`magnitudes/${id}`);
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.magnitudes.all,

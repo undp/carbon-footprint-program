@@ -69,8 +69,9 @@ export const useUpdateSubcategory = (methodologyVersionId?: string) => {
 export const useDeleteSubcategory = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
-    mutationFn: (subcategoryId) =>
-      apiClient.delete(`subcategories/${subcategoryId}`).json(),
+    mutationFn: async (subcategoryId) => {
+      await apiClient.delete(`subcategories/${subcategoryId}`);
+    },
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
