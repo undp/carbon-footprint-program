@@ -316,11 +316,7 @@ else
   echo "  - App Service:     Ready for deployment"
 
   # Check if Front Door is configured
-  FRONT_DOOR_ENDPOINT=$(az stack group show \
-    --name "$STACK_NAME" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query outputs.frontDoorEndpoint.value \
-    -o tsv 2>/dev/null || echo '')
+  FRONT_DOOR_ENDPOINT=$(stack_output frontDoorEndpoint)
 
   if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
     echo "  - Front Door:      Configured"
