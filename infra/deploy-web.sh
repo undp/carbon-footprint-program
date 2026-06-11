@@ -143,11 +143,7 @@ log "${YELLOW}[1/5] Fetching Static Web App details...${NC}"
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 # Get Static Web App name
-SWA_NAME=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.staticWebAppName.value \
-  --output tsv)
+SWA_NAME=$(stack_output staticWebAppName)
 
 if [ -z "$SWA_NAME" ]; then
   log "${RED}Error: Could not find Static Web App name. Make sure infrastructure is deployed.${NC}"
@@ -404,7 +400,7 @@ else
 fi
 echo ""
 
-# Check if Front Door is enabled
+# Resolve public endpoints (Front Door / custom domain) for the final summary
 FRONTDOOR_ENDPOINT=$(stack_output frontDoorEndpoint)
 FRONTEND_CUSTOM_DOMAIN_OUTPUT=$(stack_output frontendCustomDomain)
 
