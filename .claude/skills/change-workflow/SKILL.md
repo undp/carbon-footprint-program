@@ -5,16 +5,11 @@ description: How to finish and ship a change in this repo. Use when committing, 
 
 # Change Workflow
 
-## Branches & commits
+> Branch prefixes, Conventional Commits, modular commits, and the pre-commit gate (`pnpm format && pnpm lint && pnpm type-check`) are always-on in CLAUDE.md. This skill covers what CLAUDE.md delegates: PR titles, reviewer interaction, docs upkeep, and complex-change planning.
 
-- **Branch naming**: use prefixes `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`, `infra/`, or `claude/` (for AI-authored work).
-- **Conventional Commits** for all messages (e.g., `feat(api): add inventory export endpoint`, `fix(web): correct emission factor calculation`, `refactor: extract helper functions`). Include a scope when relevant.
-- **Modular commits**: break work into small, focused commits that are easy to review. Each commit should be a single logical change (one per endpoint, one per component, one for types, etc.). Do NOT push all implementation in a single commit.
-- **PR titles** use the `[AREA] Type: description` format (e.g. `[API] Feat: ...`, `[FRONT] Fix: ...`, `[Fullstack] Refactor: ...`), not the commit-style `type(scope):`.
+## PR titles
 
-## Before every commit
-
-Run `pnpm format && pnpm lint && pnpm type-check`. `pnpm format` is mandatory — never commit unformatted code. `pnpm lint` enforces zero warnings (any warning fails CI).
+Use the `[AREA] Type: description` format (e.g. `[API] Feat: ...`, `[FRONT] Fix: ...`, `[Fullstack] Refactor: ...`), not the commit-style `type(scope):`.
 
 ## Reviewer interaction
 

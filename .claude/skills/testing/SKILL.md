@@ -15,7 +15,7 @@ description: Integration testing for apps/api with Vitest + Testcontainers. Use 
 
 ## Running tests
 
-- Single file: `pnpm test --filter=api -- /{feature}/integration.test.ts --coverage=false`
-  - Example: `pnpm test --filter=api -- /getOrganizationById/integration.test.ts --coverage=false`
-- A whole domain: `pnpm test --filter=api -- /{domain} --coverage=false`
-  - Example: `pnpm test --filter=api -- organizations --coverage=false`
+Command form is in CLAUDE.md › Commands. Examples:
+
+- Single file: `pnpm test --filter=api -- /getOrganizationById/integration.test.ts --coverage=false`
+- Whole domain: `pnpm test --filter=api -- organizations --coverage=false`
