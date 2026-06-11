@@ -15,8 +15,8 @@ Workflow:
 2. Define or extend Zod schemas and inferred types in `packages/types/src/<domain>/...` (params, query, body, response). Reuse them in the route — never redefine locally.
 3. Create the feature folder: `route.ts` → `handler.ts` → `service.ts` (→ `helpers.ts` only if needed). Pass the Zod schemas to Fastify's `schema` option in `route.ts`.
 4. Apply the correct authorization decorator(s) in `route.ts`.
-5. Keep Prisma queries efficient: push logic to the DB, parallelize independent queries, `select` only the fields you need, and wrap read-then-write flows in an interactive `prisma.$transaction`.
-6. Throw the shared error classes from `apps/api/src/errors/`; use `ApiErrorResponseSchema` for error responses.
+5. Keep Prisma queries efficient and wrap read-then-write flows in an interactive `prisma.$transaction`.
+6. Use the shared error classes and `ApiErrorResponseSchema` for error responses.
 7. Write integration tests at `apps/api/test/features/<feature>/<action>/integration.test.ts` using `app.inject()` and the existing factories.
 8. Run `pnpm format && pnpm lint && pnpm type-check`, then the relevant test file.
 
