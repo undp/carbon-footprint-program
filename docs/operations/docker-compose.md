@@ -1,15 +1,23 @@
-# Docker Compose — Full Stack Operations
+# Docker Compose — Full Stack (local dev)
 
-Run the whole Huella Latam stack — Postgres, migrations + seed, API, and web — from a single `docker-compose.yml`. The same file is both the **local dev path** and the **template for productive deployments**; only the env file changes between environments.
+Run the whole Huella Latam stack — Postgres, migrations + seed, API, and web — with docker compose. The compose configuration is **layered**: a production-grade base (`compose.yaml`) plus overlays in `compose/`, chained per deployment scenario by the `COMPOSE_FILE` variable inside the env file. This page covers the **dev scenario**; the scenario system itself is documented in [`deploy/README.md`](../../deploy/README.md), and on-premise production in the [Production Deployment guide](./production-deployment.md).
+
+The dev scenario stacks:
+
+| File                      | Contributes                                                            |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `compose.yaml`            | `api` + `web` (production-grade defaults)                              |
+| `compose/db.bundled.yaml` | `postgres` container + one-shot `migrate` (migrations + seed)          |
+| `compose/dev.yaml`        | `NODE_ENV=development`, forced-user auth vars, validation-bypass flags |
 
 ## Services & boot order
 
-| Service    | Image                            | Purpose                                          | Host port    |
-| ---------- | -------------------------------- | ------------------------------------------------ | ------------ |
-| `postgres` | `postgres:18-alpine`             | Application database                             | `5432` (cfg) |
-| `migrate`  | `huella-latam-migrate:local`     | One-shot: applies migrations + seeds, then exits | —            |
-| `api`      | `huella-latam-api:local`         | Fastify API                                      | `8080` (cfg) |
-| `web`      | built from `apps/web/Dockerfile` | React SPA served by nginx                        | `3000` (cfg) |
+| Service    | Image                        | Purpose                                          | Host port    |
+| ---------- | ---------------------------- | ------------------------------------------------ | ------------ |
+| `postgres` | `postgres:18-alpine`         | Application database                             | `5432` (cfg) |
+| `migrate`  | `huella-latam-migrate:local` | One-shot: applies migrations + seeds, then exits | —            |
+| `api`      | `huella-latam-api:local`     | Fastify API                                      | `8080` (cfg) |
+| `web`      | `huella-latam-web:local`     | React SPA served by nginx                        | `3000` (cfg) |
 
 `depends_on` enforces the order:
 
@@ -24,13 +32,13 @@ postgres (healthy) → migrate (completed) → api (healthy) → web
 Requires Docker Engine + the Compose v2 plugin (`docker compose version`). Host ports `3000`, `8080`, `5432` must be free (or override them — see [Configuration](docker-compose.md#configuration)).
 
 ```bash
-cp .env.dockercompose.example .env.dockercompose
+cp deploy/dev/.env.example .env.dockercompose
 docker compose --env-file .env.dockercompose up --build
 ```
 
-The defaults boot a working local stack (auth disabled, storage disabled). Edit the env file only for what you need — typically ports, `JWT_SECRET`, and the Azure storage Service Principal.
+The defaults boot a working local stack (auth disabled, storage disabled). Edit the env file only for what you need — typically ports, `JWT_SECRET`, and the Azure storage Service Principal. The env file also carries the scenario itself: its `COMPOSE_FILE` variable is what chains the three files above, so no `-f` flags are ever needed.
 
-> Compose auto-loads only a file literally named `.env`. Ours is `.env.dockercompose` (gitignored; the `.example` is committed), so it's passed explicitly with `--env-file`.
+> Compose auto-loads only a file literally named `.env`. Ours is `.env.dockercompose` (gitignored; the committed template lives at `deploy/dev/.env.example`), so it's passed explicitly with `--env-file`.
 
 Handy alias used throughout this guide:
 
@@ -46,6 +54,14 @@ dc down            # stop
 
 `.env.dockercompose` is sectioned and documented inline; this is the recap of what each block controls.
 
+### Scenario
+
+| Var                    | Default                                                 | Notes                                                           |
+| ---------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
+| `COMPOSE_FILE`         | `compose.yaml:compose/db.bundled.yaml:compose/dev.yaml` | The overlay chain — consumed by docker compose itself           |
+| `COMPOSE_PROJECT_NAME` | `huella-latam-dev`                                      | Namespaces containers/networks/volumes (no cross-stack clashes) |
+| `IMAGE_TAG`            | `local`                                                 | Tag for the locally built images                                |
+
 ### Database
 
 | Var                          | Default        | Notes                                |
@@ -55,18 +71,19 @@ dc down            # stop
 | `POSTGRES_DB`                | `huella_latam` | Database name                        |
 | `POSTGRES_PORT_HOST_MAPPING` | `5432`         | Host port (container is always 5432) |
 
+`DATABASE_URL` is **derived from these** by `compose/db.bundled.yaml` and always points at the bundled container — a `DATABASE_URL` exported in your shell (e.g. by direnv for `pnpm dev`) cannot leak into the stack.
+
 ### API core
 
 | Var                            | Default                 | Notes                                      |
 | ------------------------------ | ----------------------- | ------------------------------------------ |
-| `NODE_ENV`                     | `development`           | `production` for deployments               |
-| `API_HOST`                     | `0.0.0.0`               | Bind address inside the container          |
+| `NODE_ENV`                     | `development`           | Production scenarios pin `production`      |
 | `API_PORT`                     | `8080`                  | **Host** port (container is fixed at 8080) |
 | `LOG_LEVEL`                    | `debug`                 | `debug` \| `info` \| `warn` \| `error`     |
 | `APP_VERSION`                  | `local`                 | Shown in logs / responses                  |
 | `ALLOWED_ORIGIN`               | `http://localhost:3000` | CORS origin allowed to call the API        |
 | `JWT_SECRET`                   | `super-secret-key`      | **Change in production**                   |
-| `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation (local only)       |
+| `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation (dev overlay only) |
 
 ### Authentication
 
@@ -79,7 +96,7 @@ dc down            # stop
 | `jwks`        | `AZURE_TENANT_TYPE`, `AZURE_TENANT_ID`, `AZURE_TENANT_SUBDOMAIN` (if external), `AZURE_API_CLIENT_ID` | Azure Entra ID auth            |
 | `easy-auth`   | —                                                                                                     | Azure App Service Easy Auth    |
 
-`AZURE_TENANT_ID` is always the **Entra External ID (CIAM) tenant** that validates user tokens — distinct from the storage tenant below. For non-Azure IdPs, use the generic `JWKS_*` overrides.
+`AZURE_TENANT_ID` is always the **Entra External ID (CIAM) tenant** that validates user tokens — distinct from the storage tenant below. For non-Azure IdPs, use the generic `JWKS_*` overrides. The `forced-user` vars exist only in the dev overlay — production scenarios never pass them to the container.
 
 ### Web build args
 
@@ -97,7 +114,7 @@ dc down            # stop
 | `VITE_AZURE_AUTH_AUTHORITY`         | `https://login.microsoftonline.com/organizations/v2.0` |
 | `VITE_APP_VERSION`                  | `local`                                                |
 | `VITE_IS_DEMO_APP`                  | `false`                                                |
-| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                                                |
+| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` | `false` (dev overlay only)                             |
 
 See [web-docker.md](./web-docker.md) for the image internals.
 
@@ -155,6 +172,7 @@ Everything below is in the Azure Portal — no `az` CLI required.
 | Logs (all / one service)            | `dc logs -f` / `dc logs -f api`                               |
 | Shell into a container              | `dc exec api sh`                                              |
 | psql into the DB                    | `dc exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"` |
+| Audit the merged config             | `dc config`                                                   |
 | Stop (keep data) / stop + wipe      | `dc down` / `dc down -v`                                      |
 
 `down -v` removes only this compose's `postgres-data` volume — your host's local DB is untouched.
@@ -176,23 +194,9 @@ dc up -d --no-deps api web
 
 ## Production deployment
 
-The same compose file is the productive template — production differs from the committed local-dev defaults (covered by [Quick start](docker-compose.md#quick-start) and [Configuration](docker-compose.md#configuration)) only through the env file. Each country deploys on its own infrastructure, so there are two production targets, **on-premise** (self-hosted) and **Azure**; they differ only in the storage credential.
+Production on-premise does **not** use the dev scenario: it stacks only `compose.yaml` + `compose/db.external.yaml` (no bundled DB, no dev overlay) against an **external PostgreSQL**, with migrations and seeds applied manually. The full procedure — env setup, DB privileges, migration runbook, air-gapped image delivery, troubleshooting — lives in the [Production Deployment guide](./production-deployment.md).
 
-| Setting         | On-premise (self-hosted)                   | Azure (App Service / Container Apps)       |
-| --------------- | ------------------------------------------ | ------------------------------------------ |
-| `NODE_ENV`      | `production`                               | `production`                               |
-| `JWT_SECRET`    | strong secret from a vault                 | strong secret from a vault                 |
-| `AUTH_PROVIDER` | `jwks`                                     | `jwks`                                     |
-| `VITE_*`        | public deployment URLs                     | public deployment URLs                     |
-| Postgres        | external managed Postgres → `DATABASE_URL` | external managed Postgres → `DATABASE_URL` |
-| Azure storage   | **3 SP vars set** (no Managed Identity)    | **3 SP vars empty** → Managed Identity     |
-
-Storage is the only target-dependent setting, because it hinges on the Managed Identity:
-
-- **On-premise / any non-Azure host** — no Managed Identity, so keep the three `AZURE_STORAGE_*` SP vars **set** (production-grade, vault-managed values). `getStorageCredential()` uses the explicit `ClientSecretCredential`. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional) for the SP setup.
-- **On Azure** — leave the three SP vars **empty**; `getStorageCredential()` falls back to `DefaultAzureCredential` → the compute's Managed Identity.
-
-No code branches by environment — `getStorageCredential()` (`packages/storage/src/getStorageCredential.ts`, shared by the API and the seeds via `@repo/storage`) just reads the env; the env file is the only difference.
+One rule worth keeping in mind everywhere: the storage credential depends on **where the compute runs**, not local-vs-prod — on-premise (no Managed Identity) sets the three `AZURE_STORAGE_*` SP vars, Azure-hosted compute leaves them empty and falls back to its Managed Identity. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional).
 
 ## Troubleshooting
 
@@ -232,7 +236,7 @@ dc exec postgres psql -U huella -d huella_latam -c "\dt"
 Still stale? Docker reused a cached layer. Check what's actually in the served bundle, and force a clean rebuild if needed:
 
 ```bash
-docker exec huella-latam-web sh -c 'grep -roE "http://localhost:[0-9]+" /usr/share/nginx/html/assets/ | sort -u'
+dc exec web sh -c 'grep -roE "http://localhost:[0-9]+" /usr/share/nginx/html/assets/ | sort -u'
 # old port still present → rebuild ignoring the layer cache:
 dc down && dc build --no-cache web && dc up -d
 ```
@@ -260,7 +264,9 @@ The rule applies to **every** interpolated var (`JWT_SECRET`, `AZURE_STORAGE_*`,
 
 ## Related docs
 
+- [Deployment Scenarios](../../deploy/README.md) — the compose layering system: base, overlays, env-file-driven scenarios.
+- [Production Deployment (on-premise)](./production-deployment.md) — base + `db.external.yaml` against an external PostgreSQL.
 - [Web App Docker Guide](./web-docker.md) — web image internals (nginx config, build args, hardening notes).
 - `apps/api/Dockerfile` — API multi-stage build (also the `migrate` base).
 - `apps/web/Dockerfile` — web SPA build + nginx runtime.
-- `.env.dockercompose.example` — committed template; the source of truth for every var.
+- `deploy/dev/.env.example` — committed template; the source of truth for every dev var.
