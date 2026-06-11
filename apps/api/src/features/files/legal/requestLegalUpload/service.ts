@@ -5,6 +5,7 @@ import {
   type RequestLegalUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
+import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
 import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
 import type { StorageAdapter } from "@/services/storage/index.js";
 
@@ -24,14 +25,5 @@ export const requestLegalUploadService = async (
     name: originalName,
   });
 
-  const { url, method, headers, expiresAt } =
-    await storage.generateWriteUrl(blobPath);
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    uploadMethod: method,
-    uploadHeaders: headers,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };

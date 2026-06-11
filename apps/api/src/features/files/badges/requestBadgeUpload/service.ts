@@ -7,6 +7,7 @@ import {
   RequestBadgeUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
+import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
 import type { StorageAdapter } from "@/services/storage/index.js";
 
 type BadgeRequestUploadInput = RequestBadgeUploadBody &
@@ -27,14 +28,5 @@ export const badgeRequestUploadService = async (
     name: originalName,
   });
 
-  const { url, method, headers, expiresAt } =
-    await storage.generateWriteUrl(blobPath);
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    uploadMethod: method,
-    uploadHeaders: headers,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };

@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { FileType, type RequestLineFileUploadResponse } from "@repo/types";
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
+import { buildPresignedUploadResponse } from "@/features/files/helpers/buildPresignedUploadResponse.js";
 import type { StorageAdapter } from "@/services/storage/index.js";
 
 interface RequestLineFileUploadInput {
@@ -23,14 +24,5 @@ export const requestLineFileUploadService = async (
     name: originalName,
   });
 
-  const { url, method, headers, expiresAt } =
-    await storage.generateWriteUrl(blobPath);
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    uploadMethod: method,
-    uploadHeaders: headers,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };
