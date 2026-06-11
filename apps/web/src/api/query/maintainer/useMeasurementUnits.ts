@@ -69,8 +69,9 @@ export const useUpdateMeasurementUnit = () => {
 export const useDeleteMeasurementUnit = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`measurement-units/${id}`).then(() => undefined),
+    mutationFn: async (id) => {
+      await apiClient.delete(`measurement-units/${id}`);
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.measurementUnits.all,
