@@ -241,11 +241,10 @@ cd packages/database
 pnpm dev:generate
 ```
 
-Finally, you must run the project seeds
+Finally, you must run the project seeds. From the **root directory**, run:
 
 ```bash
-cd packages/database
-pnpm dev:seed
+pnpm db:seed
 ```
 
 ### 6. Start Development Servers
