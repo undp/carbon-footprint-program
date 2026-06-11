@@ -52,14 +52,8 @@ APP_SERVICE_NAME=$(az stack group show \
   --query "outputs.api.value.appService.name" -o tsv 2>/dev/null || echo "")
 
 log "Fetching ACR outputs from environment stack: $STACK_NAME (RG: $AZURE_RESOURCE_GROUP)"
-ACR_ID=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "outputs.containerRegistryId.value" -o tsv 2>/dev/null || echo "")
-ACR_LOGIN_SERVER=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "outputs.acrLoginServer.value" -o tsv 2>/dev/null || echo "")
+ACR_ID=$(stack_output containerRegistryId)
+ACR_LOGIN_SERVER=$(stack_output acrLoginServer)
 
 if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
   log "Error: App Service name not found in stack '$STACK_NAME' (resource group: $AZURE_RESOURCE_GROUP)."
@@ -67,7 +61,7 @@ if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
   exit 1
 fi
 
-if [ -z "$ACR_LOGIN_SERVER" ] || [ "$ACR_LOGIN_SERVER" = "null" ]; then
+if [ -z "$ACR_LOGIN_SERVER" ]; then
   log "Error: ACR login server not found in stack '$STACK_NAME' (resource group: $AZURE_RESOURCE_GROUP)."
   log "Make sure the infrastructure stack is deployed and outputs.acrLoginServer is present. Run ./deploy.sh."
   exit 1
