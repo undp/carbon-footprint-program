@@ -75,43 +75,46 @@ front_door_enabled() {
   [ -n "$match" ]
 }
 
-# Best-effort CNAME target lookup for $1 using whatever DNS tool is present
-# (dig, then host, then nslookup). Prints the target without its trailing dot,
-# or an empty string when no tool is available or no CNAME is returned. Never
-# fails the caller — DNS readiness is advisory, not a hard dependency.
-dns_lookup_cname() {
+# Best-effort DNS resolution chain for $1 using whatever tool is present (dig,
+# then host, then nslookup). Prints one entry per line — every CNAME hop, not
+# just the first, so an intermediate CNAME in front of the real target still
+# matches (dig also emits the terminal IPs; harmless for hostname comparison).
+# Entries are lowercased with trailing dots stripped. Empty output when no tool
+# is available or nothing resolves. Never fails the caller — DNS readiness is
+# advisory, not a hard dependency.
+dns_resolution_chain() {
   local domain="$1" out=""
   if command -v dig >/dev/null 2>&1; then
-    out=$(dig +short "$domain" CNAME 2>/dev/null | head -n1 || echo "")
+    out=$(dig +short "$domain" 2>/dev/null || echo "")
   elif command -v host >/dev/null 2>&1; then
-    out=$(host -t CNAME "$domain" 2>/dev/null | awk '/alias for/ { print $NF; exit }' || echo "")
+    out=$(host "$domain" 2>/dev/null | awk '/is an alias for/ { print $NF }' || echo "")
   elif command -v nslookup >/dev/null 2>&1; then
-    out=$(nslookup -query=CNAME "$domain" 2>/dev/null | awk '/canonical name/ { print $NF; exit }' || echo "")
+    out=$(nslookup "$domain" 2>/dev/null | awk '/canonical name/ { print $NF }' || echo "")
   fi
-  printf '%s' "${out%.}"
+  printf '%s\n' "$out" | sed 's/\.$//' | tr '[:upper:]' '[:lower:]'
 }
 
 # Preflight before binding FRONTEND_CUSTOM_DOMAIN to the Static Web App.
 #
 # bicep validates the SWA custom domain synchronously (cname-delegation), so on a
 # real deploy a missing SWA (bootstrap) or an unresolved/wrong CNAME fails the
-# ENTIRE stack deploy minutes in. This catches both in seconds, before az runs.
+# ENTIRE stack deploy minutes in. This surfaces both in seconds, before az runs.
 #
 # Scope: SWA-direct path only. Front Door validates asynchronously
 # (dns-txt-token), so this is a no-op when enableFrontDoor=true in the param
 # file ($1).
 #
-# Two checks:
-#   1. SWA existence — the CNAME target hostname is created by this stack, so if
-#      the SWA does not exist yet there is nothing to point a CNAME at. Hard
-#      error with bootstrap guidance.
-#   2. CNAME resolution — a target that positively disagrees with the SWA
-#      hostname is a hard error; an empty/no-tool result only warns (local DNS
-#      may be stale and the tool may be absent — let Azure be the final gate
-#      rather than block on weak evidence).
+# Two checks, with different severities:
+#   1. SWA existence — deterministic (read from the stack, not DNS): the CNAME
+#      target hostname is created by this stack, so if the SWA does not exist
+#      yet the binding cannot possibly succeed. Hard error with bootstrap
+#      guidance; downgraded to a warning under DRY_RUN so a dry run completes.
+#   2. DNS resolution — advisory only. DNS is observed from this machine and
+#      can lag or differ from what Azure's resolvers see (propagation,
+#      intermediate CNAMEs, split-horizon), so a mismatch or empty result warns
+#      and continues — Azure's own synchronous validation is the final gate.
 #
-# Honors DRY_RUN: downgrades the hard errors to warnings so a dry run still
-# completes. Requires STACK_NAME and AZURE_RESOURCE_GROUP (read at call time).
+# Requires STACK_NAME and AZURE_RESOURCE_GROUP (read at call time).
 preflight_swa_custom_domain() {
   local param_file="$1"
   local domain="${FRONTEND_CUSTOM_DOMAIN:-}"
@@ -143,24 +146,22 @@ preflight_swa_custom_domain() {
     exit 1
   fi
 
-  # 2) Does the CNAME currently resolve to that hostname?
-  local cname
-  cname=$(dns_lookup_cname "$domain")
-  if [ -z "$cname" ]; then
+  # 2) Does the domain currently resolve through that hostname? Advisory only:
+  #    DNS seen from this machine is not what Azure's resolvers see, so never
+  #    block on it — a genuine mismatch will fail loudly at Azure's validation.
+  local chain
+  chain=$(dns_resolution_chain "$domain")
+  if [ -z "$chain" ]; then
     echo "Warning: could not confirm a CNAME for \"$domain\" (no dig/host/nslookup, or none returned yet)." >&2
     echo "         Ensure \"$domain\" CNAMEs to \"$swa_host\" and has propagated, or this deploy will fail at custom-domain validation." >&2
     return 0
   fi
-  if [ "$cname" != "$swa_host" ]; then
-    echo "ERROR: CNAME for \"$domain\" resolves to \"$cname\", but the Static Web App hostname is \"$swa_host\"." >&2
-    echo "       Azure validates the CNAME synchronously when binding the custom domain; this mismatch would fail the whole deploy." >&2
-    echo "       Fix the CNAME record (or wait for propagation), verify with: dig +short \"$domain\" CNAME, then re-run." >&2
-    if [ "$dry_run" = "true" ]; then
-      echo "       [DRY RUN] continuing despite the above; a real deploy would abort here." >&2
-      return 0
-    fi
-    exit 1
+  if ! printf '%s\n' "$chain" | grep -qxF "$swa_host"; then
+    echo "Warning: \"$domain\" does not currently resolve via \"$swa_host\" (observed: $(printf '%s' "$chain" | paste -sd' ' -))." >&2
+    echo "         If Azure's resolvers see the same when the binding is validated, the whole stack deploy fails at custom-domain validation." >&2
+    echo "         Verify with: dig +short \"$domain\" — the answer should include \"$swa_host\"." >&2
+    return 0
   fi
 
-  echo "Preflight OK: \"$domain\" CNAMEs to the Static Web App hostname (\"$swa_host\")." >&2
+  echo "Preflight OK: \"$domain\" resolves via the Static Web App hostname (\"$swa_host\")." >&2
 }
