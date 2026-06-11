@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "@repo/database";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";

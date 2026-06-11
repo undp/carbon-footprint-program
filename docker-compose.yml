@@ -1,12 +1,12 @@
 services:
   # One-shot: applies migrations and seeds the database, then exits.
-  # Reuses the API image (it already ships prisma + migrations + compiled seeds).
+  # Reuses the API image (it already ships prisma + migrations + the seed tool).
   migrate:
     # Uses the API Dockerfile's `builder` stage (full source + tsx + prisma +
     # node_modules) — the minimal runner image lacks src/environment.ts and tsx,
-    # which prisma.config.ts and the seed need. Different image name than `api`,
-    # so the shared base/deps/builder layers are reused from cache without a
-    # name collision.
+    # which prisma.config.ts and @repo/seed need. Different image name than
+    # `api`, so the shared base/deps/builder layers are reused from cache
+    # without a name collision.
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -17,7 +17,7 @@ services:
     command:
       - sh
       - -c
-      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/database prod:seed"
+      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/seed seed"
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public

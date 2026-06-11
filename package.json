@@ -22,8 +22,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
-    "db:restore": "turbo run db:restore --filter=@repo/database",
-    "db:seed": "pnpm --filter=@repo/database dev:seed",
+    "db:restore": "turbo run db:restore --filter=@repo/database && turbo run seed --filter=@repo/seed",
+    "db:seed": "turbo run seed --filter=@repo/seed",
     "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
   },
   "devDependencies": {

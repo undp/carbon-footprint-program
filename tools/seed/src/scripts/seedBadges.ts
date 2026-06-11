@@ -3,8 +3,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { BadgeStatus, BadgeType, type PrismaClient } from "../../../index.js";
-import { getStorageCredential } from "../../../utils/getStorageCredential.js";
+import { BadgeStatus, BadgeType, type PrismaClient } from "@repo/database";
+import { getStorageCredential } from "@repo/storage";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);

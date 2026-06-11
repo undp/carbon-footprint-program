@@ -1,5 +1,5 @@
-import { PrismaClient, generatePrismaAdapter } from "../../index.js";
-import { SEEDS_DATASET } from "../../environment.js";
+import { PrismaClient, generatePrismaAdapter } from "@repo/database";
+import { SEEDS_DATASET } from "./environment.js";
 import { seedMagnitudes } from "./scripts/seedMagnitudes.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";

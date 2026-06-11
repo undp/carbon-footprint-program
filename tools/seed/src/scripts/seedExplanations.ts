@@ -1,12 +1,9 @@
-import { type PrismaClient } from "@/index.js";
+import { type PrismaClient } from "@repo/database";
 import { readdirSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
-import {
-  generateSeedDataPath,
-  type SeedsDataset,
-} from "@/prisma/seeds/utils/index.js";
+import { generateSeedDataPath, type SeedsDataset } from "@/utils/index.js";
 
 const StandaloneExplanationsSchema = z.array(
   z.object({

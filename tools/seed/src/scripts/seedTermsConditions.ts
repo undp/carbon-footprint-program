@@ -8,8 +8,8 @@ import {
   LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
 } from "@repo/constants";
-import { FileStatus, type PrismaClient } from "../../../index.js";
-import { getStorageCredential } from "../../../utils/getStorageCredential.js";
+import { FileStatus, type PrismaClient } from "@repo/database";
+import { getStorageCredential } from "@repo/storage";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);

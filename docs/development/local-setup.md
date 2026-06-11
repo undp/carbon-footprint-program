@@ -126,20 +126,24 @@ pnpm dev:migrate
 
 # Generate the Prisma client (TypeScript types + query builder)
 pnpm dev:generate
-
-# Seed the database with initial data
-pnpm dev:seed
 ```
 
-Or from the **root** directory:
+Then, from the **root** directory:
 
 ```bash
-pnpm db:reset
+# Seed the database with initial data
+pnpm db:seed
+```
+
+Or do everything in one command from the **root** directory:
+
+```bash
+pnpm db:restore
 ```
 
 This resets the database, applies all migrations, and runs seeds in one command.
 
-> **Seeding is skipped when the database already has data.** `pnpm dev:seed` only seeds a fresh database — if any data already exists it logs a message and exits without changes. To reseed, reset the database first with `pnpm db:reset`.
+> **Seeding is skipped when the database already has data.** `pnpm db:seed` only seeds a fresh database — if any data already exists it logs a message and exits without changes. To reseed, reset the database first with `pnpm db:restore`.
 
 ---
 
@@ -236,16 +240,15 @@ pnpm clean
 
 ## Database Management
 
-> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exception: `pnpm db:reset` is a root-level script.
+> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed` and `pnpm db:restore` are root-level scripts.
 
 | Command             | Description                                                     |
 | ------------------- | --------------------------------------------------------------- |
 | `pnpm dev:migrate`  | Apply pending migrations                                        |
 | `pnpm dev:generate` | Regenerate Prisma client after schema changes                   |
-| `pnpm dev:seed`     | Run database seed scripts                                       |
 | `pnpm dev:studio`   | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
-| `pnpm dev:reset`    | Reset DB and re-apply all migrations (⚠️ destructive)           |
-| `pnpm db:reset`     | Reset + re-seed (from root, ⚠️ destructive)                     |
+| `pnpm db:seed`      | Run database seed scripts (from root, via `@repo/seed`)         |
+| `pnpm db:restore`   | Reset + re-seed (from root, ⚠️ destructive)                     |
 
 ### Creating a New Migration
 

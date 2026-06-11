@@ -16,13 +16,13 @@ Each country deployment requires:
 6. An **Azure Entra ID tenant** (or OIDC-compatible IdP) for authentication
 7. A dedicated Azure **infrastructure deployment** per environment
 
-All data in items 1–5 is loaded from declarative JSON seed files under `packages/database/src/prisma/seeds/data/base/`.
+All data in items 1–5 is loaded from declarative JSON seed files under `tools/seed/src/data/base/`.
 
 ---
 
 ## Step 1 — Add the Country Record
 
-**File:** `packages/database/src/prisma/seeds/data/base/countries.json`
+**File:** `tools/seed/src/data/base/countries.json`
 
 ```json
 [
@@ -37,7 +37,7 @@ Use the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) c
 
 ## Step 2 — Job Positions
 
-**File:** `packages/database/src/prisma/seeds/data/base/country_job_positions.json`
+**File:** `tools/seed/src/data/base/country_job_positions.json`
 
 Job positions are the roles that organization representatives hold. They appear in user registration and organization data forms.
 
@@ -56,7 +56,7 @@ Localize titles to the country's professional nomenclature. Always include an "O
 
 ## Step 3 — Organization Size Categories
 
-**File:** `packages/database/src/prisma/seeds/data/base/country_organization_size.json`
+**File:** `tools/seed/src/data/base/country_organization_size.json`
 
 Size categories classify organizations by employee count or revenue. Each country may use a different official classification (e.g., Colombia's MIPYME classification differs from Chile's).
 
@@ -73,7 +73,7 @@ Size categories classify organizations by employee count or revenue. Each countr
 
 ## Step 4 — Sectors and Subsectors
 
-**File:** `packages/database/src/prisma/seeds/data/base/country_sector_subsectors.json`
+**File:** `tools/seed/src/data/base/country_sector_subsectors.json`
 
 Sectors classify organizations by economic activity. Subsectors provide finer-grained classification within each sector.
 
@@ -102,7 +102,7 @@ Each subsector should end with an "Otro" option. Sectors drive the subcategory r
 
 ## Step 5 — Organization Main Activities
 
-**File:** `packages/database/src/prisma/seeds/data/base/organization_main_activities.json`
+**File:** `tools/seed/src/data/base/organization_main_activities.json`
 
 Main activities are KPI metrics used to normalize emissions (e.g., tCO₂e per employee, per ton produced). They appear when organizations configure their reporting baseline.
 
@@ -136,7 +136,7 @@ When `sector` is `null`, the activities apply to all sectors (global metrics). S
 
 ## Step 6 — Carbon Accounting Methodology
 
-**File:** `packages/database/src/prisma/seeds/data/base/methodologies.json`
+**File:** `tools/seed/src/data/base/methodologies.json`
 
 This is the most complex seed file. It defines the country's carbon accounting standard: which emission categories and sources to track, how to measure them, and what emission factors to use.
 
@@ -221,7 +221,7 @@ Standard GHG Protocol categories:
 
 ## Step 7 — Subcategory Recommendations
 
-**File:** `packages/database/src/prisma/seeds/data/base/subcategory_recommendations.json`
+**File:** `tools/seed/src/data/base/subcategory_recommendations.json`
 
 Recommendations guide organizations toward the emission sources most relevant to their sector, reducing the initial setup burden.
 
@@ -306,16 +306,15 @@ Run migrations and seeds against the production database:
 
 ```bash
 # Apply pending migrations
-cd packages/database
-DATABASE_URL="postgresql://..." pnpm prod:deploy
+DATABASE_URL="postgresql://..." pnpm --filter @repo/database prod:deploy
 
 # Seed the production database
-DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm dev:seed
+DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm --filter @repo/seed seed
 ```
 
-> The seed only runs against a fresh database. If the target database already contains data, `dev:seed` logs a message and exits without changes — so it is safe to run by mistake, but it will **not** apply seed updates to an already-populated environment. Updating reference data in an existing environment must be done through the admin UI or a migration.
+> The seed only runs against a fresh database. If the target database already contains data, the seed logs a message and exits without changes — so it is safe to run by mistake, but it will **not** apply seed updates to an already-populated environment. Updating reference data in an existing environment must be done through the admin UI or a migration.
 
-> Never run `dev:reset` against a production database — it drops all data first.
+> Never run `db:restore` against a production database — it drops all data first.
 
 ---
 
@@ -324,7 +323,7 @@ DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm dev:seed
 Before deploying to production, verify the seed data locally:
 
 ```bash
-pnpm db:reset        # Resets local DB, runs all migrations, applies base seeds
+pnpm db:restore      # Resets local DB, runs all migrations, applies base seeds
 ```
 
 Check:

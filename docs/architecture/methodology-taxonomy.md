@@ -292,7 +292,7 @@ model RateMeasurementUnit {
 
 ## Seed Data Format
 
-The methodology data is seeded from `packages/database/src/prisma/seeds/data/base/methodologies.json`. The file is an array of methodology definitions, one per country:
+The methodology data is seeded from `tools/seed/src/data/base/methodologies.json`. The file is an array of methodology definitions, one per country:
 
 ```jsonc
 [

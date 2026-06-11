@@ -1,9 +1,6 @@
-import { MethodologyVersionStatus, type PrismaClient } from "@/index.js";
+import { MethodologyVersionStatus, type PrismaClient } from "@repo/database";
 import { z } from "zod";
-import {
-  checkForDuplicates,
-  type SeedsDataset,
-} from "@/prisma/seeds/utils/index.js";
+import { checkForDuplicates, type SeedsDataset } from "@/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
 
 export async function seedMethodologies(

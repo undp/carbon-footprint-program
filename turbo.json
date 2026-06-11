@@ -80,6 +80,10 @@
       "cache": false,
       "dependsOn": ["build"]
     },
+    "seed": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
     "@repo/database#lint": {
       "cache": false,
       "dependsOn": ["build"],

@@ -60,7 +60,7 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 1. **PostgreSQL container** — `postgres:18-alpine`, credentials `testuser:testpass`, database `testdb`. Startup timeout: 180 s (accounts for first image pull in CI).
 2. **Azurite container** — `mcr.microsoft.com/azure-storage/azurite`, in-memory mode. Container `test-files` is pre-created. Startup timeout: 120 s. If Azurite fails, database-only tests still run.
 3. **Migrations** — `prisma migrate deploy` is executed against the test database.
-4. **Seeding** — `prisma db seed` with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.).
+4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.).
 5. **Context injection** — the database URL and storage connection string are passed to workers via Vitest's `project.provide()` interface.
 
 The teardown function stops both containers after all tests complete.

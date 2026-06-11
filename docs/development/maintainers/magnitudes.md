@@ -12,7 +12,7 @@ There are two distinct ways to introduce a magnitude into a country deployment. 
 
 Use this path when the magnitude is part of the platform's starter taxonomy and must exist before any admin logs in (typically because seeded measurement units or methodology factors reference it).
 
-1. Edit `packages/database/src/prisma/seeds/data/base/magnitudes.json` and append a new entry:
+1. Edit `tools/seed/src/data/base/magnitudes.json` and append a new entry:
 
    ```json
    { "code": "vehicles", "name": "Vehículos" }
@@ -24,10 +24,10 @@ Use this path when the magnitude is part of the platform's starter taxonomy and 
 2. Run the seed:
 
    ```bash
-   pnpm --filter=@repo/database dev:seed
+   pnpm db:seed
    ```
 
-   The seed script (`packages/database/src/prisma/seeds/scripts/seedMagnitudes.ts`) `upsert`s by `code` with `status: ACTIVE`. `isSystem` is set to `true` only for the hardcoded allow-list inside the script (currently just `mass`); every other seeded entry is created with `isSystem: false`. The `update: {}` clause is intentional: re-running the seed will **not** overwrite a `name` that an admin has since edited through the maintainer screen.
+   The seed script (`tools/seed/src/scripts/seedMagnitudes.ts`) `upsert`s by `code` with `status: ACTIVE`. `isSystem` is set to `true` only for the hardcoded allow-list inside the script (currently just `mass`); every other seeded entry is created with `isSystem: false`. The `update: {}` clause is intentional: re-running the seed will **not** overwrite a `name` that an admin has since edited through the maintainer screen.
 
 3. If the new magnitude needs a base measurement unit, also add the corresponding row to `measurement_units.json` referencing the new `code`.
 

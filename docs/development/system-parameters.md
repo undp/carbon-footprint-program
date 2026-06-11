@@ -77,8 +77,8 @@ model SystemParameter {
 
 Parameters are seeded at database initialization from:
 
-- `packages/database/src/prisma/seeds/data/base/systemParameters.json` — production defaults
-- `packages/database/src/prisma/seeds/data/testing/systemParameters.json` — test environment values
+- `tools/seed/src/data/base/systemParameters.json` — production defaults
+- `tools/seed/src/data/testing/systemParameters.json` — test environment values
 
 ---
 
@@ -100,7 +100,7 @@ Changes take effect on the next API request — no restart required since parame
 
 To add a system parameter:
 
-1. **Add the seed record** in `packages/database/src/prisma/seeds/data/base/systemParameters.json`:
+1. **Add the seed record** in `tools/seed/src/data/base/systemParameters.json`:
 
    ```json
    {
@@ -132,8 +132,8 @@ To add a system parameter:
 
    ```bash
    # Local development
-   cd packages/database && pnpm dev:seed
+   pnpm db:seed
 
    # Or to fully reset
-   pnpm db:reset
+   pnpm db:restore
    ```

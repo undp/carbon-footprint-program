@@ -1,12 +1,12 @@
-import { ReductionPlanInitiativeStatus, type PrismaClient } from "@/index.js";
+import {
+  ReductionPlanInitiativeStatus,
+  type PrismaClient,
+} from "@repo/database";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
-import {
-  generateSeedDataPath,
-  type SeedsDataset,
-} from "@/prisma/seeds/utils/index.js";
+import { generateSeedDataPath, type SeedsDataset } from "@/utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

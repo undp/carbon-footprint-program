@@ -1,6 +1,6 @@
 import {
   runPrismaMigrations,
-  runPrismaSeeds,
+  runSeeds,
   setupTestDatabase,
   setupTestStorage,
 } from "./testcontainers.js";
@@ -42,7 +42,7 @@ export default async function setup(project: TestProject) {
 
   try {
     runPrismaMigrations(databaseUrl);
-    runPrismaSeeds(databaseUrl);
+    runSeeds(databaseUrl);
   } catch (error) {
     await dbContainer.stop();
     if (storageContainer) await storageContainer.stop();

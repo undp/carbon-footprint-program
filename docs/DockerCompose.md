@@ -57,7 +57,7 @@ docker compose logs -f api
 docker compose --env-file docker-compose.env exec api sh -c "cd /app/packages/database && npx prisma migrate deploy"
 
 # Seed the database with initial data
-docker compose --env-file docker-compose.env exec api sh -c "cd /app/packages/database && npx tsx prisma/seeds/seed.ts"
+docker compose --env-file docker-compose.env exec api sh -c "cd /app && pnpm --filter @repo/seed seed"
 ```
 
 ### 4. Verify the Setup
@@ -186,10 +186,10 @@ The database includes seed data for:
 
 ```bash
 # Using docker compose
-docker compose exec api sh -c "cd /app/packages/database && npx tsx prisma/seeds/seed.ts"
+docker compose exec api sh -c "cd /app && pnpm --filter @repo/seed seed"
 
 # Using docker exec
-docker exec -it huella-latam-api sh -c "cd /app/packages/database && npx tsx prisma/seeds/seed.ts"
+docker exec -it huella-latam-api sh -c "cd /app && pnpm --filter @repo/seed seed"
 ```
 
 ### Resetting the Database
@@ -341,11 +341,12 @@ docker compose up -d
 # Run migrations
 pnpm exec prisma migrate dev
 
-# Seed the database
-pnpm exec tsx prisma/seeds/seed.ts
+# Seed the database (from the repo root)
+cd ../..
+pnpm db:seed
 
 # Start API in development mode
-cd ../../apps/api
+cd apps/api
 pnpm dev
 ```
 
