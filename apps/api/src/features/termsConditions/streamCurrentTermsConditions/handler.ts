@@ -20,7 +20,6 @@ export const streamCurrentTermsConditionsHandler = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
-  const log = request.log.child({ module: "termsConditions/stream" });
   const { prisma, storage } = request.server;
 
   const file = await resolveCurrentTermsConditionsBlob(prisma);
@@ -41,14 +40,6 @@ export const streamCurrentTermsConditionsHandler = async (
       throw new FileNotFoundError("current");
     }
     throw err;
-  }
-
-  if (!objectStream.body) {
-    log.error(
-      { blobPath: file.blobPath },
-      "Object storage returned no readable stream"
-    );
-    throw new Error("Failed to obtain a readable stream from storage");
   }
 
   // Force application/pdf rather than trusting persisted metadata: the
