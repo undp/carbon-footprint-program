@@ -14,14 +14,17 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # Copy necessary package.json files for dependency resolution
 COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
+COPY packages/storage/package.json ./packages/storage/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
 COPY packages/constants/package.json ./packages/constants/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY tools/seed/package.json ./tools/seed/
 
-# Install dependencies for the entire workspace
+# Install dependencies for the api closure and the seed tool (used by the
+# docker-compose `migrate` service to seed the database).
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter api...
+    pnpm install --frozen-lockfile --filter api... --filter @repo/seed...
 
 # Stage 3: Build the application
 FROM base AS builder
@@ -35,20 +38,26 @@ COPY turbo.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=deps /app/packages/storage/node_modules ./packages/storage/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=deps /app/packages/constants/node_modules ./packages/constants/node_modules
 COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
+COPY --from=deps /app/tools/seed/node_modules ./tools/seed/node_modules
 
 # Copy all necessary source files
 COPY packages/database ./packages/database
+COPY packages/storage ./packages/storage
 COPY packages/types ./packages/types
 COPY packages/utils ./packages/utils
 COPY packages/constants ./packages/constants
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
+COPY tools/seed ./tools/seed
 
-# Build using turbo (automatically handles dependency order and prisma generate via prebuild)
+# Build using turbo (automatically handles dependency order and prisma generate
+# via prebuild). The api closure also builds @repo/storage, which @repo/seed
+# imports; @repo/seed itself has no build step and runs from source via tsx.
 WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
