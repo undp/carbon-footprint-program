@@ -98,31 +98,15 @@ APP_SETTINGS=(
   "APP_VERSION=${APP_VERSION:-unknown}"
 )
 
-# Resolve ALLOWED_ORIGIN for the Fastify container:
-#   1. FRONTEND_CUSTOM_DOMAIN env var — current intent, wins before a redeploy.
-#   2. Stack output `allowedOrigin` — the exact origin bicep wrote to App
-#      Service platform CORS and Blob Storage CORS (custom domain, Front Door
-#      endpoint, or SWA default hostname, per bicep's own precedence).
-# A manual VITE_FRONT_BASE_URL is intentionally ignored to keep this in sync.
-if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
-  ALLOWED_ORIGIN_VALUE="https://${FRONTEND_CUSTOM_DOMAIN}"
-  log "Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: $ALLOWED_ORIGIN_VALUE"
-  STACK_ALLOWED_ORIGIN=$(stack_output allowedOrigin)
-  if [ "$STACK_ALLOWED_ORIGIN" != "$ALLOWED_ORIGIN_VALUE" ]; then
-    log "Warning: stack output allowedOrigin (${STACK_ALLOWED_ORIGIN:-<missing>}) does not match FRONTEND_CUSTOM_DOMAIN."
-    log "         App Service platform CORS and Storage CORS still authorize the old origin — run ./deploy.sh to align them."
-  fi
+# Resolve ALLOWED_ORIGIN for the Fastify container. Precedence and the
+# CORS-mismatch warning live in resolve_frontend_origin; a manual
+# VITE_FRONT_BASE_URL is intentionally ignored to keep this in sync.
+resolve_frontend_origin
+if [ -n "$RESOLVED_ORIGIN" ]; then
+  log "Resolved ALLOWED_ORIGIN from ${RESOLVED_ORIGIN_SOURCE}: $RESOLVED_ORIGIN"
+  APP_SETTINGS+=("ALLOWED_ORIGIN=$RESOLVED_ORIGIN")
 else
-  ALLOWED_ORIGIN_VALUE=$(stack_output allowedOrigin)
-  if [ -n "$ALLOWED_ORIGIN_VALUE" ]; then
-    log "Resolved ALLOWED_ORIGIN from stack output allowedOrigin: $ALLOWED_ORIGIN_VALUE"
-  else
-    log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or the allowedOrigin stack output (stack missing or predates the output); leaving unchanged."
-  fi
-fi
-
-if [ -n "$ALLOWED_ORIGIN_VALUE" ]; then
-  APP_SETTINGS+=("ALLOWED_ORIGIN=$ALLOWED_ORIGIN_VALUE")
+  log "Warning: could not resolve ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN or the allowedOrigin stack output (stack missing or predates the output); leaving unchanged."
 fi
 
 az webapp config appsettings set \

@@ -240,11 +240,9 @@ export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 
-# Resolve frontend base URL (used by Vite build for redirect URIs, etc.):
-#   1. FRONTEND_CUSTOM_DOMAIN env var — current intent, wins before a redeploy.
-#   2. Stack output `allowedOrigin` — the exact origin bicep authorized for
-#      CORS (App Service platform CORS + Fastify ALLOWED_ORIGIN + Storage CORS).
-#   3. Static Web App default hostname — stack missing or predates the output.
+# Resolve frontend base URL (used by Vite build for redirect URIs, etc.).
+# Precedence and the CORS-mismatch warning live in resolve_frontend_origin;
+# falls back to the SWA default hostname when the stack has no origin yet.
 # A manual VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with
 # bicep's allowedOrigin, the browser would hit CORS errors.
 if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
@@ -252,23 +250,13 @@ if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
   unset VITE_FRONT_BASE_URL
 fi
 
-if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
-  export VITE_FRONT_BASE_URL="https://${FRONTEND_CUSTOM_DOMAIN}"
-  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from FRONTEND_CUSTOM_DOMAIN env: ${VITE_FRONT_BASE_URL}${NC}"
-  STACK_ALLOWED_ORIGIN=$(stack_output allowedOrigin)
-  if [ "$STACK_ALLOWED_ORIGIN" != "$VITE_FRONT_BASE_URL" ]; then
-    log "${YELLOW}   ⚠ Stack output allowedOrigin (${STACK_ALLOWED_ORIGIN:-<missing>}) does not match FRONTEND_CUSTOM_DOMAIN.${NC}"
-    log "${YELLOW}     App Service CORS, Fastify ALLOWED_ORIGIN and Storage CORS still authorize the old origin — run ./deploy.sh to align them.${NC}"
-  fi
+resolve_frontend_origin
+if [ -n "$RESOLVED_ORIGIN" ]; then
+  export VITE_FRONT_BASE_URL="$RESOLVED_ORIGIN"
+  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from ${RESOLVED_ORIGIN_SOURCE}: ${VITE_FRONT_BASE_URL}${NC}"
 else
-  ALLOWED_ORIGIN_OUTPUT=$(stack_output allowedOrigin)
-  if [ -n "$ALLOWED_ORIGIN_OUTPUT" ]; then
-    export VITE_FRONT_BASE_URL="$ALLOWED_ORIGIN_OUTPUT"
-    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from stack output allowedOrigin: ${VITE_FRONT_BASE_URL}${NC}"
-  else
-    export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
-    log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
-  fi
+  export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
 fi
 
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
