@@ -11,9 +11,22 @@ Deploy Huella Latam on a country's own server with `docker-compose.prod.yml`. Un
 
 TLS / reverse proxies are out of scope here, but if one fronts the stack, `ALLOWED_ORIGIN` and the `VITE_*` URLs must use the public HTTPS origin, not the server's internal address.
 
+### Deployment model & roles
+
+Images are **not built on the deploy server** and there is no registry. They are built on a separate machine, exported as a compressed tarball (`docker save | gzip`), transferred, and loaded on the deploy server (`docker load`) — an air-gapped flow. Three roles, which may be the same or different people:
+
+| Role              | Has                                        | Does                                                                                |
+| ----------------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| **Builder**       | repo checkout + the deployment env file    | builds the images (bakes the country's `VITE_*` into `web`) and `docker save`s them |
+| **Migrator**      | repo checkout + network access to the DB   | runs `prisma migrate deploy` + seeds (once, and on every upgrade)                   |
+| **Deploy person** | the deploy server + the env file + tarball | `docker load`s the images and runs the stack with `--no-build`                      |
+
+> The **same** populated `.env.prod.dockercompose` is the deployment's complete config — it travels with the image tarball. The builder needs it (the `VITE_*` are baked into the `web` image at build time); the deploy person needs it (the API's runtime vars — `DATABASE_URL`, `JWT_SECRET`, …). Compose interpolates the whole file regardless of the command, so keep it complete in both places.
+
 ## Prerequisites
 
-- **App server**: Docker Engine + Compose v2 (`docker compose version`), and a git checkout of the repo at the release tag to deploy. Images are built on the server itself — no registry involved.
+- **Deploy server**: Docker Engine + Compose v2 (`docker compose version`). It needs only `docker-compose.prod.yml`, the filled env file, and the image tarball — **not** the repo, Node, or pnpm.
+- **Builder machine**: a git checkout of the repo at the release tag, Docker, and the filled env file (to bake `VITE_*`). May be the same machine as the migrator.
 - **External PostgreSQL ≥ 15** (project standard: 18). Migrations use `NULLS NOT DISTINCT`, which requires 15+; `pnpm --filter @repo/database validate:version` enforces this.
 - **Database and roles provisioned by the DBA** — see the [contract below](#database-roles--privileges-dba-contract). The repo ships no provisioning SQL.
 - **Network reachability**:
@@ -89,34 +102,57 @@ pnpm --filter @repo/database prod:seed          # first deploy only (idempotent)
 
 If migrations ran as a user other than the application user, re-apply/verify the grants from the [DBA contract](#database-roles--privileges-dba-contract) before starting the stack.
 
-## Build & start
+## Image delivery (build → save → load)
+
+**On the builder machine** (repo checkout + filled env file). The `web` image bakes the country's `VITE_*` at build time, so the env file must hold the real deployment URLs before building:
 
 ```bash
 alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose'
-dcp up -d --build
+dcp build                       # builds huella-latam-api:prod and huella-latam-web:prod
+docker save huella-latam-api:prod huella-latam-web:prod | gzip > huella-images-<tag>.tar.gz
+```
+
+Transfer **three artifacts** to the deploy server: `huella-images-<tag>.tar.gz`, `docker-compose.prod.yml`, and the filled `.env.prod.dockercompose`.
+
+**On the deploy server:**
+
+```bash
+docker load < huella-images-<tag>.tar.gz   # docker load auto-decompresses gzip
+docker images | grep huella-latam          # confirm both :prod tags are present
+```
+
+## Start the stack
+
+**On the deploy server**, with `--no-build` so it uses the loaded images and never tries to build (it errors clearly if a tag is missing — see [Troubleshooting](#troubleshooting)):
+
+```bash
+alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose'
+dcp up --no-build -d
 dcp ps          # both services must reach "healthy"
 curl http://localhost:8080/health   # → {"status":"ok", ...} with database connected
 ```
 
+> Migrations must already be applied against the external DB (previous section) — the stack does not run them.
+
 ## Updates / upgrades
 
-1. `git fetch && git checkout <new-tag>` on the app server.
-2. From the dev machine: `prod:deploy` (new migrations), then re-check grants (ownership caveat above).
-3. `dcp up -d --build` — rebuilds both images and recreates changed containers.
-4. If a `VITE_*` value changed but the browser still sees the old one: `dcp build --no-cache web && dcp up -d`, then hard-refresh.
+1. **Builder**: `git fetch && git checkout <new-tag>`, then `dcp build` + `docker save … | gzip` (as above). If only `VITE_*` changed but a rebuilt bundle still looks stale, force a clean layer: `dcp build --no-cache web`.
+2. **Migrator**: run `prod:deploy` for any new migrations, then re-check grants (ownership caveat above).
+3. Transfer the new tarball; on the deploy server `docker load < …` then `dcp up --no-build -d` — recreates the changed containers from the new images.
 
 ## Troubleshooting
 
-| Symptom                                                                                           | Cause / fix                                                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api` restart-loops at boot (`docker logs huella-latam-api-prod` shows a Prisma connection error) | **Expected while the DB is unreachable** — the API intentionally exits if it cannot connect at startup, and `restart: unless-stopped` retries until the DB answers. Fix the connectivity (route, firewall, `pg_hba.conf`, credentials), not the compose file. |
-| `/health` returns 503 `degraded`                                                                  | The DB dropped after boot. The API recovers on its own once the DB is reachable again.                                                                                                                                                                        |
-| `P1000: Authentication failed`                                                                    | Wrong credentials — or a non-URL-encoded password corrupting the connection string. Re-encode and retry.                                                                                                                                                      |
-| `permission denied for table ...`                                                                 | Missing grants for the application user — see the [ownership caveat](#database-roles--privileges-dba-contract).                                                                                                                                               |
-| Browser CORS errors                                                                               | `ALLOWED_ORIGIN` doesn't exactly match the web app's origin (scheme/host/port/trailing slash).                                                                                                                                                                |
-| Web calls the wrong API URL                                                                       | `VITE_API_BASE_URL` is baked at build time — fix the env file and rebuild `web` ([details](./docker-compose.md#web-serves-a-stale-or-wrong-api-url)).                                                                                                         |
-| Compose resolves a wrong/old value                                                                | Shell or direnv export overriding the env file ([precedence](./docker-compose.md#compose-uses-the-wrong-value-for-a-variable-shell--direnv-overrides---env-file)).                                                                                            |
-| Storage / Service Principal errors                                                                | See the [storage troubleshooting table](./docker-compose.md#storage-credential--service-principal-errors).                                                                                                                                                    |
+| Symptom                                                                                           | Cause / fix                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `up --no-build` fails with `No such image: huella-latam-…:prod`                                   | The image tarball was not loaded, or the tag differs. Run `docker load < huella-images-<tag>.tar.gz` and confirm with `docker images \| grep huella-latam`.                                                                                                                |
+| `api` restart-loops at boot (`docker logs huella-latam-api-prod` shows a Prisma connection error) | **Expected while the DB is unreachable** — the API intentionally exits if it cannot connect at startup, and `restart: unless-stopped` retries until the DB answers. Fix the connectivity (route, firewall, `pg_hba.conf`, credentials), not the compose file.              |
+| `/health` returns 503 `degraded`                                                                  | The DB dropped after boot. The API recovers on its own once the DB is reachable again.                                                                                                                                                                                     |
+| `P1000: Authentication failed`                                                                    | Wrong credentials — or a non-URL-encoded password corrupting the connection string. Re-encode and retry.                                                                                                                                                                   |
+| `permission denied for table ...`                                                                 | Missing grants for the application user — see the [ownership caveat](#database-roles--privileges-dba-contract).                                                                                                                                                            |
+| Browser CORS errors                                                                               | `ALLOWED_ORIGIN` doesn't exactly match the web app's origin (scheme/host/port/trailing slash).                                                                                                                                                                             |
+| Web calls the wrong API URL                                                                       | `VITE_API_BASE_URL` is baked into the `web` image at build time — fix the env file and **rebuild on the builder**, then re-deliver the tarball ([details](./docker-compose.md#web-serves-a-stale-or-wrong-api-url)). Re-running `up` on the deploy server won't change it. |
+| Compose resolves a wrong/old value                                                                | Shell or direnv export overriding the env file ([precedence](./docker-compose.md#compose-uses-the-wrong-value-for-a-variable-shell--direnv-overrides---env-file)).                                                                                                         |
+| Storage / Service Principal errors                                                                | See the [storage troubleshooting table](./docker-compose.md#storage-credential--service-principal-errors).                                                                                                                                                                 |
 
 ## Related docs
 
