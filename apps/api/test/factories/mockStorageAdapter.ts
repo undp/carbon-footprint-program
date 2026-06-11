@@ -21,9 +21,9 @@ export type MockStorageAdapter = {
 };
 
 /**
- * Builds a fully-stubbed `StorageAdapter` for tests that previously mocked
- * `@/services/blobService.js`. Returned methods carry canned defaults but are
- * `vi.fn()` instances, so tests can override individual methods via
+ * Builds a fully-stubbed `StorageAdapter` for unit tests that don't need a
+ * real backend. Returned methods carry canned defaults but are `vi.fn()`
+ * instances, so tests can override individual methods via
  * `adapter.headObject.mockResolvedValueOnce(...)`.
  *
  * Use by overriding the storage adapter after `createTestApp`:

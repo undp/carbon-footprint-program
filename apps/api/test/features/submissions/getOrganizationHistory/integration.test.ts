@@ -38,12 +38,6 @@ import {
 } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
-// NOTE: this test previously mocked `@/services/blobService.js`. With the
-// storage facade refactor the equivalent module no longer exists; behavior is
-// validated end-to-end against the real testcontainer adapter (Azurite or
-// MinIO). The few assertions that depended on call counts of the signer factory
-// have been removed — see the deleted "returns 503" test below.
-
 describe("GET /api/submissions/organization/:id/history - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
