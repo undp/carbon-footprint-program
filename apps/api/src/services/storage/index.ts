@@ -14,9 +14,8 @@ export async function createStorageAdapter(
 ): Promise<StorageAdapter> {
   switch (provider) {
     case StorageProvider.AZURE_BLOB_STORAGE: {
-      const { createAzureBlobAdapter } = await import(
-        "./adapters/azureBlobAdapter.js"
-      );
+      const { createAzureBlobAdapter } =
+        await import("./adapters/azureBlobAdapter.js");
       return createAzureBlobAdapter();
     }
     case StorageProvider.MINIO: {
