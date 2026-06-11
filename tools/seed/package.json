@@ -1,0 +1,29 @@
+{
+  "name": "@repo/seed",
+  "version": "0.0.0",
+  "description": "Database seeding package for the Huella Latam project",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "tsx src/seed.ts",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf .turbo"
+  },
+  "dependencies": {
+    "@azure/storage-blob": "^12.31.0",
+    "@repo/constants": "workspace:*",
+    "@repo/database": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "zod": "catalog:shared"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "catalog:shared",
+    "eslint": "catalog:shared",
+    "rimraf": "catalog:shared",
+    "tsx": "catalog:shared",
+    "typescript": "catalog:shared"
+  }
+}

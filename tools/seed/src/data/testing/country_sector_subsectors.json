@@ -1,0 +1,260 @@
+[
+  {
+    "countryIsoCode": "PD",
+    "sector": "Manufactura / Industria Manufacturera",
+    "subsectors": [
+      "Alimentos y Bebidas - Procesamiento de carnes",
+      "Alimentos y Bebidas - Lácteos",
+      "Alimentos y Bebidas - Bebidas alcohólicas / no alcohólicas",
+      "Alimentos y Bebidas - Panificación y pastelería",
+      "Alimentos y Bebidas - Envasado de alimentos",
+      "Textil y Vestuario - Tejidos",
+      "Textil y Vestuario - Confección",
+      "Textil y Vestuario - Calzado",
+      "Productos Químicos - Fertilizantes",
+      "Productos Químicos - Pinturas",
+      "Productos Químicos - Químicos industriales",
+      "Metalurgia / Metalmecánica - Fundición",
+      "Metalurgia / Metalmecánica - Fabricación de maquinarias",
+      "Metalurgia / Metalmecánica - Estructuras metálicas",
+      "Productos de Madera y Papel - Aserraderos",
+      "Productos de Madera y Papel - Muebles",
+      "Productos de Madera y Papel - Papel y cartón",
+      "Electrónica y Eléctrica - Equipos electrónicos",
+      "Electrónica y Eléctrica - Componentes eléctricos",
+      "Plásticos y Caucho - Productos plásticos",
+      "Plásticos y Caucho - Neumáticos",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Energía",
+    "subsectors": [
+      "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
+      "Generación de Energía - Termoeléctrica",
+      "Distribución y Transmisión",
+      "Comercialización de Energía",
+      "Petróleo y Gas - Exploración",
+      "Petróleo y Gas - Producción",
+      "Petróleo y Gas - Refinería",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
+    "subsectors": [
+      "Agricultura - Cultivos anuales",
+      "Agricultura - Cultivos permanentes",
+      "Agricultura - Hortalizas",
+      "Agricultura - Fruticultura",
+      "Ganadería - Bovinos",
+      "Ganadería - Porcinos",
+      "Ganadería - Avícolas",
+      "Ganadería - Ovinos",
+      "Silvicultura - Manejo forestal",
+      "Silvicultura - Extracción de madera",
+      "Silvicultura - Reforestación",
+      "Pesca y Acuicultura - Pesca artesanal",
+      "Pesca y Acuicultura - Pesca industrial",
+      "Pesca y Acuicultura - Piscicultura",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Construcción",
+    "subsectors": [
+      "Construcción de Edificaciones - Residencial",
+      "Construcción de Edificaciones - Comercial",
+      "Construcción de Edificaciones - Industrial",
+      "Obras Civiles - Carreteras",
+      "Obras Civiles - Puentes",
+      "Obras Civiles - Infraestructura hídrica",
+      "Instalaciones Especializadas - Eléctricas",
+      "Instalaciones Especializadas - Sanitarias",
+      "Instalaciones Especializadas - Climatización",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Transporte y Logística",
+    "subsectors": [
+      "Transporte Terrestre - Pasajeros",
+      "Transporte Terrestre - Carga",
+      "Transporte Terrestre - Transporte urbano",
+      "Transporte Marítimo y Portuario - Carga",
+      "Transporte Marítimo y Portuario - Pasajeros",
+      "Transporte Aéreo - Aerolíneas",
+      "Transporte Aéreo - Carga aérea",
+      "Logística y Distribución - Centros de distribución",
+      "Logística y Distribución - Couriers",
+      "Logística y Distribución - Almacenamiento y bodegaje",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Comercio",
+    "subsectors": [
+      "Comercio Mayorista - Alimentos",
+      "Comercio Mayorista - Materiales de construcción",
+      "Comercio Mayorista - Insumos industriales",
+      "Comercio Minorista - Supermercados",
+      "Comercio Minorista - Tiendas especializadas",
+      "Comercio Minorista - E-commerce",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Servicios Financieros",
+    "subsectors": [
+      "Banca - Comercial",
+      "Banca - de inversión",
+      "Seguros - Generales",
+      "Seguros - Vida",
+      "Fintech - Pagos",
+      "Fintech - Préstamos digitales",
+      "Administración de Activos - Fondos de inversión",
+      "Administración de Activos - Pensiones",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Turismo, Hotelería y Restaurantes",
+    "subsectors": [
+      "Hoteles y Hospedaje - Hoteles",
+      "Hoteles y Hospedaje - Hostales",
+      "Hoteles y Hospedaje - Resorts",
+      "Servicios Gastronómicos - Restaurantes",
+      "Servicios Gastronómicos - Cafeterías",
+      "Servicios Gastronómicos - Catering",
+      "Agencias de Viajes y Tour Operadores",
+      "Entretenimiento - Casinos",
+      "Entretenimiento - Parques temáticos",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Salud",
+    "subsectors": [
+      "Servicios de Salud - Hospitales",
+      "Servicios de Salud - Clínicas",
+      "Servicios de Salud - Centros de salud",
+      "Servicios de Salud - Servicios médicos",
+      "Servicios de Salud - Servicios odontológicos",
+      "Servicios de Salud - Laboratorios",
+      "Farmacéuticas",
+      "Fabricación de Dispositivos Médicos",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Educación",
+    "subsectors": [
+      "Educación Escolar - Básica",
+      "Educación Escolar - Media",
+      "Educación Superior - Universidades",
+      "Educación Superior - Institutos técnicos",
+      "Capacitación y Formación Profesional",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Servicios Profesionales y Empresariales",
+    "subsectors": [
+      "Consultoría - Gestión",
+      "Consultoría - Sustentabilidad",
+      "Consultoría - Ingeniería",
+      "Servicios Jurídicos",
+      "Contabilidad y Auditoría",
+      "Publicidad y Marketing",
+      "Servicios TI - Desarrollo",
+      "Servicios TI - Consultoría TI",
+      "Servicios TI - Ciberseguridad",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Administración Pública",
+    "subsectors": [
+      "Gobierno Central",
+      "Gobiernos Locales",
+      "Agencias Reguladoras",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Minería",
+    "subsectors": [
+      "Extracción - Cobre",
+      "Extracción - Oro y Plata",
+      "Extracción - Hierro",
+      "Extracción - Minerales no metálicos",
+      "Procesamiento - Fundición",
+      "Procesamiento - Refinería",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Telecomunicaciones",
+    "subsectors": [
+      "Telefonía Móvil",
+      "Proveedores de Internet",
+      "Televisión y Radio",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Bienes Raíces",
+    "subsectors": [
+      "Desarrollo Inmobiliario",
+      "Corretaje",
+      "Administración de Propiedades",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Gestión de Residuos",
+    "subsectors": [
+      "Recolección de Residuos",
+      "Plantas de Reciclaje",
+      "Disposición Final",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Agua y Saneamiento",
+    "subsectors": [
+      "Producción y Distribución de Agua",
+      "Tratamiento de Aguas Servidas",
+      "Otro"
+    ]
+  },
+  {
+    "countryIsoCode": "PD",
+    "sector": "Industria Cementera",
+    "subsectors": [
+      "Producción de Clinker",
+      "Producción de Cemento - Molienda y mezcla",
+      "Hormigón Premezclado",
+      "Productos Prefabricados de Hormigón",
+      "Cal y Yeso",
+      "Morteros y Aditivos",
+      "Otro"
+    ]
+  }
+]

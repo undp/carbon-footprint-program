@@ -1,0 +1,314 @@
+[
+  {
+    "name": "Otro",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Administrador de Bases de Datos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Administrador de Finca",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Administrador de Oficina",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Administrador de Sistemas",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Agrónomo",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Aseguramiento de Calidad",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Cadena de Suministro",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Datos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Energía",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Huella de Carbono",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Negocios",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista de Sostenibilidad",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista ESG",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista Financiero",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Analista GIS",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Asesor Legal",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Asistente Administrativo",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Asistente Ejecutivo",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Asistente Legal / Paralegal",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Auditor",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Auditor Interno",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Científico de Datos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Contador",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Coordinador Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Coordinador de Logística",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Coordinador de Operaciones",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Coordinador de Recursos Humanos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Coordinador HSE",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Director de Operaciones (COO)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Director de Sostenibilidad (CSO)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Director Ejecutivo (CEO)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista de Recursos Humanos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Asuntos Regulatorios",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Cambio Climático",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Capacitación y Desarrollo",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Responsabilidad Social Corporativa (RSC)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Salud, Seguridad y Medio Ambiente (HSE)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Soporte TI",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Sostenibilidad",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Especialista en Verificación",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Auditoría",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Cadena de Suministro",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Cumplimiento",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Energía",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Finanzas",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Flota",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Operaciones",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Planta",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Programas",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Proyectos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Recursos Humanos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente de Sostenibilidad",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente ESG",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente General",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Gerente HSE",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Ingeniero de Procesos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Ingeniero de Proyectos",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Ingeniero de Software",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Ingeniero Industrial",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Oficial de Acreditación",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Oficial de Cumplimiento",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Oficial de Cumplimiento Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Reclutador",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Revisor de Cumplimiento",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico Ambiental",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico de Campo",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico de Control de Calidad",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico de Datos (para lecturas, inventarios o recolección de datos de actividad)",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico de Mantenimiento",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico Forestal",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Técnico GIS",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Verificador",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Verificador Interno",
+    "countryIsoCode": "PD"
+  },
+  {
+    "name": "Verificador Líder",
+    "countryIsoCode": "PD"
+  }
+]

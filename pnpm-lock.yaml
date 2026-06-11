@@ -552,6 +552,46 @@ importers:
         specifier: catalog:shared
         version: 6.0.3
 
+  tools/seed:
+    dependencies:
+      '@azure/storage-blob':
+        specifier: ^12.31.0
+        version: 12.31.0
+      '@repo/constants':
+        specifier: workspace:*
+        version: link:../../packages/constants
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@repo/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
+      zod:
+        specifier: catalog:shared
+        version: 4.4.3
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/node':
+        specifier: catalog:shared
+        version: 24.13.1
+      eslint:
+        specifier: catalog:shared
+        version: 9.39.1(jiti@2.7.0)
+      rimraf:
+        specifier: catalog:shared
+        version: 6.1.2
+      tsx:
+        specifier: catalog:shared
+        version: 4.22.4
+      typescript:
+        specifier: catalog:shared
+        version: 5.9.3
+
 packages:
 
   '@azure/abort-controller@2.1.2':

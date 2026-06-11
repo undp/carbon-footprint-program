@@ -1,0 +1,287 @@
+[
+  {
+    "subcategoryName": "Combustiones estacionarias",
+    "initiatives": [
+      {
+        "title": "Sustitución de calderas por modelos de alta eficiencia",
+        "description": "Reemplazar calderas antiguas por modelos de condensación o alta eficiencia energética, reduciendo el consumo de combustible y las emisiones asociadas."
+      },
+      {
+        "title": "Transición a combustibles más limpios",
+        "description": "Migrar equipos estacionarios de diésel o carbón a gas natural o biocombustibles, disminuyendo significativamente las emisiones de CO₂ por unidad de energía."
+      },
+      {
+        "title": "Implementar programa de mantenimiento preventivo",
+        "description": "Establecer rutinas de mantenimiento periódico en calderas, hornos y generadores para asegurar su operación óptima y evitar emisiones innecesarias por ineficiencia."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Combustiones móviles (flota propia)",
+    "initiatives": [
+      {
+        "title": "Electrificación parcial de la flota vehicular",
+        "description": "Incorporar vehículos eléctricos o híbridos en la flota propia, priorizando rutas urbanas donde la autonomía eléctrica es suficiente."
+      },
+      {
+        "title": "Optimización de rutas y logística",
+        "description": "Utilizar software de planificación de rutas para minimizar distancias recorridas, reducir tiempos de ralentí y disminuir el consumo de combustible."
+      },
+      {
+        "title": "Capacitación en conducción eficiente",
+        "description": "Entrenar a conductores en técnicas de eco-conducción como aceleración suave, uso adecuado de frenos y velocidades constantes para reducir el consumo de combustible."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Emisiones fugitivas",
+    "initiatives": [
+      {
+        "title": "Programa de detección y reparación de fugas (LDAR)",
+        "description": "Implementar un programa sistemático de detección de fugas en equipos de refrigeración, aire acondicionado y sistemas de gas, reparando oportunamente las fugas encontradas."
+      },
+      {
+        "title": "Transición a refrigerantes de bajo potencial de calentamiento",
+        "description": "Reemplazar refrigerantes con alto GWP (como R-410A) por alternativas de bajo impacto climático (como R-32 o refrigerantes naturales)."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Emisiones por uso de suelo - Ganadería",
+    "initiatives": [
+      {
+        "title": "Mejora de la dieta animal",
+        "description": "Ajustar la alimentación del ganado con suplementos que reduzcan la fermentación entérica, como aditivos a base de algas o lípidos, disminuyendo las emisiones de metano."
+      },
+      {
+        "title": "Implementación de biodigestores",
+        "description": "Instalar biodigestores para capturar el metano generado por el estiércol y convertirlo en biogás aprovechable como fuente de energía."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Emisiones por uso de suelo - Agricultura",
+    "initiatives": [
+      {
+        "title": "Adopción de prácticas de agricultura regenerativa",
+        "description": "Implementar técnicas como rotación de cultivos, cultivos de cobertura y labranza mínima para aumentar el secuestro de carbono en el suelo."
+      },
+      {
+        "title": "Gestión eficiente del riego",
+        "description": "Utilizar sistemas de riego por goteo o aspersión de precisión para reducir el consumo de agua y las emisiones de óxido nitroso asociadas a suelos saturados."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Emisiones por uso de suelo - Aplicación de fertilizantes",
+    "initiatives": [
+      {
+        "title": "Uso de fertilizantes de liberación lenta",
+        "description": "Reemplazar fertilizantes convencionales por formulaciones de liberación controlada que reducen las emisiones de N₂O al suelo."
+      },
+      {
+        "title": "Fertilización de precisión",
+        "description": "Aplicar fertilizantes en dosis ajustadas según análisis de suelo y necesidades reales de los cultivos, evitando la sobre-aplicación y las emisiones asociadas."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Cinc",
+    "initiatives": [
+      {
+        "title": "Optimización de procesos de fundición",
+        "description": "Mejorar los parámetros operativos de los hornos de fundición de cinc para aumentar la eficiencia energética y reducir las emisiones de proceso."
+      },
+      {
+        "title": "Reciclaje y recuperación de cinc",
+        "description": "Incrementar el uso de cinc reciclado como materia prima, reduciendo la necesidad de producción primaria y las emisiones asociadas."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Cemento",
+    "initiatives": [
+      {
+        "title": "Uso de materiales cementantes suplementarios",
+        "description": "Sustituir parcialmente el clínker por cenizas volantes, escoria de alto horno o puzolanas naturales, reduciendo las emisiones de CO₂ del proceso de calcinación."
+      },
+      {
+        "title": "Implementación de combustibles alternativos en hornos",
+        "description": "Utilizar residuos industriales o biomasa como combustible alternativo en los hornos de cemento, reduciendo la dependencia de combustibles fósiles."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Vidrio",
+    "initiatives": [
+      {
+        "title": "Incremento del uso de vidrio reciclado (cullet)",
+        "description": "Aumentar el porcentaje de vidrio reciclado en la mezcla de producción, lo cual reduce la temperatura de fusión necesaria y las emisiones asociadas."
+      },
+      {
+        "title": "Electrificación de hornos de fundición",
+        "description": "Migrar hornos de gas a hornos eléctricos alimentados con energía renovable para eliminar las emisiones directas de combustión."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Acero",
+    "initiatives": [
+      {
+        "title": "Transición a hornos de arco eléctrico",
+        "description": "Reemplazar procesos de alto horno por hornos de arco eléctrico (EAF) alimentados con energía renovable, reduciendo significativamente las emisiones de CO₂."
+      },
+      {
+        "title": "Uso de hidrógeno verde como agente reductor",
+        "description": "Sustituir el carbón de coque por hidrógeno verde en el proceso de reducción del mineral de hierro, eliminando las emisiones de CO₂ del proceso."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Emisiones provenientes de otras fuentes",
+    "initiatives": [
+      {
+        "title": "Auditoría y mapeo de fuentes de emisión no identificadas",
+        "description": "Realizar auditorías periódicas para identificar y cuantificar fuentes de emisión no contempladas, estableciendo planes de acción específicos para cada una."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Electricidad",
+    "initiatives": [
+      {
+        "title": "Contratación de energía renovable (PPA)",
+        "description": "Firmar contratos de compra de energía renovable (Power Purchase Agreements) para asegurar que la electricidad consumida provenga de fuentes limpias."
+      },
+      {
+        "title": "Instalación de paneles solares fotovoltaicos",
+        "description": "Implementar sistemas de generación solar en techos o terrenos de la empresa para autoconsumo, reduciendo la dependencia de la red eléctrica convencional."
+      },
+      {
+        "title": "Programa de eficiencia energética",
+        "description": "Reemplazar luminarias por LED, instalar sensores de presencia, optimizar sistemas de climatización y apagar equipos en horarios no productivos."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Productos comprados",
+    "initiatives": [
+      {
+        "title": "Selección de proveedores con baja huella de carbono",
+        "description": "Incorporar criterios de sostenibilidad en la evaluación de proveedores, priorizando aquellos que demuestren menores emisiones en sus procesos productivos."
+      },
+      {
+        "title": "Reducción del embalaje y uso de materiales reciclados",
+        "description": "Negociar con proveedores la reducción de embalajes innecesarios y la utilización de materiales reciclados o reciclables en los productos comprados."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Disposición de residuos sólidos",
+    "initiatives": [
+      {
+        "title": "Programa de reciclaje y economía circular",
+        "description": "Implementar un sistema integral de separación y reciclaje de residuos, redirigiendo materiales valorizables fuera del vertedero y reduciendo las emisiones de metano."
+      },
+      {
+        "title": "Compostaje de residuos orgánicos",
+        "description": "Derivar los residuos orgánicos a procesos de compostaje en lugar de enviarlos a rellenos sanitarios, evitando la generación de metano en condiciones anaeróbicas."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Consumo de agua y tratamiento de aguas residuales",
+    "initiatives": [
+      {
+        "title": "Reducción del consumo de agua",
+        "description": "Instalar dispositivos de bajo consumo, reutilizar aguas grises y optimizar procesos industriales para disminuir el volumen de agua utilizada y tratada."
+      },
+      {
+        "title": "Tratamiento aeróbico de aguas residuales",
+        "description": "Migrar sistemas de tratamiento anaeróbico a aeróbico donde sea factible, reduciendo las emisiones de metano asociadas al tratamiento de efluentes."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Desplazamiento diario de empleados",
+    "initiatives": [
+      {
+        "title": "Fomento del teletrabajo y trabajo híbrido",
+        "description": "Establecer políticas de trabajo remoto para reducir los desplazamientos diarios de los empleados y las emisiones de transporte asociadas."
+      },
+      {
+        "title": "Incentivo al transporte sostenible",
+        "description": "Ofrecer beneficios para el uso de bicicleta, transporte público o carpooling, como estacionamientos preferenciales, subsidios o duchas en el lugar de trabajo."
+      },
+      {
+        "title": "Servicio de transporte corporativo",
+        "description": "Implementar buses de acercamiento o rutas compartidas para empleados, optimizando la ocupación vehicular y reduciendo viajes individuales en automóvil."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Viajes de negocios - Estadía",
+    "initiatives": [
+      {
+        "title": "Selección de hoteles con certificación ambiental",
+        "description": "Priorizar alojamientos con certificaciones de sostenibilidad que implementen prácticas de eficiencia energética y gestión responsable de recursos."
+      },
+      {
+        "title": "Reducción de noches de estadía mediante videoconferencia",
+        "description": "Combinar reuniones presenciales con sesiones virtuales para acortar la duración de los viajes y reducir las noches de alojamiento necesarias."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Viajes de negocios - Traslado",
+    "initiatives": [
+      {
+        "title": "Política de viajes aéreos responsable",
+        "description": "Establecer criterios para la aprobación de viajes aéreos, priorizando videoconferencias cuando sea posible y seleccionando vuelos directos en clase económica."
+      },
+      {
+        "title": "Priorizar transporte terrestre para distancias cortas",
+        "description": "Favorecer el uso de tren o bus interurbano para trayectos donde el tiempo de viaje sea comparable, evitando vuelos de corta distancia con alta huella de carbono."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Transporte y distribución de bienes aguas arriba",
+    "initiatives": [
+      {
+        "title": "Consolidación de envíos y optimización logística",
+        "description": "Agrupar pedidos y coordinar con proveedores para maximizar la carga de cada transporte, reduciendo el número de viajes y las emisiones por unidad transportada."
+      },
+      {
+        "title": "Selección de proveedores locales o regionales",
+        "description": "Priorizar proveedores cercanos geográficamente para reducir las distancias de transporte y las emisiones asociadas a la cadena de suministro."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Transporte y distribución de bienes aguas abajo",
+    "initiatives": [
+      {
+        "title": "Optimización de la red de distribución",
+        "description": "Rediseñar rutas y centros de distribución para minimizar las distancias recorridas hasta el cliente final, reduciendo el consumo de combustible."
+      },
+      {
+        "title": "Transición a vehículos de reparto eléctricos",
+        "description": "Incorporar vehículos eléctricos para la distribución de última milla, eliminando las emisiones directas de combustión en las entregas urbanas."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Uso de productos de la organización",
+    "initiatives": [
+      {
+        "title": "Diseño de productos de menor consumo energético",
+        "description": "Rediseñar productos para que requieran menos energía durante su uso por parte del consumidor, reduciendo las emisiones indirectas a lo largo de su vida útil."
+      },
+      {
+        "title": "Extensión de la vida útil del producto",
+        "description": "Mejorar la durabilidad, reparabilidad y modularidad de los productos para extender su vida útil y reducir las emisiones asociadas a reemplazos frecuentes."
+      }
+    ]
+  }
+]
