@@ -22,9 +22,6 @@ import {
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 
-// generateReadSasUrl uses getUserDelegationKey which requires Azure AD auth —
-// not supported by Azurite's shared-key mode. Mock it so we can test the
-
 describe("GET /api/files/:uuid/preview - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
