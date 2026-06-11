@@ -35,14 +35,11 @@ fi
 export LOCATION="eastus2"
 export AUTH_PROVIDER="easy-auth"
 export APP_VERSION=""
-# Public custom domain for the frontend (e.g., app.evalia.cl).
-# Single source of truth for the public hostname. Bicep binds it to Front Door
-# when enableFrontDoor=true (validation: dns-txt-token), otherwise to the Static
-# Web App (validation: cname-delegation, subdomains only). The same value is
-# propagated to App Service platform CORS, Fastify ALLOWED_ORIGIN, and Blob
-# Storage CORS. deploy-web.sh and deploy-api.sh derive VITE_FRONT_BASE_URL /
-# ALLOWED_ORIGIN from this var (or from the stack output when this var is
-# empty). Leave empty to fall back to Azure's default hostname.
+# Public custom domain for the frontend (bare hostname, e.g. app.example.com).
+# Single source of truth: bicep propagates it to every CORS layer and the
+# deploy scripts derive VITE_FRONT_BASE_URL / ALLOWED_ORIGIN from it.
+# Leave empty to use Azure's default hostname.
+# Details: docs/infrastructure/CustomDomainGoDaddySetup.md
 export FRONTEND_CUSTOM_DOMAIN=""
 export DRY_RUN="false"
 
