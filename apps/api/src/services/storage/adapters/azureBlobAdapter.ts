@@ -260,9 +260,9 @@ class AzureBlobAdapter implements StorageAdapter {
 }
 
 export function createAzureBlobAdapter(): StorageAdapter {
-  if (!AZURE_STORAGE_ACCOUNT_NAME || !AZURE_STORAGE_CONTAINER_NAME) {
+  if (!AZURE_STORAGE_ACCOUNT_NAME) {
     throw new Error(
-      "STORAGE_PROVIDER=azure_blob_storage but AZURE_STORAGE_ACCOUNT_NAME or AZURE_STORAGE_CONTAINER_NAME is missing"
+      "STORAGE_PROVIDER=azure_blob_storage but AZURE_STORAGE_ACCOUNT_NAME is missing"
     );
   }
 

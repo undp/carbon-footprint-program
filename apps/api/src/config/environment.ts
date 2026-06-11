@@ -245,10 +245,11 @@ export const AZURE_STORAGE_ACCOUNT_NAME =
 
 /**
  * Blob container name where files are stored.
- * Defaults to "files" — matches the container created in Bicep.
+ * Defaults to "files" — matches the container created in Bicep. `||` (not
+ * `??`) so the empty-string placeholder in `.envrc.template` also defaults.
  */
 export const AZURE_STORAGE_CONTAINER_NAME =
-  process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
+  process.env.AZURE_STORAGE_CONTAINER_NAME || "files";
 
 /**
  * Dedicated Service Principal for Blob Storage, used by `getStorageCredential()`.
@@ -266,7 +267,9 @@ export const AZURE_STORAGE_CLIENT_SECRET =
 // Object Storage Provider Selection
 // ============================================================================
 // STORAGE_PROVIDER selects which object storage backend the API uses.
-// Required at startup — no silent "disabled" fallback.
+// Required at startup — no silent "disabled" fallback. The provider-specific
+// variables below are validated by the matching adapter factory
+// (services/storage/adapters/*), which runs at boot via the storage plugin.
 
 /**
  * Object storage backend selected at runtime.
@@ -315,24 +318,3 @@ export const MINIO_REGION = process.env.MINIO_REGION ?? "us-east-1";
  */
 export const MINIO_FORCE_PATH_STYLE =
   process.env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false";
-
-// Conditional requirements: per-provider variables must be present at startup.
-if (STORAGE_PROVIDER === StorageProvider.MINIO) {
-  const missing: string[] = [];
-  if (!MINIO_ENDPOINT) missing.push("MINIO_ENDPOINT");
-  if (!MINIO_ACCESS_KEY) missing.push("MINIO_ACCESS_KEY");
-  if (!MINIO_SECRET_KEY) missing.push("MINIO_SECRET_KEY");
-  if (missing.length > 0) {
-    throw new Error(
-      `STORAGE_PROVIDER is 'minio' but the following variables are missing: ${missing.join(", ")}.`
-    );
-  }
-}
-
-if (STORAGE_PROVIDER === StorageProvider.AZURE_BLOB_STORAGE) {
-  if (!AZURE_STORAGE_ACCOUNT_NAME) {
-    throw new Error(
-      "STORAGE_PROVIDER is 'azure_blob_storage' but AZURE_STORAGE_ACCOUNT_NAME is missing."
-    );
-  }
-}
