@@ -92,6 +92,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types

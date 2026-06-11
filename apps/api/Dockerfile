@@ -78,6 +78,7 @@ COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
 COPY --chown=fastify:nodejs packages/utils/package.json ./packages/utils/
 COPY --chown=fastify:nodejs packages/constants/package.json ./packages/constants/
+COPY --chown=fastify:nodejs packages/storage/package.json ./packages/storage/
 
 # Copy database package dist folder (includes compiled code, generated client, and compiled seeds)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
@@ -97,6 +98,9 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/utils/dist ./packages/u
 # Copy constants package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/constants/dist ./packages/constants/dist
 
+# Copy storage package dist folder
+COPY --from=builder --chown=fastify:nodejs /app/packages/storage/dist ./packages/storage/dist
+
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
@@ -104,6 +108,7 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules .
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/constants/node_modules ./packages/constants/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/storage/node_modules ./packages/storage/node_modules
 # Ensure @repo/types is available inside api node_modules (ESM resolution)
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist

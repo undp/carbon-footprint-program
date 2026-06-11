@@ -33,6 +33,7 @@
     "@fastify/under-pressure": "^9.0.3",
     "@repo/constants": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/storage": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/utils": "workspace:*",
     "fastify": "^5.8.5",

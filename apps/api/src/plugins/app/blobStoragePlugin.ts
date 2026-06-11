@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
-import { getStorageCredential } from "@repo/database/utils";
+import { getStorageCredential } from "@repo/storage";
 import {
   AZURE_STORAGE_ACCOUNT_NAME,
   AZURE_STORAGE_CONTAINER_NAME,
