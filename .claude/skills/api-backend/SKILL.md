@@ -13,7 +13,7 @@ Follow the existing pattern — `route.ts` → `handler.ts` → `service.ts` (�
 
 Endpoints must be efficient and mindful that datasets grow over time. Apply these principles in order of preference:
 
-1. **Push logic to the database**: use aggregations, filters, and calculations at the query level (`groupBy`, `count`, `_sum`, raw SQL when needed) instead of fetching raw rows and processing in memory.
+1. **Push logic to the database**: use aggregations, filters, and calculations at the query level (`groupBy`, `count`, `_sum`, Views as last resort) instead of fetching raw rows and processing in memory.
 2. **Parallelize independent queries**: use `Promise.all` or `prisma.$transaction` to run independent queries concurrently instead of sequentially.
 3. **Avoid overfetching**: use `select` to retrieve only the fields you need. The dataset will grow and overfetching will degrade performance.
 4. **Use `include` wisely**: prefer a single query with `include` over multiple sequential queries, but only include relations that are actually needed.
