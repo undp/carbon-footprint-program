@@ -11,56 +11,55 @@ import type { TestStorageDescriptor } from "../setup/testcontainers.js";
 import type { FastifyInstance } from "fastify";
 
 interface CreateTestAppOptions {
-  storageDescriptor?: TestStorageDescriptor;
+  storageDescriptor?: TestStorageDescriptor | null;
 }
 
-function buildTestAdapter(
-  descriptor: TestStorageDescriptor
-): StorageAdapter | null {
-  if (descriptor.provider === StorageProvider.AZURE_BLOB_STORAGE) {
-    if (!descriptor.azureConnectionString || !descriptor.containerName) {
-      return null;
-    }
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-      descriptor.azureConnectionString
-    );
-    const adapter = createAzureBlobAdapterFromClient(
-      blobServiceClient,
-      descriptor.containerName
-    );
-    // Azurite cannot service a server-side copy-from-URL when the source URL is
-    // the host-mapped testcontainer endpoint: Azurite, running inside its
-    // container, can't reach `127.0.0.1:<hostPort>` to fetch the blob. Real
-    // Azure has no such limitation (the storage service fetches the SAS URL
-    // directly). For tests we substitute an equivalent client-side stream copy
-    // so copyObject moves real bytes against Azurite.
-    adapter.copyObject = async (src: string, dst: string): Promise<void> => {
-      if (src === dst) return;
-      const { body, mimeType } = await adapter.streamObject(src);
-      await adapter.putObject(
-        dst,
-        await buffer(body),
-        mimeType ? { contentType: mimeType } : undefined
+function buildTestAdapter(descriptor: TestStorageDescriptor): StorageAdapter {
+  switch (descriptor.provider) {
+    case StorageProvider.AZURE_BLOB_STORAGE: {
+      const blobServiceClient = BlobServiceClient.fromConnectionString(
+        descriptor.connectionString
       );
-    };
-    return adapter;
-  }
-  if (descriptor.provider === StorageProvider.MINIO) {
-    if (!descriptor.minioEndpoint || !descriptor.containerName) {
-      return null;
+      const adapter = createAzureBlobAdapterFromClient(
+        blobServiceClient,
+        descriptor.containerName
+      );
+      // Azurite cannot service a server-side copy-from-URL when the source URL is
+      // the host-mapped testcontainer endpoint: Azurite, running inside its
+      // container, can't reach `127.0.0.1:<hostPort>` to fetch the blob. Real
+      // Azure has no such limitation (the storage service fetches the SAS URL
+      // directly). For tests we substitute an equivalent client-side stream copy
+      // so copyObject moves real bytes against Azurite.
+      adapter.copyObject = async (src: string, dst: string): Promise<void> => {
+        if (src === dst) return;
+        const { body, mimeType } = await adapter.streamObject(src);
+        await adapter.putObject(
+          dst,
+          await buffer(body),
+          mimeType ? { contentType: mimeType } : undefined
+        );
+      };
+      return adapter;
     }
-    const s3 = new S3Client({
-      endpoint: descriptor.minioEndpoint,
-      region: descriptor.minioRegion,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: descriptor.minioAccessKey,
-        secretAccessKey: descriptor.minioSecretKey,
-      },
-    });
-    return createMinioAdapterFromClient(s3, descriptor.containerName);
+    case StorageProvider.MINIO: {
+      const s3 = new S3Client({
+        endpoint: descriptor.endpoint,
+        region: descriptor.region,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: descriptor.accessKey,
+          secretAccessKey: descriptor.secretKey,
+        },
+      });
+      return createMinioAdapterFromClient(s3, descriptor.bucket);
+    }
+    default: {
+      const exhaustiveCheck: never = descriptor;
+      throw new Error(
+        `Unsupported test storage descriptor: ${JSON.stringify(exhaustiveCheck)}`
+      );
+    }
   }
-  return null;
 }
 
 export async function createTestApp(
@@ -77,19 +76,11 @@ export async function createTestApp(
   await app.ready();
 
   if (options?.storageDescriptor) {
-    const adapter = buildTestAdapter(options.storageDescriptor);
-    if (adapter) {
-      app.storage = adapter;
-      // eslint-disable-next-line no-console
-      console.log(
-        `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider}, container=${options.storageDescriptor.containerName})`
-      );
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "[createTestApp] Storage descriptor present but missing fields — leaving the boot-time adapter in place."
-      );
-    }
+    app.storage = buildTestAdapter(options.storageDescriptor);
+    // eslint-disable-next-line no-console
+    console.log(
+      `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider})`
+    );
   } else {
     // eslint-disable-next-line no-console
     console.warn(

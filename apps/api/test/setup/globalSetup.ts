@@ -9,16 +9,6 @@ import {
 import type { TestProject } from "vitest/node";
 import { StorageProvider } from "@/config/constants.js";
 
-const EMPTY_DESCRIPTOR: TestStorageDescriptor = {
-  provider: StorageProvider.AZURE_BLOB_STORAGE,
-  azureConnectionString: "",
-  minioEndpoint: "",
-  containerName: "",
-  minioAccessKey: "",
-  minioSecretKey: "",
-  minioRegion: "",
-};
-
 /**
  * Sets process.env for the chosen storage provider before workers are spawned,
  * so that environment.ts validation passes when modules import it in workers.
@@ -35,11 +25,11 @@ function applyStorageEnv(descriptor: TestStorageDescriptor): void {
     process.env.AZURE_STORAGE_CONTAINER_NAME = descriptor.containerName;
   }
   if (descriptor.provider === StorageProvider.MINIO) {
-    process.env.MINIO_ENDPOINT = descriptor.minioEndpoint;
-    process.env.MINIO_ACCESS_KEY = descriptor.minioAccessKey;
-    process.env.MINIO_SECRET_KEY = descriptor.minioSecretKey;
-    process.env.MINIO_BUCKET = descriptor.containerName;
-    process.env.MINIO_REGION = descriptor.minioRegion;
+    process.env.MINIO_ENDPOINT = descriptor.endpoint;
+    process.env.MINIO_ACCESS_KEY = descriptor.accessKey;
+    process.env.MINIO_SECRET_KEY = descriptor.secretKey;
+    process.env.MINIO_BUCKET = descriptor.bucket;
+    process.env.MINIO_REGION = descriptor.region;
   }
 }
 
@@ -50,7 +40,7 @@ export default async function setup(project: TestProject) {
   // Storage is only required for file-upload tests. If the container fails to
   // start (wrong Node.js version, missing Docker image, CI network issue, etc.)
   // we still want database-only tests to run.
-  let storageDescriptor: TestStorageDescriptor = EMPTY_DESCRIPTOR;
+  let storageDescriptor: TestStorageDescriptor | null = null;
   let storageContainer: TestStorageContainer | null = null;
 
   try {
@@ -89,6 +79,7 @@ export default async function setup(project: TestProject) {
 declare module "vitest" {
   export interface ProvidedContext {
     databaseUrl: string;
-    storageDescriptor: TestStorageDescriptor;
+    /** `null` when the storage testcontainer failed to start. */
+    storageDescriptor: TestStorageDescriptor | null;
   }
 }

@@ -102,22 +102,23 @@ const MINIO_TEST_CONFIG = {
 } as const;
 
 /**
- * Provider-agnostic test storage descriptor. Carries the values workers need to
- * construct a real adapter against the running testcontainer.
+ * Test storage descriptor, discriminated by provider. Carries the values
+ * workers need to construct a real adapter against the running testcontainer.
  */
-export interface TestStorageDescriptor {
-  provider: StorageProvider;
-  /** Azure: full connection string. MinIO: unused (empty). */
-  azureConnectionString: string;
-  /** MinIO: base endpoint, e.g. http://localhost:32768. Azure: unused. */
-  minioEndpoint: string;
-  /** Bucket / container name. */
-  containerName: string;
-  /** MinIO credentials; empty for Azure. */
-  minioAccessKey: string;
-  minioSecretKey: string;
-  minioRegion: string;
-}
+export type TestStorageDescriptor =
+  | {
+      provider: StorageProvider.AZURE_BLOB_STORAGE;
+      connectionString: string;
+      containerName: string;
+    }
+  | {
+      provider: StorageProvider.MINIO;
+      endpoint: string;
+      accessKey: string;
+      secretKey: string;
+      region: string;
+      bucket: string;
+    };
 
 export type TestStorageContainer =
   | StartedAzuriteContainer
@@ -147,12 +148,8 @@ async function setupAzureTestStorage(): Promise<{
     container,
     descriptor: {
       provider: StorageProvider.AZURE_BLOB_STORAGE,
-      azureConnectionString: connectionString,
-      minioEndpoint: "",
+      connectionString,
       containerName: AZURE_TEST_CONFIG.containerName,
-      minioAccessKey: "",
-      minioSecretKey: "",
-      minioRegion: "",
     },
   };
 }
@@ -194,12 +191,11 @@ async function setupMinioTestStorage(): Promise<{
     container,
     descriptor: {
       provider: StorageProvider.MINIO,
-      azureConnectionString: "",
-      minioEndpoint: endpoint,
-      containerName: MINIO_TEST_CONFIG.bucket,
-      minioAccessKey: MINIO_TEST_CONFIG.accessKey,
-      minioSecretKey: MINIO_TEST_CONFIG.secretKey,
-      minioRegion: MINIO_TEST_CONFIG.region,
+      endpoint,
+      accessKey: MINIO_TEST_CONFIG.accessKey,
+      secretKey: MINIO_TEST_CONFIG.secretKey,
+      region: MINIO_TEST_CONFIG.region,
+      bucket: MINIO_TEST_CONFIG.bucket,
     },
   };
 }
