@@ -9,7 +9,7 @@ import {
   type BlobSASSignatureValues,
   type UserDelegationKey,
 } from "@azure/storage-blob";
-import { getStorageCredential } from "@repo/database/utils";
+import { getStorageCredential } from "@repo/storage";
 import { HttpUploadMethod } from "@repo/types";
 import {
   AZURE_STORAGE_ACCOUNT_NAME,
