@@ -30,6 +30,7 @@ import {
   type ReadUrlSigner,
   type SasUrlResult,
   type StorageAdapter,
+  type WriteOptions,
   type WriteUrlResult,
 } from "../types.js";
 
@@ -53,8 +54,7 @@ class MinioAdapter implements StorageAdapter {
 
   async generateReadUrl(
     path: string,
-    opts?: ReadOptions,
-    expiresInMinutes: number = PRESIGNED_URL_EXPIRY_MINUTES
+    opts?: ReadOptions
   ): Promise<SasUrlResult> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
@@ -64,7 +64,9 @@ class MinioAdapter implements StorageAdapter {
         ResponseContentDisposition: opts.contentDisposition,
       }),
     });
-    const expiresIn = minutesToSeconds(expiresInMinutes);
+    const expiresIn = minutesToSeconds(
+      opts?.expiresInMinutes ?? PRESIGNED_URL_EXPIRY_MINUTES
+    );
     const url = await getSignedUrl(this.s3, command, { expiresIn });
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
     return { url, expiresAt };
@@ -75,16 +77,18 @@ class MinioAdapter implements StorageAdapter {
   ): Promise<ReadUrlSigner> {
     // S3 presign is local and cheap per call — no provider-side setup to batch.
     return Promise.resolve((path, opts) =>
-      this.generateReadUrl(path, opts, expiresInMinutes)
+      this.generateReadUrl(path, { ...opts, expiresInMinutes })
     );
   }
 
   async generateWriteUrl(
     path: string,
-    expiresInMinutes: number = PRESIGNED_URL_EXPIRY_MINUTES
+    opts?: WriteOptions
   ): Promise<WriteUrlResult> {
     const command = new PutObjectCommand({ Bucket: this.bucket, Key: path });
-    const expiresIn = minutesToSeconds(expiresInMinutes);
+    const expiresIn = minutesToSeconds(
+      opts?.expiresInMinutes ?? PRESIGNED_URL_EXPIRY_MINUTES
+    );
     const url = await getSignedUrl(this.s3, command, { expiresIn });
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
     return {

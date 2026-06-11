@@ -8,9 +8,21 @@ export interface SasUrlResult {
 }
 
 /** Per-call overrides for content-type and content-disposition on read URLs. */
-export interface ReadOptions {
+export interface ReadPresentationOptions {
   contentType?: string;
   contentDisposition?: string;
+}
+
+/** Options for `generateReadUrl`: presentation overrides plus an optional expiry override. */
+export interface ReadOptions extends ReadPresentationOptions {
+  /** Defaults to `PRESIGNED_URL_EXPIRY_MINUTES`. */
+  expiresInMinutes?: number;
+}
+
+/** Options for `generateWriteUrl`. */
+export interface WriteOptions {
+  /** Defaults to `PRESIGNED_URL_EXPIRY_MINUTES`. */
+  expiresInMinutes?: number;
 }
 
 /** Result of issuing a presigned write URL. Carries the upload protocol the client must follow. */
@@ -34,10 +46,14 @@ export interface ObjectStream {
   mimeType: string | null;
 }
 
-/** Factory returned by `createReadUrlSigner` — signs many paths from one provider-side setup. */
+/**
+ * Factory returned by `createReadUrlSigner` — signs many paths from one
+ * provider-side setup. Expiry is fixed at signer creation, so per-path
+ * options only cover presentation overrides.
+ */
 export type ReadUrlSigner = (
   path: string,
-  opts?: ReadOptions
+  opts?: ReadPresentationOptions
 ) => Promise<SasUrlResult>;
 
 /**
@@ -61,18 +77,11 @@ export class ObjectNotFoundError extends Error {
  * interface only and access it via `fastify.storage`.
  */
 export interface StorageAdapter {
-  generateReadUrl(
-    path: string,
-    opts?: ReadOptions,
-    expiresInMinutes?: number
-  ): Promise<SasUrlResult>;
+  generateReadUrl(path: string, opts?: ReadOptions): Promise<SasUrlResult>;
 
   createReadUrlSigner(expiresInMinutes?: number): Promise<ReadUrlSigner>;
 
-  generateWriteUrl(
-    path: string,
-    expiresInMinutes?: number
-  ): Promise<WriteUrlResult>;
+  generateWriteUrl(path: string, opts?: WriteOptions): Promise<WriteUrlResult>;
 
   /** Throws `ObjectNotFoundError` when the path does not exist. */
   headObject(path: string): Promise<ObjectMetadata>;

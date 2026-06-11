@@ -27,6 +27,7 @@ import {
   type ReadUrlSigner,
   type SasUrlResult,
   type StorageAdapter,
+  type WriteOptions,
   type WriteUrlResult,
 } from "../types.js";
 
@@ -129,20 +130,20 @@ class AzureBlobAdapter implements StorageAdapter {
 
   async generateReadUrl(
     path: string,
-    opts?: ReadOptions,
-    expiresInMinutes: number = PRESIGNED_URL_EXPIRY_MINUTES
+    opts?: ReadOptions
   ): Promise<SasUrlResult> {
-    const signer = await this.createReadUrlSigner(expiresInMinutes);
+    const signer = await this.createReadUrlSigner(opts?.expiresInMinutes);
     return signer(path, opts);
   }
 
   async generateWriteUrl(
     path: string,
-    expiresInMinutes: number = PRESIGNED_URL_EXPIRY_MINUTES
+    opts?: WriteOptions
   ): Promise<WriteUrlResult> {
     const startsOn = new Date();
     const expiresAt = new Date(
-      startsOn.getTime() + expiresInMinutes * 60 * 1000
+      startsOn.getTime() +
+        (opts?.expiresInMinutes ?? PRESIGNED_URL_EXPIRY_MINUTES) * 60 * 1000
     );
     const credential = await this.resolveSasCredential(startsOn, expiresAt);
 
@@ -236,11 +237,9 @@ class AzureBlobAdapter implements StorageAdapter {
   async copyObject(src: string, dst: string): Promise<void> {
     if (src === dst) return;
 
-    const { url: sourceUrl } = await this.generateReadUrl(
-      src,
-      undefined,
-      COPY_SOURCE_SAS_MINUTES
-    );
+    const { url: sourceUrl } = await this.generateReadUrl(src, {
+      expiresInMinutes: COPY_SOURCE_SAS_MINUTES,
+    });
 
     const destBlob = this.containerClient.getBlockBlobClient(dst);
     const copyOperation = await destBlob.beginCopyFromURL(sourceUrl);
