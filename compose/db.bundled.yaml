@@ -1,0 +1,75 @@
+# =============================================================================
+# Database overlay — bundled PostgreSQL (+ automatic migrations & seed)
+# =============================================================================
+# Adds a postgres container plus a one-shot `migrate` service that applies
+# migrations and seeds before the API starts. DATABASE_URL is derived from the
+# POSTGRES_* vars and always points at the bundled container — a DATABASE_URL
+# exported in your shell (e.g. by direnv for `pnpm dev`) cannot leak into the
+# stack.
+# =============================================================================
+
+services:
+  api:
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:?POSTGRES_USER is required by the bundled-db overlay}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required by the bundled-db overlay}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required by the bundled-db overlay}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # One-shot: applies migrations and seeds the database, then exits.
+  # Reuses the API image (it already ships prisma + migrations + the seed tool).
+  migrate:
+    # Uses the API Dockerfile's `builder` stage (full source + tsx + prisma +
+    # node_modules) — the minimal runner image lacks src/environment.ts and tsx,
+    # which prisma.config.ts and @repo/seed need. Different image name than
+    # `api`, so the shared base/deps/builder layers are reused from cache
+    # without a name collision.
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder
+    image: huella-latam-migrate:${IMAGE_TAG:-latest}
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/seed seed"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      # Storage — needed to seed badges & terms (empty disables those seeds).
+      # ⚠️ The seed is a one-shot: if it first runs WITHOUT these vars, badges
+      # and terms are never seeded and re-running is a permanent no-op.
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      # Host port to reach Postgres from your machine (container is always 5432).
+      - "${POSTGRES_PORT_HOST_MAPPING:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local

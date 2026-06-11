@@ -1,0 +1,23 @@
+# =============================================================================
+# Dev overlay — local development conveniences
+# =============================================================================
+# Switches the stack to development mode and exposes the local-only knobs
+# (forced-user auth, relaxed form validation). NEVER include this overlay in a
+# country deployment: the bypass flags below must not exist in production —
+# the base file doesn't even pass them to the containers.
+# =============================================================================
+
+services:
+  api:
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      # Relaxes required-field validation for local testing.
+      - LOCAL_BYPASS_REQUIRED_FIELDS=${LOCAL_BYPASS_REQUIRED_FIELDS:-false}
+      # Local auth without Azure (used when AUTH_PROVIDER=forced-user).
+      - FORCED_USER_EMAIL_WHEN_NO_PROVIDER=${FORCED_USER_EMAIL_WHEN_NO_PROVIDER:-}
+      - FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=${FORCED_USER_IDP_ID_WHEN_NO_PROVIDER:-}
+
+  web:
+    build:
+      args:
+        VITE_LOCAL_BYPASS_REQUIRED_FIELDS: ${VITE_LOCAL_BYPASS_REQUIRED_FIELDS:-false}

@@ -1,0 +1,18 @@
+# =============================================================================
+# Database overlay — EXTERNAL PostgreSQL
+# =============================================================================
+# The database is NOT part of the stack: it is an existing server (>= 15,
+# project standard 18) reached through DATABASE_URL. Migrations and seeds are
+# not automated either — they are applied manually before the stack starts.
+# Full runbook: docs/operations/production-deployment.md
+# =============================================================================
+
+services:
+  api:
+    environment:
+      # Full connection string to the external PostgreSQL server (application
+      # user, URL-encoded password) — see deploy/prod-external-db/.env.example.
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (external PostgreSQL connection string)}
+    # No depends_on: the database is external. If it is unreachable the API
+    # exits at boot and `restart: unless-stopped` (from the base) retries
+    # until it answers.
