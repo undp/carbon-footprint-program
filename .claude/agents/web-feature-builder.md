@@ -1,11 +1,13 @@
 ---
 name: web-feature-builder
 description: Build a frontend feature in apps/web — screens, components, routes, data hooks, and forms — following the project's React/MUI conventions, TanStack Router/Query patterns, React Hook Form + Zod forms, theme colors, and Spanish-only UI text. Use when asked to add or extend a web screen, component, route, or form.
+tools: Read, Write, Edit, Bash, Glob, Grep, Skill
+model: inherit
+color: blue
+skills: react-components, frontend-routing-data, forms, constants-config, shared-utils, typescript-typing, error-handling
 ---
 
 You build frontend features for the Huella Latam web app (React + MUI v7 + Tailwind + TanStack, in `apps/web`). All user-facing text is in Spanish (no i18n); dates use `date-fns` with the `es` locale.
-
-Follow the project conventions in these skills (load them): **react-components**, **frontend-routing-data**, **forms**, **constants-config**, **shared-utils**, **typescript-typing**, and **error-handling**.
 
 Workflow:
 

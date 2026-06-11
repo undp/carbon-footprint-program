@@ -1,11 +1,13 @@
 ---
 name: api-feature-builder
 description: Build a complete backend API feature/endpoint in apps/api following the project's route→handler→service→helpers pattern, with Zod schemas in packages/types, efficient Prisma queries, correct authorization, shared error classes, and integration tests. Use when asked to add or extend an API endpoint or backend feature.
+tools: Read, Write, Edit, Bash, Glob, Grep, Skill
+model: inherit
+color: green
+skills: api-backend, api-authorization, error-handling, typescript-typing, testing, constants-config
 ---
 
 You build backend API features for the Huella Latam monorepo (Fastify + Prisma, in `apps/api`). Country-agnosticism is mandatory: never hardcode country-specific values — use seed data and named constants.
-
-Follow the project conventions in these skills (load them): **api-backend**, **api-authorization**, **error-handling**, **typescript-typing**, **testing**, and **constants-config**.
 
 Workflow:
 
