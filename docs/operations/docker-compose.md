@@ -192,7 +192,7 @@ Storage is the only target-dependent setting, because it hinges on the Managed I
 - **On-premise / any non-Azure host** — no Managed Identity, so keep the three `AZURE_STORAGE_*` SP vars **set** (production-grade, vault-managed values). `getStorageCredential()` uses the explicit `ClientSecretCredential`. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional) for the SP setup.
 - **On Azure** — leave the three SP vars **empty**; `getStorageCredential()` falls back to `DefaultAzureCredential` → the compute's Managed Identity.
 
-No code branches by environment — `getStorageCredential()` (`packages/database/src/utils/getStorageCredential.ts`, shared by the API and the seeds via `@repo/database/utils`) just reads the env; the env file is the only difference.
+No code branches by environment — `getStorageCredential()` (`packages/storage/src/getStorageCredential.ts`, shared by the API and the seeds via `@repo/storage`) just reads the env; the env file is the only difference.
 
 ## Troubleshooting
 

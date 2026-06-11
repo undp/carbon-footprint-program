@@ -36,7 +36,7 @@ System magnitudes (`is_system = true`) can be relabeled but never soft-deleted o
 
 #### Seeded magnitudes
 
-The platform seeds the following ten magnitudes (source: `packages/database/src/prisma/seeds/data/base/magnitudes.json`). Only `mass` is created with `is_system = true`; the remaining nine are seeded with `is_system = false` and behave like admin-managed magnitudes from then on:
+The platform seeds the following ten magnitudes (source: `tools/seed/src/data/base/magnitudes.json`). Only `mass` is created with `is_system = true`; the remaining nine are seeded with `is_system = false` and behave like admin-managed magnitudes from then on:
 
 | `code`          | `name` (Spanish) | Base unit    | `is_system` | Notes                                                         |
 | --------------- | ---------------- | ------------ | ----------- | ------------------------------------------------------------- |
