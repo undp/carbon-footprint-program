@@ -1,9 +1,8 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type { GetCarbonInventoryFilesManifestResponse } from "@repo/types";
 import { CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES } from "@/config/constants.js";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
+import type { StorageAdapter } from "@/services/storage/index.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
 interface GetCarbonInventoryFilesManifestInput {
@@ -12,8 +11,7 @@ interface GetCarbonInventoryFilesManifestInput {
 
 export const getCarbonInventoryFilesManifestService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: GetCarbonInventoryFilesManifestInput
 ): Promise<GetCarbonInventoryFilesManifestResponse> => {
   const { carbonInventoryId } = input;
@@ -59,9 +57,7 @@ export const getCarbonInventoryFilesManifestService = async (
     },
   });
 
-  const signReadSasUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName,
+  const signReadSasUrl = await storage.createReadUrlSigner(
     CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES
   );
 

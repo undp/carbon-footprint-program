@@ -6,32 +6,7 @@ import {
   afterAll,
   afterEach,
   inject,
-  vi,
 } from "vitest";
-
-// Azurite (used by Testcontainers) does not implement user-delegation SAS,
-// which requires Azure AD. Stub the signer factory so each call returns a
-// deterministic URL while preserving the real cross-inventory prefix guard
-// in the service.
-vi.mock("@/services/blobService.js", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/services/blobService.js")
-  >("@/services/blobService.js");
-  return {
-    ...actual,
-    createReadSasUrlSigner: vi.fn(() => {
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-      const signer = (blobPath: string) =>
-        Promise.resolve({
-          url: `https://mock.blob.core.windows.net/test/${encodeURIComponent(
-            blobPath
-          )}?sig=mock`,
-          expiresAt,
-        });
-      return Promise.resolve(signer);
-    }),
-  };
-});
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
   carbonInventoryPatterns,
@@ -110,8 +85,7 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"), {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     methodologyVersionId = await getTestMethodologyVersionId(prisma);

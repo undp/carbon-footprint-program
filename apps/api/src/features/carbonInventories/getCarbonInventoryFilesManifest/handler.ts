@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { GetCarbonInventoryFilesManifestParams } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import { getCarbonInventoryFilesManifestService } from "./service.js";
 
 export const getCarbonInventoryFilesManifestHandler = async (
@@ -12,15 +11,9 @@ export const getCarbonInventoryFilesManifestHandler = async (
   });
   const { id } = request.params;
 
-  const { blobServiceClient, storageContainerName } = request.server;
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   const result = await getCarbonInventoryFilesManifestService(
     request.server.prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.storage,
     { carbonInventoryId: id }
   );
 
