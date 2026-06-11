@@ -470,7 +470,7 @@ importers:
         version: link:../typescript-config
       '@types/node':
         specifier: catalog:shared
-        version: 24.13.1
+        version: 25.9.2
       eslint:
         specifier: catalog:shared
         version: 9.39.1(jiti@2.7.0)
@@ -479,7 +479,7 @@ importers:
         version: 6.1.2
       typescript:
         specifier: catalog:shared
-        version: 5.9.3
+        version: 6.0.3
 
   packages/types:
     dependencies:
@@ -569,7 +569,7 @@ importers:
         version: link:../../packages/typescript-config
       '@types/node':
         specifier: catalog:shared
-        version: 24.13.1
+        version: 25.9.2
       eslint:
         specifier: catalog:shared
         version: 9.39.1(jiti@2.7.0)
@@ -581,7 +581,7 @@ importers:
         version: 4.22.4
       typescript:
         specifier: catalog:shared
-        version: 5.9.3
+        version: 6.0.3
 
 packages:
 
