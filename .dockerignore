@@ -43,6 +43,8 @@
 
 # Documentation
 **/*.md
+# ...except seed data markdown: explanation content read by @repo/seed at runtime
+!tools/seed/src/data/**/*.md
 docs
 
 # Infra
