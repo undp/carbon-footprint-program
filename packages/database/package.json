@@ -15,10 +15,6 @@
       "types": "./dist/enums.d.ts",
       "default": "./dist/enums.js"
     },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "default": "./dist/utils/index.js"
-    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -28,11 +24,9 @@
     "lint": "eslint .",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
-    "dev:seed": "prisma db seed",
     "dev:studio": "prisma studio",
-    "db:restore": "prisma migrate reset --force && prisma db seed",
+    "db:restore": "prisma migrate reset --force",
     "prod:deploy": "prisma migrate deploy",
-    "prod:seed": "prisma db seed",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
     "validate:version": "tsx scripts/validate-postgres-version.ts",
     "promote-superadmin": "tsx src/scripts/promote-superadmin.ts"
@@ -47,12 +41,8 @@
     "typescript": "catalog:shared"
   },
   "dependencies": {
-    "@azure/identity": "^4.13.0",
-    "@azure/storage-blob": "^12.31.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@prisma/client-runtime-utils": "^7.8.0",
-    "@repo/constants": "workspace:*",
-    "zod": "catalog:shared"
+    "@prisma/client-runtime-utils": "^7.8.0"
   }
 }

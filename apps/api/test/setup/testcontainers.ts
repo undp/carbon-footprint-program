@@ -17,9 +17,13 @@ function getDatabasePackagePath(): string {
   return path.dirname(require.resolve("@repo/database/package.json"));
 }
 
-function createPrismaExecOptions(databaseUrl: string) {
+function getSeedPackagePath(): string {
+  return path.dirname(require.resolve("@repo/seed/package.json"));
+}
+
+function createExecOptions(cwd: string, databaseUrl: string) {
   return {
-    cwd: getDatabasePackagePath(),
+    cwd,
     stdio: "inherit" as const,
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -34,7 +38,7 @@ function createPrismaExecOptions(databaseUrl: string) {
 
 export function runPrismaMigrations(databaseUrl: string): void {
   const command = "pnpm exec prisma migrate deploy";
-  const opts = createPrismaExecOptions(databaseUrl);
+  const opts = createExecOptions(getDatabasePackagePath(), databaseUrl);
 
   try {
     execSync(command, opts);
@@ -46,17 +50,17 @@ export function runPrismaMigrations(databaseUrl: string): void {
   }
 }
 
-export function runPrismaSeeds(databaseUrl: string): void {
-  const command = "pnpm exec prisma db seed";
-  const opts = createPrismaExecOptions(databaseUrl);
+export function runSeeds(databaseUrl: string): void {
+  const command = "pnpm run seed";
+  const opts = createExecOptions(getSeedPackagePath(), databaseUrl);
 
   try {
     execSync(command, opts);
     // eslint-disable-next-line no-console
-    console.log("Prisma seeds executed successfully");
+    console.log("Seeds executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error executing Prisma seeds: ${errorMessage}`);
+    throw new Error(`Error executing seeds: ${errorMessage}`);
   }
 }
 
