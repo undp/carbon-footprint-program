@@ -1,153 +1,46 @@
-# Project Description
+# Huella Latam
 
-Huella Latam is a digital public good for Latin America: a country-agnostic platform for measuring, managing, and reducing carbon footprints, whose codebase is centrally distributed and deployed by each country on its own infrastructure. The system must allow for adaptation to local regulatory frameworks, methodologies, and business logic through configuration and extension, without modifying the core, integrating measurement and recognition into a single workflow, and supporting implementations that evolve independently on a common foundation.
+A **country-agnostic** platform (digital public good for Latin America) for measuring, managing, and reducing carbon footprints. The codebase is centrally distributed; each country deploys it on its own infrastructure and adapts to local regulation/methodology through **configuration and seed data — never code forks or country-specific branches**. All contributions must be country-agnostic and backward-compatible.
 
-**Country-agnosticism principle**: country-specific variations must be handled through seed data and system parameters — never through code forks or country-specific branches. All contributions must be country-agnostic and backward-compatible.
+Monorepo (pnpm + Turborepo): `apps/api` (Fastify + Prisma), `apps/web` (React + MUI v7 + Tailwind + TanStack), `packages/*` (`types`, `constants`, `utils`, `database`, `storage`, eslint/ts config), `tools/seed`. All user-facing text is Spanish (no i18n).
 
-# Commands
+## Session setup
 
-- `pnpm type-check`: Use to check for TypeScript compilation errors.
-- `pnpm lint`: Run after making any code changes.
-- `pnpm format`: **Run before every commit** to format files with Prettier. This is mandatory — never commit unformatted code.
-- `pnpm test --filter=api -- /{feature-name}/integration.test.ts --coverage=false`: Use to run a single test file.
-  - Example: `pnpm test --filter=api -- /getOrganizationById/integration.test.ts --coverage=false`
-- `pnpm test --filter=api -- /{domain} --coverage=false`: Runs all tests for a domain.
-  - Example: `pnpm test --filter=api -- organizations --coverage=false`: Runs all tests for the organizations feature
+- `pnpm install` — required before format/lint/type-check.
+- `.claude/setup.sh` — required before `/opsx:` commands.
 
-# CI Pipeline
+## Commands
 
-CI runs automatically on PRs to `main` (lint, type-check, format:check, test, build — all in parallel). All checks must pass before merge. `pnpm lint` enforces zero warnings — any warning is a CI failure.
+- `pnpm type-check` — TypeScript compilation check.
+- `pnpm lint` — run after code changes (zero warnings — any warning fails CI).
+- `pnpm format` — Prettier; **mandatory before every commit**.
+- `pnpm test --filter=api -- /{feature}/integration.test.ts --coverage=false` — single test file.
+- `pnpm test --filter=api -- /{domain} --coverage=false` — all tests in a domain.
 
-# Session Setup
+CI runs lint, type-check, format:check, test, and build in parallel on PRs to `main`; all must pass.
 
-- Run `pnpm install` at the start of every session. This is required before running format, lint, or type-check commands.
-- Run `.claude/setup.sh` at the start of every session before using /opsx: commands.
+## Committing
 
-# Commit Workflow
+Before every commit run `pnpm format && pnpm lint && pnpm type-check`. Use Conventional Commits and small, modular commits (one logical change each). Branch prefixes: `feat`/`fix`/`refactor`/`docs`/`chore`/`infra`/`claude`. See the **change-workflow** skill for PR titles and reviewer etiquette.
 
-- **Branch naming**: use prefixes `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`, `infra/`, or `claude/` (for AI-authored work).
-- **Conventional Commits**: use the [Conventional Commits](https://www.conventionalcommits.org/) format for all commit messages (e.g., `feat: add inventory export endpoint`, `fix: correct emission factor calculation`, `refactor: extract helper functions`, `docs: update API documentation`). Include a scope when relevant (e.g., `feat(api): ...`, `fix(web): ...`).
-- **Before every commit**: run `pnpm format && pnpm lint && pnpm type-check`.
-- **Modular commits**: break work into small, focused commits that are easy to review. Each commit should represent a single logical change (e.g., one commit per endpoint, one per component, one for types, etc.). Do NOT push all implementation in a single commit.
-- **PR review comments**: by default, resolve each reviewer comment in its own dedicated commit. When multiple comments are closely related (e.g., the same refactor touches both), they may be grouped into a single commit. In all cases, reply to each comment individually explaining the solution and referencing the commit SHA that addresses it.
+## Detailed conventions — skills (`.claude/skills/`, auto-loaded by task)
 
-# TypeScript & Typing Rules
+- **typescript-typing** — strict types, Prisma types, Zod schemas in `packages/types`, enums, response-derived types.
+- **api-backend** — endpoint structure (route→handler→service→helpers), efficient Prisma, transactions, types-package layout.
+- **api-authorization** — `requireAuth` / `requireRoles` / `requireOrganizationRole` / domain access hooks.
+- **error-handling** — shared error classes, `ApiErrorResponseSchema`, `getApiErrorMessage`.
+- **testing** — Vitest + Testcontainers, `app.inject()`, factories.
+- **react-components** — one component/file, early returns, theme colors, memoization, Spanish UI.
+- **frontend-routing-data** — TanStack Router/Query, query-key factories, `ky` client.
+- **forms** — React Hook Form + Zod resolver, reusable form components.
+- **constants-config** — per-deployment values as named constants (shared vs app-level).
+- **shared-utils** — where logic lives (`packages/utils` vs app utils vs screen-scoped).
+- **change-workflow** — commit/PR conventions, reviewer interaction, docs upkeep, plan-first for complex work.
 
-- **Be strict with types**: explicitly type all constants, function parameters, return types, and variables. Avoid `any`.
-- **Use Prisma auto-generated types**: when working with database models, filters, includes, or query arguments, always use the types generated by Prisma (e.g., `Prisma.OrganizationWhereInput`, `Prisma.CarbonInventoryInclude`). Do not create manual type definitions for things Prisma already provides.
-- **Zod schemas in `packages/types`**: all Zod schemas for API contracts must be defined in `packages/types`. This includes schemas for route params, query params, request body, and response body. Export the inferred TypeScript types alongside the schemas (e.g., `z.infer<typeof MySchema>`). These schemas and types must be reused in the API — never redefine them locally.
-- **Fastify route schema**: Zod schemas are passed directly to Fastify's `schema` option in `route.ts` via `fastify-type-provider-zod` (already configured in `app.ts`). This provides automatic request validation, response serialization, and Swagger docs generation. Example: `schema: { params: MyParamsSchema, querystring: MyQuerySchema, body: MyBodySchema, response: { 200: MyResponseSchema } }`.
-- **Use enums for status/type values**: always use TypeScript enums or Prisma-generated enums instead of hardcoded literal strings. For example, use `InventoryStatus.ACTIVE` instead of `"ACTIVE"`. This applies to all status fields, type discriminators, role values, and similar categorical strings.
-- **Derive types from endpoint responses**: when a component, helper, or function uses fields from an API response, derive its types from the endpoint's response type — never define them manually. Use indexed access types (e.g., `GetOrganizationByIdResponse["members"][number]`) or utility types like `Pick` to extract the exact shape needed. This keeps types in sync with the API contract automatically.
+## Task agents (`.claude/agents/`)
 
-# API & Backend Rules
+Delegate full-feature work; each agent follows the skills above:
 
-- **Efficient database usage**: endpoints must be efficient and mindful that datasets will grow over time. Apply these principles in order of preference:
-  1. **Push logic to the database**: use aggregations, filters, and calculations at the query level (e.g., `groupBy`, `count`, `_sum`, raw SQL when needed) instead of fetching raw rows and processing in memory.
-  2. **Parallelize independent queries**: use `Promise.all` or `prisma.$transaction` to run independent queries concurrently instead of sequentially.
-  3. **Avoid overfetching**: use `select` to retrieve only the fields you need. Do not fetch entire records when only a few columns are required — the dataset will grow and overfetching will degrade performance.
-  4. **Use `include` wisely**: prefer a single query with `include` over multiple sequential queries, but only include relations that are actually needed.
-- **Use Prisma transactions**: when an endpoint performs multiple queries that involve validations followed by updates (read-then-write), wrap them in a `prisma.$transaction` to avoid TOCTOU (time-of-check to time-of-use) race conditions. Use the interactive transaction form (`prisma.$transaction(async (tx) => { ... })`) so that all reads and writes share the same transaction context and data remains consistent.
-- **Helper functions**: feature-specific auxiliary/utility functions must be placed in a separate `helpers.ts` file within the feature directory, not inside `service.ts`. Keep `service.ts` focused on business logic and database operations. If a helper proves reusable across multiple features, move it to the shared `apps/api/src/helpers/` directory. Avoid premature promotion — only move a helper to the shared directory when reuse is actually observed, not speculatively.
-- **Feature structure**: follow the existing pattern — `route.ts` → `handler.ts` → `service.ts` (→ `helpers.ts` if needed) per feature, under `apps/api/src/features/`.
-- **Types package structure** (`packages/types/src/`): organized by domain (e.g., `organizations/`, `carbonInventories/`). Each domain contains:
-  - `schemas.ts` + `types.ts` at the domain root for shared schemas/types.
-  - `app/` and/or `admin/` subfolders to separate public and admin endpoints.
-  - Inside each subfolder, one directory per endpoint (e.g., `app/getOrganizationById/`) containing its own `schemas.ts` and `types.ts` for route params, query params, request body, and response body.
-  - An `index.ts` at each level to re-export everything.
-
-# Testing Patterns
-
-- **Framework**: Vitest + Testcontainers (real PostgreSQL and Azurite containers — no mocks for the database layer).
-- **Test location**: `apps/api/test/features/<feature>/<action>/integration.test.ts` (tests live in `test/`, separate from source).
-- **HTTP requests**: use `app.inject()` to call endpoints (no actual network, Fastify handles it internally).
-- **Factories**: use existing factories in `apps/api/test/factories/` (`appFactory`, `userFactory`, `organizationFactory`) for test setup and data creation.
-- **Auth in tests**: tests run with `AUTH_PROVIDER=forced-user`, which injects a hardcoded user without real authentication.
-- **Execution**: tests run sequentially (`maxWorkers: 1`, `fileParallelism: false`).
-- **Coverage**: 80% threshold enforced locally.
-
-# Authentication & Authorization
-
-The API uses a two-dimension role model. Apply the correct decorator in `route.ts`:
-
-- **`fastify.requireAuth`**: onRequest hook — checks the user is authenticated. Use on all protected routes.
-- **`fastify.requireRoles([SystemRole.ADMIN, ...])`**: onRequest hook — restricts access by system-level roles (`USER`, `ADMIN`, `SUPERADMIN`).
-- **`fastify.requireOrganizationRole(extractor, { allowedRoles, canAdminsBypass })`**: **preHandler** hook — restricts access by organization-scoped roles (`VIEWER`, `CONTRIBUTOR`, `ADMIN`). Requires an `extractor` function that pulls the organization ID from the request (params, body, or query).
-- **`fastify.requireCarbonInventoryAccess(extractor, { requiredOrganizationRoles, canAdminsBypass })`**: **preHandler** hook — checks that the user has access to a specific carbon inventory. Supports anonymous access via `x-carbon-inventory-uuid` header, creator-only access for standalone inventories, and organization membership checks. Requires an `extractor` function (e.g., `idRequestExtractor`) that pulls the carbon inventory ID from the request.
-- **`fastify.requireReductionProjectAccess({ requiredOrganizationRoles, canAdminsBypass })`**: **preHandler** hook — checks that the user has access to a specific reduction project via organization membership. Extracts the project ID directly from `request.params.id`. Supports admin bypass when `canAdminsBypass` is set.
-- These domain-specific access hooks (`requireCarbonInventoryAccess`, `requireReductionProjectAccess`) are only needed at endpoints within their own domain (e.g., carbon inventory endpoints, reduction project endpoints). Endpoints in other domains that reference these entities indirectly should rely on `requireOrganizationRole` instead.
-- Access the current user via `request.currentUser` (set by the `user-resolve-plugin` in preHandler).
-- Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`, `carbonInventoryAuthorizationPlugin.ts`, `reductionProjectAuthorizationPlugin.ts`.
-
-# Error Handling
-
-- **API errors**: throw custom error classes from `apps/api/src/errors/` (e.g., `DataIntegrityError`, `EmptyResourceError`, `DatabaseUniqueConstraintViolationError`). Services can throw these errors at any point — Fastify's error handler plugin catches them automatically and normalizes them into a standard response. Always reuse the existing error classes in `apps/api/src/errors/` instead of defining new feature-specific custom errors; the shared set covers the common cases (not found, unique constraint violation, data integrity, empty resource, config error).
-- **Error response schema**: use `ApiErrorResponseSchema` from `apps/api/src/commonSchemas/errors.ts` for error responses in route schemas (e.g., `response: { 404: ApiErrorResponseSchema }`).
-- **Prisma errors**: use helpers like `extractP2002Fields()` from `apps/api/src/errors/` to handle unique constraint violations with meaningful messages.
-- **Frontend error messages**: `getApiErrorMessage()` in `apps/web/src/utils/getApiErrorMessage.ts` maps API error codes to user-facing Spanish messages.
-
-# Frontend & React Rules
-
-- **One component per file**: each React component must live in its own file. Do not define multiple components or subcomponents in the same file.
-- **Early returns**: use early returns in components for loading states, error states, and edge cases. Check these conditions at the top of the component and return early, rather than nesting the main content inside conditionals.
-- **Avoid excessive ternaries in JSX**: prefer early returns or intermediate variables over inline ternary expressions in the render tree. If a ternary is simple and short (one line), it is acceptable. For anything more complex, extract the logic.
-- **UI stack**: MUI v7 + Tailwind CSS. Follow existing patterns for styling.
-- **Use theme colors, never hardcoded values**: always reference colors from the theme (`theme.palette.*`) instead of ad-hoc hex/rgb literals. Use MUI helpers like `alpha()` and `darken()` from `@mui/material/styles` when you need transparency or shade variations. For category-specific colors, use the existing patterns: `theme.palette.requestTypeColors`, `theme.palette.recognitionTypeColors`, and the `CATEGORY_COLORS` utility in `utils/categoryColors.ts`. If a required color doesn't exist in the theme, add it to `apps/web/src/theme/palette.ts` (and augment the type in `undp-huella-latam.theme.d.ts`) rather than hardcoding it inline.
-- **Avoid prop drilling**: when data is needed across many component levels, use the Context API or an external state library like Zustand instead of passing props through intermediate components.
-- **Memoization**: prevent unnecessary re-renders using `React.memo` for components and `useMemo`/`useCallback` for expensive calculations and callback functions passed as props.
-- **Screen filter state in query params**: user selections in screen-level filters (e.g., header dropdowns, search inputs) should be stored in URL query params, not in local component state. This makes filters shareable, bookmarkable, and persistent across navigation.
-- **Language**: all user-facing text is in Spanish — there is no i18n library. Dates use `date-fns` with the Spanish locale (`es`). New features must follow this convention: labels, placeholders, error messages, tooltips, and button text are all in Spanish.
-
-# Frontend Routing & Data Fetching
-
-- **Router**: TanStack Router with file-based routing in `apps/web/src/routes/`. The file `routeTree.gen.ts` is auto-generated — never edit it manually.
-- **Route guards**: use `beforeLoad` in route definitions for auth checks and redirects.
-- **Layout routes**: `app.tsx` and `admin.tsx` serve as layout wrappers for nested routes.
-- **Server state**: TanStack Query v5. Both query and mutation hooks live in `apps/web/src/api/query/`, organized by domain (e.g., `query/organizations/`, `query/carbonInventories/`).
-- **Query key factories**: each domain defines a keys file (e.g., `apps/web/src/api/query/organizations/keys.ts`) with a structured key object (`organizationKeys.all`, `.detail(id)`, `.users(orgId)`). Use these for cache invalidation.
-- **HTTP client**: `ky` via `apiClient` in `apps/web/src/api/http/client.ts`. Auth tokens are injected automatically in a `beforeRequest` hook via MSAL.
-
-# Forms
-
-- **Library**: React Hook Form with `Controller` — no Formik.
-- **Reusable form components**: use existing components in `apps/web/src/components/form/` (`FormTextField`, `FormSelectField`, `FormDateField`, `FormAutocompleteField`, `FormFileUpload`, etc.). They accept `control` and `name` props from React Hook Form.
-- **Validation**: use Zod schemas to validate form fields via `@hookform/resolvers/zod`. Define the schema with Spanish error messages using Zod's `message` option (e.g., `z.string().min(1, { message: "Este campo es obligatorio" })`), then pass it to `useForm` as `resolver: zodResolver(mySchema)`. This ensures consistent validation logic and user-facing error messages in Spanish.
-
-# Constants & Configurable Values
-
-This platform is deployed independently by each country, so values that may vary per deployment must be explicit constants — never inline literals.
-
-- **`packages/constants/`** (shared, `@repo/constants`): domain constants used by both API and web (e.g., allowed greenhouse gases, GWP source options, max lengths, required documents). These are often tied to database enums or Zod schemas — modifying them may require data migration.
-- **`apps/api/src/config/constants.ts`**: API-specific constants like numeric precision (`PERCENTAGE_PRECISION`, `EMISSIONS_PRECISION`), tolerances, and SAS URL expiry times.
-- **`apps/web/src/config/constants.ts`**: frontend-specific constants like stale times, debounce intervals, sidebar width, file upload limits, and year ranges.
-- **`apps/web/src/config/vocab.ts`**: localized terminology (e.g., organization/inscription names in Spanish). Country deployments may need to adjust these labels.
-- **Screen-level `constants.ts`** files (e.g., in `screens/Maintainer/`, `screens/ReductionProject/`): feature-specific labels, options, and UI content.
-
-**When to use constants**: any value that could change per country deployment — labels, options lists, thresholds, limits, precision rules, normative standards, emission factor sources — must be defined as a named constant in the appropriate file above. Never inline these values. Place the constant at the correct level: shared if used by both API and web, otherwise in the corresponding app's config.
-
-# Utils & Shared Logic
-
-Utils follow the same layering pattern as constants — shared logic lives in the shared package, app-specific logic stays in the corresponding app. Web and API never cross-import each other's utils.
-
-- **`packages/utils/`** (shared, `@repo/utils`): pure business logic and formatting functions used by both API and web. Includes status/workflow checks (`isCarbonInventoryEditable`, `canSubmitToVerification`, `isReductionProjectEditable`), unit conversions (`kgToTon`, `tonToKg`), date formatting, and user display name building. These must have no framework dependencies (no MUI, no Prisma, no Fastify).
-- **`apps/api/src/utils/`**: backend-specific utilities for Prisma type conversions (`mapBigIntField`, `mapDecimalField`, `toNumberOrNull`) and null-safe comparisons. May re-export shared utils from `@repo/utils` for convenience.
-- **`apps/web/src/utils/`**: frontend-specific utilities for UI formatting (`formatEmissions`, `formatDate`), error message translation (`getApiErrorMessage`), category colors/icons, route guards (`requireRole`), status labels, and Excel export logic.
-- **Screen-scoped utils** (e.g., `screens/CarbonInventory/utils/`): form validation and data transformers tightly coupled to a specific feature. Only use when the logic is not reusable outside that screen.
-
-**Where to place new utils**: if the function is pure logic needed by both API and web, add it to `packages/utils/`. If it depends on Prisma or backend concerns, place it in `apps/api/src/utils/`. If it depends on MUI, React, or frontend concerns, place it in `apps/web/src/utils/`. If it's tightly coupled to a single screen's forms or data flow, scope it under that screen's `utils/` folder.
-
-# PR Interaction with Reviewers
-
-- When interacting with CodeRabbit or other automated reviewers, use `@coderabbitai` commands as needed to control the review flow.
-- For human reviewer comments: address each one, explain the solution in a reply, and reference the fixing commit.
-- If a reviewer comment is not worth addressing (e.g., stylistic nitpick that contradicts project conventions), explain why and skip it — use good judgment.
-
-# Documentation
-
-- **Keep docs up to date**: on every new feature or significant change, update the project documentation in the `docs/` folder. Create new files or update existing ones as needed to reflect the changes made.
-- Review existing docs structure (`docs/architecture/`, `docs/data-model/`, `docs/development/`, `docs/operations/`, etc.) and place documentation in the appropriate location.
-
-# Tips for Complex Changes
-
-- For complex changes, prefer to work from a plan document that outlines the implementation strategy before coding.
-- When receiving grouped review comments (submitted as a single review), implement them together to ensure consistency.
+- **api-feature-builder** — build a complete API endpoint + tests.
+- **web-feature-builder** — build a web screen/component/route/form.
+- **integration-test-writer** — add API integration test coverage.
