@@ -1,4 +1,5 @@
 import path from "node:path";
+import net from "node:net";
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
 import type { FastifyInstance, FastifyRequest } from "fastify";
@@ -10,6 +11,15 @@ import {
 
 import autoload from "@fastify/autoload";
 import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
+import { NETWORK_CONNECTION_ATTEMPT_TIMEOUT_MS } from "@/config/constants.js";
+
+// Process-wide: without this, every outbound connection (https agents and
+// fetch — e.g. the JWKS signing-key download behind token validation) fails
+// with an empty AggregateError on networks where TCP connect takes longer
+// than Node's 250ms default budget per address.
+net.setDefaultAutoSelectFamilyAttemptTimeout(
+  NETWORK_CONNECTION_ATTEMPT_TIMEOUT_MS
+);
 
 function getLoggerOptions() {
   const baseOptions = {
