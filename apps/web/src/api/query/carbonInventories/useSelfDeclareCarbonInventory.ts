@@ -7,9 +7,10 @@ import { SubmissionQueryKey } from "../submissions/keys.js";
 export const useSelfDeclareCarbonInventory = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (id: string) =>
-      apiClient.post(`carbon-inventories/${id}/self-declare`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.post(`carbon-inventories/${id}/self-declare`);
+    },
     onSuccess: async (_data, id) => {
       await Promise.all([
         queryClient.invalidateQueries({

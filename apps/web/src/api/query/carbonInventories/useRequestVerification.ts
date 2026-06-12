@@ -13,14 +13,13 @@ interface RequestVerificationInput {
 export const useRequestVerification = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, body }: RequestVerificationInput) =>
-      apiClient
-        .post(
-          `carbon-inventories/${id}/request-verification`,
-          body ? { json: body } : undefined
-        )
-        .json(),
+  return useMutation<void, Error, RequestVerificationInput>({
+    mutationFn: async ({ id, body }) => {
+      await apiClient.post(
+        `carbon-inventories/${id}/request-verification`,
+        body ? { json: body } : undefined
+      );
+    },
     onSuccess: async (_data, { id }) => {
       await Promise.all([
         queryClient.invalidateQueries({
