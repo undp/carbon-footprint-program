@@ -18,14 +18,10 @@ export const badgeRequestUploadHandler = async (
 
   log.info({ badgeType }, "Generating badge upload URL...");
 
-  const result = await badgeRequestUploadService(
-    request.server.prisma,
-    request.server.storage,
-    {
-      badgeType,
-      originalName,
-    }
-  );
+  const result = await badgeRequestUploadService(request.server.storage, {
+    badgeType,
+    originalName,
+  });
 
   log.info({ uuid: result.uuid, badgeType }, "Badge upload URL generated");
   return reply.status(200).send(result);

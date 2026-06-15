@@ -1,5 +1,4 @@
 import { randomUUID } from "crypto";
-import type { PrismaClient } from "@repo/database";
 import {
   FileType,
   RequestBadgeUploadBody,
@@ -14,7 +13,6 @@ type BadgeRequestUploadInput = RequestBadgeUploadBody &
   RequestBadgeUploadParams;
 
 export const badgeRequestUploadService = async (
-  _prisma: PrismaClient,
   storage: StorageAdapter,
   input: BadgeRequestUploadInput
 ): Promise<RequestBadgeUploadResponse> => {
