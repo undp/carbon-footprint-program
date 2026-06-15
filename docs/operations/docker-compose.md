@@ -1,6 +1,6 @@
 # Docker Compose — Full Stack Operations
 
-Run the whole Huella Latam stack — Postgres, migrations + seed, API, and web — from a single `docker-compose.yml`. The same file is both the **local dev path** and the **template for productive deployments**; only the env file changes between environments.
+Run the whole Huella Latam stack — Postgres, migrations + seed, API, and web — from a single `docker-compose.yml`. This file covers **local development**; production on-premise deployments use `docker-compose.prod.yml` against an external PostgreSQL — see the [Production Deployment guide](./production-deployment.md).
 
 ## Services & boot order
 
@@ -176,23 +176,9 @@ dc up -d --no-deps api web
 
 ## Production deployment
 
-The same compose file is the productive template — production differs from the committed local-dev defaults (covered by [Quick start](docker-compose.md#quick-start) and [Configuration](docker-compose.md#configuration)) only through the env file. Each country deploys on its own infrastructure, so there are two production targets, **on-premise** (self-hosted) and **Azure**; they differ only in the storage credential.
+Production on-premise does **not** use this compose file: it runs only `api` + `web` from `docker-compose.prod.yml` against an **external PostgreSQL**, with migrations and seeds applied manually. The full procedure — env setup, DB privileges, migration runbook, troubleshooting — lives in the [Production Deployment guide](./production-deployment.md).
 
-| Setting         | On-premise (self-hosted)                   | Azure (App Service / Container Apps)       |
-| --------------- | ------------------------------------------ | ------------------------------------------ |
-| `NODE_ENV`      | `production`                               | `production`                               |
-| `JWT_SECRET`    | strong secret from a vault                 | strong secret from a vault                 |
-| `AUTH_PROVIDER` | `jwks`                                     | `jwks`                                     |
-| `VITE_*`        | public deployment URLs                     | public deployment URLs                     |
-| Postgres        | external managed Postgres → `DATABASE_URL` | external managed Postgres → `DATABASE_URL` |
-| Azure storage   | **3 SP vars set** (no Managed Identity)    | **3 SP vars empty** → Managed Identity     |
-
-Storage is the only target-dependent setting, because it hinges on the Managed Identity:
-
-- **On-premise / any non-Azure host** — no Managed Identity, so keep the three `AZURE_STORAGE_*` SP vars **set** (production-grade, vault-managed values). `getStorageCredential()` uses the explicit `ClientSecretCredential`. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional) for the SP setup.
-- **On Azure** — leave the three SP vars **empty**; `getStorageCredential()` falls back to `DefaultAzureCredential` → the compute's Managed Identity.
-
-No code branches by environment — `getStorageCredential()` (`packages/storage/src/getStorageCredential.ts`, shared by the API and the seeds via `@repo/storage`) just reads the env; the env file is the only difference.
+One rule worth keeping in mind everywhere: the storage credential depends on **where the compute runs**, not local-vs-prod — on-premise (no Managed Identity) sets the three `AZURE_STORAGE_*` SP vars, Azure-hosted compute leaves them empty and falls back to its Managed Identity. See [Azure Blob Storage](docker-compose.md#azure-blob-storage-optional).
 
 ## Troubleshooting
 
@@ -260,7 +246,9 @@ The rule applies to **every** interpolated var (`JWT_SECRET`, `AZURE_STORAGE_*`,
 
 ## Related docs
 
+- [Production Deployment (on-premise)](./production-deployment.md) — `docker-compose.prod.yml` against an external PostgreSQL.
 - [Web App Docker Guide](./web-docker.md) — web image internals (nginx config, build args, hardening notes).
 - `apps/api/Dockerfile` — API multi-stage build (also the `migrate` base).
 - `apps/web/Dockerfile` — web SPA build + nginx runtime.
 - `.env.dockercompose.example` — committed template; the source of truth for every var.
+- `.env.prod.dockercompose.example` — the production counterpart, consumed by `docker-compose.prod.yml`.

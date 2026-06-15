@@ -1,0 +1,113 @@
+# =============================================================================
+# Huella Latam — PRODUCTION docker-compose (on-premise, external PostgreSQL)
+# =============================================================================
+# Runs only `api` and `web`. PostgreSQL is NOT part of this stack — it is an
+# external server reached through DATABASE_URL. Migrations and seeds are not
+# automated here either; they are applied manually before starting the stack.
+#
+# Usage:
+#   cp .env.prod.dockercompose.example .env.prod.dockercompose   # then fill it in
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose up -d --build
+#
+# Full guide: docs/operations/production-deployment.md
+# =============================================================================
+
+# Explicit project name: gives this stack its own containers and network so it
+# never collides with a dev stack started from the same checkout.
+name: huella-latam-prod
+
+services:
+  api:
+    image: huella-latam-api:prod
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: huella-latam-api-prod
+    ports:
+      # Host port is configurable; the container always listens on 8080.
+      - "${API_PORT:-8080}:8080"
+    environment:
+      # --- Core ---
+      - NODE_ENV=production
+      - API_HOST=0.0.0.0
+      - API_PORT=8080
+      # Full connection string to the EXTERNAL PostgreSQL server (application
+      # user, URL-encoded password) — see .env.prod.dockercompose.example.
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (external PostgreSQL connection string)}
+      # Unused when AUTH_PROVIDER=jwks/easy-auth is fully configured (tokens are
+      # verified against the IdP's public keys). It is only the static HMAC
+      # fallback if the JWKS config is incomplete — setting a strong value
+      # (`openssl rand -base64 48`) keeps that fallback unforgeable.
+      - JWT_SECRET=${JWT_SECRET:-}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - APP_VERSION=${APP_VERSION:-prod}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
+      # --- Auth: jwks | easy-auth (production options) ---
+      - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks or easy-auth in production)}
+      - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
+      # --- Azure Entra ID (used when AUTH_PROVIDER=jwks) ---
+      - AZURE_TENANT_TYPE=${AZURE_TENANT_TYPE:-external}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_TENANT_SUBDOMAIN=${AZURE_TENANT_SUBDOMAIN:-}
+      - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:-}
+      # --- Generic JWKS overrides (optional, non-Azure IdPs) ---
+      - JWKS_URI=${JWKS_URI:-}
+      - JWKS_ISSUER=${JWKS_ISSUER:-}
+      - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
+      - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
+      - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
+      # --- Azure Blob Storage (empty disables file upload/download) ---
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      # Dedicated service principal for storage (different tenant than JWKS).
+      # On-premise hosts have no Azure Managed Identity, so when storage is
+      # enabled all three SP vars must be set together.
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+    # No depends_on: the database is external. If it is unreachable the API
+    # exits at boot and `restart: unless-stopped` retries until it answers.
+    restart: unless-stopped
+    networks:
+      - huella-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    image: huella-latam-web:prod
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?VITE_API_BASE_URL is required (browser-reachable API URL)}
+        VITE_AZURE_FRONT_CLIENT_ID: ${VITE_AZURE_FRONT_CLIENT_ID}
+        VITE_AZURE_AUTH_AUTHORITY: ${VITE_AZURE_AUTH_AUTHORITY}
+        VITE_FRONT_BASE_URL: ${VITE_FRONT_BASE_URL:?VITE_FRONT_BASE_URL is required (browser-reachable web URL)}
+        VITE_AZURE_API_CLIENT_ID: ${VITE_AZURE_API_CLIENT_ID}
+        VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-prod}
+    container_name: huella-latam-web-prod
+    ports:
+      - "${WEB_PORT:-80}:8080"
+    depends_on:
+      # Wait until the API passes its /health check, not just until its
+      # container starts — so the whole stack is coherent before web is up.
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - huella-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  huella-network:
+    driver: bridge
