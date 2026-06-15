@@ -5,3 +5,5 @@ export * from "./useReductionProject";
 export * from "./useReductionProjectAccessQuery";
 export * from "./useCreateReductionProject";
 export * from "./useUpdateReductionProject";
+export * from "./useRequestReductionProjectVerification";
+export * from "./useDeleteReductionProject";
