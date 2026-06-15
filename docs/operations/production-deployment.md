@@ -95,10 +95,10 @@ export AZURE_STORAGE_CLIENT_SECRET=<sp-secret>
 pnpm install
 pnpm --filter @repo/database validate:version   # preflight: connectivity + PostgreSQL >= 15
 pnpm --filter @repo/database prod:deploy        # prisma migrate deploy
-pnpm --filter @repo/database prod:seed          # first deploy only (idempotent)
+pnpm --filter @repo/seed seed                   # first deploy only (idempotent)
 ```
 
-> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows, and the badge/terms seeds individually skip (with a warning) when the `AZURE_STORAGE_*` vars are unset. Combined: if the first `prod:seed` runs **without** the storage vars, badges and terms & conditions are never seeded and **re-running is a permanent no-op**. Recovering afterwards requires DBA-level cleanup. Set the storage vars before the first seed run.
+> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows, and the badge/terms seeds individually skip (with a warning) when the `AZURE_STORAGE_*` vars are unset. Combined: if the first `seed` run happens **without** the storage vars, badges and terms & conditions are never seeded and **re-running is a permanent no-op**. Recovering afterwards requires DBA-level cleanup. Set the storage vars before the first seed run.
 
 If migrations ran as a user other than the application user, re-apply/verify the grants from the [DBA contract](#database-roles--privileges-dba-contract) before starting the stack.
 
