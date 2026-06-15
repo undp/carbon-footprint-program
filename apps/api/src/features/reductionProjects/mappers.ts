@@ -72,6 +72,7 @@ type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
     id: true;
     name: true;
     year: true;
+    organizationId: true;
     createdAt: true;
     baselineScenario: true;
     projectScenario: true;
@@ -108,6 +109,7 @@ export function mapReductionProjectToListItem(
     id: row.id.toString(),
     name: row.name,
     year: row.year,
+    organizationId: row.organizationId.toString(),
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     status: displayStatus,

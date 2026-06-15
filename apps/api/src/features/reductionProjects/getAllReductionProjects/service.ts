@@ -59,6 +59,7 @@ export const getAllReductionProjectsService = async (
       ...reductionProjectWithSubmissionsMinimalSelect,
       name: true,
       year: true,
+      organizationId: true,
       createdAt: true,
       baselineScenario: true,
       projectScenario: true,
