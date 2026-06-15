@@ -11,6 +11,8 @@ export { buildUserName } from "./user.js";
 export {
   isReductionProjectEditable,
   canRequestReductionProjectVerification,
+  canSubmitReductionProjectToVerification,
+  isReductionProjectDeletable,
 } from "./reductionProject.js";
 export { arraysEqualUnordered } from "./arrays.js";
 export { sanitizeForFilename } from "./sanitize.js";
