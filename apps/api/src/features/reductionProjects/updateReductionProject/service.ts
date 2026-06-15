@@ -1,19 +1,9 @@
-import {
-  OrganizationRole,
-  Prisma,
-  SubmissionType,
-  type PrismaClient,
-} from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
+import { Prisma, type PrismaClient } from "@repo/database";
 import type {
   UpdateReductionProjectRequest,
   UpdateReductionProjectResponse,
   User,
 } from "@repo/types";
-import {
-  linkFilesToSubmission,
-  cleanupSourceBlobs,
-} from "@/features/files/helpers/linkFilesToSubmission.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
   ReductionProjectNotFoundError,
@@ -21,32 +11,28 @@ import {
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
-  createReductionProjectSubmission,
   reductionProjectWithSubmissionsMinimalSelect,
-  validateReductionProjectPrerequisites,
+  validateReductionProjectReferences,
 } from "../helpers.js";
-import {
-  ReductionProjectDisplayStatusEnum,
-  ReductionProjectStatus,
-} from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
+import { isReductionProjectEditable } from "@repo/utils";
 
 export const updateReductionProjectService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateReductionProjectRequest,
-  user: User | null,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  user: User | null
 ): Promise<UpdateReductionProjectResponse> => {
   const userId = user?.id ? BigInt(user.id) : null;
 
-  const sourceCleanup = await prismaClient.$transaction(async (tx) => {
-    await validateReductionProjectPrerequisites(
+  await prismaClient.$transaction(async (tx) => {
+    // DRAFT-first: only a light referential check on update. Update writes
+    // fields only — it never (re)creates a submission. Resubmitting after a
+    // REVIEWED is a separate, deliberate "request verification" action.
+    await validateReductionProjectReferences(
       tx,
       data.organizationId,
-      data.carbonInventoryId,
-      userId,
-      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN]
+      data.carbonInventoryId
     );
 
     const existing = await tx.reductionProject.findUnique({
@@ -60,11 +46,11 @@ export const updateReductionProjectService = async (
 
     const displayStatus = calculateReductionProjectDisplayStatus(existing);
 
-    if (displayStatus !== ReductionProjectDisplayStatusEnum.REVIEWED) {
+    // Editable while DRAFT or REVIEWED (mirrors carbon inventory).
+    if (!isReductionProjectEditable(displayStatus)) {
       throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
-    // Only REVIEWED reaches here
     const updateData: Prisma.ReductionProjectUncheckedUpdateInput = {
       updatedById: userId,
       name: data.name,
@@ -97,27 +83,7 @@ export const updateReductionProjectService = async (
       where: { id: BigInt(id) },
       data: updateData,
     });
-
-    const submissionId = await createReductionProjectSubmission(
-      tx,
-      BigInt(id),
-      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-      userId
-    );
-
-    const { sourceCleanup: cleanup } = await linkFilesToSubmission(
-      tx,
-      submissionId,
-      data.fileUuids,
-      blobServiceClient,
-      containerName
-    );
-
-    return cleanup;
   });
-
-  // Cleanup source blobs after the transaction commits
-  await cleanupSourceBlobs(sourceCleanup);
 
   return {};
 };
