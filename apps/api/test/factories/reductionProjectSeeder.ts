@@ -14,7 +14,10 @@ import {
   OrganizationDataStatus,
 } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
-import type { CreateReductionProjectRequest } from "@repo/types";
+import type {
+  CreateReductionProjectRequest,
+  ReductionProjectDisplayStatus,
+} from "@repo/types";
 import { InventoryStatus, ReductionProjectStatus } from "@repo/types";
 import { createTestOrganization } from "./organizationFactory.js";
 import { createTestOrganizationData } from "./organizationDataFactory.js";
@@ -113,13 +116,15 @@ export async function setupReductionProjectPrerequisites(
 }
 
 /**
- * Builds a valid reduction project request payload
+ * Builds a valid reduction project create/update request payload.
+ *
+ * DRAFT-first: the payload is data-only — files and the verification submission
+ * are handled by the separate `request-verification` action, not on create/update.
  */
 export function buildReductionProjectPayload(
   organizationId: string,
   carbonInventoryId: string,
   subcategoryId: string,
-  fileUuids: string[],
   overrides?: Partial<CreateReductionProjectRequest>
 ): CreateReductionProjectRequest {
   return {
@@ -136,7 +141,6 @@ export function buildReductionProjectPayload(
     year: 2024,
     baselineScenario: 1000,
     projectScenario: 800,
-    fileUuids,
     ...overrides,
   };
 }
@@ -231,6 +235,52 @@ export async function createTestReductionProjectSubmission(
   });
 
   return { subject, submission: subject.submissions[0] };
+}
+
+/**
+ * Creates a reduction project in a target display status by combining a project
+ * row with (optionally) a verification submission:
+ * - DRAFT: project row, no submission
+ * - SUBMITTED: PENDING verification submission
+ * - REVIEWED: REVIEWED verification submission
+ * - APPROVED: APPROVED verification submission
+ * - REJECTED: REJECTED verification submission
+ *
+ * (DELETED is a persistence status, not reachable through a submission.)
+ */
+export async function createReductionProjectInDisplayStatus(
+  prisma: PrismaClient,
+  data: {
+    organizationId: bigint;
+    carbonInventoryId: bigint;
+    subcategoryId: bigint;
+    createdById: bigint;
+  },
+  displayStatus: ReductionProjectDisplayStatus,
+  overrides?: Partial<Prisma.ReductionProjectUncheckedCreateInput>
+): Promise<ReductionProject> {
+  const project = await createTestReductionProject(prisma, data, overrides);
+
+  const submissionStatusByDisplay: Partial<
+    Record<ReductionProjectDisplayStatus, SubmissionStatus>
+  > = {
+    SUBMITTED: SubmissionStatus.PENDING,
+    REVIEWED: SubmissionStatus.REVIEWED,
+    APPROVED: SubmissionStatus.APPROVED,
+    REJECTED: SubmissionStatus.REJECTED,
+  };
+
+  const submissionStatus = submissionStatusByDisplay[displayStatus];
+  if (submissionStatus) {
+    await createTestReductionProjectSubmission(
+      prisma,
+      project.id,
+      submissionStatus,
+      data.createdById
+    );
+  }
+
+  return project;
 }
 
 /**
