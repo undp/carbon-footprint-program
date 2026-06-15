@@ -237,3 +237,33 @@ export async function validateReductionProjectPrerequisites(
     throw new ReductionProjectInvalidDataError();
   }
 }
+
+/**
+ * Light referential check for DRAFT-first create/update: verifies only that the
+ * carbon inventory exists, is ACTIVE, and belongs to the given organization.
+ *
+ * The heavier prerequisites (organization ACTIVE + accredited, CI has an
+ * approved CARBON_INVENTORY_VERIFICATION submission) are intentionally NOT
+ * checked here — they are enforced later, only when the project is submitted
+ * for verification (`validateReductionProjectPrerequisites`).
+ *
+ * Throws a generic 422 if any condition fails (no detail exposed to prevent ID enumeration).
+ */
+export async function validateReductionProjectReferences(
+  tx: PrismaClient | Prisma.TransactionClient,
+  organizationId: string,
+  carbonInventoryId: string
+): Promise<void> {
+  const valid = await tx.carbonInventory.findFirst({
+    where: {
+      id: BigInt(carbonInventoryId),
+      status: InventoryStatus.ACTIVE,
+      organizationId: BigInt(organizationId),
+    },
+    select: { id: true },
+  });
+
+  if (!valid) {
+    throw new ReductionProjectInvalidDataError();
+  }
+}
