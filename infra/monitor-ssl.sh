@@ -25,6 +25,10 @@ set -e
 # Get script directory for reliable paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Shared infra helpers
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -98,13 +102,10 @@ log "${YELLOW}Getting Front Door configuration...${NC}"
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 # Try to get profile name from Bicep outputs (preferred method)
-FRONT_DOOR_PROFILE=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "outputs.frontDoorProfileName.value" -o tsv 2>/dev/null)
+FRONT_DOOR_PROFILE=$(stack_output frontDoorProfileName)
 
 # Fallback: Parse from resource IDs if output not available (for backward compatibility)
-if [ -z "$FRONT_DOOR_PROFILE" ] || [ "$FRONT_DOOR_PROFILE" = "null" ]; then
+if [ -z "$FRONT_DOOR_PROFILE" ]; then
   FRONT_DOOR_PROFILE=$(az stack group show \
     --name "$STACK_NAME" \
     --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -118,16 +119,13 @@ if [ -z "$FRONT_DOOR_PROFILE" ]; then
 fi
 
 # Get custom domain name
-CUSTOM_DOMAIN=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "outputs.frontDoorCustomDomain.value" -o tsv)
+CUSTOM_DOMAIN=$(stack_output frontendCustomDomain)
 
-if [ -z "$CUSTOM_DOMAIN" ] || [ "$CUSTOM_DOMAIN" = "null" ]; then
+if [ -z "$CUSTOM_DOMAIN" ]; then
   log "${YELLOW}No custom domain configured in Front Door.${NC}"
   echo ""
   echo -e "${CYAN}To configure a custom domain:${NC}"
-  echo -e "1. Set FRONT_DOOR_CUSTOM_DOMAIN in .envrc"
+  echo -e "1. Set FRONTEND_CUSTOM_DOMAIN in .envrc"
   echo -e "2. Run ./deploy.sh"
   echo ""
   exit 0

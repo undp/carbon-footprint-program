@@ -27,7 +27,7 @@
 // Some parameters are automatically set by deploy.sh from environment variables:
 //   - dbPassword: Auto-generated secure password (never commit actual passwords)
 //   - environment: Set from ENVIRONMENT in .envrc
-//   - frontDoorCustomDomain: Set from FRONT_DOOR_CUSTOM_DOMAIN in .envrc (optional)
+//   - frontendCustomDomain: Set from FRONTEND_CUSTOM_DOMAIN in .envrc (optional)
 //
 // Configure these in your .envrc file before running deploy.sh
 //
@@ -237,14 +237,15 @@ param enableFrontDoor = false
 // Recommendation: Start with Standard for development
 param frontDoorSkuName = 'Standard_AzureFrontDoor'
 
-// Custom domain name for Front Door endpoint (optional)
-// - Set from FRONT_DOOR_CUSTOM_DOMAIN environment variable (optional)
-// - Leave empty ('') to use default Azure domain: https://endpoint-xyz.azurefd.net
+// Public custom domain for the frontend (optional)
+// - Set from FRONTEND_CUSTOM_DOMAIN environment variable
+// - Bicep binds it to Front Door when enableFrontDoor=true, otherwise to the Static Web App
+// - Leave empty ('') to use Azure's default hostname (*.azurefd.net or *.azurestaticapps.net)
 // - Example: 'app.huellalatam.org' or 'www.yourdomain.com'
-// - Azure provisions SSL certificate automatically
-// - You must configure DNS CNAME record pointing to Front Door endpoint
+// - Azure provisions the SSL certificate automatically once DNS validation completes
+// - DNS records: see docs/infrastructure/CustomDomainGoDaddySetup.md
 // ⚠️ SECURITY: Ensure DNS records are properly configured to prevent subdomain takeover
-param frontDoorCustomDomain = ''
+param frontendCustomDomain = ''
 
 // Enable WAF managed rules (Microsoft Default RuleSet + Bot Manager)
 // - true: Requires Premium SKU, provides advanced threat protection (OWASP top 10, bot detection)

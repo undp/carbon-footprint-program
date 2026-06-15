@@ -41,9 +41,53 @@ La configuración depende del valor de `enableFrontDoor` en el archivo de parám
 
 ## Ruta A — Dominio Custom apuntando directamente al Static Web App
 
-Aplica cuando `enableFrontDoor = false`.
+Aplica cuando `enableFrontDoor = false`. Dos opciones según se quiera manejar el dominio por IaC o por portal.
 
-### 1. Obtener el hostname del Static Web App
+### Opción recomendada (vía bicep redeploy)
+
+Bicep crea el recurso `customDomain` en el Static Web App (validación `cname-delegation`) y propaga el dominio como origen autorizado a App Service CORS + Blob Storage CORS + `ALLOWED_ORIGIN` de Fastify. No requiere pasos manuales en el portal.
+
+> 🔁 **El flujo tiene dos deploys.** El CNAME debe apuntar al hostname del SWA, que solo existe **después** de crearlo. Por eso: (1) un primer `deploy.sh` crea el SWA y te da su hostname, (2) con ese hostname armás el CNAME, y (3) un segundo `deploy.sh` —ya con `FRONTEND_CUSTOM_DOMAIN` seteado y el CNAME propagado— ata el dominio. Si el stack ya existe, el hostname ya está disponible y arrancás directo en el paso 2.
+
+1. **Obtener el hostname del SWA.** Si el stack todavía no existe (RG nuevo / primer deploy), correr `./infra/deploy.sh` con `FRONTEND_CUSTOM_DOMAIN=""` para crear el SWA. Luego leer su hostname default (es **estable**: no cambia entre deploys):
+   ```bash
+   az stack group show --name "undp-huella-latam-stack-$ENVIRONMENT" \
+     --resource-group "$AZURE_RESOURCE_GROUP" \
+     --query outputs.staticWebAppHostname.value -o tsv
+   ```
+   Ese valor es `<swa-default-host>` (ej. `kind-rock-0abc123.azurestaticapps.net`).
+2. Crear el CNAME en GoDaddy apuntando al hostname del paso 1. Debe existir y propagar **antes del deploy que ata el dominio** (paso 5), no antes del deploy inicial del paso 1:
+   - **Type**: `CNAME`
+   - **Name**: `<subdomain>` (resulta en `<custom-domain>`)
+   - **Value**: `<swa-default-host>` (sin `https://`, sin slash final)
+   - **TTL**: `1 Hour`
+     Verificar con `dig <custom-domain> CNAME +short` antes de continuar (debe devolver el `<swa-default-host>`).
+3. Editar `infra/.envrc`:
+   ```bash
+   export FRONTEND_CUSTOM_DOMAIN="<custom-domain>"
+   ```
+   (No setees `VITE_FRONT_BASE_URL`: `deploy-web.sh` lo deriva desde `FRONTEND_CUSTOM_DOMAIN` y un valor manual sería ignorado.)
+4. Asegurar en el archivo de parámetros (`infra/params/main.<env>.bicepparam`):
+   ```bicep
+   param enableFrontDoor = false
+   ```
+5. Ejecutar `./infra/deploy.sh` (este es el deploy que ata el dominio). Bicep:
+   - Crea el `customDomain` en el SWA (valida CNAME automáticamente; toma 2–15 min).
+   - Setea `siteConfig.cors.allowedOrigins` del App Service del API al dominio custom.
+   - Setea las `corsRules` del Storage Account al dominio custom.
+6. Ejecutar `./infra/deploy-web.sh` — rebuildea el bundle con el dominio custom (deriva `VITE_FRONT_BASE_URL` desde `FRONTEND_CUSTOM_DOMAIN` o, si no está exportado, desde el output `allowedOrigin` del stack).
+7. Ejecutar `./infra/deploy-api.sh` — setea `ALLOWED_ORIGIN` de Fastify con la misma prioridad.
+8. Saltar a [Post-configuración](#post-configuración-actualizar-entra-id-frontend-y-api) (Entra ID redirect URIs siguen siendo manuales).
+
+> ⚠️ **El CNAME debe existir y estar propagado ANTES del deploy que ata el dominio** (paso 5, no el deploy inicial del paso 1). La validación `cname-delegation` es **síncrona**: Azure resuelve el CNAME al crear el recurso `customDomains`. Si el registro todavía no resuelve al `<swa-default-host>`, la creación del recurso falla — y como vive dentro del deployment stack, **la corrida completa de `deploy.sh` falla** (no solo el binding del dominio). Los recursos ya existentes no se borran, pero el dominio no queda atado: corregir el DNS, esperar propagación (`dig <custom-domain> CNAME +short`) y re-correr `deploy.sh`.
+
+> ⚠️ **Apex domains** no se soportan en esta opción — el módulo SWA usa `cname-delegation`, que no aplica a registros `@`. Usar la opción manual (abajo) con validación TXT.
+
+### Opción manual (vía portal Azure)
+
+Solo si no querés redeployar bicep, o si necesitás apex con validación TXT. Genera **drift** respecto al IaC — no recomendado para producción.
+
+#### 1. Obtener el hostname del Static Web App
 
 Portal Azure → Resource Group → Static Web App (`swa-<hash>`) → copiar **URL** (sin `https://`). Es el valor `<swa-default-host>`.
 Alternativa por CLI:
@@ -55,7 +99,7 @@ az staticwebapp show \
   --query defaultHostname -o tsv
 ```
 
-### 2. Configurar DNS en GoDaddy
+#### 2. Configurar DNS en GoDaddy
 
 1. Iniciar sesión en https://godaddy.com
 2. En la barra superior derecha, hacer clic en tu **nombre de usuario** (junto al icono de perfil). Se abre un menú desplegable.
@@ -108,7 +152,7 @@ GoDaddy DNS no soporta `ALIAS`/`ANAME`, por lo que el apex requiere validación 
      - **Value**: `<root-domain>`
    - Agregar `www.<root-domain>` como segundo custom domain en el Static Web App (mismo flujo subdominio).
 
-### 3. Agregar el custom domain en el portal Azure
+#### 3. Agregar el custom domain en el portal Azure
 
 1. Portal → Resource Group → Static Web App → sidebar **Settings** → **Custom domains**.
 2. Click **+ Add** → seleccionar **Custom domain on other DNS**.
@@ -118,12 +162,12 @@ GoDaddy DNS no soporta `ALIAS`/`ANAME`, por lo que el apex requiere validación 
    - `TXT` para apex (Azure entrega entonces token TXT + IP destino, que se ingresan en GoDaddy como se describió en 2B).
 5. Click **Add**.
 
-### 4. Esperar validación + SSL
+#### 4. Esperar validación + SSL
 
 - Estado pasa por: `Validating` → `Ready` (típicamente 2–15 minutos).
 - El certificado SSL es **gestionado por Azure** (gratis, auto-renovado). No requiere acción manual.
 
-### 5. Verificar
+#### 5. Verificar
 
 ```bash
 curl -I https://<custom-domain>
@@ -136,7 +180,7 @@ Browser → `https://<custom-domain>` → debe cargar la app con candado verde (
 
 ## Ruta B — Dominio Custom apuntando a Azure Front Door
 
-Aplica cuando `enableFrontDoor = true`. El bicep en `infra/modules/frontDoor.bicep` ya define el recurso `customDomain` con `ManagedCertificate` y TLS 1.2; solo necesita recibir el parámetro `frontDoorCustomDomain`.
+Aplica cuando `enableFrontDoor = true`. El bicep en `infra/modules/frontDoor.bicep` ya define el recurso `customDomain` con `ManagedCertificate` y TLS 1.2; solo necesita recibir el parámetro `frontendCustomDomain` (que main.bicep enruta automáticamente a Front Door cuando `enableFrontDoor` está activo).
 
 ### Opción recomendada (vía bicep redeploy)
 
@@ -144,7 +188,7 @@ El recurso `customDomain` lo crea bicep, así que el token de validación TXT so
 
 1. Editar `.envrc`:
    ```bash
-   export FRONT_DOOR_CUSTOM_DOMAIN="<custom-domain>"
+   export FRONTEND_CUSTOM_DOMAIN="<custom-domain>"
    ```
 2. Asegurar en el archivo de parámetros (`infra/params/main.<env>.bicepparam`):
    ```bicep
@@ -156,7 +200,7 @@ El recurso `customDomain` lo crea bicep, así que el token de validación TXT so
    az afd custom-domain show \
      --profile-name "$(az stack group show -n undp-huella-latam-stack-$ENVIRONMENT -g $AZURE_RESOURCE_GROUP --query outputs.frontDoorProfileName.value -o tsv)" \
      --resource-group "$AZURE_RESOURCE_GROUP" \
-     --custom-domain-name "$(echo $FRONT_DOOR_CUSTOM_DOMAIN | tr '.' '-')" \
+     --custom-domain-name "$(echo $FRONTEND_CUSTOM_DOMAIN | tr '.' '-')" \
      --query "validationProperties.validationToken" -o tsv
    ```
    Alternativa: Portal → Front Door profile → Domains → click en el dominio → copiar el token TXT.
@@ -196,24 +240,25 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 
 ### Variables en `.envrc` según ruta
 
-`FRONT_DOOR_CUSTOM_DOMAIN` y `VITE_FRONT_BASE_URL` cumplen roles distintos y no son intercambiables:
+`FRONTEND_CUSTOM_DOMAIN` es la **única fuente de verdad** del hostname público:
 
-- **`FRONT_DOOR_CUSTOM_DOMAIN`**: lo consume **bicep** (`deploy.sh`) para crear el recurso `customDomain` en Front Door y para derivar la variable local `allowedOrigin` (ver `infra/main.bicep:221`), que bicep aplica al App Service del API en dos lugares: `siteConfig.cors.allowedOrigins` (plataforma) y el app setting `ALLOWED_ORIGIN` (Fastify). Solo aplica en Ruta B.
-- **`VITE_FRONT_BASE_URL`**: lo consumen **`deploy-web.sh`** (build time del bundle Vite, redirect URIs MSAL) y **`deploy-api.sh`** (sincroniza `ALLOWED_ORIGIN` del contenedor Fastify si se re-corre standalone).
+- **`FRONTEND_CUSTOM_DOMAIN`**: lo consumen **bicep** (`deploy.sh`), **`deploy-web.sh`** y **`deploy-api.sh`**. Bicep enruta el dominio al recurso correcto según `enableFrontDoor` (Front Door o Static Web App) y deriva la variable local `allowedOrigin` (`infra/main.bicep:221`), que se aplica a `siteConfig.cors.allowedOrigins` del App Service, al app setting `ALLOWED_ORIGIN` (Fastify) y a las `corsRules` del Storage Account, y se expone como output `allowedOrigin` del stack. `deploy-web.sh` deriva `VITE_FRONT_BASE_URL` desde esta variable (o desde el output `allowedOrigin` como fallback). `deploy-api.sh` resuelve `ALLOWED_ORIGIN` con la misma prioridad.
+- **`VITE_FRONT_BASE_URL`**: variable interna del build Vite. **No la setees manualmente** — `deploy-web.sh` la calcula desde `FRONTEND_CUSTOM_DOMAIN` para mantenerla alineada con el `allowedOrigin` que escribió bicep. Si la exportás, el script la ignora con un warning para evitar mismatches CORS.
 
-| Ruta                                | `FRONT_DOOR_CUSTOM_DOMAIN` | `VITE_FRONT_BASE_URL`                                                                                                                                                                                                              |
-| ----------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A** (custom domain directo a SWA) | No aplica                  | **Requerido para que el bundle apunte al dominio custom.** Sin override, `deploy-web.sh` cae al hostname default del SWA (`*.azurestaticapps.net`): el deploy corre, pero el login Microsoft rompe en el dominio custom.           |
-| **B** (Front Door + custom domain)  | **Obligatorio**            | **Opcional** si solo corres `deploy.sh` + `deploy-web.sh` (autoresuelto desde el output `frontDoorCustomDomain`, y bicep ya dejó CORS/`ALLOWED_ORIGIN`). **Requerido** si vas a re-correr `deploy-api.sh` standalone — ver nota ↓. |
+| Ruta                                                   | `FRONTEND_CUSTOM_DOMAIN` | Comportamiento de los scripts                                                                                                                                                                                                              |
+| ------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A** (custom domain directo a SWA, **opción IaC**)    | **Obligatorio**          | `deploy.sh` lo pasa como parámetro bicep. `deploy-web.sh` deriva `VITE_FRONT_BASE_URL=https://${FRONTEND_CUSTOM_DOMAIN}`. `deploy-api.sh` deriva `ALLOWED_ORIGIN` del mismo origen.                                                        |
+| **A** (custom domain directo a SWA, **opción manual**) | No aplica                | Sin `FRONTEND_CUSTOM_DOMAIN` ni custom domain en el stack, `deploy-web.sh` y `deploy-api.sh` caen al hostname default del SWA. El custom domain creado a mano en el portal no se propaga a las CORS — completar manualmente pasos 3b y 3c. |
+| **B** (Front Door + custom domain)                     | **Obligatorio**          | Idéntico a Ruta A IaC, pero bicep ata el dominio a Front Door en vez del SWA.                                                                                                                                                              |
 
-> **Nota Ruta B + `deploy-api.sh` standalone**: el script solo escribe `ALLOWED_ORIGIN` cuando `VITE_FRONT_BASE_URL` está exportado. Si lo corres sin exportarlo, `ALLOWED_ORIGIN` queda con el último valor que escribió bicep (correcto post-`deploy.sh`, pero puede haber sido pisado por otra ejecución). Exportarlo explícitamente cierra esa puerta.
+> **Nota standalone `deploy-api.sh`**: el script prefiere `FRONTEND_CUSTOM_DOMAIN` del entorno, luego el output `allowedOrigin` del stack (el origen exacto que bicep escribió en las CORS). No requiere `.envrc` cargado si el stack ya tiene el output.
 
 ### Checklist (orden recomendado)
 
 | #   | Acción                                                                                            | Dónde                          |
 | --- | ------------------------------------------------------------------------------------------------- | ------------------------------ |
 | 1   | Redirect URIs en Entra (frontend)                                                                 | Portal Entra                   |
-| 2   | `VITE_FRONT_BASE_URL` en `.envrc` + `./deploy-web.sh`                                             | Local / CI                     |
+| 2   | `FRONTEND_CUSTOM_DOMAIN` en `.envrc` + `./deploy-web.sh`                                          | Local / CI                     |
 | 3a  | Re-ejecutar `./deploy-api.sh` (con `.envrc` cargado) para sincronizar `ALLOWED_ORIGIN` en Fastify | Local / CI                     |
 | 3b  | **CORS del App Service** (plataforma)                                                             | Portal Azure → App Service API |
 | 4   | Easy Auth en el App Service del API (si `AUTH_PROVIDER=easy-auth`)                                | Portal Azure → Authentication  |
@@ -232,7 +277,7 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
      El segundo path matchea `redirectUri` en `apps/web/src/config/msalConfig.ts:18` (`${FRONT_BASE_URL}/app/home`).
 5. **Save**.
 
-> ⚠️ No uses `https://<custom-domain>/` (con `/` final) en `.envrc` ni en Entra. Si `VITE_FRONT_BASE_URL` termina en `/`, el redirect queda como `https://<custom-domain>//app/home` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
+> ⚠️ No uses trailing slash en el hostname: en `FRONTEND_CUSTOM_DOMAIN` poné `app.example.com` (sin `https://`, sin `/`) y en los redirect URIs de Entra `https://<custom-domain>` (sin slash final). Si el dominio termina en `/`, el redirect MSAL queda como `https://<custom-domain>//app/home` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
 > Si previamente había URIs de un dominio temporal (ej. `*.azurestaticapps.net`) y ya no se usan, borrarlas para reducir superficie.
 > Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md).
 
@@ -242,19 +287,17 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
 
 `deploy-web.sh` resuelve `VITE_FRONT_BASE_URL` con esta prioridad:
 
-1. Valor explícito exportado en `.envrc` (override manual).
-2. Output bicep `frontDoorCustomDomain` (cuando Ruta B está activa).
-3. Hostname default del Static Web App (`*.azurestaticapps.net`).
+1. `FRONTEND_CUSTOM_DOMAIN` env var (current intent).
+2. Output bicep `allowedOrigin` — el origen exacto que bicep autorizó en las CORS (dominio custom, endpoint de Front Door o hostname default, según su propia precedencia).
+3. Hostname default del Static Web App (`*.azurestaticapps.net`) — solo si el stack no existe o es previo al output `allowedOrigin`.
+
+Si exportás manualmente `VITE_FRONT_BASE_URL`, el script lo ignora con un warning. Es deliberado: el dominio que sirve el bundle debe coincidir con el que bicep autorizó en App Service CORS, Fastify `ALLOWED_ORIGIN` y Storage CORS — un override manual rompería esa coherencia.
 
 Según la ruta elegida:
 
-- **Ruta A (dominio custom directo al SWA)**: el stack bicep no expone el dominio custom como output, así que el script caería al hostname default. **Debes exportar `VITE_FRONT_BASE_URL` manualmente en `.envrc`** para que el bundle apunte al dominio custom:
-  ```bash
-  export VITE_FRONT_BASE_URL="https://<custom-domain>"
-  export VITE_API_BASE_URL="https://<api-custom-domain>/api"   # solo si el dominio del API también cambió
-  ```
-  Si no exportas `VITE_API_BASE_URL`, `deploy-web.sh` resuelve la URL del API desde el stack (`https://<api-host>/api`).
-- **Ruta B (Front Door con custom domain)**: con `FRONT_DOOR_CUSTOM_DOMAIN` ya seteado y `deploy.sh` corrido, el output `frontDoorCustomDomain` queda disponible y `deploy-web.sh` resuelve `VITE_FRONT_BASE_URL` automáticamente. **No** necesitás exportar `VITE_FRONT_BASE_URL` (ver matriz arriba).
+- **Ruta A opción IaC y Ruta B**: setear `FRONTEND_CUSTOM_DOMAIN` en `.envrc` y correr `deploy.sh`. `deploy-web.sh` resuelve automáticamente.
+- **Ruta A opción manual**: bicep no conoce el dominio. `deploy-web.sh` caerá al hostname default del SWA — el bundle queda apuntando al `*.azurestaticapps.net`. Para que el bundle apunte al dominio custom, hay que setear `FRONTEND_CUSTOM_DOMAIN` igual y dejar que bicep lo registre (es decir, pasar a opción IaC). El path "manual puro" sin `FRONTEND_CUSTOM_DOMAIN` no soporta login en el dominio custom.
+- **`VITE_API_BASE_URL`**: opcional. Sin exportarlo, `deploy-web.sh` lo resuelve desde el stack (`https://<api-host>/api`). Override solo si tenés dominio custom para el API.
 
 Re-ejecutar `infra/deploy-web.sh` para rebuildear y subir el bundle al Static Web App. Validar en el log del script:
 
@@ -264,23 +307,28 @@ Re-ejecutar `infra/deploy-web.sh` para rebuildear y subir el bundle al Static We
 
 > Detalle de `VITE_API_BASE_URL`: [`docs/infrastructure/StaticWebAppDeployment.md`](./StaticWebAppDeployment.md#variables-de-entorno).
 
-### 3. CORS del API (dos capas)
+### 3. CORS del API (dos capas) + CORS del Storage
 
-Las peticiones del navegador desde `https://<custom-domain>` al App Service son **cross-origin**. Hay que permitir ese origen en **dos sitios**; configurar solo uno deja la app con errores CORS en consola (a veces status 200 con icono rojo en DevTools) y el login puede fallar tras volver de Microsoft.
+Las peticiones del navegador desde `https://<custom-domain>` viajan a dos destinos cross-origin: el App Service del API y el Storage Account (uploads directos vía SAS URL). Hay tres capas de CORS que deben coincidir.
 
 ```text
 Navegador (Origin: https://<custom-domain>)
     → App Service — CORS de plataforma (siteConfig.cors en bicep / blade API)
     → Contenedor Fastify — ALLOWED_ORIGIN (apps/api/src/plugins/external/cors.ts)
+    → Storage Account — corsRules en blobService (bicep / Resource sharing blade)
 ```
 
-En **Ruta A**, bicep deja el CORS de plataforma apuntando al hostname default del SWA (`*.azurestaticapps.net`), **no** al dominio custom. Por eso el paso del portal es obligatorio aunque hayas corrido `deploy-api.sh`.
+**Con la opción IaC** (`FRONTEND_CUSTOM_DOMAIN` seteado, cualquier ruta): bicep deja las tres capas alineadas al dominio custom. Tras `deploy.sh` + `deploy-api.sh`, no hace falta tocar el portal.
+
+> ℹ️ La opción IaC autoriza **un solo origen** (el dominio custom): bicep computa un único `allowedOrigin`. Una vez atado el dominio, acceder por el hostname default (`*.azurestaticapps.net` / `*.azurefd.net`) deja de pasar CORS. Es esperado — usar siempre el dominio custom. Si necesitás mantener ambos orígenes, agregalos a mano en los blades del portal (paso 3b/3c), asumiendo el drift respecto al IaC.
+
+**Con la opción manual** (sin var bicep): bicep deja el CORS de plataforma + Storage apuntando al hostname default del SWA, **no** al dominio custom. Los pasos 3b y 3c (abajo) son obligatorios.
 
 #### 3a. Fastify — variable `ALLOWED_ORIGIN` (script o portal)
 
 El contenedor lee `ALLOWED_ORIGIN` en runtime.
 
-**Recomendado (Ruta A):** con `VITE_FRONT_BASE_URL` en `.envrc`, cargar el entorno y ejecutar:
+**Recomendado:** con `FRONTEND_CUSTOM_DOMAIN` en `.envrc`, cargar el entorno y ejecutar:
 
 ```bash
 cd infra
@@ -288,16 +336,16 @@ source .envrc    # o direnv allow; deploy-api.sh NO hace source por sí solo
 ./deploy-api.sh
 ```
 
-Debe aparecer en el log: `Setting ALLOWED_ORIGIN from VITE_FRONT_BASE_URL: https://<custom-domain>`
+Debe aparecer en el log: `Resolved ALLOWED_ORIGIN from FRONTEND_CUSTOM_DOMAIN env: https://<custom-domain>`. Si no setiaste `FRONTEND_CUSTOM_DOMAIN` pero el stack ya tiene el output (corriste `deploy.sh` antes), el script lee el output y muestra `Resolved ALLOWED_ORIGIN from stack output allowedOrigin`.
 
 **Alternativa manual:** Portal → App Service del API → **Settings** → **Environment variables** → `ALLOWED_ORIGIN=https://<custom-domain>` → Apply → reiniciar.
 
 > Si `ALLOWED_ORIGIN` está vacío, Fastify permite cualquier origen (`origin: true`) — solo development.
 > Un redeploy de `infra/deploy.sh` puede volver a pisar `ALLOWED_ORIGIN` con el hostname del SWA; volver a correr `deploy-api.sh` después.
 
-#### 3b. App Service — CORS de plataforma (portal Azure) — **obligatorio en Ruta A**
+#### 3b. App Service — CORS de plataforma (portal Azure) — **obligatorio solo en Ruta A opción manual**
 
-Este ajuste es el que suele faltar si solo corriste `deploy-api.sh`: actualiza Fastify, **no** el CORS del gateway del App Service.
+Saltable si usaste la opción IaC (bicep ya lo dejó). Este ajuste es el que suele faltar si solo corriste `deploy-api.sh`: actualiza Fastify, **no** el CORS del gateway del App Service.
 
 1. Portal Azure → Resource Group del entorno → App Service del API (`api-<hash>`).
 2. Menú lateral **API** → **CORS** (no confundir con **Authentication** ni solo con Environment variables).
@@ -307,7 +355,23 @@ Este ajuste es el que suele faltar si solo corriste `deploy-api.sh`: actualiza F
 5. Opcional pero recomendado: mantener también `https://<swa-default-host>` si aún accedes por el hostname Azure del Static Web App.
 6. **Save** y **reiniciar** el App Service.
 
-**Ruta B (`enableFrontDoor = true`):** si `frontDoorCustomDomain` se desplegó con bicep, el CORS de plataforma ya puede apuntar al dominio custom. Igual conviene verificar el blade **API → CORS** tras el primer deploy con dominio nuevo.
+#### 3c. Storage Account — CORS (portal Azure) — **obligatorio solo en Ruta A opción manual**
+
+Saltable si usaste la opción IaC. Los uploads de archivos (organizaciones, inventarios, etc.) se hacen con `PUT` directo desde el navegador a un SAS URL del Storage; el dominio custom debe estar listado en las CORS rules del Blob service.
+
+1. Portal Azure → Resource Group del entorno → Storage Account (`st<hash>`).
+2. Menú lateral **Settings** → **Resource sharing (CORS)** → pestaña **Blob service**.
+3. Agregar una fila:
+   - **Allowed origins**: `https://<custom-domain>` (una por fila; sumar `http://localhost:5173` si se usa local contra esta cuenta).
+   - **Allowed methods**: `GET, PUT, HEAD, OPTIONS`.
+   - **Allowed headers**: `*`.
+   - **Exposed headers**: `*`.
+   - **Max age**: `3600`.
+4. **Save**. Toma efecto en ~30 s; hard refresh del navegador para limpiar cache de preflight.
+
+> ⚠️ Próximas corridas de `./infra/deploy.sh` van a reescribir estas rules desde bicep. Si quedaste en opción manual y no querés perder el ajuste, setear `FRONTEND_CUSTOM_DOMAIN` antes del próximo deploy.
+
+**Ruta B (`enableFrontDoor = true`):** si `frontendCustomDomain` se desplegó con bicep, el CORS de plataforma ya puede apuntar al dominio custom. Igual conviene verificar el blade **API → CORS** tras el primer deploy con dominio nuevo.
 
 > **¿Automatizar en bicep?** Es posible ampliar `infra/modules/appService.bicep` con un parámetro de dominio custom y varios `allowedOrigins`. Para pocos entornos, el portal es el camino más simple; un `deploy.sh` posterior puede resetear `siteConfig.cors` al hostname del SWA — repetir este paso si reaparecen errores CORS.
 
@@ -344,12 +408,12 @@ En el navegador (idealmente ventana de incógnito):
 3. **Iniciar sesión** → redirect Microsoft → vuelta a `/app/home`.
 4. Petición `users/me` → debe incluir `Authorization: Bearer …` y responder **200**.
 
-| Fallo                                                      | Revisar                                                          |
-| ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| `redirect_uri_mismatch` / `AADSTS50011` con `//` en la URI | Paso 1 y `VITE_FRONT_BASE_URL` sin `/` final; re-`deploy-web.sh` |
-| CORS en `terms-conditions` o APIs públicas                 | Paso **3b** (portal CORS); luego 3a si aplica                    |
-| Login Microsoft OK, toast de error al volver               | Paso 4 (Easy Auth) y que `/users/me` no esté bloqueado por CORS  |
-| `Missing X-MS-CLIENT-PRINCIPAL` en logs del API            | Paso 4                                                           |
+| Fallo                                                      | Revisar                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| `redirect_uri_mismatch` / `AADSTS50011` con `//` en la URI | Paso 1 y `FRONTEND_CUSTOM_DOMAIN` sin `/` final; re-`deploy-web.sh` |
+| CORS en `terms-conditions` o APIs públicas                 | Paso **3b** (portal CORS); luego 3a si aplica                       |
+| Login Microsoft OK, toast de error al volver               | Paso 4 (Easy Auth) y que `/users/me` no esté bloqueado por CORS     |
+| `Missing X-MS-CLIENT-PRINCIPAL` en logs del API            | Paso 4                                                              |
 
 ## Forzar HTTPS
 
@@ -368,10 +432,11 @@ En el navegador (idealmente ventana de incógnito):
 | GoDaddy no deja borrar A `@`                                         | Parking activo                                            | Settings del dominio → desactivar parking primero                                                                           |
 | Apex no resuelve                                                     | Cache navegador local                                     | `dig +trace @8.8.8.8 <root-domain>` ignora cache local                                                                      |
 | Front Door TXT validation no pasa                                    | Nombre TXT mal armado                                     | Debe ser `_dnsauth.<subdomain>` exacto, sin sufijo `.com` en el campo Name (GoDaddy agrega el dominio raíz automáticamente) |
-| `AADSTS50011`, redirect con `//app/home`                             | `VITE_FRONT_BASE_URL` con `/` final                       | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
-| CORS en consola desde dominio custom; Network a veces 200 con X roja | Falta origen en **App Service → API → CORS** (plataforma) | Paso 3b (portal); reiniciar App Service                                                                                     |
-| CORS tras solo `deploy-api.sh`                                       | Solo se actualizó `ALLOWED_ORIGIN` (Fastify)              | Completar paso 3b en portal                                                                                                 |
-| CORS reaparece tras `deploy.sh`                                      | Bicep resetea `siteConfig.cors` al hostname SWA           | Repetir paso 3b; opcional `deploy-api.sh`                                                                                   |
+| `AADSTS50011`, redirect con `//app/home`                             | `FRONTEND_CUSTOM_DOMAIN` con `/` final                    | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
+| CORS en consola desde dominio custom; Network a veces 200 con X roja | Falta origen en **App Service → API → CORS** (plataforma) | Paso 3b (portal); reiniciar App Service. O cambiar a opción IaC (`FRONTEND_CUSTOM_DOMAIN`).                                 |
+| CORS tras solo `deploy-api.sh`                                       | Solo se actualizó `ALLOWED_ORIGIN` (Fastify)              | Completar paso 3b en portal o usar opción IaC                                                                               |
+| CORS reaparece tras `deploy.sh`                                      | Bicep resetea `siteConfig.cors` al hostname default       | Setear `FRONTEND_CUSTOM_DOMAIN` antes del próximo `deploy.sh`                                                               |
+| CORS al subir archivo (`PUT` a `*.blob.core.windows.net`)            | Falta origen en **Storage Account → Resource sharing**    | Paso 3c (portal) o cambiar a opción IaC                                                                                     |
 | Login Microsoft OK, _"Ocurrió un problema al iniciar sesión"_        | `/users/me` 401 o bloqueado por CORS                      | CORS 3a+3b; Easy Auth paso 4; ver `Authorization` en DevTools                                                               |
 | `Missing X-MS-CLIENT-PRINCIPAL` en logs                              | Easy Auth no valida el Bearer                             | Portal → Authentication en el App Service del API; ver MSAL-EasyAuth-Setup                                                  |
 | Otro env (mismo tenant) funciona, este no                            | Otro App Service / otro CORS / otro build                 | Comparar CORS portal + app settings + log de `deploy-web` por entorno                                                       |
@@ -393,13 +458,14 @@ En el navegador (idealmente ventana de incógnito):
 
 ## Referencias internas
 
-- `infra/main.bicep`: orquestación general, expone los outputs `staticWebAppHostname` y `frontDoorCustomDomain`.
-- `infra/modules/staticWebApp.bicep`: recurso Static Web App, expone `defaultHostname`.
+- `infra/main.bicep`: orquestación general. Define el param `frontendCustomDomain` y lo enruta al recurso correcto (Front Door cuando `enableFrontDoor=true`, SWA en caso contrario). Computa `allowedOrigin` (línea ~221) usando ese valor cuando está seteado, o el hostname default Azure en caso contrario. Expone los outputs `frontendCustomDomain` y `allowedOrigin` (consumidos por los scripts de deploy).
+- `infra/modules/staticWebApp.bicep`: recurso Static Web App, expone `defaultHostname`. Crea el child resource `customDomains` con validación `cname-delegation` cuando `customDomainName` está seteado.
+- `infra/modules/storage.bicep`: Blob service `corsRules` usa `allowedOrigin` (más `devAllowedOrigin` opcional para localhost).
 - `infra/modules/frontDoor.bicep`: recurso Front Door, define `customDomain` con `ManagedCertificate` (líneas 199–209).
-- `infra/params/main.development.bicepparam`: parámetros entorno development, incluye `frontDoorCustomDomain` y `enableFrontDoor`.
+- `infra/params/main.development.bicepparam`: parámetros entorno development, incluye `frontendCustomDomain` y `enableFrontDoor`.
 - `infra/deploy.sh`: script de deploy completo de infraestructura.
 - `infra/deploy-web.sh`: build y deploy del frontend (inyecta `VITE_*` en build time).
-- `infra/deploy-api.sh`: deploy del contenedor API; sincroniza `ALLOWED_ORIGIN` desde `VITE_FRONT_BASE_URL` si está definido.
+- `infra/deploy-api.sh`: deploy del contenedor API; resuelve `ALLOWED_ORIGIN` con prioridad `FRONTEND_CUSTOM_DOMAIN` env → output `allowedOrigin` del stack.
 - `infra/modules/appService.bicep`: define `siteConfig.cors` (plataforma) y app setting `ALLOWED_ORIGIN` (Fastify).
 - `infra/monitor-ssl.sh`: script para monitorear el aprovisionamiento del certificado SSL en Front Door.
 - `docs/infrastructure/StaticWebAppDeployment.md`: deployment general del frontend.

@@ -410,8 +410,9 @@ export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acc
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
 
-# Opcional: Custom domain para Azure Front Door (solo si usas Front Door)
-export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
+# Opcional: dominio público para el frontend. Bicep lo ata a Front Door cuando enableFrontDoor=true,
+# o directo al Static Web App en caso contrario.
+export FRONTEND_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 ```
 
 **⚠️ IMPORTANTE**: `ENVIRONMENT` debe estar en **minúsculas** (lowercase). Los scripts validarán y rechazarán valores con letras mayúsculas.
@@ -421,21 +422,21 @@ Ejemplos inválidos: `Production`, `STAGING`, `Development`
 
 #### Variables de Entorno Disponibles
 
-| Variable                   | Requerida | Descripción                                                                                                                 | Ejemplo                                | Usado Por                    |
-| -------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
-| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                                                               | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
-| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                                                                 | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
-| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                                                                         | `Devs-Contributors`                    | `deploy.sh`                  |
-| `ENVIRONMENT`              | ✅ Sí     | Nombre del ambiente para deployment y tagging de recursos (usado en nombre de Resource Group). **DEBE estar en minúsculas** | `development`                          | `deploy.sh`                  |
-| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                                                                           | `eastus2`                              | `deploy.sh`                  |
-| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`)                                                | `app.huellalatam.org`                  | `deploy.sh`                  |
+| Variable                   | Requerida | Descripción                                                                                                                  | Ejemplo                                | Usado Por                    |
+| -------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
+| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                                                                | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
+| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                                                                  | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
+| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                                                                          | `Devs-Contributors`                    | `deploy.sh`                  |
+| `ENVIRONMENT`              | ✅ Sí     | Nombre del ambiente para deployment y tagging de recursos (usado en nombre de Resource Group). **DEBE estar en minúsculas**  | `development`                          | `deploy.sh`                  |
+| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                                                                            | `eastus2`                              | `deploy.sh`                  |
+| `FRONTEND_CUSTOM_DOMAIN`   | ❌ No     | Dominio público del frontend. Bicep lo ata a Front Door cuando `enableFrontDoor=true`, o al Static Web App en caso contrario | `app.huellalatam.org`                  | `deploy.sh`                  |
 
 **Notas**:
 
 - **`ENVIRONMENT`**: **DEBE estar en minúsculas**. Se usa para crear nombres únicos de Resource Groups, para taggear todos los recursos y define qué archivo de parámetros usar (`params/main.{ENVIRONMENT}.bicepparam`)
 - **`AZURE_SUBSCRIPTION_GROUP`**: Debe ser un grupo existente en Azure AD. Los miembros obtendrán rol "Key Vault Secrets Officer"
 - **`LOCATION`**: Algunas regiones no están disponibles en suscripciones gratuitas. Usa `eastus2` si `eastus` no funciona
-- **`FRONT_DOOR_CUSTOM_DOMAIN`**: Solo necesario si habilitas Front Door (`enableFrontDoor=true` en parámetros) y quieres usar un dominio personalizado
+- **`FRONTEND_CUSTOM_DOMAIN`**: Dominio público del frontend. Independiente de Front Door — bicep lo ata al recurso correcto según `enableFrontDoor`. Se propaga a App Service CORS, Fastify `ALLOWED_ORIGIN` y Blob Storage CORS.
 
 #### Cómo se Usan las Variables
 
@@ -444,7 +445,7 @@ Ejemplos inválidos: `Production`, `STAGING`, `Development`
 - Lee todas las variables de entorno del archivo `.envrc`
 - Genera contraseña de base de datos automáticamente si no existe
 - Obtiene el Object ID del grupo de Azure AD especificado en `AZURE_SUBSCRIPTION_GROUP`
-- Pasa valores a Bicep como parámetros: `dbPassword`, `devGroupObjectId`, `environment`, `frontDoorCustomDomain`
+- Pasa valores a Bicep como parámetros: `dbPassword`, `devGroupObjectId`, `environment`, `frontendCustomDomain`
 
 **En `deploy-web.sh`**:
 
@@ -458,7 +459,7 @@ Ejemplos inválidos: `Production`, `STAGING`, `Development`
 
 **En Bicep**:
 
-- Parámetros como `environment` y `frontDoorCustomDomain` se pasan desde el script
+- Parámetros como `environment` y `frontendCustomDomain` se pasan desde el script
 - `dbPassword` se genera automáticamente solo en la primera ejecución
 - Los valores se usan para configurar recursos (tags, dominios personalizados, etc.)
 

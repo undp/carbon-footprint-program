@@ -124,7 +124,7 @@ param staticWebAppBranch = 'main'
 // Front Door
 param enableFrontDoor = false // Set to true for staging/production to enable global CDN (~$35/month)
 param frontDoorSkuName = 'Standard_AzureFrontDoor' // Usa 'Premium_AzureFrontDoor' para características avanzadas
-param frontDoorCustomDomain = '' // Opcional: tu dominio personalizado (ej: 'app.tudominio.com') - automated by Bicep
+param frontendCustomDomain = '' // Opcional: tu dominio público (ej: 'app.tudominio.com'). Bicep lo ata a Front Door o al SWA según enableFrontDoor.
 
 // WAF Configuration
 param frontDoorEnableManagedRules = false // true requiere Premium SKU - habilita Microsoft Default RuleSet + Bot Manager
@@ -282,7 +282,7 @@ Azure Front Door requiere configuración en dos lugares: **Azure** (automático 
 Pre-configura el dominio personalizado en `.envrc`:
 
 ```bash
-export FRONT_DOOR_CUSTOM_DOMAIN='app.tudominio.com'
+export FRONTEND_CUSTOM_DOMAIN='app.tudominio.com'
 ```
 
 Luego ejecuta el deployment:
@@ -309,7 +309,7 @@ FRONT_DOOR_PROFILE=$(az deployment-stack show \
 az afd custom-domain show \
   --resource-group $AZURE_RESOURCE_GROUP \
   --profile-name $FRONT_DOOR_PROFILE \
-  --custom-domain-name $(echo $FRONT_DOOR_CUSTOM_DOMAIN | tr '.' '-') \
+  --custom-domain-name $(echo $FRONTEND_CUSTOM_DOMAIN | tr '.' '-') \
   --query "validationProperties.validationToken" -o tsv
 ```
 

@@ -40,6 +40,10 @@ fi
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Shared infra helpers
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 if [ -f "$SCRIPT_DIR/.env" ]; then
   log "Loading .env..."
   # Export all variables defined in .env
@@ -70,6 +74,9 @@ if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
   log "Valid examples: production, staging, development"
   exit 1
 fi
+
+# Validate FRONTEND_CUSTOM_DOMAIN shape (bare hostname, no scheme/path)
+validate_frontend_custom_domain
 
 log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
@@ -218,6 +225,12 @@ log "Running Bicep deployment using Deployment Stack..."
 
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
+# Preflight the custom-domain binding (SWA-direct path only): bicep's
+# cname-delegation validation is synchronous, so problems would otherwise fail
+# the entire stack deploy minutes in. A missing SWA (bootstrap) is a hard
+# error; DNS findings only warn — Azure's validation is the final gate.
+preflight_swa_custom_domain "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
+
 echo "═══════════════════════════════════════════════════════════════"
 
 # Build parameters array
@@ -232,9 +245,9 @@ DEPLOY_PARAMS=(
 )
 
 # Add optional parameters only if set
-if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
-  log "Using custom Front Door domain: $FRONT_DOOR_CUSTOM_DOMAIN"
-  DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
+if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+  log "Using frontend custom domain: $FRONTEND_CUSTOM_DOMAIN"
+  DEPLOY_PARAMS+=(--parameters frontendCustomDomain="$FRONTEND_CUSTOM_DOMAIN")
 fi
 
 # Add Azure authentication parameters if configured
@@ -260,8 +273,8 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
-  if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
-    log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
+  if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
+    log "[DRY RUN]   --parameters frontendCustomDomain=$FRONTEND_CUSTOM_DOMAIN \\"
   fi
   log "[DRY RUN]   --deny-settings-mode none \\"
   log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"
@@ -309,11 +322,7 @@ else
   echo "  - App Service:     Ready for deployment"
 
   # Check if Front Door is configured
-  FRONT_DOOR_ENDPOINT=$(az stack group show \
-    --name "$STACK_NAME" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query outputs.frontDoorEndpoint.value \
-    -o tsv 2>/dev/null || echo '')
+  FRONT_DOOR_ENDPOINT=$(stack_output frontDoorEndpoint)
 
   if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
     echo "  - Front Door:      Configured"
@@ -346,7 +355,7 @@ else
   if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
     echo "🔐 Authentication Configuration:"
     echo "  - Azure auth is ENABLED"
-    echo "  - Tenant ID: ${TENANT_ID:0:8}..."
+    echo "  - Tenant ID: ${EXTERNAL_TENANT_ID:0:8}..."
     echo "  - Frontend Client ID: ${AUTH_FRONTEND_CLIENT_ID:0:8}..."
     if [ -n "$AUTH_API_CLIENT_ID" ]; then
       echo "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
