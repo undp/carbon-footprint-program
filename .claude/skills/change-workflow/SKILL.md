@@ -1,6 +1,6 @@
 ---
 name: change-workflow
-description: How to finish and ship a change in this repo. Use when committing, opening or describing a PR, responding to reviewers (CodeRabbit / humans), keeping docs in sync, or planning a complex change. Covers branch naming, Conventional Commits, modular commits, the pre-commit gate, reviewer-comment etiquette, and documentation upkeep.
+description: How to finish and ship a change in this repo. Use when committing, opening or describing a PR, responding to reviewers, keeping docs in sync, or planning a complex change.
 ---
 
 # Change Workflow

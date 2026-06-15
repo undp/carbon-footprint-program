@@ -1,6 +1,6 @@
 ---
 name: frontend-routing-data
-description: Frontend routing and server-state for apps/web (TanStack Router + Query v5). Use when adding routes, route guards, or data fetching — file-based routing, beforeLoad guards, layout routes, query/mutation hooks under api/query, query-key factories for cache invalidation, and the ky apiClient.
+description: Frontend routing and server state for apps/web (TanStack Router + Query v5). Use when adding a route, route guard, or data fetching, or invalidating cached queries.
 ---
 
 # Frontend Routing & Data Fetching

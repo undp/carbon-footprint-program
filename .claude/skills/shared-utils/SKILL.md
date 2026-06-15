@@ -1,6 +1,6 @@
 ---
 name: shared-utils
-description: Where to place utility / shared logic in the monorepo. Use when adding a helper or pure function and deciding the layer — packages/utils (framework-free logic shared by API and web), apps/api/src/utils (Prisma/backend), apps/web/src/utils (UI/React), or screen-scoped utils. Web and API never cross-import each other's utils.
+description: Where to place utility / shared logic in the monorepo. Use when adding a helper or pure function and deciding which layer it belongs in.
 ---
 
 # Utils & Shared Logic

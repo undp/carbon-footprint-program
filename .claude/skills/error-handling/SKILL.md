@@ -1,6 +1,6 @@
 ---
 name: error-handling
-description: Error handling across API and web. Use when throwing or handling errors — reusing the shared custom error classes in apps/api/src/errors/, shaping error responses with ApiErrorResponseSchema, handling Prisma errors (extractP2002Fields), or mapping API error codes to Spanish messages with getApiErrorMessage on the frontend.
+description: Error handling across API and web. Use when throwing, shaping, or translating errors — the shared error classes, error-response schema, Prisma error helpers, and the frontend error-message mapping.
 ---
 
 # Error Handling

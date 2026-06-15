@@ -1,6 +1,6 @@
 ---
 name: forms
-description: Form building for apps/web with React Hook Form + Zod. Use when creating or editing forms — Controller-based fields, the reusable form components in components/form, Zod validation via @hookform/resolvers with Spanish error messages, and field-array handling.
+description: Form building for apps/web with React Hook Form + Zod. Use when creating or editing a form — reusable form fields, Zod validation, and field arrays.
 ---
 
 # Forms

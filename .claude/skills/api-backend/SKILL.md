@@ -1,6 +1,6 @@
 ---
 name: api-backend
-description: Backend/API conventions for apps/api (Fastify + Prisma). Use when building or modifying API endpoints — feature folder structure (route→handler→service→helpers), efficient Prisma queries (push logic to DB, parallelize, avoid overfetch, include wisely), interactive transactions to avoid TOCTOU, helper placement, and the packages/types domain layout.
+description: Backend conventions for apps/api (Fastify + Prisma). Use when building or modifying an API endpoint — feature structure, efficient Prisma queries, transactions, helper placement, and the packages/types layout.
 ---
 
 # API & Backend Rules

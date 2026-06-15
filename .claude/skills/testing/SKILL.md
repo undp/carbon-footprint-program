@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Integration testing for apps/api with Vitest + Testcontainers. Use when writing, running, or fixing API tests — test location/layout, app.inject() for HTTP, the existing factories, forced-user auth, sequential execution, and the coverage threshold.
+description: Integration testing for apps/api with Vitest + Testcontainers. Use when writing, running, or fixing API integration tests.
 ---
 
 # Testing Patterns

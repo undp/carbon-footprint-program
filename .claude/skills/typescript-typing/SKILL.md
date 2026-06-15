@@ -1,6 +1,6 @@
 ---
 name: typescript-typing
-description: TypeScript typing conventions for the Huella Latam monorepo. Use whenever writing or reviewing TypeScript — declaring types, using Prisma model/query types, defining Zod schemas for API contracts in packages/types, wiring Fastify route schemas, using enums for status/type values, or deriving frontend types from endpoint responses.
+description: TypeScript typing conventions for the monorepo. Use whenever writing or reviewing TypeScript — types, Prisma types, Zod API contracts, enums, and response-derived types.
 ---
 
 # TypeScript & Typing Rules

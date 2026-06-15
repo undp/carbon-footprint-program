@@ -1,6 +1,6 @@
 ---
 name: constants-config
-description: Where to place configurable / per-deployment values in the Huella Latam monorepo. Use when adding a label, option list, threshold, limit, precision rule, normative standard, or any value that could vary per country deployment — deciding between packages/constants, apps/api config, apps/web config, vocab, or screen-level constants. Never inline these literals.
+description: Where to place configurable / per-deployment values in the monorepo. Use when adding a label, option, threshold, limit, or any value that could vary per country deployment, and deciding which layer it belongs in.
 ---
 
 # Constants & Configurable Values

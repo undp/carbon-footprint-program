@@ -1,6 +1,6 @@
 ---
 name: api-authorization
-description: Authentication and authorization for apps/api. Use when adding access control to an API route — choosing between requireAuth, requireRoles (system roles), requireOrganizationRole (org-scoped roles), or the domain access hooks requireCarbonInventoryAccess / requireReductionProjectAccess, and wiring the right extractor in route.ts.
+description: Authentication and authorization for apps/api endpoints. Use when adding or changing access control on an API route — picking the right auth/role hook and wiring it in route.ts.
 ---
 
 # Authentication & Authorization

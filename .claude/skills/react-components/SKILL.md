@@ -1,6 +1,6 @@
 ---
 name: react-components
-description: React + UI conventions for apps/web (MUI v7 + Tailwind). Use when building or editing React components — one component per file, early returns, avoiding heavy JSX ternaries, theme colors (never hardcoded hex/rgb), avoiding prop drilling, memoization, screen filter state in query params, and Spanish-only user-facing text.
+description: React + UI conventions for apps/web (MUI v7 + Tailwind). Use when building or editing a React component — structure, theme colors, memoization, filter state, and Spanish-only UI text.
 ---
 
 # Frontend & React Rules
