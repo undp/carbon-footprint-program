@@ -19,6 +19,7 @@ import {
   AZURE_STORAGE_CLIENT_SECRET,
 } from "@/config/environment.js";
 import { PRESIGNED_URL_EXPIRY_MINUTES } from "@/config/constants.js";
+import type { Readable } from "node:stream";
 import {
   ObjectNotFoundError,
   type ObjectMetadata,
@@ -179,9 +180,10 @@ class AzureBlobAdapter implements StorageAdapter {
         );
       }
       return {
-        // Azure SDK types readableStreamBody as NodeJS.ReadableStream; under
-        // Node it is a Readable in practice (the response uses node-fetch).
-        body: body as unknown as import("node:stream").Readable,
+        // Azure SDK types readableStreamBody as the wider NodeJS.ReadableStream;
+        // under Node it is always a concrete Readable. `Readable` implements
+        // `NodeJS.ReadableStream`, so this is a plain narrowing — no `unknown`.
+        body: body as Readable,
         sizeBytes: response.contentLength ?? null,
         mimeType: response.contentType ?? null,
       };

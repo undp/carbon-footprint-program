@@ -108,8 +108,10 @@ class MinioAdapter implements StorageAdapter {
         throw new Error(`MinIO object "${path}" GetObject returned no body`);
       }
       return {
-        // S3 SDK v3 in Node returns a Readable for Body.
-        body: result.Body as unknown as Readable,
+        // S3 SDK v3 types Body as a union of stream types; in Node it is always
+        // the Readable arm. Narrow to it directly (no `unknown`) so a future SDK
+        // change that drops Readable from the union still trips type-check.
+        body: result.Body as Readable,
         sizeBytes: result.ContentLength ?? null,
         mimeType: result.ContentType ?? null,
       };
