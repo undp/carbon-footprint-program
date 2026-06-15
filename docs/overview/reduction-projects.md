@@ -1,6 +1,6 @@
 # Reduction Projects Workflow
 
-This document describes how organizations record greenhouse-gas mitigation projects on the platform, submit them for external verification, and receive recognition. The flow runs parallel to the [carbon inventory submission workflow](./submission-workflow.md), with a smaller set of phases.
+This document describes how organizations record greenhouse-gas mitigation projects on the platform, submit them for external verification, and receive recognition. The flow mirrors the [carbon inventory submission workflow](./submission-workflow.md): a project is first **saved as a DRAFT**, edited freely, and then **submitted for verification as a separate, deliberate action**. A reduction project is, in effect, "a carbon inventory of a single submission" — its display status is **derived from its submissions**, exactly like a carbon inventory.
 
 ---
 
@@ -18,12 +18,19 @@ Projects are scoped to a subcategory (the same taxonomy used in carbon inventori
 
 ## Prerequisites
 
-A reduction project can only be created when:
+Prerequisites are split across the two lifecycle actions (mirroring carbon inventory):
 
-1. The organization already has a **verified carbon inventory** for the reference year — the linked inventory must have an **approved** `CARBON_INVENTORY_VERIFICATION` submission.
-2. The user has `CONTRIBUTOR` or `ADMIN` role in the organization.
+**To create or edit a DRAFT** (light referential check):
 
-Validation is enforced in `apps/api/src/features/reductionProjects/helpers.ts` before any project is accepted.
+1. The user has `CONTRIBUTOR` or `ADMIN` role in the organization.
+2. The linked carbon inventory exists, is `ACTIVE`, and belongs to that organization.
+
+**To submit for verification** (full prerequisites), additionally:
+
+3. The organization is `ACTIVE` and **accredited**.
+4. The linked inventory has an **approved** `CARBON_INVENTORY_VERIFICATION` submission.
+
+Both checks live in `apps/api/src/features/reductionProjects/helpers.ts`: `validateReductionProjectReferences` (light, used by create/update) and `validateReductionProjectPrerequisites` (full, used by request-verification). Enforcing accreditation only at submit lets users draft projects while their organization is still completing accreditation.
 
 ---
 
@@ -75,16 +82,18 @@ Initiatives are enumerated in the UI when a user is browsing reduction opportuni
 
 ## Display Status
 
-Unlike carbon inventories, reduction projects have a **simpler status model**. The display status is derived from the project's latest submission:
+The display status is **derived from the project's verification submissions** (it is never persisted on the record). The persisted `ReductionProjectStatus` column only tracks lifecycle (`ACTIVE` / `DELETED`):
 
-| Status      | Meaning                                                    |
-| ----------- | ---------------------------------------------------------- |
-| `DRAFT`     | No submission yet, or latest submission has not been filed |
-| `SUBMITTED` | A `PENDING` verification submission exists                 |
-| `REVIEWED`  | Admin left observations; project is editable again         |
-| `APPROVED`  | Submission approved; badge issued                          |
-| `REJECTED`  | Submission rejected                                        |
-| `DELETED`   | Soft-deleted (via `status = DELETED` on the record)        |
+| Status      | Meaning                                                       |
+| ----------- | ------------------------------------------------------------- |
+| `DRAFT`     | **No** `REDUCTION_PROJECT_VERIFICATION` submission exists yet |
+| `SUBMITTED` | A `PENDING` verification submission exists                    |
+| `REVIEWED`  | Admin left observations; project is editable again            |
+| `APPROVED`  | Submission approved; badge issued                             |
+| `REJECTED`  | Submission rejected                                           |
+| `DELETED`   | Soft-deleted (via `status = DELETED` on the record)           |
+
+Because a freshly created project has no submission, it is a `DRAFT` — and therefore **invisible to every submission-driven consumer** (admin requests queue, recognitions, dashboard KPIs, transparency, badges), all of which key off submissions. No DB-view change was needed for DRAFTs: `submission_summary_view` builds reduction-project rows via `INNER JOIN ... FROM submission`, so a submission-less DRAFT simply never appears.
 
 Derivation logic: `calculateReductionProjectDisplayStatus()` in `apps/api/src/features/reductionProjects/helpers.ts`.
 
@@ -96,7 +105,7 @@ Only one submission type applies to reduction projects:
 
 - `REDUCTION_PROJECT_VERIFICATION` — external verification of the reduction claim
 
-There is **no self-declaration phase** and no separate "calculation" submission (in contrast to carbon inventories). The project is filled out, submitted directly for verification, and reviewed once.
+There is **no self-declaration phase** and no separate "calculation" submission (in contrast to carbon inventories). The project is filled out as a DRAFT, then submitted for verification through the dedicated `POST /:id/request-verification` action (which uploads the supporting files and creates the submission). Creating or editing a project never creates a submission on its own.
 
 ---
 
@@ -104,78 +113,77 @@ There is **no self-declaration phase** and no separate "calculation" submission 
 
 All routes require authentication. Authorization is enforced per-organization.
 
-| Method  | Path                          | Roles                            | Purpose                                                                                         |
-| ------- | ----------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `POST`  | `/reduction-projects/`        | `CONTRIBUTOR`, `ADMIN`           | Create a new project (also creates a `PENDING` submission)                                      |
-| `GET`   | `/reduction-projects/`        | all org members                  | List projects (newest first)                                                                    |
-| `GET`   | `/reduction-projects/minimal` | all org members                  | Minimal projection for selectors                                                                |
-| `GET`   | `/reduction-projects/:id`     | `VIEWER`, `CONTRIBUTOR`, `ADMIN` | Fetch full project                                                                              |
-| `PATCH` | `/reduction-projects/:id`     | `CONTRIBUTOR`, `ADMIN`           | Update project (only when editable); creates a new submission if re-submitting after `REVIEWED` |
+| Method   | Path                                           | Roles                            | Purpose                                                                             |
+| -------- | ---------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
+| `POST`   | `/reduction-projects/`                         | `CONTRIBUTOR`, `ADMIN`           | Create a new project **as a DRAFT** (no files, no submission)                       |
+| `GET`    | `/reduction-projects/`                         | all org members                  | List projects (newest first)                                                        |
+| `GET`    | `/reduction-projects/minimal`                  | all org members                  | Minimal projection for selectors                                                    |
+| `GET`    | `/reduction-projects/:id`                      | `VIEWER`, `CONTRIBUTOR`, `ADMIN` | Fetch full project                                                                  |
+| `PATCH`  | `/reduction-projects/:id`                      | `CONTRIBUTOR`, `ADMIN`           | Update project fields (only when `DRAFT` or `REVIEWED`); never creates a submission |
+| `POST`   | `/reduction-projects/:id/request-verification` | `CONTRIBUTOR`, `ADMIN`           | Submit for verification: requires ≥1 file, creates a `PENDING` submission           |
+| `DELETE` | `/reduction-projects/:id`                      | `CONTRIBUTOR`, `ADMIN`           | Soft-delete (`status = DELETED`); allowed only while `DRAFT`                        |
 
-There is **no `DELETE` endpoint**. Projects are soft-deleted by setting `status = DELETED` (currently through admin action only).
+`request-verification` and `delete` are guarded by the `reductionProject` domain access check (membership + role). `delete` returns `422 REDUCTION_PROJECT_NOT_DELETABLE` for any non-DRAFT project.
 
 ---
 
 ## Workflow Phases
 
 ```
-Phase 1 — Prerequisite
-  ────────────────────
-  Organization has a CARBON_INVENTORY_VERIFICATION submission in APPROVED state
-  for the reference year.
-
-Phase 2 — Creation
-  ─────────────────
-  Organization member
+Phase 1 — Creation (DRAFT)
+  ────────────────────────
+  Organization member fills the form and saves:
     POST /reduction-projects/
-      → Creates ReductionProject (status: ACTIVE)
-      → Creates SubmissionSubjectReductionProject
-      → Creates Submission (type: REDUCTION_PROJECT_VERIFICATION, status: PENDING)
-      → Display status: SUBMITTED
+      → Creates ReductionProject (status: ACTIVE), light referential check only
+      → NO submission, NO files
+      → Display status: DRAFT   (invisible to admins/recognitions)
 
-Phase 3 — Admin Review
+Phase 2 — Draft editing (optional, repeatable)
+  ────────────────────────────────────────────
+  PATCH /reduction-projects/:id   (while DRAFT)
+      → Writes fields only; still DRAFT
+
+Phase 3 — Submission (deliberate, from the list)
+  ──────────────────────────────────────────────
+  Member clicks "Postular a reconocimiento de verificación":
+    POST /reduction-projects/:id/request-verification  { fileUuids: [...] }
+      → Full prerequisites checked (org accredited + CI approved verification)
+      → Creates SubmissionSubjectReductionProject (first time)
+      → Creates Submission (REDUCTION_PROJECT_VERIFICATION, PENDING) + links files
+      → Display status: SUBMITTED   (now visible in /admin/requests)
+
+Phase 4 — Admin Review
   ────────────────────
   Admin opens the submission from /admin/requests, then:
-    ├── Approve
-    │     POST /admin/submissions/:id/approve
-    │       → Submission.status = APPROVED
-    │       → Badge assigned
-    │       → Display status: APPROVED
-    │
-    ├── Review (observations)
-    │     POST /admin/submissions/:id/review
-    │       → Submission.status = REVIEWED
-    │       → reviewComments stored
-    │       → Display status: REVIEWED
-    │       (Project becomes editable again)
-    │
-    └── Reject
-          POST /admin/submissions/:id/reject
-            → Submission.status = REJECTED
-            → Display status: REJECTED
+    ├── Approve  → Submission APPROVED → Badge assigned → Display status: APPROVED
+    ├── Review   → Submission REVIEWED → observations stored → Display status: REVIEWED
+    │               (Project becomes editable again)
+    └── Reject   → Submission REJECTED → Display status: REJECTED
 
-Phase 4 — Re-submission (only after REVIEWED)
+Phase 5 — Re-submission (only after REVIEWED)
   ──────────────────────────────────────────
-  Member edits the project:
-    PATCH /reduction-projects/:id
-      → Creates a NEW Submission (type: REDUCTION_PROJECT_VERIFICATION, PENDING)
+  Member edits the project (PATCH, fields only), then submits again:
+    POST /reduction-projects/:id/request-verification
+      → Creates a NEW Submission (REDUCTION_PROJECT_VERIFICATION, PENDING)
       → Display status: SUBMITTED again
 ```
 
-Rejected projects (`REJECTED`) are not re-submittable; a new project must be created if the organization wishes to try again.
+Editing and submitting are now **separate steps**: `PATCH` saves field changes, the list "Postular" action creates the new submission. Rejected projects (`REJECTED`) are not re-submittable; a new project must be created if the organization wishes to try again. A `DRAFT` can be deleted (`DELETE /reduction-projects/:id`); once submitted it can no longer be deleted.
 
 ---
 
 ## Editability and Re-submission Rules
 
-Two helpers in `@repo/utils/src/reductionProject.ts` enforce the state machine:
+Helpers in `@repo/utils/src/reductionProject.ts` enforce the state machine (parity with the carbon inventory helpers):
 
-| Helper                                           | Returns `true` when             |
-| ------------------------------------------------ | ------------------------------- |
-| `isReductionProjectEditable(status)`             | status is `DRAFT` or `REVIEWED` |
-| `canRequestReductionProjectVerification(status)` | status is `DRAFT`               |
+| Helper                                            | Returns `true` when                            |
+| ------------------------------------------------- | ---------------------------------------------- |
+| `isReductionProjectEditable(status)`              | status is `DRAFT` or `REVIEWED`                |
+| `canSubmitReductionProjectToVerification(status)` | status is `DRAFT` or `REVIEWED`                |
+| `isReductionProjectDeletable(status)`             | status is `DRAFT`                              |
+| `canRequestReductionProjectVerification(status)`  | status is `DRAFT` (first-time submission only) |
 
-The UI uses these to decide which buttons to show; the API re-checks them before accepting any mutation.
+The UI uses these to decide which buttons to show/enable; the API re-checks them before accepting any mutation.
 
 ---
 
@@ -201,11 +209,12 @@ The full **reduction plan** — all suggested initiatives across all subcategori
 
 ```
 Organization
-  └─ CarbonInventory  (approved CARBON_INVENTORY_VERIFICATION required)
+  └─ CarbonInventory  (approved CARBON_INVENTORY_VERIFICATION required at submit)
        └─ ReductionProject  (scoped to a subcategory of this inventory)
-            └─ SubmissionSubjectReductionProject
+            │   • DRAFT: just the project row — no SubmissionSubject, no Submission
+            └─ SubmissionSubjectReductionProject   (created on first request-verification)
                  └─ Submission (REDUCTION_PROJECT_VERIFICATION)
                       └─ Badge on approval
 ```
 
-A reduction project always links back to a specific verified inventory; the inventory is the trustworthy baseline against which the reduction claim is evaluated.
+A reduction project always links back to a specific verified inventory; the inventory is the trustworthy baseline against which the reduction claim is evaluated. While a DRAFT, the project exists only as a `ReductionProject` row — the submission graph is created lazily by the first `request-verification` call.
