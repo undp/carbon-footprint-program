@@ -4,6 +4,7 @@ import type { PreviewLineFileResponse } from "@repo/types";
 import { FileNotFoundError } from "@/features/files/errors.js";
 import { CrossInventoryFileLinkingError } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
+import { buildContentDisposition } from "@/utils/contentDisposition.js";
 import type { StorageAdapter } from "@/services/storage/index.js";
 
 interface PreviewLineFileInput {
@@ -37,11 +38,9 @@ export const previewLineFileService = async (
     throw new CrossInventoryFileLinkingError(carbonInventoryId, uuid);
   }
 
-  const encodedName = encodeURIComponent(file.originalName);
-
   const { url, expiresAt } = await storage.generateReadUrl(file.blobPath, {
     contentType: file.mimeType,
-    contentDisposition: `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`,
+    contentDisposition: buildContentDisposition("inline", file.originalName),
   });
 
   return { url, expiresAt: expiresAt.toISOString() };

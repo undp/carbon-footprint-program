@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { FileNotFoundError } from "@/features/files/errors.js";
 import { ObjectNotFoundError } from "@/services/storage/index.js";
+import { buildContentDisposition } from "@/utils/contentDisposition.js";
 import { resolveCurrentTermsConditionsBlob } from "./service.js";
 
 /**
@@ -50,19 +51,9 @@ export const streamCurrentTermsConditionsHandler = async (
   reply.header("Content-Type", "application/pdf");
   reply.header("X-Content-Type-Options", "nosniff");
 
-  // Build a Content-Disposition header per RFC 6266 / RFC 5987:
-  //   - filename="..."    : ASCII-only fallback for older clients. We
-  //                         strip non-ASCII, quotes, and backslashes so the
-  //                         quoted-string form is well-formed.
-  //   - filename*=UTF-8''...: percent-encoded UTF-8 form preferred by
-  //                           modern clients; preserves accents and
-  //                           non-ASCII characters in the original name.
-  const asciiFileName = file.originalName
-    .replace(/[^\x20-\x7E]/g, "_")
-    .replace(/["\\]/g, "_");
   reply.header(
     "Content-Disposition",
-    `inline; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(file.originalName)}`
+    buildContentDisposition("inline", file.originalName)
   );
 
   if (objectStream.sizeBytes != null) {
