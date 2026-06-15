@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ConsideredGeiSchema, GwpSourceSchema } from "@repo/types";
 import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 
-export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
+export const createReductionProjectFormSchema = () =>
   z
     .object({
       name: z.string().min(1, "El nombre es requerido"),
@@ -33,12 +33,6 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
       year: z.union([z.number().int(), z.literal("")]),
       baselineScenario: z.number().nullable(),
       projectScenario: z.number().nullable(),
-      sworn: z.boolean(),
-      files: showFileUpload
-        ? z
-            .array(z.instanceof(File))
-            .min(1, "Debe adjuntar al menos un archivo")
-        : z.array(z.instanceof(File)),
     })
     .superRefine((data, ctx) => {
       if (data.reportedElsewhere && !data.reportedElsewhereDescription.trim()) {
@@ -47,13 +41,6 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           path: ["reportedElsewhereDescription"],
           message:
             "La descripción es requerida cuando las emisiones se reportan en otro lugar",
-        });
-      }
-      if (showFileUpload && !data.sworn) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["sworn"],
-          message: "Debe aceptar la declaración jurada para continuar",
         });
       }
       if (data.year === "") {
@@ -119,6 +106,4 @@ export const defaultFormValues: ReductionProjectFormValues = {
   year: "",
   baselineScenario: null,
   projectScenario: null,
-  sworn: false,
-  files: [],
 };

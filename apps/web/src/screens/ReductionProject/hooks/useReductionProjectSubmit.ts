@@ -5,7 +5,6 @@ import {
   useCreateReductionProject,
   useUpdateReductionProject,
 } from "@/api/query/reductionProjects";
-import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
 import type { ReductionProjectFormValues } from "../formSchema";
 import { Routes } from "@/interfaces";
@@ -19,22 +18,14 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
   const navigate = useNavigate();
   const createMutation = useCreateReductionProject();
   const updateMutation = useUpdateReductionProject(projectId ?? "");
-  const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
     async (data: ReductionProjectFormValues) => {
       try {
-        const { files, ...formData } = data;
-
-        const fileUuids = await preUploadFiles(files);
-        if (!fileUuids.length) {
-          enqueueSnackbar("No se pudieron subir los archivos", {
-            variant: "error",
-          });
-          return;
-        }
-
-        const mutationData = mapFormValuesToMutationData(formData, fileUuids);
+        // DRAFT-first: create/update persist fields only. Files and the
+        // verification submission are handled separately from the list, via
+        // the "Postular a reconocimiento de verificación" action.
+        const mutationData = mapFormValuesToMutationData(data);
 
         if (projectId) {
           await updateMutation.mutateAsync(mutationData);
@@ -58,20 +49,13 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
         );
       }
     },
-    [
-      projectId,
-      createMutation,
-      updateMutation,
-      preUploadFiles,
-      enqueueSnackbar,
-      navigate,
-    ]
+    [projectId, createMutation, updateMutation, enqueueSnackbar, navigate]
   );
 
   return {
     submit,
-    isSubmitting:
-      (projectId ? updateMutation.isPending : createMutation.isPending) ||
-      isUploading,
+    isSubmitting: projectId
+      ? updateMutation.isPending
+      : createMutation.isPending,
   };
 };

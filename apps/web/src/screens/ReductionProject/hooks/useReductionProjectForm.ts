@@ -12,17 +12,10 @@ import {
 
 interface Params {
   project?: GetReductionProjectByIdResponse;
-  showFileUpload?: boolean;
 }
 
-export const useReductionProjectForm = ({
-  project,
-  showFileUpload = false,
-}: Params = {}) => {
-  const schema = useMemo(
-    () => createReductionProjectFormSchema(showFileUpload),
-    [showFileUpload]
-  );
+export const useReductionProjectForm = ({ project }: Params = {}) => {
+  const schema = useMemo(() => createReductionProjectFormSchema(), []);
 
   const form = useForm<ReductionProjectFormValues>({
     defaultValues: defaultFormValues,

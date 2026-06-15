@@ -20,13 +20,10 @@ export const mapProjectToFormValues = (
   year: project.year,
   baselineScenario: project.baselineScenario,
   projectScenario: project.projectScenario,
-  files: [],
-  sworn: false,
 });
 
 export const mapFormValuesToMutationData = (
-  values: Omit<ReductionProjectFormValues, "files">,
-  fileUuids: string[]
+  values: ReductionProjectFormValues
 ): ReductionProjectMutationData => {
   return {
     name: values.name,
@@ -44,6 +41,5 @@ export const mapFormValuesToMutationData = (
     year: Number(values.year),
     baselineScenario: values.baselineScenario!,
     projectScenario: values.projectScenario!,
-    fileUuids,
   };
 };
