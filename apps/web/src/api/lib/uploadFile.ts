@@ -1,31 +1,23 @@
-import type { HttpUploadMethod } from "@repo/types";
-
-export interface UploadFileParams {
-  url: string;
-  method: HttpUploadMethod;
-  headers: Record<string, string>;
-  body: File;
-}
+import type { PresignedUploadResponse } from "@repo/types";
 
 /**
  * Provider-agnostic file upload to a presigned URL.
  *
- * The API returns the URL, HTTP method, and headers that the client must use
- * — those values come from the storage adapter on the backend (Azure Blob or
- * MinIO/S3), so the frontend never needs to know which provider is active.
+ * Takes the request-upload response straight from the API: the URL, HTTP
+ * method, and headers all come from the storage adapter on the backend (Azure
+ * Blob or MinIO/S3), so the frontend never needs to know which provider is
+ * active.
  */
-export async function uploadFile({
-  url,
-  method,
-  headers,
-  body,
-}: UploadFileParams): Promise<void> {
-  const response = await fetch(url, {
-    method,
+export async function uploadFile(
+  target: PresignedUploadResponse,
+  body: File
+): Promise<void> {
+  const response = await fetch(target.uploadUrl, {
+    method: target.uploadMethod,
     body,
     headers: {
       "Content-Type": body.type || "application/octet-stream",
-      ...headers,
+      ...target.uploadHeaders,
     },
   });
 

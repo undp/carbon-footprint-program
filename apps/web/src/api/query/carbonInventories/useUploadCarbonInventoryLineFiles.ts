@@ -14,23 +14,18 @@ const uploadOneFile = async (
   file: File,
   headers: Record<string, string>
 ): Promise<UploadedLineFile> => {
-  const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
+  const presignedUpload = await apiClient
     .post(`carbon-inventories/${inventoryId}/files/request-upload`, {
       json: { originalName: file.name },
       headers,
     })
     .json<RequestLineFileUploadResponse>();
 
-  await uploadFile({
-    url: uploadUrl,
-    method: uploadMethod,
-    headers: uploadHeaders,
-    body: file,
-  });
+  await uploadFile(presignedUpload, file);
 
   return apiClient
     .post(`carbon-inventories/${inventoryId}/files/confirm-upload`, {
-      json: { uuid, originalName: file.name },
+      json: { uuid: presignedUpload.uuid, originalName: file.name },
       headers,
     })
     .json<ConfirmLineFileUploadResponse>();

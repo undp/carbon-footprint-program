@@ -4,26 +4,25 @@ import { uploadFile } from "@/api/lib/uploadFile";
 import { FileType, type RequestUploadResponse } from "@repo/types";
 
 const preUploadOneFile = async (file: File): Promise<string> => {
-  const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
+  const presignedUpload = await apiClient
     .post("files/request-upload", {
       json: { originalName: file.name, fileType: FileType.SUBMISSION },
     })
     .json<RequestUploadResponse>();
 
-  await uploadFile({
-    url: uploadUrl,
-    method: uploadMethod,
-    headers: uploadHeaders,
-    body: file,
-  });
+  await uploadFile(presignedUpload, file);
 
   await apiClient
     .post("files/confirm-upload", {
-      json: { uuid, originalName: file.name, fileType: FileType.SUBMISSION },
+      json: {
+        uuid: presignedUpload.uuid,
+        originalName: file.name,
+        fileType: FileType.SUBMISSION,
+      },
     })
     .json();
 
-  return uuid;
+  return presignedUpload.uuid;
 };
 
 export const usePreUploadSubmissionFiles = () => {

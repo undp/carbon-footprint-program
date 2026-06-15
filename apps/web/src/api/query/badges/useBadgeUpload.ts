@@ -36,22 +36,17 @@ export const useBadgeUpload = (): UseBadgeUploadResult => {
       setIsUploading(true);
       setError(null);
       try {
-        const { uuid, uploadUrl, uploadMethod, uploadHeaders } = await apiClient
+        const presignedUpload = await apiClient
           .post(`files/badge/${badgeType}/request-upload`, {
             json: { originalName: file.name },
           })
           .json<RequestBadgeUploadResponse>();
 
-        await uploadFile({
-          url: uploadUrl,
-          method: uploadMethod,
-          headers: uploadHeaders,
-          body: file,
-        });
+        await uploadFile(presignedUpload, file);
 
         const result = await apiClient
           .post(`files/badge/${badgeType}/confirm-upload`, {
-            json: { uuid, originalName: file.name },
+            json: { uuid: presignedUpload.uuid, originalName: file.name },
           })
           .json<ConfirmBadgeUploadResponse>();
 
