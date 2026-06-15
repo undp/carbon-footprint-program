@@ -29,3 +29,9 @@ export const ReductionProjectNotUpdatableError = createError(
   "Reduction project %s is not updatable in its current state (%s)",
   422
 );
+
+export const ReductionProjectNotDeletableError = createError(
+  "REDUCTION_PROJECT_NOT_DELETABLE",
+  "Reduction project %s cannot be deleted in its current state (%s)",
+  422
+);
