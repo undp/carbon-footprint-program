@@ -102,8 +102,9 @@ export function storageConfigFromEnv(
       endpoint,
       accessKey,
       secretKey,
-      bucket: env.MINIO_BUCKET ?? "files",
-      region: env.MINIO_REGION ?? "us-east-1",
+      // `||` (not `??`) so the empty-string placeholder also defaults.
+      bucket: env.MINIO_BUCKET || "files",
+      region: env.MINIO_REGION || "us-east-1",
       forcePathStyle: env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false",
     },
   };
