@@ -11,7 +11,8 @@ import { StorageProvider } from "@repo/storage";
 
 /**
  * Sets process.env for the chosen storage provider before workers are spawned,
- * so that environment.ts validation passes when modules import it in workers.
+ * so the storage plugin's `buildStorageConfig()` validation passes at
+ * `app.ready()` in each worker.
  *
  * Connection details are dummies — real values are injected per-app in
  * `createTestApp`. The storagePlugin will still construct an adapter at boot

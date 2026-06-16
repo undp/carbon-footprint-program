@@ -1,9 +1,5 @@
 import { AuthProviderType } from "../auth/types.js";
-import {
-  StorageProvider,
-  storageConfigFromEnv,
-  type StorageConfig,
-} from "@repo/storage";
+import { storageConfigFromEnv, type StorageConfig } from "@repo/storage";
 
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
@@ -233,95 +229,12 @@ export const LOCAL_BYPASS_REQUIRED_FIELDS =
 export const APP_VERSION = process.env.APP_VERSION || "unknown";
 
 // ============================================================================
-// Azure Blob Storage Configuration
+// Object Storage Configuration
 // ============================================================================
-// Used for file uploads (organization documents, carbon inventory certifications).
-// Authentication uses managed identity (DefaultAzureCredential) — no keys needed.
-// Locally, falls back to `az login` session or Azurite emulator.
-
-/**
- * Azure Storage Account name.
- * Found in Azure Portal > Storage Accounts > [Your Account] > Overview
- * Format: lowercase alphanumeric, 3-24 characters (e.g., "stj7k8m9n0p1")
- */
-export const AZURE_STORAGE_ACCOUNT_NAME =
-  process.env.AZURE_STORAGE_ACCOUNT_NAME;
-
-/**
- * Blob container name where files are stored.
- * Defaults to "files" — matches the container created in Bicep. `||` (not
- * `??`) so the empty-string placeholder in `.envrc.template` also defaults.
- */
-export const AZURE_STORAGE_CONTAINER_NAME =
-  process.env.AZURE_STORAGE_CONTAINER_NAME || "files";
-
-/**
- * Dedicated Service Principal for Blob Storage, used by `getStorageCredential()`.
- * Set all three together for the local / docker-compose path, where there is no
- * Managed Identity and the SP may live in a different tenant than `AZURE_TENANT_ID`
- * (which is the JWKS auth tenant). Leave empty on Azure — the helper then falls
- * back to `DefaultAzureCredential` (Managed Identity).
- */
-export const AZURE_STORAGE_TENANT_ID = process.env.AZURE_STORAGE_TENANT_ID;
-export const AZURE_STORAGE_CLIENT_ID = process.env.AZURE_STORAGE_CLIENT_ID;
-export const AZURE_STORAGE_CLIENT_SECRET =
-  process.env.AZURE_STORAGE_CLIENT_SECRET;
-
-// ============================================================================
-// Object Storage Provider Selection
-// ============================================================================
-// STORAGE_PROVIDER selects which object storage backend the API uses.
-// Required at startup — no silent "disabled" fallback. The provider-specific
-// variables below are validated by the matching adapter factory
-// (services/storage/adapters/*), which runs at boot via the storage plugin.
-
-/**
- * Object storage backend selected at runtime.
- * Validated against the StorageProvider enum at startup.
- */
-export const STORAGE_PROVIDER: StorageProvider = (() => {
-  const raw = process.env.STORAGE_PROVIDER;
-  const allowed = Object.values(StorageProvider);
-  if (!raw) {
-    throw new Error(
-      `STORAGE_PROVIDER is required. Allowed values are: ${allowed.join(", ")}.`
-    );
-  }
-  if (!allowed.includes(raw as StorageProvider)) {
-    throw new Error(
-      `Invalid STORAGE_PROVIDER value: "${raw}". Allowed values are: ${allowed.join(", ")}.`
-    );
-  }
-  return raw as StorageProvider;
-})();
-
-// ============================================================================
-// MinIO Configuration
-// ============================================================================
-// Required when STORAGE_PROVIDER=minio. The country deployments that use MinIO
-// (or any S3-compatible object store) configure these.
-
-/** Base endpoint URL of the MinIO/S3-compatible service (e.g. http://minio:9000). */
-export const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT;
-
-/** MinIO access key (S3 access key id). */
-export const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY;
-
-/** MinIO secret key (S3 secret access key). */
-export const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY;
-
-/** Bucket where files are stored. Defaults to "files". */
-export const MINIO_BUCKET = process.env.MINIO_BUCKET ?? "files";
-
-/** Region passed to the S3 client. Defaults to "us-east-1" (MinIO ignores it). */
-export const MINIO_REGION = process.env.MINIO_REGION ?? "us-east-1";
-
-/**
- * MinIO requires path-style URLs by default. Set to "false" only for
- * S3-compatible deployments that need virtual-hosted-style URLs.
- */
-export const MINIO_FORCE_PATH_STYLE =
-  process.env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false";
+// STORAGE_PROVIDER selects which object storage backend the API uses, and the
+// provider-specific variables (AZURE_STORAGE_* / MINIO_*) are read and validated
+// by the shared `@repo/storage` parser below — there is no per-variable const
+// here, so the package stays the single source of truth for parsing and defaults.
 
 /**
  * Resolves the fully-typed object-storage configuration injected into
