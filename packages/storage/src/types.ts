@@ -2,7 +2,7 @@ import type { Readable } from "node:stream";
 import type { HttpUploadMethod } from "@repo/types";
 
 /** Result of issuing a presigned read URL. */
-export interface SasUrlResult {
+export interface ReadUrlResult {
   url: string;
   expiresAt: Date;
 }
@@ -54,7 +54,7 @@ export interface ObjectStream {
 export type ReadUrlSigner = (
   path: string,
   opts?: ReadPresentationOptions
-) => Promise<SasUrlResult>;
+) => Promise<ReadUrlResult>;
 
 /**
  * Thrown by `headObject` when the requested path does not exist in the backend.
@@ -77,7 +77,7 @@ export class ObjectNotFoundError extends Error {
  * this interface only — it never imports a storage SDK directly.
  */
 export interface StorageAdapter {
-  generateReadUrl(path: string, opts?: ReadOptions): Promise<SasUrlResult>;
+  generateReadUrl(path: string, opts?: ReadOptions): Promise<ReadUrlResult>;
 
   createReadUrlSigner(expiresInMinutes?: number): Promise<ReadUrlSigner>;
 

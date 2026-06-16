@@ -4,7 +4,7 @@ import type {
   StorageAdapter,
   ObjectMetadata,
   ReadUrlSigner,
-  SasUrlResult,
+  ReadUrlResult,
   WriteUrlResult,
 } from "@repo/storage";
 
@@ -34,7 +34,7 @@ export type MockStorageAdapter = {
  * ```
  */
 export function createMockStorageAdapter(): MockStorageAdapter {
-  const cannedReadResult: SasUrlResult = {
+  const cannedReadResult: ReadUrlResult = {
     url: MOCK_URL,
     expiresAt: FUTURE_EXPIRY,
   };

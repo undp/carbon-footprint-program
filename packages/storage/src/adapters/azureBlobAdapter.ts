@@ -22,7 +22,7 @@ import {
   type ObjectStream,
   type ReadOptions,
   type ReadUrlSigner,
-  type SasUrlResult,
+  type ReadUrlResult,
   type StorageAdapter,
   type WriteOptions,
   type WriteUrlResult,
@@ -126,7 +126,7 @@ class AzureBlobAdapter implements StorageAdapter {
   async generateReadUrl(
     path: string,
     opts?: ReadOptions
-  ): Promise<SasUrlResult> {
+  ): Promise<ReadUrlResult> {
     const signer = await this.createReadUrlSigner(opts?.expiresInMinutes);
     return signer(path, opts);
   }

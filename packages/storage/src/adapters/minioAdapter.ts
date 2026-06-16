@@ -23,7 +23,7 @@ import {
   type ObjectStream,
   type ReadOptions,
   type ReadUrlSigner,
-  type SasUrlResult,
+  type ReadUrlResult,
   type StorageAdapter,
   type WriteOptions,
   type WriteUrlResult,
@@ -51,7 +51,7 @@ class MinioAdapter implements StorageAdapter {
   async generateReadUrl(
     path: string,
     opts?: ReadOptions
-  ): Promise<SasUrlResult> {
+  ): Promise<ReadUrlResult> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: path,
