@@ -11,20 +11,17 @@ export interface StorageCredentialOptions {
 }
 
 /**
- * Returns the Azure credential to use against Blob Storage.
+ * Returns the Azure credential to use against Blob Storage. Internal to the
+ * package — only the Azure adapter consumes it; nothing outside `@repo/storage`
+ * should construct Azure credentials directly.
  *
  * When `tenantId`, `clientId`, and `clientSecret` are all provided, an explicit
  * `ClientSecretCredential` is built so the storage Service Principal can live in
- * a different tenant than the one used for JWKS auth (`AZURE_TENANT_ID`). This is
- * the local / docker-compose path.
+ * a different tenant than the one used for JWKS auth. This is the local /
+ * docker-compose path.
  *
  * Otherwise falls back to `DefaultAzureCredential`, which picks up Managed
  * Identity when running on Azure infrastructure — the production path.
- *
- * The helper itself never reads `process.env`: callers source these values from
- * their own environment layer (the API validates them in `config/environment.ts`;
- * the seed scripts read `process.env` directly), which keeps this function pure
- * and unit-testable.
  */
 export function getStorageCredential({
   tenantId,
