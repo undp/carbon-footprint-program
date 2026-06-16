@@ -2,7 +2,7 @@ import type { Badge, File } from "@repo/database";
 import { BadgeStatus, BadgeType } from "@repo/database";
 import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
-import type { StorageAdapter } from "@repo/storage";
+import type { ReadUrlSigner, StorageAdapter } from "@repo/storage";
 
 type BadgeWithFile = Badge & {
   file: Pick<File, "originalName" | "mimeType" | "blobPath">;
@@ -10,10 +10,7 @@ type BadgeWithFile = Badge & {
 
 async function toBadgeDTO(
   badge: BadgeWithFile,
-  signUrl: (
-    blobPath: string,
-    opts?: { contentType?: string }
-  ) => Promise<{ url: string }>
+  signUrl: ReadUrlSigner
 ): Promise<BadgeDTO> {
   const { url: previewUrl } = await signUrl(badge.file.blobPath, {
     contentType: badge.file.mimeType ?? undefined,
@@ -32,10 +29,7 @@ async function toBadgeDTO(
 export async function buildBadgeCatalogEntry(
   type: BadgeType,
   badges: BadgeWithFile[],
-  signUrl: (
-    blobPath: string,
-    opts?: { contentType?: string }
-  ) => Promise<{ url: string }>
+  signUrl: ReadUrlSigner
 ): Promise<BadgeCatalogEntry> {
   const active = badges.find((b) => b.status === BadgeStatus.ACTIVE) ?? null;
   const inactive = badges
