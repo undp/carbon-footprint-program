@@ -16,9 +16,11 @@ The API persists every uploaded file (badge images, carbon-inventory line files,
 ┌──────────────────────────────────────────────────────────────────┐
 │ API (apps/api)                                                   │
 │  • Features depend ONLY on fastify.storage: StorageAdapter       │
-│  • storagePlugin selects the adapter at startup via              │
-│    STORAGE_PROVIDER                                              │
+│  • storagePlugin builds the adapter at startup from              │
+│    buildStorageConfig() (config/environment.ts)                  │
 └──────────────────────────────────────────────────────────────────┘
+                │                              │
+   @repo/storage: createStorageAdapter(config: StorageConfig)
                 │                              │
    AzureBlobAdapter                     MinioAdapter
    (@azure/storage-blob)                (@aws-sdk/client-s3)
@@ -28,13 +30,30 @@ The API persists every uploaded file (badge images, carbon-inventory line files,
    (user-delegation SAS)             (pre-signed URLs)
 ```
 
-The `StorageAdapter` interface (`apps/api/src/services/storage/types.ts`) defines the contract every adapter must satisfy:
+The adapter lives in the shared **`@repo/storage`** package (`packages/storage/`). The
+`StorageAdapter` interface (`packages/storage/src/types.ts`) defines the contract every
+adapter must satisfy:
 
 - `generateReadUrl`, `createReadUrlSigner`, `generateWriteUrl`
 - `headObject`, `streamObject`, `putObject`, `deleteObject`, `copyObject`
 - `healthCheck`
 
-Adapters live in `apps/api/src/services/storage/adapters/`.
+Adapters live in `packages/storage/src/adapters/`. The package selects one via
+`createStorageAdapter(config)`, where `config` is a typed `StorageConfig` (a
+discriminated union on `provider`) injected by the caller — the package never reads
+`process.env` itself. Helpers:
+
+- `storageConfigFromEnv(env)` — builds a validated `StorageConfig` from an env record.
+- `@repo/storage/testing` — test-only adapter factories (`createAzureBlobTestAdapter`,
+  `createMinioTestAdapter`) used by the integration suite; not part of the production API.
+
+> **Convention — adapter only.** Application code (API, seed scripts, web) must access
+> object storage **exclusively** through `@repo/storage`. The storage SDKs
+> (`@azure/storage-blob`, `@azure/identity`, `@aws-sdk/client-s3`,
+> `@aws-sdk/s3-request-presigner`) are dependencies of `packages/storage` **only** — do
+> not add them to `apps/api`, `apps/web`, or `tools/seed`, and never import them directly.
+> The API consumes the adapter via `fastify.storage`; the seed scripts build it via
+> `createStorageAdapter(storageConfigFromEnv(process.env))`.
 
 ## Choosing a provider
 
