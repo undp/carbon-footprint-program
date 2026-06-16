@@ -2,14 +2,17 @@ import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
-import { BlobServiceClient } from "@azure/storage-blob";
 import {
   LEGAL_BLOB_PREFIX,
   LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
 } from "@repo/constants";
 import { FileStatus, type PrismaClient } from "@repo/database";
-import { getStorageCredential } from "@repo/storage";
+import {
+  createStorageAdapter,
+  storageConfigFromEnv,
+  type StorageAdapter,
+} from "@repo/storage";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,10 +35,13 @@ export async function seedTermsConditions(
     return;
   }
 
-  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-  if (!accountName) {
+  let storage: StorageAdapter;
+  try {
+    storage = await createStorageAdapter(storageConfigFromEnv(process.env));
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
     console.warn(
-      "⚠ AZURE_STORAGE_ACCOUNT_NAME not set — skipping terms & conditions seeding"
+      `⚠ Object storage not configured — skipping terms & conditions seeding (${reason})`
     );
     return;
   }
@@ -58,26 +64,14 @@ export async function seedTermsConditions(
     }
   }
 
-  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
-  const containerClient = new BlobServiceClient(
-    `https://${accountName}.blob.core.windows.net`,
-    getStorageCredential({
-      tenantId: process.env.AZURE_STORAGE_TENANT_ID,
-      clientId: process.env.AZURE_STORAGE_CLIENT_ID,
-      clientSecret: process.env.AZURE_STORAGE_CLIENT_SECRET,
-    })
-  ).getContainerClient(containerName);
-
   const filePath = join(__dirname, "../data/legal", TERMS_CONDITIONS_FILE_NAME);
   const fileBuffer = readFileSync(filePath);
   const sizeBytes = fileBuffer.byteLength;
   const uuid = randomUUID();
   const blobPath = buildLegalBlobPath(uuid, TERMS_CONDITIONS_FILE_NAME);
 
-  await containerClient.getBlockBlobClient(blobPath).uploadData(fileBuffer, {
-    blobHTTPHeaders: {
-      blobContentType: LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
-    },
+  await storage.putObject(blobPath, fileBuffer, {
+    contentType: LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
   });
 
   try {
@@ -99,7 +93,7 @@ export async function seedTermsConditions(
       });
     });
   } catch (err) {
-    await containerClient.getBlockBlobClient(blobPath).deleteIfExists();
+    await storage.deleteObject(blobPath);
     throw err;
   }
 

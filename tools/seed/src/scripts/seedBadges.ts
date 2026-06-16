@@ -2,9 +2,12 @@ import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
-import { BlobServiceClient } from "@azure/storage-blob";
 import { BadgeStatus, BadgeType, type PrismaClient } from "@repo/database";
-import { getStorageCredential } from "@repo/storage";
+import {
+  createStorageAdapter,
+  storageConfigFromEnv,
+  type StorageAdapter,
+} from "@repo/storage";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,23 +50,16 @@ export async function seedBadges(
     return;
   }
 
-  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-  if (!accountName) {
+  let storage: StorageAdapter;
+  try {
+    storage = await createStorageAdapter(storageConfigFromEnv(process.env));
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
     console.warn(
-      "⚠ AZURE_STORAGE_ACCOUNT_NAME not set — skipping badge seeding"
+      `⚠ Object storage not configured — skipping badge seeding (${reason})`
     );
     return;
   }
-
-  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";
-  const containerClient = new BlobServiceClient(
-    `https://${accountName}.blob.core.windows.net`,
-    getStorageCredential({
-      tenantId: process.env.AZURE_STORAGE_TENANT_ID,
-      clientId: process.env.AZURE_STORAGE_CLIENT_ID,
-      clientSecret: process.env.AZURE_STORAGE_CLIENT_SECRET,
-    })
-  ).getContainerClient(containerName);
 
   const badgesDir = join(__dirname, "../data/badges");
 
@@ -89,8 +85,8 @@ export async function seedBadges(
     const uuid = randomUUID();
     const blobPath = buildBadgeBlobPath(type, uuid, file);
 
-    await containerClient.getBlockBlobClient(blobPath).uploadData(fileBuffer, {
-      blobHTTPHeaders: { blobContentType: "image/svg+xml" },
+    await storage.putObject(blobPath, fileBuffer, {
+      contentType: "image/svg+xml",
     });
 
     try {
@@ -110,7 +106,7 @@ export async function seedBadges(
         },
       });
     } catch (err) {
-      await containerClient.getBlockBlobClient(blobPath).deleteIfExists();
+      await storage.deleteObject(blobPath);
       throw err;
     }
 
