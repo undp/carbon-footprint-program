@@ -122,6 +122,8 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 
 Represents one reporting year, methodology version, and usage mode.
 
+**Year uniqueness:** An owner may keep any number of year-less drafts, but only one inventory per concrete year. The scope follows ownership: organization-linked inventories are unique per `(organization, year)`, while standalone inventories are unique per `(creator, year)`. The rule is enforced when the year is assigned (calculator step 1 / `PATCH /carbon-inventories/:id`); only `ACTIVE` inventories count toward the limit.
+
 ### Inventory Lines
 
 Each line defines what is being measured (subcategory). Selections are stored in the input table.

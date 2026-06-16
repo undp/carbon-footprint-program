@@ -1,4 +1,5 @@
 import {
+  InventoryStatus,
   SubmissionStatus,
   SubmissionType,
   type Prisma,
@@ -17,9 +18,10 @@ import type { InventoryOrganizationDataReferences } from "./mappers.js";
 import {
   CarbonInventoryNotFoundError,
   CarbonInventoryNotEditableError,
+  CarbonInventoryYearAlreadyExistsError,
   MethodologyNotFoundError,
 } from "./errors.js";
-import { DataIntegrityError } from "@/errors/index.js";
+import { DataIntegrityError, attachDetails } from "@/errors/index.js";
 import { kgToTon } from "@/utils/number.js";
 import {
   CarbonInventoryDisplayStatus,
@@ -494,3 +496,60 @@ export const resolveInventoryOrganizationDataReferences = async (
 export const buildCarbonInventoryLineBlobPathPrefix = (
   carbonInventoryId: string
 ): string => `${FileType.CARBON_INVENTORY}/${carbonInventoryId}/LINES/`;
+
+/**
+ * Enforces the "one inventory per concrete year" rule for a footprint owner.
+ *
+ * An owner may keep any number of year-less drafts, but only a single inventory
+ * per concrete year. The owner scope mirrors how inventories are attributed in
+ * the rest of the domain:
+ *   - organization-linked inventories are unique per (organization, year),
+ *   - standalone inventories are unique per (creator, year).
+ *
+ * Anonymous standalone inventories (no creator and no organization) cannot be
+ * attributed to an owner, so uniqueness cannot be enforced and the check is a
+ * no-op. Only ACTIVE inventories are considered, and the inventory itself is
+ * excluded from the lookup.
+ *
+ * Throws `CarbonInventoryYearAlreadyExistsError` (with `{ year }` details so the
+ * frontend can render localized copy) when a conflicting inventory exists.
+ */
+export async function assertInventoryYearIsUniqueForOwner(
+  prismaClient: PrismaClient | Prisma.TransactionClient,
+  params: {
+    inventoryId: bigint;
+    year: number;
+    organizationId: bigint | null;
+    createdById: bigint | null;
+  }
+): Promise<void> {
+  const { inventoryId, year, organizationId, createdById } = params;
+
+  const ownerFilter: Prisma.CarbonInventoryWhereInput | null = organizationId
+    ? { organizationId }
+    : createdById
+      ? { createdById, organizationId: null }
+      : null;
+
+  // No owner to scope the uniqueness to (anonymous standalone draft).
+  if (!ownerFilter) return;
+
+  const conflict = await prismaClient.carbonInventory.findFirst({
+    where: {
+      ...ownerFilter,
+      year,
+      status: InventoryStatus.ACTIVE,
+      id: { not: inventoryId },
+    },
+    select: { id: true },
+  });
+
+  if (conflict) {
+    throw attachDetails(
+      new CarbonInventoryYearAlreadyExistsError(String(year)),
+      {
+        year,
+      }
+    );
+  }
+}

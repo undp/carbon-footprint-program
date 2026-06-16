@@ -101,3 +101,9 @@ export const CarbonInventoryAlreadyHasOrganizationError = createError(
   "Carbon inventory %s already has an associated organization",
   422
 );
+
+export const CarbonInventoryYearAlreadyExistsError = createError(
+  "CARBON_INVENTORY_YEAR_ALREADY_EXISTS",
+  "A carbon inventory already exists for year %s",
+  422
+);

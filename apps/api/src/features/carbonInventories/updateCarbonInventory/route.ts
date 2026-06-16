@@ -27,6 +27,7 @@ export const updateCarbonInventoryRoute = defineRoute<{
       400: ApiErrorResponseSchema,
       403: ApiErrorResponseSchema,
       404: ApiErrorResponseSchema,
+      422: ApiErrorResponseSchema,
     },
   },
   access: {

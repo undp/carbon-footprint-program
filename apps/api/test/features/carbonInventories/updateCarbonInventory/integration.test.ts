@@ -29,7 +29,11 @@ import {
   type ApiErrorResponse,
 } from "@/commonSchemas/errors.js";
 import { createTestMembership } from "../../../factories/membershipFactory.js";
-import { getTestLoggedUser } from "../../../factories/userFactory.js";
+import {
+  getTestLoggedUser,
+  createTestUser,
+  cleanupTestUsers,
+} from "../../../factories/userFactory.js";
 
 describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -49,6 +53,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
+    await cleanupTestUsers(prisma);
   });
 
   describe("Successful updates", () => {
@@ -608,6 +613,160 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
       expect(body.year).toBe(2100);
+    });
+  });
+
+  describe("Year uniqueness per owner", () => {
+    it("rejects a year already used by another standalone draft of the same creator", async () => {
+      await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+      });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("CARBON_INVENTORY_YEAR_ALREADY_EXISTS");
+      expect(body.details).toEqual({ year: 2025 });
+
+      // The rejected update must not have been persisted.
+      const dbDraft = await prisma.carbonInventory.findUnique({
+        where: { id: draft.id },
+      });
+      expect(dbDraft?.year).toBeNull();
+    });
+
+    it("allows assigning a year when the creator only has year-less drafts", async () => {
+      await seedCarbonInventory(prisma, { usageMode: "SIMPLIFIED" });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2025);
+    });
+
+    it("allows re-saving the same year on the same inventory", async () => {
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: { year: 2025, name: "Mismo año" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2025);
+      expect(body.name).toBe("Mismo año");
+    });
+
+    it("allows a different year for the same creator", async () => {
+      await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+      });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2024 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2024);
+    });
+
+    it("does not conflict with a same-year inventory owned by a different creator", async () => {
+      const otherUser = await createTestUser(prisma);
+      await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        createdById: otherUser.id,
+      });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2025);
+    });
+
+    it("does not conflict with a same-year inventory that was soft-deleted", async () => {
+      await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        status: InventoryStatus.DELETED,
+      });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2025);
+    });
+
+    it("rejects a year already used by another inventory of the same organization", async () => {
+      const user = await getTestLoggedUser(prisma);
+      const organization = await createTestOrganization(prisma);
+      await createTestMembership(prisma, user.id, organization.id);
+
+      await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        organizationId: organization.id,
+      });
+      const draft = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        organizationId: organization.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${draft.id}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("CARBON_INVENTORY_YEAR_ALREADY_EXISTS");
+      expect(body.details).toEqual({ year: 2025 });
     });
   });
 

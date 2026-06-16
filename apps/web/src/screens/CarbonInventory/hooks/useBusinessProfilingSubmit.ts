@@ -4,6 +4,7 @@ import { useUpdateCarbonInventory } from "@/api/query";
 import { BusinessProfilingFormValues } from "./useBusinessProfilingForm";
 import { mapFormValuesToRequest } from "../utils/businessProfilingTransformers";
 import { VOCAB } from "@/config/vocab";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 type Params = {
   inventoryId?: string;
@@ -60,7 +61,10 @@ export const useBusinessProfilingSubmit = ({
           error
         );
         enqueueSnackbar(
-          `Error al guardar la huella ${VOCAB.organization.relationalAdjective}`,
+          getApiErrorMessage(
+            error,
+            `Error al guardar la huella ${VOCAB.organization.relationalAdjective}`
+          ),
           {
             variant: "error",
           }

@@ -12,6 +12,7 @@ import {
   carbonInventoryWithSubmissionsMinimalSelect,
   validateCarbonInventoryIsEditable,
   resolveInventoryOrganizationDataReferences,
+  assertInventoryYearIsUniqueForOwner,
 } from "../helpers.js";
 
 export const updateCarbonInventoryService = async (
@@ -27,6 +28,8 @@ export const updateCarbonInventoryService = async (
       ...carbonInventoryWithSubmissionsMinimalSelect,
       organizationId: true,
       organizationData: true,
+      createdById: true,
+      year: true,
     },
   });
 
@@ -76,6 +79,22 @@ export const updateCarbonInventoryService = async (
 
   if (data.year !== undefined) {
     updateData.year = data.year;
+
+    // An owner may keep multiple year-less drafts, but only one inventory per
+    // concrete year. Validate only when the year actually changes to a non-null
+    // value, so re-saving step 1 (or editing other fields) never trips the rule.
+    if (data.year !== null && data.year !== inventory.year) {
+      const effectiveOrganizationId =
+        organizationId !== undefined
+          ? organizationId
+          : inventory.organizationId;
+      await assertInventoryYearIsUniqueForOwner(prismaClient, {
+        inventoryId: BigInt(id),
+        year: data.year,
+        organizationId: effectiveOrganizationId,
+        createdById: inventory.createdById,
+      });
+    }
   }
 
   if (data.usageMode !== undefined) {

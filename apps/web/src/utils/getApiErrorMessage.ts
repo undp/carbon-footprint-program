@@ -152,6 +152,14 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
 
   // Carbon inventory association
   CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION: `Esta huella ya tiene una ${orgSingular} asociada.`,
+  CARBON_INVENTORY_YEAR_ALREADY_EXISTS: (details) => {
+    const year = details?.year;
+    const yearText =
+      typeof year === "number" || typeof year === "string"
+        ? ` para el año ${year}`
+        : "";
+    return `Ya existe una huella${yearText}. Solo puede haber una huella por año; puedes mantener varios borradores sin año.`;
+  },
 
   // User role management
   SELF_ROLE_CHANGE: "No puedes cambiar tu propio rol.",
