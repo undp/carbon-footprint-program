@@ -24,7 +24,6 @@ import {
   type ReadUrlSigner,
   type ReadUrlResult,
   type StorageAdapter,
-  type WriteOptions,
   type WriteUrlResult,
 } from "../types.js";
 
@@ -131,11 +130,8 @@ class AzureBlobAdapter implements StorageAdapter {
     return signer(path, opts);
   }
 
-  async generateWriteUrl(
-    path: string,
-    opts?: WriteOptions
-  ): Promise<WriteUrlResult> {
-    const minutes = opts?.expiresInMinutes ?? this.defaultExpiryMinutes;
+  async generateWriteUrl(path: string): Promise<WriteUrlResult> {
+    const minutes = this.defaultExpiryMinutes;
     const startsOn = new Date();
     const expiresAt = new Date(startsOn.getTime() + minutes * 60 * 1000);
     const credential = await this.resolveSasCredential(startsOn, expiresAt);
@@ -258,12 +254,6 @@ export function createAzureBlobAdapter(
   config: AzureStorageConfig,
   expiryMinutes: number = DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES
 ): StorageAdapter {
-  if (!config.accountName) {
-    throw new Error(
-      "STORAGE_PROVIDER=azure_blob_storage but accountName is missing"
-    );
-  }
-
   const blobServiceClient = new BlobServiceClient(
     `https://${config.accountName}.blob.core.windows.net`,
     getStorageCredential({

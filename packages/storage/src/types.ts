@@ -19,12 +19,6 @@ export interface ReadOptions extends ReadPresentationOptions {
   expiresInMinutes?: number;
 }
 
-/** Options for `generateWriteUrl`. */
-export interface WriteOptions {
-  /** Defaults to the adapter's configured expiry. */
-  expiresInMinutes?: number;
-}
-
 /** Result of issuing a presigned write URL. Carries the upload protocol the client must follow. */
 export interface WriteUrlResult {
   url: string;
@@ -48,8 +42,11 @@ export interface ObjectStream {
 
 /**
  * Factory returned by `createReadUrlSigner` — signs many paths from one
- * provider-side setup. Expiry is fixed at signer creation, so per-path
- * options only cover presentation overrides.
+ * provider-side setup. The expiry *window* is fixed at signer creation, so
+ * per-path options only cover presentation overrides. The absolute `expiresAt`
+ * each signed path reports may differ slightly between backends: Azure pins it
+ * at signer creation, while the S3/MinIO signer derives it from the current
+ * time per call.
  */
 export type ReadUrlSigner = (
   path: string,
@@ -81,7 +78,7 @@ export interface StorageAdapter {
 
   createReadUrlSigner(expiresInMinutes?: number): Promise<ReadUrlSigner>;
 
-  generateWriteUrl(path: string, opts?: WriteOptions): Promise<WriteUrlResult>;
+  generateWriteUrl(path: string): Promise<WriteUrlResult>;
 
   /** Throws `ObjectNotFoundError` when the path does not exist. */
   headObject(path: string): Promise<ObjectMetadata>;

@@ -25,7 +25,6 @@ import {
   type ReadUrlSigner,
   type ReadUrlResult,
   type StorageAdapter,
-  type WriteOptions,
   type WriteUrlResult,
 } from "../types.js";
 
@@ -76,14 +75,9 @@ class MinioAdapter implements StorageAdapter {
     );
   }
 
-  async generateWriteUrl(
-    path: string,
-    opts?: WriteOptions
-  ): Promise<WriteUrlResult> {
+  async generateWriteUrl(path: string): Promise<WriteUrlResult> {
     const command = new PutObjectCommand({ Bucket: this.bucket, Key: path });
-    const expiresIn = minutesToSeconds(
-      opts?.expiresInMinutes ?? this.defaultExpiryMinutes
-    );
+    const expiresIn = minutesToSeconds(this.defaultExpiryMinutes);
     const url = await getSignedUrl(this.s3, command, { expiresIn });
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
     return {
@@ -187,12 +181,6 @@ export function createMinioAdapter(
   config: MinioStorageConfig,
   expiryMinutes: number = DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES
 ): StorageAdapter {
-  if (!config.endpoint || !config.accessKey || !config.secretKey) {
-    throw new Error(
-      "STORAGE_PROVIDER=minio but endpoint, accessKey, or secretKey is missing"
-    );
-  }
-
   const s3 = new S3Client({
     endpoint: config.endpoint,
     region: config.region,
