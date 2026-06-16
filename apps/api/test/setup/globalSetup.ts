@@ -7,7 +7,7 @@ import {
   type TestStorageDescriptor,
 } from "./testcontainers.js";
 import type { TestProject } from "vitest/node";
-import { StorageProvider } from "@/config/constants.js";
+import { StorageProvider } from "@repo/storage";
 
 /**
  * Sets process.env for the chosen storage provider before workers are spawned,

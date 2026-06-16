@@ -6,7 +6,7 @@ import type {
   ReadUrlSigner,
   SasUrlResult,
   WriteUrlResult,
-} from "@/services/storage/index.js";
+} from "@repo/storage";
 
 const FUTURE_EXPIRY = new Date("2099-12-31T23:59:59.000Z");
 const MOCK_URL = "https://mock.storage.local/test/file?sig=mock";

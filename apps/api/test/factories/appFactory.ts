@@ -1,12 +1,11 @@
 import { buffer } from "node:stream/consumers";
 import { createApp } from "@/app.js";
 import prismaPlugin from "@/plugins/app/prisma.js";
-import { BlobServiceClient } from "@azure/storage-blob";
-import { S3Client } from "@aws-sdk/client-s3";
-import { StorageProvider } from "@/config/constants.js";
-import { createAzureBlobAdapterFromClient } from "@/services/storage/adapters/azureBlobAdapter.js";
-import { createMinioAdapterFromClient } from "@/services/storage/adapters/minioAdapter.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import { StorageProvider, type StorageAdapter } from "@repo/storage";
+import {
+  createAzureBlobTestAdapter,
+  createMinioTestAdapter,
+} from "@repo/storage/testing";
 import type { TestStorageDescriptor } from "../setup/testcontainers.js";
 import type { FastifyInstance } from "fastify";
 
@@ -14,16 +13,15 @@ interface CreateTestAppOptions {
   storageDescriptor?: TestStorageDescriptor | null;
 }
 
-function buildTestAdapter(descriptor: TestStorageDescriptor): StorageAdapter {
+async function buildTestAdapter(
+  descriptor: TestStorageDescriptor
+): Promise<StorageAdapter> {
   switch (descriptor.provider) {
     case StorageProvider.AZURE_BLOB_STORAGE: {
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
-        descriptor.connectionString
-      );
-      const adapter = createAzureBlobAdapterFromClient(
-        blobServiceClient,
-        descriptor.containerName
-      );
+      const adapter = await createAzureBlobTestAdapter({
+        connectionString: descriptor.connectionString,
+        containerName: descriptor.containerName,
+      });
       // Azurite cannot service a server-side copy-from-URL when the source URL is
       // the host-mapped testcontainer endpoint: Azurite, running inside its
       // container, can't reach `127.0.0.1:<hostPort>` to fetch the blob. Real
@@ -42,16 +40,13 @@ function buildTestAdapter(descriptor: TestStorageDescriptor): StorageAdapter {
       return adapter;
     }
     case StorageProvider.MINIO: {
-      const s3 = new S3Client({
+      return createMinioTestAdapter({
         endpoint: descriptor.endpoint,
+        accessKey: descriptor.accessKey,
+        secretKey: descriptor.secretKey,
         region: descriptor.region,
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: descriptor.accessKey,
-          secretAccessKey: descriptor.secretKey,
-        },
+        bucket: descriptor.bucket,
       });
-      return createMinioAdapterFromClient(s3, descriptor.bucket);
     }
     default: {
       const exhaustiveCheck: never = descriptor;
@@ -76,7 +71,7 @@ export async function createTestApp(
   await app.ready();
 
   if (options?.storageDescriptor) {
-    app.storage = buildTestAdapter(options.storageDescriptor);
+    app.storage = await buildTestAdapter(options.storageDescriptor);
     // eslint-disable-next-line no-console
     console.log(
       `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider})`

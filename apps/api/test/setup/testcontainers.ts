@@ -4,11 +4,9 @@ import { AzuriteContainer } from "@testcontainers/azurite";
 import type { StartedAzuriteContainer } from "@testcontainers/azurite";
 import { GenericContainer } from "testcontainers";
 import type { StartedTestContainer } from "testcontainers";
-import { BlobServiceClient } from "@azure/storage-blob";
-import { CreateBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { execSync } from "node:child_process";
 import path from "node:path";
-import { StorageProvider } from "@/config/constants.js";
+import { StorageProvider } from "@repo/storage";
 
 const TEST_DATABASE_CONFIG = {
   image: "postgres:18-alpine",
@@ -135,11 +133,9 @@ async function setupAzureTestStorage(): Promise<{
     .start();
 
   const connectionString = container.getConnectionString();
-  const blobServiceClient =
-    BlobServiceClient.fromConnectionString(connectionString);
-  await blobServiceClient
-    .getContainerClient(AZURE_TEST_CONFIG.containerName)
-    .createIfNotExists();
+
+  // The blob container is created lazily (and idempotently) by
+  // `createAzureBlobTestAdapter` in the app factory — no storage SDK here.
 
   // eslint-disable-next-line no-console
   console.log("Azurite storage started successfully");
@@ -172,17 +168,8 @@ async function setupMinioTestStorage(): Promise<{
   const port = container.getMappedPort(9000);
   const endpoint = `http://${host}:${port}`;
 
-  const s3 = new S3Client({
-    endpoint,
-    region: MINIO_TEST_CONFIG.region,
-    forcePathStyle: true,
-    credentials: {
-      accessKeyId: MINIO_TEST_CONFIG.accessKey,
-      secretAccessKey: MINIO_TEST_CONFIG.secretKey,
-    },
-  });
-
-  await s3.send(new CreateBucketCommand({ Bucket: MINIO_TEST_CONFIG.bucket }));
+  // The bucket is created lazily (and idempotently) by `createMinioTestAdapter`
+  // in the app factory — no storage SDK here.
 
   // eslint-disable-next-line no-console
   console.log("MinIO storage started successfully");

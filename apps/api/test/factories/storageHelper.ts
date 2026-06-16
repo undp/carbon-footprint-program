@@ -1,4 +1,4 @@
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 /**
  * Seeds a fixture object via the storage adapter's direct `putObject`.
