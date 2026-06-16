@@ -1,5 +1,5 @@
 import type { PresignedUploadResponse } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 /**
  * Issues a presigned write URL for `blobPath` and shapes it into the response

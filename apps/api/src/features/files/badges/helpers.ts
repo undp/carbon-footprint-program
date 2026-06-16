@@ -9,7 +9,7 @@ import {
   BADGE_UPLOAD_MAX_BYTES,
 } from "@/config/constants.js";
 import { BadgeUploadValidationError } from "./errors.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export async function persistBadgeFileRecord(
   prisma: PrismaClient,

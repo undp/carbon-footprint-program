@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { User } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 interface WithId {
   id: string;

@@ -4,7 +4,7 @@ import type {
   CreateReductionProjectResponse,
   User,
 } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 import {
   linkFilesToSubmission,
   cleanupSourceObjects,

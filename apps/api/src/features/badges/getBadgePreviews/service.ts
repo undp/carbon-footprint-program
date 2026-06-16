@@ -1,6 +1,6 @@
 import { PrismaClient } from "@repo/database";
 import { BadgeType, BadgeStatus, GetBadgePreviewsResponse } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const getBadgePreviewsService = async (
   prismaClient: PrismaClient,

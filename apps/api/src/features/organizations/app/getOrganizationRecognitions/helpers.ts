@@ -12,7 +12,7 @@ import {
 import { kgToTon } from "@repo/utils";
 
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type SubmissionForRecognition = {
   id: bigint;

@@ -1,5 +1,9 @@
 import { AuthProviderType } from "../auth/types.js";
-import { StorageProvider } from "./constants.js";
+import {
+  StorageProvider,
+  storageConfigFromEnv,
+  type StorageConfig,
+} from "@repo/storage";
 
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
@@ -318,3 +322,13 @@ export const MINIO_REGION = process.env.MINIO_REGION ?? "us-east-1";
  */
 export const MINIO_FORCE_PATH_STYLE =
   process.env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false";
+
+/**
+ * Resolves the fully-typed object-storage configuration injected into
+ * `createStorageAdapter`. Delegates to the shared `@repo/storage` parser so the
+ * API and the seed scripts validate the same variables identically. Throws when
+ * `STORAGE_PROVIDER` or a required provider-specific variable is missing.
+ */
+export function buildStorageConfig(): StorageConfig {
+  return storageConfigFromEnv(process.env);
+}

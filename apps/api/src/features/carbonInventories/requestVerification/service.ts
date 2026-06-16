@@ -20,7 +20,7 @@ import {
   linkFilesToSubmission,
   cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,

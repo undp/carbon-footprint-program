@@ -2,7 +2,7 @@ import { Prisma, SubmissionFileType } from "@repo/database";
 import { FileType } from "@repo/types";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { ObjectMoveError, MissingFilesError } from "../errors.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 /**
  * Deletes the source objects that were copied during linkFilesToSubmission.

@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type { ListBadgesResponse } from "@repo/types";
 import { BadgeType } from "@repo/database";
 import { buildAllBadgeCatalogEntries } from "../helpers.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export async function listBadgesService(
   prisma: PrismaClient,

@@ -7,7 +7,7 @@ import {
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { persistLegalFileRecord } from "../../helpers/persistLegalFileRecord.js";
 import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type ConfirmLegalUploadInput = ConfirmLegalUploadBody & { userId?: string };
 

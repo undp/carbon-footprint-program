@@ -12,7 +12,7 @@ import {
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
 } from "@repo/constants";
 import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export interface PersistLegalFileRecordParams {
   uuid: string;

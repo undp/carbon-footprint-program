@@ -10,7 +10,7 @@ import type {
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type {

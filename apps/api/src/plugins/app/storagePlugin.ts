@@ -1,12 +1,12 @@
 import fp from "fastify-plugin";
-import { STORAGE_PROVIDER } from "@/config/environment.js";
-import { createStorageAdapter } from "@/services/storage/index.js";
+import { STORAGE_PROVIDER, buildStorageConfig } from "@/config/environment.js";
+import { createStorageAdapter } from "@repo/storage";
 
 export default fp(
   async (fastify) => {
     if (fastify.hasDecorator("storage")) return;
 
-    const storage = await createStorageAdapter(STORAGE_PROVIDER);
+    const storage = await createStorageAdapter(buildStorageConfig());
     fastify.decorate("storage", storage);
 
     // Verify bucket/container in background — don't block startup.

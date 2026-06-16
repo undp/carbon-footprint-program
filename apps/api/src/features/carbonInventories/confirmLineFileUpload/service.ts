@@ -7,7 +7,7 @@ import {
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "@/features/files/helpers/persistFileRecord.js";
 import { LineFileUploadValidationError } from "./errors.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 interface ConfirmLineFileUploadInput {
   carbonInventoryId: string;

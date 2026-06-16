@@ -3,7 +3,7 @@ import { FileStatus } from "@repo/types";
 import type { DownloadFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
 import { buildContentDisposition } from "@/utils/contentDisposition.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const downloadFileService = async (
   prisma: PrismaClient,

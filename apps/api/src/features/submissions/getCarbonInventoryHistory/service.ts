@@ -9,7 +9,7 @@ import {
   submissionHistorySelect,
 } from "../helpers.js";
 import { mapTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const getCarbonInventoryHistoryService = async (
   prisma: PrismaClient,

@@ -12,7 +12,7 @@ import {
   fetchCarbonInventoryRecognitions,
   fetchReductionProjectRecognitions,
 } from "./helpers.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: 0,

@@ -7,7 +7,7 @@ import {
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type BadgeRequestUploadInput = RequestBadgeUploadBody &
   RequestBadgeUploadParams;

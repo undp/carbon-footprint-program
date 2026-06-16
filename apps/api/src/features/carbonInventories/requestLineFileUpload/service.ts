@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { FileType, type RequestLineFileUploadResponse } from "@repo/types";
 import { buildBlobPath } from "@/features/files/helpers/buildBlobPath.js";
 import { buildPresignedUploadResponse } from "@/features/files/helpers/buildPresignedUploadResponse.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 interface RequestLineFileUploadInput {
   carbonInventoryId: string;

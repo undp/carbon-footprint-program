@@ -3,7 +3,7 @@ import type {
   RequestOrganizationAccreditationResponse,
   User,
 } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 import {
   OrganizationDataStatus,
   SubmissionStatus,

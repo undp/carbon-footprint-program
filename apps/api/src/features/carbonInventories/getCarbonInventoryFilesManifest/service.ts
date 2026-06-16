@@ -3,7 +3,7 @@ import { FileStatus } from "@repo/types";
 import type { GetCarbonInventoryFilesManifestResponse } from "@repo/types";
 import { CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES } from "@/config/constants.js";
 import { buildContentDisposition } from "@/utils/contentDisposition.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
 interface GetCarbonInventoryFilesManifestInput {

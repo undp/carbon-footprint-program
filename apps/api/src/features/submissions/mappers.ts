@@ -2,7 +2,7 @@ import { SubmissionStatus } from "@repo/database";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
-import type { ReadUrlSigner } from "@/services/storage/index.js";
+import type { ReadUrlSigner } from "@repo/storage";
 import {
   SignedFile,
   SubmissionHistoryRow,

@@ -2,7 +2,7 @@ import type { Badge, File } from "@repo/database";
 import { BadgeStatus, BadgeType } from "@repo/database";
 import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type BadgeWithFile = Badge & {
   file: Pick<File, "originalName" | "mimeType" | "blobPath">;

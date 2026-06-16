@@ -7,7 +7,7 @@ import {
 import { FileType } from "@repo/types";
 import { persistBadgeFileRecord } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
   ConfirmBadgeUploadParams & { userId?: string };

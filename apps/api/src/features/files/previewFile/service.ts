@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type { PreviewFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const previewFileService = async (
   prisma: PrismaClient,

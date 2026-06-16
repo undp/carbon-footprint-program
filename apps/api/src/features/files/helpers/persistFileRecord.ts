@@ -1,5 +1,5 @@
-import type { StorageAdapter } from "@/services/storage/index.js";
-import { ObjectNotFoundError } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
+import { ObjectNotFoundError } from "@repo/storage";
 import { FileNotFoundError } from "../errors.js";
 
 export interface PersistFileRecordParams {

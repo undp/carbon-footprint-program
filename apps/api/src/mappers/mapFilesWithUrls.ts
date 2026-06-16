@@ -1,4 +1,4 @@
-import type { ReadUrlSigner } from "@/services/storage/index.js";
+import type { ReadUrlSigner } from "@repo/storage";
 import type { SubmissionHistoryFileRow } from "../features/submissions/helpers.js";
 
 /**

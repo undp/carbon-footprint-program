@@ -1,9 +1,6 @@
 import { Prisma, SubmissionFileType, type PrismaClient } from "@repo/database";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
-import type {
-  ReadUrlSigner,
-  StorageAdapter,
-} from "@/services/storage/index.js";
+import type { ReadUrlSigner, StorageAdapter } from "@repo/storage";
 import { mapOrganizationSummary } from "../../mappers/mapOrganizationSummary.js";
 import type { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 

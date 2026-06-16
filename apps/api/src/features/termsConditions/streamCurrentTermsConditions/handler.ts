@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { FileNotFoundError } from "@/features/files/errors.js";
-import { ObjectNotFoundError } from "@/services/storage/index.js";
+import { ObjectNotFoundError } from "@repo/storage";
 import { buildContentDisposition } from "@/utils/contentDisposition.js";
 import { resolveCurrentTermsConditionsBlob } from "./service.js";
 

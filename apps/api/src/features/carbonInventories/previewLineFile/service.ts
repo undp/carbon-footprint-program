@@ -5,7 +5,7 @@ import { FileNotFoundError } from "@/features/files/errors.js";
 import { CrossInventoryFileLinkingError } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 import { buildContentDisposition } from "@/utils/contentDisposition.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 interface PreviewLineFileInput {
   carbonInventoryId: string;

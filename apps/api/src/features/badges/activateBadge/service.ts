@@ -4,7 +4,7 @@ import { BadgeStatus } from "@repo/database";
 import type { ActivateBadgeResponse } from "@repo/types";
 import { ResourceNotFoundError } from "@/errors/index.js";
 import { buildBadgeCatalogEntry } from "../helpers.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export async function activateBadgeService(
   prisma: PrismaClient,

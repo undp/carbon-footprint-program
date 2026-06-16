@@ -6,7 +6,7 @@ import {
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "../helpers/persistFileRecord.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
 

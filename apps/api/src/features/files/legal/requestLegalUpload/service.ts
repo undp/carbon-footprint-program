@@ -7,7 +7,7 @@ import {
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
 import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type RequestLegalUploadInput = RequestLegalUploadBody;
 

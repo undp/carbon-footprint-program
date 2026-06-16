@@ -6,7 +6,7 @@ import {
   ReductionProjectStatus,
 } from "@repo/types";
 import { sortBy } from "lodash-es";
-import type { StorageAdapter } from "@/services/storage/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 const BADGE_SORT_ORDER: Record<BadgeType, number> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: 1,
