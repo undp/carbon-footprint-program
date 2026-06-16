@@ -39,7 +39,7 @@ declare module "fastify" {
 
     /**
      * Backend-agnostic object storage adapter selected at startup via STORAGE_PROVIDER.
-     * Implementations live under `apps/api/src/services/storage/adapters/`.
+     * Implementations live under `packages/storage/src/adapters/`.
      */
     storage: StorageAdapter;
 
