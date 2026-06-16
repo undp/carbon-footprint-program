@@ -1,7 +1,7 @@
 import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type { GetCarbonInventoryFilesManifestResponse } from "@repo/types";
-import { CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES } from "@/config/constants.js";
+import { CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES } from "@/config/constants.js";
 import { buildContentDisposition } from "@/utils/contentDisposition.js";
 import type { StorageAdapter } from "@repo/storage";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
@@ -58,8 +58,8 @@ export const getCarbonInventoryFilesManifestService = async (
     },
   });
 
-  const signReadSasUrl = await storage.createReadUrlSigner(
-    CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES
+  const signReadUrl = await storage.createReadUrlSigner(
+    CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES
   );
 
   const expectedPrefix = buildCarbonInventoryLineBlobPathPrefix(
@@ -80,7 +80,7 @@ export const getCarbonInventoryFilesManifestService = async (
         continue;
       }
 
-      const { url, expiresAt } = await signReadSasUrl(file.blobPath, {
+      const { url, expiresAt } = await signReadUrl(file.blobPath, {
         contentType: file.mimeType,
         contentDisposition: buildContentDisposition(
           "attachment",
@@ -110,7 +110,7 @@ export const getCarbonInventoryFilesManifestService = async (
     latestExpiresAt ??
     new Date(
       Date.now() +
-        CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES * 60 * 1000
+        CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES * 60 * 1000
     );
 
   return {

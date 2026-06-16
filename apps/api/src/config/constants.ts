@@ -5,12 +5,12 @@ export const PERCENTAGE_PRECISION = 3;
 export const EMISSION_FACTOR_GAS_DETAILS_TOLERANCE = 1e-4;
 
 /**
- * Expiry (minutes) for the SAS URLs returned by the carbon-inventory files
- * manifest endpoint. A dedicated constant so it can be tuned independently
- * when a large inventory's tail of file downloads risks running past the
- * SAS window.
+ * Expiry (minutes) for the presigned read URLs returned by the
+ * carbon-inventory files manifest endpoint. A dedicated constant so it can be
+ * tuned independently when a large inventory's tail of file downloads risks
+ * running past the URL's validity window.
  */
-export const CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES = 15;
+export const CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES = 15;
 
 /** Allowed MIME types for badge uploads */
 export const BADGE_ALLOWED_MIME_TYPES = [

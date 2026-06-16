@@ -141,8 +141,8 @@ export async function getOrgSummaryDetails(
   };
 }
 
-/** Returns a SAS signer when submissions have files; null otherwise. */
-export const createHistoryReadSasSigner = async (
+/** Returns a presigned read-URL signer when submissions have files; null otherwise. */
+export const createHistoryReadUrlSigner = async (
   submissions: SubmissionHistoryRow[],
   storage: StorageAdapter
 ): Promise<ReadUrlSigner | null> => {

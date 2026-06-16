@@ -4,7 +4,7 @@ import { SubmissionEventType } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../../carbonInventories/errors.js";
 import {
   buildSelfDeclarationEvent,
-  createHistoryReadSasSigner,
+  createHistoryReadUrlSigner,
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
@@ -48,7 +48,7 @@ export const getCarbonInventoryHistoryService = async (
     }),
   ]);
 
-  const signReadUrl = await createHistoryReadSasSigner(submissions, storage);
+  const signReadUrl = await createHistoryReadUrlSigner(submissions, storage);
 
   const submissionEventGroups = await Promise.all(
     submissions.map((submission) =>

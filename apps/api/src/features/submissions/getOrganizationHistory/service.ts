@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetOrganizationHistoryResponse } from "@repo/types";
 import {
-  createHistoryReadSasSigner,
+  createHistoryReadUrlSigner,
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
@@ -30,7 +30,7 @@ export const getOrganizationHistoryService = async (
     }),
   ]);
 
-  const signReadUrl = await createHistoryReadSasSigner(submissions, storage);
+  const signReadUrl = await createHistoryReadUrlSigner(submissions, storage);
 
   const submissionEventGroups = await Promise.all(
     submissions.map((submission) =>
