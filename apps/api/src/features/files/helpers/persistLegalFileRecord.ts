@@ -5,7 +5,10 @@ import {
   FileType,
   SystemParameterKeyEnum,
 } from "@repo/types";
-import { checkFileRecordExists } from "./persistFileRecord.js";
+import {
+  checkFileRecordExists,
+  type PersistFileRecordParams,
+} from "./persistFileRecord.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 import {
   LEGAL_TERMS_CONDITIONS_ALLOWED_MIME_TYPE,
@@ -14,17 +17,10 @@ import {
 import { LegalUploadValidationError } from "@/features/files/legal/errors.js";
 import type { StorageAdapter } from "@repo/storage";
 
-export interface PersistLegalFileRecordParams {
-  uuid: string;
-  blobPath: string;
-  originalName: string;
-  userId?: string;
-}
-
 export async function persistLegalFileRecord(
   prisma: PrismaClient,
   storage: StorageAdapter,
-  params: PersistLegalFileRecordParams
+  params: PersistFileRecordParams
 ): Promise<ConfirmLegalUploadResponse> {
   const { sizeBytes, mimeType } = await checkFileRecordExists(
     storage,
