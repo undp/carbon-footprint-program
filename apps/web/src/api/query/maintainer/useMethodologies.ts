@@ -19,14 +19,6 @@ export const useMethodologies = () =>
     staleTime: STALE_TIME_MS,
   });
 
-const invalidateMethodologies = (
-  queryClient: ReturnType<typeof useQueryClient>
-) =>
-  queryClient.invalidateQueries({
-    predicate: (query) =>
-      query.queryKey.includes(MaintainerQueryKey.MethodologiesUpdateDependency),
-  });
-
 export const useAddMethodology = () => {
   const queryClient = useQueryClient();
   return useMutation<
@@ -37,7 +29,12 @@ export const useAddMethodology = () => {
     mutationFn: (data) =>
       apiClient.post("methodologies", { json: data }).json(),
     onSuccess: () => {
-      void invalidateMethodologies(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.MethodologiesUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -57,7 +54,12 @@ export const useUpdateMethodology = () => {
     mutationFn: ({ id, data }) =>
       apiClient.patch(`methodologies/${id}`, { json: data }).json(),
     onSuccess: () => {
-      void invalidateMethodologies(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.MethodologiesUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -89,7 +91,12 @@ export const useDuplicateMethodology = () => {
   return useMutation<DuplicateMethodologyResponse, Error, string>({
     mutationFn: (id) => apiClient.post(`methodologies/${id}/duplicate`).json(),
     onSuccess: () => {
-      void invalidateMethodologies(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.MethodologiesUpdateDependency
+          ),
+      });
     },
   });
 };

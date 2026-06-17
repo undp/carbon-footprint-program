@@ -29,12 +29,6 @@ export const useEmissionFactorDimensions = (methodologyVersionId?: string) =>
 // Invalidating by `DimensionsUpdateDependency` also refreshes emission factors,
 // whose key declares that token (the EF grid renders dimension values, and the
 // dimensions grid renders `subcategoryHasEmissionFactors`).
-const invalidateDimensions = (queryClient: ReturnType<typeof useQueryClient>) =>
-  queryClient.invalidateQueries({
-    predicate: (query) =>
-      query.queryKey.includes(MaintainerQueryKey.DimensionsUpdateDependency),
-  });
-
 export const useAddEmissionFactorDimension = () => {
   const queryClient = useQueryClient();
   return useMutation<
@@ -45,7 +39,12 @@ export const useAddEmissionFactorDimension = () => {
     mutationFn: (data) =>
       apiClient.post("emission-factor-dimensions", { json: data }).json(),
     onSuccess: () => {
-      void invalidateDimensions(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.DimensionsUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -62,7 +61,12 @@ export const useUpdateEmissionFactorDimension = () => {
         .patch(`emission-factor-dimensions/${id}`, { json: data })
         .json(),
     onSuccess: () => {
-      void invalidateDimensions(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.DimensionsUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -74,7 +78,12 @@ export const useDeleteEmissionFactorDimension = () => {
       await apiClient.delete(`emission-factor-dimensions/${id}`);
     },
     onSuccess: () => {
-      void invalidateDimensions(queryClient);
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.DimensionsUpdateDependency
+          ),
+      });
     },
   });
 };
