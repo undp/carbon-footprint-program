@@ -1,3 +1,4 @@
+import { buffer } from "node:stream/consumers";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { CreateBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { createAzureBlobAdapterFromClient } from "./adapters/azureBlobAdapter.js";
@@ -25,7 +26,25 @@ export async function createAzureBlobTestAdapter(
 ): Promise<StorageAdapter> {
   const client = BlobServiceClient.fromConnectionString(opts.connectionString);
   await client.getContainerClient(opts.containerName).createIfNotExists();
-  return createAzureBlobAdapterFromClient(client, opts.containerName);
+  const adapter = createAzureBlobAdapterFromClient(client, opts.containerName);
+
+  // Azurite cannot service a server-side copy-from-URL when the source URL is
+  // the host-mapped testcontainer endpoint: Azurite, running inside its
+  // container, can't reach `127.0.0.1:<hostPort>` to fetch the blob. Real
+  // Azure has no such limitation (the storage service fetches the SAS URL
+  // directly). For tests we substitute an equivalent client-side stream copy
+  // so copyObject moves real bytes against Azurite.
+  adapter.copyObject = async (src: string, dst: string): Promise<void> => {
+    if (src === dst) return;
+    const { body, mimeType } = await adapter.streamObject(src);
+    await adapter.putObject(
+      dst,
+      await buffer(body),
+      mimeType ? { contentType: mimeType } : undefined
+    );
+  };
+
+  return adapter;
 }
 
 export interface MinioTestStorageOptions {

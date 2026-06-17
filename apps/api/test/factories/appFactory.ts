@@ -1,4 +1,3 @@
-import { buffer } from "node:stream/consumers";
 import { createApp } from "@/app.js";
 import prismaPlugin from "@/plugins/app/prisma.js";
 import { StorageProvider, type StorageAdapter } from "@repo/storage";
@@ -18,26 +17,10 @@ async function buildTestAdapter(
 ): Promise<StorageAdapter> {
   switch (descriptor.provider) {
     case StorageProvider.AZURE_BLOB_STORAGE: {
-      const adapter = await createAzureBlobTestAdapter({
+      return createAzureBlobTestAdapter({
         connectionString: descriptor.connectionString,
         containerName: descriptor.containerName,
       });
-      // Azurite cannot service a server-side copy-from-URL when the source URL is
-      // the host-mapped testcontainer endpoint: Azurite, running inside its
-      // container, can't reach `127.0.0.1:<hostPort>` to fetch the blob. Real
-      // Azure has no such limitation (the storage service fetches the SAS URL
-      // directly). For tests we substitute an equivalent client-side stream copy
-      // so copyObject moves real bytes against Azurite.
-      adapter.copyObject = async (src: string, dst: string): Promise<void> => {
-        if (src === dst) return;
-        const { body, mimeType } = await adapter.streamObject(src);
-        await adapter.putObject(
-          dst,
-          await buffer(body),
-          mimeType ? { contentType: mimeType } : undefined
-        );
-      };
-      return adapter;
     }
     case StorageProvider.MINIO: {
       return createMinioTestAdapter({
