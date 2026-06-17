@@ -149,7 +149,10 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Create SubmissionFile records (object operations happen after transaction commits)
+    // 4. Create SubmissionFile records. NOTE: the object copy/cleanup currently
+    // runs inside this transaction, holding it open across network-bound storage
+    // I/O. Tracked for extraction in
+    // https://github.com/undp/carbon-footprint-program/issues/387
     const fileMetadata = await linkFilesToSubmission(
       tx,
       submission.id,
