@@ -96,13 +96,13 @@ Owns the Prisma schema, all migration files, the generated `PrismaClient`, and d
 
 ---
 
-### `@repo/storage` — Object Storage Credentials
+### `@repo/storage` — Object Storage
 
 **Location:** `packages/storage/`
 
-Object storage logic shared by the API and the seed tool. Currently minimal: exports `getStorageCredential()`, which builds the Azure credential (`ClientSecretCredential` when an explicit service principal is configured, `DefaultAzureCredential` → Managed Identity otherwise).
+Provider-agnostic object-storage abstraction shared by the API and the seed tool. The public barrel exports the `StorageAdapter` interface and its object types/errors (`ObjectNotFoundError`, `ObjectMetadata`, `ObjectStream`, …), the `createStorageAdapter` factory, the `StorageProvider` enum, and config helpers (`storageConfigFromEnv`, `StorageConfig`, `DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES`). Two adapter implementations live behind the interface: Azure Blob Storage and MinIO (S3-compatible); `createStorageAdapter` selects one from `STORAGE_PROVIDER`. Credential resolution (`getStorageCredential` — `ClientSecretCredential` when an explicit service principal is configured, `DefaultAzureCredential` → Managed Identity otherwise) is package-internal and not exported. A `@repo/storage/testing` subpath provides test-only adapter builders for Azurite and MinIO testcontainers.
 
-**Dependencies:** `@azure/identity`
+**Dependencies:** `@azure/identity`, `@azure/storage-blob`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `@repo/types`
 
 ---
 
