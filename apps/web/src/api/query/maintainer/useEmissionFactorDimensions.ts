@@ -26,9 +26,10 @@ export const useEmissionFactorDimensions = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-// Invalidating by `DimensionsUpdateDependency` also refreshes emission factors,
-// whose key declares that token (the EF grid renders dimension values, and the
-// dimensions grid renders `subcategoryHasEmissionFactors`).
+// Invalidating by `EmissionFactorDimensionsUpdateDependency` also refreshes
+// emission factors, whose key declares that token (the emission factor grid
+// renders dimension values, and the dimensions grid renders
+// `subcategoryHasEmissionFactors`).
 export const useAddEmissionFactorDimension = () => {
   const queryClient = useQueryClient();
   return useMutation<
@@ -42,7 +43,7 @@ export const useAddEmissionFactorDimension = () => {
       void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
-            MaintainerQueryKey.DimensionsUpdateDependency
+            MaintainerQueryKey.EmissionFactorDimensionsUpdateDependency
           ),
       });
     },
@@ -64,7 +65,7 @@ export const useUpdateEmissionFactorDimension = () => {
       void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
-            MaintainerQueryKey.DimensionsUpdateDependency
+            MaintainerQueryKey.EmissionFactorDimensionsUpdateDependency
           ),
       });
     },
@@ -81,7 +82,7 @@ export const useDeleteEmissionFactorDimension = () => {
       void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
-            MaintainerQueryKey.DimensionsUpdateDependency
+            MaintainerQueryKey.EmissionFactorDimensionsUpdateDependency
           ),
       });
     },
