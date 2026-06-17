@@ -168,9 +168,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     pageSize: 25,
   });
 
-  const addMutation = useAddEmissionFactor(methodologyVersionId);
-  const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
-  const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
+  const addMutation = useAddEmissionFactor();
+  const updateMutation = useUpdateEmissionFactor();
+  const deleteMutation = useDeleteEmissionFactor();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(

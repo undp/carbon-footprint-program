@@ -1,4 +1,4 @@
-export { maintainerKeys } from "./keys";
+export { maintainerKeys, MaintainerQueryKey } from "./keys";
 export {
   useMethodologies,
   useUpdateMethodology,

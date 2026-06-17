@@ -107,10 +107,10 @@ export const CategoriesMaintainerScreen: FC = () => {
     [methodologyVersionId]
   );
 
-  const addMutation = useAddCategory(methodologyVersionId);
-  const updateMutation = useUpdateCategory(methodologyVersionId);
-  const deleteMutation = useDeleteCategory(methodologyVersionId);
-  const swapMutation = useSwapCategoryPositions(methodologyVersionId);
+  const addMutation = useAddCategory();
+  const updateMutation = useUpdateCategory();
+  const deleteMutation = useDeleteCategory();
+  const swapMutation = useSwapCategoryPositions();
 
   const { form, fieldArray, handleCellChange } = useCategoriesForm();
   const currentRows = form.watch("categories");

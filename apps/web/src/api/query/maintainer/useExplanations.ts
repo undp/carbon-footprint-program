@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
-import { maintainerKeys } from "./keys";
+import { maintainerKeys, MaintainerQueryKey } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllExplanationsResponse,
@@ -29,8 +29,10 @@ export const useUpdateExplanation = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: maintainerKeys.explanations.all(),
-        exact: true,
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.ExplanationsUpdateDependency
+          ),
       });
     },
   });

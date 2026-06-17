@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
-import { maintainerKeys } from "./keys";
+import { maintainerKeys, MaintainerQueryKey } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllSubcategoriesResponse,
@@ -23,7 +23,7 @@ export const useSubcategories = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useAddSubcategory = (methodologyVersionId?: string) => {
+export const useAddSubcategory = () => {
   const queryClient = useQueryClient();
   return useMutation<
     CreateSubcategoryResponse,
@@ -33,11 +33,12 @@ export const useAddSubcategory = (methodologyVersionId?: string) => {
     mutationFn: (data) =>
       apiClient.post("subcategories", { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.subcategories.all(methodologyVersionId),
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoriesUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -47,7 +48,7 @@ interface UpdateSubcategoryVariables {
   data: UpdateSubcategoryRequest;
 }
 
-export const useUpdateSubcategory = (methodologyVersionId?: string) => {
+export const useUpdateSubcategory = () => {
   const queryClient = useQueryClient();
   return useMutation<
     UpdateSubcategoryResponse,
@@ -57,27 +58,29 @@ export const useUpdateSubcategory = (methodologyVersionId?: string) => {
     mutationFn: ({ subcategoryId, data }) =>
       apiClient.patch(`subcategories/${subcategoryId}`, { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.subcategories.all(methodologyVersionId),
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoriesUpdateDependency
+          ),
+      });
     },
   });
 };
 
-export const useDeleteSubcategory = (methodologyVersionId?: string) => {
+export const useDeleteSubcategory = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
     mutationFn: async (subcategoryId) => {
       await apiClient.delete(`subcategories/${subcategoryId}`);
     },
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.subcategories.all(methodologyVersionId),
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoriesUpdateDependency
+          ),
+      });
     },
   });
 };

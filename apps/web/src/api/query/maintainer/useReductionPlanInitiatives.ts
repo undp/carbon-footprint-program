@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "notistack";
 import { apiClient } from "@/api/http";
-import { maintainerKeys } from "./keys";
+import { maintainerKeys, MaintainerQueryKey } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllReductionPlanInitiativesResponse,
@@ -18,7 +18,10 @@ const useReductionPlanInitiativeMutationSuccess = () => {
 
   return (message: string) => {
     void queryClient.invalidateQueries({
-      queryKey: maintainerKeys.reductionPlanInitiatives.all,
+      predicate: (query) =>
+        query.queryKey.includes(
+          MaintainerQueryKey.ReductionPlanInitiativesUpdateDependency
+        ),
     });
     void enqueueSnackbar({ message, variant: "success" });
   };
