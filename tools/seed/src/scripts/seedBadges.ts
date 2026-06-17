@@ -8,6 +8,7 @@ import {
   storageConfigFromEnv,
   type StorageAdapter,
 } from "@repo/storage";
+import { FileType } from "@repo/types";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,7 +39,7 @@ function buildBadgeBlobPath(
   name: string
 ): string {
   const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `BADGE/${badgeType}/${uuid}-${sanitizedName}`;
+  return `${FileType.BADGE}/${badgeType}/${uuid}-${sanitizedName}`;
 }
 
 export async function seedBadges(

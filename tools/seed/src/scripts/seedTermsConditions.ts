@@ -13,13 +13,13 @@ import {
   storageConfigFromEnv,
   type StorageAdapter,
 } from "@repo/storage";
+import { SystemParameterKeyEnum } from "@repo/types";
 import type { SeedsDataset } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const TERMS_CONDITIONS_FILE_NAME = "terms_conditions.pdf";
-const TERMS_CONDITIONS_SYSTEM_PARAMETER_KEY = "TERMS_CONDITIONS_FILE_UUID";
 
 function buildLegalBlobPath(uuid: string, name: string): string {
   const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -49,7 +49,7 @@ export async function seedTermsConditions(
   console.log("Seeding terms & conditions...");
 
   const currentParam = await prisma.systemParameter.findUnique({
-    where: { key: TERMS_CONDITIONS_SYSTEM_PARAMETER_KEY },
+    where: { key: SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID },
     select: { value: true },
   });
 
@@ -88,7 +88,7 @@ export async function seedTermsConditions(
       });
 
       await tx.systemParameter.update({
-        where: { key: TERMS_CONDITIONS_SYSTEM_PARAMETER_KEY },
+        where: { key: SystemParameterKeyEnum.TERMS_CONDITIONS_FILE_UUID },
         data: { value: uuid },
       });
     });
