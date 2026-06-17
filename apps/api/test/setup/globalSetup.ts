@@ -2,10 +2,12 @@ import {
   runPrismaMigrations,
   runSeeds,
   setupTestDatabase,
+} from "./testDatabase.js";
+import {
   setupTestStorage,
   type TestStorageContainer,
   type TestStorageDescriptor,
-} from "./testcontainers.js";
+} from "./testStorage.js";
 import type { TestProject } from "vitest/node";
 import { StorageProvider } from "@repo/storage";
 

@@ -5,7 +5,7 @@ import {
   createAzureBlobTestAdapter,
   createMinioTestAdapter,
 } from "@repo/storage/testing";
-import type { TestStorageDescriptor } from "../setup/testcontainers.js";
+import type { TestStorageDescriptor } from "../setup/testStorage.js";
 import type { FastifyInstance } from "fastify";
 
 interface CreateTestAppOptions {
