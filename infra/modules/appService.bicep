@@ -115,6 +115,10 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
       ], storageAccountName != '' ? [
         {
+          name: 'STORAGE_PROVIDER'
+          value: 'azure_blob_storage'
+        }
+        {
           name: 'AZURE_STORAGE_ACCOUNT_NAME'
           value: storageAccountName
         }
@@ -163,4 +167,3 @@ output planName string = appServicePlan.name
 
 @description('App Service managed identity principal ID')
 output principalId string = appService.identity.principalId
-

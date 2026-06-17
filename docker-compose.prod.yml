@@ -56,7 +56,9 @@ services:
       - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
       - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
       - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
-      # --- Azure Blob Storage (empty disables file upload/download) ---
+      # --- Object storage: azure_blob_storage ---
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-azure_blob_storage}
+      # --- Azure Blob Storage ---
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
       # Dedicated service principal for storage (different tenant than JWKS).
