@@ -9,7 +9,6 @@ import type { StorageAdapter } from "@repo/storage";
  * Call this AFTER linkFilesToSubmission succeeds.
  *
  * @param cleanup - Cleanup context returned by linkFilesToSubmission.
- * @returns {Promise<void>}
  *
  * @see linkFilesToSubmission for the main function.
  */
@@ -51,10 +50,10 @@ export interface ObjectCopyResult {
  * @param storage - Storage adapter.
  * @param fileType - The type of submission file (defaults to SUBMIT_ATTACHMENT).
  *
- * @returns {Promise<ObjectCopyResult>} Cleanup context for deleting source objects after commit.
+ * @returns Cleanup context for deleting source objects after commit.
  *
- * @throws {MissingFilesError} If any of the provided UUIDs are not found in the database.
- * @throws {ObjectMoveError} If any copy fails (after cleaning up successful copies).
+ * @throws MissingFilesError If any of the provided UUIDs are not found in the database.
+ * @throws ObjectMoveError If any copy fails (after cleaning up successful copies).
  *
  * @see cleanupSourceObjects for post-copy source cleanup.
  */
