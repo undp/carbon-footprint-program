@@ -66,7 +66,6 @@ export async function linkFilesToSubmission(
   fileType: SubmissionFileType = SubmissionFileType.SUBMIT_ATTACHMENT
 ): Promise<ObjectCopyResult> {
   const uniqueUuids = [...new Set(fileUuids)];
-  const sourcePaths: string[] = [];
 
   const files = await tx.file.findMany({
     where: { uuid: { in: uniqueUuids } },
@@ -120,7 +119,7 @@ export async function linkFilesToSubmission(
   }
 
   // Step 4: All copies succeeded — collect source paths for cleanup
-  sourcePaths.push(...filesPlans.map((plan) => plan.currentBlobPath));
+  const sourcePaths = filesPlans.map((plan) => plan.currentBlobPath);
 
   // Step 5: Update DB records
   await Promise.all(
