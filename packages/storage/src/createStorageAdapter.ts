@@ -27,7 +27,7 @@ export async function createStorageAdapter(
     default: {
       const exhaustiveCheck: never = config;
       throw new Error(
-        `Unsupported storage provider: ${String(exhaustiveCheck)}`
+        `Unsupported storage provider: ${JSON.stringify(exhaustiveCheck)}`
       );
     }
   }
