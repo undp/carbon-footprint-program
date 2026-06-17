@@ -98,7 +98,7 @@ export const getCarbonInventoryFilesManifestService = async (
         categoryName: line.subcategory.category.name,
         subcategoryName: line.subcategory.name,
         originalName: file.originalName,
-        sasUrl: url,
+        readUrl: url,
         expiresAt: expiresAt.toISOString(),
         sizeBytes: file.sizeBytes,
         mimeType: file.mimeType,

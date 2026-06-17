@@ -164,7 +164,7 @@ export function useDownloadCarbonInventory() {
 
           let response: Response;
           try {
-            response = await fetch(file.sasUrl, { signal });
+            response = await fetch(file.readUrl, { signal });
             if (!response.ok) {
               throw new Error(
                 `Blob fetch failed: ${response.status} ${response.statusText}`

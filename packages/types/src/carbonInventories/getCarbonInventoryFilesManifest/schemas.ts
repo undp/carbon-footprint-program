@@ -19,10 +19,10 @@ export const FilesManifestEntrySchema = z.object({
   originalName: z
     .string()
     .describe("The original filename as uploaded by the user"),
-  sasUrl: z.url().describe("Signed Azure blob SAS URL with read permission"),
+  readUrl: z.url().describe("Signed read URL for the file"),
   expiresAt: z.iso
     .datetime()
-    .describe("ISO timestamp when this entry's SAS URL expires"),
+    .describe("ISO timestamp when this entry's read URL expires"),
   sizeBytes: z.number().int().nonnegative().describe("File size in bytes"),
   mimeType: z.string().describe("The file MIME type"),
 });
@@ -34,6 +34,6 @@ export const GetCarbonInventoryFilesManifestResponseSchema = z.object({
   expiresAt: z.iso
     .datetime()
     .describe(
-      "ISO timestamp when all SAS URLs in this response expire (shared)"
+      "ISO timestamp when all read URLs in this response expire (shared)"
     ),
 });

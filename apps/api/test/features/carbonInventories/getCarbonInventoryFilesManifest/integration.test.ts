@@ -150,8 +150,8 @@ describe("GET /api/carbon-inventories/:id/files-manifest - Integration Tests", (
 
     for (const entry of body.files) {
       expect(entry.lineId).toBe(line.id.toString());
-      expect(typeof entry.sasUrl).toBe("string");
-      expect(entry.sasUrl).toMatch(/^https?:\/\//);
+      expect(typeof entry.readUrl).toBe("string");
+      expect(entry.readUrl).toMatch(/^https?:\/\//);
       expect(entry.fileUuid).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
       );
