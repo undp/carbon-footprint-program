@@ -66,16 +66,19 @@ export const useDeleteMethodology = () => {
   const queryClient = useQueryClient();
   return useMutation<DeleteMethodologyResponse, Error, string>({
     mutationFn: (id) => apiClient.delete(`methodologies/${id}`).json(),
-    // The deleted `id` is the methodologyVersionId, so clear every query scoped
-    // to that version (its categories/subcategories/emission factors/dimensions/
-    // initiatives) along with the methodologies list.
+    // The deleted `id` is the methodologyVersionId, so clear every maintainer
+    // query scoped to that version (its categories/subcategories/emission
+    // factors/dimensions/initiatives) along with the methodologies list. Scoped
+    // to the maintainer namespace (queryKey[0] === Root) so a numeric version id
+    // can't collide with same-id queries in other namespaces.
     onSuccess: (_data, id) => {
       void queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey.includes(id) ||
-          query.queryKey.includes(
-            MaintainerQueryKey.MethodologiesUpdateDependency
-          ),
+          query.queryKey[0] === MaintainerQueryKey.Root &&
+          (query.queryKey.includes(id) ||
+            query.queryKey.includes(
+              MaintainerQueryKey.MethodologiesUpdateDependency
+            )),
       });
     },
   });

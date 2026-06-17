@@ -39,10 +39,13 @@ export enum MaintainerQueryKey {
  */
 export const maintainerKeys = {
   methodologies: {
+    // The methodologies GET embeds `categoryCount`, so category add/delete must
+    // be able to refresh the list.
     all: [
       MaintainerQueryKey.Root,
       MaintainerQueryKey.Methodologies,
       MaintainerQueryKey.MethodologiesUpdateDependency,
+      MaintainerQueryKey.CategoriesUpdateDependency,
     ] as const,
     detail: (id: string) =>
       [
@@ -88,6 +91,8 @@ export const maintainerKeys = {
       ] as const,
   },
   emissionFactorDimensions: {
+    // The dimensions GET groups by subcategory and orders by category.position,
+    // so it is sensitive to category renames/reorders too.
     all: (methodologyVersionId: string) =>
       [
         MaintainerQueryKey.Root,
@@ -96,6 +101,7 @@ export const maintainerKeys = {
         MaintainerQueryKey.DimensionsUpdateDependency,
         MaintainerQueryKey.EmissionFactorsUpdateDependency,
         MaintainerQueryKey.SubcategoriesUpdateDependency,
+        MaintainerQueryKey.CategoriesUpdateDependency,
       ] as const,
   },
   reductionPlanInitiatives: {
@@ -126,16 +132,6 @@ export const maintainerKeys = {
       MaintainerQueryKey.SubcategoriesUpdateDependency,
       MaintainerQueryKey.EmissionFactorsUpdateDependency,
     ] as const,
-    detail: (id: string) =>
-      [
-        MaintainerQueryKey.Root,
-        MaintainerQueryKey.MeasurementUnits,
-        id,
-        MaintainerQueryKey.MeasurementUnitsUpdateDependency,
-        MaintainerQueryKey.MagnitudesUpdateDependency,
-        MaintainerQueryKey.SubcategoriesUpdateDependency,
-        MaintainerQueryKey.EmissionFactorsUpdateDependency,
-      ] as const,
   },
   magnitudes: {
     all: [
@@ -144,13 +140,5 @@ export const maintainerKeys = {
       MaintainerQueryKey.MagnitudesUpdateDependency,
       MaintainerQueryKey.MeasurementUnitsUpdateDependency,
     ] as const,
-    detail: (id: string) =>
-      [
-        MaintainerQueryKey.Root,
-        MaintainerQueryKey.Magnitudes,
-        id,
-        MaintainerQueryKey.MagnitudesUpdateDependency,
-        MaintainerQueryKey.MeasurementUnitsUpdateDependency,
-      ] as const,
   },
 };
