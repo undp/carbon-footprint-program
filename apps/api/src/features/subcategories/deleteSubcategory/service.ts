@@ -3,6 +3,8 @@ import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
+  SubcategoryRecommendationStatus,
   SubcategoryStatus,
   User,
 } from "@repo/types";
@@ -63,6 +65,28 @@ export const deleteSubcategoryService = async (
       },
       data: {
         status: EmissionFactorDimensionStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+
+    await tx.reductionPlanInitiative.updateMany({
+      where: {
+        subcategoryId: parsedSubcategoryId,
+        status: ReductionPlanInitiativeStatus.ACTIVE,
+      },
+      data: {
+        status: ReductionPlanInitiativeStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+
+    await tx.subcategoryRecommendation.updateMany({
+      where: {
+        subcategoryId: parsedSubcategoryId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+      data: {
+        status: SubcategoryRecommendationStatus.DELETED,
         updatedById: BigInt(user.id),
       },
     });
