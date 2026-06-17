@@ -9,7 +9,6 @@ import {
   type BlobSASSignatureValues,
   type UserDelegationKey,
 } from "@azure/storage-blob";
-import { HttpUploadMethod } from "@repo/types";
 import type { Readable } from "node:stream";
 import { getStorageCredential } from "../internal/getStorageCredential.js";
 import {
@@ -151,7 +150,7 @@ class AzureBlobAdapter implements StorageAdapter {
     return {
       url: this.blobUrlWithSas(path, sasToken),
       headers: { "x-ms-blob-type": "BlockBlob" },
-      method: HttpUploadMethod.PUT,
+      method: "PUT",
       expiresAt,
     };
   }

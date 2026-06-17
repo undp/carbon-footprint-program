@@ -16,5 +16,6 @@ export {
   type ReadUrlResult,
   type ReadUrlSigner,
   type StorageAdapter,
+  type UploadHttpMethod,
   type WriteUrlResult,
 } from "./types.js";

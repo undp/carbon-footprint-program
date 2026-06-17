@@ -1,5 +1,12 @@
 import type { Readable } from "node:stream";
-import type { HttpUploadMethod } from "@repo/types";
+
+/**
+ * HTTP method a client must use against a presigned write URL. Backend-agnostic
+ * and intentionally local to `@repo/storage`: the storage layer must not depend
+ * on the API contract package (`@repo/types`). The API edge maps this to its
+ * own wire DTO. Every adapter issues PUT today.
+ */
+export type UploadHttpMethod = "PUT";
 
 /** Result of issuing a presigned read URL. */
 export interface ReadUrlResult {
@@ -23,7 +30,7 @@ export interface ReadOptions extends ReadPresentationOptions {
 export interface WriteUrlResult {
   url: string;
   headers: Record<string, string>;
-  method: HttpUploadMethod;
+  method: UploadHttpMethod;
   expiresAt: Date;
 }
 

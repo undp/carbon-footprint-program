@@ -11,7 +11,6 @@ import {
   type PutObjectCommandInput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { HttpUploadMethod } from "@repo/types";
 import type { Readable } from "node:stream";
 import {
   type MinioStorageConfig,
@@ -83,7 +82,7 @@ class MinioAdapter implements StorageAdapter {
     return {
       url,
       headers: {},
-      method: HttpUploadMethod.PUT,
+      method: "PUT",
       expiresAt,
     };
   }

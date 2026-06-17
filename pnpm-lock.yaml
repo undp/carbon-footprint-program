@@ -470,9 +470,6 @@ importers:
       '@azure/storage-blob':
         specifier: ^12.31.0
         version: 12.31.0
-      '@repo/types':
-        specifier: workspace:*
-        version: link:../types
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

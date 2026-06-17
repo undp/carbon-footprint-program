@@ -1,5 +1,4 @@
 import { vi, type Mock } from "vitest";
-import { HttpUploadMethod } from "@repo/types";
 import type {
   StorageAdapter,
   ObjectMetadata,
@@ -40,7 +39,7 @@ export function createMockStorageAdapter(): MockStorageAdapter {
   };
   const cannedWriteResult: WriteUrlResult = {
     url: MOCK_URL,
-    method: HttpUploadMethod.PUT,
+    method: "PUT",
     headers: {},
     expiresAt: FUTURE_EXPIRY,
   };
