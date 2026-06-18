@@ -31,8 +31,8 @@ Images are **not built on the deploy server** and there is no registry. They are
 - **Database and roles provisioned by the DBA** — see the [contract below](#database-roles--privileges-dba-contract). The repo ships no provisioning SQL.
 - **Network reachability**:
   - app server → DB server `:5432`. Containers reach external IPs through the host's NAT — no special Docker network config. The flip side: the DB server's `pg_hba.conf`/firewall must allow the **app server's IP** (connections from containers arrive NATed behind it).
-  - app server → Azure: `*.ciamlogin.com` (user auth) and `<account>.blob.core.windows.net` (file storage).
-- **Azure resources**: Entra External ID app registrations (API + front) and a storage Service Principal — [creation walkthrough](./docker-compose.md#create-the-storage-service-principal-azure-portal).
+  - app server → Azure `*.ciamlogin.com` (user auth). For file storage: app server → Azure `<account>.blob.core.windows.net` when `STORAGE_PROVIDER=azure_blob_storage`, or app server → the MinIO endpoint (`MINIO_ENDPOINT`) when `STORAGE_PROVIDER=minio`.
+- **Azure resources**: Entra External ID app registrations (API + front), plus — only when `STORAGE_PROVIDER=azure_blob_storage` — a storage Service Principal ([creation walkthrough](./docker-compose.md#create-the-storage-service-principal-azure-portal)). MinIO deployments need none of the storage Azure resources; instead provision a bucket and an access key/secret on the MinIO server, with CORS allowing the web origin (`ALLOWED_ORIGIN`).
 - **A dev machine with pnpm** and network access to the DB server, to run migrations and seeds.
 
 ## Database roles & privileges (DBA contract)
@@ -63,6 +63,7 @@ Fill in every placeholder — the template has no working defaults, and `docker-
 - **`DATABASE_URL`**: use the **application user**. If the password has special characters (`@ : / ? # & % $` …) it must be URL-encoded: `node -e "console.log(encodeURIComponent(process.argv[1]))" 'p@ss#word'`.
 - **`ALLOWED_ORIGIN` / `VITE_FRONT_BASE_URL`**: the exact browser origin of the web app (scheme + host + port, no trailing slash) — a mismatch shows up as CORS errors.
 - **`VITE_API_BASE_URL`**: the **host-exposed** API URL (uses `API_PORT`), not the container-internal port.
+- **`STORAGE_PROVIDER`**: `azure_blob_storage` (default) or `minio`. Fill only the matching storage block in the env file — the API refuses to boot if the selected provider's required vars are missing (`AZURE_STORAGE_ACCOUNT_NAME` for Azure; `MINIO_ENDPOINT`/`MINIO_ACCESS_KEY`/`MINIO_SECRET_KEY` for MinIO).
 - Shell/direnv exports silently override `--env-file` values — see [the precedence troubleshooting](./docker-compose.md#compose-uses-the-wrong-value-for-a-variable-shell--direnv-overrides---env-file).
 
 ## Connectivity check (before first boot)
@@ -86,11 +87,21 @@ Run from a repo checkout at the **same tag** being deployed, with network access
 export DATABASE_URL='postgresql://<migration-user>:<url-encoded-password>@<db-host>:5432/<db-name>?schema=public'
 
 # Storage vars — REQUIRED BEFORE THE FIRST SEED (see warning below).
+# Set the block that matches the provider you configured in the env file.
+export STORAGE_PROVIDER=azure_blob_storage   # or: minio
+
+# When STORAGE_PROVIDER=azure_blob_storage:
 export AZURE_STORAGE_ACCOUNT_NAME=<account>
 export AZURE_STORAGE_CONTAINER_NAME=files
 export AZURE_STORAGE_TENANT_ID=<directory-tenant-id>
 export AZURE_STORAGE_CLIENT_ID=<sp-client-id>
 export AZURE_STORAGE_CLIENT_SECRET=<sp-secret>
+
+# When STORAGE_PROVIDER=minio (instead of the Azure block above):
+# export MINIO_ENDPOINT=http://<minio-host>:9000
+# export MINIO_ACCESS_KEY=<access-key>
+# export MINIO_SECRET_KEY=<secret-key>
+# export MINIO_BUCKET=files
 
 pnpm install
 pnpm --filter @repo/database validate:version   # preflight: connectivity + PostgreSQL >= 15
@@ -98,7 +109,7 @@ pnpm --filter @repo/database prod:deploy        # prisma migrate deploy
 pnpm --filter @repo/seed seed                   # first deploy only (idempotent)
 ```
 
-> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows, and the badge/terms seeds individually skip (with a warning) when the `AZURE_STORAGE_*` vars are unset. Combined: if the first `seed` run happens **without** the storage vars, badges and terms & conditions are never seeded and **re-running is a permanent no-op**. Recovering afterwards requires DBA-level cleanup. Set the storage vars before the first seed run.
+> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows, and the badge/terms seeds individually skip (with a warning) when storage is not configured for the selected `STORAGE_PROVIDER` (i.e. `STORAGE_PROVIDER` unset, or the provider's `AZURE_STORAGE_*` / `MINIO_*` vars unset or incomplete). Combined: if the first `seed` run happens **without** working storage vars, badges and terms & conditions are never seeded and **re-running is a permanent no-op**. Recovering afterwards requires DBA-level cleanup. Set `STORAGE_PROVIDER` and its storage vars before the first seed run.
 
 If migrations ran as a user other than the application user, re-apply/verify the grants from the [DBA contract](#database-roles--privileges-dba-contract) before starting the stack.
 
