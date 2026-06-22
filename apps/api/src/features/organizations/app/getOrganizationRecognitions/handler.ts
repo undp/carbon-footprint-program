@@ -21,15 +21,12 @@ export const getOrganizationRecognitionsHandler = async (
     "Getting organization recognitions..."
   );
 
-  const prisma = request.server.prisma;
-  const { blobServiceClient, storageContainerName } = request.server;
   const data = await getOrganizationRecognitionsService(
-    prisma,
+    request.server.prisma,
     id,
+    request.server.storage,
     year,
-    submissionTypes,
-    blobServiceClient,
-    storageContainerName
+    submissionTypes
   );
 
   log.info(

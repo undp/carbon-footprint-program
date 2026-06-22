@@ -1,11 +1,43 @@
 import { createApp } from "@/app.js";
 import prismaPlugin from "@/plugins/app/prisma.js";
-import { BlobServiceClient } from "@azure/storage-blob";
+import { StorageProvider, type StorageAdapter } from "@repo/storage";
+import {
+  createAzureBlobTestAdapter,
+  createMinioTestAdapter,
+} from "@repo/storage/testing";
+import type { TestStorageDescriptor } from "../setup/testStorage.js";
 import type { FastifyInstance } from "fastify";
 
 interface CreateTestAppOptions {
-  storageConnectionString?: string;
-  storageContainerName?: string;
+  storageDescriptor?: TestStorageDescriptor | null;
+}
+
+async function buildTestAdapter(
+  descriptor: TestStorageDescriptor
+): Promise<StorageAdapter> {
+  switch (descriptor.provider) {
+    case StorageProvider.AZURE_BLOB_STORAGE: {
+      return createAzureBlobTestAdapter({
+        connectionString: descriptor.connectionString,
+        containerName: descriptor.containerName,
+      });
+    }
+    case StorageProvider.MINIO: {
+      return createMinioTestAdapter({
+        endpoint: descriptor.endpoint,
+        accessKey: descriptor.accessKey,
+        secretKey: descriptor.secretKey,
+        region: descriptor.region,
+        bucket: descriptor.bucket,
+      });
+    }
+    default: {
+      const exhaustiveCheck: never = descriptor;
+      throw new Error(
+        `Unsupported test storage descriptor: ${JSON.stringify(exhaustiveCheck)}`
+      );
+    }
+  }
 }
 
 export async function createTestApp(
@@ -17,44 +49,20 @@ export async function createTestApp(
 
   await app.register(prismaPlugin, { databaseUrl });
 
-  // Must call ready() BEFORE overriding blob storage decorators.
-  // blobStoragePlugin runs during ready() and would overwrite any assignment
-  // made beforehand, leaving app.blobStorage as undefined.
+  // Must call ready() BEFORE overriding the storage adapter.
+  // storagePlugin runs during ready() and would overwrite any earlier assignment.
   await app.ready();
 
-  if (options?.storageConnectionString && options?.storageContainerName) {
-    // Override the undefined blob storage decorators set by blobStoragePlugin
-    // (blobStoragePlugin sets them to undefined when env vars are missing).
-    // Since the decorator properties are writable, we can assign the Azurite clients directly.
-    try {
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
-        options.storageConnectionString
-      );
-      const containerClient = blobServiceClient.getContainerClient(
-        options.storageContainerName
-      );
-
-      app.blobServiceClient = blobServiceClient;
-      app.blobStorage = containerClient;
-      app.storageAccountName = blobServiceClient.accountName;
-      app.storageContainerName = options.storageContainerName;
-
-      // eslint-disable-next-line no-console
-      console.log(
-        `[createTestApp] Blob storage configured: account="${blobServiceClient.accountName}" container="${options.storageContainerName}"`
-      );
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(
-        "[createTestApp] Failed to configure blob storage — storage-dependent assertions will fail.",
-        error
-      );
-      throw error;
-    }
+  if (options?.storageDescriptor) {
+    app.storage = await buildTestAdapter(options.storageDescriptor);
+    // eslint-disable-next-line no-console
+    console.log(
+      `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider})`
+    );
   } else {
     // eslint-disable-next-line no-console
     console.warn(
-      "[createTestApp] No storage credentials provided — app.blobStorage will be undefined."
+      "[createTestApp] No storage descriptor provided — storage-dependent assertions will fail unless the boot adapter is configured."
     );
   }
 

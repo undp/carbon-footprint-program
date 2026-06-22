@@ -3,7 +3,6 @@ import type {
   RequestLineFileUploadBody,
   RequestLineFileUploadParams,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import { requestLineFileUploadService } from "./service.js";
 
 export const requestLineFileUploadHandler = async (
@@ -19,18 +18,12 @@ export const requestLineFileUploadHandler = async (
   const { id } = request.params;
   const { originalName } = request.body;
 
-  const { storageContainerName, blobServiceClient } = request.server;
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   log.info({ carbonInventoryId: id }, "Generating line file upload URL...");
 
-  const result = await requestLineFileUploadService(
-    blobServiceClient,
-    storageContainerName,
-    { carbonInventoryId: id, originalName }
-  );
+  const result = await requestLineFileUploadService(request.server.storage, {
+    carbonInventoryId: id,
+    originalName,
+  });
 
   log.info(
     { uuid: result.uuid, carbonInventoryId: id },

@@ -1,9 +1,8 @@
 import type { Badge, File } from "@repo/database";
 import { BadgeStatus, BadgeType } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { BADGE_HISTORY_LIMIT } from "@repo/constants";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
+import type { ReadUrlSigner, StorageAdapter } from "@repo/storage";
 
 type BadgeWithFile = Badge & {
   file: Pick<File, "originalName" | "mimeType" | "blobPath">;
@@ -11,10 +10,7 @@ type BadgeWithFile = Badge & {
 
 async function toBadgeDTO(
   badge: BadgeWithFile,
-  signUrl: (
-    blobPath: string,
-    opts?: { contentType?: string }
-  ) => Promise<{ url: string }>
+  signUrl: ReadUrlSigner
 ): Promise<BadgeDTO> {
   const { url: previewUrl } = await signUrl(badge.file.blobPath, {
     contentType: badge.file.mimeType ?? undefined,
@@ -33,10 +29,7 @@ async function toBadgeDTO(
 export async function buildBadgeCatalogEntry(
   type: BadgeType,
   badges: BadgeWithFile[],
-  signUrl: (
-    blobPath: string,
-    opts?: { contentType?: string }
-  ) => Promise<{ url: string }>
+  signUrl: ReadUrlSigner
 ): Promise<BadgeCatalogEntry> {
   const active = badges.find((b) => b.status === BadgeStatus.ACTIVE) ?? null;
   const inactive = badges
@@ -54,13 +47,9 @@ export async function buildBadgeCatalogEntry(
 
 export async function buildAllBadgeCatalogEntries(
   badgesByType: Map<BadgeType, BadgeWithFile[]>,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  storage: StorageAdapter
 ): Promise<BadgeCatalogEntry[]> {
-  const signUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName
-  );
+  const signUrl = await storage.createReadUrlSigner();
 
   return Promise.all(
     Object.values(BadgeType).map((type) => {

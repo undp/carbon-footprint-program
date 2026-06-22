@@ -1,17 +1,16 @@
 import { randomUUID } from "crypto";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import {
   type RequestUploadBody,
   type RequestUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "@/services/blobService.js";
+import { buildPresignedUploadResponse } from "../helpers/buildPresignedUploadResponse.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type RequestUploadInput = RequestUploadBody;
 
 export const requestUploadService = async (
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: RequestUploadInput
 ): Promise<RequestUploadResponse> => {
   const { originalName, fileType } = input;
@@ -24,15 +23,5 @@ export const requestUploadService = async (
     name: originalName,
   });
 
-  const { url, expiresAt } = await generateWriteSasUrl(
-    blobServiceClient,
-    containerName,
-    blobPath
-  );
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };

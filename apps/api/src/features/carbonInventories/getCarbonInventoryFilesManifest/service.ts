@@ -1,9 +1,9 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type { GetCarbonInventoryFilesManifestResponse } from "@repo/types";
-import { CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES } from "@/config/constants.js";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
+import { CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES } from "@/config/constants.js";
+import { buildContentDisposition } from "@/utils/contentDisposition.js";
+import type { StorageAdapter } from "@repo/storage";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
 interface GetCarbonInventoryFilesManifestInput {
@@ -12,8 +12,7 @@ interface GetCarbonInventoryFilesManifestInput {
 
 export const getCarbonInventoryFilesManifestService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: GetCarbonInventoryFilesManifestInput
 ): Promise<GetCarbonInventoryFilesManifestResponse> => {
   const { carbonInventoryId } = input;
@@ -59,10 +58,8 @@ export const getCarbonInventoryFilesManifestService = async (
     },
   });
 
-  const signReadSasUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName,
-    CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES
+  const signReadUrl = await storage.createReadUrlSigner(
+    CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES
   );
 
   const expectedPrefix = buildCarbonInventoryLineBlobPathPrefix(
@@ -83,21 +80,12 @@ export const getCarbonInventoryFilesManifestService = async (
         continue;
       }
 
-      // RFC 6266: `filename` carries an ASCII-safe display name for clients
-      // that ignore `filename*`, while `filename*` carries the UTF-8 form
-      // for clients that support it. Using the percent-encoded value in
-      // `filename` caused legacy clients to save `%20` literals.
-      const encodedName = encodeURIComponent(file.originalName).replace(
-        /[!'()*]/g,
-        (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
-      );
-      const asciiFallbackName = file.originalName
-        .normalize("NFKD")
-        .replace(/[^\x20-\x7E]/g, "_")
-        .replace(/[\\"]/g, "\\$&");
-      const { url, expiresAt } = await signReadSasUrl(file.blobPath, {
+      const { url, expiresAt } = await signReadUrl(file.blobPath, {
         contentType: file.mimeType,
-        contentDisposition: `attachment; filename="${asciiFallbackName}"; filename*=UTF-8''${encodedName}`,
+        contentDisposition: buildContentDisposition(
+          "attachment",
+          file.originalName
+        ),
       });
 
       if (!latestExpiresAt || expiresAt > latestExpiresAt) {
@@ -110,7 +98,7 @@ export const getCarbonInventoryFilesManifestService = async (
         categoryName: line.subcategory.category.name,
         subcategoryName: line.subcategory.name,
         originalName: file.originalName,
-        sasUrl: url,
+        readUrl: url,
         expiresAt: expiresAt.toISOString(),
         sizeBytes: file.sizeBytes,
         mimeType: file.mimeType,
@@ -122,7 +110,7 @@ export const getCarbonInventoryFilesManifestService = async (
     latestExpiresAt ??
     new Date(
       Date.now() +
-        CARBON_INVENTORY_FILES_MANIFEST_SAS_EXPIRY_MINUTES * 60 * 1000
+        CARBON_INVENTORY_FILES_MANIFEST_READ_URL_EXPIRY_MINUTES * 60 * 1000
     );
 
   return {

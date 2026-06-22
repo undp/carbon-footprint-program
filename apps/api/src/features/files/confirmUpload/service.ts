@@ -1,5 +1,4 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
 import {
   type ConfirmUploadBody,
   type ConfirmUploadResponse,
@@ -7,12 +6,13 @@ import {
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "../helpers/persistFileRecord.js";
 import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
 
 export const confirmUploadService = async (
   prisma: PrismaClient,
-  blobStorage: ContainerClient,
+  storage: StorageAdapter,
   input: ConfirmUploadInput
 ): Promise<ConfirmUploadResponse> => {
   const { uuid, originalName, fileType, userId } = input;
@@ -25,7 +25,7 @@ export const confirmUploadService = async (
   });
 
   const { sizeBytes, mimeType } = await checkFileRecordExists(
-    blobStorage,
+    storage,
     blobPath,
     uuid
   );

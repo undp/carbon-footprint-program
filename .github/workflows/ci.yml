@@ -60,8 +60,23 @@ jobs:
 
   test:
     needs: check-draft
-    name: Test
+    name: Test (${{ matrix.storage_provider }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        storage_provider: [azure_blob_storage, minio]
+    env:
+      STORAGE_PROVIDER: ${{ matrix.storage_provider }}
+      # Provider-specific vars below satisfy the conditional validation in
+      # apps/api/src/config/environment.ts. Real connection details come from
+      # the testcontainer started by globalSetup.ts.
+      AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1
+      AZURE_STORAGE_CONTAINER_NAME: test-files
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: test-files
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -74,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-report
+          name: coverage-report-${{ matrix.storage_provider }}
           path: apps/api/coverage/
           retention-days: 7
 

@@ -1,4 +1,5 @@
-import { RestError, type ContainerClient } from "@azure/storage-blob";
+import type { StorageAdapter } from "@repo/storage";
+import { ObjectNotFoundError } from "@repo/storage";
 import { FileNotFoundError } from "../errors.js";
 
 export interface PersistFileRecordParams {
@@ -9,25 +10,14 @@ export interface PersistFileRecordParams {
 }
 
 export async function checkFileRecordExists(
-  blobStorage: ContainerClient,
+  storage: StorageAdapter,
   blobPath: string,
   uuid: string
 ): Promise<{ sizeBytes: number; mimeType: string }> {
-  const blobClient = blobStorage.getBlobClient(blobPath);
-
   try {
-    const props = await blobClient.getProperties();
-    if (props.contentLength == null) {
-      throw new Error(
-        `Blob "${blobPath}" exists but contentLength is missing from getProperties() response`
-      );
-    }
-    return {
-      sizeBytes: props.contentLength,
-      mimeType: props.contentType ?? "application/octet-stream",
-    };
+    return await storage.headObject(blobPath);
   } catch (err) {
-    if (err instanceof RestError && err.statusCode === 404) {
+    if (err instanceof ObjectNotFoundError) {
       throw new FileNotFoundError(uuid);
     }
     throw err;

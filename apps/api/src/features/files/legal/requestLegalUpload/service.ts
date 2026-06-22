@@ -1,19 +1,18 @@
 import { randomUUID } from "crypto";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import {
   FileType,
   type RequestLegalUploadBody,
   type RequestLegalUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "@/services/blobService.js";
+import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
 import { LEGAL_TERMS_CONDITIONS_GROUP_KEY } from "@repo/constants";
+import type { StorageAdapter } from "@repo/storage";
 
 type RequestLegalUploadInput = RequestLegalUploadBody;
 
 export const requestLegalUploadService = async (
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: RequestLegalUploadInput
 ): Promise<RequestLegalUploadResponse> => {
   const { originalName } = input;
@@ -26,15 +25,5 @@ export const requestLegalUploadService = async (
     name: originalName,
   });
 
-  const { url, expiresAt } = await generateWriteSasUrl(
-    blobServiceClient,
-    containerName,
-    blobPath
-  );
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };

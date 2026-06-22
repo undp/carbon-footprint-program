@@ -1,6 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { PreviewLineFileParams } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import { previewLineFileService } from "./service.js";
 
 export const previewLineFileHandler = async (
@@ -12,15 +11,9 @@ export const previewLineFileHandler = async (
   });
   const { id, uuid } = request.params;
 
-  const { blobServiceClient, storageContainerName } = request.server;
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   const result = await previewLineFileService(
     request.server.prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.storage,
     { carbonInventoryId: id, uuid }
   );
 

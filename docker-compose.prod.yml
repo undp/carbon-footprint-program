@@ -56,7 +56,10 @@ services:
       - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
       - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
       - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
-      # --- Azure Blob Storage (empty disables file upload/download) ---
+      # --- Object storage: azure_blob_storage | minio ---
+      # Required: the API aborts at boot if unset (no silent provider default).
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
+      # --- Azure Blob Storage (used when STORAGE_PROVIDER=azure_blob_storage) ---
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
       # Dedicated service principal for storage (different tenant than JWKS).
@@ -65,6 +68,16 @@ services:
       - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
       - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
       - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      # --- MinIO / S3-compatible (used when STORAGE_PROVIDER=minio) ---
+      # The MinIO server is EXTERNAL to this stack (like PostgreSQL above). When
+      # STORAGE_PROVIDER=minio the API requires MINIO_ENDPOINT, MINIO_ACCESS_KEY,
+      # and MINIO_SECRET_KEY and refuses to boot if any is missing.
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
     # No depends_on: the database is external. If it is unreachable the API
     # exits at boot and `restart: unless-stopped` retries until it answers.
     restart: unless-stopped

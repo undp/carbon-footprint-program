@@ -21,7 +21,10 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      # Storage — needed to seed badges & terms (empty disables those seeds)
+      # Storage — needed to seed badges & terms. The seeds build the adapter via
+      # storageConfigFromEnv(process.env), so STORAGE_PROVIDER must be present
+      # here too (otherwise the seeds silently skip storage writes).
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
       # Dedicated service principal for storage (different tenant than JWKS).
@@ -30,6 +33,13 @@ services:
       - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
       - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
       - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      # MinIO / S3-compatible (used when STORAGE_PROVIDER=minio)
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,7 +83,9 @@ services:
       - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
       - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
       - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
-      # --- Azure Blob Storage (optional; empty disables file upload/download) ---
+      # --- Object storage: azure_blob_storage | minio ---
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
+      # --- Azure Blob Storage (used when STORAGE_PROVIDER=azure_blob_storage) ---
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
       # Dedicated service principal for storage (different tenant than JWKS).
@@ -82,6 +94,13 @@ services:
       - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
       - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
       - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      # --- MinIO / S3-compatible (used when STORAGE_PROVIDER=minio) ---
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
     depends_on:
       postgres:
         condition: service_healthy

@@ -3,7 +3,6 @@ import type {
   ConfirmBadgeUploadParams,
   ConfirmBadgeUploadBody,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "../../errors.js";
 import { badgeConfirmUploadService } from "./service.js";
 
 export const badgeConfirmUploadHandler = async (
@@ -17,20 +16,11 @@ export const badgeConfirmUploadHandler = async (
   const { badgeType } = request.params;
   const { uuid, originalName } = request.body;
 
-  const { blobStorage, blobServiceClient, storageContainerName } =
-    request.server;
-  if (!blobStorage || !blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   log.info({ uuid, badgeType }, "Confirming badge upload...");
 
-  const prisma = request.server.prisma;
   const result = await badgeConfirmUploadService(
-    prisma,
-    blobStorage,
-    blobServiceClient,
-    storageContainerName,
+    request.server.prisma,
+    request.server.storage,
     {
       badgeType,
       uuid,

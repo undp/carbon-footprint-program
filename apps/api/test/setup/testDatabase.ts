@@ -1,8 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { AzuriteContainer } from "@testcontainers/azurite";
-import type { StartedAzuriteContainer } from "@testcontainers/azurite";
-import { BlobServiceClient } from "@azure/storage-blob";
 import { execSync } from "node:child_process";
 import path from "node:path";
 
@@ -82,34 +79,4 @@ export async function setupTestDatabase(): Promise<{
   const databaseUrl = url.toString();
 
   return { databaseUrl, container };
-}
-
-const TEST_STORAGE_CONFIG = {
-  image: "mcr.microsoft.com/azure-storage/azurite",
-  containerName: "test-files",
-} as const;
-
-export async function setupTestStorage(): Promise<{
-  connectionString: string;
-  containerName: string;
-  container: StartedAzuriteContainer;
-}> {
-  const container = await new AzuriteContainer(TEST_STORAGE_CONFIG.image)
-    .withInMemoryPersistence()
-    .withSkipApiVersionCheck()
-    .withStartupTimeout(120000) // 2 minutes – accounts for first-run image pull in CI
-    .start();
-
-  const connectionString = container.getConnectionString();
-  const containerName = TEST_STORAGE_CONFIG.containerName;
-
-  // Pre-create the test container in Azurite
-  const blobServiceClient =
-    BlobServiceClient.fromConnectionString(connectionString);
-  await blobServiceClient.getContainerClient(containerName).createIfNotExists();
-
-  // eslint-disable-next-line no-console
-  console.log("Azurite storage started successfully");
-
-  return { connectionString, containerName, container };
 }

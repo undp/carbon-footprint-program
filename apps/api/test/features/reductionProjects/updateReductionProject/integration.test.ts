@@ -10,7 +10,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
+import { uploadFixture } from "@test/factories/storageHelper.js";
 import {
   setupReductionProjectPrerequisites,
   buildReductionProjectPayload,
@@ -26,14 +26,6 @@ import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { VALIDATION_ERROR_CODE } from "@/commonSchemas/errors.js";
 
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn(),
-  generateReadSasUrl: vi.fn(),
-  copyBlob: vi.fn().mockResolvedValue(undefined),
-  deleteBlob: vi.fn().mockResolvedValue(undefined),
-  moveBlob: vi.fn().mockResolvedValue(undefined),
-}));
-
 describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -42,8 +34,7 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl, {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     const testUser = await getTestLoggedUser(prisma);
@@ -82,8 +73,8 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
 
       const uuid = "550e8400-e29b-41d4-a716-446655440100";
       const originalName = "updated-evidence.pdf";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
+      await uploadFixture(
+        app.storage,
         `SUBMISSION/tmp/${uuid}-${originalName}`,
         { contentType: "application/pdf" }
       );
@@ -135,11 +126,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440101";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -198,11 +187,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440102";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -336,11 +323,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440103";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -387,11 +372,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       });
 
       const uuid = "550e8400-e29b-41d4-a716-446655440104";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -421,11 +404,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
       const uuid = "550e8400-e29b-41d4-a716-446655440105";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -465,11 +446,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       // No submission = DRAFT status
 
       const uuid = "550e8400-e29b-41d4-a716-446655440106";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -513,11 +492,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440107";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -561,11 +538,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440108";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",
@@ -609,11 +584,9 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       );
 
       const uuid = "550e8400-e29b-41d4-a716-446655440109";
-      await uploadBlobToAzurite(
-        app.blobStorage!,
-        `SUBMISSION/tmp/${uuid}-test.pdf`,
-        { contentType: "application/pdf" }
-      );
+      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
+        contentType: "application/pdf",
+      });
       await app.inject({
         method: "POST",
         url: "/api/files/confirm-upload",

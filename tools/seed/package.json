@@ -11,10 +11,10 @@
     "clean": "rimraf .turbo"
   },
   "dependencies": {
-    "@azure/storage-blob": "^12.31.0",
     "@repo/constants": "workspace:*",
     "@repo/database": "workspace:*",
     "@repo/storage": "workspace:*",
+    "@repo/types": "workspace:*",
     "zod": "catalog:shared"
   },
   "devDependencies": {

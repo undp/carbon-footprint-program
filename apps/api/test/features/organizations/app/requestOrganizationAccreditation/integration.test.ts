@@ -18,7 +18,7 @@ import {
   createTestFile,
   cleanupTestFiles,
 } from "@test/factories/fileFactory.js";
-import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
+import { uploadFixture } from "@test/factories/storageHelper.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { RequestOrganizationAccreditationResponse } from "@repo/types";
 import {
@@ -31,17 +31,8 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
-import { copyBlob } from "@/services/blobService.js";
 
 // SAS generation and blob move require Azure AD auth / server-side copy not available
-// in Azurite shared-key mode. Mock all blob service operations.
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn(),
-  generateReadSasUrl: vi.fn(),
-  copyBlob: vi.fn().mockResolvedValue(undefined),
-  deleteBlob: vi.fn().mockResolvedValue(undefined),
-  moveBlob: vi.fn().mockResolvedValue(undefined),
-}));
 
 describe("POST /api/app/organizations/:id/request-accreditation - Integration Tests", () => {
   let app: FastifyInstance;
@@ -51,9 +42,14 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl, {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
+    // The "happy path" suite below relies on copy/delete being inert (it
+    // never seeds the source blob). The nested "appWithStorage" suite at the
+    // end of the file builds its own app + spies as needed, so this stub does
+    // not interfere with it.
+    vi.spyOn(app.storage, "copyObject").mockResolvedValue(undefined);
+    vi.spyOn(app.storage, "deleteObject").mockResolvedValue(undefined);
     prisma = app.prisma;
     const testUser = await getTestLoggedUser(prisma);
     testUserId = testUser.id;
@@ -571,8 +567,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
     beforeAll(async () => {
       appWithStorage = await createTestApp(inject("databaseUrl"), {
-        storageConnectionString: inject("storageConnectionString"),
-        storageContainerName: inject("storageContainerName"),
+        storageDescriptor: inject("storageDescriptor"),
       });
       prismaWithStorage = appWithStorage.prisma;
       const user = await getTestLoggedUser(prismaWithStorage);
@@ -590,13 +585,14 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       vi.clearAllMocks();
     });
 
-    it("should link pre-uploaded files to the submission and call copyBlob", async () => {
+    it("should link pre-uploaded files to the submission and call copyObject", async () => {
+      const copySpy = vi.spyOn(appWithStorage.storage, "copyObject");
       const uuid = "550e8400-e29b-41d4-a716-446655440020";
       const originalName = "attachment.pdf";
       const tmpBlobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
 
       // Upload blob to tmp namespace in Azurite
-      await uploadBlobToAzurite(appWithStorage.blobStorage!, tmpBlobPath, {
+      await uploadFixture(appWithStorage.storage, tmpBlobPath, {
         contentType: "application/pdf",
       });
 
@@ -643,12 +639,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(submission).toBeDefined();
 
       const finalPath = `SUBMISSION/${submission!.id}/SUBMIT_ATTACHMENT/${uuid}-${originalName}`;
-      expect(vi.mocked(copyBlob)).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(String),
-        tmpBlobPath,
-        finalPath
-      );
+      expect(copySpy).toHaveBeenCalledWith(tmpBlobPath, finalPath);
 
       // SubmissionFile record should be created and File.blobPath updated to final path
       const fileRecord = await prismaWithStorage.file.findUnique({
@@ -664,6 +655,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
     });
 
     it("should link multiple pre-uploaded files to the submission", async () => {
+      const copySpy = vi.spyOn(appWithStorage.storage, "copyObject");
       const files = [
         {
           uuid: "550e8400-e29b-41d4-a716-446655440021",
@@ -676,8 +668,8 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       ];
 
       for (const f of files) {
-        await uploadBlobToAzurite(
-          appWithStorage.blobStorage!,
+        await uploadFixture(
+          appWithStorage.storage,
           `SUBMISSION/tmp/${f.uuid}-${f.name}`,
           { contentType: "application/pdf" }
         );
@@ -712,7 +704,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       });
 
       expect(response.statusCode).toBe(200);
-      expect(vi.mocked(copyBlob)).toHaveBeenCalledTimes(files.length);
+      expect(copySpy).toHaveBeenCalledTimes(files.length);
 
       for (const f of files) {
         const fileRecord = await prismaWithStorage.file.findUnique({

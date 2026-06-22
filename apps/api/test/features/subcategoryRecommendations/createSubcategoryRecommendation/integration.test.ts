@@ -112,8 +112,7 @@ describe("POST /api/subcategory-recommendations - Integration", () => {
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"), {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);

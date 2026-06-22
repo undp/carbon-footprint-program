@@ -15,7 +15,12 @@ Content-Type: application/json
 }
 
 
-### Step 2: Upload badge directly to Azure
+### Step 2: Upload badge to the presigned URL
+### NOTE: When STORAGE_PROVIDER=azure_blob_storage, the response also includes
+###   uploadHeaders={"x-ms-blob-type":"BlockBlob"} and uploadMethod=PUT.
+### When STORAGE_PROVIDER=minio, uploadHeaders is empty and uploadMethod=PUT.
+### The .rest format cannot read response headers/method dynamically, so the
+### values below assume Azure. For MinIO, drop the x-ms-blob-type line.
 PUT {{requestUploadCarbonInventoryCalculation.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: image/svg+xml
@@ -48,7 +53,8 @@ Content-Type: application/json
 }
 
 
-### Step 2: Upload badge directly to Azure
+### Step 2: Upload badge to the presigned URL
+### See note above on STORAGE_PROVIDER-specific headers.
 PUT {{requestUploadOrganizationAccreditation.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: image/svg+xml

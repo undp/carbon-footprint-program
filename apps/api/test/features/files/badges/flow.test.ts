@@ -6,7 +6,6 @@ import {
   afterAll,
   afterEach,
   inject,
-  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -14,7 +13,7 @@ import {
   createTestFileForBadge,
   cleanupTestFiles,
 } from "@test/factories/fileFactory.js";
-import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
+import { uploadFixture } from "@test/factories/storageHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { BadgeType, BadgeStatus } from "@repo/database";
@@ -24,23 +23,6 @@ import type {
   GetBadgeFilesResponse,
 } from "@repo/types";
 
-vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn().mockResolvedValue({
-    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
-    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-  }),
-  generateReadSasUrl: vi.fn().mockResolvedValue({
-    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
-    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-  }),
-  createReadSasUrlSigner: vi.fn().mockResolvedValue(
-    vi.fn().mockResolvedValue({
-      url: "https://mock.blob.core.windows.net/test/preview?sig=mock",
-      expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-    })
-  ),
-}));
-
 describe("Badge files — Full upload flow: request-upload → upload → confirm-upload → get files", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -48,8 +30,7 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"), {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
@@ -87,7 +68,7 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
 
     // Step 2 – Simulate the client uploading the file.
     const blobPath = `BADGE/${badgeType}/${uuid}-${originalName}`;
-    await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+    await uploadFixture(app.storage, blobPath, {
       contentType: "image/png",
     });
 
@@ -141,8 +122,8 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     });
     const { uuid } = JSON.parse(reqBody) as RequestBadgeUploadResponse;
 
-    await uploadBlobToAzurite(
-      app.blobStorage!,
+    await uploadFixture(
+      app.storage,
       `BADGE/${badgeType}/${uuid}-${originalName}`,
       { contentType: "image/png" }
     );
@@ -178,8 +159,8 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
       payload: { originalName },
     });
     const { uuid } = JSON.parse(reqBody) as RequestBadgeUploadResponse;
-    await uploadBlobToAzurite(
-      app.blobStorage!,
+    await uploadFixture(
+      app.storage,
       `BADGE/${badgeType}/${uuid}-${originalName}`,
       { contentType: "image/png" }
     );
