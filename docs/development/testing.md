@@ -212,21 +212,28 @@ it("should complete the full file upload lifecycle", async () => {
 
 ## Service-Level Unit Tests
 
-For complex service functions, a service-level test (without HTTP) can be written using Vitest mocks:
+For complex service functions, a service-level test (without HTTP) can pass a stubbed
+storage adapter straight into the service. Use `createMockStorageAdapter()` — it returns a
+`StorageAdapter` whose every method is a `vi.fn()` with a canned default, so you assert on
+calls or override individual methods per test:
 
 ```typescript
-import { vi } from "vitest";
+import { createMockStorageAdapter } from "@test/factories/mockStorageAdapter.js";
 
-// Hoist mocks before imports
-const { mockCreateReadSasUrlSigner } = vi.hoisted(() => ({
-  mockCreateReadSasUrlSigner: vi.fn(),
-}));
+const mockStorage = createMockStorageAdapter();
 
-vi.mock("@/services/blobService.js", async () => {
-  const actual = await vi.importActual("@/services/blobService.js");
-  return { ...actual, createReadSasUrlSigner: mockCreateReadSasUrlSigner };
-});
+// Override a single method for this test:
+mockStorage.createReadUrlSigner.mockResolvedValue(signerSpy);
+
+// Inject it into the service under test (no HTTP, no container):
+const result = await getOrganizationHistory({ storage: mockStorage /* ... */ });
+
+expect(mockStorage.createReadUrlSigner).toHaveBeenCalledTimes(1);
 ```
+
+When you already have an `app` from `createTestApp`, spy on the real adapter instead of
+mocking a module — e.g. `vi.spyOn(app.storage, "copyObject")` to make a copy/delete inert
+or to assert it ran.
 
 Use this pattern sparingly. Prefer integration tests with real Testcontainers where the overhead is acceptable.
 
