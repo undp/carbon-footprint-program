@@ -35,7 +35,7 @@ param enableAzureAuth bool = false
 @description('Azure Entra ID Tenant ID (GUID)')
 param azureAuthTenantId string = ''
 
-@description('Azure Frontend App Client ID')
+@description('Azure API App (token audience) Client ID')
 param azureAuthClientId string = ''
 
 @description('Azure tenant type: "external" (CIAM) or "organizational"')
@@ -52,6 +52,19 @@ var appServicePlanName = 'asp-${uniqueString(resourceGroup().id)}'
 
 // Generate unique App Service name
 var appServiceName = 'api-${uniqueString(resourceGroup().id)}'
+
+// Generic JWKS config derived from the Entra tenant settings. The per-provider
+// URL format knowledge lives here (deploy IaC) and in the env templates — NOT in
+// the API code, which only consumes JWKS_ISSUER / JWKS_URI / JWKS_AUDIENCE.
+// External (CIAM): the issuer host uses the tenant GUID, the JWKS host uses the
+// tenant subdomain. Organizational: both use login.microsoftonline.com.
+var jwksIssuer = azureAuthTenantType == 'organizational'
+  ? 'https://login.microsoftonline.com/${azureAuthTenantId}/v2.0'
+  : 'https://${azureAuthTenantId}.ciamlogin.com/${azureAuthTenantId}/v2.0'
+var jwksUri = azureAuthTenantType == 'organizational'
+  ? 'https://login.microsoftonline.com/${azureAuthTenantId}/discovery/v2.0/keys'
+  : 'https://${azureAuthTenantSubdomain}.ciamlogin.com/${azureAuthTenantId}/discovery/v2.0/keys'
+var jwksAudience = azureAuthClientId
 
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
@@ -128,24 +141,20 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
       ] : [], enableAzureAuth ? [
         {
-          name: 'AZURE_TENANT_ID'
-          value: azureAuthTenantId
+          name: 'JWKS_ISSUER'
+          value: jwksIssuer
         }
         {
-          name: 'AZURE_API_CLIENT_ID'
-          value: azureAuthClientId
+          name: 'JWKS_URI'
+          value: jwksUri
         }
         {
-          name: 'AZURE_TENANT_TYPE'
-          value: azureAuthTenantType
+          name: 'JWKS_AUDIENCE'
+          value: jwksAudience
         }
         {
-          name: 'AZURE_TENANT_SUBDOMAIN'
-          value: azureAuthTenantSubdomain
-        }
-        {
-          // The API validates Entra access tokens directly via JWKS (issuer/
-          // audience derived from the AZURE_* settings above). No App Service
+          // The API is a generic OIDC validator: it validates Entra access
+          // tokens directly via JWKS (issuer/URI/audience above). No App Service
           // Easy Auth gateway is used — keep platform Authentication disabled.
           name: 'AUTH_PROVIDER'
           value: 'jwks'

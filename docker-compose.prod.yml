@@ -45,12 +45,9 @@ services:
       # --- Auth: jwks (production) ---
       - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks in production)}
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
-      # --- Azure Entra ID (used when AUTH_PROVIDER=jwks) ---
-      - AZURE_TENANT_TYPE=${AZURE_TENANT_TYPE:-external}
-      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
-      - AZURE_TENANT_SUBDOMAIN=${AZURE_TENANT_SUBDOMAIN:-}
-      - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:-}
-      # --- Generic JWKS overrides (optional, non-Azure IdPs) ---
+      # --- JWKS: how the API validates OIDC tokens (AUTH_PROVIDER=jwks). The API
+      #     reads JWKS_* directly — no AZURE_* auth vars. Azure Entra: derive per
+      #     docs/infrastructure/AzureAuthenticationSetup.md. ---
       - JWKS_URI=${JWKS_URI:-}
       - JWKS_ISSUER=${JWKS_ISSUER:-}
       - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}

@@ -19,13 +19,11 @@ else
   export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 fi
 
-# Optional: JWKS overrides for non-Azure identity providers (e.g. Auth0, Okta, Keycloak)
-# When set, these take precedence over the Azure-derived JWKS configuration.
-# export JWKS_URI=""                 # JWKS endpoint URI (e.g. https://your-idp/.well-known/jwks.json)
-# export JWKS_ISSUER=""              # Expected token issuer claim
-# export JWKS_AUDIENCE=""            # Expected token audience claim
-# export JWKS_REQUIRED_SCOPE=""      # Required scope (e.g. "access_as_user")
-# export JWKS_SKIP_SCOPE_CHECK=""    # Set to "true" to skip scope validation
+# The API's JWKS config (JWKS_ISSUER / JWKS_URI / JWKS_AUDIENCE) is derived from
+# the AZURE_* values above by the deploy itself — see infra/modules/appService.bicep.
+# The frontend OIDC vars are derived from AZURE_AUTH_AUTHORITY by deploy-web.sh.
+# This Azure deploy path is Entra-specific; for a non-Azure IdP you would set the
+# JWKS_* / VITE_OIDC_* values directly (see the root .envrc.template).
 
 # Azure Blob Storage (configured automatically by Bicep; override here only if needed)
 # export AZURE_STORAGE_ACCOUNT_NAME=""

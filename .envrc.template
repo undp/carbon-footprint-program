@@ -1,10 +1,11 @@
-# Azure Authentication
-# AZURE_TENANT_TYPE: "external" (CIAM / ciamlogin.com) or "organizational" (Azure AD / login.microsoftonline.com)
-export AZURE_TENANT_TYPE="external"
-export AZURE_TENANT_ID=""            # Tenant ID (GUID)
-export AZURE_TENANT_SUBDOMAIN=""     # Tenant subdomain (only required for AZURE_TENANT_TYPE="external")
-export AZURE_API_CLIENT_ID=""        # API App Registration ID
-export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
+# Authentication (provider-agnostic OIDC)
+# The API validates OIDC access tokens via JWKS and the web app is a generic
+# OIDC client. There are NO AZURE_* auth variables — pick an identity provider by
+# setting AUTH_PROVIDER + the JWKS_* (backend) and VITE_OIDC_* (frontend) values.
+#   • Azure Entra → copy `.envrc.azure.example` instead; it derives every JWKS_*
+#     and VITE_OIDC_* value from a few raw tenant inputs (tenant id, subdomain,
+#     client ids), so you never hand-write an issuer/JWKS URL.
+#   • Keycloak (local dev) → use the example blocks below (see compose/keycloak.yaml).
 
 # Object Storage Provider Selection
 # Required. Selects which backend the API uses for object storage.
@@ -37,22 +38,21 @@ export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:
 export APP_VERSION=""
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
-export AUTH_PROVIDER=""    # Options: jwks, forced-user, none
+export AUTH_PROVIDER=""    # Options: jwks, forced-user, none  (Azure Entra? use .envrc.azure.example)
 # export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
 # export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
 # export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 # export LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation (e.g. allow empty strings) for local testing
 
-# Generic JWKS overrides (optional, for non-Azure IdPs)
-# export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
-# export JWKS_ISSUER=""           # Expected token issuer (overrides Azure-derived value)
-# export JWKS_AUDIENCE=""         # Expected token audience (overrides Azure-derived value)
+# JWKS — what the API uses to validate access tokens (when AUTH_PROVIDER="jwks").
+# The API reads these as-is; it does NOT derive them from any provider settings.
+# export JWKS_URI=""              # JWKS endpoint, reachable from the API process
+# export JWKS_ISSUER=""           # Expected token issuer (`iss`); empty disables issuer validation
+# export JWKS_AUDIENCE=""         # Expected token audience (`aud`)
 # export JWKS_REQUIRED_SCOPE=""   # Required scope claim (default: "access_as_user")
 # export JWKS_SKIP_SCOPE_CHECK="" # Set to "true" to disable scope enforcement entirely
 #
-# Keycloak (generic OIDC) local-dev example — see compose/keycloak.yaml. To use it,
-# leave the AZURE_* auth vars empty (any AZURE_TENANT_ID re-enables Azure v2.0 checks)
-# and uncomment:
+# Keycloak (local dev) example — see compose/keycloak.yaml. Uncomment:
 # export AUTH_PROVIDER="jwks"
 # export JWKS_ISSUER="http://localhost:8081/realms/huella"                            # token `iss` (browser host)
 # export JWKS_URI="http://keycloak:8080/realms/huella/protocol/openid-connect/certs"  # internal (api container)
@@ -69,8 +69,7 @@ export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the O
 # (backend rejects tokens without it) + offline_access (refresh → silent renew) +
 # profile (display name).
 #   Keycloak → export VITE_OIDC_ISSUER="http://localhost:8081/realms/huella"
-#   Entra    → export VITE_OIDC_ISSUER="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
-#              and append " api://${AZURE_API_CLIENT_ID}/access_as_user" to VITE_OIDC_SCOPES
+#   Entra    → use `.envrc.azure.example` (derives ISSUER/CLIENT_ID/SCOPES from tenant values)
 export VITE_OIDC_ISSUER=""
 export VITE_OIDC_CLIENT_ID="huella-web"
 export VITE_OIDC_SCOPES="openid profile email offline_access"
