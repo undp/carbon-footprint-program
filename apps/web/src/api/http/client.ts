@@ -8,7 +8,7 @@ export const apiClient = ky.create({
   hooks: {
     beforeRequest: [
       async ({ request }) => {
-        // Get token asynchronously from MSAL
+        // Attach the OIDC access token (silently renewed if expired)
         const token = await getAuthToken();
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);

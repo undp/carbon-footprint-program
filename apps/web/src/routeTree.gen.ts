@@ -18,6 +18,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppShellRouteImport } from './routes/app/_shell'
 import { Route as AppFullscreenRouteImport } from './routes/app/_fullscreen'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -105,6 +106,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppShellRoute = AppShellRouteImport.update({
   id: '/_shell',
@@ -360,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByTo {
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin': typeof AdminIndexRoute
   '/carbon-inventory': typeof CarbonInventoryIndexRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -461,6 +469,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/app/_fullscreen': typeof AppFullscreenRouteWithChildren
   '/app/_shell': typeof AppShellRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/_shell/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -514,6 +523,7 @@ export interface FileRouteTypes {
     | '/admin/subsectors'
     | '/admin/units'
     | '/admin/users'
+    | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
     | '/app/carbon-inventories'
@@ -563,6 +573,7 @@ export interface FileRouteTypes {
     | '/admin/subsectors'
     | '/admin/units'
     | '/admin/users'
+    | '/auth/callback'
     | '/admin'
     | '/carbon-inventory'
     | '/app/carbon-inventories'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/app/_fullscreen'
     | '/app/_shell'
+    | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
     | '/app/_shell/carbon-inventories'
@@ -644,6 +656,7 @@ export interface RootRouteChildren {
   CapinautRoute: typeof CapinautRoute
   CarbonInventoryRoute: typeof CarbonInventoryRouteWithChildren
   TransparencyRoute: typeof TransparencyRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -710,6 +723,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/_shell': {
       id: '/app/_shell'
@@ -1183,6 +1203,7 @@ const rootRouteChildren: RootRouteChildren = {
   CapinautRoute: CapinautRoute,
   CarbonInventoryRoute: CarbonInventoryRouteWithChildren,
   TransparencyRoute: TransparencyRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

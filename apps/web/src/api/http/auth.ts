@@ -1,36 +1,27 @@
-import { msalInstance } from "@/auth/initializeMsal";
-import { apiTokenRequest } from "@/config/msalConfig";
+import { oidcUserManager } from "@/auth/oidcUserManager";
 
 /**
- * Gets the current access token from MSAL
- * Automatically handles token refresh if needed
+ * Returns the current OIDC access token for API calls. If the stored token has
+ * expired (and automaticSilentRenew hasn't caught up yet), it attempts a silent
+ * renew via the refresh token before giving up. Returns null when not signed in.
  */
 export async function getAuthToken(): Promise<string | null> {
-  const account = msalInstance.getActiveAccount();
+  const user = await oidcUserManager.getUser();
 
-  if (!account) {
+  if (!user) {
     return null;
   }
 
+  if (!user.expired) {
+    return user.access_token ?? null;
+  }
+
   try {
-    // Try to acquire token silently
-    const response = await msalInstance.acquireTokenSilent({
-      ...apiTokenRequest,
-      account,
-    });
-    return response.accessToken;
+    const renewed = await oidcUserManager.signinSilent();
+    return renewed?.access_token ?? null;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error("Failed to acquire token silently:", error);
-
-    // If silent acquisition fails, try interactive popup
-    try {
-      const response = await msalInstance.acquireTokenPopup(apiTokenRequest);
-      return response.accessToken;
-    } catch (popupError) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to acquire token with popup:", popupError);
-      return null;
-    }
+    return null;
   }
 }
