@@ -24,7 +24,7 @@ services:
       # Storage — needed to seed badges & terms. The seeds build the adapter via
       # storageConfigFromEnv(process.env), so STORAGE_PROVIDER must be present
       # here too (otherwise the seeds silently skip storage writes).
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
       # Dedicated service principal for storage (different tenant than JWKS).
@@ -84,7 +84,7 @@ services:
       - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
       - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
       # --- Object storage: azure_blob_storage | minio ---
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
       # --- Azure Blob Storage (used when STORAGE_PROVIDER=azure_blob_storage) ---
       - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
