@@ -232,9 +232,14 @@ if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
   fi
 fi
 
-export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
-export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
+# Map the Azure/Entra values onto the generic OIDC build vars the frontend reads
+# (auth is provider-agnostic now — Entra is just one OIDC issuer). The API scope
+# is appended so the access token's aud is the API
+# (api://<API_CLIENT_ID>/access_as_user), the same scope MSAL requested before, so
+# the App Service Easy Auth gateway keeps accepting the token unchanged.
+export VITE_OIDC_ISSUER=$AZURE_AUTH_AUTHORITY
+export VITE_OIDC_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
+export VITE_OIDC_SCOPES="openid profile email offline_access api://$AZURE_API_CLIENT_ID/access_as_user"
 
 # Resolve frontend base URL (used by Vite build for redirect URIs, etc.).
 # Precedence and the CORS-mismatch warning live in resolve_frontend_origin;
@@ -255,15 +260,22 @@ else
   log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
 fi
 
+# OIDC redirect URIs derived from the resolved frontend origin (the new
+# /auth/callback route). VITE_OIDC_REDIRECT_URI must be registered in the Entra
+# app registration — it replaces the old MSAL /app/home redirect URI.
+export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL%/}/auth/callback"
+export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="$VITE_FRONT_BASE_URL"
+
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
 if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
   export VITE_IS_DEMO_APP
 fi
 
 log "${GREEN}   ✓ All required VITE_ environment variables are set.${NC}"
-log "  - VITE_AZURE_FRONT_CLIENT_ID=${VITE_AZURE_FRONT_CLIENT_ID:0:8}..."
-log "  - VITE_AZURE_API_CLIENT_ID=${VITE_AZURE_API_CLIENT_ID:0:8}..."
-log "  - VITE_AZURE_AUTH_AUTHORITY=${VITE_AZURE_AUTH_AUTHORITY:0:30}..."
+log "  - VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID:0:8}..."
+log "  - VITE_OIDC_ISSUER=${VITE_OIDC_ISSUER:0:30}..."
+log "  - VITE_OIDC_SCOPES=${VITE_OIDC_SCOPES}"
+log "  - VITE_OIDC_REDIRECT_URI=${VITE_OIDC_REDIRECT_URI}"
 log "  - VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}"
 if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
   log "  - VITE_IS_DEMO_APP=${VITE_IS_DEMO_APP}"

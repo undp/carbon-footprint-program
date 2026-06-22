@@ -114,8 +114,8 @@ This guide explains how to configure authentication for the Huella Latam applica
    - **Name**: e.g. `Huella Latam Web App - Frontend MSAL`
    - **Supported account types**: "Accounts in this organizational directory only"
    - **Redirect URIs** (Platform: Single-page application / SPA):
-     - `http://localhost:5173` and `http://localhost:5173/app/home` (development)
-     - `https://<your-production-domain>.com` and `https://<your-production-domain>.com/app/home` (production)
+     - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
+     - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.
@@ -230,8 +230,8 @@ For organizational deployments, responsibilities are typically split:
    - **Name**: e.g. `Huella Latam Web App - Frontend MSAL`
    - **Supported account types**: "Accounts in this organizational directory only (Single tenant)"
    - **Redirect URIs** (Platform: Single-page application / SPA):
-     - `http://localhost:5173` and `http://localhost:5173/app/home` (development)
-     - `https://<your-production-domain>.com` and `https://<your-production-domain>.com/app/home` (production)
+     - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
+     - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.
