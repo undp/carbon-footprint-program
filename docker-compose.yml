@@ -67,7 +67,7 @@ services:
       - APP_VERSION=${APP_VERSION:-dev}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
       - LOCAL_BYPASS_REQUIRED_FIELDS=${LOCAL_BYPASS_REQUIRED_FIELDS:-false}
-      # --- Auth: none | forced-user | jwks | easy-auth ---
+      # --- Auth: none | forced-user | jwks ---
       - AUTH_PROVIDER=${AUTH_PROVIDER:-none}
       - FORCED_USER_EMAIL_WHEN_NO_PROVIDER=${FORCED_USER_EMAIL_WHEN_NO_PROVIDER:-}
       - FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=${FORCED_USER_IDP_ID_WHEN_NO_PROVIDER:-}

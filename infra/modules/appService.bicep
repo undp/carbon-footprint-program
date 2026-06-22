@@ -144,8 +144,11 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           value: azureAuthTenantSubdomain
         }
         {
+          // The API validates Entra access tokens directly via JWKS (issuer/
+          // audience derived from the AZURE_* settings above). No App Service
+          // Easy Auth gateway is used — keep platform Authentication disabled.
           name: 'AUTH_PROVIDER'
-          value: 'easy-auth'
+          value: 'jwks'
         }
       ] : [])
     }

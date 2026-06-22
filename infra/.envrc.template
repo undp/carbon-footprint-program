@@ -33,7 +33,7 @@ fi
 
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION="eastus2"
-export AUTH_PROVIDER="easy-auth"
+export AUTH_PROVIDER="jwks"
 export APP_VERSION=""
 # Public custom domain for the frontend (bare hostname, e.g. app.example.com).
 # Single source of truth: bicep propagates it to every CORS layer and the

@@ -34,7 +34,7 @@ services:
       # Full connection string to the EXTERNAL PostgreSQL server (application
       # user, URL-encoded password) — see .env.prod.dockercompose.example.
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (external PostgreSQL connection string)}
-      # Unused when AUTH_PROVIDER=jwks/easy-auth is fully configured (tokens are
+      # Unused when AUTH_PROVIDER=jwks is fully configured (tokens are
       # verified against the IdP's public keys). It is only the static HMAC
       # fallback if the JWKS config is incomplete — setting a strong value
       # (`openssl rand -base64 48`) keeps that fallback unforgeable.
@@ -42,8 +42,8 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-prod}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
-      # --- Auth: jwks | easy-auth (production options) ---
-      - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks or easy-auth in production)}
+      # --- Auth: jwks (production) ---
+      - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks in production)}
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
       # --- Azure Entra ID (used when AUTH_PROVIDER=jwks) ---
       - AZURE_TENANT_TYPE=${AZURE_TENANT_TYPE:-external}
