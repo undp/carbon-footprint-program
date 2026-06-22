@@ -1,9 +1,6 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
-  EmissionFactorDimensionStatus,
-  EmissionFactorDimensionValueStatus,
-  EmissionFactorStatus,
   MethodologyVersionStatus,
   SubcategoryStatus,
   type User,
@@ -14,6 +11,7 @@ import {
   MethodologyNotFoundError,
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { softDeleteSubcategoryDependents } from "../../../helpers/softDeleteSubcategoryDependents.js";
 
 export const deleteMethodologyService = async (
   prismaClient: PrismaClient,
@@ -27,7 +25,9 @@ export const deleteMethodologyService = async (
 
   const methodologyId = BigInt(id);
 
-  // Use transaction to soft-delete methodology AND cascade to categories, subcategories, emission factors
+  // Use a transaction to soft-delete the methodology version together with its
+  // whole tree: subcategory dependents (via the shared helper), then the
+  // subcategories and categories themselves.
   await prismaClient.$transaction(async (tx) => {
     // Check if methodology exists and is active
     const methodology = await tx.methodologyVersion.findUnique({
@@ -63,31 +63,11 @@ export const deleteMethodologyService = async (
 
     const updatedById = BigInt(user.id);
 
-    await tx.emissionFactor.updateMany({
-      where: {
-        subcategory: { category: { methodologyVersionId: methodologyId } },
-        status: EmissionFactorStatus.ACTIVE,
-      },
-      data: { status: EmissionFactorStatus.DELETED, updatedById },
-    });
-
-    await tx.emissionFactorDimensionValue.updateMany({
-      where: {
-        dimension: {
-          subcategory: { category: { methodologyVersionId: methodologyId } },
-        },
-        status: EmissionFactorDimensionValueStatus.ACTIVE,
-      },
-      data: { status: EmissionFactorDimensionValueStatus.DELETED, updatedById },
-    });
-
-    await tx.emissionFactorDimension.updateMany({
-      where: {
-        subcategory: { category: { methodologyVersionId: methodologyId } },
-        status: EmissionFactorDimensionStatus.ACTIVE,
-      },
-      data: { status: EmissionFactorDimensionStatus.DELETED, updatedById },
-    });
+    await softDeleteSubcategoryDependents(
+      tx,
+      { category: { methodologyVersionId: methodologyId } },
+      updatedById
+    );
 
     await tx.subcategory.updateMany({
       where: {

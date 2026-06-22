@@ -15,12 +15,15 @@ import {
   createTestEmissionFactor,
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
+import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
 import {
   CategoryStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
+  SubcategoryRecommendationStatus,
   SubcategoryStatus,
 } from "@repo/types";
 
@@ -40,7 +43,12 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Delete methodology versions first: cascades to subcategories and their
+    // recommendations, so the test sectors below no longer have referrers.
     await prisma.methodologyVersion.deleteMany({
+      where: { name: { startsWith: "Test - " } },
+    });
+    await prisma.countrySector.deleteMany({
       where: { name: { startsWith: "Test - " } },
     });
   });
@@ -257,6 +265,53 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
 
       expect(dbEf1!.status).toBe(EmissionFactorStatus.DELETED);
       expect(dbEf2!.status).toBe(EmissionFactorStatus.DELETED);
+    });
+  });
+
+  describe("Reduction plan initiative & recommendation cascade", () => {
+    it("should soft-delete initiatives and recommendations of the category's subcategories", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade Initiatives via Category",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat With Initiatives",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub With Initiatives",
+      });
+      const sector = await createTestCountrySector(prisma);
+
+      const initiative = await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          title: "Test - Initiative via Category",
+          description: "Test initiative description",
+        },
+      });
+      const recommendation = await prisma.subcategoryRecommendation.create({
+        data: { subcategoryId: sub.id, sectorId: sector.id },
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/categories/${category.id}`,
+      });
+
+      const [dbInitiative, dbRecommendation] = await Promise.all([
+        prisma.reductionPlanInitiative.findUnique({
+          where: { id: initiative.id },
+        }),
+        prisma.subcategoryRecommendation.findUnique({
+          where: { id: recommendation.id },
+        }),
+      ]);
+
+      expect(dbInitiative!.status).toBe(ReductionPlanInitiativeStatus.DELETED);
+      expect(dbRecommendation!.status).toBe(
+        SubcategoryRecommendationStatus.DELETED
+      );
     });
   });
 

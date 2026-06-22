@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
-import { maintainerKeys } from "./keys";
+import { maintainerKeys, MaintainerQueryKey } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllEmissionFactorsResponse,
@@ -23,7 +23,7 @@ export const useEmissionFactors = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useAddEmissionFactor = (methodologyVersionId?: string) => {
+export const useAddEmissionFactor = () => {
   const queryClient = useQueryClient();
   return useMutation<
     CreateEmissionFactorResponse,
@@ -33,12 +33,12 @@ export const useAddEmissionFactor = (methodologyVersionId?: string) => {
     mutationFn: (data) =>
       apiClient.post("emission-factors", { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.EmissionFactorsUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -48,7 +48,7 @@ interface UpdateEmissionFactorVariables {
   data: UpdateEmissionFactorRequest;
 }
 
-export const useUpdateEmissionFactor = (methodologyVersionId?: string) => {
+export const useUpdateEmissionFactor = () => {
   const queryClient = useQueryClient();
   return useMutation<
     UpdateEmissionFactorResponse,
@@ -60,29 +60,29 @@ export const useUpdateEmissionFactor = (methodologyVersionId?: string) => {
         .patch(`emission-factors/${emissionFactorId}`, { json: data })
         .json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.EmissionFactorsUpdateDependency
+          ),
+      });
     },
   });
 };
 
-export const useDeleteEmissionFactor = (methodologyVersionId?: string) => {
+export const useDeleteEmissionFactor = () => {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
     mutationFn: async (emissionFactorId) => {
       await apiClient.delete(`emission-factors/${emissionFactorId}`);
     },
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.EmissionFactorsUpdateDependency
+          ),
+      });
     },
   });
 };

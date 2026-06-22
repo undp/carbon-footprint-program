@@ -63,9 +63,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     isNewRow,
   } = useMaintainerEditingState({ methodologyVersionId });
 
-  const addMutation = useAddSubcategory(methodologyVersionId);
-  const updateMutation = useUpdateSubcategory(methodologyVersionId);
-  const deleteMutation = useDeleteSubcategory(methodologyVersionId);
+  const addMutation = useAddSubcategory();
+  const updateMutation = useUpdateSubcategory();
+  const deleteMutation = useDeleteSubcategory();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
