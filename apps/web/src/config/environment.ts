@@ -20,12 +20,10 @@ export const API_BASE_URL = VITE_API_BASE_URL!;
 
 // Generic OIDC configuration. The identity provider (Keycloak, Entra External
 // ID, …) is selected per deployment via VITE_OIDC_ISSUER — no provider-specific
-// code. The frontend always uses OIDC, so the issuer, client id and scopes are
-// required and baked into the bundle at build time; the guard below fails loud at
-// boot if any is missing. The recommended scope set and per-provider notes live in
-// the OIDC block of .env*.dockercompose.example / .envrc.template. The redirect
-// URIs fall back to the serving origin, so a single build works on whichever host
-// serves it (e.g. :5173 dev vs :3000 compose).
+// code. The recommended scope set and per-provider notes live in the OIDC block
+// of .env*.dockercompose.example / .envrc.template. The redirect URIs fall back
+// to the serving origin, so a single build works on whichever host serves it
+// (e.g. :5173 dev vs :3000 compose).
 const missingOidcEnv = Object.entries({
   VITE_OIDC_ISSUER,
   VITE_OIDC_CLIENT_ID,
@@ -34,16 +32,27 @@ const missingOidcEnv = Object.entries({
   .filter(([, value]) => !value?.trim())
   .map(([name]) => name);
 
-if (missingOidcEnv.length > 0) {
-  throw new Error(
-    `Missing required OIDC build config: ${missingOidcEnv.join(", ")}. ` +
-      "These VITE_OIDC_* values are required"
+/**
+ * Whether the OIDC login flow is configured. When false, the app still boots and
+ * renders public pages (e.g. the no-auth `AUTH_PROVIDER=none` local stack); the
+ * hard error is deferred until a login flow is actually invoked (see AuthContext).
+ * We log loudly at boot so a misconfigured deployment stays visible in the console
+ * — the web image is itself a production build, so `import.meta.env.PROD` can't
+ * tell a real deploy apart from a no-auth local boot.
+ */
+export const IS_OIDC_CONFIGURED = missingOidcEnv.length === 0;
+
+if (!IS_OIDC_CONFIGURED) {
+  // eslint-disable-next-line no-console
+  console.error(
+    `OIDC login is not configured: missing ${missingOidcEnv.join(", ")}. ` +
+      "Login is disabled until these VITE_OIDC_* values are set."
   );
 }
 
-export const OIDC_ISSUER = VITE_OIDC_ISSUER!;
-export const OIDC_CLIENT_ID = VITE_OIDC_CLIENT_ID!;
-export const OIDC_SCOPES = VITE_OIDC_SCOPES!;
+export const OIDC_ISSUER = VITE_OIDC_ISSUER ?? "";
+export const OIDC_CLIENT_ID = VITE_OIDC_CLIENT_ID ?? "";
+export const OIDC_SCOPES = VITE_OIDC_SCOPES ?? "";
 // `||` (not `??`): compose passes `${VAR:-}` = "" (empty, not undefined) when a
 // var is unset, so the origin fallback must trigger on empty string too.
 export const OIDC_REDIRECT_URI =

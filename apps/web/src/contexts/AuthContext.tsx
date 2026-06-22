@@ -15,6 +15,7 @@ import { enqueueSnackbar } from "notistack";
 import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
 import { useUserStore } from "@/stores/userStore";
+import { IS_OIDC_CONFIGURED } from "@/config/environment";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -94,6 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * action after login (e.g. SaveDraftAuthModal) can abort correctly.
    */
   const signInPopup = useCallback(async () => {
+    if (!IS_OIDC_CONFIGURED) {
+      enqueueSnackbar("El inicio de sesión no está configurado", {
+        variant: "error",
+      });
+      throw new Error(
+        "OIDC login is not configured (VITE_OIDC_ISSUER / VITE_OIDC_CLIENT_ID / VITE_OIDC_SCOPES are empty)."
+      );
+    }
     try {
       await oidc.signinPopup();
     } catch (error) {
@@ -110,6 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign in with a full-page redirect to the IdP.
    */
   const signInRedirect = useCallback(async () => {
+    if (!IS_OIDC_CONFIGURED) {
+      enqueueSnackbar("El inicio de sesión no está configurado", {
+        variant: "error",
+      });
+      return;
+    }
     try {
       await oidc.signinRedirect();
     } catch (error) {
