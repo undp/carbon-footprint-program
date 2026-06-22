@@ -25,8 +25,8 @@ export function requireRole(
   { redirectTo }: RequireRoleOptions
 ) {
   return async () => {
-    const user = await getValidOidcUser();
-    if (!user) {
+    const oidcUser = await getValidOidcUser();
+    if (!oidcUser) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw redirect({ to: redirectTo });
     }
