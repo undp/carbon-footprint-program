@@ -8,18 +8,26 @@ import {
 } from "@repo/types";
 
 /**
- * Soft-deletes every record that hangs off the subcategories matched by
- * `subcategoryWhere`: emission factors, their dimensions and dimension values,
- * reduction-plan initiatives, and subcategory recommendations.
+ * Soft-deletes the maintainer-owned config that hangs off the subcategories
+ * matched by `subcategoryWhere`: emission factors, their dimensions and
+ * dimension values, reduction-plan initiatives, and subcategory recommendations.
  *
- * Shared by deleteSubcategory (a single subcategory) and deleteCategory (every
- * subcategory under the category) so both paths cascade identically and can't
- * drift apart — otherwise deleting a category would leave initiatives and
- * recommendations ACTIVE under a now-DELETED subcategory.
+ * The boundary is deliberate — this cascades methodology/maintainer config only.
+ * Organization-owned data that merely references a subcategory (carbon inventory
+ * lines, reduction projects) is left ACTIVE so deleting a subcategory never
+ * rewrites a country's historical footprint, and the subcategory↔measurement-
+ * unit join has no status column to soft-delete. When a new subcategory relation
+ * is added, cascade it from here only if it is maintainer config.
+ *
+ * Shared by deleteSubcategory (a single subcategory), deleteCategory (every
+ * subcategory under the category) and deleteMethodology (every subcategory under
+ * the version) so all three paths cascade identically and can't drift apart —
+ * otherwise deleting one would leave initiatives and recommendations ACTIVE
+ * under a now-DELETED subcategory.
  *
  * It does not touch the subcategory rows themselves: each caller owns that step
  * (deleteCategory also reorders sibling category positions, deleteSubcategory
- * deletes one row).
+ * deletes one row, deleteMethodology soft-deletes the version's whole tree).
  *
  * Must run inside the caller's transaction so the cascade and the subcategory
  * delete commit atomically.
