@@ -16,10 +16,16 @@ are now raw inputs that the env templates and the deploy turn into `JWKS_*`.
 | API auth config            | API derived `JWKS_*` from `AZURE_TENANT_TYPE/ID/SUBDOMAIN/API_CLIENT_ID` | API reads `JWKS_URI` / `JWKS_ISSUER` / `JWKS_AUDIENCE` / `JWKS_REQUIRED_SCOPE` directly |
 | Token version              | Azure-only `v2.0` gate (when `AZURE_TENANT_ID` set)                      | No version check — issuer match covers it                                               |
 | Where the URL formats live | application code (`environment.ts`)                                      | env templates (`.envrc.azure.example`) + deploy (`appService.bicep`)                    |
+| Easy Auth (Azure)          | `AUTH_PROVIDER=easy-auth` + App Service Authentication gateway enabled   | Removed — `easy-auth` is no longer a valid `AUTH_PROVIDER`; disable the gateway         |
 
-**If you do nothing**, an existing deployment that only has the `AZURE_*` auth
-settings will, after taking the new API image, have **no** JWKS config → it falls
-back to the static `JWT_SECRET` and rejects every token (401 on all requests).
+**If you do nothing:**
+
+- A deployment on `AUTH_PROVIDER=jwks` with only the `AZURE_*` auth settings will,
+  after taking the new API image, have **no** JWKS config → it falls back to the
+  static `JWT_SECRET` and rejects every token (401 on all requests).
+- A deployment still set to **`AUTH_PROVIDER=easy-auth`** is worse: the new API
+  rejects that value and **refuses to boot** (`Invalid AUTH_PROVIDER value` →
+  restart loop, `/health` down). See [Were you on Easy Auth?](#were-you-on-easy-auth) below.
 
 ## The derivation (single reference)
 
@@ -107,6 +113,25 @@ app name:
 az webapp list -g <resource-group> --query "[?starts_with(name,'api-')].name" -o tsv
 ```
 
+### Were you on Easy Auth?
+
+Environments deployed before this change may have `AUTH_PROVIDER=easy-auth` set and
+the App Service **Authentication** gateway enabled (a manual portal step in the old
+flow). Two extra things apply, on top of Option A or B below:
+
+1. `AUTH_PROVIDER` must become `jwks` — a leftover `easy-auth` value makes the new
+   API refuse to boot. Option A (Bicep) and Option B step 1 both set this.
+2. **Disable the App Service Authentication gateway** so the `Bearer` token reaches
+   the app — neither Bicep nor the app-settings commands do this for you:
+
+   ```bash
+   az webapp auth update -g <rg> -n <api-app> --enabled false
+   ```
+
+   (Or Portal → the API App Service → **Authentication** → remove the identity
+   provider.) The `X-MS-CLIENT-PRINCIPAL` path is gone; the API validates the
+   Bearer token in-process via JWKS.
+
 ### Option A — redeploy via Bicep (recommended)
 
 The updated `appService.bicep` derives and sets `JWKS_*` and no longer sets the
@@ -145,8 +170,9 @@ az webapp config appsettings delete -g <rg> -n <api-app> --setting-names \
 > Do **not** delete the `AZURE_*` auth settings until step 2 is verified — keeping
 > them lets you roll back to the previous image cleanly (it reads `AZURE_*`).
 
-App Service **Authentication (Easy Auth)** must stay **disabled** — unchanged from
-before; the `Bearer` token is validated in-process via JWKS.
+For both options, App Service **Authentication (Easy Auth)** must end up **disabled**
+(see [Were you on Easy Auth?](#were-you-on-easy-auth) if this environment had it
+enabled) — the `Bearer` token is validated in-process via JWKS.
 
 ---
 
