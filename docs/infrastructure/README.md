@@ -31,6 +31,7 @@ The app uses a generic OIDC client (`oidc-client-ts`) + JWKS token validation (`
 | [Generic OIDC Authentication Setup](./GenericOidcAuthenticationSetup.md) | Provider-agnostic contract: token claims, JWKS/OIDC env vars, IdP checklist |
 | [Azure Entra Authentication Setup](./AzureAuthenticationSetup.md)        | Azure Entra app registration (external CIAM / organizational) + JWKS        |
 | [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md)        | Local-dev Keycloak IdP via the compose overlay                              |
+| [Auth Config Migration](./AuthConfigMigration.md)                        | Upgrade runbook: migrate existing `.envrc` / Azure deployments to `JWKS_*`  |
 
 ## Source documents
 
