@@ -5,8 +5,8 @@
 
 # Validate that FRONTEND_CUSTOM_DOMAIN is a bare hostname (e.g. app.example.com).
 # A scheme would produce origins like "https://https://…" across every CORS
-# layer; a path or trailing slash breaks the MSAL redirect URI
-# ("//app/home" → AADSTS50011). No-op when the variable is empty or unset.
+# layer; a path or trailing slash breaks the OIDC redirect URI
+# ("//auth/callback" → AADSTS50011). No-op when the variable is empty or unset.
 validate_frontend_custom_domain() {
   local domain="${FRONTEND_CUSTOM_DOMAIN:-}"
   if [ -z "$domain" ]; then
