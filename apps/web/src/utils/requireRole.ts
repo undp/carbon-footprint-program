@@ -3,7 +3,7 @@ import { SystemRole } from "@repo/types";
 import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
 import { apiClient } from "@/api/http";
-import { oidcUserManager } from "@/auth/oidcUserManager";
+import { oidcUserManager, getValidOidcUser } from "@/auth/oidcUserManager";
 import type { GetMeResponse } from "@repo/types";
 
 type RequireRoleOptions = {
@@ -25,14 +25,7 @@ export function requireRole(
   { redirectTo }: RequireRoleOptions
 ) {
   return async () => {
-    let user = await oidcUserManager.getUser();
-    if (user?.expired) {
-      try {
-        user = await oidcUserManager.signinSilent();
-      } catch {
-        user = null;
-      }
-    }
+    const user = await getValidOidcUser();
     if (!user) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw redirect({ to: redirectTo });
