@@ -36,7 +36,7 @@ Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcA
 | **User flows**          | Required (Email OTP sign-up/sign-in)                 | Not needed                                           |
 | **`AZURE_TENANT_TYPE`** | `"external"`                                         | `"organizational"`                                   |
 
-> The application code handles both types automatically. The only difference is the Azure Portal setup and environment variable configuration.
+> The deploy tooling (`.envrc.azure.example` locally, `appService.bicep` on deploy) handles both tenant types automatically — the difference is only the Azure Portal setup and the derived issuer/JWKS URLs. The API itself is tenant-type-agnostic (it consumes the resulting `JWKS_*`).
 
 ---
 
@@ -336,8 +336,8 @@ cd infra
 The Bicep deployment will:
 
 - Store credentials securely in Azure Key Vault
-- Set up environment variables for the API
-- Generate authority URL automatically based on tenant type
+- Derive the API's `JWKS_ISSUER` / `JWKS_URI` / `JWKS_AUDIENCE` from your tenant values and set them on the App Service (`infra/modules/appService.bicep`) — the API consumes those generic values; it has no `AZURE_*` auth awareness
+- Generate the frontend authority URL based on tenant type (consumed by `deploy-web.sh`)
 
 ---
 
@@ -345,26 +345,25 @@ The Bicep deployment will:
 
 ### API (apps/api)
 
-| Variable                 | Description                            | Required                       |
-| ------------------------ | -------------------------------------- | ------------------------------ |
-| `AZURE_TENANT_TYPE`      | `"external"` or `"organizational"`     | Yes (defaults to `"external"`) |
-| `AZURE_TENANT_ID`        | Tenant ID (GUID)                       | Yes                            |
-| `AZURE_TENANT_SUBDOMAIN` | Tenant subdomain (e.g. `undphuella`)   | Only for external              |
-| `AZURE_API_CLIENT_ID`    | API App Registration ID                | Yes                            |
-| `AUTH_PROVIDER`          | `"jwks"`, `"forced-user"`, or `"none"` | Yes                            |
-| `JWKS_URI`               | Override JWKS endpoint                 | No (auto-computed)             |
-| `JWKS_ISSUER`            | Override expected issuer               | No (auto-computed)             |
-| `JWKS_AUDIENCE`          | Override expected audience             | No (auto-computed)             |
+The API is a generic OIDC validator — it reads these directly and does **not** derive anything from `AZURE_*`:
 
-**Auto-computed values based on `AZURE_TENANT_TYPE`:**
+| Variable              | Description                                          | Required         |
+| --------------------- | ---------------------------------------------------- | ---------------- |
+| `AUTH_PROVIDER`       | `"jwks"`, `"forced-user"`, or `"none"`               | Yes              |
+| `JWKS_URI`            | JWKS endpoint (signing keys), reachable from the API | Yes (for `jwks`) |
+| `JWKS_ISSUER`         | Expected token issuer (`iss`)                        | Yes (for `jwks`) |
+| `JWKS_AUDIENCE`       | Expected token audience (`aud`)                      | Yes (for `jwks`) |
+| `JWKS_REQUIRED_SCOPE` | Required scope claim (default `access_as_user`)      | No               |
 
-| Value    | External (CIAM)                                                     | Organizational                                                      |
-| -------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Issuer   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
-| JWKS URI | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
-| Audience | `{API_CLIENT_ID}` (bare GUID)                                       | `{API_CLIENT_ID}` (bare GUID)                                       |
+You don't set these by hand for Azure — they're **derived from your tenant values**: locally by the `.envrc.azure.example` direnv helper, and on deploy by `infra/modules/appService.bicep`. The derivation:
 
-> Only v2.0 tokens are accepted. For organizational tenants, ensure the API app registration manifest has `accessTokenAcceptedVersion` set to `2`.
+| Derived value   | External (CIAM)                                                     | Organizational                                                      |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `JWKS_ISSUER`   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
+| `JWKS_URI`      | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
+| `JWKS_AUDIENCE` | `{API_CLIENT_ID}` (bare GUID)                                       | `{API_CLIENT_ID}` (bare GUID)                                       |
+
+> **CIAM split:** the token `iss` (→ `JWKS_ISSUER`) uses the tenant-**GUID** host, while the JWKS endpoint (→ `JWKS_URI`) uses the tenant-**subdomain** host. Entra issues v2.0 tokens; for organizational tenants set the API app registration manifest's `accessTokenAcceptedVersion` to `2`. The API relies on the issuer match to reject older tokens (a v1.0 token has a different `iss`), not a separate version check.
 
 ### Web (apps/web)
 
@@ -395,7 +394,7 @@ The API supports the following authentication providers via the `AUTH_PROVIDER` 
 
 ### JWKS (all environments — local, on-prem, and Azure)
 
-Set `AUTH_PROVIDER=jwks`. The API validates JWT access tokens directly against the issuer's JWKS endpoint (signature, issuer, audience, expiry). This works with both external and organizational Entra tenants automatically, and with any other OIDC issuer (e.g. Keycloak). On Azure App Service, keep platform Authentication (Easy Auth) **disabled** so the `Authorization: Bearer` token reaches the app.
+Set `AUTH_PROVIDER=jwks` and the `JWKS_*` values above. The API validates JWT access tokens directly against the configured JWKS endpoint (signature, issuer, audience, expiry, required scope) — the same code path for Entra (external or organizational) and any other OIDC issuer (e.g. Keycloak). On Azure App Service, keep platform Authentication (Easy Auth) **disabled** so the `Authorization: Bearer` token reaches the app.
 
 ### Forced User (Development only)
 
@@ -409,7 +408,7 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 
 ### Token Claim Differences
 
-Only v2.0 tokens are accepted for both tenant types:
+Entra issues v2.0 tokens for both tenant types. The API reads these claims (it performs no Azure-specific version check — a v1.0 token simply fails the issuer match):
 
 | Claim    | External (CIAM)                 | Organizational (Azure AD)             |
 | -------- | ------------------------------- | ------------------------------------- |
@@ -454,14 +453,11 @@ export VITE_OIDC_ISSUER="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 
 ### Test API Authentication Locally
 
-For local development with JWKS validation:
+For local development with JWKS validation, copy `.envrc.azure.example` to `.envrc` and fill in your tenant values — it derives the `JWKS_*` (and `VITE_OIDC_*`) for you, so you never hand-write an issuer/JWKS URL:
 
 ```bash
-AUTH_PROVIDER=jwks
-AZURE_TENANT_TYPE="organizational"  # or "external"
-AZURE_TENANT_ID="your-tenant-id"
-AZURE_API_CLIENT_ID="your-api-client-id"
-AZURE_TENANT_SUBDOMAIN="your-ciam-subdomain"  # required when AZURE_TENANT_TYPE="external"
+cp .envrc.azure.example .envrc   # then set AZURE_TENANT_ID / SUBDOMAIN / API_CLIENT_ID / FRONT_CLIENT_ID
+direnv allow
 ```
 
 For local development without auth:
@@ -485,15 +481,13 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 
 ### Token Validation Errors
 
-| Error                                | Cause                    | Solution                                                                                                                                               |
-| ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| "Token version X is not supported"   | v1.0 token received      | Set `accessTokenAcceptedVersion` to `2` in the API app registration manifest (App registrations > [API App] > Manifest).                               |
-| "Token issuer is not a v2.0 issuer"  | v1.0 issuer in token     | Same fix: set `accessTokenAcceptedVersion` to `2` in the manifest. Ensure authority URL includes `/v2.0`.                                              |
-| "Token missing required scope"       | Missing `access_as_user` | Ensure the API app exposes the `access_as_user` scope and the frontend requests `api://{client-id}/access_as_user`.                                    |
-| "The iss claim value is not allowed" | Issuer mismatch          | Check `AZURE_TENANT_TYPE` and `AZURE_TENANT_ID`. The expected issuer is `https://login.microsoftonline.com/{tenant-id}/v2.0` for organizational.       |
-| "The aud claim value is not allowed" | Audience mismatch        | With v2.0 tokens, the audience is the bare client ID GUID. Check `AZURE_API_CLIENT_ID` matches the token's `aud` claim.                                |
-| "Token payload missing email claim"  | Token lacks email field  | Ensure the app registration includes `email` and `profile` in the token's optional claims, or that users have email addresses in their Azure profiles. |
-| "Token expired"                      | Access token expired     | oidc-client-ts handles silent renew automatically; check the `offline_access` scope is included.                                                       |
+| Error                                | Cause                                                | Solution                                                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The iss claim value is not allowed" | Issuer mismatch (a v1.0 token's `iss` lacks `/v2.0`) | Ensure `JWKS_ISSUER` matches the token's `iss`. For organizational tenants, set `accessTokenAcceptedVersion` to `2` in the API app registration manifest so Entra issues v2.0 tokens. |
+| "Token missing required scope"       | Missing `access_as_user`                             | Ensure the API app exposes the `access_as_user` scope and the frontend requests `api://{client-id}/access_as_user`.                                                                   |
+| "The aud claim value is not allowed" | Audience mismatch                                    | Check `JWKS_AUDIENCE` matches the token's `aud` claim (the bare API client-id GUID for v2.0 tokens).                                                                                  |
+| "Token payload missing email claim"  | Token lacks email field                              | Ensure the app registration includes `email` and `profile` in the token's optional claims, or that users have email addresses in their Azure profiles.                                |
+| "Token expired"                      | Access token expired                                 | oidc-client-ts handles silent renew automatically; check the `offline_access` scope is included.                                                                                      |
 
 ### 401 from the API on Azure
 

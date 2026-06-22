@@ -56,43 +56,38 @@ The API validates the JWT access token in the `Authorization: Bearer <token>` he
 **Validation steps (in order):**
 
 1. Token signature verified against the JWKS public key (fetched from the JWKS endpoint, cached for 10 minutes)
-2. Token issuer (`iss`) matches the expected Azure Entra issuer
-3. Token audience (`aud`) matches `AZURE_API_CLIENT_ID`
+2. Token issuer (`iss`) matches `JWKS_ISSUER` (when set)
+3. Token audience (`aud`) matches `JWKS_AUDIENCE` (when set)
 4. Token expiration (`exp`) is in the future
-5. Token version is `2.0` (only v2.0 tokens are accepted)
-6. Token contains the required scope: `access_as_user`
-7. Token contains a user identifier (`oid` or `sub`)
-8. Token contains an email (`email` or `preferred_username`)
+5. Token contains the required scope (default `access_as_user`)
+6. Token contains a user identifier (`oid` or `sub`)
+7. Token contains an email (`email` or `preferred_username`)
 
 **User ID extraction:** Prefers `oid` (Azure Object ID) over `sub`. Using `oid` is important for organizational tenants where `sub` can differ between applications.
 
 **JWKS endpoint cache:** Keys are cached for 10 minutes to avoid excessive requests to the JWKS endpoint. If a token is signed with an unknown key ID (`kid`), the cache is invalidated and refetched.
 
-**Auto-computed config based on `AZURE_TENANT_TYPE`:**
-
-| Value    | External (CIAM)                                                     | Organizational (Azure AD)                                           |
-| -------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Issuer   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
-| JWKS URI | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
-| Audience | `{AZURE_API_CLIENT_ID}` (bare GUID)                                 | `{AZURE_API_CLIENT_ID}` (bare GUID)                                 |
-
 **Required environment variables:**
 
 ```bash
 AUTH_PROVIDER="jwks"
-AZURE_TENANT_TYPE="external"        # "external" (CIAM) or "organizational"
-AZURE_TENANT_ID="<tenant-guid>"
-AZURE_API_CLIENT_ID="<api-client-guid>"
-AZURE_TENANT_SUBDOMAIN="<subdomain>"  # Required only when AZURE_TENANT_TYPE="external"
+JWKS_URI="<jwks-endpoint>"      # signing keys, reachable from the API
+JWKS_ISSUER="<expected-iss>"    # exact token issuer
+JWKS_AUDIENCE="<expected-aud>"  # e.g. the API client-id GUID for Entra
+# JWKS_REQUIRED_SCOPE defaults to "access_as_user"
 ```
 
-**Optional overrides** (override auto-computed values):
+The API reads these directly — it derives nothing from `AZURE_*`. For Azure Entra the
+values are produced from the tenant inputs by `.envrc.azure.example` (local) and
+`infra/modules/appService.bicep` (deploy):
 
-```bash
-JWKS_URI="https://custom-jwks-endpoint/.well-known/jwks.json"
-JWKS_ISSUER="https://custom-issuer/v2.0"
-JWKS_AUDIENCE="custom-audience"
-```
+| Derived value   | External (CIAM)                                                     | Organizational (Azure AD)                                           |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `JWKS_ISSUER`   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
+| `JWKS_URI`      | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
+| `JWKS_AUDIENCE` | `{api-client-id}` (bare GUID)                                       | `{api-client-id}` (bare GUID)                                       |
+
+> CIAM split: the token `iss` (→ `JWKS_ISSUER`) uses the tenant-GUID host, the JWKS endpoint (→ `JWKS_URI`) uses the tenant-subdomain host.
 
 ---
 
@@ -167,12 +162,12 @@ AUTH_PROVIDER="none"
 
 ## Token Claim Reference
 
-Both Azure tenant types issue v2.0 tokens. The API only accepts v2.0 tokens when `AZURE_TENANT_ID` is configured.
+Both Azure tenant types issue v2.0 tokens. The API performs no version check — it relies on the issuer (`iss`) matching `JWKS_ISSUER`, so a v1.0 token (whose issuer differs) is rejected.
 
 | Claim                | External (CIAM)                         | Organizational (Azure AD)                     |
 | -------------------- | --------------------------------------- | --------------------------------------------- |
 | `iss`                | `https://{id}.ciamlogin.com/{id}/v2.0`  | `https://login.microsoftonline.com/{id}/v2.0` |
-| `aud`                | `{AZURE_API_CLIENT_ID}` (bare GUID)     | `{AZURE_API_CLIENT_ID}` (bare GUID)           |
+| `aud`                | `{api-client-id}` (bare GUID)           | `{api-client-id}` (bare GUID)                 |
 | `oid`                | Object ID (preferred for user identity) | Object ID (preferred)                         |
 | `sub`                | Subject (fallback)                      | Subject (fallback)                            |
 | `email`              | User email                              | User email                                    |
@@ -186,12 +181,11 @@ Both Azure tenant types issue v2.0 tokens. The API only accepts v2.0 tokens when
 
 ## Common Errors
 
-| Error                                           | Provider | Cause               | Fix                                                                  |
-| ----------------------------------------------- | -------- | ------------------- | -------------------------------------------------------------------- |
-| `Token version "1.0" is not supported`          | jwks     | v1.0 token issued   | Set `accessTokenAcceptedVersion: 2` in API app registration manifest |
-| `Token issuer is not a v2.0 issuer`             | jwks     | Old issuer format   | Same fix as above                                                    |
-| `Token missing required scope "access_as_user"` | jwks     | Scope not requested | Frontend must request `api://{CLIENT_ID}/access_as_user`             |
-| `The aud claim value is not allowed`            | jwks     | Audience mismatch   | Check `AZURE_API_CLIENT_ID` matches the token's `aud`                |
-| `Token payload missing email claim`             | jwks     | No email in token   | Add `email` optional claim in API app registration                   |
+| Error                                           | Provider | Cause                                | Fix                                                                                                                                                 |
+| ----------------------------------------------- | -------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `The iss claim value is not allowed`            | jwks     | Issuer mismatch (incl. a v1.0 token) | Ensure `JWKS_ISSUER` matches the token's `iss`; for organizational tenants set `accessTokenAcceptedVersion: 2` in the API app registration manifest |
+| `Token missing required scope "access_as_user"` | jwks     | Scope not requested                  | Frontend must request `api://{CLIENT_ID}/access_as_user`                                                                                            |
+| `The aud claim value is not allowed`            | jwks     | Audience mismatch                    | Check `JWKS_AUDIENCE` matches the token's `aud`                                                                                                     |
+| `Token payload missing email claim`             | jwks     | No email in token                    | Add `email` optional claim in API app registration                                                                                                  |
 
 For the full troubleshooting guide, see [Azure OIDC auth setup — Troubleshooting](../infrastructure/AzureAuthenticationSetup.md#troubleshooting).

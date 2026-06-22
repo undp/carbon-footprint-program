@@ -72,13 +72,13 @@ dc down            # stop
 
 `AUTH_PROVIDER` selects the strategy:
 
-| Mode          | Required vars                                                                                         | Use case                       |
-| ------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `none`        | —                                                                                                     | API open (simplest local boot) |
-| `forced-user` | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`, `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER`                           | Local dev with a fake user     |
-| `jwks`        | `AZURE_TENANT_TYPE`, `AZURE_TENANT_ID`, `AZURE_TENANT_SUBDOMAIN` (if external), `AZURE_API_CLIENT_ID` | Azure Entra ID auth            |
+| Mode          | Required vars                                                                 | Use case                       |
+| ------------- | ----------------------------------------------------------------------------- | ------------------------------ |
+| `none`        | —                                                                             | API open (simplest local boot) |
+| `forced-user` | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`, `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER`   | Local dev with a fake user     |
+| `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
-`AZURE_TENANT_ID` is always the **Entra External ID (CIAM) tenant** that validates user tokens — distinct from the storage tenant below. For non-Azure IdPs, use the generic `JWKS_*` overrides.
+The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see the compose overlay. The storage tenant below is separate.
 
 ### Web build args
 

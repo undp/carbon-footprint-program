@@ -10,15 +10,20 @@ Variables are loaded from `.envrc` (root) using `direnv`. App-specific `.envrc` 
 
 ## Root `.envrc` (shared by all apps)
 
-### Azure Authentication
+### Azure Entra inputs (for `.envrc.azure.example`)
 
-| Variable                 | Required | Default    | Description                                                                                                           |
-| ------------------------ | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| `AZURE_TENANT_TYPE`      | No       | `external` | Tenant type: `external` (CIAM / ciamlogin.com) or `organizational` (Azure AD / login.microsoftonline.com)             |
-| `AZURE_TENANT_ID`        | Cond.    | —          | Azure Tenant ID (GUID). Required when using Azure auth.                                                               |
-| `AZURE_TENANT_SUBDOMAIN` | Cond.    | —          | Tenant subdomain. Required only when `AZURE_TENANT_TYPE=external`.                                                    |
-| `AZURE_API_CLIENT_ID`    | Cond.    | —          | App Registration ID for the API. Required for JWT validation.                                                         |
-| `AZURE_FRONT_CLIENT_ID`  | Cond.    | —          | App Registration ID for the frontend (public SPA client). On Azure, `deploy-web.sh` maps it to `VITE_OIDC_CLIENT_ID`. |
+These are **not** read by the API or web — they are raw inputs that the Azure helper
+(`.envrc.azure.example`, locally) and the deploy (`appService.bicep` + `deploy-web.sh`)
+turn into the generic `JWKS_*` / `VITE_OIDC_*` values below. The base `.envrc.template`
+has no `AZURE_*` auth vars; copy `.envrc.azure.example` for an Entra setup.
+
+| Variable                 | Required | Default    | Description                                                                                               |
+| ------------------------ | -------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `AZURE_TENANT_TYPE`      | No       | `external` | Tenant type: `external` (CIAM / ciamlogin.com) or `organizational` (Azure AD / login.microsoftonline.com) |
+| `AZURE_TENANT_ID`        | Cond.    | —          | Azure Tenant ID (GUID). Used to derive the issuer and JWKS URL.                                           |
+| `AZURE_TENANT_SUBDOMAIN` | Cond.    | —          | Tenant subdomain. Required only when `AZURE_TENANT_TYPE=external` (the JWKS host).                        |
+| `AZURE_API_CLIENT_ID`    | Cond.    | —          | API App Registration ID. Becomes `JWKS_AUDIENCE` and the `api://…/access_as_user` scope.                  |
+| `AZURE_FRONT_CLIENT_ID`  | Cond.    | —          | Frontend (public SPA) App Registration ID. Becomes `VITE_OIDC_CLIENT_ID`.                                 |
 
 ### Azure Blob Storage
 
@@ -59,17 +64,19 @@ Variables are loaded from `.envrc` (root) using `direnv`. App-specific `.envrc` 
 | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`  | Yes      | Email of the forced user                |
 | `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER` | Yes      | Identity provider ID of the forced user |
 
-### Generic JWKS Overrides (for non-Azure IdPs)
+### JWKS (API token validation, `AUTH_PROVIDER=jwks`)
 
-These override the Azure-derived JWKS values. Use when integrating a non-Azure OIDC provider.
+The API reads these **directly** to validate access tokens — it derives nothing from
+`AZURE_*`. Set them for any OIDC issuer (Keycloak, …); for Azure Entra they're produced
+from the tenant inputs above by `.envrc.azure.example` (local) and `appService.bicep` (deploy).
 
-| Variable                | Required | Description                                       |
-| ----------------------- | -------- | ------------------------------------------------- |
-| `JWKS_URI`              | No       | JWKS endpoint URL (overrides Azure-derived value) |
-| `JWKS_ISSUER`           | No       | Expected token issuer (`iss` claim)               |
-| `JWKS_AUDIENCE`         | No       | Expected token audience (`aud` claim)             |
-| `JWKS_REQUIRED_SCOPE`   | No       | Required scope claim (default: `access_as_user`)  |
-| `JWKS_SKIP_SCOPE_CHECK` | No       | Set `true` to disable scope enforcement entirely  |
+| Variable                | Required         | Description                                                     |
+| ----------------------- | ---------------- | --------------------------------------------------------------- |
+| `JWKS_URI`              | Yes (for `jwks`) | JWKS endpoint URL, reachable from the API process               |
+| `JWKS_ISSUER`           | Yes (for `jwks`) | Expected token issuer (`iss`); empty disables issuer validation |
+| `JWKS_AUDIENCE`         | Yes (for `jwks`) | Expected token audience (`aud` claim)                           |
+| `JWKS_REQUIRED_SCOPE`   | No               | Required scope claim (default: `access_as_user`)                |
+| `JWKS_SKIP_SCOPE_CHECK` | No               | Set `true` to disable scope enforcement entirely                |
 
 ### Frontend (Vite)
 
@@ -115,15 +122,17 @@ Used by the deployment scripts in `infra/`.
 
 The following variables are automatically set by `infra/modules/appService.bicep` during infrastructure deployment. They do not need to be set manually.
 
-| Variable                       | Source              | Description                           |
-| ------------------------------ | ------------------- | ------------------------------------- |
-| `DATABASE_URL`                 | Key Vault + Bicep   | PostgreSQL connection string with SSL |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Bicep output        | Storage account name                  |
-| `AZURE_STORAGE_CONTAINER_NAME` | `files` (hardcoded) | Blob container name                   |
-| `NODE_ENV`                     | `production`        | Production mode                       |
-| `WEBSITES_PORT`                | `8080`              | Port exposed by the container         |
+| Variable                                     | Source                             | Description                                      |
+| -------------------------------------------- | ---------------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`                               | Key Vault + Bicep                  | PostgreSQL connection string with SSL            |
+| `AZURE_STORAGE_ACCOUNT_NAME`                 | Bicep output                       | Storage account name                             |
+| `AZURE_STORAGE_CONTAINER_NAME`               | `files` (hardcoded)                | Blob container name                              |
+| `AUTH_PROVIDER`                              | `jwks` (when auth enabled)         | Auth provider                                    |
+| `JWKS_ISSUER` / `JWKS_URI` / `JWKS_AUDIENCE` | Bicep (derived from tenant params) | Token validation config (see `appService.bicep`) |
+| `NODE_ENV`                                   | `production`                       | Production mode                                  |
+| `WEBSITES_PORT`                              | `8080`                             | Port exposed by the container                    |
 
-Authentication variables (`AZURE_TENANT_ID`, `AZURE_API_CLIENT_ID`, etc.) must be set manually in the App Service configuration after provisioning, or added to `appService.bicep`.
+When auth is enabled, `appService.bicep` derives the `JWKS_*` values from the tenant inputs and sets them on the App Service automatically — no manual auth config is needed.
 
 ---
 

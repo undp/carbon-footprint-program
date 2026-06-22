@@ -275,7 +275,7 @@ Authentication requires an Azure Entra External ID (CIAM) tenant or an organizat
 1. Create an Entra External ID tenant (or use an existing organizational AD).
 2. Register two app registrations: one for the API, one for the frontend.
 3. Configure redirect URIs for the frontend app registration.
-4. Provide the following values to be set as environment variables:
+4. Provide the following values (deploy inputs — the deploy derives the API's `JWKS_*` and the frontend's `VITE_OIDC_*` from them):
 
 | Variable                 | Source                              |
 | ------------------------ | ----------------------------------- |

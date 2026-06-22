@@ -85,13 +85,13 @@ The API reads these claims from the validated access token (see `apps/api/src/au
 | User id   | `oid` ?? `sub`                  | Prefers `oid` (Azure), falls back to `sub`.                                                               |
 | Email     | `email` ?? `preferred_username` | Required — token rejected if both are absent.                                                             |
 
-> **Azure-only checks:** the `v2.0` token-version and `/v2.0` issuer checks run **only when `AZURE_TENANT_ID` is set**. For non-Azure IdPs, leave all `AZURE_*` auth vars empty so these checks are skipped.
+> **No provider-specific checks:** validation (signature, issuer, audience, scope, expiry) is uniform across IdPs — the API has no Azure-specific code. Setting `JWKS_ISSUER` to the exact `/v2.0` issuer is what rejects older (v1.0) Entra tokens.
 
 ---
 
 ## Backend Configuration (API)
 
-Set `AUTH_PROVIDER=jwks` and the generic `JWKS_*` variables. These take priority over the Azure-derived values; for a non-Azure IdP, leave the `AZURE_*` auth vars empty.
+Set `AUTH_PROVIDER=jwks` and the `JWKS_*` variables. The API reads them as-is — it does no provider-specific derivation, and there are no `AZURE_*` auth variables in the API runtime.
 
 | Variable                | Required | Description                                                                                            |
 | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
@@ -102,18 +102,21 @@ Set `AUTH_PROVIDER=jwks` and the generic `JWKS_*` variables. These take priority
 | `JWKS_REQUIRED_SCOPE`   | No       | Required scope claim. Defaults to `access_as_user`.                                                    |
 | `JWKS_SKIP_SCOPE_CHECK` | No       | `true` disables scope enforcement entirely (not recommended).                                          |
 
-\* If `JWKS_URI` is unset (and no Azure tenant is configured), the API has no JWKS client and silently falls back to the static `JWT_SECRET` HMAC path — i.e. it will not validate real OIDC tokens. Always set `JWKS_URI` for `jwks` mode.
+\* If `JWKS_URI` is unset, the API has no JWKS client and silently falls back to the static `JWT_SECRET` HMAC path — i.e. it will not validate real OIDC tokens. Always set `JWKS_URI` for `jwks` mode.
 
-**Resolution priority** (from `apps/api/src/config/environment.ts`):
+**How the API reads them** (from `apps/api/src/config/environment.ts`):
 
 ```
-RESOLVED_JWKS_URI       = JWKS_URI      || <Azure-computed from AZURE_TENANT_*>
-RESOLVED_JWKS_ISSUERS   = [JWKS_ISSUER] || <Azure-computed issuers>     // [] ⇒ issuer check OFF
-RESOLVED_JWKS_AUDIENCE  = JWKS_AUDIENCE || AZURE_API_CLIENT_ID
-RESOLVED_REQUIRED_SCOPE = JWKS_SKIP_SCOPE_CHECK ? none : (JWKS_REQUIRED_SCOPE ?? "access_as_user")
+JWKS_URI            → used as-is (empty ⇒ no JWKS client ⇒ static JWT_SECRET fallback)
+JWKS_ISSUER         → allowed issuer (empty ⇒ issuer validation OFF, warns at boot)
+JWKS_AUDIENCE       → expected audience (empty ⇒ audience validation OFF)
+JWKS_REQUIRED_SCOPE → required scope; JWKS_SKIP_SCOPE_CHECK=true disables it; default "access_as_user"
 ```
 
-> ⚠️ **Do not set `AZURE_TENANT_ID` for a non-Azure IdP.** Any value re-enables the Azure v2.0 token checks and the Azure-derived JWKS/issuer/audience defaults, which will reject your IdP's tokens.
+The API does no provider-specific derivation. For Azure, the env template
+(`.envrc.azure.example`) and the deploy (`infra/modules/appService.bicep`)
+compute these `JWKS_*` values from the raw tenant inputs — see the
+[Azure Entra guide](./AzureAuthenticationSetup.md).
 
 Example (`.envrc` / `.env.dockercompose`):
 
@@ -162,14 +165,13 @@ The client uses `response_type=code` (Auth Code + PKCE), persists tokens in `loc
 
 ## Troubleshooting
 
-| Symptom                                     | Likely cause                                        | Fix                                                                                                     |
-| ------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Boot warning "no issuers are set"           | `JWKS_ISSUER` empty and no Azure tenant configured  | Set `JWKS_ISSUER` to the token's exact `iss`.                                                           |
-| 401 on every request                        | API can't reach `JWKS_URI`, or `aud`/`iss` mismatch | Confirm `JWKS_URI` is reachable from the API process; match `JWKS_AUDIENCE`/`JWKS_ISSUER` to the token. |
-| "Token missing required scope"              | The API scope isn't in `scope`/`scp`                | Ensure the client requests/grants the scope; check `JWKS_REQUIRED_SCOPE`.                               |
-| "Token payload missing email claim"         | IdP doesn't emit `email`/`preferred_username`       | Add an email claim mapper to the token.                                                                 |
-| Tokens accepted from unexpected issuers     | `JWKS_ISSUER` not set ⇒ issuer check disabled       | Always set `JWKS_ISSUER`.                                                                               |
-| Non-Azure IdP tokens rejected as "not v2.0" | `AZURE_TENANT_ID` is set                            | Clear all `AZURE_*` auth vars for a non-Azure IdP.                                                      |
+| Symptom                                 | Likely cause                                        | Fix                                                                                                     |
+| --------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Boot warning "no issuer is set"         | `JWKS_ISSUER` is empty                              | Set `JWKS_ISSUER` to the token's exact `iss`.                                                           |
+| 401 on every request                    | API can't reach `JWKS_URI`, or `aud`/`iss` mismatch | Confirm `JWKS_URI` is reachable from the API process; match `JWKS_AUDIENCE`/`JWKS_ISSUER` to the token. |
+| "Token missing required scope"          | The API scope isn't in `scope`/`scp`                | Ensure the client requests/grants the scope; check `JWKS_REQUIRED_SCOPE`.                               |
+| "Token payload missing email claim"     | IdP doesn't emit `email`/`preferred_username`       | Add an email claim mapper to the token.                                                                 |
+| Tokens accepted from unexpected issuers | `JWKS_ISSUER` not set ⇒ issuer check disabled       | Always set `JWKS_ISSUER`.                                                                               |
 
 ---
 
