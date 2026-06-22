@@ -4,7 +4,7 @@ The platform's pilot country deploys to its own infrastructure using MinIO as it
 
 ## What Changes
 
-- Introduce a `StorageAdapter` facade (`apps/api/src/services/storage/`) that defines a backend-agnostic contract for read/write presigned URLs, head/stream/put/delete/copy, and health check. No move primitive — the only consumer pattern is copy-then-cleanup (`linkFilesToSubmission` + `cleanupSourceObjects`), so `moveObject` would have no callers (YAGNI).
+- Introduce a `StorageAdapter` facade in the shared `@repo/storage` package (`packages/storage/`) that defines a backend-agnostic contract for read/write presigned URLs, head/stream/put/delete/copy, and health check. No move primitive — the only consumer pattern is copy-then-cleanup (`linkFilesToSubmission` + `cleanupSourceObjects`), so `moveObject` would have no callers (YAGNI).
 - Ship two adapters behind the facade: `AzureBlobAdapter` (ports the current `blobService.ts` 1:1) and `MinioAdapter` (new, via AWS SDK v3 with `forcePathStyle`).
 - **BREAKING (internal API only)**: Replace the three Fastify decorators `blobServiceClient`, `blobStorage`, `storageContainerName` with a single `storage: StorageAdapter`. All ~211 callsites across feature handlers/services migrate to the new decorator.
 - **BREAKING (env)**: `STORAGE_PROVIDER` becomes required at startup (no more silent "storage disabled" path). Provider-specific vars (`AZURE_STORAGE_ACCOUNT_NAME` or `MINIO_*`) are required conditionally.
@@ -27,12 +27,12 @@ The platform's pilot country deploys to its own infrastructure using MinIO as it
 
 ## Impact
 
-- **Code**: ~211 references to `fastify.blobServiceClient` / `fastify.blobStorage` / `fastify.storageContainerName` across ~30-40 feature files become `fastify.storage`. 9+ files with direct `@azure/storage-blob` imports lose them (only the Azure adapter keeps the import). `persistFileRecord.ts` and `persistLegalFileRecord.ts` switch to `storage.headObject` / `storage.deleteObject`.
+- **Code**: ~211 references to `fastify.blobServiceClient` / `fastify.blobStorage` / `fastify.storageContainerName` across ~30-40 feature files become `fastify.storage`. 9+ files with direct `@azure/storage-blob` imports lose them (the storage SDKs now live only inside `@repo/storage`). `persistFileRecord.ts` and `persistLegalFileRecord.ts` switch to `storage.headObject` / `storage.deleteObject`.
 - **APIs**: `RequestUploadResponseSchema` gains two fields (additive at the wire level; frontend updated in the same PR). No public REST contract removals.
 - **Dependencies (added)**: `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner` in `apps/api`. No new package for testcontainers — `@testcontainers/minio` is absent from the ecosystem; MinIO test container uses `GenericContainer("minio/minio")`.
 - **Dependencies (kept)**: `@azure/storage-blob` and `@azure/identity` remain, scoped to the Azure adapter only.
 - **Infra**: new `docker-compose.minio.yml` provides `minio` + `minio-init`; `docker-compose.yml` gains the `STORAGE_PROVIDER`/`MINIO_*` env passthroughs. `.envrc.template` gains `STORAGE_PROVIDER` and `MINIO_*` vars. MinIO requires a CORS allow-origin for browser presigned PUTs; documented in `FileStorage.md`.
 - **CI**: `test` job in `.github/workflows/ci.yml` gains `strategy.matrix.storage_provider: [azure_blob_storage, minio]`. Test suite runtime roughly doubles for that job.
-- **Tests**: `apps/api/test/setup/testcontainers.ts` branches on provider; `appFactory.ts` constructs the adapter via `createStorageAdapter(provider, env)` instead of `BlobServiceClient.fromConnectionString` directly; `blobHelper.ts` → `storageHelper.ts` with `uploadFixture` that seeds fixtures via the adapter's direct `putObject` (works against either backend).
+- **Tests**: `apps/api/test/setup/` splits storage/database setup (`testStorage.ts` branches on provider, `testDatabase.ts` owns Postgres); `appFactory.ts` constructs the adapter via the `@repo/storage/testing` factories instead of `BlobServiceClient.fromConnectionString` directly; `blobHelper.ts` → `storageHelper.ts` with `uploadFixture` that seeds fixtures via the adapter's direct `putObject` (works against either backend).
 - **Out of scope**: `getBadgePreviews/service.ts` performance optimization (switching its per-badge `generateReadSasUrl` loop to the batched `createReadUrlSigner`) is deferred to a follow-up PR.
 - **Operational**: Each country deployment must now pick a provider explicitly. The pilot country switches to `STORAGE_PROVIDER=minio`; existing Azure deployments set `STORAGE_PROVIDER=azure_blob_storage` (no behavior change beyond the now-required env var).

@@ -26,14 +26,14 @@ The pilot deployment runs MinIO (S3-compatible). CLAUDE.md mandates country-agno
 
 ### 1. Single facade, two adapters (vs. n adapters via plugin registry)
 
-Chose a small, hand-rolled `StorageAdapter` interface with two concrete implementations selected by a switch in `createStorageAdapter(provider, env)`. Rejected a plugin-registry approach (dynamic discovery, DI container) because there are exactly two providers in scope and country deployments do not need to register new ones at runtime — they pick one of the supported values at deploy time. Adding more providers later is a 3-step exercise (new adapter file, new enum value, new switch case).
+Chose a small, hand-rolled `StorageAdapter` interface with two concrete implementations selected by a switch in `createStorageAdapter(config)` (in the shared `@repo/storage` package). Rejected a plugin-registry approach (dynamic discovery, DI container) because there are exactly two providers in scope and country deployments do not need to register new ones at runtime — they pick one of the supported values at deploy time. Adding more providers later is a 3-step exercise (new adapter file, new enum value, new switch case).
 
 ### 2. `createReadUrlSigner` stays as a distinct method
 
 Azure issues a user-delegation key via a network call (`BlobServiceClient.getUserDelegationKey`) that signs N blobs from one fetch — the existing `createReadSasUrlSigner` at `blobService.ts:37-75` already does this. S3 presign is sync and per-blob. Collapsing the two into a single `generateReadUrl` would force a delegation-key fetch per blob on Azure, regressing the batched callsite. Interface keeps the factory:
 
 ```
-createReadUrlSigner(expiresInMinutes?) : Promise<(path, opts?) => Promise<SasUrlResult>>
+createReadUrlSigner(expiresInMinutes?) : Promise<(path, opts?) => Promise<ReadUrlResult>>
 ```
 
 MinIO adapter implements it as a trivial closure that calls `generateReadUrl` per invocation. Rejected: a single `generateReadUrl(paths[])` batch method — Azure batches the key fetch, not the SAS generation, so the closure shape models reality better.

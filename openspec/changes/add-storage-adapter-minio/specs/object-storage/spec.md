@@ -33,8 +33,7 @@ The system SHALL expose all object-storage operations through a single `StorageA
 
 - **WHEN** any feature handler or service needs to interact with object storage
 - **THEN** it accesses `fastify.storage` and calls one of: `generateReadUrl`, `createReadUrlSigner`, `generateWriteUrl`, `headObject`, `streamObject`, `putObject`, `deleteObject`, `copyObject`, `healthCheck`
-- **AND** no feature outside `apps/api/src/services/storage/adapters/azureBlobAdapter.ts` imports from `@azure/storage-blob`
-- **AND** no feature outside `apps/api/src/services/storage/adapters/minioAdapter.ts` imports from `@aws-sdk/client-s3` or `@aws-sdk/s3-request-presigner`
+- **AND** no code outside the `@repo/storage` package (`packages/storage/`) imports from `@azure/storage-blob`, `@aws-sdk/client-s3`, or `@aws-sdk/s3-request-presigner` directly
 
 ### Requirement: Read URL generation supports batched signing
 
