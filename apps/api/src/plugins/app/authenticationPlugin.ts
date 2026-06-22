@@ -7,8 +7,8 @@
  * ## Configuration
  *
  * Set AUTH_PROVIDER environment variable to choose provider:
- * - "jwks" - Use JWT tokens with JWKS validation (default)
- * - "easy-auth" - Use Azure App Service Easy Auth
+ * - "jwks" - Validate OIDC access tokens via JWKS (default)
+ * - "forced-user" - Inject a fixed dev user
  * - "none" - Disable authentication (development only)
  *
  * ## Usage in Routes

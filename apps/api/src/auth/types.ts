@@ -79,4 +79,4 @@ export interface AuthUser {
 /**
  * Supported authentication provider types.
  */
-export type AuthProviderType = "jwks" | "easy-auth" | "forced-user" | "none";
+export type AuthProviderType = "jwks" | "forced-user" | "none";

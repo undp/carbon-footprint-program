@@ -15,8 +15,6 @@ import {
  * FORCED_USER_EMAIL_WHEN_NO_PROVIDER are set, a fake user is returned whose
  * idpUserId and email are derived from those env vars. Otherwise,
  * authentication fails.
- *
- * Note: This provider is NOT related to Azure Easy Auth. For Easy Auth, use EasyAuthProvider.
  */
 export class ForcedUserProvider implements AuthProvider {
   readonly type = "forced-user" as const;

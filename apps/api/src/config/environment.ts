@@ -198,9 +198,8 @@ export const RESOLVED_JWKS_REQUIRED_SCOPE: string | undefined =
 // ============================================================================
 // Authentication Provider Configuration
 // ============================================================================
-// AUTH_PROVIDER: "jwks" | "easy-auth" | "forced-user" | "none"
-// - jwks: Use MSAL tokens with JWKS validation
-// - easy-auth: Use Azure App Service Easy Auth headers
+// AUTH_PROVIDER: "jwks" | "forced-user" | "none"
+// - jwks: Validate OIDC access tokens via JWKS (Entra, Keycloak, any OIDC issuer)
 // - forced-user: Use a specific user (recommended for local dev)
 // - none: No authentication (default when AUTH_PROVIDER is not set)
 
@@ -208,7 +207,7 @@ export const AUTH_PROVIDER: AuthProviderType = (() => {
   const rawAuthProvider = process.env.AUTH_PROVIDER;
   if (!rawAuthProvider) return "none";
 
-  const validValues = ["jwks", "easy-auth", "forced-user", "none"];
+  const validValues = ["jwks", "forced-user", "none"];
   if (!validValues.includes(rawAuthProvider)) {
     throw new Error(
       `Invalid AUTH_PROVIDER value: ${rawAuthProvider}. Allowed values are ${validValues.join(", ")}.`

@@ -27,14 +27,12 @@
  *
  * @see AuthProvider - Interface for implementing new providers
  * @see JwksAuthProvider - JWT/JWKS-based authentication
- * @see EasyAuthProvider - Azure App Service Easy Auth
  */
 
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "./AuthProvider.js";
 import type { AuthProviderType } from "./types.js";
 import { JwksAuthProvider } from "./providers/JwksAuthProvider.js";
-import { EasyAuthProvider } from "./providers/EasyAuthProvider.js";
 import { NoneProvider } from "./providers/NoneProvider.js";
 import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
 
@@ -52,8 +50,6 @@ export class AuthService {
 
     if (this.provider_type === "jwks") {
       this.provider = new JwksAuthProvider();
-    } else if (this.provider_type === "easy-auth") {
-      this.provider = new EasyAuthProvider();
     } else if (this.provider_type === "forced-user") {
       this.provider = new ForcedUserProvider();
     } else if (this.provider_type === "none") {
