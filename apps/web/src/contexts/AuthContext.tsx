@@ -33,24 +33,12 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 );
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Destructure the individually-stable methods instead of depending on the
-  // whole `oidc` object, which is a fresh reference on every auth-state
-  // transition — depending on it would defeat the useCallback memoization below.
-  // unbound-method is a false positive here: react-oidc-context already binds
-  // these (navigator methods via `.bind(userManager)`, removeUser is a
-  // useCallback), so detaching them is safe.
-  /* eslint-disable @typescript-eslint/unbound-method */
-  const {
-    isAuthenticated,
-    isLoading,
-    signinPopup,
-    signinRedirect,
-    signoutRedirect,
-    removeUser,
-  } = useOidcAuth();
-  /* eslint-enable @typescript-eslint/unbound-method */
+  const oidc = useOidcAuth();
   const navigate = useNavigate();
   const clearUserStore = useUserStore((state) => state.clear);
+
+  const isAuthenticated = oidc.isAuthenticated;
+  const isLoading = oidc.isLoading;
 
   const { user, refetchUser, isUserError } = useInitializeUser({
     isAuthenticated,
@@ -74,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // and inform the user — otherwise a flaky call would strand the user in a
     // half-broken session.
     try {
-      await removeUser();
+      await oidc.removeUser();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("removeUser failed during login recovery:", error);
@@ -87,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
       variant: "error",
     });
-  }, [removeUser, navigate, clearUserStore]);
+  }, [oidc, navigate, clearUserStore]);
 
   // Trigger the cleanup when OIDC is authenticated but /users/me failed. Reset
   // the guard once the user is no longer authenticated so a future login
@@ -108,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const signInPopup = useCallback(async () => {
     try {
-      await signinPopup();
+      await oidc.signinPopup();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Login popup failed:", error);
@@ -117,14 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw error;
     }
-  }, [signinPopup]);
+  }, [oidc]);
 
   /**
    * Sign in with a full-page redirect to the IdP.
    */
   const signInRedirect = useCallback(async () => {
     try {
-      await signinRedirect();
+      await oidc.signinRedirect();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Login redirect failed:", error);
@@ -132,14 +120,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "error",
       });
     }
-  }, [signinRedirect]);
+  }, [oidc]);
 
   /**
    * Federated sign out via the IdP's end-session endpoint.
    */
   const signOut = useCallback(async () => {
     try {
-      await signoutRedirect();
+      await oidc.signoutRedirect();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Logout failed:", error);
@@ -147,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "error",
       });
     }
-  }, [signoutRedirect]);
+  }, [oidc]);
 
   const value: AuthContextType = {
     isAuthenticated,
