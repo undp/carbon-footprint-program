@@ -5,12 +5,12 @@ import type { StartedTestContainer } from "testcontainers";
 import { StorageProvider } from "@repo/storage";
 
 const AZURE_TEST_CONFIG = {
-  image: "mcr.microsoft.com/azure-storage/azurite",
+  image: "mcr.microsoft.com/azure-storage/azurite:3.35.0",
   containerName: "test-files",
 } as const;
 
 const MINIO_TEST_CONFIG = {
-  image: "minio/minio:latest",
+  image: "minio/minio:RELEASE.2025-09-07T16-13-09Z",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
