@@ -13,10 +13,7 @@
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser, OidcTokenPayload } from "../types.js";
-import {
-  RESOLVED_JWKS_REQUIRED_SCOPE,
-  AZURE_TENANT_ID,
-} from "@/config/environment.js";
+import { JWKS_REQUIRED_SCOPE } from "@/config/environment.js";
 
 /**
  * JWKS-based authentication provider.
@@ -54,33 +51,17 @@ export class JwksAuthProvider implements AuthProvider {
         "JwksAuthProvider: token verified"
       );
 
-      // Enforce v2.0 tokens only when running against Azure AD
-      if (AZURE_TENANT_ID) {
-        if (payload.ver && payload.ver !== "2.0") {
-          throw new Error(
-            `Token version "${payload.ver}" is not supported. Only v2.0 tokens are accepted. ` +
-              "Ensure accessTokenAcceptedVersion is set to 2 in the API app registration manifest."
-          );
-        }
-        if (payload.iss && !payload.iss.includes("/v2.0")) {
-          throw new Error(
-            `Token issuer "${payload.iss}" is not a v2.0 issuer. ` +
-              "Expected issuer URL to contain '/v2.0'."
-          );
-        }
-      }
-
       // Enforce required scope (e.g. "access_as_user"). The granted scopes live
       // under different claim names depending on the issuer: Azure/Entra uses its
       // own `scp` claim, while standard OIDC providers (e.g. Keycloak, per
       // RFC 9068) use `scope`. Only one is ever present, so consolidate to it.
-      if (RESOLVED_JWKS_REQUIRED_SCOPE) {
+      if (JWKS_REQUIRED_SCOPE) {
         const consolidatedPayloadScope = payload.scp ?? payload.scope;
         const scopes = consolidatedPayloadScope?.split(" ") ?? [];
-        if (!scopes.includes(RESOLVED_JWKS_REQUIRED_SCOPE)) {
+        if (!scopes.includes(JWKS_REQUIRED_SCOPE)) {
           const tokenScopes = consolidatedPayloadScope ?? "(none)";
           throw new Error(
-            `Token missing required scope "${RESOLVED_JWKS_REQUIRED_SCOPE}". ` +
+            `Token missing required scope "${JWKS_REQUIRED_SCOPE}". ` +
               `Token scopes: "${tokenScopes}".`
           );
         }
