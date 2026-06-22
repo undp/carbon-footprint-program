@@ -9,8 +9,8 @@ import { Routes } from "@/interfaces";
  * Public OIDC redirect target. `react-oidc-context` (mounted in __root against
  * the shared UserManager) automatically completes the Authorization Code + PKCE
  * exchange when this page loads with `?code&state`. We just wait for the session
- * to settle, then land on HOME — parity with the previous MSAL behavior (always
- * `/app/home`; returning to the originating deep-link is intentionally not done).
+ * to settle, then land on HOME (always `/app/home`; returning to the originating
+ * deep-link is intentionally not done).
  *
  * Resolving here, OUTSIDE the `/app` and `/admin` layouts, guarantees no role
  * guard runs before the session exists. On failure we bounce to Landing with the

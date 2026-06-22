@@ -51,9 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Handles the case where OIDC authentication succeeded but the follow-up
    * GET /users/me request failed. Drops the local session via removeUser()
-   * (no IdP round-trip — the generic equivalent of MSAL's clearCache, so the
-   * in-memory snackbar survives), clears app state, and sends the user back to
-   * Landing with an error snackbar.
+   * (no IdP round-trip, so the in-memory snackbar survives), clears app state,
+   * and sends the user back to Landing with an error snackbar.
    */
   const handleLoginFailure = useCallback(async () => {
     if (hasHandledLoginFailureRef.current) return;

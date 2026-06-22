@@ -233,7 +233,7 @@ if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
 fi
 
 # Map the Azure/Entra values onto the generic OIDC build vars the frontend reads
-# (auth is provider-agnostic now — Entra is just one OIDC issuer). The API scope
+# (the frontend is a generic OIDC client; Entra is one such issuer). The API scope
 # is appended so the access token's aud is the API
 # (api://<API_CLIENT_ID>/access_as_user); the API validates that token directly
 # via JWKS (AUTH_PROVIDER=jwks) — there is no Easy Auth gateway in the path.
@@ -260,9 +260,8 @@ else
   log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
 fi
 
-# OIDC redirect URIs derived from the resolved frontend origin (the new
-# /auth/callback route). VITE_OIDC_REDIRECT_URI must be registered in the Entra
-# app registration — it replaces the old MSAL /app/home redirect URI.
+# OIDC redirect URIs derived from the resolved frontend origin (the /auth/callback
+# route). VITE_OIDC_REDIRECT_URI must be registered in the Entra app registration.
 export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL%/}/auth/callback"
 export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="$VITE_FRONT_BASE_URL"
 

@@ -366,7 +366,7 @@ else
     echo "    provider — so the Bearer token reaches the app untouched."
     echo ""
     echo "  One manual step — register the SPA redirect URI in the Entra app registration:"
-    echo "    <frontend-origin>/auth/callback   (replaces the old MSAL /app/home)"
+    echo "    <frontend-origin>/auth/callback"
     echo ""
     echo "  See docs/infrastructure/AzureAuthenticationSetup.md for the full setup guide"
     echo ""

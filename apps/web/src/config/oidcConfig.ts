@@ -11,8 +11,8 @@ import {
 /**
  * Generic OIDC client settings (Authorization Code + PKCE). Provider-agnostic:
  * `authority` is the configured issuer, so the same build works against any
- * compliant IdP. Tokens are persisted in localStorage (parity with the previous
- * MSAL cache) and silently renewed via the refresh token (`offline_access`).
+ * compliant IdP. Tokens are persisted in localStorage and silently renewed via
+ * the refresh token (`offline_access`).
  */
 export const oidcSettings: UserManagerSettings = {
   authority: OIDC_ISSUER,
