@@ -236,7 +236,7 @@ fi
 # (the frontend is a generic OIDC client; Entra is one such issuer). The API scope
 # is appended so the access token's aud is the API
 # (api://<API_CLIENT_ID>/access_as_user); the API validates that token directly
-# via JWKS (AUTH_PROVIDER=jwks) — there is no Easy Auth gateway in the path.
+# via JWKS (AUTH_PROVIDER=jwks), so the Bearer token reaches the app untouched.
 export VITE_OIDC_ISSUER=$AZURE_AUTH_AUTHORITY
 export VITE_OIDC_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_OIDC_SCOPES="openid profile email offline_access api://$AZURE_API_CLIENT_ID/access_as_user"

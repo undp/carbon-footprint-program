@@ -7,8 +7,7 @@
 #
 # Pair with the API's Keycloak JWKS env (see the "Keycloak (generic OIDC) example"
 # block in .env.dockercompose.example): AUTH_PROVIDER=jwks, JWKS_ISSUER,
-# JWKS_URI (internal host), JWKS_AUDIENCE=huella-api, JWKS_REQUIRED_SCOPE=access_as_user,
-# and the auth AZURE_* vars left empty.
+# JWKS_URI (internal host), JWKS_AUDIENCE=huella-api, JWKS_REQUIRED_SCOPE=access_as_user.
 #
 # Reuses the base `huella-network`; do not run this overlay standalone.
 
