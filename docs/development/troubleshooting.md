@@ -95,17 +95,16 @@ File upload requires a real Azure Storage account — there is no local Azurite 
 
 ---
 
-### MSAL redirect URI mismatch
+### OIDC redirect URI mismatch
 
-**Symptom:** After login redirect, browser shows "Reply URL specified in the request does not match the reply URLs configured for the application."
+**Symptom:** After the login redirect, the IdP shows "redirect_uri mismatch" (Entra: "Reply URL specified in the request does not match the reply URLs configured for the application.").
 
-**Cause:** The redirect URI configured in the Azure Entra ID app registration does not match the URL the frontend is running on.
+**Cause:** The `/auth/callback` redirect URI sent by the frontend is not registered as a redirect URI on the IdP client (Entra app registration, Keycloak client, …).
 
 **Fix:**
 
-1. In the Azure Portal, navigate to the Entra ID app registration → "Authentication".
-2. Add the exact redirect URI the app is running at (e.g., `http://localhost:5173`).
-3. Ensure `VITE_REDIRECT_URI` in `.envrc` matches the registered URI exactly (including trailing slash or lack thereof).
+1. On the IdP, open the client/app registration and register the exact callback URL the app uses, e.g. `http://localhost:5173/auth/callback` (dev) or `https://<your-domain>/auth/callback` (prod).
+2. If you override the default, make sure `VITE_OIDC_REDIRECT_URI` matches the registered URI exactly. When unset, the app uses `<serving-origin>/auth/callback`.
 
 See [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for the full configuration.
 

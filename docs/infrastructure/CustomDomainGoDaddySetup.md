@@ -262,7 +262,7 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 | 3a  | Re-ejecutar `./deploy-api.sh` (con `.envrc` cargado) para sincronizar `ALLOWED_ORIGIN` en Fastify | Local / CI                     |
 | 3b  | **CORS del App Service** (plataforma)                                                             | Portal Azure → App Service API |
 | 4   | Easy Auth en el App Service del API (si `AUTH_PROVIDER=easy-auth`)                                | Portal Azure → Authentication  |
-| 5   | Prueba en incógnito: login → `/app/home` → `/api/users/me` 200                                    | Navegador                      |
+| 5   | Prueba en incógnito: login → `/auth/callback` → `/api/users/me` 200                                | Navegador                      |
 
 ### 1. Registrar el nuevo dominio como Redirect URI en Entra
 
@@ -272,12 +272,11 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
 2. **App registrations** → abrir el **Frontend App Registration** (el que corresponde a `AZURE_FRONT_CLIENT_ID`).
 3. Sidebar **Authentication** → sección **Platform configurations** → **Single-page application** → **Add URI**.
 4. Agregar dos entradas exactas (**sin** trailing slash al final del dominio):
-   - `https://<custom-domain>`
-   - `https://<custom-domain>/app/home`
-     El segundo path matchea `redirectUri` en `apps/web/src/config/msalConfig.ts:18` (`${FRONT_BASE_URL}/app/home`).
+   - `https://<custom-domain>/auth/callback` — redirect de login (matchea la ruta `/auth/callback` del front / `VITE_OIDC_REDIRECT_URI`).
+   - `https://<custom-domain>` — post-logout redirect.
 5. **Save**.
 
-> ⚠️ No uses trailing slash en el hostname: en `FRONTEND_CUSTOM_DOMAIN` poné `app.example.com` (sin `https://`, sin `/`) y en los redirect URIs de Entra `https://<custom-domain>` (sin slash final). Si el dominio termina en `/`, el redirect MSAL queda como `https://<custom-domain>//app/home` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
+> ⚠️ No uses trailing slash en el hostname: en `FRONTEND_CUSTOM_DOMAIN` poné `app.example.com` (sin `https://`, sin `/`) y en los redirect URIs de Entra `https://<custom-domain>/auth/callback` (sin slash final en el dominio). Si el dominio termina en `/`, el redirect queda como `https://<custom-domain>//auth/callback` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
 > Si previamente había URIs de un dominio temporal (ej. `*.azurestaticapps.net`) y ya no se usan, borrarlas para reducir superficie.
 > Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md).
 
@@ -303,7 +302,7 @@ Re-ejecutar `infra/deploy-web.sh` para rebuildear y subir el bundle al Static We
 
 - `VITE_FRONT_BASE_URL=https://<custom-domain>`
 - `VITE_API_BASE_URL=...` apuntando al App Service correcto del entorno
-- `VITE_AZURE_FRONT_CLIENT_ID` / `VITE_AZURE_API_CLIENT_ID` / `VITE_AZURE_AUTH_AUTHORITY` del tenant esperado
+- `VITE_OIDC_ISSUER` / `VITE_OIDC_CLIENT_ID` / `VITE_OIDC_SCOPES` del tenant esperado (derivados de los `AZURE_*` por `deploy-web.sh`)
 
 > Detalle de `VITE_API_BASE_URL`: [`docs/infrastructure/StaticWebAppDeployment.md`](./StaticWebAppDeployment.md#variables-de-entorno).
 
@@ -390,7 +389,7 @@ Seguir [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md) 
 Estos valores siguen iguales aunque cambie el dominio público — no modificar:
 
 - `AZURE_TENANT_ID` y `AZURE_TENANT_TYPE`.
-- `VITE_AZURE_AUTH_AUTHORITY` (depende solo del tenant, no del hostname).
+- `AZURE_AUTH_AUTHORITY` → `VITE_OIDC_ISSUER` (depende solo del tenant, no del hostname).
 - `AZURE_FRONT_CLIENT_ID` y `AZURE_API_CLIENT_ID` (las App Registrations son las mismas, solo se les agregan URIs).
 - `JWKS_AUDIENCE` en el API (sigue siendo el client ID del API).
 
@@ -405,7 +404,7 @@ En el navegador (idealmente ventana de incógnito):
 
 1. Abrir `https://<custom-domain>` — la app carga con cert válido.
 2. DevTools → **Network** → `terms-conditions/current` desde `Origin: https://<custom-domain>` → **sin** error CORS en consola (puede ser 200).
-3. **Iniciar sesión** → redirect Microsoft → vuelta a `/app/home`.
+3. **Iniciar sesión** → redirect Microsoft → vuelta a `/auth/callback`.
 4. Petición `users/me` → debe incluir `Authorization: Bearer …` y responder **200**.
 
 | Fallo                                                      | Revisar                                                             |
@@ -432,7 +431,7 @@ En el navegador (idealmente ventana de incógnito):
 | GoDaddy no deja borrar A `@`                                         | Parking activo                                            | Settings del dominio → desactivar parking primero                                                                           |
 | Apex no resuelve                                                     | Cache navegador local                                     | `dig +trace @8.8.8.8 <root-domain>` ignora cache local                                                                      |
 | Front Door TXT validation no pasa                                    | Nombre TXT mal armado                                     | Debe ser `_dnsauth.<subdomain>` exacto, sin sufijo `.com` en el campo Name (GoDaddy agrega el dominio raíz automáticamente) |
-| `AADSTS50011`, redirect con `//app/home`                             | `FRONTEND_CUSTOM_DOMAIN` con `/` final                    | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
+| `AADSTS50011`, redirect con `//auth/callback`                        | `FRONTEND_CUSTOM_DOMAIN` con `/` final                    | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
 | CORS en consola desde dominio custom; Network a veces 200 con X roja | Falta origen en **App Service → API → CORS** (plataforma) | Paso 3b (portal); reiniciar App Service. O cambiar a opción IaC (`FRONTEND_CUSTOM_DOMAIN`).                                 |
 | CORS tras solo `deploy-api.sh`                                       | Solo se actualizó `ALLOWED_ORIGIN` (Fastify)              | Completar paso 3b en portal o usar opción IaC                                                                               |
 | CORS reaparece tras `deploy.sh`                                      | Bicep resetea `siteConfig.cors` al hostname default       | Setear `FRONTEND_CUSTOM_DOMAIN` antes del próximo `deploy.sh`                                                               |

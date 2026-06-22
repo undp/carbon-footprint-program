@@ -92,9 +92,11 @@ dc down            # stop
 | `WEB_PORT`                          | `3000` (host; container listens on 8080)               |
 | `VITE_API_BASE_URL`                 | `http://localhost:8080`                                |
 | `VITE_FRONT_BASE_URL`               | `http://localhost:3000`                                |
-| `VITE_AZURE_FRONT_CLIENT_ID`        | `00000000-...` (placeholder unless using JWKS locally) |
-| `VITE_AZURE_API_CLIENT_ID`          | `00000000-...`                                         |
-| `VITE_AZURE_AUTH_AUTHORITY`         | `https://login.microsoftonline.com/organizations/v2.0` |
+| `VITE_OIDC_ISSUER`                  | _(empty; set per IdP, e.g. Keycloak `http://localhost:8081/realms/huella`)_ |
+| `VITE_OIDC_CLIENT_ID`               | `huella-web`                                           |
+| `VITE_OIDC_SCOPES`                  | `openid profile email offline_access`                  |
+| `VITE_OIDC_REDIRECT_URI`            | _(empty; defaults to `<origin>/auth/callback`)_        |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI`| _(empty; defaults to the serving origin)_              |
 | `VITE_APP_VERSION`                  | `local`                                                |
 | `VITE_IS_DEMO_APP`                  | `false`                                                |
 | `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                                                |

@@ -12,7 +12,7 @@ This guide explains how to configure authentication for the Huella Latam applica
 6. [Infrastructure (Bicep) Configuration](#infrastructure-bicep-configuration)
 7. [Environment Variables](#environment-variables)
 8. [Backend Authentication](#backend-authentication)
-9. [Frontend MSAL Configuration](#frontend-msal-configuration)
+9. [Frontend OIDC Configuration](#frontend-oidc-configuration)
 10. [Testing](#testing)
 11. [Troubleshooting](#troubleshooting)
 12. [Additional Resources](#additional-resources)
@@ -398,19 +398,21 @@ The Bicep deployment will:
 
 | Variable                     | Description                               | Required |
 | ---------------------------- | ----------------------------------------- | -------- |
-| `VITE_AZURE_FRONT_CLIENT_ID` | Frontend App Registration ID              | Yes      |
-| `VITE_AZURE_API_CLIENT_ID`   | API App Registration ID (for token scope) | Yes      |
-| `VITE_AZURE_AUTH_AUTHORITY`  | Authority URL                             | Yes      |
-| `VITE_FRONT_BASE_URL`        | Frontend base URL                         | Yes      |
+| `VITE_OIDC_ISSUER`       | OIDC issuer / authority URL (= the Entra authority)                     | Yes      |
+| `VITE_OIDC_CLIENT_ID`    | Frontend (public SPA) App Registration ID                               | Yes      |
+| `VITE_OIDC_SCOPES`       | Space-separated scopes; append `api://<API_CLIENT_ID>/access_as_user`   | Yes      |
+| `VITE_OIDC_REDIRECT_URI` | Login redirect URI; defaults to `<serving-origin>/auth/callback`        | No       |
 
-**Authority URL examples:**
+On Azure, `deploy-web.sh` derives all `VITE_OIDC_*` from the `AZURE_*` values, so you set the `AZURE_*` ones in `infra/.envrc` (not the `VITE_OIDC_*` directly).
+
+**Issuer URL examples:**
 
 ```bash
 # External (CIAM):
-VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
+VITE_OIDC_ISSUER="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # Organizational:
-VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
+VITE_OIDC_ISSUER="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
@@ -452,20 +454,20 @@ Only v2.0 tokens are accepted for both tenant types:
 
 ---
 
-## Frontend MSAL Configuration
+## Frontend OIDC Configuration
 
-The frontend MSAL configuration is the same for both tenant types. The authority URL (`VITE_AZURE_AUTH_AUTHORITY`) is the only value that differs, and it's passed via environment variables.
+The frontend uses a generic OIDC client (`oidc-client-ts`). The issuer is the only value that differs between tenants, passed via `VITE_OIDC_ISSUER`. On Azure, `deploy-web.sh` derives the `VITE_OIDC_*` values from the `AZURE_*` variables.
 
-See `apps/web/src/config/msalConfig.ts` for the current configuration.
+See `apps/web/src/config/oidcConfig.ts` for the current configuration.
 
 ### Local Development
 
 ```bash
 # .envrc — External tenant example
-export VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
+export VITE_OIDC_ISSUER="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # .envrc — Organizational tenant example
-export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
+export VITE_OIDC_ISSUER="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
