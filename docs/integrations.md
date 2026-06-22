@@ -124,7 +124,7 @@ For full setup details, see [File Storage](./infrastructure/FileStorage.md).
 
 No token issuance or refresh logic runs inside the API. The API only validates tokens already issued by Entra ID and presented by the client.
 
-For full setup details, see [Authentication](./security/authentication.md) and [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md).
+For full setup details, see [Authentication](./security/authentication.md) and [Azure OIDC auth setup](./infrastructure/AzureAuthenticationSetup.md).
 
 #### Azure Database for PostgreSQL (Prisma)
 

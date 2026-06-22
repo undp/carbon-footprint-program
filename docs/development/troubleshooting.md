@@ -106,7 +106,7 @@ File upload requires a real Azure Storage account — there is no local Azurite 
 1. On the IdP, open the client/app registration and register the exact callback URL the app uses, e.g. `http://localhost:5173/auth/callback` (dev) or `https://<your-domain>/auth/callback` (prod).
 2. If you override the default, make sure `VITE_OIDC_REDIRECT_URI` matches the registered URI exactly. When unset, the app uses `<serving-origin>/auth/callback`.
 
-See [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for the full configuration.
+See [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) for the full configuration (and the [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) / [Keycloak](../infrastructure/KeycloakAuthenticationSetup.md) guides for a specific IdP).
 
 ---
 

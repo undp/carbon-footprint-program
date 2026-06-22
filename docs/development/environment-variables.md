@@ -12,13 +12,13 @@ Variables are loaded from `.envrc` (root) using `direnv`. App-specific `.envrc` 
 
 ### Azure Authentication
 
-| Variable                 | Required | Default    | Description                                                                                               |
-| ------------------------ | -------- | ---------- | --------------------------------------------------------------------------------------------------------- |
-| `AZURE_TENANT_TYPE`      | No       | `external` | Tenant type: `external` (CIAM / ciamlogin.com) or `organizational` (Azure AD / login.microsoftonline.com) |
-| `AZURE_TENANT_ID`        | Cond.    | —          | Azure Tenant ID (GUID). Required when using Azure auth.                                                   |
-| `AZURE_TENANT_SUBDOMAIN` | Cond.    | —          | Tenant subdomain. Required only when `AZURE_TENANT_TYPE=external`.                                        |
-| `AZURE_API_CLIENT_ID`    | Cond.    | —          | App Registration ID for the API. Required for JWT validation.                                             |
-| `AZURE_FRONT_CLIENT_ID`  | Cond.    | —          | App Registration ID for the frontend (public SPA client). On Azure, `deploy-web.sh` maps it to `VITE_OIDC_CLIENT_ID`.       |
+| Variable                 | Required | Default    | Description                                                                                                           |
+| ------------------------ | -------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `AZURE_TENANT_TYPE`      | No       | `external` | Tenant type: `external` (CIAM / ciamlogin.com) or `organizational` (Azure AD / login.microsoftonline.com)             |
+| `AZURE_TENANT_ID`        | Cond.    | —          | Azure Tenant ID (GUID). Required when using Azure auth.                                                               |
+| `AZURE_TENANT_SUBDOMAIN` | Cond.    | —          | Tenant subdomain. Required only when `AZURE_TENANT_TYPE=external`.                                                    |
+| `AZURE_API_CLIENT_ID`    | Cond.    | —          | App Registration ID for the API. Required for JWT validation.                                                         |
+| `AZURE_FRONT_CLIENT_ID`  | Cond.    | —          | App Registration ID for the frontend (public SPA client). On Azure, `deploy-web.sh` maps it to `VITE_OIDC_CLIENT_ID`. |
 
 ### Azure Blob Storage
 
@@ -46,12 +46,11 @@ Variables are loaded from `.envrc` (root) using `direnv`. App-specific `.envrc` 
 
 ### Auth Provider (`AUTH_PROVIDER`)
 
-| Value         | Use case                                                           |
-| ------------- | ------------------------------------------------------------------ |
-| `jwks`        | Production — validates Azure Entra ID JWT tokens via JWKS endpoint |
-| `easy-auth`   | Production on App Service — trusts Azure Easy Auth headers         |
-| `forced-user` | Local development — authenticates all requests as a fixed user     |
-| `none`        | No authentication (default, use only for initial setup/testing)    |
+| Value         | Use case                                                                |
+| ------------- | ----------------------------------------------------------------------- |
+| `jwks`        | Production — validates OIDC access tokens (Entra, Keycloak, …) via JWKS |
+| `forced-user` | Local development — authenticates all requests as a fixed user          |
+| `none`        | No authentication (default, use only for initial setup/testing)         |
 
 **Variables required for `forced-user`:**
 
@@ -76,16 +75,16 @@ These override the Azure-derived JWKS values. Use when integrating a non-Azure O
 
 Variables prefixed with `VITE_` are exposed to the browser bundle at build time.
 
-| Variable                     | Required | Default                    | Description                                                                                                                                                                                            |
-| ---------------------------- | -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `VITE_API_BASE_URL`          | **Yes**  | —                          | Base URL of the API (e.g., `https://api.example.com`). Injected at build time.                                                                                                                         |
-| `VITE_APP_VERSION`           | No       | —                          | Application version for display in UI                                                                                                                                                                  |
-| `VITE_OIDC_ISSUER`           | **Yes**  | —                          | OIDC issuer / authority URL. Entra: the authority (`https://<sub>.ciamlogin.com/<tenant-id>/v2.0` or `https://login.microsoftonline.com/<tenant-id>/v2.0`); Keycloak: `https://<host>/realms/huella`. On Azure, `deploy-web.sh` derives it from `AZURE_AUTH_AUTHORITY`. |
-| `VITE_OIDC_CLIENT_ID`        | **Yes**  | —                          | Public SPA client ID. On Azure, derived from `AZURE_FRONT_CLIENT_ID`.                                                                                                                                  |
-| `VITE_OIDC_SCOPES`           | **Yes**  | `openid profile email offline_access` | Space-separated scopes. For Entra, append ` api://<API_CLIENT_ID>/access_as_user` so the access token `aud` is the API.                                                                  |
-| `VITE_OIDC_REDIRECT_URI`     | No       | `<origin>/auth/callback`   | Login redirect URI. Defaults to the serving origin + `/auth/callback`.                                                                                                                                 |
-| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No | serving origin           | Post-logout redirect URI. Defaults to the serving origin.                                                                                                                                             |
-| `VITE_FRONT_BASE_URL`        | No       | Derived                    | Deploy-script-internal — **not** read by the bundle. `deploy-web.sh` derives it from `FRONTEND_CUSTOM_DOMAIN` to build the OIDC redirect URI and the CORS origin. Do not set manually — overrides are ignored to keep it aligned with bicep's CORS config. |
+| Variable                             | Required | Default                               | Description                                                                                                                                                                                                                                                             |
+| ------------------------------------ | -------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`                  | **Yes**  | —                                     | Base URL of the API (e.g., `https://api.example.com`). Injected at build time.                                                                                                                                                                                          |
+| `VITE_APP_VERSION`                   | No       | —                                     | Application version for display in UI                                                                                                                                                                                                                                   |
+| `VITE_OIDC_ISSUER`                   | **Yes**  | —                                     | OIDC issuer / authority URL. Entra: the authority (`https://<sub>.ciamlogin.com/<tenant-id>/v2.0` or `https://login.microsoftonline.com/<tenant-id>/v2.0`); Keycloak: `https://<host>/realms/huella`. On Azure, `deploy-web.sh` derives it from `AZURE_AUTH_AUTHORITY`. |
+| `VITE_OIDC_CLIENT_ID`                | **Yes**  | —                                     | Public SPA client ID. On Azure, derived from `AZURE_FRONT_CLIENT_ID`.                                                                                                                                                                                                   |
+| `VITE_OIDC_SCOPES`                   | **Yes**  | `openid profile email offline_access` | Space-separated scopes. For Entra, append ` api://<API_CLIENT_ID>/access_as_user` so the access token `aud` is the API.                                                                                                                                                 |
+| `VITE_OIDC_REDIRECT_URI`             | No       | `<origin>/auth/callback`              | Login redirect URI. Defaults to the serving origin + `/auth/callback`.                                                                                                                                                                                                  |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No       | serving origin                        | Post-logout redirect URI. Defaults to the serving origin.                                                                                                                                                                                                               |
+| `VITE_FRONT_BASE_URL`                | No       | Derived                               | Deploy-script-internal — **not** read by the bundle. `deploy-web.sh` derives it from `FRONTEND_CUSTOM_DOMAIN` to build the OIDC redirect URI and the CORS origin. Do not set manually — overrides are ignored to keep it aligned with bicep's CORS config.              |
 
 ---
 

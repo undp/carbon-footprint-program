@@ -368,7 +368,7 @@ else
     echo "  One manual step — register the SPA redirect URI in the Entra app registration:"
     echo "    <frontend-origin>/auth/callback   (replaces the old MSAL /app/home)"
     echo ""
-    echo "  See docs/infrastructure/MSAL-EasyAuth-Setup.md for the full setup guide"
+    echo "  See docs/infrastructure/AzureAuthenticationSetup.md for the full setup guide"
     echo ""
   else
     echo "ℹ️  Authentication: Not configured (AUTH_PROVIDER=none)"

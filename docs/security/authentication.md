@@ -1,10 +1,10 @@
 # Authentication
 
-This document covers the authentication system: how the API verifies caller identity, the four supported authentication providers, and how to configure each one.
+This document covers the authentication system: how the API verifies caller identity, the three supported authentication providers, and how to configure each one.
 
 For the access modes a route can opt into (private / public / anonymous), see [Route Access Modes](./route-access-modes.md).
 For role-based access control (what authenticated users are allowed to do), see [RBAC and Authorization](./rbac.md).
-For the full Azure Entra ID / MSAL setup walkthrough, see [MSAL & Easy Auth Setup](../MSAL-EasyAuth-Setup.md).
+For the full Azure Entra ID / OIDC setup walkthrough, see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md).
 
 ---
 
@@ -37,7 +37,7 @@ Incoming request
 interface AuthUser {
   idpUserId: string; // Unique user ID from the identity provider
   email: string; // User's email address
-  idpName: string; // Provider name: "jwks" | "easy-auth" | "forced-user"
+  idpName: string; // Provider name: "jwks" | "forced-user"
 }
 ```
 
@@ -49,9 +49,9 @@ This object is set on `request.authUser`. The `userResolvePlugin` subsequently u
 
 ### 1. `jwks` — JWT / JWKS Validation
 
-**When to use:** Direct API access, local development with a real Azure Entra tenant, or non-Azure hosting where Easy Auth is unavailable.
+**When to use:** Every real deployment — local, on-prem, and Azure. Works against any OIDC issuer (Azure Entra, Keycloak, …).
 
-The API validates the JWT access token in the `Authorization: Bearer <token>` header using the tenant's JWKS endpoint.
+The API validates the JWT access token in the `Authorization: Bearer <token>` header using the issuer's JWKS endpoint.
 
 **Validation steps (in order):**
 
@@ -96,47 +96,7 @@ JWKS_AUDIENCE="custom-audience"
 
 ---
 
-### 2. `easy-auth` — Azure App Service Easy Auth
-
-**When to use:** Production deployments on Azure App Service with Easy Auth enabled (recommended for production).
-
-Azure App Service validates the JWT token before the request reaches the application. Authenticated requests include the `X-MS-CLIENT-PRINCIPAL` header — a base64-encoded JSON payload with the user's claims. The API reads this header and extracts the user identity; no cryptographic validation is performed by the API itself.
-
-**Header structure:**
-
-```json
-{
-  "auth_typ": "aad",
-  "claims": [
-    { "typ": "preferred_username", "val": "user@example.com" },
-    {
-      "typ": "http://schemas.microsoft.com/identity/claims/objectidentifier",
-      "val": "<oid>"
-    }
-  ],
-  "name_typ": "...",
-  "role_typ": "..."
-}
-```
-
-**Claim extraction (in priority order):**
-
-- **Email:** `preferred_username` → SOAP email claim → `email`
-- **User ID:** `http://schemas.microsoft.com/identity/claims/objectidentifier` → `oid`
-
-**Required environment variables:**
-
-```bash
-AUTH_PROVIDER="easy-auth"
-```
-
-Azure App Service authentication must also be configured in Azure Portal. See [MSAL & Easy Auth Setup](../MSAL-EasyAuth-Setup.md#azure-portal-configuration--external-tenant-ciam) for the full walkthrough.
-
-> When Easy Auth is enabled with "Allow unauthenticated access", the API handles all authorization decisions internally. Requests without the `X-MS-CLIENT-PRINCIPAL` header are treated as unauthenticated (401 on protected routes).
-
----
-
-### 3. `forced-user` — Development Bypass
+### 2. `forced-user` — Development Bypass
 
 **When to use:** Local development only. Bypasses all authentication — every request is treated as authenticated with a configurable identity.
 
@@ -152,7 +112,7 @@ FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user-001"
 
 ---
 
-### 4. `none` — No Authentication
+### 3. `none` — No Authentication
 
 **When to use:** Explicitly disabling authentication. All authentication attempts fail with a 401 error. This is the default when Azure Entra configuration variables are not set during Bicep deployment.
 
@@ -169,7 +129,6 @@ AUTH_PROVIDER="none"
    │
    ├── Auth provider's authenticate() called
    │   ├── jwks:        validates JWT from Authorization header
-   │   ├── easy-auth:   reads X-MS-CLIENT-PRINCIPAL header
    │   ├── forced-user: returns hardcoded AuthUser from env vars
    │   └── none:        always returns { user: null }
    │
@@ -196,13 +155,13 @@ AUTH_PROVIDER="none"
 
 ## Provider Selection by Environment
 
-| Environment                              | Recommended provider | Reason                            |
-| ---------------------------------------- | -------------------- | --------------------------------- |
-| Local development                        | `forced-user`        | No Azure setup needed             |
-| Local dev with real auth                 | `jwks`               | Tests actual token flow           |
-| Staging / Production (Azure App Service) | `easy-auth`          | Token validation done by platform |
-| Self-hosted / non-Azure production       | `jwks`               | Direct token validation           |
-| Auth intentionally disabled              | `none`               | Explicit opt-out                  |
+| Environment                              | Recommended provider | Reason                                                 |
+| ---------------------------------------- | -------------------- | ------------------------------------------------------ |
+| Local development                        | `forced-user`        | No Azure setup needed                                  |
+| Local dev with real auth                 | `jwks`               | Tests actual token flow                                |
+| Staging / Production (Azure App Service) | `jwks`               | Validates Entra tokens via JWKS (no Easy Auth gateway) |
+| Self-hosted / non-Azure production       | `jwks`               | Direct token validation                                |
+| Auth intentionally disabled              | `none`               | Explicit opt-out                                       |
 
 ---
 
@@ -227,14 +186,12 @@ Both Azure tenant types issue v2.0 tokens. The API only accepts v2.0 tokens when
 
 ## Common Errors
 
-| Error                                           | Provider  | Cause                             | Fix                                                                  |
-| ----------------------------------------------- | --------- | --------------------------------- | -------------------------------------------------------------------- |
-| `Token version "1.0" is not supported`          | jwks      | v1.0 token issued                 | Set `accessTokenAcceptedVersion: 2` in API app registration manifest |
-| `Token issuer is not a v2.0 issuer`             | jwks      | Old issuer format                 | Same fix as above                                                    |
-| `Token missing required scope "access_as_user"` | jwks      | Scope not requested               | Frontend must request `api://{CLIENT_ID}/access_as_user`             |
-| `The aud claim value is not allowed`            | jwks      | Audience mismatch                 | Check `AZURE_API_CLIENT_ID` matches the token's `aud`                |
-| `Token payload missing email claim`             | jwks      | No email in token                 | Add `email` optional claim in API app registration                   |
-| `Missing X-MS-CLIENT-PRINCIPAL header`          | easy-auth | Easy Auth not enabled or disabled | Enable authentication in Azure App Service settings                  |
-| `Invalid Easy Auth principal structure`         | easy-auth | Header malformed                  | Check App Service authentication logs                                |
+| Error                                           | Provider | Cause               | Fix                                                                  |
+| ----------------------------------------------- | -------- | ------------------- | -------------------------------------------------------------------- |
+| `Token version "1.0" is not supported`          | jwks     | v1.0 token issued   | Set `accessTokenAcceptedVersion: 2` in API app registration manifest |
+| `Token issuer is not a v2.0 issuer`             | jwks     | Old issuer format   | Same fix as above                                                    |
+| `Token missing required scope "access_as_user"` | jwks     | Scope not requested | Frontend must request `api://{CLIENT_ID}/access_as_user`             |
+| `The aud claim value is not allowed`            | jwks     | Audience mismatch   | Check `AZURE_API_CLIENT_ID` matches the token's `aud`                |
+| `Token payload missing email claim`             | jwks     | No email in token   | Add `email` optional claim in API app registration                   |
 
-For the full troubleshooting guide, see [MSAL & Easy Auth Setup — Troubleshooting](../MSAL-EasyAuth-Setup.md#troubleshooting).
+For the full troubleshooting guide, see [Azure OIDC auth setup — Troubleshooting](../infrastructure/AzureAuthenticationSetup.md#troubleshooting).

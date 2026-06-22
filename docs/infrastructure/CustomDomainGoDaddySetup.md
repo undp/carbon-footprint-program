@@ -261,8 +261,8 @@ Solo si no quieres redeployar bicep. Genera **drift** respecto al IaC — no rec
 | 2   | `FRONTEND_CUSTOM_DOMAIN` en `.envrc` + `./deploy-web.sh`                                          | Local / CI                     |
 | 3a  | Re-ejecutar `./deploy-api.sh` (con `.envrc` cargado) para sincronizar `ALLOWED_ORIGIN` en Fastify | Local / CI                     |
 | 3b  | **CORS del App Service** (plataforma)                                                             | Portal Azure → App Service API |
-| 4   | Easy Auth en el App Service del API (si `AUTH_PROVIDER=easy-auth`)                                | Portal Azure → Authentication  |
-| 5   | Prueba en incógnito: login → `/auth/callback` → `/api/users/me` 200                                | Navegador                      |
+| 4   | Verificar App Service Authentication DESHABILITADO (el API valida vía jwks)                       | Portal Azure → Authentication  |
+| 5   | Prueba en incógnito: login → `/auth/callback` → `/api/users/me` 200                               | Navegador                      |
 
 ### 1. Registrar el nuevo dominio como Redirect URI en Entra
 
@@ -278,7 +278,7 @@ Sin este paso, el login falla con `redirect_uri_mismatch`.
 
 > ⚠️ No uses trailing slash en el hostname: en `FRONTEND_CUSTOM_DOMAIN` poné `app.example.com` (sin `https://`, sin `/`) y en los redirect URIs de Entra `https://<custom-domain>/auth/callback` (sin slash final en el dominio). Si el dominio termina en `/`, el redirect queda como `https://<custom-domain>//auth/callback` y Entra responde `AADSTS50011` / `redirect_uri_mismatch`.
 > Si previamente había URIs de un dominio temporal (ej. `*.azurestaticapps.net`) y ya no se usan, borrarlas para reducir superficie.
-> Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md).
+> Referencia detallada del flujo de App Registration (External vs Organizational): [`docs/infrastructure/AzureAuthenticationSetup.md`](./AzureAuthenticationSetup.md).
 
 ### 2. Rebuildear el frontend con las nuevas URLs
 
@@ -374,15 +374,13 @@ Saltable si usaste la opción IaC. Los uploads de archivos (organizaciones, inve
 
 > **¿Automatizar en bicep?** Es posible ampliar `infra/modules/appService.bicep` con un parámetro de dominio custom y varios `allowedOrigins`. Para pocos entornos, el portal es el camino más simple; un `deploy.sh` posterior puede resetear `siteConfig.cors` al hostname del SWA — repetir este paso si reaparecen errores CORS.
 
-### 4. Easy Auth en el App Service del API (si aplica)
+### 4. Autenticación del App Service del API
 
-Si el API usa `AUTH_PROVIDER=easy-auth` (default cuando `enableAzureAuth=true` en bicep), el frontend envía `Authorization: Bearer` y Azure debe validar el token e inyectar `X-MS-CLIENT-PRINCIPAL`. Eso se configura en el **mismo** App Service del API, no en `deploy-web` ni `deploy-api`.
+El API valida el `Authorization: Bearer` **él mismo** vía JWKS (`AUTH_PROVIDER=jwks`) — no hay gateway Easy Auth. Mantené **App Service → Authentication deshabilitado** (sin identity provider) para que el Bearer llegue intacto a la app. Cambiar de dominio no requiere ningún cambio acá; el único paso de auth ligado al dominio es registrar el redirect URI en Entra (paso 1).
 
-Seguir [`docs/infrastructure/MSAL-EasyAuth-Setup.md`](./MSAL-EasyAuth-Setup.md) (Step 6 para tenant CIAM / Step 7 para organizational): proveedor Microsoft, issuer CIAM, client ID del API, audience, frontend en "allowed client applications", _Allow unauthenticated access_, token store habilitado.
+**Síntoma si Authentication quedó habilitado:** el gateway puede stripear el `Authorization`, y `GET /api/users/me` → 401 tras un login exitoso.
 
-**Síntoma si falta o está mal:** log `Missing X-MS-CLIENT-PRINCIPAL header`, `GET /api/users/me` → 401, toast _"Ocurrió un problema al iniciar sesión"_ después de un login Microsoft exitoso (MSAL OK, falla `/users/me`).
-
-> Otro entorno en el **mismo tenant** puede funcionar porque es **otro** App Service con su propio Easy Auth y CORS; mismo tenant ≠ misma configuración de recurso.
+> Otro entorno en el **mismo tenant** puede comportarse distinto porque es **otro** App Service con su propio CORS y configuración; mismo tenant ≠ misma configuración de recurso.
 
 ### 5. Lo que **no** cambia
 
@@ -407,12 +405,11 @@ En el navegador (idealmente ventana de incógnito):
 3. **Iniciar sesión** → redirect Microsoft → vuelta a `/auth/callback`.
 4. Petición `users/me` → debe incluir `Authorization: Bearer …` y responder **200**.
 
-| Fallo                                                      | Revisar                                                             |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `redirect_uri_mismatch` / `AADSTS50011` con `//` en la URI | Paso 1 y `FRONTEND_CUSTOM_DOMAIN` sin `/` final; re-`deploy-web.sh` |
-| CORS en `terms-conditions` o APIs públicas                 | Paso **3b** (portal CORS); luego 3a si aplica                       |
-| Login Microsoft OK, toast de error al volver               | Paso 4 (Easy Auth) y que `/users/me` no esté bloqueado por CORS     |
-| `Missing X-MS-CLIENT-PRINCIPAL` en logs del API            | Paso 4                                                              |
+| Fallo                                                      | Revisar                                                                            |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `redirect_uri_mismatch` / `AADSTS50011` con `//` en la URI | Paso 1 y `FRONTEND_CUSTOM_DOMAIN` sin `/` final; re-`deploy-web.sh`                |
+| CORS en `terms-conditions` o APIs públicas                 | Paso **3b** (portal CORS); luego 3a si aplica                                      |
+| Login Microsoft OK, toast de error al volver               | Paso 4 (Authentication deshabilitado) y que `/users/me` no esté bloqueado por CORS |
 
 ## Forzar HTTPS
 
@@ -423,22 +420,22 @@ En el navegador (idealmente ventana de incógnito):
 
 ## Troubleshooting
 
-| Síntoma                                                              | Causa probable                                            | Fix                                                                                                                         |
-| -------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Azure muestra "DNS not propagated"                                   | TTL alto o cache local                                    | Esperar 30 min, validar con `dig +trace`                                                                                    |
-| `Validation failed` en SWA                                           | CNAME mal escrito (con `https://` o `/`)                  | Borrar y recrear el CNAME limpio                                                                                            |
-| Cert SSL no se aprovisiona                                           | DNS resuelve a un destino incorrecto                      | Verificar con `dig CNAME` que retorna el hostname Azure correcto                                                            |
-| GoDaddy no deja borrar A `@`                                         | Parking activo                                            | Settings del dominio → desactivar parking primero                                                                           |
-| Apex no resuelve                                                     | Cache navegador local                                     | `dig +trace @8.8.8.8 <root-domain>` ignora cache local                                                                      |
-| Front Door TXT validation no pasa                                    | Nombre TXT mal armado                                     | Debe ser `_dnsauth.<subdomain>` exacto, sin sufijo `.com` en el campo Name (GoDaddy agrega el dominio raíz automáticamente) |
-| `AADSTS50011`, redirect con `//auth/callback`                        | `FRONTEND_CUSTOM_DOMAIN` con `/` final                    | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
-| CORS en consola desde dominio custom; Network a veces 200 con X roja | Falta origen en **App Service → API → CORS** (plataforma) | Paso 3b (portal); reiniciar App Service. O cambiar a opción IaC (`FRONTEND_CUSTOM_DOMAIN`).                                 |
-| CORS tras solo `deploy-api.sh`                                       | Solo se actualizó `ALLOWED_ORIGIN` (Fastify)              | Completar paso 3b en portal o usar opción IaC                                                                               |
-| CORS reaparece tras `deploy.sh`                                      | Bicep resetea `siteConfig.cors` al hostname default       | Setear `FRONTEND_CUSTOM_DOMAIN` antes del próximo `deploy.sh`                                                               |
-| CORS al subir archivo (`PUT` a `*.blob.core.windows.net`)            | Falta origen en **Storage Account → Resource sharing**    | Paso 3c (portal) o cambiar a opción IaC                                                                                     |
-| Login Microsoft OK, _"Ocurrió un problema al iniciar sesión"_        | `/users/me` 401 o bloqueado por CORS                      | CORS 3a+3b; Easy Auth paso 4; ver `Authorization` en DevTools                                                               |
-| `Missing X-MS-CLIENT-PRINCIPAL` en logs                              | Easy Auth no valida el Bearer                             | Portal → Authentication en el App Service del API; ver MSAL-EasyAuth-Setup                                                  |
-| Otro env (mismo tenant) funciona, este no                            | Otro App Service / otro CORS / otro build                 | Comparar CORS portal + app settings + log de `deploy-web` por entorno                                                       |
+| Síntoma                                                              | Causa probable                                                            | Fix                                                                                                                         |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Azure muestra "DNS not propagated"                                   | TTL alto o cache local                                                    | Esperar 30 min, validar con `dig +trace`                                                                                    |
+| `Validation failed` en SWA                                           | CNAME mal escrito (con `https://` o `/`)                                  | Borrar y recrear el CNAME limpio                                                                                            |
+| Cert SSL no se aprovisiona                                           | DNS resuelve a un destino incorrecto                                      | Verificar con `dig CNAME` que retorna el hostname Azure correcto                                                            |
+| GoDaddy no deja borrar A `@`                                         | Parking activo                                                            | Settings del dominio → desactivar parking primero                                                                           |
+| Apex no resuelve                                                     | Cache navegador local                                                     | `dig +trace @8.8.8.8 <root-domain>` ignora cache local                                                                      |
+| Front Door TXT validation no pasa                                    | Nombre TXT mal armado                                                     | Debe ser `_dnsauth.<subdomain>` exacto, sin sufijo `.com` en el campo Name (GoDaddy agrega el dominio raíz automáticamente) |
+| `AADSTS50011`, redirect con `//auth/callback`                        | `FRONTEND_CUSTOM_DOMAIN` con `/` final                                    | Quitar trailing slash en `.envrc` y Entra; `deploy-web.sh`                                                                  |
+| CORS en consola desde dominio custom; Network a veces 200 con X roja | Falta origen en **App Service → API → CORS** (plataforma)                 | Paso 3b (portal); reiniciar App Service. O cambiar a opción IaC (`FRONTEND_CUSTOM_DOMAIN`).                                 |
+| CORS tras solo `deploy-api.sh`                                       | Solo se actualizó `ALLOWED_ORIGIN` (Fastify)                              | Completar paso 3b en portal o usar opción IaC                                                                               |
+| CORS reaparece tras `deploy.sh`                                      | Bicep resetea `siteConfig.cors` al hostname default                       | Setear `FRONTEND_CUSTOM_DOMAIN` antes del próximo `deploy.sh`                                                               |
+| CORS al subir archivo (`PUT` a `*.blob.core.windows.net`)            | Falta origen en **Storage Account → Resource sharing**                    | Paso 3c (portal) o cambiar a opción IaC                                                                                     |
+| Login Microsoft OK, _"Ocurrió un problema al iniciar sesión"_        | `/users/me` 401 o bloqueado por CORS                                      | CORS 3a+3b; Authentication deshabilitado (paso 4); ver `Authorization` en DevTools                                          |
+| `/api/users/me` 401 tras login OK                                    | App Service Authentication habilitado stripea el Bearer, o token inválido | Paso 4: dejar Authentication deshabilitado; verificar issuer/audience (`AZURE_*`)                                           |
+| Otro env (mismo tenant) funciona, este no                            | Otro App Service / otro CORS / otro build                                 | Comparar CORS portal + app settings + log de `deploy-web` por entorno                                                       |
 
 ---
 
@@ -468,4 +465,4 @@ En el navegador (idealmente ventana de incógnito):
 - `infra/modules/appService.bicep`: define `siteConfig.cors` (plataforma) y app setting `ALLOWED_ORIGIN` (Fastify).
 - `infra/monitor-ssl.sh`: script para monitorear el aprovisionamiento del certificado SSL en Front Door.
 - `docs/infrastructure/StaticWebAppDeployment.md`: deployment general del frontend.
-- `docs/infrastructure/MSAL-EasyAuth-Setup.md`: Easy Auth en el App Service del API y app registrations.
+- `docs/infrastructure/AzureAuthenticationSetup.md`: configuración de auth OIDC en Azure (app registrations Entra, validación jwks).

@@ -284,7 +284,7 @@ Authentication requires an Azure Entra External ID (CIAM) tenant or an organizat
 | `AZURE_API_CLIENT_ID`    | API app registration client ID      |
 | `AZURE_FRONT_CLIENT_ID`  | Frontend app registration client ID |
 
-See [Environment Variables](./environment-variables.md) and [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for full details.
+See [Environment Variables](./environment-variables.md) and [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) for full details.
 
 ---
 

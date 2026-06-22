@@ -29,17 +29,17 @@ Stages: `pruner` isolates the workspace to web's package.json + lockfile, `build
 
 Vite inlines `import.meta.env.VITE_*` into the bundle at **build time**. Runtime changes require a new image — one build per environment.
 
-| Variable                            | Required | Default | Purpose                                      |
-| ----------------------------------- | -------- | ------- | -------------------------------------------- |
-| `VITE_API_BASE_URL`                 | ✅       | —       | Backend API base URL                         |
-| `VITE_OIDC_ISSUER`                  | ✅       | —       | OIDC issuer / authority URL (Entra or Keycloak) |
-| `VITE_OIDC_CLIENT_ID`               | ✅       | —       | Public SPA client ID                         |
-| `VITE_OIDC_SCOPES`                  | ✅       | —       | Space-separated scopes (Entra: append `api://<API_CLIENT_ID>/access_as_user`) |
-| `VITE_OIDC_REDIRECT_URI`            |          | origin  | Login redirect; defaults to `<origin>/auth/callback` |
-| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI`|          | origin  | Post-logout redirect; defaults to the serving origin |
-| `VITE_IS_DEMO_APP`                  |          | `false` | Demo mode flag                               |
-| `VITE_APP_VERSION`                  |          | `dev`   | Build identifier shown in the UI             |
-| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` |          | `false` | Local-only validation bypass (never in prod) |
+| Variable                             | Required | Default | Purpose                                                                       |
+| ------------------------------------ | -------- | ------- | ----------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`                  | ✅       | —       | Backend API base URL                                                          |
+| `VITE_OIDC_ISSUER`                   | ✅       | —       | OIDC issuer / authority URL (Entra or Keycloak)                               |
+| `VITE_OIDC_CLIENT_ID`                | ✅       | —       | Public SPA client ID                                                          |
+| `VITE_OIDC_SCOPES`                   | ✅       | —       | Space-separated scopes (Entra: append `api://<API_CLIENT_ID>/access_as_user`) |
+| `VITE_OIDC_REDIRECT_URI`             |          | origin  | Login redirect; defaults to `<origin>/auth/callback`                          |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` |          | origin  | Post-logout redirect; defaults to the serving origin                          |
+| `VITE_IS_DEMO_APP`                   |          | `false` | Demo mode flag                                                                |
+| `VITE_APP_VERSION`                   |          | `dev`   | Build identifier shown in the UI                                              |
+| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS`  |          | `false` | Local-only validation bypass (never in prod)                                  |
 
 Source of truth: [`apps/web/src/config/environment.ts`](../../apps/web/src/config/environment.ts) and the `requiredEnvVars` check in [`apps/web/vite.config.ts`](../../apps/web/vite.config.ts).
 

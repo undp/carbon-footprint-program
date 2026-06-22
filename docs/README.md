@@ -37,17 +37,17 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ## Infrastructure
 
-| Document                                                                    | Description                                                                        |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [Infrastructure Requirements](./infrastructure/requirements.md)             | Consolidated Azure services, SKUs, capacity sizing per environment                 |
-| [App Usage Assumptions](./infrastructure/app-usage-assumptions.md)          | Expected load, reliability targets, AI/background workloads (Staging & Production) |
-| [Infrastructure Provisioning Model](./infrastructure/provisioning-model.md) | IaC standard, CI/CD approach, IT team prerequisites                                |
-| [Deployment Guide](./infrastructure/Deployment.md)                          | Azure Bicep infrastructure deployment                                              |
-| [API Deployment](./infrastructure/ApiDeployment.md)                         | Deploying the API via Docker + ACR + App Service                                   |
-| [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md)           | Deploying the frontend via Azure Static Web Apps                                   |
-| [File Storage](./infrastructure/FileStorage.md)                             | Azure Blob Storage setup and SAS upload flow                                       |
-| [Database Migrations](./infrastructure/Migrations.md)                       | Running Prisma migrations against Azure PostgreSQL                                 |
-| [MSAL / Easy Auth Setup](./infrastructure/MSAL-EasyAuth-Setup.md)           | Azure App Service Easy Auth and MSAL frontend configuration                        |
+| Document                                                                        | Description                                                                        |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [Infrastructure Requirements](./infrastructure/requirements.md)                 | Consolidated Azure services, SKUs, capacity sizing per environment                 |
+| [App Usage Assumptions](./infrastructure/app-usage-assumptions.md)              | Expected load, reliability targets, AI/background workloads (Staging & Production) |
+| [Infrastructure Provisioning Model](./infrastructure/provisioning-model.md)     | IaC standard, CI/CD approach, IT team prerequisites                                |
+| [Deployment Guide](./infrastructure/Deployment.md)                              | Azure Bicep infrastructure deployment                                              |
+| [API Deployment](./infrastructure/ApiDeployment.md)                             | Deploying the API via Docker + ACR + App Service                                   |
+| [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md)               | Deploying the frontend via Azure Static Web Apps                                   |
+| [File Storage](./infrastructure/FileStorage.md)                                 | Azure Blob Storage setup and SAS upload flow                                       |
+| [Database Migrations](./infrastructure/Migrations.md)                           | Running Prisma migrations against Azure PostgreSQL                                 |
+| [OIDC authentication setup](./infrastructure/GenericOidcAuthenticationSetup.md) | Auth contract + JWKS/OIDC config; links to Azure Entra and Keycloak setup guides   |
 
 ## Development
 
@@ -74,7 +74,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | Document                                                       | Description                                                           |
 | -------------------------------------------------------------- | --------------------------------------------------------------------- |
 | [Authentication](./security/authentication.md)                 | Authentication providers, token validation, provider selection        |
-| [Frontend Auth Recovery](./security/frontend-auth-recovery.md) | Recovery flow when MSAL login succeeds but `GET /users/me` fails      |
+| [Frontend Auth Recovery](./security/frontend-auth-recovery.md) | Recovery flow when OIDC login succeeds but `GET /users/me` fails      |
 | [RBAC and Authorization](./security/rbac.md)                   | Role model, authorization plugins, permission matrix                  |
 | [Sensitive Data Handling](./security/sensitive-data.md)        | PII inventory, encryption at rest/transit, compliance considerations  |
 | [Secrets Management](./security/secrets.md)                    | Managed identities, Key Vault, env var classification, anti-patterns  |

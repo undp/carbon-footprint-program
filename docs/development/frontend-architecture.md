@@ -9,9 +9,9 @@ This document describes the structure of `apps/web` — the React + Vite fronten
 ```
 apps/web/src/
 ├── api/           # HTTP client + TanStack Query hooks (organized by domain)
-├── auth/          # MSAL integration: initialization, token acquisition
+├── auth/          # OIDC integration: oidcUserManager singleton, token acquisition
 ├── components/    # Reusable UI components (form fields, layout, status chips)
-├── config/        # Environment constants, MSAL config
+├── config/        # Environment constants, OIDC config
 ├── contexts/      # React Context providers (AuthProvider, ExplanationProvider)
 ├── hooks/         # Custom hooks (e.g., useFuzzySearch)
 ├── icons/         # Custom SVG icon components
@@ -41,7 +41,7 @@ apps/web/src/
 | Styling              | Tailwind CSS 4 + Emotion (MUI's styling engine)       |
 | Forms                | react-hook-form + @hookform/resolvers + Zod           |
 | HTTP client          | ky                                                    |
-| Authentication       | @azure/msal-browser + @azure/msal-react               |
+| Authentication       | oidc-client-ts + react-oidc-context                   |
 | File exports         | exceljs                                               |
 | Notifications        | notistack                                             |
 
@@ -65,7 +65,7 @@ src/routes/
 **Root layout (`__root.tsx`)** wraps everything with:
 
 - `ThemeProvider` (MUI theme)
-- `MsalProvider` (auth context)
+- `AuthProvider` from `react-oidc-context` (auth context)
 - `QueryClientProvider` (TanStack Query)
 - `AuthProvider` (app-level auth state)
 - Global error boundary and 404 component
@@ -160,14 +160,14 @@ Never call `fetch` directly — always go through `apiClient` so authentication 
 
 ## Authentication
 
-MSAL handles the OAuth2/OIDC flow against Azure Entra ID.
+A generic OIDC client (`oidc-client-ts` via `react-oidc-context`) handles the Authorization Code + PKCE flow against the configured IdP (Entra, Keycloak, …).
 
-1. `initializeMsal()` is called once during app startup (in `main.tsx` or `__root.tsx`).
-2. `msalInstance.handleRedirectPromise()` completes the login redirect.
-3. `getAuthToken()` acquires access tokens silently (falls back to popup on consent failures).
+1. A singleton `UserManager` (`auth/oidcUserManager.ts`) is the session source of truth, shared by React and the non-React route guard / HTTP client.
+2. `react-oidc-context` completes the redirect at `/auth/callback` and establishes the session.
+3. `getAuthToken()` returns the current access token, silently renewing via the refresh token when expired.
 4. The `ky` `beforeRequest` hook attaches `Authorization: Bearer <token>` to every API call.
 
-See [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for tenant and app registration configuration.
+See [Azure / OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) for tenant and app registration configuration.
 
 ---
 
