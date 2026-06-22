@@ -27,8 +27,18 @@ export interface OidcTokenPayload {
   preferred_username?: string;
   /** Token version (Azure AD: must be "2.0") */
   ver?: string;
-  /** Space-delimited scopes (Azure AD: e.g. "access_as_user") */
+  /**
+   * Granted scopes (space-delimited). Azure/Entra emits scopes under its own
+   * `scp` claim — a Microsoft convention that predates the JWT access-token
+   * standard. Consolidated with `scope` in JwksAuthProvider.
+   */
   scp?: string;
+  /**
+   * Granted scopes (space-delimited). Standard OIDC providers (e.g. Keycloak,
+   * per RFC 9068) emit scopes under the `scope` claim. Consolidated with `scp`
+   * in JwksAuthProvider — only one of the two is ever present per issuer.
+   */
+  scope?: string;
   /** User's display name */
   name?: string;
   /** User's given/first name */

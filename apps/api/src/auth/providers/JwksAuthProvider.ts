@@ -70,11 +70,15 @@ export class JwksAuthProvider implements AuthProvider {
         }
       }
 
-      // Enforce required scope (e.g. "access_as_user" for Azure tenants)
+      // Enforce required scope (e.g. "access_as_user"). The granted scopes live
+      // under different claim names depending on the issuer: Azure/Entra uses its
+      // own `scp` claim, while standard OIDC providers (e.g. Keycloak, per
+      // RFC 9068) use `scope`. Only one is ever present, so consolidate to it.
       if (RESOLVED_JWKS_REQUIRED_SCOPE) {
-        const scopes = payload.scp?.split(" ") ?? [];
+        const consolidatedPayloadScope = payload.scp ?? payload.scope;
+        const scopes = consolidatedPayloadScope?.split(" ") ?? [];
         if (!scopes.includes(RESOLVED_JWKS_REQUIRED_SCOPE)) {
-          const tokenScopes = payload.scp ?? "(none)";
+          const tokenScopes = consolidatedPayloadScope ?? "(none)";
           throw new Error(
             `Token missing required scope "${RESOLVED_JWKS_REQUIRED_SCOPE}". ` +
               `Token scopes: "${tokenScopes}".`
