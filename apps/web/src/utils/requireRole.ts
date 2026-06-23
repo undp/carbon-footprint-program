@@ -4,6 +4,7 @@ import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
 import { apiClient } from "@/api/http";
 import { oidcUserManager, getValidOidcUser } from "@/auth/oidcUserManager";
+import { Routes } from "@/interfaces";
 import type { GetMeResponse } from "@repo/types";
 
 type RequireRoleOptions = {
@@ -55,7 +56,10 @@ export function requireRole(
         );
       }
       // eslint-disable-next-line @typescript-eslint/only-throw-error
-      throw redirect({ to: "/", search: { authError: "login_failed" } });
+      throw redirect({
+        to: Routes.LANDING,
+        search: { authError: "login_failed" },
+      });
     }
 
     if (!me || !allowedRoles.includes(me.role)) {

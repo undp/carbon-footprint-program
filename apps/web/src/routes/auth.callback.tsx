@@ -26,7 +26,10 @@ function AuthCallbackComponent() {
       return;
     }
     if (!oidc.isLoading && oidc.error) {
-      void navigate({ to: "/", search: { authError: "login_failed" } });
+      void navigate({
+        to: Routes.LANDING,
+        search: { authError: "login_failed" },
+      });
     }
   }, [oidc.isAuthenticated, oidc.isLoading, oidc.error, navigate]);
 

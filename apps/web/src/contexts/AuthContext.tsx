@@ -16,6 +16,7 @@ import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
 import { useUserStore } from "@/stores/userStore";
 import { IS_OIDC_CONFIGURED } from "@/config/environment";
+import { Routes } from "@/interfaces";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // instead of replaying the cached error.
     queryClient.removeQueries({ queryKey: userKeys.me });
     clearUserStore();
-    await navigate({ to: "/" });
+    await navigate({ to: Routes.LANDING });
     enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
       variant: "error",
     });
