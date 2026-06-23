@@ -79,7 +79,7 @@ Source: `apps/web/src/contexts/AuthContext.tsx`
 
 When the provider observes `isAuthenticated && isUserError`, it triggers `handleLoginFailure`, which:
 
-1. Calls `oidc.removeUser()` — drops the local OIDC session **without an IdP round-trip** (the generic equivalent of MSAL's old `clearCache`), so the in-memory snackbar survives the navigation.
+1. Calls `oidc.removeUser()` — drops the local OIDC session **without an IdP round-trip**, so the in-memory snackbar survives the navigation.
 2. Removes the `userKeys.me` query so a future login attempt refetches instead of replaying the cached error.
 3. Clears the Zustand `userStore`.
 4. Navigates to `/`.

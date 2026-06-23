@@ -57,7 +57,7 @@ FROM nginxinc/nginx-unprivileged:alpine-slim AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin
-# in the CSP (fine until an OIDC frontend is wired).
+# in the CSP (the no-auth/local boot has no login flow to allow).
 ARG VITE_OIDC_ISSUER
 ARG VITE_API_BASE_URL
 
