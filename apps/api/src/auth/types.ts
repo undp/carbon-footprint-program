@@ -77,6 +77,10 @@ export interface AuthUser {
 }
 
 /**
- * Supported authentication provider types.
+ * Supported authentication provider types. The runtime tuple is the single
+ * source of truth: env validation in config/environment.ts checks against it,
+ * and the type is derived from it so adding/removing a provider touches one place.
  */
-export type AuthProviderType = "jwks" | "forced-user" | "none";
+export const AUTH_PROVIDER_VALUES = ["jwks", "forced-user", "none"] as const;
+
+export type AuthProviderType = (typeof AUTH_PROVIDER_VALUES)[number];

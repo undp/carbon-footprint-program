@@ -1,4 +1,4 @@
-import { AuthProviderType } from "../auth/types.js";
+import { AUTH_PROVIDER_VALUES, type AuthProviderType } from "../auth/types.js";
 import { storageConfigFromEnv, type StorageConfig } from "@repo/storage";
 
 // Default value for development only - should never reach production
@@ -56,10 +56,9 @@ export const AUTH_PROVIDER: AuthProviderType = (() => {
   const rawAuthProvider = process.env.AUTH_PROVIDER;
   if (!rawAuthProvider) return "none";
 
-  const validValues = ["jwks", "forced-user", "none"];
-  if (!validValues.includes(rawAuthProvider)) {
+  if (!AUTH_PROVIDER_VALUES.some((value) => value === rawAuthProvider)) {
     throw new Error(
-      `Invalid AUTH_PROVIDER value: ${rawAuthProvider}. Allowed values are ${validValues.join(", ")}.`
+      `Invalid AUTH_PROVIDER value: ${rawAuthProvider}. Allowed values are ${AUTH_PROVIDER_VALUES.join(", ")}.`
     );
   }
   return rawAuthProvider as AuthProviderType;
