@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useUserStore } from "@/stores/userStore";
 
 import { useMe } from "@/api/query";
-import { GetMeResponse } from "../../../../packages/types/src/users";
+import { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 
 interface Props {
