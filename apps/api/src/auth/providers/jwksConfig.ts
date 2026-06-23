@@ -65,13 +65,6 @@ async function getSigningKey(kid?: string): Promise<string> {
 }
 
 /**
- * Check if JWKS authentication is configured.
- */
-export function isJwksConfigured(): boolean {
-  return !!JWKS_URI;
-}
-
-/**
  * FastifyJWT configuration for JWKS validation.
  *
  * When JWKS is configured (via JWKS_URI):

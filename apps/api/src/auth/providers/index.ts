@@ -1,2 +1,2 @@
 export { JwksAuthProvider } from "./JwksAuthProvider.js";
-export { jwtConfig, isJwksConfigured } from "./jwksConfig.js";
+export { jwtConfig } from "./jwksConfig.js";
