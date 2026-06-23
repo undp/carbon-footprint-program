@@ -71,7 +71,7 @@ export class JwksAuthProvider implements AuthProvider {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
       }
 
-      // Extract user email from v2.0 token claims
+      // Extract user email from standard OIDC claims
       const email = payload.email ?? payload.preferred_username;
       if (!email) {
         throw new Error(

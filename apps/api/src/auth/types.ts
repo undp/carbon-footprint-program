@@ -25,7 +25,7 @@ export interface OidcTokenPayload {
   email?: string;
   /** User's preferred username (often the email) */
   preferred_username?: string;
-  /** Token version (Azure AD: must be "2.0") */
+  /** Token version (Azure AD specific; informational — not validated) */
   ver?: string;
   /**
    * Granted scopes (space-delimited). Azure/Entra emits scopes under its own
