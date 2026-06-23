@@ -32,24 +32,13 @@
 
 import fp from "fastify-plugin";
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
-import type { AuthProviderType } from "../../auth/types.js";
 import { authService } from "../../auth/index.js";
 
 /**
- * Plugin options for authentication.
+ * Authentication plugin that integrates AuthService with Fastify. The provider
+ * is selected from AUTH_PROVIDER at module load (see auth/index.ts).
  */
-export interface AuthPluginOptions {
-  /** Override the default provider from environment */
-  provider?: AuthProviderType;
-}
-
-/**
- * Authentication plugin that integrates AuthService with Fastify.
- */
-const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
-  fastify,
-  _options
-) => {
+const authenticationPlugin: FastifyPluginAsync = (fastify) => {
   // Decorate fastify with the auth service
   fastify.decorate("authService", authService);
 
