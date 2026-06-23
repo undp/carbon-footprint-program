@@ -1,3 +1,5 @@
+import { Routes } from "@/interfaces/routes/routes.const";
+
 const {
   VITE_API_BASE_URL,
   VITE_OIDC_ISSUER,
@@ -56,7 +58,7 @@ export const OIDC_SCOPES = VITE_OIDC_SCOPES ?? "";
 // `||` (not `??`): compose passes `${VAR:-}` = "" (empty, not undefined) when a
 // var is unset, so the origin fallback must trigger on empty string too.
 export const OIDC_REDIRECT_URI =
-  VITE_OIDC_REDIRECT_URI || `${window.location.origin}/auth/callback`;
+  VITE_OIDC_REDIRECT_URI || `${window.location.origin}${Routes.AUTH_CALLBACK}`;
 export const OIDC_POST_LOGOUT_REDIRECT_URI =
   VITE_OIDC_POST_LOGOUT_REDIRECT_URI || `${window.location.origin}/`;
 
