@@ -8,8 +8,8 @@ import {
 /**
  * ForcedUserProvider: Development/Test forced user provider.
  *
- * This provider is used when authentication is disabled (AUTH_PROVIDER is 'none')
- * but a specific user identity is needed for local development or testing.
+ * This provider is used when AUTH_PROVIDER is 'forced-user' and a specific user
+ * identity is needed for local development or testing without an IdP.
  *
  * When both FORCED_USER_IDP_ID_WHEN_NO_PROVIDER and
  * FORCED_USER_EMAIL_WHEN_NO_PROVIDER are set, a fake user is returned whose
