@@ -7,9 +7,9 @@
  * ## Configuration
  *
  * Set AUTH_PROVIDER environment variable to choose provider:
- * - "jwks" - Validate OIDC access tokens via JWKS (default)
+ * - "jwks" - Validate OIDC access tokens via JWKS (recommended for production)
  * - "forced-user" - Inject a fixed dev user
- * - "none" - Disable authentication (development only)
+ * - "none" - Disable authentication; default when AUTH_PROVIDER is unset (development only)
  *
  * ## Usage in Routes
  *
