@@ -54,9 +54,10 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   fastify.decorate("authService", authService);
 
   /**
-   * Decorator to require authentication on a route.
-   * Fails with 401 if authentication fails.
-   * Skips authentication if AUTH_PROVIDER=none (development mode).
+   * Decorator to require authentication on a route. Fails with 401 when a
+   * private route resolves no user; public routes (allowPublicAccess /
+   * allowAnonymousAccess) pass through with a null user. With AUTH_PROVIDER=none
+   * the NoneProvider resolves no user, so every private route 401s.
    */
   fastify.decorate(
     "requireAuth",
@@ -64,14 +65,6 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
       const routeConfig = request.routeOptions?.config;
       const isPrivateRoute =
         !routeConfig?.allowPublicAccess && !routeConfig?.allowAnonymousAccess;
-      // Skip authentication if provider is none (development mode)
-      if (!authService.isEnabled()) {
-        request.log.debug(
-          { provider: authService.getConfiguredProvider() },
-          "Authentication disabled; allowing request without auth"
-        );
-        return;
-      }
 
       const result = await authService.authenticate(request);
 

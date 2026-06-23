@@ -16,7 +16,7 @@
  *
  * ```typescript
  * // Create service with specific provider
- * const authService = new AuthService({ provider: "jwks", enabled: true });
+ * const authService = new AuthService("jwks");
  *
  * // Authenticate a request
  * const result = await authService.authenticate(request);
@@ -43,7 +43,7 @@ import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
  */
 export class AuthService {
   private readonly provider_type: AuthProviderType;
-  private readonly provider: AuthProvider | undefined;
+  private readonly provider: AuthProvider;
 
   constructor(provider_type: AuthProviderType) {
     this.provider_type = provider_type;
@@ -52,18 +52,9 @@ export class AuthService {
       this.provider = new JwksAuthProvider();
     } else if (this.provider_type === "forced-user") {
       this.provider = new ForcedUserProvider();
-    } else if (this.provider_type === "none") {
-      this.provider = new NoneProvider();
     } else {
-      this.provider = undefined;
+      this.provider = new NoneProvider();
     }
-  }
-
-  /**
-   * Check if authentication is enabled.
-   */
-  isEnabled(): boolean {
-    return !!this.provider;
   }
 
   /**
@@ -74,16 +65,12 @@ export class AuthService {
   }
 
   /**
-   * Authenticate a request using the configured provider.
+   * Authenticate a request using the configured provider. Every AUTH_PROVIDER
+   * value resolves a provider, so there is no "disabled" short-circuit: with
+   * "none" the NoneProvider resolves no user, which leaves private routes to
+   * 401 and public routes to render.
    */
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
-    if (!this.isEnabled()) {
-      return {
-        user: null,
-        error: "Authentication is disabled",
-      };
-    }
-
-    return this.provider!.authenticate(request);
+    return this.provider.authenticate(request);
   }
 }

@@ -1,7 +1,6 @@
 import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
-import { authService } from "../../auth/index.js";
 import { SystemRole } from "@repo/database";
 
 const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
@@ -9,12 +8,6 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
 
   fastify.addHook("preHandler", async function (request: FastifyRequest) {
     const log = request.log.child({ module: "user-resolve-plugin" });
-
-    if (!authService.isEnabled()) {
-      log.debug("AUTH_PROVIDER was not set; skipping user resolution");
-
-      return;
-    }
 
     if (!request.authUser) {
       log.debug(
