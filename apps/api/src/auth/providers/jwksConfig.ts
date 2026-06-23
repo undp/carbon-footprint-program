@@ -72,13 +72,6 @@ export function isJwksConfigured(): boolean {
 }
 
 /**
- * Get the configured JWKS URI.
- */
-export function getJwksUri(): string | undefined {
-  return JWKS_URI;
-}
-
-/**
  * FastifyJWT configuration for JWKS validation.
  *
  * When JWKS is configured (via JWKS_URI):
