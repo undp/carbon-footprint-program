@@ -77,8 +77,9 @@ COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 8080
 
 # Readiness probe — nginx serves the SPA on 8080. Uses BusyBox `wget`
-# (curl isn't shipped in the alpine-slim image).
+# (curl isn't shipped in the alpine-slim image). 127.0.0.1 forces IPv4: nginx
+# listens IPv4-only and BusyBox wget won't fall back from localhost→::1.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget -q -O /dev/null http://localhost:8080/ || exit 1
+    CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
