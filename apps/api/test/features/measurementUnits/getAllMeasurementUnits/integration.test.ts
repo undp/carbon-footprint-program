@@ -9,10 +9,20 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { GetAllMeasurementUnitsResponse } from "@repo/types";
+import type {
+  CreateMeasurementUnitResponse,
+  GetAllMeasurementUnitsResponse,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MagnitudeStatus, MeasurementUnitStatus } from "@repo/database";
+import {
+  EmissionFactorStatus,
+  MagnitudeStatus,
+  MeasurementUnitStatus,
+  SubcategoryStatus,
+} from "@repo/database";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import { createTestEmissionFactor } from "@test/factories/emissionFactorFactory.js";
 
 const MAGNITUDES = [
   "mass",
@@ -334,6 +344,116 @@ describe("GET /api/measurement-units - Integration Tests", () => {
           await prisma.magnitude.delete({ where: { id: customMagnitude.id } });
         }
       }
+    });
+  });
+
+  describe("Reference count excludes soft-deleted dependents", () => {
+    // Creating a unit through the API also creates its canonical RMU (kg/<abbr>),
+    // so cleanup must remove both. Test units use the "test-" abbreviation prefix.
+    afterEach(async () => {
+      await prisma.emissionFactor.deleteMany({
+        where: { source: { startsWith: "mu-screen-test" } },
+      });
+      await prisma.subcategoryMeasurementUnit.deleteMany({
+        where: { subcategory: { name: { startsWith: "Test - Subcategory" } } },
+      });
+      await prisma.subcategory.deleteMany({
+        where: { name: { startsWith: "Test - Subcategory" } },
+      });
+      await prisma.rateMeasurementUnit.deleteMany({
+        where: { abbreviation: { startsWith: "kg/test-" } },
+      });
+      await prisma.measurementUnit.deleteMany({
+        where: { abbreviation: { startsWith: "test-" } },
+      });
+    });
+
+    async function createUnit(): Promise<CreateMeasurementUnitResponse> {
+      const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const massMagnitude = await prisma.magnitude.findFirstOrThrow({
+        where: { code: "mass" },
+      });
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: {
+          name: `Test Unit ${suffix}`,
+          abbreviation: `test-${suffix}`,
+          magnitudeId: massMagnitude.id.toString(),
+          baseFactor: 500,
+          isBase: false,
+        },
+      });
+      expect(response.statusCode).toBe(201);
+      return JSON.parse(response.body) as CreateMeasurementUnitResponse;
+    }
+
+    async function getReferenceCount(unitId: string): Promise<number> {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
+      const row = body.find((u) => u.id === unitId);
+      expect(row).toBeDefined();
+      return row!.referenceCount;
+    }
+
+    // Regression for issue #395: SubcategoryMeasurementUnit has no status column
+    // and its subcategory FK does not cascade on a soft-delete, so the join row
+    // survives. The reference count must filter on the parent subcategory status
+    // or the unit stays "in use" and undeletable after its only subcategory is
+    // soft-deleted.
+    it("should not count subcategory links whose subcategory is soft-deleted", async () => {
+      const unit = await createUnit();
+      const category = await prisma.category.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(unit.id),
+        },
+      });
+
+      // Active subcategory link → counted.
+      expect(await getReferenceCount(unit.id)).toBe(1);
+
+      // Soft-delete the subcategory (the join row survives untouched).
+      await prisma.subcategory.update({
+        where: { id: subcategory.id },
+        data: { status: SubcategoryStatus.DELETED },
+      });
+
+      // Link no longer counts.
+      expect(await getReferenceCount(unit.id)).toBe(0);
+    });
+
+    // Same gap on the canonical-RMU side: emission factors are soft-deleted
+    // (status = DELETED) when their subcategory is deleted, so a DELETED factor
+    // must not keep the unit referenced.
+    it("should not count emission factors that are soft-deleted", async () => {
+      const unit = await createUnit();
+      const canonicalRmu = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: `kg/${unit.abbreviation}` },
+      });
+      const subcategory = await prisma.subcategory.findFirstOrThrow({
+        select: { id: true },
+      });
+
+      await createTestEmissionFactor(prisma, subcategory.id, canonicalRmu.id, {
+        source: "mu-screen-test-active",
+        status: EmissionFactorStatus.ACTIVE,
+      });
+      await createTestEmissionFactor(prisma, subcategory.id, canonicalRmu.id, {
+        source: "mu-screen-test-deleted",
+        status: EmissionFactorStatus.DELETED,
+      });
+
+      // Only the ACTIVE emission factor counts.
+      expect(await getReferenceCount(unit.id)).toBe(1);
     });
   });
 });

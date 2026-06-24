@@ -1,4 +1,9 @@
-import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  EmissionFactorStatus,
+  MeasurementUnitStatus,
+  SubcategoryStatus,
+} from "@repo/database";
 import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 import { compareMeasurementUnitsForDisplay } from "./helpers.js";
@@ -43,13 +48,27 @@ export const getAllMeasurementUnitsService = async (
     }),
     prismaClient.subcategoryMeasurementUnit.groupBy({
       by: ["measurementUnitId"],
-      where: { measurementUnitId: { in: muIds } },
+      // SubcategoryMeasurementUnit has no status column and its subcategory FK
+      // is onDelete: Cascade, which does not fire on a soft-delete (we set
+      // status = DELETED, the row survives). Filter by the parent subcategory's
+      // status so join rows under soft-deleted subcategories stop counting —
+      // otherwise the unit reports referenceCount > 0 and can't be deleted.
+      where: {
+        measurementUnitId: { in: muIds },
+        subcategory: { status: SubcategoryStatus.ACTIVE },
+      },
       _count: { _all: true },
     }),
     rmuIds.length > 0
       ? prismaClient.emissionFactor.groupBy({
           by: ["rateMeasurementUnitId"],
-          where: { rateMeasurementUnitId: { in: rmuIds } },
+          // Emission factors are soft-deleted (status = DELETED) when their
+          // subcategory is deleted, so exclude them or the rate unit stays
+          // "in use" and undeletable.
+          where: {
+            rateMeasurementUnitId: { in: rmuIds },
+            status: EmissionFactorStatus.ACTIVE,
+          },
           _count: { _all: true },
         })
       : Promise.resolve([]),

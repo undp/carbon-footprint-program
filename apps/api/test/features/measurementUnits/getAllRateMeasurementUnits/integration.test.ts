@@ -22,7 +22,11 @@ import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.
 import { createTestEmissionFactor } from "@test/factories/emissionFactorFactory.js";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import { Prisma, type PrismaClient } from "@repo/database";
+import {
+  EmissionFactorStatus,
+  Prisma,
+  type PrismaClient,
+} from "@repo/database";
 
 describe("GET /api/measurement-units/rates - Integration Tests", () => {
   let app: FastifyInstance;
@@ -364,6 +368,58 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(targetItem!.referenceCounts.emissionFactors).toBe(2);
       expect(targetItem!.referenceCounts.lineFactorsAsApplied).toBe(3);
       expect(targetItem!.totalReferenceCount).toBe(5);
+    });
+
+    // Regression for issue #395: emission factors are soft-deleted
+    // (status = DELETED) when their subcategory is deleted. A DELETED factor
+    // must not keep its rate unit counted as referenced.
+    it("excludes soft-deleted emission factors from emissionFactors count", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+
+      const targetRateUnit = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: "kg/L" },
+      });
+
+      // One ACTIVE, one DELETED emission factor on the same rate unit.
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        targetRateUnit.id,
+        {
+          source: "rmu-screen-test-active",
+          status: EmissionFactorStatus.ACTIVE,
+        }
+      );
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        targetRateUnit.id,
+        {
+          source: "rmu-screen-test-deleted",
+          status: EmissionFactorStatus.DELETED,
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units/rates",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllRateMeasurementUnitsResponse;
+
+      const targetItem = body.find(
+        (i) => i.id === targetRateUnit.id.toString()
+      );
+      expect(targetItem).toBeDefined();
+      // Only the ACTIVE factor counts.
+      expect(targetItem!.referenceCounts.emissionFactors).toBe(1);
+      expect(targetItem!.totalReferenceCount).toBe(1);
     });
 
     it("returns each joined numerator/denominator MU with its own magnitude object", async () => {
