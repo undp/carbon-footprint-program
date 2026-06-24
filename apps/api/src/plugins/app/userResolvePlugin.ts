@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
-import { SystemRole } from "@repo/database";
+import { Prisma, SystemRole } from "@repo/database";
 
 const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
   // Find or create user on the DB with the data of the authenticated user with oid and email and attach to request
@@ -37,18 +37,40 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
           { idpUserId: authUser.idpUserId },
           "User not found; creating new user"
         );
-        user = await prisma.user.create({
-          data: {
-            idpUserId: authUser.idpUserId,
-            email: authUser.email,
-            idpName: authUser.idpName,
-            // TODO: remove when finishing the demo
-            role: SystemRole.SUPERADMIN,
-            updatedAt: null,
-          },
-        });
+        try {
+          user = await prisma.user.create({
+            data: {
+              idpUserId: authUser.idpUserId,
+              email: authUser.email,
+              idpName: authUser.idpName,
+              // TODO: remove when finishing the demo
+              role: SystemRole.SUPERADMIN,
+              updatedAt: null,
+            },
+          });
 
-        log.info({ userId: user.id }, "New user created");
+          log.info({ userId: user.id }, "New user created");
+        } catch (createError) {
+          // A concurrent request on the same brand-new user's first login (e.g.
+          // GET /users/me racing POST /carbon-inventories/:id/claim) may have
+          // created the row between our findUnique and create. The unique
+          // constraint on idpUserId surfaces that as P2002 — treat it as "already
+          // created" and re-read the winner's row instead of failing the request.
+          if (
+            createError instanceof Prisma.PrismaClientKnownRequestError &&
+            createError.code === "P2002"
+          ) {
+            log.info(
+              { idpUserId: authUser.idpUserId },
+              "User created concurrently; re-reading existing row"
+            );
+            user = await prisma.user.findUniqueOrThrow({
+              where: { idpUserId: authUser.idpUserId },
+            });
+          } else {
+            throw createError;
+          }
+        }
       } else {
         log.debug({ userId: user.id }, "Existing user found");
       }
