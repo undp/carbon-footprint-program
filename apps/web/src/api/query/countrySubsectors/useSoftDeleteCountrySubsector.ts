@@ -3,7 +3,6 @@ import { CountrySubsectorQueryKey } from "./keys";
 import { CountrySectorQueryKey } from "../countrySectors/keys";
 import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
 import { organizationKeys } from "../organizations/keys";
-import { subcategoryRecommendationKeys } from "../subcategoryRecommendations/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
@@ -15,7 +14,8 @@ export const useSoftDeleteCountrySubsector = () => {
     onSuccess: async () => {
       // Cascade soft-delete also affects main activities and subcategory
       // recommendations; sector list refreshes because its impactedChildren
-      // counts shift.
+      // counts shift. The recommendations grid composes the subsector
+      // CatalogUpdateDependency token, so firing it here refreshes it too.
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
@@ -34,9 +34,6 @@ export const useSoftDeleteCountrySubsector = () => {
             query.queryKey.includes(
               OrganizationMainActivityQueryKey.CatalogUpdateDependency
             ),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: subcategoryRecommendationKeys.all,
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminAll(),
