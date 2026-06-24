@@ -162,6 +162,9 @@ export const getReferenceCountsByMeasurementUnit = async (
     manualFactorByRmu
       // Typed as nullable from the conditional groupBy union, but the
       // `manualFactorRateUnitId: { in: rmuIds }` filter guarantees non-null.
+      // A type predicate can't narrow here (unlike the unconditional
+      // line-input count above): the `Promise.resolve([])` branch makes this a
+      // `never[]` union that defeats the guard, so keep the `!`.
       .filter((r) => r.manualFactorRateUnitId !== null)
       .map((r) => [r.manualFactorRateUnitId!.toString(), r._count._all])
   );
