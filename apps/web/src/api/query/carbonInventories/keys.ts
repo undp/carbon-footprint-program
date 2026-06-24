@@ -1,3 +1,7 @@
+import { MaintainerQueryKey } from "../maintainer/keys";
+import { CountrySectorQueryKey } from "../countrySectors/keys";
+import { CountrySubsectorQueryKey } from "../countrySubsectors/keys";
+
 export enum CarbonInventoryQueryKey {
   Root = "carbonInventories",
   Subcategories = "carbonInventorySubcategories",
@@ -126,8 +130,21 @@ export const carbonInventoryKeys = {
     [
       CarbonInventoryQueryKey.Root,
       id,
+      // User-side dependency: the recommendations are scoped to the inventory's
+      // org sector/subsector, so they shift when those attributes change.
       CarbonInventoryQueryKey.AttributesUpdateDependency,
       CarbonInventoryQueryKey.SubcategoryRecommendations,
+      // Maintainer-side dependency tokens. The recommendation dataset also shifts
+      // when an admin creates/updates a recommendation, or when a sector/subsector/
+      // subcategory/category soft-delete cascades over it. Compose the same tokens
+      // the maintainer grid uses (see subcategoryRecommendations/keys.ts) so those
+      // admin mutations invalidate this query too — it has `staleTime: Infinity`,
+      // so without the token it would never refetch within a session.
+      MaintainerQueryKey.SubcategoryRecommendationsUpdateDependency,
+      MaintainerQueryKey.SubcategoriesUpdateDependency,
+      MaintainerQueryKey.CategoriesUpdateDependency,
+      CountrySectorQueryKey.CatalogUpdateDependency,
+      CountrySubsectorQueryKey.CatalogUpdateDependency,
     ] as const,
   reductionPlan: (inventoryId?: string) =>
     [
