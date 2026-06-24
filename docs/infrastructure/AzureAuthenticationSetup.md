@@ -474,10 +474,9 @@ FORCED_USER_EMAIL="dev@example.com"
 
 ### Login / redirect errors
 
-| Error                   | Cause                     | Solution                                                                |
-| ----------------------- | ------------------------- | ----------------------------------------------------------------------- |
-| "Popup blocked"         | Browser blocks auth popup | Allow popups or use the redirect flow                                   |
-| "redirect_uri_mismatch" | Redirect URI mismatch     | Register `<origin>/auth/callback` exactly in the Azure app registration |
+| Error                   | Cause                 | Solution                                                                |
+| ----------------------- | --------------------- | ----------------------------------------------------------------------- |
+| "redirect_uri_mismatch" | Redirect URI mismatch | Register `<origin>/auth/callback` exactly in the Azure app registration |
 
 ### Token Validation Errors
 

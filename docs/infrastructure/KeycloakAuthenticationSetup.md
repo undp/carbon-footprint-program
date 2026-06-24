@@ -79,7 +79,7 @@ Two things that map straight onto the backend config:
 
 ## Backend Configuration (API)
 
-Set these for the `huella` realm. Leave the `AZURE_*` auth vars empty so the API stays on the generic JWKS path (any `AZURE_TENANT_ID` re-enables Azure v2.0 checks and rejects Keycloak tokens).
+Set these for the `huella` realm. The API only reads the `JWKS_*` vars — there are no `AZURE_*` auth vars in the API runtime.
 
 ```bash
 AUTH_PROVIDER=jwks
@@ -147,7 +147,6 @@ To make a user a platform superadmin, use the app's promote-superadmin flow as u
 | "The iss claim value is not allowed"    | `JWKS_ISSUER` ≠ token `iss`                  | Set `JWKS_ISSUER=http://localhost:8081/realms/huella` (match `KC_HOSTNAME`).                      |
 | "The aud claim value is not allowed"    | `JWKS_AUDIENCE` ≠ `huella-api`               | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                       |
 | "Token missing required scope"          | `access_as_user` not granted                 | It's a default client scope in the imported realm — confirm you're using the `huella-web` client. |
-| Tokens rejected as "not v2.0"           | An `AZURE_*` auth var is set                 | Clear all `AZURE_*` auth vars when using Keycloak.                                                |
 | `redirect_uri` error at login           | Web origin not in the client's redirect URIs | Use `:3000` or `:5173`, or add your origin to the `huella-web` client.                            |
 | Realm/client missing after `up`         | Import only runs on first boot               | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.            |
 

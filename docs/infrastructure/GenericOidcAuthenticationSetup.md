@@ -133,7 +133,7 @@ JWKS_REQUIRED_SCOPE=access_as_user   # optional; this is the default
 
 ## Frontend Configuration (Web)
 
-The web app always uses OIDC. Config is **build-time** (inlined by Vite) — rebuild the web image when these change. See `apps/web/src/config/oidcConfig.ts`.
+The web app always uses OIDC. Config is **build-time** (inlined by Vite) — rebuild the web image when these change. These vars are read and defaulted in `apps/web/src/config/environment.ts`; `apps/web/src/config/oidcConfig.ts` assembles the `UserManagerSettings` from them.
 
 | Variable                             | Required | Description                                                                                                                     |
 | ------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -141,9 +141,9 @@ The web app always uses OIDC. Config is **build-time** (inlined by Vite) — reb
 | `VITE_OIDC_CLIENT_ID`                | Yes      | Public SPA client id.                                                                                                           |
 | `VITE_OIDC_SCOPES`                   | Yes      | Space-separated. Baseline: `openid profile email offline_access` (+ the API scope on IdPs that need it explicitly, e.g. Entra). |
 | `VITE_OIDC_REDIRECT_URI`             | No       | Login redirect. Defaults to `<serving-origin>/auth/callback`.                                                                   |
-| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No       | Post-logout redirect. Defaults to `<serving-origin>`.                                                                           |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No       | Post-logout redirect. Defaults to `<serving-origin>/`.                                                                          |
 
-The client uses `response_type=code` (Auth Code + PKCE), persists tokens in `localStorage`, and silently renews via the refresh token (`automaticSilentRenew`). The app fails loud at boot if `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, or `VITE_OIDC_SCOPES` is empty.
+The client uses `response_type=code` (Auth Code + PKCE), persists tokens in `localStorage`, and silently renews via the refresh token (`automaticSilentRenew`) — see `apps/web/src/config/oidcConfig.ts`. The app fails loud at boot (`apps/web/src/config/environment.ts`) if `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, or `VITE_OIDC_SCOPES` is empty.
 
 > **Scope baseline:** `openid` (id_token) + `email` (the backend rejects tokens without an email claim) + `offline_access` (refresh → silent renew) + `profile` (display name). Whether the API scope (`access_as_user`) must be requested explicitly depends on the IdP: Entra requires `api://<API_CLIENT_ID>/access_as_user`; Keycloak grants `access_as_user` as a default client scope, so it is not requested.
 
