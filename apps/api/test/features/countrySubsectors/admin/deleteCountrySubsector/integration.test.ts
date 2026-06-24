@@ -211,4 +211,20 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
     });
     expect(response.statusCode).toBe(404);
   });
+
+  it("returns 404 when the subsector is already DELETED", async () => {
+    const parent = await createTestCountrySector(prisma, {
+      name: uniqueName("Parent"),
+    });
+    const sub = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("AlreadyDeleted"),
+      status: CountrySubsectorStatus.DELETED,
+    });
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+    });
+    expect(response.statusCode).toBe(404);
+  });
 });

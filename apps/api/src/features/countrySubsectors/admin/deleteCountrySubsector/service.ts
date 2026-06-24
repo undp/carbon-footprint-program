@@ -33,7 +33,10 @@ export const deleteCountrySubsectorService = async (
     // footprint; the selector-union keeps those rows rendering for end users.
     try {
       await tx.countrySubsector.update({
-        where: { id: subsectorId },
+        // Scope to ACTIVE so an already-DELETED (or missing) subsector surfaces
+        // as not-found (P2025 -> ResourceNotFoundError) instead of silently
+        // re-running the cascade, matching the methodology delete standard.
+        where: { id: subsectorId, status: CountrySubsectorStatus.ACTIVE },
         data: {
           status: CountrySubsectorStatus.DELETED,
           updatedById,

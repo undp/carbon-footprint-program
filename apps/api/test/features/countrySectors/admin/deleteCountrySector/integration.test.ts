@@ -221,5 +221,18 @@ describe("DELETE /api/admin/country-sectors/:id - Integration Tests", () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it("returns 404 when the sector is already DELETED", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("AlreadyDeleted"),
+        status: CountrySectorStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+      });
+      expect(response.statusCode).toBe(404);
+    });
   });
 });
