@@ -2,7 +2,9 @@ import {
   type MeasurementUnit,
   type Prisma,
   type PrismaClient,
+  CarbonInventoryLineStatus,
   EmissionFactorStatus,
+  InventoryStatus,
   SubcategoryStatus,
 } from "@repo/database";
 import {
@@ -30,17 +32,23 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
  * The ONE definition of a measurement unit's reference count, batched into one
  * round-trip per reference type. The list endpoint passes every unit's id; the
  * create/update guards pass a single id via `getReferenceCount`. Both go through
- * here, so the displayed count and the edit/delete guard can never drift.
+ * here, so the displayed count and the edit guard can never drift.
  *
  * A unit is referenced by: line inputs that use it directly, ACTIVE subcategory
  * links, and — through its canonical RMU (kg/<abbr>) — ACTIVE emission factors,
  * line-input manual factors and applied line factors.
  *
- * Soft-deleted dependents must NOT count: `SubcategoryMeasurementUnit` has no
- * status of its own (filter by the parent subcategory) and emission factors are
- * soft-deleted when their subcategory is deleted. Line-input / line-factor rows
- * are organization-owned inventory data with no soft-delete status and are
- * counted as historical references on purpose.
+ * Soft-deleted dependents must NOT count, and every reference type carries its
+ * soft-delete signal one level up, so each query filters by the parent:
+ * - `SubcategoryMeasurementUnit` has no status of its own → filter by the parent
+ *   subcategory's status.
+ * - Emission factors are soft-deleted (status = DELETED) when their subcategory
+ *   is deleted → filter by the factor's own status.
+ * - Inventory rows (line inputs and applied line factors) have no status of
+ *   their own, but their owning `CarbonInventoryLine` and `CarbonInventory` do,
+ *   and deleting an inventory is a soft delete → count only rows on an ACTIVE
+ *   line of an ACTIVE inventory, so a soft-deleted inventory stops keeping the
+ *   unit referenced (same intent as the subcategory case).
  */
 export const getReferenceCountsByMeasurementUnit = async (
   client: MeasurementUnitDbClient,
@@ -75,7 +83,13 @@ export const getReferenceCountsByMeasurementUnit = async (
   ] = await Promise.all([
     client.carbonInventoryLineInput.groupBy({
       by: ["measurementUnitId"],
-      where: { measurementUnitId: { in: uniqueMuIds } },
+      where: {
+        measurementUnitId: { in: uniqueMuIds },
+        line: {
+          status: CarbonInventoryLineStatus.ACTIVE,
+          carbonInventory: { status: InventoryStatus.ACTIVE },
+        },
+      },
       _count: { _all: true },
     }),
     client.subcategoryMeasurementUnit.groupBy({
@@ -99,14 +113,28 @@ export const getReferenceCountsByMeasurementUnit = async (
     rmuIds.length > 0
       ? client.carbonInventoryLineInput.groupBy({
           by: ["manualFactorRateUnitId"],
-          where: { manualFactorRateUnitId: { in: rmuIds } },
+          where: {
+            manualFactorRateUnitId: { in: rmuIds },
+            line: {
+              status: CarbonInventoryLineStatus.ACTIVE,
+              carbonInventory: { status: InventoryStatus.ACTIVE },
+            },
+          },
           _count: { _all: true },
         })
       : Promise.resolve([]),
     rmuIds.length > 0
       ? client.carbonInventoryLineFactor.groupBy({
           by: ["appliedFactorRateUnitId"],
-          where: { appliedFactorRateUnitId: { in: rmuIds } },
+          where: {
+            appliedFactorRateUnitId: { in: rmuIds },
+            lineInput: {
+              line: {
+                status: CarbonInventoryLineStatus.ACTIVE,
+                carbonInventory: { status: InventoryStatus.ACTIVE },
+              },
+            },
+          },
           _count: { _all: true },
         })
       : Promise.resolve([]),
