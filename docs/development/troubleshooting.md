@@ -81,17 +81,20 @@ kill -9 <PID>
 
 **Symptom:** Uploading a document to the platform returns a 503 error.
 
-**Cause:** `AZURE_STORAGE_ACCOUNT_NAME` is not set, or the local Azure CLI session has expired.
+**Cause:** `STORAGE_PROVIDER` is unset (the API refuses to boot without it), or the selected provider's required vars are missing.
 
-**Fix:**
+**Fix:** `STORAGE_PROVIDER` must be set — there is no default. Local dev defaults to `minio` (the value in `infra/.envrc.template`), set its `MINIO_*` vars. To use Azure Blob Storage locally, set `STORAGE_PROVIDER=azure_blob_storage` and provide an explicit Service Principal:
 
 ```bash
-az login
+export STORAGE_PROVIDER="azure_blob_storage"
 export AZURE_STORAGE_ACCOUNT_NAME="your-storage-account-name"
 export AZURE_STORAGE_CONTAINER_NAME="files"
+export AZURE_STORAGE_TENANT_ID="..."
+export AZURE_STORAGE_CLIENT_ID="..."
+export AZURE_STORAGE_CLIENT_SECRET="..."
 ```
 
-File upload requires a real Azure Storage account — there is no local Azurite emulator for the API's storage path. See [Local Setup](./local-setup.md) and [File Storage](../infrastructure/FileStorage.md).
+Local and on-premise hosts have no Azure Managed Identity, so they authenticate with the Service Principal above (`ClientSecretCredential`); `DefaultAzureCredential` is the Azure-hosted path only. See [Local Setup](./local-setup.md), [docker-compose reference](../operations/docker-compose.md), and [File Storage](../infrastructure/FileStorage.md).
 
 ---
 
@@ -229,17 +232,17 @@ After fixing, restart the App Service — environment variables are resolved at 
 **Checklist:**
 
 1. Is `JWKS_URI` set correctly? It should point to the Entra ID tenant's JWKS endpoint.
-2. Is `JWT_AUDIENCE` set to the app registration's client ID?
-3. Is `JWT_ISSUER` set to `https://login.microsoftonline.com/<tenant-id>/v2.0`?
+2. Is `JWKS_AUDIENCE` set to the app registration's client ID?
+3. Is `JWKS_ISSUER` set to `https://login.microsoftonline.com/<tenant-id>/v2.0`?
 4. Has the Entra ID key been rotated recently? The JWKS cache refreshes every 10 minutes — wait and retry.
 
 For local development, use `AUTH_PROVIDER=forced-user` to bypass JWT validation entirely.
 
 ---
 
-### `az login` required but CI does not use it
+### `CredentialUnavailableError` with Azure Blob Storage
 
-The API uses `DefaultAzureCredential` for Azure Blob Storage access. In CI and production, this resolves via the App Service's managed identity. Locally, it resolves via `az login`. If you see `CredentialUnavailableError`, run `az login` in your terminal.
+When `STORAGE_PROVIDER=azure_blob_storage`, the credential depends on **where the app runs**, not local-vs-prod. Azure-hosted compute (App Service / Container Apps) has a Managed Identity, so it uses `DefaultAzureCredential` with the three SP vars left empty. Local and on-premise hosts have no Managed Identity and must set all of `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET` (explicit `ClientSecretCredential`). If you see `CredentialUnavailableError` locally, set those SP vars — or switch to `STORAGE_PROVIDER=minio`. See [docker-compose reference](../operations/docker-compose.md) → "Azure Blob Storage".
 
 ---
 

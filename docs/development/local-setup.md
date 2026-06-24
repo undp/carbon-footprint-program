@@ -178,7 +178,7 @@ pnpm dev:web   # Frontend only
 
 1. Open http://localhost:5173 — you should see the application UI
 2. Open http://localhost:8080/api/docs — you should see the Swagger documentation
-3. Check the API health: `curl http://localhost:8080/api/health`
+3. Check the API health: `curl http://localhost:8080/health`
 
 With `AUTH_PROVIDER=forced-user`, the API automatically authenticates all requests as the configured user. No browser login is required for local development.
 
@@ -267,18 +267,21 @@ Always regenerate the client after schema changes so TypeScript types stay in sy
 
 ## File Upload (Local Development)
 
-File upload requires access to a real Azure Storage account. The API uses `DefaultAzureCredential`, which falls back to your `az login` session locally.
+File upload requires `STORAGE_PROVIDER` to be set — there is no default, and the API refuses to boot without it. Local dev defaults to `minio` (the value in `infra/.envrc.template`); set the `MINIO_*` vars and point the API at a MinIO/S3-compatible server.
+
+To use Azure Blob Storage locally instead, set `STORAGE_PROVIDER=azure_blob_storage` and provide an explicit Service Principal (local and on-premise hosts have no Azure Managed Identity):
 
 ```bash
-# Log in to Azure
-az login
-
 # Set storage variables in .envrc
+export STORAGE_PROVIDER="azure_blob_storage"
 export AZURE_STORAGE_ACCOUNT_NAME="your-storage-account-name"
 export AZURE_STORAGE_CONTAINER_NAME="files"
+export AZURE_STORAGE_TENANT_ID="..."
+export AZURE_STORAGE_CLIENT_ID="..."
+export AZURE_STORAGE_CLIENT_SECRET="..."
 ```
 
-If `AZURE_STORAGE_ACCOUNT_NAME` is not set, the API starts normally but file endpoints return HTTP 503.
+`DefaultAzureCredential` (Managed Identity) is the Azure-hosted path only. See the [docker-compose reference](../operations/docker-compose.md) → "Azure Blob Storage" for the full Service Principal walkthrough.
 
 ---
 
@@ -292,7 +295,7 @@ export FORCED_USER_EMAIL="dev@example.com"
 export FORCED_USER_IDP_ID="local-dev-user-001"
 ```
 
-To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the Azure tenant variables. See [Environment Variables](./environment-variables.md) and [Azure Entra authentication setup](../infrastructure/AzureAuthenticationSetup.md).
+To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the `JWKS_*` variables (derived from your IdP/tenant). See [Environment Variables](./environment-variables.md) and [Azure Entra authentication setup](../infrastructure/AzureAuthenticationSetup.md).
 
 To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay) — see [Keycloak authentication setup](../infrastructure/KeycloakAuthenticationSetup.md).
 

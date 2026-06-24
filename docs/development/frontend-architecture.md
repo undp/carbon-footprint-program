@@ -15,7 +15,7 @@ apps/web/src/
 ├── contexts/      # React Context providers (AuthProvider, ExplanationProvider)
 ├── hooks/         # Custom hooks (e.g., useFuzzySearch)
 ├── icons/         # Custom SVG icon components
-├── interfaces/    # Shared TypeScript types (Routes enum, etc.)
+├── interfaces/    # Shared TypeScript types (e.g. routes/routes.const.ts — the Routes const object)
 ├── routes/        # TanStack Router route files (file-based routing)
 ├── screens/       # Full-page components (one per route)
 ├── services/      # Non-API services (excel generation, file download)
@@ -167,7 +167,7 @@ A generic OIDC client (`oidc-client-ts` via `react-oidc-context`) handles the Au
 3. `getAuthToken()` returns the current access token, silently renewing via the refresh token when expired.
 4. The `ky` `beforeRequest` hook attaches `Authorization: Bearer <token>` to every API call.
 
-See [Azure / OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) for tenant and app registration configuration.
+See [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) for the auth contract and JWKS/OIDC config (it links to the provider-specific [Azure Entra setup](../infrastructure/AzureAuthenticationSetup.md) and Keycloak guides).
 
 ---
 
@@ -240,7 +240,7 @@ Typical workflow for a new feature with a new page:
 
 5. **Add mutation hook** at `src/api/mutation/myFeature/useCreateMyFeature.ts` (if the screen submits data).
 
-6. **Update the route path enum** in `src/interfaces/routes.ts` if you add a new named route.
+6. **Update the route constants** (the `Routes` const object) in `src/interfaces/routes/routes.const.ts` if you add a new named route.
 
 7. **Run the dev server** — TanStack Router regenerates `routeTree.gen.ts` automatically.
 
