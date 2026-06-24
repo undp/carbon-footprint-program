@@ -173,9 +173,9 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
   });
 
   describe("Referenced units", () => {
-    // The delete guard shares getReferenceCount with the list endpoint and the
-    // edit guard, so a unit the UI shows as "in use" cannot be deleted via the
-    // API either.
+    // The delete guard shares the reference-count definition with the list
+    // endpoint and the edit guard, so a unit the UI shows as "in use" cannot be
+    // deleted via the API either.
     it("should return 422 when the unit is referenced by existing data", async () => {
       const created = await createUnit();
       const category = await prisma.category.findFirstOrThrow({

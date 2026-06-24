@@ -9,7 +9,7 @@ import {
   resolveKgMeasurementUnit,
   assertNotKgMu,
   assertNotBaseUnit,
-  getReferenceCount,
+  getMeasurementUnitReferenceCount,
 } from "../helpers.js";
 import {
   MeasurementUnitNotFoundError,
@@ -38,7 +38,7 @@ export const deleteMeasurementUnitService = async (
       // so a unit the UI shows as "in use" cannot be deleted through the API
       // either. Checked inside a Serializable transaction (like the update
       // guard) so a reference inserted concurrently can't slip past the check.
-      const refCount = await getReferenceCount(tx, target.id);
+      const refCount = await getMeasurementUnitReferenceCount(tx, target.id);
       if (refCount > 0) {
         throw new MeasurementUnitReferencedError();
       }

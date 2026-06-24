@@ -12,7 +12,7 @@ import {
 import { DataIntegrityError } from "@/errors/index.js";
 import {
   resolveKgMeasurementUnit,
-  getReferenceCount,
+  getMeasurementUnitReferenceCount,
   buildCanonicalRmuFields,
 } from "../helpers.js";
 import {
@@ -105,7 +105,7 @@ export const createMeasurementUnitService = async (
     }
 
     // Restore a soft-deleted unit
-    const refCount = await getReferenceCount(tx, existing.id);
+    const refCount = await getMeasurementUnitReferenceCount(tx, existing.id);
     const action =
       refCount > 0
         ? MeasurementUnitCreationResultEnum.restoredLabelsOnly

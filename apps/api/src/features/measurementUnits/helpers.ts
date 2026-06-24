@@ -31,7 +31,8 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
 /**
  * The ONE definition of a measurement unit's reference count, batched into one
  * round-trip per reference type. The list endpoint passes every unit's id; the
- * create/update and delete guards pass a single id via `getReferenceCount`. Both
+ * create/update and delete guards pass a single id via
+ * `getMeasurementUnitReferenceCount`. Both
  * go through here, so the displayed count and the edit/delete guards can never
  * drift.
  *
@@ -195,7 +196,7 @@ export const getReferenceCountsByMeasurementUnit = async (
  * version so the create/update/delete guards and the list endpoint share one
  * definition.
  */
-export const getReferenceCount = async (
+export const getMeasurementUnitReferenceCount = async (
   client: MeasurementUnitDbClient,
   measurementUnitId: bigint
 ): Promise<number> =>
