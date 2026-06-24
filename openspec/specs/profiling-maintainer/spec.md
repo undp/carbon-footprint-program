@@ -92,42 +92,37 @@ The admin list response SHALL include `countrySectorId` and the parent sector's 
 - **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector
 - **THEN** the subsector's parent is updated atomically alongside the validation
 
-### Requirement: Soft-delete blocks on ACTIVE catalog references only
+### Requirement: Soft-delete cascades over ACTIVE catalog children
 
-`DELETE /admin/country-sectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the sector:
+`DELETE /admin/country-sectors/:id` MUST soft-delete the sector (status `ACTIVE` → `DELETED`) and, in the same transaction, cascade soft-delete every ACTIVE row that references it:
 
 - `CountrySubsector.countrySectorId = id` AND `CountrySubsector.status = 'ACTIVE'`
 - `OrganizationMainActivity.countrySectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
-- `SubcategoryRecommendation.sectorId = id`
+- `SubcategoryRecommendation.sectorId = id` AND `SubcategoryRecommendation.status = 'ACTIVE'`
 
-`DELETE /admin/country-subsectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the subsector:
+`DELETE /admin/country-subsectors/:id` MUST soft-delete the subsector and cascade soft-delete every ACTIVE row that references it:
 
 - `OrganizationMainActivity.countrySubsectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
-- `SubcategoryRecommendation.subsectorId = id`
+- `SubcategoryRecommendation.subsectorId = id` AND `SubcategoryRecommendation.status = 'ACTIVE'`
 
-User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT block soft-delete. The front-side selector union covers the display of those rows.
+A delete is NEVER blocked by catalog references. User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT be modified by the cascade; the front-side selector union covers the display of those rows.
 
-Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DeleteBlockedByReferencesError` MUST carry a Spanish sentence on `error.message` naming which reference type(s) block the delete.
+The cascade and the status update MUST occur inside a single `prisma.$transaction`, mirroring the methodology-catalog standard (`softDeleteSubcategoryDependents`).
 
-#### Scenario: Sector with ACTIVE subsectors cannot be soft-deleted
+#### Scenario: Sector with ACTIVE subsectors cascade soft-deletes them
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one ACTIVE row
-- **THEN** the response is `409` with a Spanish sentence on `message` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
-
-#### Scenario: Sector with only DELETED subsectors can be soft-deleted
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors are all DELETED
-- **THEN** the response is `200` and the sector transitions to `DELETED`
+- **THEN** the response is `200` and the sector, every ACTIVE subsector, main activity and subcategory recommendation under it transition to `DELETED`
 
 #### Scenario: Sector referenced only by OrganizationData can be soft-deleted
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector referenced by `OrganizationData.sectorId` but no ACTIVE catalog row
 - **THEN** the response is `200`, the sector transitions to `DELETED`, and existing `OrganizationData` rows retain their reference
 
-#### Scenario: Subsector referenced by SubcategoryRecommendation blocked
+#### Scenario: Subsector referenced by SubcategoryRecommendation cascade soft-deletes it
 
-- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one `SubcategoryRecommendation.subsectorId`
-- **THEN** the response is `409` and the subsector's `status` stays `ACTIVE`
+- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one ACTIVE `SubcategoryRecommendation.subsectorId`
+- **THEN** the response is `200` and the subsector and that recommendation transition to `DELETED`
 
 ### Requirement: Unique-constraint violations surface Spanish error messages
 

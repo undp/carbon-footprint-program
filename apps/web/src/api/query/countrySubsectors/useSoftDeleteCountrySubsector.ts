@@ -3,6 +3,7 @@ import { CountrySubsectorQueryKey } from "./keys";
 import { CountrySectorQueryKey } from "../countrySectors/keys";
 import { OrganizationMainActivityQueryKey } from "../organizationMainActivities/keys";
 import { organizationKeys } from "../organizations/keys";
+import { subcategoryRecommendationKeys } from "../subcategoryRecommendations/keys";
 import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
@@ -12,8 +13,9 @@ export const useSoftDeleteCountrySubsector = () => {
       await apiClient.delete(`admin/country-subsectors/${id}`);
     },
     onSuccess: async () => {
-      // Cascade soft-delete also affects main activities; sector list refreshes
-      // because its impactedChildren counts shift.
+      // Cascade soft-delete also affects main activities and subcategory
+      // recommendations; sector list refreshes because its impactedChildren
+      // counts shift.
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
@@ -32,6 +34,9 @@ export const useSoftDeleteCountrySubsector = () => {
             query.queryKey.includes(
               OrganizationMainActivityQueryKey.CatalogUpdateDependency
             ),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: subcategoryRecommendationKeys.all,
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminAll(),

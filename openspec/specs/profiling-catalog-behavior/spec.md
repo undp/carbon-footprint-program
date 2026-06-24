@@ -44,29 +44,29 @@ The migration file MUST include an inline SQL comment warning that future schema
 - **WHEN** one row exists with `status = 'DELETED'` and another insert targets the same unique-scope key with `status = 'ACTIVE'`
 - **THEN** both rows coexist and no constraint is violated
 
-### Requirement: Soft-delete replaces hard-delete and is blocked only by ACTIVE catalog references
+### Requirement: Soft-delete replaces hard-delete and cascades over ACTIVE catalog children
 
 Every `DELETE /admin/…/:id` endpoint for the four profiling catalogs MUST transition `status` from `ACTIVE` to `DELETED` inside a `prisma.$transaction`. Physical deletion (hard-delete) MUST NOT be exposed on any admin route of these catalogs.
 
-Soft-delete MUST be blocked (respond with `DeleteBlockedByReferencesError`, HTTP `409`) if ANY other _catalog_ record with `status = 'ACTIVE'` still references the target. The blocking matrix is:
+Soft-delete MUST cascade: within the same transaction the service MUST transition every ACTIVE _catalog_ child of the target from `status = 'ACTIVE'` to `'DELETED'`, mirroring the methodology-catalog standard (`softDeleteSubcategoryDependents`). A delete is NEVER blocked by catalog references. The cascade matrix is:
 
-| Target                     | Blocked by (ACTIVE only)                                                                                             |
+| Target                     | Cascade soft-deletes (ACTIVE only)                                                                                   |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `CountrySector`            | `CountrySubsector.countrySectorId`, `OrganizationMainActivity.countrySectorId`, `SubcategoryRecommendation.sectorId` |
 | `CountrySubsector`         | `OrganizationMainActivity.countrySubsectorId`, `SubcategoryRecommendation.subsectorId`                               |
 | `OrganizationMainActivity` | (none — no catalog table references main activity)                                                                   |
 | `CountryOrganizationSize`  | (none)                                                                                                               |
 
-User-data references (`OrganizationData.sectorId`, `.subsectorId`, `.mainActivityId`, `.countryOrganizationSizeId`) MUST NOT block soft-delete under any circumstance; the selector-union requirement below guarantees user-facing rendering.
+The sector cascade reaches children nested under its subsectors without first resolving subsector ids, because the catalog denormalizes the parent sector: every main activity stores its `countrySectorId` and every recommendation a non-null `sectorId`.
 
-The `DeleteBlockedByReferencesError` raised on block MUST carry a Spanish sentence on `error.message` naming the offending reference type(s) so the admin knows what to clear first. (Spanish text travels on the standard `message` field of `ApiErrorResponseSchema`; no parallel `userMessage` field exists.)
+User-data references (`OrganizationData.sectorId`, `.subsectorId`, `.mainActivityId`, `.countryOrganizationSizeId`) MUST NOT be modified by the cascade under any circumstance, so soft-deleting a catalog row never rewrites a country's historical footprint; the selector-union requirement below guarantees user-facing rendering.
 
-#### Scenario: Catalog-reference blocks soft-delete
+#### Scenario: Soft-delete cascades to ACTIVE catalog children
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one `ACTIVE` row
-- **THEN** the response is `409` with a Spanish sentence on `message` and the target row's `status` stays `ACTIVE`
+- **THEN** the response is `200` and, in the same transaction, the target and every ACTIVE subsector, main activity and subcategory recommendation under it transition to `DELETED`
 
-#### Scenario: User-data reference does not block soft-delete
+#### Scenario: Cascade leaves user-data references untouched
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-organization-sizes/:id` on a size row that is referenced only by `OrganizationData.countryOrganizationSizeId`
 - **THEN** the response is `200` and the row transitions to `DELETED`; the `OrganizationData` references remain unchanged

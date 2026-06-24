@@ -7,11 +7,7 @@ import {
   SubcategoryRecommendationStatus,
 } from "@repo/database";
 import { type User } from "@repo/types";
-import {
-  attachDetails,
-  DeleteBlockedByReferencesError,
-  ResourceNotFoundError,
-} from "@/errors/index.js";
+import { ResourceNotFoundError } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 
 export const deleteCountrySectorService = async (
@@ -24,68 +20,29 @@ export const deleteCountrySectorService = async (
   }
 
   const sectorId = BigInt(id);
+  const updatedById = BigInt(user.id);
 
   await prismaClient.$transaction(async (tx) => {
-    // Soft-delete is blocked by ACTIVE catalog references (see
-    // openspec/changes/add-profiling-maintainer/specs/profiling-catalog-behavior/spec.md
-    // §"Soft-delete replaces hard-delete and is blocked only by ACTIVE catalog references").
-    // User-data references on `organization_data.sectorId` do NOT block.
-    const [
-      activeSubsectorCount,
-      activeMainActivityCount,
-      activeSubcategoryRecommendationCount,
-    ] = await Promise.all([
-      tx.countrySubsector.count({
-        where: {
-          countrySectorId: sectorId,
-          status: CountrySubsectorStatus.ACTIVE,
-        },
-      }),
-      tx.organizationMainActivity.count({
-        where: {
-          countrySectorId: sectorId,
-          status: OrganizationMainActivityStatus.ACTIVE,
-        },
-      }),
-      tx.subcategoryRecommendation.count({
-        where: {
-          sectorId,
-          status: SubcategoryRecommendationStatus.ACTIVE,
-        },
-      }),
-    ]);
-
-    if (
-      activeSubsectorCount > 0 ||
-      activeMainActivityCount > 0 ||
-      activeSubcategoryRecommendationCount > 0
-    ) {
-      const referencedBy: string[] = [];
-      if (activeSubsectorCount > 0) referencedBy.push("subrubros");
-      if (activeMainActivityCount > 0)
-        referencedBy.push("actividades principales");
-      if (activeSubcategoryRecommendationCount > 0)
-        referencedBy.push("recomendaciones de subcategoría");
-
-      const error = new DeleteBlockedByReferencesError(referencedBy.join(", "));
-      error.message = `No se puede eliminar el rubro porque aún tiene ${referencedBy.join(", ")} activos asociados.`;
-      throw attachDetails(error, {
-        resourceType: "CountrySector",
-        referencedBy: {
-          activeSubsectors: activeSubsectorCount,
-          activeMainActivities: activeMainActivityCount,
-          activeSubcategoryRecommendations:
-            activeSubcategoryRecommendationCount,
-        },
-      });
-    }
-
+    // Soft-delete cascades over the maintainer catalog config that hangs off the
+    // sector, mirroring the methodology standard (see
+    // `softDeleteSubcategoryDependents`): subsectors, main activities and
+    // subcategory recommendations all transition ACTIVE -> DELETED.
+    //
+    // The cascade relies on the catalog's denormalized parent columns: every
+    // main activity under one of the sector's subsectors also stores
+    // `countrySectorId` (createOrganizationMainActivity backfills it), and every
+    // recommendation carries a non-null `sectorId`, so filtering by the sector
+    // alone reaches the whole subtree without first resolving subsector ids.
+    //
+    // Organization-owned data (`organization_data.sectorId`) is deliberately
+    // left ACTIVE so deleting a rubro never rewrites a country's historical
+    // footprint; the selector-union keeps those rows rendering for end users.
     try {
       await tx.countrySector.update({
         where: { id: sectorId },
         data: {
           status: CountrySectorStatus.DELETED,
-          updatedById: BigInt(user.id),
+          updatedById,
         },
         select: { id: true },
       });
@@ -98,5 +55,38 @@ export const deleteCountrySectorService = async (
       }
       throw error;
     }
+
+    await tx.countrySubsector.updateMany({
+      where: {
+        countrySectorId: sectorId,
+        status: CountrySubsectorStatus.ACTIVE,
+      },
+      data: {
+        status: CountrySubsectorStatus.DELETED,
+        updatedById,
+      },
+    });
+
+    await tx.organizationMainActivity.updateMany({
+      where: {
+        countrySectorId: sectorId,
+        status: OrganizationMainActivityStatus.ACTIVE,
+      },
+      data: {
+        status: OrganizationMainActivityStatus.DELETED,
+        updatedById,
+      },
+    });
+
+    await tx.subcategoryRecommendation.updateMany({
+      where: {
+        sectorId,
+        status: SubcategoryRecommendationStatus.ACTIVE,
+      },
+      data: {
+        status: SubcategoryRecommendationStatus.DELETED,
+        updatedById,
+      },
+    });
   });
 };
