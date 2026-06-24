@@ -143,8 +143,11 @@ export const getReferenceCountsByMeasurementUnit = async (
 
   const lineInputCountByMuId = new Map(
     lineInputByMu
-      .filter((r) => r.measurementUnitId !== null)
-      .map((r) => [r.measurementUnitId!.toString(), r._count._all])
+      .filter(
+        (r): r is typeof r & { measurementUnitId: bigint } =>
+          r.measurementUnitId !== null
+      )
+      .map((r) => [r.measurementUnitId.toString(), r._count._all])
   );
   const subcategoryCountByMuId = new Map(
     subcategoryByMu.map((r) => [r.measurementUnitId.toString(), r._count._all])
@@ -157,6 +160,8 @@ export const getReferenceCountsByMeasurementUnit = async (
   );
   const manualFactorCountByRmuId = new Map(
     manualFactorByRmu
+      // Typed as nullable from the conditional groupBy union, but the
+      // `manualFactorRateUnitId: { in: rmuIds }` filter guarantees non-null.
       .filter((r) => r.manualFactorRateUnitId !== null)
       .map((r) => [r.manualFactorRateUnitId!.toString(), r._count._all])
   );
