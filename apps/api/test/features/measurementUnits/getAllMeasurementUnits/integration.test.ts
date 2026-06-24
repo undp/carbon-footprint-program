@@ -549,5 +549,24 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(await getReferenceCount(unit.id)).toBe(0);
     });
+
+    // Line inputs carry their own soft-delete flag (isActive): editing a line
+    // supersedes the old input (isActive=false) and inserts a new active one, so
+    // a superseded input is invisible to every live read and must not keep the
+    // unit counted — even while its line and inventory stay ACTIVE.
+    it("should not count inventory references on a superseded (isActive=false) line input", async () => {
+      const unit = await createUnit();
+      await seedInventoryReferencePaths(unit);
+
+      expect(await getReferenceCount(unit.id)).toBe(3);
+
+      // Supersede the input in place (mirrors syncCarbonInventoryLines on edit).
+      await prisma.carbonInventoryLineInput.updateMany({
+        where: { measurementUnitId: BigInt(unit.id) },
+        data: { isActive: false },
+      });
+
+      expect(await getReferenceCount(unit.id)).toBe(0);
+    });
   });
 });

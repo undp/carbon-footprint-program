@@ -486,6 +486,69 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(await countFor()).toBe(0);
     });
 
+    // Line inputs carry their own soft-delete flag (isActive): editing a line
+    // supersedes the old input (isActive=false). An applied factor hanging off a
+    // superseded input is a dead reference and must not keep the rate unit
+    // counted, even while its line and inventory stay ACTIVE.
+    it("excludes applied line factors on a superseded (isActive=false) input from lineFactorsAsApplied count", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+
+      const targetRateUnit = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: "kg/L" },
+      });
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(20),
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(1.5),
+        appliedFactorRateUnitId: targetRateUnit.id,
+        appliedFactorSource: "rmu-screen-test-applied",
+      });
+
+      const countFor = async (): Promise<number> => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/measurement-units/rates",
+        });
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(
+          response.body
+        ) as GetAllRateMeasurementUnitsResponse;
+        const targetItem = body.find(
+          (i) => i.id === targetRateUnit.id.toString()
+        );
+        expect(targetItem).toBeDefined();
+        return targetItem!.referenceCounts.lineFactorsAsApplied;
+      };
+
+      // Active input → the applied factor counts.
+      expect(await countFor()).toBe(1);
+
+      // Supersede the input in place (mirrors syncCarbonInventoryLines on edit).
+      await prisma.carbonInventoryLineInput.update({
+        where: { id: input.id },
+        data: { isActive: false },
+      });
+
+      expect(await countFor()).toBe(0);
+    });
+
     it("returns each joined numerator/denominator MU with its own magnitude object", async () => {
       const response = await app.inject({
         method: "GET",
