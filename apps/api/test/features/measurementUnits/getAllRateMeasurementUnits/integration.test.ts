@@ -371,9 +371,9 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(targetItem!.totalReferenceCount).toBe(5);
     });
 
-    // Regression for issue #395: emission factors are soft-deleted
-    // (status = DELETED) when their subcategory is deleted. A DELETED factor
-    // must not keep its rate unit counted as referenced.
+    // Emission factors are soft-deleted (status = DELETED) when their
+    // subcategory is deleted. A DELETED factor must not keep its rate unit
+    // counted as referenced.
     it("excludes soft-deleted emission factors from emissionFactors count", async () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
       const subcategoryIds = await getSubcategoryIds(
@@ -423,11 +423,10 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(targetItem!.totalReferenceCount).toBe(1);
     });
 
-    // Regression for issue #395, applied-factor side: applied line factors have
-    // no soft-delete status of their own, but their owning inventory does and
-    // deleting an inventory is a soft delete. A factor on a soft-deleted
-    // inventory must not keep its rate unit counted (mirrors the emission-factor
-    // case above and getReferenceCountsByMeasurementUnit).
+    // Applied line factors have no soft-delete status of their own, but their
+    // owning inventory does and deleting an inventory is a soft delete. A factor
+    // on a soft-deleted inventory must not keep its rate unit counted (mirrors
+    // the emission-factor case above and getReferenceCountsByMeasurementUnit).
     it("excludes applied line factors on a soft-deleted inventory from lineFactorsAsApplied count", async () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
       const subcategoryIds = await getSubcategoryIds(

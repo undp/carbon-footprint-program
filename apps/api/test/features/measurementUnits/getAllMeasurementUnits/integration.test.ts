@@ -415,11 +415,10 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       return row!.referenceCount;
     }
 
-    // Regression for issue #395: SubcategoryMeasurementUnit has no status column
-    // and its subcategory FK does not cascade on a soft-delete, so the join row
-    // survives. The reference count must filter on the parent subcategory status
-    // or the unit stays "in use" and undeletable after its only subcategory is
-    // soft-deleted.
+    // SubcategoryMeasurementUnit has no status column and its subcategory FK
+    // does not cascade on a soft-delete, so the join row survives. The reference
+    // count must filter on the parent subcategory status or the unit stays
+    // "in use" and undeletable after its only subcategory is soft-deleted.
     it("should not count subcategory links whose subcategory is soft-deleted", async () => {
       const unit = await createUnit();
       const category = await prisma.category.findFirstOrThrow({
@@ -516,10 +515,10 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       return { inventory, line };
     }
 
-    // Regression for issue #395, RMU side: line inputs and applied line factors
-    // have no soft-delete status of their own, but their owning inventory does
-    // and deleting an inventory is a soft delete. All three inventory-backed
-    // paths must drop once the inventory is soft-deleted.
+    // RMU side: line inputs and applied line factors have no soft-delete status
+    // of their own, but their owning inventory does and deleting an inventory is
+    // a soft delete. All three inventory-backed paths must drop once the
+    // inventory is soft-deleted.
     it("should not count inventory references once the inventory is soft-deleted", async () => {
       const unit = await createUnit();
       const { inventory } = await seedInventoryReferencePaths(unit);

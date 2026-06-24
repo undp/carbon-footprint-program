@@ -294,10 +294,8 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.referenceCount).toBeGreaterThan(0);
     });
 
-    // Regression for issue #395: a reference under a soft-deleted subcategory is
-    // not a real reference, so the restore must take the fullyRestored branch.
-    // This shares the same reference-count definition as the list endpoint, so
-    // it would have wrongly taken restoredLabelsOnly before the soft-delete fix.
+    // A reference under a soft-deleted subcategory is not a real reference, so
+    // the restore must take the fullyRestored branch (not restoredLabelsOnly).
     it("should fully restore when the only reference is under a soft-deleted subcategory", async () => {
       const payload = buildPayload();
 

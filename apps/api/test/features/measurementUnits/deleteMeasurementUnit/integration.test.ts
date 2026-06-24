@@ -205,8 +205,6 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
       expect(mu!.status).toBe(MeasurementUnitStatus.ACTIVE);
     });
 
-    // Counterpart to the soft-delete fix: a reference under a soft-deleted
-    // subcategory is not a real reference, so the unit is deletable again.
     it("should soft-delete when the only reference is under a soft-deleted subcategory", async () => {
       const created = await createUnit();
       const category = await prisma.category.findFirstOrThrow({

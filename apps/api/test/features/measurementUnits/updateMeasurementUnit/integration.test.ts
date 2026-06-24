@@ -335,9 +335,9 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
   describe("Reference guard ignores soft-deleted dependents", () => {
     // The field-lock guard must use the same reference count as the list
     // endpoint. A unit whose only references are soft-deleted is NOT in use, so
-    // its structural fields must stay editable (regression for issue #395 — the
-    // counterpart of "should return 422 ... on a referenced unit" above, which
-    // proves an ACTIVE reference still locks).
+    // its structural fields must stay editable (the counterpart of "should
+    // return 422 ... on a referenced unit" above, which proves an ACTIVE
+    // reference still locks).
     it("should allow a magnitude change when the only subcategory link is soft-deleted", async () => {
       const created = await createUnit();
       const category = await prisma.category.findFirstOrThrow({
