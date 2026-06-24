@@ -24,6 +24,7 @@ import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import {
   EmissionFactorStatus,
+  InventoryStatus,
   Prisma,
   type PrismaClient,
 } from "@repo/database";
@@ -420,6 +421,70 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       // Only the ACTIVE factor counts.
       expect(targetItem!.referenceCounts.emissionFactors).toBe(1);
       expect(targetItem!.totalReferenceCount).toBe(1);
+    });
+
+    // Regression for issue #395, applied-factor side: applied line factors have
+    // no soft-delete status of their own, but their owning inventory does and
+    // deleting an inventory is a soft delete. A factor on a soft-deleted
+    // inventory must not keep its rate unit counted (mirrors the emission-factor
+    // case above and getReferenceCountsByMeasurementUnit).
+    it("excludes applied line factors on a soft-deleted inventory from lineFactorsAsApplied count", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+
+      const targetRateUnit = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: "kg/L" },
+      });
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(20),
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(1.5),
+        appliedFactorRateUnitId: targetRateUnit.id,
+        appliedFactorSource: "rmu-screen-test-applied",
+      });
+
+      const countFor = async (): Promise<number> => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/measurement-units/rates",
+        });
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(
+          response.body
+        ) as GetAllRateMeasurementUnitsResponse;
+        const targetItem = body.find(
+          (i) => i.id === targetRateUnit.id.toString()
+        );
+        expect(targetItem).toBeDefined();
+        return targetItem!.referenceCounts.lineFactorsAsApplied;
+      };
+
+      // Active inventory → the applied factor counts.
+      expect(await countFor()).toBe(1);
+
+      // Soft-delete the inventory: the factor row survives but must stop counting.
+      await prisma.carbonInventory.update({
+        where: { id: inventory.id },
+        data: { status: InventoryStatus.DELETED },
+      });
+
+      expect(await countFor()).toBe(0);
     });
 
     it("returns each joined numerator/denominator MU with its own magnitude object", async () => {

@@ -1,6 +1,8 @@
 import {
   type PrismaClient,
+  CarbonInventoryLineStatus,
   EmissionFactorStatus,
+  InventoryStatus,
   MeasurementUnitStatus,
 } from "@repo/database";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
@@ -28,6 +30,16 @@ export const getAllRateMeasurementUnitsService = async (
       }),
       prismaClient.carbonInventoryLineFactor.groupBy({
         by: ["appliedFactorRateUnitId"],
+        // Applied factors on a soft-deleted line/inventory are dead references,
+        // same as the emission factors above. Mirrors getReferenceCountsByMeasurementUnit.
+        where: {
+          lineInput: {
+            line: {
+              status: CarbonInventoryLineStatus.ACTIVE,
+              carbonInventory: { status: InventoryStatus.ACTIVE },
+            },
+          },
+        },
         _count: { _all: true },
       }),
     ]);
