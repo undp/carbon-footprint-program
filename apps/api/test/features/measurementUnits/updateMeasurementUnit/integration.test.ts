@@ -14,7 +14,14 @@ import type {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MeasurementUnitStatus, MagnitudeStatus } from "@repo/database";
+import {
+  EmissionFactorStatus,
+  MagnitudeStatus,
+  MeasurementUnitStatus,
+  SubcategoryStatus,
+} from "@repo/database";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import { createTestEmissionFactor } from "@test/factories/emissionFactorFactory.js";
 
 describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -38,11 +45,20 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    await prisma.emissionFactor.deleteMany({
+      where: { source: { startsWith: "mu-update-test" } },
+    });
+    await prisma.subcategoryMeasurementUnit.deleteMany({
+      where: { measurementUnit: { abbreviation: { startsWith: "test-" } } },
+    });
     await prisma.rateMeasurementUnit.deleteMany({
       where: { abbreviation: { startsWith: "kg/test-" } },
     });
     await prisma.measurementUnit.deleteMany({
       where: { abbreviation: { startsWith: "test-" } },
+    });
+    await prisma.subcategory.deleteMany({
+      where: { name: { startsWith: "Test - Subcategory" } },
     });
   });
 
@@ -313,6 +329,69 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
         }
         await prisma.magnitude.delete({ where: { id: deletedMagnitude.id } });
       }
+    });
+  });
+
+  describe("Reference guard ignores soft-deleted dependents", () => {
+    // The field-lock guard must use the same reference count as the list
+    // endpoint. A unit whose only references are soft-deleted is NOT in use, so
+    // its structural fields must stay editable (regression for issue #395 — the
+    // counterpart of "should return 422 ... on a referenced unit" above, which
+    // proves an ACTIVE reference still locks).
+    it("should allow a magnitude change when the only subcategory link is soft-deleted", async () => {
+      const created = await createUnit();
+      const category = await prisma.category.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(created.id),
+        },
+      });
+
+      // Soft-delete the subcategory: the join row survives but must stop counting.
+      await prisma.subcategory.update({
+        where: { id: subcategory.id },
+        data: { status: SubcategoryStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/measurement-units/${created.id}`,
+        payload: { magnitudeId: magnitudeIdByCode.volume },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMeasurementUnitResponse;
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
+      expect(body.referenceCount).toBe(0);
+    });
+
+    it("should allow a magnitude change when the only emission factor is soft-deleted", async () => {
+      const created = await createUnit();
+      const canonicalRmu = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: `kg/${created.abbreviation}` },
+      });
+      const subcategory = await prisma.subcategory.findFirstOrThrow({
+        select: { id: true },
+      });
+      await createTestEmissionFactor(prisma, subcategory.id, canonicalRmu.id, {
+        source: "mu-update-test-deleted",
+        status: EmissionFactorStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/measurement-units/${created.id}`,
+        payload: { magnitudeId: magnitudeIdByCode.volume },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMeasurementUnitResponse;
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
+      expect(body.referenceCount).toBe(0);
     });
   });
 });
