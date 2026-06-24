@@ -16,13 +16,26 @@ import type {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import {
+  CarbonInventoryLineStatus,
   EmissionFactorStatus,
+  InventoryStatus,
   MagnitudeStatus,
   MeasurementUnitStatus,
+  Prisma,
   SubcategoryStatus,
 } from "@repo/database";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import { createTestEmissionFactor } from "@test/factories/emissionFactorFactory.js";
+import {
+  carbonInventoryPatterns,
+  cleanupCarbonInventoryTestData,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineFactor,
+  createCarbonInventoryLineInput,
+  createInventoryFromPattern,
+  getSubcategoryIds,
+} from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 const MAGNITUDES = [
   "mass",
@@ -351,6 +364,8 @@ describe("GET /api/measurement-units - Integration Tests", () => {
     // Creating a unit through the API also creates its canonical RMU (kg/<abbr>),
     // so cleanup must remove both. Test units use the "test-" abbreviation prefix.
     afterEach(async () => {
+      // Inventory rows reference the test units; remove them before the units.
+      await cleanupCarbonInventoryTestData(prisma);
       await prisma.emissionFactor.deleteMany({
         where: { source: { startsWith: "mu-screen-test" } },
       });
@@ -454,6 +469,86 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       // Only the ACTIVE emission factor counts.
       expect(await getReferenceCount(unit.id)).toBe(1);
+    });
+
+    // Seeds the three inventory-backed reference paths against `unit` and its
+    // canonical RMU, all on a single line/input of a fresh inventory:
+    //   - direct measurement unit on the line input,
+    //   - manual-factor rate unit on the same line input,
+    //   - applied-factor rate unit on the line factor.
+    // Returns the inventory and line so the caller can soft-delete either.
+    async function seedInventoryReferencePaths(
+      unit: CreateMeasurementUnitResponse
+    ) {
+      const canonicalRmu = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { abbreviation: `kg/${unit.abbreviation}` },
+      });
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const [subcategoryId] = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryId
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+      });
+      await prisma.carbonInventoryLineInput.update({
+        where: { id: input.id },
+        data: {
+          measurementUnitId: BigInt(unit.id),
+          manualFactorRateUnitId: canonicalRmu.id,
+        },
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(1.5),
+        appliedFactorRateUnitId: canonicalRmu.id,
+        appliedFactorSource: "mu-screen-test-applied",
+      });
+      return { inventory, line };
+    }
+
+    // Regression for issue #395, RMU side: line inputs and applied line factors
+    // have no soft-delete status of their own, but their owning inventory does
+    // and deleting an inventory is a soft delete. All three inventory-backed
+    // paths must drop once the inventory is soft-deleted.
+    it("should not count inventory references once the inventory is soft-deleted", async () => {
+      const unit = await createUnit();
+      const { inventory } = await seedInventoryReferencePaths(unit);
+
+      // direct + manual-factor + applied-factor → 3 while the inventory is ACTIVE.
+      expect(await getReferenceCount(unit.id)).toBe(3);
+
+      await prisma.carbonInventory.update({
+        where: { id: inventory.id },
+        data: { status: InventoryStatus.DELETED },
+      });
+
+      expect(await getReferenceCount(unit.id)).toBe(0);
+    });
+
+    // Same gap one level down: a soft-deleted line inside an ACTIVE inventory
+    // must not keep its inputs/factors counted either.
+    it("should not count inventory references on a soft-deleted line", async () => {
+      const unit = await createUnit();
+      const { line } = await seedInventoryReferencePaths(unit);
+
+      expect(await getReferenceCount(unit.id)).toBe(3);
+
+      await prisma.carbonInventoryLine.update({
+        where: { id: line.id },
+        data: { status: CarbonInventoryLineStatus.DELETED },
+      });
+
+      expect(await getReferenceCount(unit.id)).toBe(0);
     });
   });
 });
