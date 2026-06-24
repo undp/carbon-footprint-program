@@ -63,7 +63,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Packages and Monorepo Internals](./development/packages.md)      | Shared packages, dependency graph, Turborepo pipeline, schema change propagation                                   |
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior                                    |
 | [User Activity Tracking](./development/user-activity-tracking.md) | Session-level access logging, active/inactive classification, and admin UI integration                             |
-| [Country Onboarding Guide](./development/country-onboarding.md)   | How to deploy the platform in a new country: seed data, methodology, Entra ID, and infrastructure                  |
+| [Country Onboarding Guide](./development/country-onboarding.md)   | How to deploy the platform in a new country: seed data, methodology, OIDC IdP, and infrastructure                  |
 | [Internationalization Plan](./development/i18n-plan.md)           | Forward-looking plan for adding i18n (not yet implemented)                                                         |
 | [CI/CD Pipeline](./development/ci-cd.md)                          | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps                                  |
 | [Troubleshooting and FAQ](./development/troubleshooting.md)       | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour              |

@@ -20,7 +20,7 @@ Discrepancies between the proposal and the current implementation are noted expl
 | **Styling**              | Tailwind CSS                                         | 4.x       | ✅ As proposed (used alongside MUI)                                      |
 | **Forms**                | React Hook Form                                      | 7.x       | ✅ As proposed                                                           |
 | **Schema validation**    | Zod                                                  | 4.x       | ✅ As proposed                                                           |
-| **HTTP client**          | ky                                                   | 1.x       | ⚠️ **Changed** — proposal mentioned fetch/axios; ky was used instead     |
+| **HTTP client**          | ky                                                   | 2.x       | ⚠️ **Changed** — proposal mentioned fetch/axios; ky was used instead     |
 | **Authentication**       | oidc-client-ts + react-oidc-context                  | 3.x / 3.x | ✅ Generic OIDC (Entra, Keycloak, …)                                     |
 | **Notifications**        | notistack                                            | 3.x       | Toast notification library                                               |
 | **Date utilities**       | date-fns                                             | 4.x       | Date formatting and manipulation                                         |

@@ -31,10 +31,10 @@ Huella Latam is a **full-stack web application** organized as a **pnpm monorepo*
 └─────────────────────┘  └─────────────────────┘  └─────────────────────┘
               │
               ▼
-┌─────────────────────┐
-│  Azure Entra ID     │
-│  (identity provider)│
-└─────────────────────┘
+┌───────────────────────────┐
+│  OIDC IdP                 │
+│  (Entra / Keycloak / …)   │
+└───────────────────────────┘
 ```
 
 ---
@@ -121,7 +121,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - fastify-type-provider-zod (Zod schema integration)
 - Pino (structured JSON logging)
 - Zod (request/response schema validation)
-- @azure/identity + @azure/storage-blob (Azure Blob Storage via Managed Identity)
+- Azure Blob Storage via Managed Identity — the `@azure/identity` + `@azure/storage-blob` SDKs live in the `@repo/storage` package; `apps/api` depends on `@repo/storage` rather than on the SDKs directly
 - Prisma client (via `@repo/database`)
 
 **API domains / feature modules:**

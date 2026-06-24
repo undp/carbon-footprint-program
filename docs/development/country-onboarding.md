@@ -13,7 +13,7 @@ Each country deployment requires:
 3. A **carbon accounting methodology** — categories, subcategories, emission factor dimensions, and emission factor values
 4. **Subcategory recommendations** — curated emission sources per sector
 5. **Organization main activities** — KPI metrics per sector
-6. An **Azure Entra ID tenant** (or OIDC-compatible IdP) for authentication
+6. An **OIDC-compatible IdP** (e.g. Entra External ID, Keycloak) for authentication
 7. A dedicated Azure **infrastructure deployment** per environment
 
 All data in items 1–5 is loaded from declarative JSON seed files under `tools/seed/src/data/base/`.
@@ -257,7 +257,7 @@ Recommendations guide organizations toward the emission sources most relevant to
 
 After seeding, create the first SUPERADMIN user by:
 
-1. Having the intended admin log in once via the Entra ID tenant (creates a `User` record with `systemRole = USER`).
+1. Having the intended admin log in once via the configured IdP (creates a `User` record with `systemRole = USER`).
 2. Updating their role directly in the database:
 
 ```sql
@@ -268,9 +268,13 @@ WHERE email = 'admin@example.co';
 
 ---
 
-## Step 9 — Entra ID Tenant Setup
+## Step 9 — OIDC IdP Setup (Entra, Keycloak, …)
 
-Authentication requires an Azure Entra External ID (CIAM) tenant or an organizational Azure AD tenant. The client IT team must:
+Authentication requires any OIDC-compatible IdP. The platform supports any OIDC issuer (Keycloak is the development IdP; Entra External ID, Auth0, Okta, and Google are also supported) — Entra is not mandatory.
+
+Whichever IdP is used, the client IT team must register two clients (one for the API, one for the frontend) and configure the frontend's redirect URIs.
+
+**Azure Entra path (one option).** When deploying against an Entra External ID (CIAM) tenant or an organizational Azure AD tenant:
 
 1. Create an Entra External ID tenant (or use an existing organizational AD).
 2. Register two app registrations: one for the API, one for the frontend.
@@ -284,7 +288,9 @@ Authentication requires an Azure Entra External ID (CIAM) tenant or an organizat
 | `AZURE_API_CLIENT_ID`    | API app registration client ID      |
 | `AZURE_FRONT_CLIENT_ID`  | Frontend app registration client ID |
 
-See [Environment Variables](./environment-variables.md) and [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) for full details.
+For a non-Azure IdP (e.g. Keycloak), set the API's `JWKS_*` and the frontend's `VITE_OIDC_*` variables directly.
+
+See [Environment Variables](./environment-variables.md) and [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) (which links to the provider-specific Azure Entra and Keycloak guides) for full details.
 
 ---
 
