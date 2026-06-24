@@ -60,6 +60,7 @@ export const OIDC_SCOPES = VITE_OIDC_SCOPES ?? "";
 export const OIDC_REDIRECT_URI =
   VITE_OIDC_REDIRECT_URI || `${window.location.origin}${Routes.AUTH_CALLBACK}`;
 export const OIDC_POST_LOGOUT_REDIRECT_URI =
-  VITE_OIDC_POST_LOGOUT_REDIRECT_URI || `${window.location.origin}/`;
+  VITE_OIDC_POST_LOGOUT_REDIRECT_URI ||
+  `${window.location.origin}${Routes.LANDING}`;
 
 export const APP_VERSION = (VITE_APP_VERSION as string) || "dev";
