@@ -1,37 +1,55 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth as useOidcAuth } from "react-oidc-context";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Routes } from "@/interfaces";
+import type { OidcSignInState } from "@/contexts/AuthContext";
 
 /**
- * Public OIDC redirect target. `react-oidc-context` (mounted in __root against
- * the shared UserManager) automatically completes the Authorization Code + PKCE
- * exchange when this page loads with `?code&state`. We just wait for the session
- * to settle, then land on HOME (always `/app/home`; returning to the originating
- * deep-link is intentionally not done).
+ * Public OIDC redirect target — the single landing point of the login flow and
+ * the only place that resolves it. Domain-agnostic: it restores the session and
+ * navigates to the generic `returnTo` carried in `user.state`; it knows nothing
+ * about what the user was doing. The post-login action (e.g. claiming a draft)
+ * lives in the domain route `returnTo` points at.
  *
  * Resolving here, OUTSIDE the `/app` and `/admin` layouts, guarantees no role
- * guard runs before the session exists. On failure we bounce to Landing with the
- * same `authError` signal the `/users/me` recovery path uses.
+ * guard runs before the session exists.
+ *
+ * - Success: navigate to the `returnTo` carried in `user.state`, else HOME.
+ *   `returnTo` is app-generated (built via the router, never user input) and
+ *   `navigate({ to })` only targets internal routes, so it needs no validation.
+ * - Error / cancel / no session+params: go to Landing (with `authError` on a
+ *   real error so Landing shows the snackbar). Also closes the no-params
+ *   infinite-spinner gap.
  */
 function AuthCallbackComponent() {
   const oidc = useOidcAuth();
   const navigate = useNavigate();
+  // Resolve exactly once: the effect re-runs as the OIDC state settles.
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) return;
+
     if (oidc.isAuthenticated) {
-      void navigate({ to: Routes.HOME });
+      handledRef.current = true;
+      const state = oidc.user?.state as OidcSignInState | undefined;
+      const returnTo = state?.returnTo ?? Routes.HOME;
+      void navigate({ to: returnTo });
       return;
     }
-    if (!oidc.isLoading && oidc.error) {
-      void navigate({
-        to: Routes.LANDING,
-        search: { authError: "login_failed" },
-      });
-    }
-  }, [oidc.isAuthenticated, oidc.isLoading, oidc.error, navigate]);
+
+    // Still completing the code exchange — keep the spinner.
+    if (oidc.isLoading) return;
+
+    // Terminal, non-success: auth error, cancellation, or no session/params.
+    handledRef.current = true;
+    void navigate({
+      to: Routes.LANDING,
+      search: oidc.error ? { authError: "login_failed" } : undefined,
+    });
+  }, [oidc.isAuthenticated, oidc.isLoading, oidc.error, oidc.user, navigate]);
 
   return (
     <Box

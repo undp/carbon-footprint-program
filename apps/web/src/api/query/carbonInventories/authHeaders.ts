@@ -16,6 +16,10 @@ export function getInventoryUuidFromLocalStorage(
   return localStorage.getItem(`${INVENTORY_UUID_PREFIX}${inventoryId}`);
 }
 
+export function clearInventoryUuidFromLocalStorage(inventoryId: string): void {
+  localStorage.removeItem(`${INVENTORY_UUID_PREFIX}${inventoryId}`);
+}
+
 /**
  * Returns headers with `x-carbon-inventory-uuid` when the user is not authenticated
  * and a UUID is stored in localStorage for the given inventory.

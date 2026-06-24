@@ -18,11 +18,22 @@ import { useUserStore } from "@/stores/userStore";
 import { IS_OIDC_CONFIGURED } from "@/config/environment";
 import { Routes } from "@/interfaces";
 
+/**
+ * Generic data carried through the login redirect via the OIDC `state` param,
+ * returned as `user.state` in `/auth/callback`. Auth stays domain-agnostic: it
+ * only knows *where to return to*, never *why*. The post-login action lives in
+ * the domain route `returnTo` points at. oidc-client-ts persists and validates
+ * `state` (CSRF), so no extra storage is needed.
+ */
+export interface OidcSignInState {
+  /** Internal path to return to after a successful login (HOME by default). */
+  returnTo?: string;
+}
+
 export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  signInPopup: () => Promise<void>;
-  signInRedirect: () => Promise<void>;
+  signInRedirect: (returnTo?: string) => Promise<void>;
   signOut: () => Promise<void>;
   user?: GetMeResponse;
   refetchUser: (
@@ -92,50 +103,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, isUserError, handleLoginFailure]);
 
   /**
-   * Sign in with popup. Rejects on failure so callers that continue a pending
-   * action after login (e.g. SaveDraftAuthModal) can abort correctly.
+   * Sign in with a full-page redirect to the IdP (Authorization Code + PKCE) —
+   * the single login path for the whole app. Because the page is unloaded, no
+   * in-memory promise can hang on cancel/close (unlike a popup). An optional
+   * `returnTo` (a generic internal path) rides the OIDC `state` param and is
+   * resolved in `/auth/callback` on the way back.
    */
-  const signInPopup = useCallback(async () => {
-    if (!IS_OIDC_CONFIGURED) {
-      enqueueSnackbar("El inicio de sesión no está configurado", {
-        variant: "error",
-      });
-      throw new Error(
-        "OIDC login is not configured (VITE_OIDC_ISSUER / VITE_OIDC_CLIENT_ID / VITE_OIDC_SCOPES are empty)."
-      );
-    }
-    try {
-      await oidc.signinPopup();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Login popup failed:", error);
-      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-        variant: "error",
-      });
-      throw error;
-    }
-  }, [oidc]);
-
-  /**
-   * Sign in with a full-page redirect to the IdP.
-   */
-  const signInRedirect = useCallback(async () => {
-    if (!IS_OIDC_CONFIGURED) {
-      enqueueSnackbar("El inicio de sesión no está configurado", {
-        variant: "error",
-      });
-      return;
-    }
-    try {
-      await oidc.signinRedirect();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Login redirect failed:", error);
-      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-        variant: "error",
-      });
-    }
-  }, [oidc]);
+  const signInRedirect = useCallback(
+    async (returnTo?: string) => {
+      if (!IS_OIDC_CONFIGURED) {
+        enqueueSnackbar("El inicio de sesión no está configurado", {
+          variant: "error",
+        });
+        return;
+      }
+      try {
+        const state: OidcSignInState | undefined = returnTo
+          ? { returnTo }
+          : undefined;
+        await oidc.signinRedirect(state ? { state } : undefined);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Login redirect failed:", error);
+        enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
+          variant: "error",
+        });
+      }
+    },
+    [oidc]
+  );
 
   /**
    * Federated sign out via the IdP's end-session endpoint.
@@ -157,7 +153,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     user,
     refetchUser,
-    signInPopup,
     signInRedirect,
     signOut,
   };
