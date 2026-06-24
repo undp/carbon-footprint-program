@@ -63,8 +63,8 @@ services:
       - huella-network
     healthcheck:
       # The Keycloak image ships no curl/wget; probe the management port (9000)
-      # /health/ready over bash /dev/tcp. 127.0.0.1 forces IPv4 (the localhost→::1
-      # gotcha that left the web container unhealthy).
+      # /health/ready over bash /dev/tcp. 127.0.0.1 forces IPv4: the management
+      # port listens IPv4-only and localhost would otherwise resolve to ::1.
       test:
         - CMD-SHELL
         - "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q UP"

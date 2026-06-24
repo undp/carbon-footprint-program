@@ -153,9 +153,9 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           value: jwksAudience
         }
         {
-          // The API is a generic OIDC validator: it validates Entra access
-          // tokens directly via JWKS (issuer/URI/audience above). No App Service
-          // Easy Auth gateway is used — keep platform Authentication disabled.
+          // The API validates Entra access tokens in-app via JWKS (issuer/URI/
+          // audience above). Keep Azure App Service platform Authentication
+          // disabled so it doesn't intercept requests before the API validates them.
           name: 'AUTH_PROVIDER'
           value: 'jwks'
         }

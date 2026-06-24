@@ -116,7 +116,7 @@ services:
       - huella-network
     healthcheck:
       # 127.0.0.1 forces IPv4: nginx listens IPv4-only and BusyBox wget won't
-      # fall back from localhost→::1, which left the container unhealthy.
+      # fall back from localhost→::1, so localhost would fail the healthcheck.
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
       interval: 30s
       timeout: 5s
