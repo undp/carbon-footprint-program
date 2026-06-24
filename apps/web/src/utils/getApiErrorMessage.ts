@@ -145,7 +145,10 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       parts.length === 1
         ? parts[0]
         : `${parts.slice(0, -1).join(", ")} y ${parts[parts.length - 1]}`;
-    return `No se puede cambiar el rubro del subrubro porque tiene ${list} asociados. ${suffix}`;
+    // No trailing adjective: the list mixes singular/plural and genders
+    // ("1 actividad principal", "2 organizaciones"), so a fixed "asociados"
+    // would never agree.
+    return `No se puede cambiar el rubro del subrubro porque tiene ${list}. ${suffix}`;
   },
   RESTORE_ON_ACTIVE: (details) => {
     const label =
