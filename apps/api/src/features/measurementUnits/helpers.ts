@@ -24,6 +24,22 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
 };
 
 /**
+ * A line input keeps a unit referenced only while it's the live revision
+ * (`isActive`) and both its line and inventory are ACTIVE. Editing a line
+ * supersedes the old input, and soft-deleting an inventory/line hides
+ * everything under it — any of the three flips makes the reference dead.
+ * Shared so the list helper and the rates service can't drift on what a
+ * "live input" is.
+ */
+export const activeLineInputFilter = {
+  isActive: true,
+  line: {
+    status: CarbonInventoryLineStatus.ACTIVE,
+    carbonInventory: { status: InventoryStatus.ACTIVE },
+  },
+} satisfies Prisma.CarbonInventoryLineInputWhereInput;
+
+/**
  * The ONE definition of a measurement unit's reference count, batched into one
  * round-trip per reference type. The list endpoint passes every unit's id with
  * a plain client; the create/update and delete guards pass a single id with a
@@ -85,11 +101,7 @@ export const getReferenceCountsByMeasurementUnit = async (
       by: ["measurementUnitId"],
       where: {
         measurementUnitId: { in: uniqueMuIds },
-        isActive: true,
-        line: {
-          status: CarbonInventoryLineStatus.ACTIVE,
-          carbonInventory: { status: InventoryStatus.ACTIVE },
-        },
+        ...activeLineInputFilter,
       },
       _count: { _all: true },
     }),
@@ -116,11 +128,7 @@ export const getReferenceCountsByMeasurementUnit = async (
           by: ["manualFactorRateUnitId"],
           where: {
             manualFactorRateUnitId: { in: rmuIds },
-            isActive: true,
-            line: {
-              status: CarbonInventoryLineStatus.ACTIVE,
-              carbonInventory: { status: InventoryStatus.ACTIVE },
-            },
+            ...activeLineInputFilter,
           },
           _count: { _all: true },
         })
@@ -130,13 +138,7 @@ export const getReferenceCountsByMeasurementUnit = async (
           by: ["appliedFactorRateUnitId"],
           where: {
             appliedFactorRateUnitId: { in: rmuIds },
-            lineInput: {
-              isActive: true,
-              line: {
-                status: CarbonInventoryLineStatus.ACTIVE,
-                carbonInventory: { status: InventoryStatus.ACTIVE },
-              },
-            },
+            lineInput: activeLineInputFilter,
           },
           _count: { _all: true },
         })
