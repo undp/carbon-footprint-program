@@ -292,5 +292,31 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as UpdateCountrySubsectorResponse;
       expect(body.name).toBe(newName);
     });
+
+    it("does NOT block when countrySectorId equals the current parent, even with dependents (no-op)", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("SameParent"),
+      });
+      await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("ActiveMA"),
+        countrySectorId: parent.id,
+        countrySubsectorId: sub.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { countrySectorId: parent.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+
+      const reloaded = await prisma.countrySubsector.findUnique({
+        where: { id: sub.id },
+      });
+      expect(reloaded!.countrySectorId).toBe(parent.id);
+    });
   });
 });
