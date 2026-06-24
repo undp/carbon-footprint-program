@@ -10,8 +10,8 @@
 
 - [x] 2.1 Dep swap: `package.json` drops `@azure/msal-browser`/`@azure/msal-react`, adds `oidc-client-ts ^3.1.0` (got 3.5.0) + `react-oidc-context ^3.3.0` (got 3.3.1); user ran `pnpm install` (twice — the first was before the package.json edit). MSAL gone from node_modules.
 - [x] 2.2 Added `auth/oidcUserManager.ts` — singleton `UserManager` from `oidcConfig` (`localStorage` store, `automaticSilentRenew: true`); exposes the full UserManager API used by the guard + HTTP client.
-- [x] 2.3 Added `AUTH_CALLBACK` to `routes.const.ts` and `routes/auth.callback.tsx` — public route; react-oidc-context completes the code/PKCE exchange (shared UserManager), then navigates to `Routes.HOME` (parity, no deep-link restoration).
-- [x] 2.4 Popup + silent-renew handled by the shared UserManager: `signinCallback` auto-detects redirect/popup/iframe; `automaticSilentRenew` uses the refresh token (no iframe needed, per the spike).
+- [x] 2.3 Added `AUTH_CALLBACK` to `routes.const.ts` and `routes/auth.callback.tsx` — public route; react-oidc-context completes the code/PKCE exchange (shared UserManager), then navigates to the `returnTo` carried in `user.state` (`OidcSignInState`), defaulting to `Routes.HOME`.
+- [x] 2.4 Single full-page redirect login (no popup): `/auth/callback` is the only callback route; `automaticSilentRenew` uses the refresh token (no iframe needed, per the spike).
 - [x] 2.5 `/auth/callback` is a top-level route (not under the `/app`·`/admin` layouts), so no `requireRole` guard runs before the session is established.
 - [x] 2.6 Recovery mapped to `userManager.removeUser()` in both `AuthContext.handleLoginFailure` and the `requireRole` catch; `authError=login_failed` snackbar + single-shot ref-guard preserved.
 - [x] 2.7 Rewrote `utils/requireRole.ts` to `await oidcUserManager.getUser()` (+ silent-renew on expiry before redirecting); kept `ensureQueryData('users/me')`.
@@ -37,14 +37,14 @@
 
 - [x] 5.1 Replaced `config/msalConfig.ts` with `config/oidcConfig.ts` (`oidcSettings: UserManagerSettings` from env: authority/client_id/scope/redirect_uri/post_logout_redirect_uri, localStorage store, automaticSilentRenew).
 - [x] 5.2 Deleted `auth/initializeMsal.ts` (replaced by `auth/oidcUserManager.ts`).
-- [x] 5.3 Rewrote `contexts/AuthContext.tsx` on `react-oidc-context` (aliased) + the singleton; preserved the `useAuth()` contract (isAuthenticated/isLoading/user/refetchUser/signInPopup/signInRedirect/signOut); `handleLoginFailure`→`removeUser`; **`signInPopup` now rejects on failure** (snackbar + rethrow) so `SaveDraftAuthModal` aborts. Dropped the unused `account` field (no external consumer).
+- [x] 5.3 Rewrote `contexts/AuthContext.tsx` on `react-oidc-context` (aliased) + the singleton; the `useAuth()` contract is `isAuthenticated`/`isLoading`/`user`/`refetchUser`/`signInRedirect(returnTo?)`/`signOut` (no popup method); `signInRedirect` threads `returnTo` through the OIDC `state` (`OidcSignInState`); `handleLoginFailure`→`removeUser`. Dropped the unused `account` field (no external consumer).
 - [x] 5.4 `routes/__root.tsx`: `MsalProvider`+`initializeMsal` → `<OidcAuthProvider userManager={oidcUserManager} onSigninCallback>` (strips code/state); removed the init `useEffect`.
 - [x] 5.5 `hooks/useInitializeUser.ts`: dropped `AccountInfo`/`account`; gated on `isAuthenticated`.
 - [x] 5.6 `api/http/auth.ts`: token from `oidcUserManager.getUser()` (+ silent-renew on expiry).
 - [x] 5.7 `api/http/client.ts`: unchanged — already abstracted through `getAuthToken()`; the new token source flows in transparently.
-- [x] 5.8 `SaveDraftAuthModal.tsx`: unchanged — it already `try/catch`es `signInPopup()`; the reject-on-failure fix in 5.3 makes its abort path correct. Popup uses the redirect_uri (`/auth/callback`).
+- [x] 5.8 `SaveDraftAuthModal.tsx`: rewritten to call `signInRedirect(returnTo)` — it builds the claim route (`Routes.CARBON_INVENTORY_CLAIM`) via the router and passes it as `returnTo`, so after login `/auth/callback` lands on the claim route, which reclaims the draft. Full-page redirect, no popup; closing/cancelling the IdP page can never strand the modal.
 - [x] 5.9 Build/env wiring (all surfaces): `VITE_OIDC_*` in `vite-env.d.ts` + `config/environment.ts`; ARG/ENV in `apps/web/Dockerfile` (builder, Vite inline; runner, CSP); build args in `docker-compose.yml` + `docker-compose.prod.yml` (ISSUER/CLIENT*ID/REDIRECT_URI required in prod); `VITE_OIDC*_`block in`.envrc.template`/`.env.dockercompose.example`/`.env.prod.dockercompose.example`. Removed all `VITE*AZURE*_`/`VITE_FRONT_BASE_URL` frontend build args.
-- [x] 5.10 `DEFAULT_OIDC_SCOPES = "openid profile email offline_access"` named constant; client id (`huella-web`) is env-driven (`VITE_OIDC_CLIENT_ID`), no magic string in code.
+- [x] 5.10 Scopes are fully env-driven — `VITE_OIDC_SCOPES` → `OIDC_SCOPES` (`config/environment.ts`) → `oidcConfig.ts`; the `"openid profile email offline_access"` literal lives only in the env templates, not as a code constant. Client id (`huella-web`) is likewise env-driven (`VITE_OIDC_CLIENT_ID`), no magic string in code.
 - [ ] 5.11 User: rebuild the web image (Vite is build-time) — needed before Phase 5 browser validation.
 - [x] **Verified:** `pnpm --filter=web type-check` ✅, `lint` (eslint) ✅, Prettier ✅ on all changed files; TanStack route tree regenerated (`/auth/callback` present); base compose parses with `VITE_OIDC_*`.
 
@@ -58,13 +58,13 @@
 
 - [x] 7.1 Brought up the full stack + Keycloak myself on ports 3000/8080/8081 via the overlay + a dedicated env file (`/home/mrivas/Documents/Proyectos/Huella/.env.dockercompose.keycloak`) with the leaking direnv vars stripped (`env -u`). `migrate` failed only on the Azure-storage seed (badges/terms) — unrelated to auth; started `api`+`web` directly (DB migrations had applied).
 - [x] 7.2 Validated via Playwright (fully autonomous — Keycloak self-signup is password-based, `verifyEmail=false`, no OTP): registered `tester@huella.local` → landed authenticated on `/app/home` → user becomes SUPERADMIN (admin menu present).
-- [~] 7.3 Verified: public `/auth/callback` resolved before the guard; post-login lands on `Routes.HOME` (parity); **backend accepted the Keycloak token** (`/users/me` 200) with `aud=huella-api`, `scope` containing `access_as_user` (read via the `scp ?? scope` hardening — the exact Keycloak dialect), `email` + `sub` present; federated logout → `end_session` → landing, local session cleared. **Not exercised this pass:** `/users/me`-failure recovery, silent renew (spike already proved refresh-token renew; needs a 5-min expiry wait), save-draft popup.
+- [~] 7.3 Verified: public `/auth/callback` resolved before the guard; post-login lands on the `returnTo` from `user.state`, else `Routes.HOME` (no `returnTo` in this pass → HOME); **backend accepted the Keycloak token** (`/users/me` 200) with `aud=huella-api`, `scope` containing `access_as_user` (read via the `scp ?? scope` hardening — the exact Keycloak dialect), `email` + `sub` present; federated logout → `end_session` → landing, local session cleared. **Not exercised this pass:** `/users/me`-failure recovery, silent renew (spike already proved refresh-token renew; needs a 5-min expiry wait), save-draft redirect flow.
 - [~] 7.4 Captured screenshots (`spike-oidc/evidence/kc-01-authenticated-home.png`, `kc-02-after-logout.png`); SUPERADMIN confirmed via the admin menu. Full per-screen admin tour not done.
 - [x] 7.5 `pnpm --filter=web type-check`/`lint` + `pnpm --filter=api type-check`/`lint` + Prettier all green (run during implementation; code unchanged since).
 - [x] **Realm fix found during validation:** the partial realm import suppressed Keycloak's built-in `profile`/`email` scopes (→ `invalid_scope`). Fixed `realm-huella.json` to define `basic`/`email`/`profile` (+ `access_as_user`) explicitly; re-import verified `scopes_supported` complete and the token correct.
 
 ## 8. Pre-merge guards
 
-- [ ] 8.1 Confirm no MSAL/auth-Azure references remain in the web app (deps + source, incl. `__root.tsx`, `useInitializeUser.ts`); Azure **Storage** `AZURE_*` is intentionally retained
+- [x] 8.1 Confirmed no MSAL/auth-Azure references remain in the web app (0 MSAL refs in source, no `@azure/msal-*` dep, `__root.tsx`/`useInitializeUser.ts` cleaned); Azure **Storage** `AZURE_*` is intentionally retained
 - [ ] 8.2 Note the SUPERADMIN auto-provision + self-signup must be reverted to default `USER`/invite-only before any shared/real-data environment
 - [ ] 8.3 Open PR `[Fullstack] Feat: provider de autenticación OIDC genérico (reemplazo de MSAL)` on `feat/mati/oidc-generico` with modular Conventional Commits (no Co-Authored-By)

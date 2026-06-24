@@ -44,17 +44,17 @@ The system SHALL authenticate via the Authorization Code flow with PKCE and SHAL
 
 ### Requirement: Public callback resolved before protected guards
 
-The system SHALL expose a public `/auth/callback` route (defined as a constant in `routes.const.ts`) that processes `signinRedirectCallback` and establishes the session before the `/app/*` and `/admin/*` guards evaluate. Popup and silent-renew callbacks SHALL be handled separately. After a successful redirect login the user SHALL land on `Routes.HOME` — parity with the current MSAL behavior, which forces `/app/home` and explicitly disables returning to the originating page. Returning to the originally requested deep-link route is out of scope for this change.
+The system SHALL expose a single public `/auth/callback` route (defined as a constant in `routes.const.ts`) that completes the redirect login and establishes the session before the `/app/*` and `/admin/*` guards evaluate. Login is always a full-page redirect, so there SHALL be no separate popup callback; automatic silent renew uses the refresh token, so there SHALL be no silent-renew iframe callback route. After a successful login the user SHALL be navigated to the `returnTo` path carried in the OIDC `state` (`user.state.returnTo`), defaulting to `Routes.HOME` when no `returnTo` was set.
 
 #### Scenario: Callback completes before guard
 
 - **WHEN** the issuer redirects back to `/auth/callback`
-- **THEN** the session is established and the user is navigated to `Routes.HOME` without the protected-route guard redirecting away mid-login
+- **THEN** the session is established and the user is navigated to `user.state.returnTo` (or `Routes.HOME` when absent) without the protected-route guard redirecting away mid-login
 
-#### Scenario: Deep link to a protected route lands on home (parity)
+#### Scenario: Deep link to a protected route is restored after login
 
-- **WHEN** an unauthenticated user opens a deep link to a protected route and completes login
-- **THEN** they land on `Routes.HOME` after the callback resolves (not the originally requested route), matching today's MSAL behavior
+- **WHEN** an unauthenticated user opens a deep link to a protected route and login is initiated with that route as `returnTo` in the OIDC `state`
+- **THEN** after the callback resolves they land on the originally requested route carried in `user.state.returnTo`, not unconditionally on `Routes.HOME`
 
 ### Requirement: Automatic silent renew
 
@@ -74,16 +74,16 @@ On an authentication recovery path (`AuthContext.handleLoginFailure` and the `re
 - **WHEN** the authenticated `/users/me` request fails on a recovery path
 - **THEN** the local session is removed via `removeUser()`, the `login_failed` snackbar is shown once, and the user is returned to the landing page without an IdP redirect
 
-### Requirement: Save-draft popup login flow with explicit failure contract
+### Requirement: Save-draft redirect login flow with returnTo
 
-The save-draft flow (`SaveDraftAuthModal`) SHALL authenticate via `signinPopup` with its own popup callback and SHALL continue the pending draft mutation only after login succeeds. The popup login function SHALL reject (or otherwise signal failure) when login fails, so the modal aborts the claim instead of proceeding unauthenticated. (Today `AuthContext.signInPopup` swallows the error and does not re-throw, while the modal's `catch` relies on a throw to abort — this contract MUST be fixed in the rewrite.)
+The save-draft flow (`SaveDraftAuthModal`) SHALL authenticate via the same full-page redirect (`signInRedirect`) used everywhere else, carrying the claim route (`Routes.CARBON_INVENTORY_CLAIM`, built via the router) as `returnTo` in the OIDC `state`. The draft claim SHALL be performed by the destination claim route after login, not held in the modal or in the auth layer. Because the page is unloaded on redirect, there SHALL be no in-memory promise that can hang on cancel/close, and there SHALL be no save-draft-specific popup failure contract.
 
-#### Scenario: Save draft after successful popup login
+#### Scenario: Save draft after successful redirect login
 
-- **WHEN** an unauthenticated user triggers save-draft and completes login in the popup
-- **THEN** the popup callback resolves the session and the pending draft mutation continues to completion
+- **WHEN** an unauthenticated user triggers save-draft and completes the full-page redirect login
+- **THEN** `/auth/callback` navigates to the claim route carried in `returnTo`, which reclaims the pending draft and lands on the inventory list
 
-#### Scenario: Failed popup login aborts the claim
+#### Scenario: Cancelling the IdP page does not strand the modal
 
-- **WHEN** the popup login fails or is cancelled
-- **THEN** the popup login function signals failure, the modal aborts, and no draft-claim mutation is sent
+- **WHEN** the user cancels or closes the IdP page instead of completing login
+- **THEN** no draft claim runs (the claim only happens on the destination route after a successful login) and there is no pending in-memory promise left behind, because the originating page was unloaded by the redirect

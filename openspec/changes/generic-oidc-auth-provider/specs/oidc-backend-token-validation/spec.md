@@ -19,19 +19,19 @@ The API SHALL validate bearer tokens — configured purely by environment variab
 - **WHEN** `JWKS_AUDIENCE` is set and a token's `aud` does not include it
 - **THEN** the token is rejected
 
-### Requirement: Azure-specific validation disabled without `AZURE_TENANT_ID`
+### Requirement: Purely generic JWKS validation with no Azure-specific path
 
-The API SHALL apply Azure-specific validation (`ver:2.0`, `/v2.0` issuer constraints) only when `AZURE_TENANT_ID` is set. When it is unset, tokens from non-Azure issuers SHALL NOT be rejected by Azure-specific rules. This concerns only the **auth** `AZURE_*` vars (`AZURE_TENANT_ID`, `AZURE_API_CLIENT_ID`); Azure **Storage** `AZURE_*` configuration is independent and SHALL remain functional.
+The API SHALL validate tokens using a single, provider-agnostic JWKS path with no Azure-specific branch. It SHALL verify the token signature against `JWKS_URI`, the issuer against `JWKS_ISSUER` (when set), and the audience against `JWKS_AUDIENCE` (when set); it SHALL extract the subject as `oid ?? sub` and the email as `email ?? preferred_username`. There SHALL be no `ver:2.0` / `/v2.0` issuer validation and no `AZURE_TENANT_ID` gating: the auth `AZURE_*` vars (`AZURE_TENANT_ID`, `AZURE_API_CLIENT_ID`) SHALL have no effect on token validation. Azure **Storage** `AZURE_*` configuration is independent and SHALL remain functional.
 
-#### Scenario: Non-Azure token not rejected by Azure rules
+#### Scenario: Non-Azure token validated by the generic path only
 
-- **WHEN** `AZURE_TENANT_ID` is unset and a valid non-Azure (e.g. Keycloak) token is presented
-- **THEN** the token is not rejected by the `ver:2.0`/`/v2.0` validation
+- **WHEN** a valid non-Azure (e.g. Keycloak) token is presented
+- **THEN** it is accepted or rejected solely by the generic JWKS checks (signature, issuer, audience, required claims, scope) with no Azure-specific rule applied
 
-#### Scenario: Residual Azure env re-activates Azure rules
+#### Scenario: Residual auth `AZURE_*` does not affect validation
 
-- **WHEN** `AZURE_TENANT_ID` is present in the environment (including shell/direnv overriding the env file)
-- **THEN** Azure v2.0 validation is active and a Keycloak token is rejected
+- **WHEN** `AZURE_TENANT_ID` (or `AZURE_API_CLIENT_ID`) is present in the environment, including shell/direnv overriding the env file
+- **THEN** token validation is unchanged — no Azure rules are re-activated and a valid Keycloak token is still accepted
 
 ### Requirement: Browser↔API issuer/hostname consistency
 
