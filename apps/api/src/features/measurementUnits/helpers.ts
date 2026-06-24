@@ -40,11 +40,15 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
  *   subcategory's status.
  * - Emission factors are soft-deleted (status = DELETED) when their subcategory
  *   is deleted → filter by the factor's own status.
- * - Inventory rows (line inputs and applied line factors) have no status of
- *   their own, but their owning `CarbonInventoryLine` and `CarbonInventory` do,
- *   and deleting an inventory is a soft delete → count only rows on an ACTIVE
- *   line of an ACTIVE inventory, so a soft-deleted inventory stops keeping the
- *   unit referenced (same intent as the subcategory case).
+ * - Line inputs carry their own soft-delete flag, `isActive`: editing a line
+ *   supersedes the old input (`isActive = false`) and inserts a new active one,
+ *   so count only `isActive` inputs (everything else reads them as gone too).
+ * - Inventory rows (line inputs and applied line factors) also have no *status*
+ *   of their own, but their owning `CarbonInventoryLine` and `CarbonInventory`
+ *   do, and deleting an inventory is a soft delete → count only rows on an
+ *   ACTIVE line of an ACTIVE inventory. Together: a superseded input, or a row
+ *   under a soft-deleted line/inventory, stops keeping the unit referenced (same
+ *   intent as the subcategory case).
  */
 export const getReferenceCountsByMeasurementUnit = async (
   client: PrismaClient | Prisma.TransactionClient,
@@ -81,6 +85,7 @@ export const getReferenceCountsByMeasurementUnit = async (
       by: ["measurementUnitId"],
       where: {
         measurementUnitId: { in: uniqueMuIds },
+        isActive: true,
         line: {
           status: CarbonInventoryLineStatus.ACTIVE,
           carbonInventory: { status: InventoryStatus.ACTIVE },
@@ -111,6 +116,7 @@ export const getReferenceCountsByMeasurementUnit = async (
           by: ["manualFactorRateUnitId"],
           where: {
             manualFactorRateUnitId: { in: rmuIds },
+            isActive: true,
             line: {
               status: CarbonInventoryLineStatus.ACTIVE,
               carbonInventory: { status: InventoryStatus.ACTIVE },
@@ -125,6 +131,7 @@ export const getReferenceCountsByMeasurementUnit = async (
           where: {
             appliedFactorRateUnitId: { in: rmuIds },
             lineInput: {
+              isActive: true,
               line: {
                 status: CarbonInventoryLineStatus.ACTIVE,
                 carbonInventory: { status: InventoryStatus.ACTIVE },

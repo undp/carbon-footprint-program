@@ -30,10 +30,12 @@ export const getAllRateMeasurementUnitsService = async (
       }),
       prismaClient.carbonInventoryLineFactor.groupBy({
         by: ["appliedFactorRateUnitId"],
-        // Applied factors on a soft-deleted line/inventory are dead references,
-        // same as the emission factors above. Mirrors getReferenceCountsByMeasurementUnit.
+        // Applied factors on a superseded input (isActive=false) or a
+        // soft-deleted line/inventory are dead references, same as the emission
+        // factors above. Mirrors getReferenceCountsByMeasurementUnit.
         where: {
           lineInput: {
+            isActive: true,
             line: {
               status: CarbonInventoryLineStatus.ACTIVE,
               carbonInventory: { status: InventoryStatus.ACTIVE },
