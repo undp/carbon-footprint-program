@@ -12,23 +12,29 @@ For the full Azure Entra ID / OIDC setup walkthrough, see [Azure OIDC auth setup
 
 The API uses a pluggable authentication system selected by the `AUTH_PROVIDER` environment variable. All providers share the same output: an `AuthUser` object attached to the request.
 
+Authentication is **not** a global always-on hook. `authenticationPlugin` only decorates `fastify.requireAuth`; the actual authentication runs **inside** `requireAuth`, which is attached per-route via `buildHooks`/`defineRoute`. A route without `requireAuth` never authenticates.
+
 ```
 Incoming request
       │
       ▼
 ┌─────────────────────────────────┐
-│   authenticationPlugin          │
-│   (onRequest hook)              │
+│   fastify.requireAuth           │
+│   (per-route onRequest hook,    │
+│    attached by buildHooks)      │
 │   → calls AuthService           │
 │   → AuthService delegates to    │
 │     the configured provider     │
 │   → result: request.authUser    │
+│   → 401 on a private route when │
+│     no user resolves            │
 └─────────────────────────────────┘
       │
       ▼
-  Routes that declare
-  onRequest: [fastify.requireAuth]
-  block unauthenticated requests
+  Private routes block unauthenticated
+  requests (401). Public / anonymous
+  routes still attach requireAuth but
+  skip the 401 (null user passes through).
 ```
 
 **`AuthUser` shape:**
@@ -37,11 +43,13 @@ Incoming request
 interface AuthUser {
   idpUserId: string; // Unique user ID from the identity provider
   email: string; // User's email address
-  idpName: string; // Provider name: "jwks" | "forced-user"
+  idpName: string; // Provider type ("jwks" for the jwks provider); "N/D" for forced-user
 }
 ```
 
-This object is set on `request.authUser`. The `userResolvePlugin` subsequently upserts the user into the database and populates `request.currentUser` (which includes the system role).
+This object is set on `request.authUser`. The `userResolvePlugin` subsequently does a **find-or-create** by `idpUserId` (`findUnique`; creates the row on first login if absent, and never updates an existing row) and populates `request.currentUser` (which includes the system role). A `P2002` unique-constraint error from a concurrent first-login create is caught and the winning row is re-read.
+
+> **Demo-only — not production-correct:** JIT-provisioned users (those created on first login) are currently assigned `SUPERADMIN`. This is demo behavior gated behind a `// TODO: remove when finishing the demo` comment in `userResolvePlugin.ts`. Do **not** ship this to production.
 
 ---
 
@@ -59,7 +67,7 @@ The API validates the JWT access token in the `Authorization: Bearer <token>` he
 2. Token issuer (`iss`) matches `JWKS_ISSUER` (when set)
 3. Token audience (`aud`) matches `JWKS_AUDIENCE` (when set)
 4. Token expiration (`exp`) is in the future
-5. Token contains the required scope (default `access_as_user`)
+5. Token contains the required scope (default `access_as_user`; skipped entirely when `JWKS_SKIP_SCOPE_CHECK=true`)
 6. Token contains a user identifier (`oid` or `sub`)
 7. Token contains an email (`email` or `preferred_username`)
 
@@ -75,6 +83,7 @@ JWKS_URI="<jwks-endpoint>"      # signing keys, reachable from the API
 JWKS_ISSUER="<expected-iss>"    # exact token issuer
 JWKS_AUDIENCE="<expected-aud>"  # e.g. the API client-id GUID for Entra
 # JWKS_REQUIRED_SCOPE defaults to "access_as_user"
+# JWKS_SKIP_SCOPE_CHECK="true" disables the required-scope check entirely (escape hatch)
 ```
 
 The API reads these directly — it derives nothing from `AZURE_*`. For Azure Entra the
@@ -119,28 +128,35 @@ AUTH_PROVIDER="none"
 
 ## Request Authentication Lifecycle
 
+Hooks run only for routes that attach them. `requireAuth` (and the role/domain
+hooks) are wired per-route by `buildHooks`/`defineRoute` — there is no global
+auth hook, so a route without `requireAuth` never authenticates.
+
 ```
-1. onRequest hook fires (authenticationPlugin)
+1. onRequest hook fires (fastify.requireAuth, attached per-route)
    │
-   ├── Auth provider's authenticate() called
+   ├── authService.authenticate() called
    │   ├── jwks:        validates JWT from Authorization header
    │   ├── forced-user: returns hardcoded AuthUser from env vars
    │   └── none:        always returns { user: null }
    │
-   ├── Success → request.authUser = AuthUser
-   └── Failure → request.authUser remains null
-         (routes with requireAuth will return 401)
+   ├── Resolved user → request.authUser = AuthUser
+   ├── No user → request.authUser remains null
+   └── No user AND route is private → reply 401
+         (public / anonymous routes skip the 401 and pass through)
 
-2. preValidation hook fires (userResolvePlugin)
+2. preHandler hook fires (userResolvePlugin)
    │
    ├── If request.authUser is set:
-   │   ├── Upsert user in DB by idpUserId (creates on first login)
+   │   ├── Find-or-create user by idpUserId (findUnique → create on first
+   │   │   login if absent; never updates an existing row; P2002 from a
+   │   │   concurrent create is caught and the row re-read)
+   │   │   ⚠ first-login creation currently assigns SUPERADMIN (demo-only)
    │   └── request.currentUser = DB user (includes system role)
    └── If request.authUser is null:
        └── request.currentUser remains null
 
-3. Route handler or further preHandler hooks check:
-   ├── fastify.requireAuth   → 401 if request.authUser is null
+3. Further preHandler hooks (also attached per-route) check authorization:
    ├── fastify.requireRoles  → 403 if system role insufficient
    ├── fastify.requireOrganizationRole → 403 if org role insufficient
    └── fastify.requireCarbonInventoryAccess → 403 if no inventory access
