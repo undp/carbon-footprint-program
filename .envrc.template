@@ -39,8 +39,8 @@ export APP_VERSION=""
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, forced-user, none  (Azure Entra? use .envrc.azure.example)
-# export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
-# export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
+# export FORCED_USER_IDP_ID=""     # Must be set when using AUTH_PROVIDER="forced-user"
+# export FORCED_USER_EMAIL=""      # Must be set when using AUTH_PROVIDER="forced-user"
 # export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 # export LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation (e.g. allow empty strings) for local testing
 

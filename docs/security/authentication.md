@@ -99,8 +99,8 @@ values are produced from the tenant inputs by `.envrc.azure.example` (local) and
 
 ```bash
 AUTH_PROVIDER="forced-user"
-FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
-FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user-001"
+FORCED_USER_EMAIL="dev@example.com"
+FORCED_USER_IDP_ID="local-dev-user-001"
 ```
 
 > Never use `forced-user` in production or staging environments.

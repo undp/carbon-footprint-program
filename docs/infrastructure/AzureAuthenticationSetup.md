@@ -402,8 +402,8 @@ Set `AUTH_PROVIDER=forced-user` to bypass authentication and use a hardcoded use
 
 ```bash
 AUTH_PROVIDER=forced-user
-FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="some-uuid"
-FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
+FORCED_USER_IDP_ID="some-uuid"
+FORCED_USER_EMAIL="dev@example.com"
 ```
 
 ### Token Claim Differences
@@ -464,8 +464,8 @@ For local development without auth:
 
 ```bash
 AUTH_PROVIDER=forced-user
-FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="some-uuid"
-FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
+FORCED_USER_IDP_ID="some-uuid"
+FORCED_USER_EMAIL="dev@example.com"
 ```
 
 ---

@@ -69,8 +69,8 @@ services:
       - LOCAL_BYPASS_REQUIRED_FIELDS=${LOCAL_BYPASS_REQUIRED_FIELDS:-false}
       # --- Auth: none | forced-user | jwks ---
       - AUTH_PROVIDER=${AUTH_PROVIDER:-none}
-      - FORCED_USER_EMAIL_WHEN_NO_PROVIDER=${FORCED_USER_EMAIL_WHEN_NO_PROVIDER:-}
-      - FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=${FORCED_USER_IDP_ID_WHEN_NO_PROVIDER:-}
+      - FORCED_USER_EMAIL=${FORCED_USER_EMAIL:-}
+      - FORCED_USER_IDP_ID=${FORCED_USER_IDP_ID:-}
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
       # --- JWKS: how the API validates OIDC tokens (AUTH_PROVIDER=jwks). The API
       #     reads JWKS_* directly — no AZURE_* auth vars. Azure Entra values are

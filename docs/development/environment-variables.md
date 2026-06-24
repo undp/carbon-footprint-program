@@ -59,10 +59,10 @@ has no `AZURE_*` auth vars; copy `.envrc.azure.example` for an Entra setup.
 
 **Variables required for `forced-user`:**
 
-| Variable                              | Required | Description                             |
-| ------------------------------------- | -------- | --------------------------------------- |
-| `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`  | Yes      | Email of the forced user                |
-| `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER` | Yes      | Identity provider ID of the forced user |
+| Variable             | Required | Description                             |
+| -------------------- | -------- | --------------------------------------- |
+| `FORCED_USER_EMAIL`  | Yes      | Email of the forced user                |
+| `FORCED_USER_IDP_ID` | Yes      | Identity provider ID of the forced user |
 
 ### JWKS (API token validation, `AUTH_PROVIDER=jwks`)
 

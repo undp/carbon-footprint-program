@@ -75,8 +75,8 @@ export DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb"
 export NODE_ENV="development"
 export LOG_LEVEL="debug"
 export AUTH_PROVIDER="forced-user"
-export FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
-export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user"
+export FORCED_USER_EMAIL="dev@example.com"
+export FORCED_USER_IDP_ID="local-dev-user"
 ```
 
 **Load environment variables:**
@@ -288,8 +288,8 @@ The recommended local auth mode is `forced-user`, which bypasses real authentica
 
 ```bash
 export AUTH_PROVIDER="forced-user"
-export FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
-export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user-001"
+export FORCED_USER_EMAIL="dev@example.com"
+export FORCED_USER_IDP_ID="local-dev-user-001"
 ```
 
 To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the Azure tenant variables. See [Environment Variables](./environment-variables.md) and [Azure Entra authentication setup](../infrastructure/AzureAuthenticationSetup.md).

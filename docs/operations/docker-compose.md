@@ -75,7 +75,7 @@ dc down            # stop
 | Mode          | Required vars                                                                 | Use case                       |
 | ------------- | ----------------------------------------------------------------------------- | ------------------------------ |
 | `none`        | —                                                                             | API open (simplest local boot) |
-| `forced-user` | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`, `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER`   | Local dev with a fake user     |
+| `forced-user` | `FORCED_USER_EMAIL`, `FORCED_USER_IDP_ID`                                     | Local dev with a fake user     |
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
 The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see the compose overlay. The storage tenant below is separate.
