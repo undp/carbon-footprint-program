@@ -110,6 +110,9 @@ export const useProfilingRowActions = <
   const [restoreBlockedMessage, setRestoreBlockedMessage] = useState<
     string | null
   >(null);
+  const [updateBlockedMessage, setUpdateBlockedMessage] = useState<
+    string | null
+  >(null);
 
   const getFormRows = useCallback(
     () =>
@@ -150,6 +153,15 @@ export const useProfilingRowActions = <
         setEditingRowId(null);
         return true;
       } catch (error) {
+        // Re-parenting a subsector that still has dependents is blocked. Surface
+        // the reason in a dedicated dialog (with the delete-then-recreate hint)
+        // instead of a generic snackbar, mirroring the PARENT_NOT_ACTIVE flow.
+        if (getApiErrorCode(error) === "REPARENT_BLOCKED_BY_REFERENCES") {
+          setUpdateBlockedMessage(
+            getApiErrorMessage(error, errorMessages.update)
+          );
+          return false;
+        }
         enqueueSnackbar({
           message: getApiErrorMessage(error, errorMessages.update),
           variant: "error",
@@ -407,6 +419,10 @@ export const useProfilingRowActions = <
     setRestoreBlockedMessage(null);
   }, []);
 
+  const dismissUpdateBlocked = useCallback(() => {
+    setUpdateBlockedMessage(null);
+  }, []);
+
   const dispatchPendingPatch = useCallback(async () => {
     if (!pendingPatch) return;
     const { id, body } = pendingPatch;
@@ -430,5 +446,7 @@ export const useProfilingRowActions = <
     cancelPendingPatch,
     restoreBlockedMessage,
     dismissRestoreBlocked,
+    updateBlockedMessage,
+    dismissUpdateBlocked,
   };
 };

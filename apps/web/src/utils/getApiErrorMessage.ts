@@ -102,6 +102,51 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       return "Ya existe un tamaño de organización activo con ese nombre.";
     return "Ya existe un registro con este valor.";
   },
+  REPARENT_BLOCKED_BY_REFERENCES: (details) => {
+    const referencedBy = details?.referencedBy as
+      | Record<string, unknown>
+      | undefined;
+    const count = (value: unknown): number =>
+      typeof value === "number" ? value : 0;
+
+    const parts: string[] = [];
+    const mainActivities = count(referencedBy?.activeMainActivities);
+    if (mainActivities > 0)
+      parts.push(
+        `${mainActivities} ${
+          mainActivities > 1 ? "actividades principales" : "actividad principal"
+        }`
+      );
+    const recommendations = count(
+      referencedBy?.activeSubcategoryRecommendations
+    );
+    if (recommendations > 0)
+      parts.push(
+        `${recommendations} ${
+          recommendations > 1
+            ? "recomendaciones de subcategoría"
+            : "recomendación de subcategoría"
+        }`
+      );
+    const organizations = count(referencedBy?.organizationData);
+    if (organizations > 0)
+      parts.push(
+        `${organizations} ${
+          organizations > 1 ? VOCAB.organization.noun.plural : orgSingular
+        }`
+      );
+
+    const suffix =
+      "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
+    if (parts.length === 0) {
+      return `No se puede cambiar el rubro del subrubro porque tiene dependencias asociadas. ${suffix}`;
+    }
+    const list =
+      parts.length === 1
+        ? parts[0]
+        : `${parts.slice(0, -1).join(", ")} y ${parts[parts.length - 1]}`;
+    return `No se puede cambiar el rubro del subrubro porque tiene ${list} asociados. ${suffix}`;
+  },
   RESTORE_ON_ACTIVE: (details) => {
     const label =
       RESOURCE_LABELS[details?.resourceType as string]?.sentenceArticle;

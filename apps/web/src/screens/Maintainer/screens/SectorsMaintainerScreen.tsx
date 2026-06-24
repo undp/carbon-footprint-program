@@ -19,7 +19,7 @@ import {
 } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
 import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -241,8 +241,9 @@ export const SectorsMaintainerScreen: FC = () => {
             onCancel={actions.cancelPendingPatch}
             onConfirm={actions.dispatchPendingPatch}
           />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
           />

@@ -78,6 +78,8 @@ The system SHALL expose analogous admin endpoints under `/admin/country-subsecto
 
 The create endpoint body MUST require `countrySectorId: string` and SHALL validate inside `prisma.$transaction` that the parent sector exists AND is `ACTIVE`. A non-existent or DELETED parent MUST result in `404` via `ResourceNotFoundError`. The update endpoint MAY accept `countrySectorId` for re-parenting; the new parent MUST be validated the same way.
 
+Re-parenting (a `PATCH` that changes `countrySectorId` to a different sector) MUST be blocked with `ReparentBlockedByReferencesError` (HTTP `409`) when the subsector still has dependents — any ACTIVE `OrganizationMainActivity.countrySubsectorId`, any ACTIVE `SubcategoryRecommendation.subsectorId`, or any `OrganizationData.subsectorId` (the latter carries the subsector into a country's carbon inventories). This keeps the denormalized parent columns the delete-cascade relies on from drifting; re-association is only possible by soft-deleting the subsector (which cascades) and re-creating it under the correct sector. Editing only `name`/`description` MUST never be blocked, and a `countrySectorId` equal to the current parent is a no-op (not blocked).
+
 The admin list response SHALL include `countrySectorId` and the parent sector's `name`. Sort by parent sector name ASC, subsector name ASC.
 
 `isInUse` for subsector is computed as `OR` across `organization_data.subsectorId` AND `organization_main_activity.countrySubsectorId`.
@@ -89,8 +91,18 @@ The admin list response SHALL include `countrySectorId` and the parent sector's 
 
 #### Scenario: Subsector re-parenting validated inside transaction
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector and the subsector has no dependents
 - **THEN** the subsector's parent is updated atomically alongside the validation
+
+#### Scenario: Re-parenting a subsector with dependents is blocked
+
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` changing `countrySectorId` on a subsector that has at least one ACTIVE main activity, ACTIVE subcategory recommendation, or any organization data referencing it
+- **THEN** the response is `409` (`REPARENT_BLOCKED_BY_REFERENCES`) and the subsector's `countrySectorId` is unchanged
+
+#### Scenario: Editing name/description is never blocked by dependents
+
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` changing only `name` or `description` on a subsector that has dependents
+- **THEN** the response is `200` and the change is persisted
 
 ### Requirement: Soft-delete cascades over ACTIVE catalog children
 

@@ -4,6 +4,7 @@ export * from "./EmptyResourceError.js";
 export * from "./ResourceNotFoundError.js";
 export * from "./DatabaseUniqueConstraintViolationError.js";
 export * from "./ParentNotActiveError.js";
+export * from "./ReparentBlockedByReferencesError.js";
 export * from "./RestoreOnActiveError.js";
 export * from "./attachDetails.js";
 export * from "./prisma.js";
