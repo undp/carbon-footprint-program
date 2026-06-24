@@ -42,6 +42,12 @@ export const MeasurementUnitFieldsLockedError = createError(
   422
 );
 
+export const MeasurementUnitReferencedError = createError(
+  "MEASUREMENT_UNIT_REFERENCED",
+  "This measurement unit cannot be deleted because it is referenced by existing data.",
+  422
+);
+
 export const BaseUnitMustHaveBaseFactorOneError = createError(
   "BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE",
   "A base measurement unit must have a base factor of 1.",

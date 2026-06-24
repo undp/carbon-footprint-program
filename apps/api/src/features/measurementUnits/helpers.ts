@@ -16,8 +16,8 @@ import {
 type TransactionClient = Prisma.TransactionClient;
 
 // Reference counts are read both from the list endpoint (no transaction) and
-// from the create/update guards (inside a transaction), so the count helpers
-// accept either client.
+// from the create/update/delete guards (inside a transaction), so the count
+// helpers accept either client.
 type MeasurementUnitDbClient = PrismaClient | Prisma.TransactionClient;
 
 export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
@@ -31,8 +31,9 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
 /**
  * The ONE definition of a measurement unit's reference count, batched into one
  * round-trip per reference type. The list endpoint passes every unit's id; the
- * create/update guards pass a single id via `getReferenceCount`. Both go through
- * here, so the displayed count and the edit guard can never drift.
+ * create/update and delete guards pass a single id via `getReferenceCount`. Both
+ * go through here, so the displayed count and the edit/delete guards can never
+ * drift.
  *
  * A unit is referenced by: line inputs that use it directly, ACTIVE subcategory
  * links, and — through its canonical RMU (kg/<abbr>) — ACTIVE emission factors,
@@ -183,7 +184,8 @@ export const getReferenceCountsByMeasurementUnit = async (
 
 /**
  * Reference count for a single measurement unit. Thin wrapper over the batched
- * version so the create/update guards and the list endpoint share one definition.
+ * version so the create/update/delete guards and the list endpoint share one
+ * definition.
  */
 export const getReferenceCount = async (
   client: MeasurementUnitDbClient,

@@ -5,8 +5,12 @@ import {
   resolveKgMeasurementUnit,
   assertNotKgMu,
   assertNotBaseUnit,
+  getReferenceCount,
 } from "../helpers.js";
-import { MeasurementUnitNotFoundError } from "../errors.js";
+import {
+  MeasurementUnitNotFoundError,
+  MeasurementUnitReferencedError,
+} from "../errors.js";
 
 export const deleteMeasurementUnitService = async (
   prismaClient: PrismaClient,
@@ -24,6 +28,14 @@ export const deleteMeasurementUnitService = async (
 
     assertNotKgMu(target);
     assertNotBaseUnit(target);
+
+    // Same reference count the list endpoint surfaces and the edit guard uses,
+    // so a unit the UI shows as "in use" cannot be deleted through the API
+    // either. Checked inside the transaction to avoid a TOCTOU race.
+    const refCount = await getReferenceCount(tx, target.id);
+    if (refCount > 0) {
+      throw new MeasurementUnitReferencedError();
+    }
 
     const kg = await resolveKgMeasurementUnit(tx);
 

@@ -144,6 +144,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una unidad de medida con esta abreviatura.",
   MEASUREMENT_UNIT_FIELDS_LOCKED:
     "Los campos magnitud, abreviatura, factor base e indicador de base no pueden modificarse porque la unidad es base o ya tiene datos asociados.",
+  MEASUREMENT_UNIT_REFERENCED:
+    "No se puede eliminar esta unidad de medida porque ya tiene datos asociados.",
   MEASUREMENT_UNIT_NOT_FOUND: "Unidad de medida no encontrada.",
   BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE:
     "Una unidad base debe tener un factor base igual a 1.",
