@@ -15,11 +15,6 @@ import {
 
 type TransactionClient = Prisma.TransactionClient;
 
-// Reference counts are read both from the list endpoint (no transaction) and
-// from the create/update/delete guards (inside a transaction), so the count
-// helpers accept either client.
-type MeasurementUnitDbClient = PrismaClient | Prisma.TransactionClient;
-
 export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
   const kg = await tx.measurementUnit.findUnique({
     where: { abbreviation: "kg" },
@@ -30,11 +25,10 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
 
 /**
  * The ONE definition of a measurement unit's reference count, batched into one
- * round-trip per reference type. The list endpoint passes every unit's id; the
- * create/update and delete guards pass a single id via
- * `getMeasurementUnitReferenceCount`. Both
- * go through here, so the displayed count and the edit/delete guards can never
- * drift.
+ * round-trip per reference type. The list endpoint passes every unit's id with
+ * a plain client; the create/update and delete guards pass a single id with a
+ * transaction client via `getMeasurementUnitReferenceCount`. Both go through
+ * here, so the displayed count and the edit/delete guards can never drift.
  *
  * A unit is referenced by: line inputs that use it directly, ACTIVE subcategory
  * links, and — through its canonical RMU (kg/<abbr>) — ACTIVE emission factors,
@@ -53,7 +47,7 @@ export const resolveKgMeasurementUnit = async (tx: TransactionClient) => {
  *   unit referenced (same intent as the subcategory case).
  */
 export const getReferenceCountsByMeasurementUnit = async (
-  client: MeasurementUnitDbClient,
+  client: PrismaClient | Prisma.TransactionClient,
   measurementUnitIds: bigint[]
 ): Promise<Map<string, number>> => {
   const uniqueMuIds = [
@@ -197,7 +191,7 @@ export const getReferenceCountsByMeasurementUnit = async (
  * definition.
  */
 export const getMeasurementUnitReferenceCount = async (
-  client: MeasurementUnitDbClient,
+  client: PrismaClient | Prisma.TransactionClient,
   measurementUnitId: bigint
 ): Promise<number> =>
   (await getReferenceCountsByMeasurementUnit(client, [measurementUnitId])).get(
