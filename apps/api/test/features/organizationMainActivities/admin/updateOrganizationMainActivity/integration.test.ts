@@ -20,7 +20,11 @@ import {
   carbonInventoryPatterns,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
-import { type PrismaClient, CountrySectorStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  CountrySectorStatus,
+  OrganizationMainActivityStatus,
+} from "@repo/database";
 import type { UpdateOrganizationMainActivityResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminMAUpd ";
@@ -474,6 +478,33 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         response.body
       ) as UpdateOrganizationMainActivityResponse;
       expect(body.name).toBe(newName);
+    });
+  });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED activity still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references, so this is the case
+      // that used to surface as a misleading 409 instead of not-found.
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Dead"),
+        status: OrganizationMainActivityStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 });

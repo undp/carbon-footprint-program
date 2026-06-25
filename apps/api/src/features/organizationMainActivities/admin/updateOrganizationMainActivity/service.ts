@@ -3,7 +3,6 @@ import {
   Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
-  InventoryStatus,
   OrganizationMainActivityStatus,
 } from "@repo/database";
 import {
@@ -13,11 +12,14 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
-  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import {
+  countConsumerReferences,
+  throwEditBlockedByConsumers,
+} from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { SectorSubsectorMismatchError } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
@@ -37,8 +39,13 @@ export const updateOrganizationMainActivityService = async (
 
   try {
     return await prismaClient.$transaction(async (tx) => {
-      const existing = await tx.organizationMainActivity.findUnique({
-        where: { id: activityId },
+      // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+      // before the reference check, instead of a misleading 409.
+      const existing = await tx.organizationMainActivity.findFirst({
+        where: {
+          id: activityId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+        },
         select: {
           id: true,
           name: true,
@@ -138,41 +145,19 @@ export const updateOrganizationMainActivityService = async (
         (effectiveSectorId !== existing.countrySectorId ||
           effectiveSubsectorId !== existing.countrySubsectorId);
       if (isRename || isReparent) {
-        const [organizationDataCount, carbonInventoryCount] = await Promise.all(
-          [
-            tx.organizationData.count({
-              where: { mainActivityId: activityId },
-            }),
-            // The snapshot stores `mainActivityId` as a string (see
-            // `buildOrganizationDataSnapshot`); only ACTIVE inventories matter, a
-            // DELETED inventory's frozen reference is inert.
-            tx.carbonInventory.count({
-              where: {
-                status: InventoryStatus.ACTIVE,
-                organizationData: {
-                  path: ["mainActivityId"],
-                  equals: activityId.toString(),
-                },
-              },
-            }),
-          ]
-        );
+        const { organizationDataCount, carbonInventoryCount } =
+          await countConsumerReferences(tx, {
+            organizationDataWhere: { mainActivityId: activityId },
+            snapshotJsonKey: "mainActivityId",
+            id: activityId,
+          });
 
         if (organizationDataCount > 0 || carbonInventoryCount > 0) {
-          const referencedBy: string[] = [];
-          if (organizationDataCount > 0) referencedBy.push("organization data");
-          if (carbonInventoryCount > 0) referencedBy.push("carbon inventories");
-
-          const error = new EditBlockedByReferencesError(
-            referencedBy.join(", ")
-          );
-          throw attachDetails(error, {
+          throwEditBlockedByConsumers({
             resourceType: "OrganizationMainActivity",
             attemptedChange: isReparent ? "parent" : "name",
-            referencedBy: {
-              organizationData: organizationDataCount,
-              carbonInventories: carbonInventoryCount,
-            },
+            organizationDataCount,
+            carbonInventoryCount,
           });
         }
       }

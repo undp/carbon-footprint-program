@@ -264,4 +264,31 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
       expect(response.statusCode).toBe(200);
     });
   });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED size still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references, so this is the case
+      // that used to surface as a misleading 409 instead of not-found.
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Dead"),
+        status: CountryOrganizationSizeStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          countryOrganizationSizeId: size.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 });

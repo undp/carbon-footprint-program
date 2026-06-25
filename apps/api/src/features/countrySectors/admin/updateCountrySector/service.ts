@@ -1,9 +1,4 @@
-import {
-  type PrismaClient,
-  Prisma,
-  CountrySectorStatus,
-  InventoryStatus,
-} from "@repo/database";
+import { type PrismaClient, Prisma, CountrySectorStatus } from "@repo/database";
 import {
   type UpdateCountrySectorRequest,
   type UpdateCountrySectorResponse,
@@ -11,11 +6,14 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
-  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import {
+  countConsumerReferences,
+  throwEditBlockedByConsumers,
+} from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -58,8 +56,10 @@ export const updateCountrySectorService = async (
       // Re-identification is only allowed by soft-deleting and re-creating the rubro, so
       // existing references keep resolving to the original name.
       if (data.name !== undefined) {
-        const existing = await tx.countrySector.findUnique({
-          where: { id: sectorId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // before the reference check, instead of a misleading 409.
+        const existing = await tx.countrySector.findFirst({
+          where: { id: sectorId, status: CountrySectorStatus.ACTIVE },
           select: { name: true },
         });
         if (!existing) {
@@ -67,37 +67,19 @@ export const updateCountrySectorService = async (
         }
 
         if (data.name !== existing.name) {
-          const [organizationDataCount, carbonInventoryCount] =
-            await Promise.all([
-              tx.organizationData.count({ where: { sectorId } }),
-              tx.carbonInventory.count({
-                where: {
-                  status: InventoryStatus.ACTIVE,
-                  organizationData: {
-                    path: ["sectorId"],
-                    equals: sectorId.toString(),
-                  },
-                },
-              }),
-            ]);
+          const { organizationDataCount, carbonInventoryCount } =
+            await countConsumerReferences(tx, {
+              organizationDataWhere: { sectorId },
+              snapshotJsonKey: "sectorId",
+              id: sectorId,
+            });
 
           if (organizationDataCount > 0 || carbonInventoryCount > 0) {
-            const referencedBy: string[] = [];
-            if (organizationDataCount > 0)
-              referencedBy.push("organization data");
-            if (carbonInventoryCount > 0)
-              referencedBy.push("carbon inventories");
-
-            const error = new EditBlockedByReferencesError(
-              referencedBy.join(", ")
-            );
-            throw attachDetails(error, {
+            throwEditBlockedByConsumers({
               resourceType: "CountrySector",
               attemptedChange: "name",
-              referencedBy: {
-                organizationData: organizationDataCount,
-                carbonInventories: carbonInventoryCount,
-              },
+              organizationDataCount,
+              carbonInventoryCount,
             });
           }
         }

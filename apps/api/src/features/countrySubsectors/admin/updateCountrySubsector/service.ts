@@ -3,7 +3,6 @@ import {
   Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
-  InventoryStatus,
   OrganizationMainActivityStatus,
   SubcategoryRecommendationStatus,
 } from "@repo/database";
@@ -19,6 +18,7 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { countConsumerReferences } from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -73,8 +73,10 @@ export const updateCountrySubsectorService = async (
       // re-identification is only allowed by soft-deleting (which cascades) and
       // re-creating under the correct name/sector.
       if (data.name !== undefined || data.countrySectorId !== undefined) {
-        const existing = await tx.countrySubsector.findUnique({
-          where: { id: subsectorId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // before the reference check, instead of a misleading 409.
+        const existing = await tx.countrySubsector.findFirst({
+          where: { id: subsectorId, status: CountrySubsectorStatus.ACTIVE },
           select: { name: true, countrySectorId: true },
         });
         if (!existing) {
@@ -103,23 +105,12 @@ export const updateCountrySubsectorService = async (
         }
 
         if (isRename || isReparent) {
-          const [organizationDataCount, carbonInventoryCount] =
-            await Promise.all([
-              tx.organizationData.count({ where: { subsectorId } }),
-              // The snapshot stores `subsectorId` as a string (see
-              // `buildOrganizationDataSnapshot`), so match against the string form.
-              // Only ACTIVE inventories matter — a DELETED inventory's frozen pair
-              // is inert.
-              tx.carbonInventory.count({
-                where: {
-                  status: InventoryStatus.ACTIVE,
-                  organizationData: {
-                    path: ["subsectorId"],
-                    equals: subsectorId.toString(),
-                  },
-                },
-              }),
-            ]);
+          const { organizationDataCount, carbonInventoryCount } =
+            await countConsumerReferences(tx, {
+              organizationDataWhere: { subsectorId },
+              snapshotJsonKey: "subsectorId",
+              id: subsectorId,
+            });
 
           // Catalog children only block re-parenting (renaming them is harmless).
           let activeMainActivityCount = 0;

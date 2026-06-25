@@ -20,7 +20,11 @@ import {
   carbonInventoryPatterns,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
-import { type PrismaClient, CountrySectorStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+} from "@repo/database";
 import type { UpdateCountrySubsectorResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminSubUpd ";
@@ -528,6 +532,37 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
         payload: { description: "Nueva descripción" },
       });
       expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED subsector still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references (the cascade never
+      // rewrites organization_data), so this is the case that used to surface as a
+      // misleading 409 instead of not-found.
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("Dead"),
+        status: CountrySubsectorStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          subsectorId: sub.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 });

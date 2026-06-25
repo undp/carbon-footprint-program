@@ -295,4 +295,32 @@ describe("PATCH /api/admin/country-sectors/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
     });
   });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED sector still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references (the cascade never
+      // rewrites organization_data), so this is the case that used to surface as a
+      // misleading 409 instead of not-found.
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Dead"),
+        status: CountrySectorStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          sectorId: sector.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 });

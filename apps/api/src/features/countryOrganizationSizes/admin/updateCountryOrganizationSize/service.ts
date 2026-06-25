@@ -2,7 +2,6 @@ import {
   type PrismaClient,
   Prisma,
   CountryOrganizationSizeStatus,
-  InventoryStatus,
 } from "@repo/database";
 import {
   type UpdateCountryOrganizationSizeRequest,
@@ -11,11 +10,14 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
-  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import {
+  countConsumerReferences,
+  throwEditBlockedByConsumers,
+} from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -57,8 +59,10 @@ export const updateCountryOrganizationSizeService = async (
       // re-creating the size, so existing references keep resolving to the original
       // name.
       if (data.name !== undefined) {
-        const existing = await tx.countryOrganizationSize.findUnique({
-          where: { id: sizeId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // before the reference check, instead of a misleading 409.
+        const existing = await tx.countryOrganizationSize.findFirst({
+          where: { id: sizeId, status: CountryOrganizationSizeStatus.ACTIVE },
           select: { name: true },
         });
         if (!existing) {
@@ -66,39 +70,19 @@ export const updateCountryOrganizationSizeService = async (
         }
 
         if (data.name !== existing.name) {
-          const [organizationDataCount, carbonInventoryCount] =
-            await Promise.all([
-              tx.organizationData.count({
-                where: { countryOrganizationSizeId: sizeId },
-              }),
-              tx.carbonInventory.count({
-                where: {
-                  status: InventoryStatus.ACTIVE,
-                  organizationData: {
-                    path: ["sizeId"],
-                    equals: sizeId.toString(),
-                  },
-                },
-              }),
-            ]);
+          const { organizationDataCount, carbonInventoryCount } =
+            await countConsumerReferences(tx, {
+              organizationDataWhere: { countryOrganizationSizeId: sizeId },
+              snapshotJsonKey: "sizeId",
+              id: sizeId,
+            });
 
           if (organizationDataCount > 0 || carbonInventoryCount > 0) {
-            const referencedBy: string[] = [];
-            if (organizationDataCount > 0)
-              referencedBy.push("organization data");
-            if (carbonInventoryCount > 0)
-              referencedBy.push("carbon inventories");
-
-            const error = new EditBlockedByReferencesError(
-              referencedBy.join(", ")
-            );
-            throw attachDetails(error, {
+            throwEditBlockedByConsumers({
               resourceType: "CountryOrganizationSize",
               attemptedChange: "name",
-              referencedBy: {
-                organizationData: organizationDataCount,
-                carbonInventories: carbonInventoryCount,
-              },
+              organizationDataCount,
+              carbonInventoryCount,
             });
           }
         }
