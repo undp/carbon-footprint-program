@@ -2,6 +2,7 @@ import {
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
   Prisma,
+  SubcategoryRecommendationStatus,
 } from "@repo/database";
 import type { AdminCountrySector } from "@repo/types";
 
@@ -28,7 +29,9 @@ export const adminCountrySectorSelect = {
       organizationMainActivities: {
         where: { status: OrganizationMainActivityStatus.ACTIVE },
       },
-      subcategoryRecommendations: true,
+      subcategoryRecommendations: {
+        where: { status: SubcategoryRecommendationStatus.ACTIVE },
+      },
     },
   },
 } satisfies Prisma.CountrySectorSelect;
