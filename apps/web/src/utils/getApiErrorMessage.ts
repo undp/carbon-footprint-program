@@ -163,6 +163,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       CountrySector: "del rubro",
       CountrySubsector: "del subrubro",
       OrganizationMainActivity: "de la actividad principal",
+      CountryOrganizationSize: "del tamaño de organización",
     };
     const ofSubject = OF_SUBJECT[resourceType ?? ""] ?? "del registro";
     const isMainActivity = resourceType === "OrganizationMainActivity";
