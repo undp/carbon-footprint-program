@@ -64,6 +64,19 @@ export const AUTH_PROVIDER: AuthProviderType = (() => {
   return rawAuthProvider as AuthProviderType;
 })();
 
+// Fail closed: in production, AUTH_PROVIDER=jwks MUST have a JWKS endpoint.
+// Without JWKS_URI the @fastify/jwt config (jwksConfig.ts) silently falls back to
+// the static HMAC JWT_SECRET — whose dev default is public — so forged tokens
+// would pass verification. Refuse to boot rather than serve auth open. (jwksConfig
+// additionally warns when JWKS_URI is set but JWKS_ISSUER is not.)
+if (IS_PROD && AUTH_PROVIDER === "jwks" && !JWKS_URI) {
+  throw new Error(
+    "AUTH_PROVIDER=jwks requires JWKS_URI in production. Refusing to start: " +
+      "without it the API would fall back to the static HMAC JWT_SECRET and accept " +
+      "forged tokens. Set JWKS_URI (and JWKS_ISSUER / JWKS_AUDIENCE)."
+  );
+}
+
 export const FORCED_USER_EMAIL = process.env.FORCED_USER_EMAIL;
 
 export const FORCED_USER_IDP_ID = process.env.FORCED_USER_IDP_ID;
