@@ -270,7 +270,7 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         code: string;
         details?: { referencedBy?: { organizationData?: number } };
       };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
       expect(body.details?.referencedBy?.organizationData).toBe(1);
 
       const after = await prisma.organizationMainActivity.findUnique({
@@ -310,7 +310,7 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         code: string;
         details?: { referencedBy?: { carbonInventories?: number } };
       };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
       expect(body.details?.referencedBy?.carbonInventories).toBe(1);
 
       const after = await prisma.organizationMainActivity.findUnique({
@@ -380,6 +380,100 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         where: { id: ma.id },
       });
       expect(after!.countrySectorId).toBe(sectorA.id);
+    });
+  });
+
+  describe("Rename blocked by user data", () => {
+    it("blocks rename (409) when an organization profile references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { organizationData?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.name).toBe(ma.name);
+    });
+
+    it("blocks rename (409) when an ACTIVE carbon inventory snapshot references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      // The activity is referenced ONLY inside the inventory's frozen JSON snapshot.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { carbonInventories?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+    });
+
+    it("does NOT block rename when only a DELETED carbon inventory snapshot references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const newName = uniqueName("New");
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: newName },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.name).toBe(newName);
     });
   });
 });

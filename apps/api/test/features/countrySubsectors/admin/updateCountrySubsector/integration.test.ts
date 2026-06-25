@@ -213,7 +213,7 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       });
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
 
       const reloaded = await prisma.countrySubsector.findUnique({
         where: { id: sub.id },
@@ -246,7 +246,7 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       });
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
     });
 
     it("blocks re-parent (409) when an organization profile references the subsector", async () => {
@@ -276,7 +276,7 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       });
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
     });
 
     it("blocks re-parent (409) when an ACTIVE carbon inventory snapshot references the subsector", async () => {
@@ -309,7 +309,7 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
         code: string;
         details?: { referencedBy?: { carbonInventories?: number } };
       };
-      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
       expect(body.details?.referencedBy?.carbonInventories).toBe(1);
 
       const reloaded = await prisma.countrySubsector.findUnique({
@@ -350,7 +350,10 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       expect(reloaded!.countrySectorId).toBe(target.id);
     });
 
-    it("allows editing only the name even when the subsector has dependents", async () => {
+    it("allows renaming when only a catalog child (no user data) references the subsector", async () => {
+      // A main activity is a catalog child, not user data. Renaming the subsector
+      // does not make any user see a wrong name, so a rename is allowed even though
+      // re-parenting would be blocked by the same main activity.
       const parent = await createTestCountrySector(prisma, {
         name: uniqueName("Parent"),
       });
@@ -398,6 +401,133 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
         where: { id: sub.id },
       });
       expect(reloaded!.countrySectorId).toBe(parent.id);
+    });
+  });
+
+  describe("Rename blocked by user data", () => {
+    it("blocks rename (409) when an organization profile references the subsector", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("Old"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          subsectorId: sub.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { organizationData?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const reloaded = await prisma.countrySubsector.findUnique({
+        where: { id: sub.id },
+      });
+      expect(reloaded!.name).toBe(sub.name);
+    });
+
+    it("blocks rename (409) when an ACTIVE carbon inventory snapshot references the subsector", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("Old"),
+      });
+      // The subsector is referenced ONLY inside the inventory's frozen JSON
+      // snapshot — exactly the gap the FK-based counts miss.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          subsectorId: sub.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { carbonInventories?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+    });
+
+    it("does NOT block rename when only a DELETED carbon inventory snapshot references the subsector", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("Old"),
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          subsectorId: sub.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const newName = uniqueName("New");
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { name: newName },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCountrySubsectorResponse;
+      expect(body.name).toBe(newName);
+    });
+
+    it("allows a description-only edit even when the subsector is in use", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("Named"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          subsectorId: sub.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { description: "Nueva descripción" },
+      });
+      expect(response.statusCode).toBe(200);
     });
   });
 });

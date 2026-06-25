@@ -9,6 +9,14 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import {
+  createCarbonInventory,
+  carbonInventoryPatterns,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
 import { type PrismaClient, CountrySectorStatus } from "@repo/database";
 import type { UpdateCountrySectorResponse } from "@repo/types";
@@ -30,6 +38,15 @@ describe("PATCH /api/admin/country-sectors/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Orgs (and their organization_data) hold an FK to the sector via sectorId, so
+    // they must be cleared before the sector rows below.
+    await cleanupTestOrganization(prisma);
+    // Carbon inventories carry the sector only inside their organizationData JSON
+    // snapshot (no FK), so they never block the delete below — but they must still
+    // be removed by name to avoid leaking across tests.
+    await prisma.carbonInventory.deleteMany({
+      where: { name: { startsWith: TEST_PREFIX } },
+    });
     await prisma.countrySector.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -158,6 +175,122 @@ describe("PATCH /api/admin/country-sectors/:id - Integration Tests", () => {
         method: "PATCH",
         url: `/api/admin/country-sectors/${sector.id.toString()}`,
         payload: { name: ghost },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe("Rename blocked by user data", () => {
+    it("blocks rename (409) when an organization profile references the sector", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Old"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          sectorId: sector.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { organizationData?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const reloaded = await prisma.countrySector.findUnique({
+        where: { id: sector.id },
+      });
+      expect(reloaded!.name).toBe(sector.name);
+    });
+
+    it("blocks rename (409) when an ACTIVE carbon inventory snapshot references the sector", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Old"),
+      });
+      // The sector is referenced ONLY inside the inventory's frozen JSON snapshot —
+      // no live organization_data row points at it — so this is exactly the gap the
+      // FK-based count misses.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          sectorId: sector.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { carbonInventories?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+    });
+
+    it("does NOT block rename when only a DELETED carbon inventory snapshot references the sector", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Old"),
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          sectorId: sector.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const newName = uniqueName("New");
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+        payload: { name: newName },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCountrySectorResponse;
+      expect(body.name).toBe(newName);
+    });
+
+    it("allows a description-only edit even when the sector is in use", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Named"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          sectorId: sector.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-sectors/${sector.id.toString()}`,
+        payload: { description: "Nueva descripción" },
       });
       expect(response.statusCode).toBe(200);
     });

@@ -13,7 +13,7 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
-  ReparentBlockedByReferencesError,
+  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
@@ -49,32 +49,46 @@ export const updateCountrySubsectorService = async (
         updateData.description = normalizeDescriptionInput(data.description);
       }
 
-      // Re-parenting (changing the parent sector) is the only update guarded —
-      // editing name/description is always allowed, so we only fetch the current
-      // parent here (not on every patch). A genuine re-parent is blocked while
-      // the subsector still has dependents, because it would silently move them
-      // (and the denormalized parent columns the delete-cascade relies on) to a
-      // different sector. Re-association is only allowed by soft-deleting the
-      // subsector (which cascades) and re-creating it under the correct sector.
-      // Two denormalizations carry the subsector outside its own table and must
-      // stay consistent with its parent sector: the live `organization_data` rows,
-      // and the frozen `carbon_inventory.organizationData` JSON snapshot (which
-      // stores `sectorId` + `subsectorId` as a point-in-time pair, written as
-      // strings — see `buildOrganizationDataSnapshot`). The snapshot is an
-      // independent copy, so it can reference this subsector even when no live
-      // organization_data row does; re-parenting would leave its sector/subsector
-      // pair pointing at a combination that no longer exists in the catalog.
-      if (data.countrySectorId !== undefined) {
-        const subsector = await tx.countrySubsector.findUnique({
+      // Identity-changing edits to a subsector are guarded; description-only edits
+      // are always allowed, so the current row is fetched only when name or parent
+      // is touched. Two kinds of edit corrupt existing references and are blocked:
+      //
+      //  - Re-parenting (changing the parent sector) would silently move dependents —
+      //    and the denormalized parent columns the delete-cascade relies on — to a
+      //    different sector. Blocked while the subsector has ANY dependent: catalog
+      //    children (active main activities / subcategory recommendations), live
+      //    `organization_data` rows, or an ACTIVE carbon-inventory snapshot.
+      //  - Renaming a subsector a user already selected would make that user see a
+      //    name they never chose. Blocked while USER data references it (live
+      //    `organization_data` or an ACTIVE snapshot); catalog children alone do NOT
+      //    block a rename.
+      //
+      // Two denormalizations carry the subsector outside its own table: the live
+      // `organization_data` rows, and the frozen `carbon_inventory.organizationData`
+      // JSON snapshot (which stores `sectorId` + `subsectorId` as a point-in-time
+      // pair, written as strings — see `buildOrganizationDataSnapshot`). The snapshot
+      // is an independent copy, so it can reference this subsector even when no live
+      // organization_data row does. A no-op (same name / same sector) never blocks;
+      // re-identification is only allowed by soft-deleting (which cascades) and
+      // re-creating under the correct name/sector.
+      if (data.name !== undefined || data.countrySectorId !== undefined) {
+        const existing = await tx.countrySubsector.findUnique({
           where: { id: subsectorId },
-          select: { countrySectorId: true },
+          select: { name: true, countrySectorId: true },
         });
-        if (!subsector) {
+        if (!existing) {
           throw new ResourceNotFoundError("CountrySubsector", id);
         }
 
-        if (BigInt(data.countrySectorId) !== subsector.countrySectorId) {
-          const newSectorId = BigInt(data.countrySectorId);
+        const isRename = data.name !== undefined && data.name !== existing.name;
+        const newSectorId =
+          data.countrySectorId !== undefined
+            ? BigInt(data.countrySectorId)
+            : null;
+        const isReparent =
+          newSectorId !== null && newSectorId !== existing.countrySectorId;
+
+        if (isReparent) {
           const parent = await tx.countrySector.findFirst({
             where: { id: newSectorId, status: CountrySectorStatus.ACTIVE },
             select: { id: true },
@@ -85,72 +99,90 @@ export const updateCountrySubsectorService = async (
               data.countrySectorId
             );
           }
+        }
 
-          const [
-            activeMainActivityCount,
-            activeSubcategoryRecommendationCount,
-            organizationDataCount,
-            carbonInventoryCount,
-          ] = await Promise.all([
-            tx.organizationMainActivity.count({
-              where: {
-                countrySubsectorId: subsectorId,
-                status: OrganizationMainActivityStatus.ACTIVE,
-              },
-            }),
-            tx.subcategoryRecommendation.count({
-              where: {
-                subsectorId,
-                status: SubcategoryRecommendationStatus.ACTIVE,
-              },
-            }),
-            tx.organizationData.count({ where: { subsectorId } }),
-            // The snapshot stores `subsectorId` as a string (see
-            // `buildOrganizationDataSnapshot`), so match against the string form.
-            // Only ACTIVE inventories matter — a DELETED inventory's frozen pair
-            // is inert and should not block re-parenting.
-            tx.carbonInventory.count({
-              where: {
-                status: InventoryStatus.ACTIVE,
-                organizationData: {
-                  path: ["subsectorId"],
-                  equals: subsectorId.toString(),
+        if (isRename || isReparent) {
+          const [organizationDataCount, carbonInventoryCount] =
+            await Promise.all([
+              tx.organizationData.count({ where: { subsectorId } }),
+              // The snapshot stores `subsectorId` as a string (see
+              // `buildOrganizationDataSnapshot`), so match against the string form.
+              // Only ACTIVE inventories matter — a DELETED inventory's frozen pair
+              // is inert.
+              tx.carbonInventory.count({
+                where: {
+                  status: InventoryStatus.ACTIVE,
+                  organizationData: {
+                    path: ["subsectorId"],
+                    equals: subsectorId.toString(),
+                  },
                 },
-              },
-            }),
-          ]);
+              }),
+            ]);
 
-          if (
-            activeMainActivityCount > 0 ||
-            activeSubcategoryRecommendationCount > 0 ||
-            organizationDataCount > 0 ||
-            carbonInventoryCount > 0
-          ) {
+          // Catalog children only block re-parenting (renaming them is harmless).
+          let activeMainActivityCount = 0;
+          let activeSubcategoryRecommendationCount = 0;
+          if (isReparent) {
+            [activeMainActivityCount, activeSubcategoryRecommendationCount] =
+              await Promise.all([
+                tx.organizationMainActivity.count({
+                  where: {
+                    countrySubsectorId: subsectorId,
+                    status: OrganizationMainActivityStatus.ACTIVE,
+                  },
+                }),
+                tx.subcategoryRecommendation.count({
+                  where: {
+                    subsectorId,
+                    status: SubcategoryRecommendationStatus.ACTIVE,
+                  },
+                }),
+              ]);
+          }
+
+          const userDataRefs = organizationDataCount + carbonInventoryCount;
+          const catalogChildRefs =
+            activeMainActivityCount + activeSubcategoryRecommendationCount;
+          const nameBlocked = isRename && userDataRefs > 0;
+          const parentBlocked =
+            isReparent && (userDataRefs > 0 || catalogChildRefs > 0);
+
+          if (nameBlocked || parentBlocked) {
             const referencedBy: string[] = [];
-            if (activeMainActivityCount > 0)
+            // A name-only block lists user data only; catalog children are not the
+            // reason a rename is rejected.
+            if (parentBlocked && activeMainActivityCount > 0)
               referencedBy.push("main activities");
-            if (activeSubcategoryRecommendationCount > 0)
+            if (parentBlocked && activeSubcategoryRecommendationCount > 0)
               referencedBy.push("subcategory recommendations");
             if (organizationDataCount > 0)
               referencedBy.push("organization data");
             if (carbonInventoryCount > 0)
               referencedBy.push("carbon inventories");
 
-            const error = new ReparentBlockedByReferencesError(
+            const referencedByDetail: Record<string, number> = {
+              organizationData: organizationDataCount,
+              carbonInventories: carbonInventoryCount,
+            };
+            if (parentBlocked) {
+              referencedByDetail.activeMainActivities = activeMainActivityCount;
+              referencedByDetail.activeSubcategoryRecommendations =
+                activeSubcategoryRecommendationCount;
+            }
+
+            const error = new EditBlockedByReferencesError(
               referencedBy.join(", ")
             );
             throw attachDetails(error, {
               resourceType: "CountrySubsector",
-              referencedBy: {
-                activeMainActivities: activeMainActivityCount,
-                activeSubcategoryRecommendations:
-                  activeSubcategoryRecommendationCount,
-                organizationData: organizationDataCount,
-                carbonInventories: carbonInventoryCount,
-              },
+              attemptedChange: parentBlocked ? "parent" : "name",
+              referencedBy: referencedByDetail,
             });
           }
+        }
 
+        if (isReparent && newSectorId !== null) {
           updateData.countrySector = { connect: { id: newSectorId } };
         }
       }

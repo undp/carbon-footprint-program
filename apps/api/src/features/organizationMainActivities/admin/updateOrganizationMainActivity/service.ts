@@ -12,7 +12,7 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
-  ReparentBlockedByReferencesError,
+  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
@@ -40,6 +40,7 @@ export const updateOrganizationMainActivityService = async (
         where: { id: activityId },
         select: {
           id: true,
+          name: true,
           countrySectorId: true,
           countrySubsectorId: true,
         },
@@ -115,21 +116,27 @@ export const updateOrganizationMainActivityService = async (
         }
       }
 
-      // Re-parenting (moving the activity to a different sector/subsector pair) is
-      // blocked while it still has dependents, mirroring the subsector guard: it
-      // would silently invalidate the activity's parent stored alongside the two
-      // denormalizations that carry `mainActivityId` — the live
-      // `organization_data.mainActivityId` rows and the frozen
-      // `carbon_inventory.organizationData` JSON snapshot (which stores
-      // `mainActivityId` as a string). A no-op patch (the effective pair equals
-      // the current one) never blocks. Re-association is only allowed by
-      // soft-deleting and re-creating the activity under the correct parents.
+      // Identity-changing edits to an activity already selected by a user are
+      // blocked, because both denormalizations that carry `mainActivityId` resolve
+      // their value by id at read time — the live `organization_data.mainActivityId`
+      // rows and the frozen `carbon_inventory.organizationData` JSON snapshot (which
+      // stores `mainActivityId` as a string):
+      //
+      //  - Re-parenting (moving the activity to a different sector/subsector pair)
+      //    would silently invalidate the parent stored alongside those references.
+      //  - Renaming would make those users see a name they never chose.
+      //
+      // An activity is a leaf (no catalog children), so both edits are guarded by the
+      // same user-data reference set. A no-op patch (same name, same effective pair)
+      // never blocks; re-identification is only allowed by soft-deleting and
+      // re-creating the activity under the correct name/parents.
+      const isRename = data.name !== undefined && data.name !== existing.name;
       const isReparent =
         (data.countrySectorId !== undefined ||
           data.countrySubsectorId !== undefined) &&
         (effectiveSectorId !== existing.countrySectorId ||
           effectiveSubsectorId !== existing.countrySubsectorId);
-      if (isReparent) {
+      if (isRename || isReparent) {
         const [organizationDataCount, carbonInventoryCount] = await Promise.all(
           [
             tx.organizationData.count({
@@ -155,11 +162,12 @@ export const updateOrganizationMainActivityService = async (
           if (organizationDataCount > 0) referencedBy.push("organization data");
           if (carbonInventoryCount > 0) referencedBy.push("carbon inventories");
 
-          const error = new ReparentBlockedByReferencesError(
+          const error = new EditBlockedByReferencesError(
             referencedBy.join(", ")
           );
           throw attachDetails(error, {
             resourceType: "OrganizationMainActivity",
+            attemptedChange: isReparent ? "parent" : "name",
             referencedBy: {
               organizationData: organizationDataCount,
               carbonInventories: carbonInventoryCount,
