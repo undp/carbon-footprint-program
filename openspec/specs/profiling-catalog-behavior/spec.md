@@ -94,18 +94,18 @@ Restore MUST reject with `400` and a Spanish sentence on `error.message` when ca
 - **WHEN** an ADMIN calls the restore endpoint on a row whose `status` is already `ACTIVE`
 - **THEN** the response is `400` with a Spanish sentence on `message` and the row is unchanged
 
-### Requirement: Admin list supports status filter and returns isInUse
+### Requirement: Admin list supports status filter and returns impactedChildren
 
 Each `GET /admin/<domain>` endpoint MUST accept `?status=active|deleted|all`, defaulting to `active`. The server MUST reject any other value with `400`.
 
-Each admin list response MUST include `isInUse: boolean` per row, computed inside the same query as an `OR` across the user-data reference counts relevant to the row's domain:
+Each admin list response MUST include `impactedChildren` per row: the per-reference counts that drive the delete-warning dialog on the frontend, computed inside the same query from the catalog `_count` over the references relevant to the row's domain:
 
-- Sector: `organization_data.sectorId` OR `organization_main_activity.countrySectorId` (only counting `organization_main_activity` rows where `status = 'ACTIVE'`)
-- Subsector: `organization_data.subsectorId` OR `organization_main_activity.countrySubsectorId` (only counting `organization_main_activity` rows where `status = 'ACTIVE'`)
-- Main activity: `organization_data.mainActivityId`
-- Organization size: `organization_data.countryOrganizationSizeId`
+- Sector: active subsectors, active main activities, organization data, subcategory recommendations
+- Subsector: active main activities, organization data, subcategory recommendations
+- Main activity: organization data
+- Organization size: organization data
 
-The `isInUse` field drives the edit-warning dialog on the frontend. For main activity, the inclusion of `organization_main_activity.countrySectorId` in the sector computation (and `countrySubsectorId` in the subsector computation) reflects the transitive effect of the main-activity dropdown on end users — soft-deleted (`status = 'DELETED'`) main activities never participate in this transitive count.
+Catalog children MUST be counted ACTIVE-only — a `status = 'DELETED'` child never participates, since the parent has already broken the relationship. Carbon-inventory snapshots (`carbon_inventory.organizationData`) are deliberately NOT counted here: soft-deleting a catalog row never affects a frozen huella, so it is not surfaced in the delete-warning dialog.
 
 #### Scenario: Default filter hides DELETED
 
@@ -121,6 +121,11 @@ The `isInUse` field drives the edit-warning dialog on the frontend. For main act
 
 - **WHEN** a client calls `GET /admin/<domain>?status=purged`
 - **THEN** the response is `400` with a Zod validation error
+
+#### Scenario: impactedChildren counts ACTIVE catalog children only
+
+- **WHEN** an ADMIN lists a domain whose target row has one ACTIVE and one DELETED catalog child of the same kind
+- **THEN** the row's `impactedChildren` count for that kind includes only the ACTIVE child
 
 ### Requirement: Public read endpoints filter to ACTIVE with shape preserved
 
@@ -162,39 +167,49 @@ Read-only displays (e.g., `InventoryAttributesCard`, `Transparency*`, `Submissio
 - **WHEN** the form's selected entity is also present in the ACTIVE list
 - **THEN** the dropdown shows the entity exactly once
 
-### Requirement: In-use warning dialog on edit of visible fields
+### Requirement: Identity edits on an in-use catalog row are blocked
 
-A shared dialog component `InUseWarningDialog` (located under `apps/web/src/screens/Maintainer/components/dialogs/`) SHALL gate PATCH dispatch in the four profiling maintainer screens. The dialog MUST open when both conditions hold on save of a row edit:
+An identity-changing edit to a profiling catalog row — its `name`, or its parent FK(s) (re-parent) — MUST be rejected at the service layer with `EditBlockedByReferencesError` (HTTP `409`, code `EDIT_BLOCKED_BY_REFERENCES`) while the row is referenced, because both the live `organization_data.*` rows and the frozen `carbon_inventory.organizationData` JSON snapshot resolve the catalog row's display name (and, for re-parent, its parent pair) **by id at read time** — so the edit would make a user see a name or parent they never chose, including inside a frozen huella. The thrown error MUST attach `details.attemptedChange: "name" | "parent"` and `details.referencedBy` (the per-reference counts).
 
-1. The edit changes at least one **visible** field:
-   - Sector: `name`
-   - Subsector: `name`, `countrySectorId`
-   - Main activity: `name`, `countrySectorId`, `countrySubsectorId`
-   - Organization size: `name`
-2. The target row's admin-list entry carries `isInUse: true`.
+The guarded edits per catalog:
 
-Edits that modify only `description` MUST NOT open the dialog; the PATCH dispatches directly.
+- `CountrySector` (rubro) and `CountryOrganizationSize` (size): rename only (no parent FK).
+- `CountrySubsector` (subrubro): rename and re-parent (`countrySectorId`).
+- `OrganizationMainActivity` (actividad): rename and re-parent (`countrySectorId` / `countrySubsectorId`).
 
-On confirm, the dialog closes and the PATCH is dispatched. On cancel, the dialog closes and the row stays in edit mode with the pending (unsaved) values.
+What counts as a blocking reference:
 
-The dialog copy MUST be in Spanish. Example (exact wording may vary per domain label): "Este rubro está siendo utilizado por organizaciones y huellas. Cambiar su nombre afectará a todos los usuarios que lo tengan seleccionado. ¿Deseas continuar?".
+- A **rename** is blocked only by **user data**: a live `organization_data.*Id` row OR an ACTIVE `carbon_inventory.organizationData` snapshot whose JSON field equals the row id (the snapshot stores ids as strings, matched by JSON path). ACTIVE catalog children (main activities, subcategory recommendations) alone MUST NOT block a rename.
+- A **re-parent** is blocked by **any** dependent: the user data above PLUS ACTIVE catalog children.
 
-The dialog MUST NOT apply to soft-delete or restore actions — those are governed by their own confirmation flows (and the soft-delete blocking rules above).
+A no-op edit (same name / same parent), a `description`-only edit, and a reference that lives only in a DELETED carbon inventory MUST NEVER block. Re-identification is only possible by soft-deleting the row (which cascades) and re-creating it under the correct name/parent, so existing references keep resolving to the value the user originally picked.
 
-#### Scenario: Rename of in-use row triggers the dialog
+The frontend MUST surface the `409` in a `BlockedActionDialog` (not a confirm dialog) carrying the localized reason and the delete-then-recreate hint. There is no "continue anyway" path — the block is authoritative on the server.
 
-- **WHEN** an ADMIN renames a row whose `isInUse` is `true` and clicks save
-- **THEN** `InUseWarningDialog` appears; the PATCH is NOT dispatched until confirm
+#### Scenario: Rename of an in-use row is blocked
 
-#### Scenario: Description-only edit bypasses the dialog
+- **WHEN** an ADMIN renames a row referenced by a live `organization_data` row or an ACTIVE carbon-inventory snapshot
+- **THEN** the response is `409` (`EDIT_BLOCKED_BY_REFERENCES`, `attemptedChange: "name"`) and the `name` is unchanged
 
-- **WHEN** an ADMIN edits only the `description` of a row whose `isInUse` is `true`
-- **THEN** the PATCH dispatches directly with no dialog
+#### Scenario: Rename blocked only by catalog children is allowed
 
-#### Scenario: Rename of not-in-use row bypasses the dialog
+- **WHEN** an ADMIN renames a subsector that has ACTIVE main activities but no `organization_data` or ACTIVE-snapshot references
+- **THEN** the response is `200` — catalog children do not block a rename
 
-- **WHEN** an ADMIN renames a row whose `isInUse` is `false`
-- **THEN** the PATCH dispatches directly with no dialog
+#### Scenario: Re-parent of an in-use row is blocked
+
+- **WHEN** an ADMIN re-parents a subsector or main activity that has any ACTIVE catalog child, `organization_data` row, or ACTIVE carbon-inventory snapshot
+- **THEN** the response is `409` (`EDIT_BLOCKED_BY_REFERENCES`, `attemptedChange: "parent"`) and the parent is unchanged
+
+#### Scenario: Description-only edit is always allowed
+
+- **WHEN** an ADMIN edits only the `description` of an in-use row
+- **THEN** the response is `200` with no block
+
+#### Scenario: DELETED snapshot does not block
+
+- **WHEN** the only reference to a row is the `organizationData` snapshot of a DELETED carbon inventory
+- **THEN** a rename or re-parent of the row is allowed (`200`)
 
 ### Requirement: Admin screens expose status filter and restore action
 
@@ -227,7 +242,7 @@ The component MUST:
 - Wrap the grid area with a `FormProvider` fed by the screen's `useForm` instance.
 - Render `MaintainerPageHeader` at the top (reused from the existing maintainer layout), passing through `title`, `addLabel`, `onAddRow`, `addDisabled`, and the status filter toggle via the `extra` slot.
 - Render the standard `UnsavedChangesDialog` driven by the screen's `useBlocker` result.
-- Render the shared `InUseWarningDialog` as a child, wired to the screen's pending-edit state.
+- Expose an `extraDialogs` slot for screen-owned dialogs (e.g. the `BlockedActionDialog` that surfaces a blocked edit or blocked restore).
 - Accept a single `children` slot for the DataGrid.
 
 The component MUST NOT include: methodology selector, InfoBanner, EditModeToolbar, or ExitEditModeDialog. The existing `MaintainerScreenLayout` and its hooks (`useMaintainerEditingState`, `useMaintainerExitEditMode`, `useMaintainerMethodologyScope`) MUST NOT be modified as part of this change. Any prior plan to make `scope` optional on `MaintainerScreenLayout` is explicitly withdrawn.
