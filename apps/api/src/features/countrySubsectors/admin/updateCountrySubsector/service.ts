@@ -38,14 +38,6 @@ export const updateCountrySubsectorService = async (
 
   try {
     return await prismaClient.$transaction(async (tx) => {
-      const subsector = await tx.countrySubsector.findUnique({
-        where: { id: subsectorId },
-        select: { id: true, countrySectorId: true },
-      });
-      if (!subsector) {
-        throw new ResourceNotFoundError("CountrySubsector", id);
-      }
-
       const updateData: Prisma.CountrySubsectorUpdateInput = {
         updater: { connect: { id: BigInt(user.id) } },
       };
@@ -57,76 +49,85 @@ export const updateCountrySubsectorService = async (
       }
 
       // Re-parenting (changing the parent sector) is the only update guarded —
-      // editing name/description is always allowed. A genuine re-parent is
-      // blocked while the subsector still has dependents, because it would
-      // silently move them (and the denormalized parent columns the
-      // delete-cascade relies on) to a different sector. Re-association is only
-      // allowed by soft-deleting the subsector (which cascades) and re-creating
-      // it under the correct sector. Organization data is included because it
-      // carries the subsector into a country's carbon inventories, so its parent
-      // sector must stay stable.
-      if (
-        data.countrySectorId !== undefined &&
-        BigInt(data.countrySectorId) !== subsector.countrySectorId
-      ) {
-        const newSectorId = BigInt(data.countrySectorId);
-        const parent = await tx.countrySector.findFirst({
-          where: { id: newSectorId, status: CountrySectorStatus.ACTIVE },
-          select: { id: true },
+      // editing name/description is always allowed, so we only fetch the current
+      // parent here (not on every patch). A genuine re-parent is blocked while
+      // the subsector still has dependents, because it would silently move them
+      // (and the denormalized parent columns the delete-cascade relies on) to a
+      // different sector. Re-association is only allowed by soft-deleting the
+      // subsector (which cascades) and re-creating it under the correct sector.
+      // Organization data is included because it carries the subsector into a
+      // country's carbon inventories, so its parent sector must stay stable.
+      if (data.countrySectorId !== undefined) {
+        const subsector = await tx.countrySubsector.findUnique({
+          where: { id: subsectorId },
+          select: { countrySectorId: true },
         });
-        if (!parent) {
-          throw new ResourceNotFoundError(
-            "CountrySector",
-            data.countrySectorId
-          );
+        if (!subsector) {
+          throw new ResourceNotFoundError("CountrySubsector", id);
         }
 
-        const [
-          activeMainActivityCount,
-          activeSubcategoryRecommendationCount,
-          organizationDataCount,
-        ] = await Promise.all([
-          tx.organizationMainActivity.count({
-            where: {
-              countrySubsectorId: subsectorId,
-              status: OrganizationMainActivityStatus.ACTIVE,
-            },
-          }),
-          tx.subcategoryRecommendation.count({
-            where: {
-              subsectorId,
-              status: SubcategoryRecommendationStatus.ACTIVE,
-            },
-          }),
-          tx.organizationData.count({ where: { subsectorId } }),
-        ]);
-
-        if (
-          activeMainActivityCount > 0 ||
-          activeSubcategoryRecommendationCount > 0 ||
-          organizationDataCount > 0
-        ) {
-          const referencedBy: string[] = [];
-          if (activeMainActivityCount > 0) referencedBy.push("main activities");
-          if (activeSubcategoryRecommendationCount > 0)
-            referencedBy.push("subcategory recommendations");
-          if (organizationDataCount > 0) referencedBy.push("organization data");
-
-          const error = new ReparentBlockedByReferencesError(
-            referencedBy.join(", ")
-          );
-          throw attachDetails(error, {
-            resourceType: "CountrySubsector",
-            referencedBy: {
-              activeMainActivities: activeMainActivityCount,
-              activeSubcategoryRecommendations:
-                activeSubcategoryRecommendationCount,
-              organizationData: organizationDataCount,
-            },
+        if (BigInt(data.countrySectorId) !== subsector.countrySectorId) {
+          const newSectorId = BigInt(data.countrySectorId);
+          const parent = await tx.countrySector.findFirst({
+            where: { id: newSectorId, status: CountrySectorStatus.ACTIVE },
+            select: { id: true },
           });
-        }
+          if (!parent) {
+            throw new ResourceNotFoundError(
+              "CountrySector",
+              data.countrySectorId
+            );
+          }
 
-        updateData.countrySector = { connect: { id: newSectorId } };
+          const [
+            activeMainActivityCount,
+            activeSubcategoryRecommendationCount,
+            organizationDataCount,
+          ] = await Promise.all([
+            tx.organizationMainActivity.count({
+              where: {
+                countrySubsectorId: subsectorId,
+                status: OrganizationMainActivityStatus.ACTIVE,
+              },
+            }),
+            tx.subcategoryRecommendation.count({
+              where: {
+                subsectorId,
+                status: SubcategoryRecommendationStatus.ACTIVE,
+              },
+            }),
+            tx.organizationData.count({ where: { subsectorId } }),
+          ]);
+
+          if (
+            activeMainActivityCount > 0 ||
+            activeSubcategoryRecommendationCount > 0 ||
+            organizationDataCount > 0
+          ) {
+            const referencedBy: string[] = [];
+            if (activeMainActivityCount > 0)
+              referencedBy.push("main activities");
+            if (activeSubcategoryRecommendationCount > 0)
+              referencedBy.push("subcategory recommendations");
+            if (organizationDataCount > 0)
+              referencedBy.push("organization data");
+
+            const error = new ReparentBlockedByReferencesError(
+              referencedBy.join(", ")
+            );
+            throw attachDetails(error, {
+              resourceType: "CountrySubsector",
+              referencedBy: {
+                activeMainActivities: activeMainActivityCount,
+                activeSubcategoryRecommendations:
+                  activeSubcategoryRecommendationCount,
+                organizationData: organizationDataCount,
+              },
+            });
+          }
+
+          updateData.countrySector = { connect: { id: newSectorId } };
+        }
       }
 
       const updated = await tx.countrySubsector.update({
