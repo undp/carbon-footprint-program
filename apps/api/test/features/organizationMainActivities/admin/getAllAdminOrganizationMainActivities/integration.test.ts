@@ -140,7 +140,7 @@ describe("GET /api/admin/organization-main-activities - Integration Tests", () =
     expect(row).toBeDefined();
     expect(row!.countrySectorName).toBe(sector.name);
     expect(row!.countrySubsectorName).toBe(sub.name);
-    expect(row!.isInUse).toBe(false);
+    expect(row!.impactedChildren.organizationData).toBe(0);
   });
 
   it("returns 400 for an invalid status value", async () => {

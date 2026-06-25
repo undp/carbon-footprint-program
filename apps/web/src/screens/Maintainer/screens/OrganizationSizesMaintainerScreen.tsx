@@ -57,7 +57,6 @@ const toFormSize = (
   description: s.description,
   position: s.position,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -163,7 +162,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       // Server assigns the real position on create; this temp value is replaced after persist.
       position: Number.MAX_SAFE_INTEGER,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,

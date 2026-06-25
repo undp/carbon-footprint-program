@@ -16,7 +16,7 @@ export const getAllAdminCountrySectorsRoute = defineRoute<{
     tags: ["admin-country-sectors"],
     summary: "Get all country sectors (admin view)",
     description:
-      "Returns all country sectors with admin fields (status, description, audit fields, isInUse). Filter via ?status=active|deleted|all (default active).",
+      "Returns all country sectors with admin fields (status, description, audit fields, impactedChildren). Filter via ?status=active|deleted|all (default active).",
     querystring: GetAllAdminCountrySectorsQuerySchema,
     response: {
       200: GetAllAdminCountrySectorsResponseSchema,

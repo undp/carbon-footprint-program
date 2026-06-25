@@ -123,7 +123,7 @@ describe("GET /api/admin/country-subsectors - Integration Tests", () => {
     expect(body.find((r) => r.id === deleted.id.toString())).toBeDefined();
   });
 
-  it("rows expose isInUse — flips true when an ACTIVE main activity references it", async () => {
+  it("counts ACTIVE main activities in impactedChildren", async () => {
     const parent = await createTestCountrySector(prisma, {
       name: uniqueName("ParentInUse"),
     });
@@ -147,7 +147,7 @@ describe("GET /api/admin/country-subsectors - Integration Tests", () => {
 
     const row = body.find((r) => r.id === sub.id.toString());
     expect(row).toBeDefined();
-    expect(row!.isInUse).toBe(true);
+    expect(row!.impactedChildren.activeMainActivities).toBe(1);
   });
 
   it("returns 400 for an invalid status value", async () => {

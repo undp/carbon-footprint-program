@@ -58,7 +58,6 @@ const toFormMainActivity = (
   countrySectorId: s.countrySectorId,
   countrySubsectorId: s.countrySubsectorId,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -253,7 +252,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       countrySectorId: null,
       countrySubsectorId: null,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,

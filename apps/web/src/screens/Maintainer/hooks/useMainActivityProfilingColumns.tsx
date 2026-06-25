@@ -24,7 +24,6 @@ export const MainActivityRowSchema = z.object({
   countrySectorId: z.string().nullable(),
   countrySubsectorId: z.string().nullable(),
   status: z.enum(OrganizationMainActivityStatus).nullable(),
-  isInUse: z.boolean(),
   impactedChildren: z.object({
     organizationData: z.number().int().nonnegative(),
   }),

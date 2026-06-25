@@ -48,7 +48,6 @@ const toFormSector = (s: AdminCountrySector): SectorFormRow => ({
   name: s.name,
   description: s.description,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -145,7 +144,6 @@ export const SectorsMaintainerScreen: FC = () => {
       name: "",
       description: null,
       status: null,
-      isInUse: false,
       impactedChildren: {
         activeSubsectors: 0,
         activeMainActivities: 0,

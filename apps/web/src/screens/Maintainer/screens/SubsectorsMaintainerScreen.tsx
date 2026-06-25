@@ -53,7 +53,6 @@ const toFormSubsector = (s: AdminCountrySubsector): SubsectorFormRow => ({
   description: s.description,
   countrySectorId: s.countrySectorId,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -188,7 +187,6 @@ export const SubsectorsMaintainerScreen: FC = () => {
         subcategoryRecommendations: 0,
       },
       status: null,
-      isInUse: false,
     }),
     createMutation,
     updateMutation,

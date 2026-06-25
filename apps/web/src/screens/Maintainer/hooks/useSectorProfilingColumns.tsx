@@ -22,7 +22,6 @@ export const SectorRowSchema = z.object({
     .max(2000, "La descripción no puede superar los 2000 caracteres")
     .nullable(),
   status: z.enum(CountrySectorStatus).nullable(),
-  isInUse: z.boolean(),
   impactedChildren: z.object({
     activeSubsectors: z.number().int().nonnegative(),
     activeMainActivities: z.number().int().nonnegative(),

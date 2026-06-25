@@ -112,7 +112,7 @@ describe("GET /api/admin/country-organization-sizes - Integration Tests", () => 
     expect(body.find((r) => r.id === deleted.id.toString())).toBeDefined();
   });
 
-  it("isInUse flips to true when an ACTIVE organization references the size", async () => {
+  it("counts referencing organizations in impactedChildren", async () => {
     const size = await createTestCountryOrganizationSize(prisma, {
       name: uniqueName("InUse"),
     });
@@ -136,7 +136,7 @@ describe("GET /api/admin/country-organization-sizes - Integration Tests", () => 
     ) as GetAllAdminCountryOrganizationSizesResponse;
     const row = body.find((r) => r.id === size.id.toString());
     expect(row).toBeDefined();
-    expect(row!.isInUse).toBe(true);
+    expect(row!.impactedChildren.organizationData).toBe(1);
   });
 
   it("returns 400 for an invalid status value", async () => {

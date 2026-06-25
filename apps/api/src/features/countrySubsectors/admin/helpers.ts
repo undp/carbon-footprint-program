@@ -40,11 +40,6 @@ export const mapCountrySubsectorToAdmin = (
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
     createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
-    isInUse:
-      counts.organizationData +
-        counts.organizationMainActivities +
-        counts.subcategoryRecommendations >
-      0,
     impactedChildren: {
       activeMainActivities: counts.organizationMainActivities,
       organizationData: counts.organizationData,

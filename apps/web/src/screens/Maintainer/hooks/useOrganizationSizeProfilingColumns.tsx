@@ -23,7 +23,6 @@ export const OrganizationSizeRowSchema = z.object({
     .nullable(),
   position: z.number().int().positive(),
   status: z.enum(CountryOrganizationSizeStatus).nullable(),
-  isInUse: z.boolean(),
   impactedChildren: z.object({
     organizationData: z.number().int().nonnegative(),
   }),
