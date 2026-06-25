@@ -1,5 +1,10 @@
-import { type PrismaClient, MeasurementUnitStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  EmissionFactorStatus,
+  MeasurementUnitStatus,
+} from "@repo/database";
 import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
+import { activeLineInputFilter } from "../helpers.js";
 import { buildCountMapFromGroups } from "./helpers.js";
 
 export const getAllRateMeasurementUnitsService = async (
@@ -17,10 +22,14 @@ export const getAllRateMeasurementUnitsService = async (
       }),
       prismaClient.emissionFactor.groupBy({
         by: ["rateMeasurementUnitId"],
+        // Emission factors are soft-deleted when their subcategory is deleted,
+        // so exclude them or the rate unit stays "in use" and undeletable.
+        where: { status: EmissionFactorStatus.ACTIVE },
         _count: { _all: true },
       }),
       prismaClient.carbonInventoryLineFactor.groupBy({
         by: ["appliedFactorRateUnitId"],
+        where: { lineInput: activeLineInputFilter },
         _count: { _all: true },
       }),
     ]);

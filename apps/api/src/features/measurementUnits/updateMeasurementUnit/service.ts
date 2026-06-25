@@ -15,7 +15,7 @@ import {
 } from "@/errors/index.js";
 import {
   resolveKgMeasurementUnit,
-  getReferenceCount,
+  getMeasurementUnitReferenceCount,
   buildCanonicalRmuFields,
   assertNotKgMu,
 } from "../helpers.js";
@@ -76,7 +76,7 @@ export const updateMeasurementUnitService = async (
         throw new MeasurementUnitFieldsLockedError();
       }
 
-      const refCount = await getReferenceCount(tx, target.id);
+      const refCount = await getMeasurementUnitReferenceCount(tx, target.id);
 
       if (refCount > 0 && hasStructuralChange) {
         throw new MeasurementUnitFieldsLockedError();
