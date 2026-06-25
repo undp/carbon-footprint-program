@@ -107,16 +107,14 @@ export const updateCountrySubsectorService = async (
           organizationDataCount > 0
         ) {
           const referencedBy: string[] = [];
-          if (activeMainActivityCount > 0)
-            referencedBy.push("actividades principales");
+          if (activeMainActivityCount > 0) referencedBy.push("main activities");
           if (activeSubcategoryRecommendationCount > 0)
-            referencedBy.push("recomendaciones de subcategoría");
-          if (organizationDataCount > 0) referencedBy.push("organizaciones");
+            referencedBy.push("subcategory recommendations");
+          if (organizationDataCount > 0) referencedBy.push("organization data");
 
           const error = new ReparentBlockedByReferencesError(
             referencedBy.join(", ")
           );
-          error.message = `No se puede cambiar el rubro del subrubro porque tiene ${referencedBy.join(", ")}. Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.`;
           throw attachDetails(error, {
             resourceType: "CountrySubsector",
             referencedBy: {
