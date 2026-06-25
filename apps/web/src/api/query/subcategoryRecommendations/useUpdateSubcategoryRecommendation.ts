@@ -4,7 +4,7 @@ import type {
   UpdateSubcategoryRecommendationResponse,
 } from "@repo/types";
 import { apiClient } from "@/api/http";
-import { subcategoryRecommendationKeys } from "./keys";
+import { MaintainerQueryKey } from "../maintainer/keys";
 
 export const useUpdateSubcategoryRecommendation = () => {
   const queryClient = useQueryClient();
@@ -18,9 +18,12 @@ export const useUpdateSubcategoryRecommendation = () => {
       apiClient
         .put("subcategory-recommendations", { json: body })
         .json<UpdateSubcategoryRecommendationResponse>(),
-    onSuccess: async (_data, variables) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: subcategoryRecommendationKeys.list(variables.methodologyId),
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoryRecommendationsUpdateDependency
+          ),
       });
     },
   });

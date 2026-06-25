@@ -18,8 +18,10 @@ import {
 import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
+  CountrySectorStatus,
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
+  SubcategoryRecommendationStatus,
 } from "@repo/database";
 
 const TEST_PREFIX = "Test - AdminSubDel ";
@@ -40,6 +42,11 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
 
   afterEach(async () => {
     await cleanupTestOrganization(prisma);
+    // Recommendations reference sectors/subsectors with a non-cascading FK, so
+    // they must be removed before the catalog rows they point at.
+    await prisma.subcategoryRecommendation.deleteMany({
+      where: { sector: { name: { startsWith: TEST_PREFIX } } },
+    });
     await prisma.organizationMainActivity.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -54,6 +61,18 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
   function uniqueName(suffix: string): string {
     const random = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     return `${TEST_PREFIX}${suffix} ${random}`;
+  }
+
+  async function getSeededSubcategoryId(): Promise<bigint> {
+    const subcategory = await prisma.subcategory.findFirst({
+      select: { id: true },
+    });
+    if (!subcategory) {
+      throw new Error(
+        "No seeded subcategory found. Ensure the test database is seeded."
+      );
+    }
+    return subcategory.id;
   }
 
   it("soft-deletes a clean subsector", async () => {
@@ -76,18 +95,24 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
     expect(reloaded!.status).toBe(CountrySubsectorStatus.DELETED);
   });
 
-  it("allows soft-delete when referenced only by DELETED main activities", async () => {
+  it("cascade soft-deletes ACTIVE main activities and subcategory recommendations", async () => {
     const parent = await createTestCountrySector(prisma, {
       name: uniqueName("Parent"),
     });
     const sub = await createTestCountrySubsector(prisma, parent.id, {
-      name: uniqueName("Sub"),
+      name: uniqueName("WithChildren"),
     });
-    await createTestOrganizationMainActivity(prisma, {
-      name: uniqueName("DeadMA"),
+    const mainActivity = await createTestOrganizationMainActivity(prisma, {
+      name: uniqueName("ActiveMA"),
       countrySubsectorId: sub.id,
       countrySectorId: parent.id,
-      status: OrganizationMainActivityStatus.DELETED,
+    });
+    const recommendation = await prisma.subcategoryRecommendation.create({
+      data: {
+        subcategoryId: await getSeededSubcategoryId(),
+        sectorId: parent.id,
+        subsectorId: sub.id,
+      },
     });
 
     const response = await app.inject({
@@ -95,9 +120,62 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
       url: `/api/admin/country-subsectors/${sub.id.toString()}`,
     });
     expect(response.statusCode).toBe(200);
+
+    const [dbSubsector, dbMainActivity, dbRecommendation, dbParent] =
+      await Promise.all([
+        prisma.countrySubsector.findUnique({ where: { id: sub.id } }),
+        prisma.organizationMainActivity.findUnique({
+          where: { id: mainActivity.id },
+        }),
+        prisma.subcategoryRecommendation.findUnique({
+          where: { id: recommendation.id },
+        }),
+        prisma.countrySector.findUnique({ where: { id: parent.id } }),
+      ]);
+    expect(dbSubsector!.status).toBe(CountrySubsectorStatus.DELETED);
+    expect(dbMainActivity!.status).toBe(OrganizationMainActivityStatus.DELETED);
+    expect(dbRecommendation!.status).toBe(
+      SubcategoryRecommendationStatus.DELETED
+    );
+    // The parent sector is never touched by a subsector delete.
+    expect(dbParent!.status).toBe(CountrySectorStatus.ACTIVE);
   });
 
-  it("does NOT block when only user data (organizationData) references the subsector", async () => {
+  it("does NOT touch sibling subsectors of the same sector", async () => {
+    const parent = await createTestCountrySector(prisma, {
+      name: uniqueName("Parent"),
+    });
+    const target = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("Target"),
+    });
+    const sibling = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("Sibling"),
+    });
+    const siblingActivity = await createTestOrganizationMainActivity(prisma, {
+      name: uniqueName("SiblingMA"),
+      countrySubsectorId: sibling.id,
+      countrySectorId: parent.id,
+    });
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/api/admin/country-subsectors/${target.id.toString()}`,
+    });
+    expect(response.statusCode).toBe(200);
+
+    const [dbSibling, dbSiblingActivity] = await Promise.all([
+      prisma.countrySubsector.findUnique({ where: { id: sibling.id } }),
+      prisma.organizationMainActivity.findUnique({
+        where: { id: siblingActivity.id },
+      }),
+    ]);
+    expect(dbSibling!.status).toBe(CountrySubsectorStatus.ACTIVE);
+    expect(dbSiblingActivity!.status).toBe(
+      OrganizationMainActivityStatus.ACTIVE
+    );
+  });
+
+  it("does NOT touch user data (organizationData) — the reference is preserved", async () => {
     const parent = await createTestCountrySector(prisma, {
       name: uniqueName("Parent"),
     });
@@ -105,7 +183,7 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
       name: uniqueName("UserData"),
     });
     const organization = await createTestOrganization(prisma);
-    await prisma.organizationData.create({
+    const orgData = await prisma.organizationData.create({
       data: {
         organizationId: organization.id,
         legalName: "Test Org",
@@ -119,39 +197,33 @@ describe("DELETE /api/admin/country-subsectors/:id - Integration Tests", () => {
       url: `/api/admin/country-subsectors/${sub.id.toString()}`,
     });
     expect(response.statusCode).toBe(200);
-  });
 
-  it("returns 409 when an ACTIVE main activity references it", async () => {
-    const parent = await createTestCountrySector(prisma, {
-      name: uniqueName("Parent"),
+    const reloadedOrgData = await prisma.organizationData.findUnique({
+      where: { id: orgData.id },
     });
-    const sub = await createTestCountrySubsector(prisma, parent.id, {
-      name: uniqueName("WithActiveMA"),
-    });
-    await createTestOrganizationMainActivity(prisma, {
-      name: uniqueName("ActiveMA"),
-      countrySubsectorId: sub.id,
-      countrySectorId: parent.id,
-    });
-
-    const response = await app.inject({
-      method: "DELETE",
-      url: `/api/admin/country-subsectors/${sub.id.toString()}`,
-    });
-    expect(response.statusCode).toBe(409);
-    const body = JSON.parse(response.body) as { code: string };
-    expect(body.code).toBe("DELETE_BLOCKED_BY_REFERENCES");
-
-    const reloaded = await prisma.countrySubsector.findUnique({
-      where: { id: sub.id },
-    });
-    expect(reloaded!.status).toBe(CountrySubsectorStatus.ACTIVE);
+    expect(reloadedOrgData!.subsectorId).toBe(sub.id);
   });
 
   it("returns 404 when subsector id does not exist", async () => {
     const response = await app.inject({
       method: "DELETE",
       url: "/api/admin/country-subsectors/9999999999",
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
+  it("returns 404 when the subsector is already DELETED", async () => {
+    const parent = await createTestCountrySector(prisma, {
+      name: uniqueName("Parent"),
+    });
+    const sub = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("AlreadyDeleted"),
+      status: CountrySubsectorStatus.DELETED,
+    });
+
+    const response = await app.inject({
+      method: "DELETE",
+      url: `/api/admin/country-subsectors/${sub.id.toString()}`,
     });
     expect(response.statusCode).toBe(404);
   });

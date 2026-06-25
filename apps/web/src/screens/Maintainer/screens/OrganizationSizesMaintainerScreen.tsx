@@ -20,8 +20,7 @@ import {
   useSwapCountryOrganizationSizePositions,
 } from "@/api/query/countryOrganizationSizes";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -58,7 +57,6 @@ const toFormSize = (
   description: s.description,
   position: s.position,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -157,7 +155,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
         body.description = formRow.description;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) => body.name !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -165,7 +162,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       // Server assigns the real position on create; this temp value is replaced after persist.
       position: Number.MAX_SAFE_INTEGER,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,
@@ -296,16 +292,17 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       explanationSlug={ORGANIZATION_SIZES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="tamaño"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede cambiar el nombre del tamaño de organización"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }

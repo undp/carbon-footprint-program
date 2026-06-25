@@ -22,8 +22,7 @@ import {
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { useAdminCountrySubsectors } from "@/api/query/countrySubsectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -59,7 +58,6 @@ const toFormMainActivity = (
   countrySectorId: s.countrySectorId,
   countrySubsectorId: s.countrySubsectorId,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -247,10 +245,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         body.countrySubsectorId = formRow.countrySubsectorId;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) =>
-      body.name !== undefined ||
-      body.countrySectorId !== undefined ||
-      body.countrySubsectorId !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -258,7 +252,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       countrySectorId: null,
       countrySubsectorId: null,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,
@@ -343,16 +336,17 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       explanationSlug={MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="actividad principal"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede editar la actividad principal"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }

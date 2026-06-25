@@ -8,8 +8,13 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import type { ProfilingEntityLabel } from "./InUseWarningDialog";
 import { VOCAB } from "@/config/vocab";
+
+export type ProfilingEntityLabel =
+  | "rubro"
+  | "subrubro"
+  | "actividad principal"
+  | "tamaño";
 
 interface ImpactedChildren {
   activeSubsectors?: number;

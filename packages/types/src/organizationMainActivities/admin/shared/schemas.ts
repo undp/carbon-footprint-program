@@ -3,7 +3,7 @@ import { OrganizationMainActivityBaseSchema } from "../../../baseSchemas/index.j
 
 /**
  * Admin-facing shape of an OrganizationMainActivity record. Includes status, description,
- * audit fields, parent display names (for the admin grid), and `isInUse`.
+ * audit fields, parent display names (for the admin grid), and `impactedChildren`.
  */
 export const AdminOrganizationMainActivitySchema =
   OrganizationMainActivityBaseSchema.extend({
@@ -15,11 +15,6 @@ export const AdminOrganizationMainActivitySchema =
       .string()
       .nullable()
       .describe("Name of the parent country subsector, if any"),
-    isInUse: z
-      .boolean()
-      .describe(
-        "Whether the row is referenced by user data (organization profiling)"
-      ),
     impactedChildren: z
       .object({
         organizationData: z.number().int().nonnegative(),

@@ -63,7 +63,7 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
       expect(body.name).toBe(name);
       expect(body.description).toBe("A test sector");
       expect(body.status).toBe(CountrySectorStatus.ACTIVE);
-      expect(body.isInUse).toBe(false);
+      expect(body.impactedChildren.organizationData).toBe(0);
 
       const dbRow = await prisma.countrySector.findUnique({
         where: { id: BigInt(body.id) },

@@ -41,7 +41,7 @@ The full-table unique constraints `(countryId, name)` on `CountrySector` and `(c
 The system SHALL expose the following admin endpoints under `/admin/country-sectors`, all requiring authentication AND `SystemRole.ADMIN` or `SystemRole.SUPERADMIN`:
 
 - `POST /admin/country-sectors` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000) }`. Server resolves `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`. Stamps `createdById` from `request.currentUser`. Response: `201` with the admin sector record.
-- `GET /admin/country-sectors?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `isInUse`) and nested subsectors filtered by the same `status` parameter. Default `status=active`. Sort by sector name ASC, nested subsectors by name ASC.
+- `GET /admin/country-sectors?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `impactedChildren`) and nested subsectors filtered by the same `status` parameter. Default `status=active`. Sort by sector name ASC, nested subsectors by name ASC.
 - `PATCH /admin/country-sectors/:id` — partial update. Any of `name`, `description` MAY be provided; the body MUST contain at least one field (empty `{}` → `400`). Stamps `updatedById`. Response: `200`.
 - `DELETE /admin/country-sectors/:id` — **soft-delete** (transitions `status: ACTIVE → DELETED`). Subject to the catalog-reference blocking rules below. Response: `200` with an empty body (the frontend invalidates and refetches; no consumer reads the deleted row).
 - `POST /admin/country-sectors/:id/restore` — restore (transitions `status: DELETED → ACTIVE`). Rejected `409` via `DatabaseUniqueConstraintViolationError` if the `name` collides with a currently-ACTIVE sector in the same country. Response: `200` with the updated record.
@@ -50,7 +50,7 @@ All endpoints MUST return `401` for unauthenticated requests and `403` for `Syst
 
 The `description` field MUST follow PATCH tri-state semantics: `undefined` leaves the stored value unchanged; `null` clears it; `""` is normalized to `null` at the service layer. The `name` field MUST be validated as `.trim().min(1).max(255)`.
 
-The admin list response MUST include a per-row `isInUse: boolean` computed as `OR` across the user-data references (`organization_data.sectorId`) AND catalog references that carry user effect transitively (`organization_main_activity.countrySectorId`). This powers the edit-warning dialog trigger on the frontend.
+The admin list response MUST include a per-row `impactedChildren` object with the ACTIVE-only counts that drive the delete-warning dialog: active subsectors, active main activities, organization data, and subcategory recommendations.
 
 #### Scenario: Admin soft-deletes a sector with no references
 
@@ -74,13 +74,15 @@ The admin list response MUST include a per-row `isInUse: boolean` computed as `O
 
 ### Requirement: Admin CRUD endpoints over country subsectors
 
-The system SHALL expose analogous admin endpoints under `/admin/country-subsectors` (`POST`, `GET`, `PATCH /:id`, `DELETE /:id`, `POST /:id/restore`). Authorization, auditor stamping, description normalization, status filter, and `isInUse` behavior MUST match the sector endpoints.
+The system SHALL expose analogous admin endpoints under `/admin/country-subsectors` (`POST`, `GET`, `PATCH /:id`, `DELETE /:id`, `POST /:id/restore`). Authorization, auditor stamping, description normalization, status filter, and `impactedChildren` behavior MUST match the sector endpoints.
 
 The create endpoint body MUST require `countrySectorId: string` and SHALL validate inside `prisma.$transaction` that the parent sector exists AND is `ACTIVE`. A non-existent or DELETED parent MUST result in `404` via `ResourceNotFoundError`. The update endpoint MAY accept `countrySectorId` for re-parenting; the new parent MUST be validated the same way.
 
+Identity edits to a subsector — its `name` or its parent `countrySectorId` — are guarded by `EditBlockedByReferencesError` (HTTP `409`, code `EDIT_BLOCKED_BY_REFERENCES`, with `details.attemptedChange`). A **re-parent** (a `PATCH` that changes `countrySectorId` to a different sector) is blocked while the subsector has **any** dependent: an ACTIVE `OrganizationMainActivity.countrySubsectorId`, an ACTIVE `SubcategoryRecommendation.subsectorId`, an `OrganizationData.subsectorId` row, or an ACTIVE `carbon_inventory.organizationData` snapshot referencing it. A **rename** is blocked only while **user data** references it (an `OrganizationData.subsectorId` row or an ACTIVE snapshot); ACTIVE catalog children alone do NOT block a rename. This keeps the denormalized parent columns the delete-cascade relies on from drifting and stops a user from seeing a name/parent they never chose; re-identification is only possible by soft-deleting the subsector (which cascades) and re-creating it. Editing only `description`, a no-op (same name / same sector), and a reference that lives only in a DELETED carbon inventory MUST never block.
+
 The admin list response SHALL include `countrySectorId` and the parent sector's `name`. Sort by parent sector name ASC, subsector name ASC.
 
-`isInUse` for subsector is computed as `OR` across `organization_data.subsectorId` AND `organization_main_activity.countrySubsectorId`.
+`impactedChildren` for subsector carries the ACTIVE-only counts of main activities, organization data, and subcategory recommendations.
 
 #### Scenario: Subsector creation rejects DELETED parent
 
@@ -89,45 +91,55 @@ The admin list response SHALL include `countrySectorId` and the parent sector's 
 
 #### Scenario: Subsector re-parenting validated inside transaction
 
-- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` with a new `countrySectorId` pointing at an ACTIVE sector and the subsector has no dependents
 - **THEN** the subsector's parent is updated atomically alongside the validation
 
-### Requirement: Soft-delete blocks on ACTIVE catalog references only
+#### Scenario: Re-parenting a subsector with dependents is blocked
 
-`DELETE /admin/country-sectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the sector:
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` changing `countrySectorId` on a subsector that has at least one ACTIVE main activity, ACTIVE subcategory recommendation, `organization_data` row, or ACTIVE carbon-inventory snapshot referencing it
+- **THEN** the response is `409` (`EDIT_BLOCKED_BY_REFERENCES`, `attemptedChange: "parent"`) and the subsector's `countrySectorId` is unchanged
+
+#### Scenario: Renaming a subsector in use is blocked
+
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` changing `name` on a subsector referenced by an `organization_data` row or an ACTIVE carbon-inventory snapshot
+- **THEN** the response is `409` (`EDIT_BLOCKED_BY_REFERENCES`, `attemptedChange: "name"`) and the subsector's `name` is unchanged
+
+#### Scenario: Editing only the description is never blocked
+
+- **WHEN** an ADMIN calls `PATCH /admin/country-subsectors/:id` changing only `description` on a subsector that has dependents
+- **THEN** the response is `200` and the change is persisted
+
+### Requirement: Soft-delete cascades over ACTIVE catalog children
+
+`DELETE /admin/country-sectors/:id` MUST soft-delete the sector (status `ACTIVE` → `DELETED`) and, in the same transaction, cascade soft-delete every ACTIVE row that references it:
 
 - `CountrySubsector.countrySectorId = id` AND `CountrySubsector.status = 'ACTIVE'`
 - `OrganizationMainActivity.countrySectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
-- `SubcategoryRecommendation.sectorId = id`
+- `SubcategoryRecommendation.sectorId = id` AND `SubcategoryRecommendation.status = 'ACTIVE'`
 
-`DELETE /admin/country-subsectors/:id` MUST throw `DeleteBlockedByReferencesError` (HTTP `409`) if ANY of the following ACTIVE rows reference the subsector:
+`DELETE /admin/country-subsectors/:id` MUST soft-delete the subsector and cascade soft-delete every ACTIVE row that references it:
 
 - `OrganizationMainActivity.countrySubsectorId = id` AND `OrganizationMainActivity.status = 'ACTIVE'`
-- `SubcategoryRecommendation.subsectorId = id`
+- `SubcategoryRecommendation.subsectorId = id` AND `SubcategoryRecommendation.status = 'ACTIVE'`
 
-User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT block soft-delete. The front-side selector union covers the display of those rows.
+A delete is NEVER blocked by catalog references. User-data references (`OrganizationData.sectorId`, `OrganizationData.subsectorId`) MUST NOT be modified by the cascade; the front-side selector union covers the display of those rows.
 
-Reference checks and the status update MUST occur inside a single `prisma.$transaction`. The `DeleteBlockedByReferencesError` MUST carry a Spanish sentence on `error.message` naming which reference type(s) block the delete.
+The cascade and the status update MUST occur inside a single `prisma.$transaction`, mirroring the methodology-catalog standard (`softDeleteSubcategoryDependents`).
 
-#### Scenario: Sector with ACTIVE subsectors cannot be soft-deleted
+#### Scenario: Sector with ACTIVE subsectors cascade soft-deletes them
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors include at least one ACTIVE row
-- **THEN** the response is `409` with a Spanish sentence on `message` explaining that ACTIVE subsectors must be soft-deleted first, and the sector's `status` stays `ACTIVE`
-
-#### Scenario: Sector with only DELETED subsectors can be soft-deleted
-
-- **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector whose subsectors are all DELETED
-- **THEN** the response is `200` and the sector transitions to `DELETED`
+- **THEN** the response is `200` and the sector, every ACTIVE subsector, main activity and subcategory recommendation under it transition to `DELETED`
 
 #### Scenario: Sector referenced only by OrganizationData can be soft-deleted
 
 - **WHEN** an ADMIN calls `DELETE /admin/country-sectors/:id` on a sector referenced by `OrganizationData.sectorId` but no ACTIVE catalog row
 - **THEN** the response is `200`, the sector transitions to `DELETED`, and existing `OrganizationData` rows retain their reference
 
-#### Scenario: Subsector referenced by SubcategoryRecommendation blocked
+#### Scenario: Subsector referenced by SubcategoryRecommendation cascade soft-deletes it
 
-- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one `SubcategoryRecommendation.subsectorId`
-- **THEN** the response is `409` and the subsector's `status` stays `ACTIVE`
+- **WHEN** an ADMIN calls `DELETE /admin/country-subsectors/:id` on a subsector referenced by at least one ACTIVE `SubcategoryRecommendation.subsectorId`
+- **THEN** the response is `200` and the subsector and that recommendation transition to `DELETED`
 
 ### Requirement: Unique-constraint violations surface Spanish error messages
 
@@ -199,7 +211,7 @@ The screens at `/admin/sectors` and `/admin/subsectors` SHALL:
 - Use the admin-side query hooks to fetch the list and run create / update / soft-delete / restore mutations. Successful mutations MUST invalidate both admin and public-side caches (`countrySectorsKeys.admin.all` AND `countrySectorsKeys.app.all`) so open forms see fresh ACTIVE options.
 - Block navigation while a row is dirty (`useBlocker` against `form.formState.isDirty`).
 - Surface server errors via snackbar using `getApiErrorMessage`.
-- On save of an edit that changes a **visible** field (`name` for sector; `name` or `countrySectorId` for subsector) on a row whose `isInUse` is `true`, open `InUseWarningDialog` BEFORE dispatching the PATCH. Confirm → PATCH. Cancel → remain in edit mode.
+- On save of an edit that changes `name` (sector) or `name` / `countrySectorId` (subsector), dispatch the PATCH directly. If the row is in use the server rejects it with `EDIT_BLOCKED_BY_REFERENCES` and the screen surfaces the localized reason (with the delete-then-recreate hint) in a `BlockedActionDialog`. There is no client-side "continue anyway" confirm step.
 - Show Spanish snackbar messages on success: "Rubro creado exitosamente", "Cambios guardados satisfactoriamente", "Rubro eliminado", "Rubro restaurado" (and the subrubro equivalents).
 
 #### Scenario: Admin restores a soft-deleted rubro
@@ -207,15 +219,15 @@ The screens at `/admin/sectors` and `/admin/subsectors` SHALL:
 - **WHEN** an ADMIN toggles the filter to "Eliminados", clicks Restore on a row, and the restore succeeds
 - **THEN** the row is removed from the DELETED list, a Spanish snackbar "Rubro restaurado" appears, and the row reappears when the filter switches to "Activos"
 
-#### Scenario: In-use warning on rename
+#### Scenario: Rename of an in-use rubro is blocked
 
-- **WHEN** an ADMIN edits the `name` of a rubro whose admin list row carries `isInUse: true` and confirms
-- **THEN** `InUseWarningDialog` appears; on confirm, the PATCH is dispatched and succeeds; on cancel, the row remains in edit mode with the pending name
+- **WHEN** an ADMIN edits the `name` of a rubro referenced by user data (a live `organization_data` row or an ACTIVE carbon-inventory snapshot) and saves
+- **THEN** the PATCH is rejected with `409` (`EDIT_BLOCKED_BY_REFERENCES`), the reason is shown in a `BlockedActionDialog`, and the name is unchanged
 
-#### Scenario: Description-only edit bypasses the warning
+#### Scenario: Description-only edit is dispatched directly
 
-- **WHEN** an ADMIN edits only the `description` of a rubro whose `isInUse` is `true`
-- **THEN** the PATCH is dispatched without `InUseWarningDialog` appearing, and the row is saved
+- **WHEN** an ADMIN edits only the `description` of an in-use rubro
+- **THEN** the PATCH is dispatched and the row is saved with no blocking dialog
 
 #### Scenario: Subsector empty state when no sectors exist
 
