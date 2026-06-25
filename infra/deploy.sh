@@ -146,13 +146,23 @@ AUTH_FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-}"
 AUTH_API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
 AUTH_TENANT_TYPE="${AZURE_TENANT_TYPE:-external}"
 
-# Core requirements: tenant ID, frontend client ID, and API client ID
-# AZURE_TENANT_SUBDOMAIN is only required for external (CIAM) tenants
+# Core requirements: tenant ID, frontend client ID, and API client ID.
+# For external (CIAM) tenants the tenant subdomain is also required: the API's
+# JWKS host is https://<subdomain>.ciamlogin.com/... — an empty subdomain would
+# produce a malformed "https://.ciamlogin.com/..." issuer/JWKS URL. So when auth
+# is clearly intended (tenant + both client IDs set) but the subdomain is missing
+# for an external tenant, fail loudly instead of silently shipping an API with a
+# broken JWKS host (or with auth disabled).
 CORE_AUTH_CONFIGURED=false
 if [ -n "$EXTERNAL_TENANT_ID" ] && [ -n "$AUTH_FRONTEND_CLIENT_ID" ] && [ -n "$AUTH_API_CLIENT_ID" ]; then
-  if [ "$AUTH_TENANT_TYPE" = "organizational" ] || [ -n "$EXTERNAL_TENANT_SUBDOMAIN" ]; then
-    CORE_AUTH_CONFIGURED=true
+  if [ "$AUTH_TENANT_TYPE" != "organizational" ] && [ -z "$EXTERNAL_TENANT_SUBDOMAIN" ]; then
+    log "Error: AZURE_TENANT_TYPE=external requires AZURE_TENANT_SUBDOMAIN."
+    log "       The API's JWKS host is https://<subdomain>.ciamlogin.com/...;"
+    log "       an empty subdomain yields a malformed issuer/JWKS URL."
+    log "       Set AZURE_TENANT_SUBDOMAIN, or use AZURE_TENANT_TYPE=organizational."
+    exit 1
   fi
+  CORE_AUTH_CONFIGURED=true
 fi
 
 if [ "$CORE_AUTH_CONFIGURED" = "true" ]; then
