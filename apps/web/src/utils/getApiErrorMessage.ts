@@ -145,10 +145,19 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
         }`
       );
 
-    const suffix =
-      "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
+    // The same 409 guards two re-parentable catalog rows: a subsector (one parent,
+    // the rubro) and a main activity (two parents, rubro + subrubro). Pick the
+    // copy from `resourceType`, defaulting to the subsector wording.
+    const isMainActivity = details?.resourceType === "OrganizationMainActivity";
+    const changeWhat = isMainActivity ? "el rubro o subrubro" : "el rubro";
+    const ofSubject = isMainActivity
+      ? "de la actividad principal"
+      : "del subrubro";
+    const suffix = isMainActivity
+      ? "Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto."
+      : "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
     if (parts.length === 0) {
-      return `No se puede cambiar el rubro del subrubro porque tiene dependencias asociadas. ${suffix}`;
+      return `No se puede cambiar ${changeWhat} ${ofSubject} porque tiene dependencias asociadas. ${suffix}`;
     }
     const list =
       parts.length === 1
@@ -157,7 +166,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     // No trailing adjective: the list mixes singular/plural and genders
     // ("1 actividad principal", "2 organizaciones"), so a fixed "asociados"
     // would never agree.
-    return `No se puede cambiar el rubro del subrubro porque tiene ${list}. ${suffix}`;
+    return `No se puede cambiar ${changeWhat} ${ofSubject} porque tiene ${list}. ${suffix}`;
   },
   RESTORE_ON_ACTIVE: (details) => {
     const label =

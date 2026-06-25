@@ -3,6 +3,7 @@ import {
   Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
+  InventoryStatus,
 } from "@repo/database";
 import {
   type UpdateOrganizationMainActivityRequest,
@@ -11,6 +12,7 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
+  ReparentBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
@@ -110,6 +112,59 @@ export const updateOrganizationMainActivityService = async (
           }));
         if (!subsector || subsector.countrySectorId !== effectiveSectorId) {
           throw new SectorSubsectorMismatchError();
+        }
+      }
+
+      // Re-parenting (moving the activity to a different sector/subsector pair) is
+      // blocked while it still has dependents, mirroring the subsector guard: it
+      // would silently invalidate the activity's parent stored alongside the two
+      // denormalizations that carry `mainActivityId` — the live
+      // `organization_data.mainActivityId` rows and the frozen
+      // `carbon_inventory.organizationData` JSON snapshot (which stores
+      // `mainActivityId` as a string). A no-op patch (the effective pair equals
+      // the current one) never blocks. Re-association is only allowed by
+      // soft-deleting and re-creating the activity under the correct parents.
+      const isReparent =
+        (data.countrySectorId !== undefined ||
+          data.countrySubsectorId !== undefined) &&
+        (effectiveSectorId !== existing.countrySectorId ||
+          effectiveSubsectorId !== existing.countrySubsectorId);
+      if (isReparent) {
+        const [organizationDataCount, carbonInventoryCount] = await Promise.all(
+          [
+            tx.organizationData.count({
+              where: { mainActivityId: activityId },
+            }),
+            // The snapshot stores `mainActivityId` as a string (see
+            // `buildOrganizationDataSnapshot`); only ACTIVE inventories matter, a
+            // DELETED inventory's frozen reference is inert.
+            tx.carbonInventory.count({
+              where: {
+                status: InventoryStatus.ACTIVE,
+                organizationData: {
+                  path: ["mainActivityId"],
+                  equals: activityId.toString(),
+                },
+              },
+            }),
+          ]
+        );
+
+        if (organizationDataCount > 0 || carbonInventoryCount > 0) {
+          const referencedBy: string[] = [];
+          if (organizationDataCount > 0) referencedBy.push("organization data");
+          if (carbonInventoryCount > 0) referencedBy.push("carbon inventories");
+
+          const error = new ReparentBlockedByReferencesError(
+            referencedBy.join(", ")
+          );
+          throw attachDetails(error, {
+            resourceType: "OrganizationMainActivity",
+            referencedBy: {
+              organizationData: organizationDataCount,
+              carbonInventories: carbonInventoryCount,
+            },
+          });
         }
       }
 

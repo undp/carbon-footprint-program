@@ -355,6 +355,12 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
           />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede cambiar el rubro o subrubro"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
+          />
         </>
       }
     >
