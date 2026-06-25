@@ -20,7 +20,7 @@ interface ProfilingMaintainerScreenLayoutProps {
   onBlockerProceed?: () => void;
   onBlockerReset?: () => void;
   /**
-   * Slot for additional dialogs (e.g. the InUseWarningDialog) — kept outside the form
+   * Slot for additional dialogs (e.g. the BlockedActionDialog) — kept outside the form
    * provider's children to make ownership explicit.
    */
   extraDialogs?: ReactNode;

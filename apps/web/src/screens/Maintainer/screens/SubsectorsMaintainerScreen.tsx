@@ -177,11 +177,6 @@ export const SubsectorsMaintainerScreen: FC = () => {
         body.countrySectorId = formRow.countrySectorId;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) =>
-      body.name !== undefined || body.countrySectorId !== undefined,
-    // Renaming / re-parenting a subrubro in use is hard-blocked server-side; let the
-    // 409 surface in the BlockedActionDialog instead of a soft confirm.
-    confirmVisibleEditsWhenInUse: false,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",

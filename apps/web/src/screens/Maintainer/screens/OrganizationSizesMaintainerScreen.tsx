@@ -156,10 +156,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
         body.description = formRow.description;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) => body.name !== undefined,
-    // Renaming a tamaño in use is hard-blocked server-side; let the 409 surface in
-    // the BlockedActionDialog instead of a soft confirm.
-    confirmVisibleEditsWhenInUse: false,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",

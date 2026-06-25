@@ -14,7 +14,6 @@ import {
 
 interface ServerRowBase {
   id: string;
-  isInUse: boolean;
 }
 
 interface MutationLike<TInput, TOutput> {
@@ -42,18 +41,6 @@ export interface UseProfilingRowActionsOptions<
     formRow: TFormRow,
     serverRow: TServerRow
   ) => TUpdateBody | null;
-  /** Whether the diff includes any field that user-facing data depends on (drives InUseWarning). */
-  visibleFieldsChanged: (body: TUpdateBody) => boolean;
-  /**
-   * When `true` (default), a visible-field edit on an in-use row is deferred to the
-   * `InUseWarningDialog` so the admin can confirm before it is applied. When `false`,
-   * the edit is dispatched directly and the server is the single source of truth:
-   * identity-changing edits (name/parent) on in-use rows are hard-blocked there
-   * (`EDIT_BLOCKED_BY_REFERENCES`) and surfaced via the BlockedActionDialog. Profiling
-   * catalogs (sectors / subsectors / main activities) use `false`; sizes keep the
-   * soft-confirm flow.
-   */
-  confirmVisibleEditsWhenInUse?: boolean;
   newRowDefaults: () => TFormRow;
   createMutation: MutationLike<TCreateBody, TServerRow>;
   updateMutation: MutationLike<{ id: string; body: TUpdateBody }, TServerRow>;
@@ -77,11 +64,6 @@ export interface UseProfilingRowActionsOptions<
   };
 }
 
-export interface PendingPatch<TUpdateBody> {
-  id: string;
-  body: TUpdateBody;
-}
-
 export const useProfilingRowActions = <
   TFormValues extends FieldValues,
   TServerRow extends ServerRowBase,
@@ -96,8 +78,6 @@ export const useProfilingRowActions = <
   toFormRow,
   toCreateBody,
   diffUpdateBody,
-  visibleFieldsChanged,
-  confirmVisibleEditsWhenInUse = true,
   newRowDefaults,
   createMutation,
   updateMutation,
@@ -116,8 +96,6 @@ export const useProfilingRowActions = <
   TUpdateBody
 >) => {
   const { enqueueSnackbar } = useSnackbar();
-  const [pendingPatch, setPendingPatch] =
-    useState<PendingPatch<TUpdateBody> | null>(null);
   const [restoreBlockedMessage, setRestoreBlockedMessage] = useState<
     string | null
   >(null);
@@ -269,19 +247,9 @@ export const useProfilingRowActions = <
       return true;
     }
 
-    if (
-      confirmVisibleEditsWhenInUse &&
-      visibleFieldsChanged(body) &&
-      serverRow.isInUse
-    ) {
-      // Defer until admin confirms in InUseWarningDialog. Keep the row in edit mode
-      // so a cancel preserves the dirty values. Maintainers that hard-block identity
-      // edits server-side opt out (confirmVisibleEditsWhenInUse=false) and let the
-      // dispatch surface the 409 instead.
-      setPendingPatch({ id: serverRow.id, body });
-      return false;
-    }
-
+    // Identity-changing edits (rename / re-parent) on an in-use row are hard-blocked
+    // server-side (EDIT_BLOCKED_BY_REFERENCES) and surfaced via the BlockedActionDialog
+    // in dispatchUpdate, so the patch is always dispatched directly.
     return dispatchUpdate(serverRow.id, body);
   }, [
     editingRowId,
@@ -301,8 +269,6 @@ export const useProfilingRowActions = <
     setEditingRowId,
     serverRows,
     diffUpdateBody,
-    visibleFieldsChanged,
-    confirmVisibleEditsWhenInUse,
     dispatchUpdate,
   ]);
 
@@ -442,17 +408,6 @@ export const useProfilingRowActions = <
     setUpdateBlockedMessage(null);
   }, []);
 
-  const dispatchPendingPatch = useCallback(async () => {
-    if (!pendingPatch) return;
-    const { id, body } = pendingPatch;
-    setPendingPatch(null);
-    await dispatchUpdate(id, body);
-  }, [pendingPatch, dispatchUpdate]);
-
-  const cancelPendingPatch = useCallback(() => {
-    setPendingPatch(null);
-  }, []);
-
   return {
     handleAddRow,
     handleStartEditRow,
@@ -460,9 +415,6 @@ export const useProfilingRowActions = <
     handleCancelEditRow,
     handleDelete,
     handleRestore,
-    pendingPatch,
-    dispatchPendingPatch,
-    cancelPendingPatch,
     restoreBlockedMessage,
     dismissRestoreBlocked,
     updateBlockedMessage,

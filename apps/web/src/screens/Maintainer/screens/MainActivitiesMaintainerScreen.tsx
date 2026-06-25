@@ -246,13 +246,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         body.countrySubsectorId = formRow.countrySubsectorId;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) =>
-      body.name !== undefined ||
-      body.countrySectorId !== undefined ||
-      body.countrySubsectorId !== undefined,
-    // Renaming / re-parenting an actividad in use is hard-blocked server-side; let
-    // the 409 surface in the BlockedActionDialog instead of a soft confirm.
-    confirmVisibleEditsWhenInUse: false,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
