@@ -20,7 +20,6 @@ import {
 } from "@/api/query/countrySubsectors";
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
 import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
@@ -180,6 +179,9 @@ export const SubsectorsMaintainerScreen: FC = () => {
     },
     visibleFieldsChanged: (body) =>
       body.name !== undefined || body.countrySectorId !== undefined,
+    // Renaming / re-parenting a subrubro in use is hard-blocked server-side; let the
+    // 409 surface in the BlockedActionDialog instead of a soft confirm.
+    confirmVisibleEditsWhenInUse: false,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -269,12 +271,6 @@ export const SubsectorsMaintainerScreen: FC = () => {
       explanationSlug={SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="subrubro"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
           <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
             title="No se puede restaurar"
@@ -283,7 +279,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
           />
           <BlockedActionDialog
             open={actions.updateBlockedMessage !== null}
-            title="No se puede cambiar el rubro"
+            title="No se puede editar el subrubro"
             message={actions.updateBlockedMessage ?? ""}
             onClose={actions.dismissUpdateBlocked}
           />

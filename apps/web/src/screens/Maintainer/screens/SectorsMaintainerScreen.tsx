@@ -18,7 +18,6 @@ import {
   useRestoreCountrySector,
 } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
 import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
@@ -142,6 +141,9 @@ export const SectorsMaintainerScreen: FC = () => {
       return Object.keys(body).length === 0 ? null : body;
     },
     visibleFieldsChanged: (body) => body.name !== undefined,
+    // Renaming a rubro in use is hard-blocked server-side; let the 409 surface in
+    // the BlockedActionDialog instead of a soft confirm.
+    confirmVisibleEditsWhenInUse: false,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -235,17 +237,17 @@ export const SectorsMaintainerScreen: FC = () => {
       explanationSlug={SECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="rubro"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
           <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
             title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede cambiar el nombre del rubro"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }

@@ -20,8 +20,9 @@ interface Props {
 /**
  * Informative dialog shown when a maintainer action is blocked by a business rule —
  * e.g. restoring a child whose parent is soft-deleted (`PARENT_NOT_ACTIVE`), or
- * re-parenting a subsector that still has dependents (`REPARENT_BLOCKED_BY_REFERENCES`).
- * Surfaces the localized reason with a single dismiss button.
+ * renaming / re-parenting a catalog row that is still referenced by user data or
+ * catalog children (`EDIT_BLOCKED_BY_REFERENCES`). Surfaces the localized reason with
+ * a single dismiss button.
  */
 export const BlockedActionDialog: FC<Props> = ({
   open,

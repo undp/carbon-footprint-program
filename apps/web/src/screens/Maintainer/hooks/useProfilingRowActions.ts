@@ -44,6 +44,16 @@ export interface UseProfilingRowActionsOptions<
   ) => TUpdateBody | null;
   /** Whether the diff includes any field that user-facing data depends on (drives InUseWarning). */
   visibleFieldsChanged: (body: TUpdateBody) => boolean;
+  /**
+   * When `true` (default), a visible-field edit on an in-use row is deferred to the
+   * `InUseWarningDialog` so the admin can confirm before it is applied. When `false`,
+   * the edit is dispatched directly and the server is the single source of truth:
+   * identity-changing edits (name/parent) on in-use rows are hard-blocked there
+   * (`EDIT_BLOCKED_BY_REFERENCES`) and surfaced via the BlockedActionDialog. Profiling
+   * catalogs (sectors / subsectors / main activities) use `false`; sizes keep the
+   * soft-confirm flow.
+   */
+  confirmVisibleEditsWhenInUse?: boolean;
   newRowDefaults: () => TFormRow;
   createMutation: MutationLike<TCreateBody, TServerRow>;
   updateMutation: MutationLike<{ id: string; body: TUpdateBody }, TServerRow>;
@@ -87,6 +97,7 @@ export const useProfilingRowActions = <
   toCreateBody,
   diffUpdateBody,
   visibleFieldsChanged,
+  confirmVisibleEditsWhenInUse = true,
   newRowDefaults,
   createMutation,
   updateMutation,
@@ -153,10 +164,11 @@ export const useProfilingRowActions = <
         setEditingRowId(null);
         return true;
       } catch (error) {
-        // Re-parenting a subsector that still has dependents is blocked. Surface
-        // the reason in a dedicated dialog (with the delete-then-recreate hint)
-        // instead of a generic snackbar, mirroring the PARENT_NOT_ACTIVE flow.
-        if (getApiErrorCode(error) === "REPARENT_BLOCKED_BY_REFERENCES") {
+        // An identity-changing edit (rename or re-parent) on a row referenced by
+        // user data / catalog children is blocked server-side. Surface the reason in
+        // a dedicated dialog (with the delete-then-recreate hint) instead of a
+        // generic snackbar, mirroring the PARENT_NOT_ACTIVE flow.
+        if (getApiErrorCode(error) === "EDIT_BLOCKED_BY_REFERENCES") {
           setUpdateBlockedMessage(
             getApiErrorMessage(error, errorMessages.update)
           );
@@ -257,9 +269,15 @@ export const useProfilingRowActions = <
       return true;
     }
 
-    if (visibleFieldsChanged(body) && serverRow.isInUse) {
+    if (
+      confirmVisibleEditsWhenInUse &&
+      visibleFieldsChanged(body) &&
+      serverRow.isInUse
+    ) {
       // Defer until admin confirms in InUseWarningDialog. Keep the row in edit mode
-      // so a cancel preserves the dirty values.
+      // so a cancel preserves the dirty values. Maintainers that hard-block identity
+      // edits server-side opt out (confirmVisibleEditsWhenInUse=false) and let the
+      // dispatch surface the 409 instead.
       setPendingPatch({ id: serverRow.id, body });
       return false;
     }
@@ -284,6 +302,7 @@ export const useProfilingRowActions = <
     serverRows,
     diffUpdateBody,
     visibleFieldsChanged,
+    confirmVisibleEditsWhenInUse,
     dispatchUpdate,
   ]);
 

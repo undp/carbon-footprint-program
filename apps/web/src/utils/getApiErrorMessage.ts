@@ -102,7 +102,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       return "Ya existe un tamaño de organización activo con ese nombre.";
     return "Ya existe un registro con este valor.";
   },
-  REPARENT_BLOCKED_BY_REFERENCES: (details) => {
+  EDIT_BLOCKED_BY_REFERENCES: (details) => {
     const referencedBy = details?.referencedBy as
       | Record<string, unknown>
       | undefined;
@@ -145,28 +145,41 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
         }`
       );
 
-    // The same 409 guards two re-parentable catalog rows: a subsector (one parent,
-    // the rubro) and a main activity (two parents, rubro + subrubro). Pick the
-    // copy from `resourceType`, defaulting to the subsector wording.
-    const isMainActivity = details?.resourceType === "OrganizationMainActivity";
-    const changeWhat = isMainActivity ? "el rubro o subrubro" : "el rubro";
-    const ofSubject = isMainActivity
-      ? "de la actividad principal"
-      : "del subrubro";
-    const suffix = isMainActivity
-      ? "Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto."
-      : "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
-    if (parts.length === 0) {
-      return `No se puede cambiar ${changeWhat} ${ofSubject} porque tiene dependencias asociadas. ${suffix}`;
-    }
-    const list =
-      parts.length === 1
-        ? parts[0]
-        : `${parts.slice(0, -1).join(", ")} y ${parts[parts.length - 1]}`;
     // No trailing adjective: the list mixes singular/plural and genders
     // ("1 actividad principal", "2 organizaciones"), so a fixed "asociados"
     // would never agree.
-    return `No se puede cambiar ${changeWhat} ${ofSubject} porque tiene ${list}. ${suffix}`;
+    const list =
+      parts.length === 0
+        ? null
+        : parts.length === 1
+          ? parts[0]
+          : `${parts.slice(0, -1).join(", ")} y ${parts[parts.length - 1]}`;
+    const because = list ? `tiene ${list}` : "está en uso";
+
+    // Contracted "de + article" per resource; `itObj` is the entity's
+    // direct-object pronoun ("lo" for el rubro/subrubro, "la" for la actividad).
+    const resourceType = details?.resourceType as string | undefined;
+    const OF_SUBJECT: Record<string, string> = {
+      CountrySector: "del rubro",
+      CountrySubsector: "del subrubro",
+      OrganizationMainActivity: "de la actividad principal",
+    };
+    const ofSubject = OF_SUBJECT[resourceType ?? ""] ?? "del registro";
+    const isMainActivity = resourceType === "OrganizationMainActivity";
+    const itObj = isMainActivity ? "la" : "lo";
+
+    if (details?.attemptedChange === "name") {
+      // The display name is resolved by id at read time, so a rename would change
+      // what users who already selected this row see in their data/footprint.
+      return `No se puede cambiar el nombre ${ofSubject} porque ${because}. Si lo cambias, quienes ya ${itObj} seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminar${itObj} y volver a crear${itObj}.`;
+    }
+
+    // Re-parenting copy. A main activity has two parents (rubro + subrubro).
+    const changeWhat = isMainActivity ? "el rubro o subrubro" : "el rubro";
+    const suffix = isMainActivity
+      ? "Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto."
+      : "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
+    return `No se puede cambiar ${changeWhat} ${ofSubject} porque ${because}. ${suffix}`;
   },
   RESTORE_ON_ACTIVE: (details) => {
     const label =
