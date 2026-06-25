@@ -2,6 +2,7 @@ import {
   type PrismaClient,
   Prisma,
   CountrySectorStatus,
+  CountrySubsectorStatus,
   InventoryStatus,
   OrganizationMainActivityStatus,
   SubcategoryRecommendationStatus,
@@ -188,7 +189,9 @@ export const updateCountrySubsectorService = async (
       }
 
       const updated = await tx.countrySubsector.update({
-        where: { id: subsectorId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: { id: subsectorId, status: CountrySubsectorStatus.ACTIVE },
         data: updateData,
         select: adminCountrySubsectorSelect,
       });

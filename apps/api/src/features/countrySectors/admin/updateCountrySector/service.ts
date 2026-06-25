@@ -1,4 +1,9 @@
-import { type PrismaClient, Prisma, InventoryStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  Prisma,
+  CountrySectorStatus,
+  InventoryStatus,
+} from "@repo/database";
 import {
   type UpdateCountrySectorRequest,
   type UpdateCountrySectorResponse,
@@ -99,7 +104,9 @@ export const updateCountrySectorService = async (
       }
 
       const updated = await tx.countrySector.update({
-        where: { id: sectorId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: { id: sectorId, status: CountrySectorStatus.ACTIVE },
         data: updateData,
         select: adminCountrySectorSelect,
       });

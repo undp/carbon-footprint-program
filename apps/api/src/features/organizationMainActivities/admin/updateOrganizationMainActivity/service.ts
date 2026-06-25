@@ -4,6 +4,7 @@ import {
   CountrySectorStatus,
   CountrySubsectorStatus,
   InventoryStatus,
+  OrganizationMainActivityStatus,
 } from "@repo/database";
 import {
   type UpdateOrganizationMainActivityRequest,
@@ -197,7 +198,12 @@ export const updateOrganizationMainActivityService = async (
       }
 
       const updated = await tx.organizationMainActivity.update({
-        where: { id: activityId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: {
+          id: activityId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+        },
         data: updateData,
         select: adminMainActivitySelect,
       });
@@ -205,6 +211,9 @@ export const updateOrganizationMainActivityService = async (
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        throw new ResourceNotFoundError("OrganizationMainActivity", id);
+      }
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
