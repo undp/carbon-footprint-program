@@ -135,6 +135,15 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
           organizations > 1 ? VOCAB.organization.noun.plural : orgSingular
         }`
       );
+    const carbonInventories = count(referencedBy?.carbonInventories);
+    if (carbonInventories > 0)
+      parts.push(
+        `${carbonInventories} ${
+          carbonInventories > 1
+            ? VOCAB.carbonInventory.noun.plural
+            : VOCAB.carbonInventory.noun.singular
+        }`
+      );
 
     const suffix =
       "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";

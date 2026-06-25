@@ -2,6 +2,7 @@ import {
   type PrismaClient,
   Prisma,
   CountrySectorStatus,
+  InventoryStatus,
   OrganizationMainActivityStatus,
   SubcategoryRecommendationStatus,
 } from "@repo/database";
@@ -55,8 +56,14 @@ export const updateCountrySubsectorService = async (
       // (and the denormalized parent columns the delete-cascade relies on) to a
       // different sector. Re-association is only allowed by soft-deleting the
       // subsector (which cascades) and re-creating it under the correct sector.
-      // Organization data is included because it carries the subsector into a
-      // country's carbon inventories, so its parent sector must stay stable.
+      // Two denormalizations carry the subsector outside its own table and must
+      // stay consistent with its parent sector: the live `organization_data` rows,
+      // and the frozen `carbon_inventory.organizationData` JSON snapshot (which
+      // stores `sectorId` + `subsectorId` as a point-in-time pair, written as
+      // strings — see `buildOrganizationDataSnapshot`). The snapshot is an
+      // independent copy, so it can reference this subsector even when no live
+      // organization_data row does; re-parenting would leave its sector/subsector
+      // pair pointing at a combination that no longer exists in the catalog.
       if (data.countrySectorId !== undefined) {
         const subsector = await tx.countrySubsector.findUnique({
           where: { id: subsectorId },
@@ -83,6 +90,7 @@ export const updateCountrySubsectorService = async (
             activeMainActivityCount,
             activeSubcategoryRecommendationCount,
             organizationDataCount,
+            carbonInventoryCount,
           ] = await Promise.all([
             tx.organizationMainActivity.count({
               where: {
@@ -97,12 +105,26 @@ export const updateCountrySubsectorService = async (
               },
             }),
             tx.organizationData.count({ where: { subsectorId } }),
+            // The snapshot stores `subsectorId` as a string (see
+            // `buildOrganizationDataSnapshot`), so match against the string form.
+            // Only ACTIVE inventories matter — a DELETED inventory's frozen pair
+            // is inert and should not block re-parenting.
+            tx.carbonInventory.count({
+              where: {
+                status: InventoryStatus.ACTIVE,
+                organizationData: {
+                  path: ["subsectorId"],
+                  equals: subsectorId.toString(),
+                },
+              },
+            }),
           ]);
 
           if (
             activeMainActivityCount > 0 ||
             activeSubcategoryRecommendationCount > 0 ||
-            organizationDataCount > 0
+            organizationDataCount > 0 ||
+            carbonInventoryCount > 0
           ) {
             const referencedBy: string[] = [];
             if (activeMainActivityCount > 0)
@@ -111,6 +133,8 @@ export const updateCountrySubsectorService = async (
               referencedBy.push("subcategory recommendations");
             if (organizationDataCount > 0)
               referencedBy.push("organization data");
+            if (carbonInventoryCount > 0)
+              referencedBy.push("carbon inventories");
 
             const error = new ReparentBlockedByReferencesError(
               referencedBy.join(", ")
@@ -122,6 +146,7 @@ export const updateCountrySubsectorService = async (
                 activeSubcategoryRecommendations:
                   activeSubcategoryRecommendationCount,
                 organizationData: organizationDataCount,
+                carbonInventories: carbonInventoryCount,
               },
             });
           }

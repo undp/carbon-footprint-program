@@ -15,6 +15,10 @@ import {
   createTestOrganization,
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
+import {
+  createCarbonInventory,
+  carbonInventoryPatterns,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
 import { type PrismaClient, CountrySectorStatus } from "@repo/database";
 import type { UpdateCountrySubsectorResponse } from "@repo/types";
@@ -37,6 +41,12 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
 
   afterEach(async () => {
     await cleanupTestOrganization(prisma);
+    // Carbon inventories carry the subsector only inside their `organizationData`
+    // JSON snapshot (no FK), so they never block the catalog deletes below — but
+    // they must still be removed by name to avoid leaking across tests.
+    await prisma.carbonInventory.deleteMany({
+      where: { name: { startsWith: TEST_PREFIX } },
+    });
     // Recommendations reference sectors/subsectors with a non-cascading FK, so
     // they must be removed before the catalog rows they point at.
     await prisma.subcategoryRecommendation.deleteMany({
@@ -267,6 +277,77 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+    });
+
+    it("blocks re-parent (409) when an ACTIVE carbon inventory snapshot references the subsector", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const target = await createTestCountrySector(prisma, {
+        name: uniqueName("Target"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("WithInv"),
+      });
+      // The subsector is referenced ONLY inside the inventory's frozen JSON
+      // snapshot (stored as a string) — no live organization_data row points at
+      // it — so this case is exactly the gap the FK-based counts miss.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          subsectorId: sub.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { countrySectorId: target.id.toString() },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { referencedBy?: { carbonInventories?: number } };
+      };
+      expect(body.code).toBe("REPARENT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+
+      const reloaded = await prisma.countrySubsector.findUnique({
+        where: { id: sub.id },
+      });
+      expect(reloaded!.countrySectorId).toBe(parent.id);
+    });
+
+    it("does NOT block re-parent when only a DELETED carbon inventory snapshot references the subsector", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const target = await createTestCountrySector(prisma, {
+        name: uniqueName("Target"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("WithDeletedInv"),
+      });
+      // A DELETED inventory's frozen pair is inert and must not block re-parenting.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          subsectorId: sub.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { countrySectorId: target.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+
+      const reloaded = await prisma.countrySubsector.findUnique({
+        where: { id: sub.id },
+      });
+      expect(reloaded!.countrySectorId).toBe(target.id);
     });
 
     it("allows editing only the name even when the subsector has dependents", async () => {
