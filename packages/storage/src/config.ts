@@ -25,6 +25,15 @@ export interface MinioStorageConfig {
   bucket: string;
   region: string;
   forcePathStyle: boolean;
+  /**
+   * Optional public reverse-proxy base. When set, every presigned URL the
+   * adapter returns has its origin (and any base path) rewritten to this value,
+   * keeping the signed path + query intact. Used when the API relays MinIO so
+   * the browser never talks to the internal endpoint directly. Unset → URLs are
+   * returned with `endpoint`, unchanged. Example:
+   * "https://api.example.cl/api/storage".
+   */
+  publicBaseUrl?: string | undefined;
 }
 
 /**
@@ -106,6 +115,9 @@ export function storageConfigFromEnv(
       bucket: env.MINIO_BUCKET || "files",
       region: env.MINIO_REGION || "us-east-1",
       forcePathStyle: env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false",
+      // `|| undefined` so an empty-string placeholder is treated as unset
+      // (backward compatible: no relay, presigned URLs keep the endpoint host).
+      publicBaseUrl: env.MINIO_PUBLIC_BASE_URL || undefined,
     },
   };
 }
