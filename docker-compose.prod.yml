@@ -78,6 +78,11 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET:-files}
       - MINIO_REGION=${MINIO_REGION:-us-east-1}
       - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
+      # Public reverse-proxy base for the storage relay. When set, the API
+      # rewrites presigned MinIO URLs to this origin and serves them at
+      # /api/storage/*, so MinIO need not be exposed publicly. Unset → the
+      # browser hits MinIO directly with the presigned URL (historical default).
+      - MINIO_PUBLIC_BASE_URL=${MINIO_PUBLIC_BASE_URL:-}
     # No depends_on: the database is external. If it is unreachable the API
     # exits at boot and `restart: unless-stopped` retries until it answers.
     restart: unless-stopped
