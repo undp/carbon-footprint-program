@@ -84,6 +84,59 @@ function redactSignature(url: string): string {
   return url.replace(/X-Amz-Signature=[^&]+/i, "X-Amz-Signature=REDACTED");
 }
 
+/**
+ * True when any path segment decodes to "." or ".." — including the
+ * percent-encoded forms the WHATWG URL parser (and so `fetch`) collapses:
+ * "%2e", "%2E", ".%2e", "%2e.". Decoding is per-segment and fault-tolerant: a
+ * malformed `%`-escape can't be a dot-segment (and `fetch` leaves it intact),
+ * so it is allowed through — the signature still gates it. Double-encoded forms
+ * ("%252e") decode to "%2e", not ".", and `fetch` does NOT normalize them, so
+ * they are correctly treated as a normal key, never as traversal.
+ */
+function hasDotSegment(path: string): boolean {
+  return path.split("/").some((segment) => {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(segment);
+    } catch {
+      return false;
+    }
+    return decoded === "." || decoded === "..";
+  });
+}
+
+/**
+ * Carves the upstream path + query out of the raw relay URL, keeping BOTH
+ * byte-for-byte so the SigV4 signature — computed over the URI-encoded path AND
+ * the query — survives the hop. `request.params["*"]` is deliberately NOT used:
+ * the router decodes it (e.g. "%2B" → "+", "%20" → " "), and `fetch` would then
+ * re-encode it differently than MinIO signed, so the signature would no longer
+ * match. The query is carved the same way, for the same reason.
+ *
+ *   raw:   /api/storage/files/foo%2Bbar.txt?X-Amz-Signature=...
+ *   →      { path: "/files/foo%2Bbar.txt", query: "?X-Amz-Signature=..." }
+ *
+ * Returns `null` when the path is unsafe — the mount prefix doesn't match, or a
+ * segment is a dot-segment `fetch` would collapse (see hasDotSegment) — so the
+ * caller can reject it before it ever reaches the upstream.
+ */
+export function resolveRelayTarget(
+  rawUrl: string,
+  mountPrefix: string
+): { path: string; query: string } | null {
+  if (!rawUrl.startsWith(mountPrefix)) return null;
+
+  const queryIndex = rawUrl.indexOf("?");
+  const query = queryIndex >= 0 ? rawUrl.slice(queryIndex) : "";
+  const rawPath = queryIndex >= 0 ? rawUrl.slice(0, queryIndex) : rawUrl;
+  // "/<bucket>/<key>" exactly as signed — leading slash kept, so the caller
+  // joins it onto `upstreamBase` with no extra separator.
+  const path = rawPath.slice(mountPrefix.length);
+
+  if (hasDotSegment(path)) return null;
+  return { path, query };
+}
+
 function makeRelayHandler(upstreamBase: string) {
   return async function relayHandler(
     request: FastifyRequest,
@@ -105,23 +158,21 @@ function makeRelayHandler(upstreamBase: string) {
       return;
     }
 
-    const rest = (request.params as Record<string, string>)["*"] ?? "";
-    // S3 keys never legitimately contain ".." — reject to avoid surprising
-    // path normalization against the upstream.
-    if (rest.split("/").some((segment) => segment === "..")) {
+    // Carve the path + query to forward, both byte-for-byte, and reject
+    // dot-segment traversal. Taken from the RAW url (not `request.params["*"]`,
+    // which the router decodes) so the signed path + query reach MinIO exactly
+    // as signed — see resolveRelayTarget.
+    const relayTarget = resolveRelayTarget(
+      request.raw.url ?? "",
+      STORAGE_RELAY_PREFIX
+    );
+    if (relayTarget === null) {
       await reply
         .status(400)
         .send({ code: "BAD_REQUEST", message: "Invalid path" });
       return;
     }
-
-    // Take the querystring verbatim from the raw URL so the X-Amz-* params are
-    // forwarded byte-for-byte. Re-serializing `request.query` would re-encode
-    // them and invalidate the signature.
-    const rawUrl = request.raw.url ?? "";
-    const queryIndex = rawUrl.indexOf("?");
-    const queryString = queryIndex >= 0 ? rawUrl.slice(queryIndex) : "";
-    const target = `${upstreamBase}/${rest}${queryString}`;
+    const target = `${upstreamBase}${relayTarget.path}${relayTarget.query}`;
 
     const headers = new Headers();
     for (const name of FORWARD_REQUEST_HEADERS) {
