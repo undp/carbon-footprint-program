@@ -252,12 +252,12 @@ export const STORAGE_RELAY_PREFIX = "/api/storage";
  * `createStorageAdapter`. Delegates to the shared `@repo/storage` parser for the
  * provider credentials, then — when the MinIO storage relay is enabled
  * (`MINIO_REVERSE_PROXY_ACTIVE=true`) — composes the public relay base from
- * `API_BASE_URL` + `STORAGE_RELAY_PREFIX` and injects it, so presigned URLs are
+ * `API_ORIGIN` + `STORAGE_RELAY_PREFIX` and injects it, so presigned URLs are
  * rewritten to the API and MinIO stays internal.
  *
  * Throws at boot when `STORAGE_PROVIDER` or a required provider-specific
  * variable is missing, or when the relay is enabled on a non-MinIO provider or
- * without a valid `API_BASE_URL` — misconfiguration fails fast, never silently.
+ * without a valid `API_ORIGIN` — misconfiguration fails fast, never silently.
  */
 export function buildStorageConfig(): StorageConfig {
   const config = storageConfigFromEnv(process.env);
@@ -272,16 +272,16 @@ export function buildStorageConfig(): StorageConfig {
         "(Azure serves SAS URLs directly over HTTPS — no relay)."
     );
   }
-  const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/+$/, "");
-  if (!apiBaseUrl) {
+  const apiOrigin = process.env.API_ORIGIN?.replace(/\/+$/, "");
+  if (!apiOrigin) {
     throw new Error(
-      "MINIO_REVERSE_PROXY_ACTIVE=true requires API_BASE_URL — the API's public " +
+      "MINIO_REVERSE_PROXY_ACTIVE=true requires API_ORIGIN — the API's public " +
         "origin, e.g. https://api.example.cl."
     );
   }
-  if (!URL.canParse(apiBaseUrl)) {
-    throw new Error(`API_BASE_URL is not a valid URL: "${apiBaseUrl}".`);
+  if (!URL.canParse(apiOrigin)) {
+    throw new Error(`API_ORIGIN is not a valid URL: "${apiOrigin}".`);
   }
-  config.minio.publicBaseUrl = `${apiBaseUrl}${STORAGE_RELAY_PREFIX}`;
+  config.minio.publicBaseUrl = `${apiOrigin}${STORAGE_RELAY_PREFIX}`;
   return config;
 }

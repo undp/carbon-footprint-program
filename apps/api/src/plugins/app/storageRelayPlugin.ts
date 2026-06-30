@@ -12,7 +12,7 @@ import {
  * Storage relay (reverse-proxy) plugin.
  *
  * When the deployment uses MinIO with the relay enabled
- * (`MINIO_REVERSE_PROXY_ACTIVE=true` + `API_BASE_URL`), presigned URLs are
+ * (`MINIO_REVERSE_PROXY_ACTIVE=true` + `API_ORIGIN`), presigned URLs are
  * rewritten to a public relay base and the browser hits
  * `https://<host>/api/storage/<bucket>/<key>?X-Amz-...` instead of the internal
  * MinIO endpoint. This plugin forwards that request to the internal endpoint

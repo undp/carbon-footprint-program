@@ -30,7 +30,7 @@ export interface MinioStorageConfig {
    * adapter returns has its origin (and any base path) rewritten to this value,
    * keeping the signed path + query intact, so the browser talks to the API
    * relay instead of the internal endpoint. Composed and injected by the API
-   * layer (from `API_BASE_URL` + the relay route prefix) when
+   * layer (from `API_ORIGIN` + the relay route prefix) when
    * `MINIO_REVERSE_PROXY_ACTIVE=true`; it is not read from env here. Unset →
    * URLs keep `endpoint`, unchanged. Example: "https://api.example.cl/api/storage".
    */

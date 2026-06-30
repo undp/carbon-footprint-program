@@ -13,7 +13,7 @@ interface CreateTestAppOptions {
   /**
    * Opt-in public relay base for the MinIO leg. When set, the overridden
    * storage adapter rewrites presigned URLs to this origin (mirrors the API
-   * relay base, `API_BASE_URL` + `/api/storage`), so relay tests can drive
+   * relay base, `API_ORIGIN` + `/api/storage`), so relay tests can drive
    * `/api/storage/*`. Left unset by every other test, which keeps asserting the
    * internal-endpoint URL.
    */

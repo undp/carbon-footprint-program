@@ -26,9 +26,9 @@ describe.skipIf(!isMinioLeg)("storage-relay plugin (/api/storage/*)", () => {
   beforeAll(async () => {
     // Enable the relay through the real config path: buildStorageConfig() reads
     // these at boot, so the route registers and presigned URLs are rewritten to
-    // API_BASE_URL + /api/storage (= RELAY_BASE, mirrored on the test adapter).
+    // API_ORIGIN + /api/storage (= RELAY_BASE, mirrored on the test adapter).
     process.env.MINIO_REVERSE_PROXY_ACTIVE = "true";
-    process.env.API_BASE_URL = RELAY_ORIGIN;
+    process.env.API_ORIGIN = RELAY_ORIGIN;
     app = await createTestApp(inject("databaseUrl"), {
       storageDescriptor: inject("storageDescriptor"),
       storagePublicBaseUrl: RELAY_BASE,
@@ -38,7 +38,7 @@ describe.skipIf(!isMinioLeg)("storage-relay plugin (/api/storage/*)", () => {
   afterAll(async () => {
     await app.close();
     delete process.env.MINIO_REVERSE_PROXY_ACTIVE;
-    delete process.env.API_BASE_URL;
+    delete process.env.API_ORIGIN;
   });
 
   it("rewrites presigned URLs to the relay base", async () => {
