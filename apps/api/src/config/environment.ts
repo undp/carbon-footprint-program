@@ -1,5 +1,9 @@
 import { AuthProviderType } from "../auth/types.js";
-import { storageConfigFromEnv, type StorageConfig } from "@repo/storage";
+import {
+  storageConfigFromEnv,
+  StorageProvider,
+  type StorageConfig,
+} from "@repo/storage";
 
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
@@ -237,11 +241,47 @@ export const APP_VERSION = process.env.APP_VERSION || "unknown";
 // here, so the package stays the single source of truth for parsing and defaults.
 
 /**
+ * Public mount path of the storage relay (`storageRelayPlugin`). Shared between
+ * the presigned-URL rewrite below and the relay route itself so the two can
+ * never drift — change it here and both the rewrite target and the mount follow.
+ */
+export const STORAGE_RELAY_PREFIX = "/api/storage";
+
+/**
  * Resolves the fully-typed object-storage configuration injected into
- * `createStorageAdapter`. Delegates to the shared `@repo/storage` parser so the
- * API and the seed scripts validate the same variables identically. Throws when
- * `STORAGE_PROVIDER` or a required provider-specific variable is missing.
+ * `createStorageAdapter`. Delegates to the shared `@repo/storage` parser for the
+ * provider credentials, then — when the MinIO storage relay is enabled
+ * (`MINIO_REVERSE_PROXY_ACTIVE=true`) — composes the public relay base from
+ * `API_BASE_URL` + `STORAGE_RELAY_PREFIX` and injects it, so presigned URLs are
+ * rewritten to the API and MinIO stays internal.
+ *
+ * Throws at boot when `STORAGE_PROVIDER` or a required provider-specific
+ * variable is missing, or when the relay is enabled on a non-MinIO provider or
+ * without a valid `API_BASE_URL` — misconfiguration fails fast, never silently.
  */
 export function buildStorageConfig(): StorageConfig {
-  return storageConfigFromEnv(process.env);
+  const config = storageConfigFromEnv(process.env);
+
+  const relayActive =
+    process.env.MINIO_REVERSE_PROXY_ACTIVE?.toLowerCase() === "true";
+  if (!relayActive) return config;
+
+  if (config.provider !== StorageProvider.MINIO) {
+    throw new Error(
+      "MINIO_REVERSE_PROXY_ACTIVE=true is only valid with STORAGE_PROVIDER=minio " +
+        "(Azure serves SAS URLs directly over HTTPS — no relay)."
+    );
+  }
+  const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/+$/, "");
+  if (!apiBaseUrl) {
+    throw new Error(
+      "MINIO_REVERSE_PROXY_ACTIVE=true requires API_BASE_URL — the API's public " +
+        "origin, e.g. https://api.example.cl."
+    );
+  }
+  if (!URL.canParse(apiBaseUrl)) {
+    throw new Error(`API_BASE_URL is not a valid URL: "${apiBaseUrl}".`);
+  }
+  config.minio.publicBaseUrl = `${apiBaseUrl}${STORAGE_RELAY_PREFIX}`;
+  return config;
 }

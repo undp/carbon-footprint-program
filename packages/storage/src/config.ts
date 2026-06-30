@@ -28,10 +28,11 @@ export interface MinioStorageConfig {
   /**
    * Optional public reverse-proxy base. When set, every presigned URL the
    * adapter returns has its origin (and any base path) rewritten to this value,
-   * keeping the signed path + query intact. Used when the API relays MinIO so
-   * the browser never talks to the internal endpoint directly. Unset → URLs are
-   * returned with `endpoint`, unchanged. Example:
-   * "https://api.example.cl/api/storage".
+   * keeping the signed path + query intact, so the browser talks to the API
+   * relay instead of the internal endpoint. Composed and injected by the API
+   * layer (from `API_BASE_URL` + the relay route prefix) when
+   * `MINIO_REVERSE_PROXY_ACTIVE=true`; it is not read from env here. Unset →
+   * URLs keep `endpoint`, unchanged. Example: "https://api.example.cl/api/storage".
    */
   publicBaseUrl?: string | undefined;
 }
@@ -115,9 +116,9 @@ export function storageConfigFromEnv(
       bucket: env.MINIO_BUCKET || "files",
       region: env.MINIO_REGION || "us-east-1",
       forcePathStyle: env.MINIO_FORCE_PATH_STYLE?.toLowerCase() !== "false",
-      // `|| undefined` so an empty-string placeholder is treated as unset
-      // (backward compatible: no relay, presigned URLs keep the endpoint host).
-      publicBaseUrl: env.MINIO_PUBLIC_BASE_URL || undefined,
+      // `publicBaseUrl` is intentionally NOT read here — the storage relay is an
+      // API concern (the `/api/storage` mount lives in apps/api). The API layer
+      // composes and injects it; this shared parser stays routing-agnostic.
     },
   };
 }

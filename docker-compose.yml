@@ -40,8 +40,8 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET:-files}
       - MINIO_REGION=${MINIO_REGION:-us-east-1}
       - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
-      # Storage relay public base (see .env example); unset = browser-direct.
-      - MINIO_PUBLIC_BASE_URL=${MINIO_PUBLIC_BASE_URL:-}
+      # No relay vars here: the seed uploads server-side (direct SDK), never
+      # presigns for the browser, so the storage relay does not apply to migrate.
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,6 +68,9 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-dev}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      # Public origin of THIS API (browser-reachable, no path) — required when
+      # MINIO_REVERSE_PROXY_ACTIVE=true so the relay can rewrite presigned URLs.
+      - API_BASE_URL=${API_BASE_URL:-}
       - LOCAL_BYPASS_REQUIRED_FIELDS=${LOCAL_BYPASS_REQUIRED_FIELDS:-false}
       # --- Auth: none | forced-user | jwks | easy-auth ---
       - AUTH_PROVIDER=${AUTH_PROVIDER:-none}
@@ -103,8 +106,9 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET:-files}
       - MINIO_REGION=${MINIO_REGION:-us-east-1}
       - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
-      # Storage relay public base (see .env example); unset = browser-direct.
-      - MINIO_PUBLIC_BASE_URL=${MINIO_PUBLIC_BASE_URL:-}
+      # Storage relay (reverse-proxy): true = API proxies presigned MinIO URLs at
+      # /api/storage (needs API_BASE_URL); false/unset = browser-direct.
+      - MINIO_REVERSE_PROXY_ACTIVE=${MINIO_REVERSE_PROXY_ACTIVE:-false}
     depends_on:
       postgres:
         condition: service_healthy

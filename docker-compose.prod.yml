@@ -42,6 +42,9 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-prod}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
+      # Public origin of THIS API (browser-reachable, no path) — required when
+      # MINIO_REVERSE_PROXY_ACTIVE=true so the relay can rewrite presigned URLs.
+      - API_BASE_URL=${API_BASE_URL:-}
       # --- Auth: jwks | easy-auth (production options) ---
       - AUTH_PROVIDER=${AUTH_PROVIDER:?AUTH_PROVIDER is required (jwks or easy-auth in production)}
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
@@ -78,11 +81,11 @@ services:
       - MINIO_BUCKET=${MINIO_BUCKET:-files}
       - MINIO_REGION=${MINIO_REGION:-us-east-1}
       - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
-      # Public reverse-proxy base for the storage relay. When set, the API
-      # rewrites presigned MinIO URLs to this origin and serves them at
-      # /api/storage/*, so MinIO need not be exposed publicly. Unset → the
-      # browser hits MinIO directly with the presigned URL (historical default).
-      - MINIO_PUBLIC_BASE_URL=${MINIO_PUBLIC_BASE_URL:-}
+      # Storage relay (reverse-proxy). true → the API rewrites presigned MinIO
+      # URLs to <API_BASE_URL>/api/storage and serves them at /api/storage/*, so
+      # MinIO need not be exposed publicly (needs API_BASE_URL above).
+      # false/unset → the browser hits MinIO directly (historical default).
+      - MINIO_REVERSE_PROXY_ACTIVE=${MINIO_REVERSE_PROXY_ACTIVE:-false}
     # No depends_on: the database is external. If it is unreachable the API
     # exits at boot and `restart: unless-stopped` retries until it answers.
     restart: unless-stopped

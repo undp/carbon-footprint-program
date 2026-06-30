@@ -11,7 +11,8 @@ const isMinioLeg = process.env.STORAGE_PROVIDER === StorageProvider.MINIO;
 
 // Host is irrelevant under app.inject (only path + query route the request);
 // the path prefix must match the plugin's `/api/storage` mount.
-const RELAY_BASE = "http://relay.test/api/storage";
+const RELAY_ORIGIN = "http://relay.test";
+const RELAY_BASE = `${RELAY_ORIGIN}/api/storage`;
 
 /** Reduces an absolute URL to the path + query that app.inject routes on. */
 function toInjectablePath(absoluteUrl: string): string {
@@ -23,6 +24,11 @@ describe.skipIf(!isMinioLeg)("storage-relay plugin (/api/storage/*)", () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
+    // Enable the relay through the real config path: buildStorageConfig() reads
+    // these at boot, so the route registers and presigned URLs are rewritten to
+    // API_BASE_URL + /api/storage (= RELAY_BASE, mirrored on the test adapter).
+    process.env.MINIO_REVERSE_PROXY_ACTIVE = "true";
+    process.env.API_BASE_URL = RELAY_ORIGIN;
     app = await createTestApp(inject("databaseUrl"), {
       storageDescriptor: inject("storageDescriptor"),
       storagePublicBaseUrl: RELAY_BASE,
@@ -31,6 +37,8 @@ describe.skipIf(!isMinioLeg)("storage-relay plugin (/api/storage/*)", () => {
 
   afterAll(async () => {
     await app.close();
+    delete process.env.MINIO_REVERSE_PROXY_ACTIVE;
+    delete process.env.API_BASE_URL;
   });
 
   it("rewrites presigned URLs to the relay base", async () => {

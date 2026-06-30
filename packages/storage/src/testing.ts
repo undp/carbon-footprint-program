@@ -56,8 +56,9 @@ export interface MinioTestStorageOptions {
   forcePathStyle?: boolean;
   /**
    * Optional public relay base. When set, presigned URLs returned by the
-   * adapter are rewritten to this origin (mirrors `MINIO_PUBLIC_BASE_URL` in
-   * production) so tests can exercise the relay rewrite path.
+   * adapter are rewritten to this origin (mirrors the API relay base,
+   * `API_BASE_URL` + `/api/storage`, in production) so tests can exercise the
+   * relay rewrite path.
    */
   publicBaseUrl?: string;
 }

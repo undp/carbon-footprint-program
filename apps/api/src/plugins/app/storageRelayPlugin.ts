@@ -3,13 +3,17 @@ import { Readable } from "node:stream";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { StorageProvider } from "@repo/storage";
-import { buildStorageConfig } from "@/config/environment.js";
+import {
+  buildStorageConfig,
+  STORAGE_RELAY_PREFIX,
+} from "@/config/environment.js";
 
 /**
  * Storage relay (reverse-proxy) plugin.
  *
- * When the deployment uses MinIO and presigned URLs are rewritten to a public
- * relay base (`MINIO_PUBLIC_BASE_URL`, see `@repo/storage`), the browser hits
+ * When the deployment uses MinIO with the relay enabled
+ * (`MINIO_REVERSE_PROXY_ACTIVE=true` + `API_BASE_URL`), presigned URLs are
+ * rewritten to a public relay base and the browser hits
  * `https://<host>/api/storage/<bucket>/<key>?X-Amz-...` instead of the internal
  * MinIO endpoint. This plugin forwards that request to the internal endpoint
  * **verbatim** (same path + query), so MinIO revalidates the original SigV4
@@ -176,9 +180,17 @@ function makeRelayHandler(upstreamBase: string) {
 const storageRelayPlugin = fp(
   async (fastify) => {
     const config = buildStorageConfig();
-    if (config.provider !== StorageProvider.MINIO) {
-      // Azure serves presigned (SAS) URLs directly over HTTPS — no relay.
-      fastify.log.info("storage-relay: provider is not MinIO, relay disabled");
+    // The relay is enabled only when MINIO_REVERSE_PROXY_ACTIVE=true, which is
+    // exactly when buildStorageConfig() injects a MinIO publicBaseUrl. Gating on
+    // it means the route exists iff the feature is on — no dangling public
+    // endpoint when the relay is off — and never on Azure.
+    if (
+      config.provider !== StorageProvider.MINIO ||
+      !config.minio.publicBaseUrl
+    ) {
+      fastify.log.info(
+        "storage-relay: disabled (MINIO_REVERSE_PROXY_ACTIVE not set, or provider is not MinIO)"
+      );
       return;
     }
     const upstreamBase = config.minio.endpoint.replace(/\/+$/, "");
@@ -205,7 +217,7 @@ const storageRelayPlugin = fp(
 
         done();
       },
-      { prefix: "/api/storage" }
+      { prefix: STORAGE_RELAY_PREFIX }
     );
 
     fastify.log.info(
