@@ -32,7 +32,7 @@ function minutesToSeconds(minutes: number): number {
 }
 
 /**
- * Rewrites the ORIGIN of a presigned URL to a public reverse-proxy base,
+ * Rewrites the ORIGIN of a presigned URL to a public relay base,
  * preserving the signed path + query (the SigV4 signature) byte-for-byte. The
  * signature is computed against the internal endpoint, so only the string is
  * swapped here — never the host the client (`S3Client`) signs against.

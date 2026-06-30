@@ -26,12 +26,12 @@ export interface MinioStorageConfig {
   region: string;
   forcePathStyle: boolean;
   /**
-   * Optional public reverse-proxy base. When set, every presigned URL the
+   * Optional public relay base. When set, every presigned URL the
    * adapter returns has its origin (and any base path) rewritten to this value,
    * keeping the signed path + query intact, so the browser talks to the API
    * relay instead of the internal endpoint. Composed and injected by the API
    * layer (from `API_ORIGIN` + the relay route prefix) when
-   * `MINIO_REVERSE_PROXY_ACTIVE=true`; it is not read from env here. Unset →
+   * `MINIO_RELAY_ENABLED=true`; it is not read from env here. Unset →
    * URLs keep `endpoint`, unchanged. Example: "https://api.example.cl/api/storage".
    */
   publicBaseUrl?: string | undefined;

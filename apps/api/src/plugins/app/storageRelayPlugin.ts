@@ -9,10 +9,10 @@ import {
 } from "@/config/environment.js";
 
 /**
- * Storage relay (reverse-proxy) plugin.
+ * Storage relay plugin.
  *
  * When the deployment uses MinIO with the relay enabled
- * (`MINIO_REVERSE_PROXY_ACTIVE=true` + `API_ORIGIN`), presigned URLs are
+ * (`MINIO_RELAY_ENABLED=true` + `API_ORIGIN`), presigned URLs are
  * rewritten to a public relay base and the browser hits
  * `https://<host>/api/storage/<bucket>/<key>?X-Amz-...` instead of the internal
  * MinIO endpoint. This plugin forwards that request to the internal endpoint
@@ -248,7 +248,7 @@ function makeRelayHandler(upstreamBase: string) {
 const storageRelayPlugin = fp(
   async (fastify) => {
     const config = buildStorageConfig();
-    // The relay is enabled only when MINIO_REVERSE_PROXY_ACTIVE=true, which is
+    // The relay is enabled only when MINIO_RELAY_ENABLED=true, which is
     // exactly when buildStorageConfig() injects a MinIO publicBaseUrl. Gating on
     // it means the route exists iff the feature is on — no dangling public
     // endpoint when the relay is off — and never on Azure.
@@ -257,7 +257,7 @@ const storageRelayPlugin = fp(
       !config.minio.publicBaseUrl
     ) {
       fastify.log.info(
-        "storage-relay: disabled (MINIO_REVERSE_PROXY_ACTIVE not set, or provider is not MinIO)"
+        "storage-relay: disabled (MINIO_RELAY_ENABLED not set, or provider is not MinIO)"
       );
       return;
     }

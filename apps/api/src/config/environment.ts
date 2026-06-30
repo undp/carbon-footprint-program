@@ -251,7 +251,7 @@ export const STORAGE_RELAY_PREFIX = "/api/storage";
  * Resolves the fully-typed object-storage configuration injected into
  * `createStorageAdapter`. Delegates to the shared `@repo/storage` parser for the
  * provider credentials, then — when the MinIO storage relay is enabled
- * (`MINIO_REVERSE_PROXY_ACTIVE=true`) — composes the public relay base from
+ * (`MINIO_RELAY_ENABLED=true`) — composes the public relay base from
  * `API_ORIGIN` + `STORAGE_RELAY_PREFIX` and injects it, so presigned URLs are
  * rewritten to the API and MinIO stays internal.
  *
@@ -262,20 +262,19 @@ export const STORAGE_RELAY_PREFIX = "/api/storage";
 export function buildStorageConfig(): StorageConfig {
   const config = storageConfigFromEnv(process.env);
 
-  const relayActive =
-    process.env.MINIO_REVERSE_PROXY_ACTIVE?.toLowerCase() === "true";
+  const relayActive = process.env.MINIO_RELAY_ENABLED?.toLowerCase() === "true";
   if (!relayActive) return config;
 
   if (config.provider !== StorageProvider.MINIO) {
     throw new Error(
-      "MINIO_REVERSE_PROXY_ACTIVE=true is only valid with STORAGE_PROVIDER=minio " +
+      "MINIO_RELAY_ENABLED=true is only valid with STORAGE_PROVIDER=minio " +
         "(Azure serves SAS URLs directly over HTTPS — no relay)."
     );
   }
   const apiOrigin = process.env.API_ORIGIN?.replace(/\/+$/, "");
   if (!apiOrigin) {
     throw new Error(
-      "MINIO_REVERSE_PROXY_ACTIVE=true requires API_ORIGIN — the API's public " +
+      "MINIO_RELAY_ENABLED=true requires API_ORIGIN — the API's public " +
         "origin, e.g. https://api.example.cl."
     );
   }
