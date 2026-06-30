@@ -68,13 +68,15 @@ const RELAY_RESPONSE_HEADERS = [
 // streams back unbounded. For PUT it bounds the ENTIRE upload, because `fetch`
 // does not resolve until MinIO has received the whole body and replied — so it
 // must be generous enough for the largest expected upload over the slowest
-// expected link (e.g. an on-prem VPN). Client-side cancellation is handled
-// separately (see the `close` handler), so a hung peer is the only thing this
-// guards against; promote it to an env var if a deployment needs to tune it.
+// expected link (e.g. an on-prem VPN); promote it to an env var if a deployment
+// needs to tune it.
 //
-// TODO: a true idle timeout (abort only when no bytes move for N seconds) would
-// be tighter, but `fetch` exposes no upload progress — it needs undici's
-// `bodyTimeout`/`headersTimeout`. Deferred until there's evidence we need it.
+// TODO: a true idle timeout (abort only when no bytes move for N seconds) plus
+// aborting on a genuine client disconnect would be tighter, but `fetch` exposes
+// no upload progress and `request.raw`'s `close` fires on normal request-body
+// end too (not only on disconnect) — doing it safely needs undici's
+// `bodyTimeout`/`headersTimeout` and a response-socket (`reply.raw`) close
+// guard. Deferred until there's evidence we need it.
 const UPSTREAM_TIMEOUT_MS = 300_000;
 
 /** Strips the SigV4 signature from a URL before it reaches the logs. */
@@ -129,17 +131,6 @@ function makeRelayHandler(upstreamBase: string) {
 
     const hasBody = request.method === "PUT";
     const controller = new AbortController();
-    // Tear the upstream down if the client goes away mid-transfer (cancels a
-    // large upload/download) so we don't leave the MinIO connection dangling.
-    // `close` also fires on normal completion, so only treat it as a disconnect
-    // while the response is still in flight.
-    let clientClosed = false;
-    request.raw.once("close", () => {
-      if (!reply.raw.writableEnded) {
-        clientClosed = true;
-        controller.abort();
-      }
-    });
     const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
     // `duplex` is part of the undici RequestInit but not every lib's DOM types.
@@ -164,17 +155,8 @@ function makeRelayHandler(upstreamBase: string) {
       upstream = await fetch(target, init);
     } catch (err) {
       clearTimeout(timeout);
-      // The client hung up before the upstream responded (we aborted via the
-      // `close` handler) — there is nobody left to answer.
-      if (clientClosed) {
-        request.log.debug(
-          { target: redactSignature(target) },
-          "storage-relay: client closed before the upstream responded"
-        );
-        return;
-      }
-      // Anything else aborted via the signal is our own timeout; a plain
-      // rejection is a genuine connect/transport failure.
+      // A signal abort is our own timeout; any other rejection is a genuine
+      // connect/transport failure.
       const timedOut = controller.signal.aborted;
       request.log.warn(
         { err, target: redactSignature(target) },
