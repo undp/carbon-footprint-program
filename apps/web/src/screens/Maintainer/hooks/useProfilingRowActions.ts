@@ -14,7 +14,6 @@ import {
 
 interface ServerRowBase {
   id: string;
-  isInUse: boolean;
 }
 
 interface MutationLike<TInput, TOutput> {
@@ -42,8 +41,6 @@ export interface UseProfilingRowActionsOptions<
     formRow: TFormRow,
     serverRow: TServerRow
   ) => TUpdateBody | null;
-  /** Whether the diff includes any field that user-facing data depends on (drives InUseWarning). */
-  visibleFieldsChanged: (body: TUpdateBody) => boolean;
   newRowDefaults: () => TFormRow;
   createMutation: MutationLike<TCreateBody, TServerRow>;
   updateMutation: MutationLike<{ id: string; body: TUpdateBody }, TServerRow>;
@@ -67,11 +64,6 @@ export interface UseProfilingRowActionsOptions<
   };
 }
 
-export interface PendingPatch<TUpdateBody> {
-  id: string;
-  body: TUpdateBody;
-}
-
 export const useProfilingRowActions = <
   TFormValues extends FieldValues,
   TServerRow extends ServerRowBase,
@@ -86,7 +78,6 @@ export const useProfilingRowActions = <
   toFormRow,
   toCreateBody,
   diffUpdateBody,
-  visibleFieldsChanged,
   newRowDefaults,
   createMutation,
   updateMutation,
@@ -105,9 +96,10 @@ export const useProfilingRowActions = <
   TUpdateBody
 >) => {
   const { enqueueSnackbar } = useSnackbar();
-  const [pendingPatch, setPendingPatch] =
-    useState<PendingPatch<TUpdateBody> | null>(null);
   const [restoreBlockedMessage, setRestoreBlockedMessage] = useState<
+    string | null
+  >(null);
+  const [updateBlockedMessage, setUpdateBlockedMessage] = useState<
     string | null
   >(null);
 
@@ -150,6 +142,16 @@ export const useProfilingRowActions = <
         setEditingRowId(null);
         return true;
       } catch (error) {
+        // An identity-changing edit (rename or re-parent) on a row referenced by
+        // user data / catalog children is blocked server-side. Surface the reason in
+        // a dedicated dialog (with the delete-then-recreate hint) instead of a
+        // generic snackbar, mirroring the PARENT_NOT_ACTIVE flow.
+        if (getApiErrorCode(error) === "EDIT_BLOCKED_BY_REFERENCES") {
+          setUpdateBlockedMessage(
+            getApiErrorMessage(error, errorMessages.update)
+          );
+          return false;
+        }
         enqueueSnackbar({
           message: getApiErrorMessage(error, errorMessages.update),
           variant: "error",
@@ -245,13 +247,9 @@ export const useProfilingRowActions = <
       return true;
     }
 
-    if (visibleFieldsChanged(body) && serverRow.isInUse) {
-      // Defer until admin confirms in InUseWarningDialog. Keep the row in edit mode
-      // so a cancel preserves the dirty values.
-      setPendingPatch({ id: serverRow.id, body });
-      return false;
-    }
-
+    // Identity-changing edits (rename / re-parent) on an in-use row are hard-blocked
+    // server-side (EDIT_BLOCKED_BY_REFERENCES) and surfaced via the BlockedActionDialog
+    // in dispatchUpdate, so the patch is always dispatched directly.
     return dispatchUpdate(serverRow.id, body);
   }, [
     editingRowId,
@@ -271,7 +269,6 @@ export const useProfilingRowActions = <
     setEditingRowId,
     serverRows,
     diffUpdateBody,
-    visibleFieldsChanged,
     dispatchUpdate,
   ]);
 
@@ -407,15 +404,8 @@ export const useProfilingRowActions = <
     setRestoreBlockedMessage(null);
   }, []);
 
-  const dispatchPendingPatch = useCallback(async () => {
-    if (!pendingPatch) return;
-    const { id, body } = pendingPatch;
-    setPendingPatch(null);
-    await dispatchUpdate(id, body);
-  }, [pendingPatch, dispatchUpdate]);
-
-  const cancelPendingPatch = useCallback(() => {
-    setPendingPatch(null);
+  const dismissUpdateBlocked = useCallback(() => {
+    setUpdateBlockedMessage(null);
   }, []);
 
   return {
@@ -425,10 +415,9 @@ export const useProfilingRowActions = <
     handleCancelEditRow,
     handleDelete,
     handleRestore,
-    pendingPatch,
-    dispatchPendingPatch,
-    cancelPendingPatch,
     restoreBlockedMessage,
     dismissRestoreBlocked,
+    updateBlockedMessage,
+    dismissUpdateBlocked,
   };
 };

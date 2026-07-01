@@ -9,6 +9,14 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountryOrganizationSize } from "@test/factories/countryOrganizationSizeFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import {
+  createCarbonInventory,
+  carbonInventoryPatterns,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
@@ -33,6 +41,15 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
   });
 
   afterEach(async () => {
+    // Orgs (and their organization_data) hold an FK to the size via
+    // countryOrganizationSizeId, so they must be cleared before the size rows below.
+    await cleanupTestOrganization(prisma);
+    // Carbon inventories carry the size only inside their organizationData JSON
+    // snapshot (no FK), so they never block the delete below — but they must still
+    // be removed by name to avoid leaking across tests.
+    await prisma.carbonInventory.deleteMany({
+      where: { name: { startsWith: TEST_PREFIX } },
+    });
     await prisma.countryOrganizationSize.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -128,5 +145,150 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
       payload: { name: ghost },
     });
     expect(response.statusCode).toBe(200);
+  });
+
+  describe("Rename blocked by user data", () => {
+    it("blocks rename (409) when an organization profile references the size", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Old"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          countryOrganizationSizeId: size.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { organizationData?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const reloaded = await prisma.countryOrganizationSize.findUnique({
+        where: { id: size.id },
+      });
+      expect(reloaded!.name).toBe(size.name);
+    });
+
+    it("blocks rename (409) when an ACTIVE carbon inventory snapshot references the size", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Old"),
+      });
+      // The size is referenced ONLY inside the inventory's frozen JSON snapshot —
+      // no live organization_data row points at it — so this is exactly the gap the
+      // FK-based count misses.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          sizeId: size.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { carbonInventories?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+    });
+
+    it("does NOT block rename when only a DELETED carbon inventory snapshot references the size", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Old"),
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          sizeId: size.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const newName = uniqueName("New");
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { name: newName },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateCountryOrganizationSizeResponse;
+      expect(body.name).toBe(newName);
+    });
+
+    it("allows a description-only edit even when the size is in use", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Named"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          countryOrganizationSizeId: size.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { description: "Nueva descripción" },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED size still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references, so this is the case
+      // that used to surface as a misleading 409 instead of not-found.
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("Dead"),
+        status: CountryOrganizationSizeStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          countryOrganizationSizeId: size.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
+    });
   });
 });

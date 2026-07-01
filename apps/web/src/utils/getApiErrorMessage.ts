@@ -102,6 +102,86 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       return "Ya existe un tamaño de organización activo con ese nombre.";
     return "Ya existe un registro con este valor.";
   },
+  EDIT_BLOCKED_BY_REFERENCES: (details) => {
+    const referencedBy = details?.referencedBy as
+      | Record<string, unknown>
+      | undefined;
+    const count = (value: unknown): number =>
+      typeof value === "number" ? value : 0;
+
+    const parts: string[] = [];
+    const mainActivities = count(referencedBy?.activeMainActivities);
+    if (mainActivities > 0)
+      parts.push(
+        `${mainActivities} ${
+          mainActivities > 1 ? "actividades principales" : "actividad principal"
+        }`
+      );
+    const recommendations = count(
+      referencedBy?.activeSubcategoryRecommendations
+    );
+    if (recommendations > 0)
+      parts.push(
+        `${recommendations} ${
+          recommendations > 1
+            ? "recomendaciones de subcategoría"
+            : "recomendación de subcategoría"
+        }`
+      );
+    const organizations = count(referencedBy?.organizationData);
+    if (organizations > 0)
+      parts.push(
+        `${organizations} ${
+          organizations > 1 ? VOCAB.organization.noun.plural : orgSingular
+        }`
+      );
+    const carbonInventories = count(referencedBy?.carbonInventories);
+    if (carbonInventories > 0)
+      parts.push(
+        `${carbonInventories} ${
+          carbonInventories > 1
+            ? VOCAB.carbonInventory.noun.plural
+            : VOCAB.carbonInventory.noun.singular
+        }`
+      );
+
+    // No trailing adjective: the list mixes singular/plural and genders
+    // ("1 actividad principal", "2 organizaciones"), so a fixed "asociados"
+    // would never agree.
+    const list =
+      parts.length === 0
+        ? null
+        : parts.length === 1
+          ? parts[0]
+          : `${parts.slice(0, -1).join(", ")} y ${parts[parts.length - 1]}`;
+    const because = list ? `tiene ${list}` : "está en uso";
+
+    // Contracted "de + article" per resource; `itObj` is the entity's
+    // direct-object pronoun ("lo" for el rubro/subrubro, "la" for la actividad).
+    const resourceType = details?.resourceType as string | undefined;
+    const OF_SUBJECT: Record<string, string> = {
+      CountrySector: "del rubro",
+      CountrySubsector: "del subrubro",
+      OrganizationMainActivity: "de la actividad principal",
+      CountryOrganizationSize: "del tamaño de organización",
+    };
+    const ofSubject = OF_SUBJECT[resourceType ?? ""] ?? "del registro";
+    const isMainActivity = resourceType === "OrganizationMainActivity";
+    const itObj = isMainActivity ? "la" : "lo";
+
+    if (details?.attemptedChange === "name") {
+      // The display name is resolved by id at read time, so a rename would change
+      // what users who already selected this row see in their data/footprint.
+      return `No se puede cambiar el nombre ${ofSubject} porque ${because}. Si lo cambias, quienes ya ${itObj} seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminar${itObj} y volver a crear${itObj}.`;
+    }
+
+    // Re-parenting copy. A main activity has two parents (rubro + subrubro).
+    const changeWhat = isMainActivity ? "el rubro o subrubro" : "el rubro";
+    const suffix = isMainActivity
+      ? "Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto."
+      : "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
+    return `No se puede cambiar ${changeWhat} ${ofSubject} porque ${because}. ${suffix}`;
+  },
   RESTORE_ON_ACTIVE: (details) => {
     const label =
       RESOURCE_LABELS[details?.resourceType as string]?.sentenceArticle;
@@ -144,6 +224,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una unidad de medida con esta abreviatura.",
   MEASUREMENT_UNIT_FIELDS_LOCKED:
     "Los campos magnitud, abreviatura, factor base e indicador de base no pueden modificarse porque la unidad es base o ya tiene datos asociados.",
+  MEASUREMENT_UNIT_REFERENCED:
+    "No se puede eliminar esta unidad de medida porque ya tiene datos asociados.",
   MEASUREMENT_UNIT_NOT_FOUND: "Unidad de medida no encontrada.",
   BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE:
     "Una unidad base debe tener un factor base igual a 1.",

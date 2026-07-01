@@ -23,7 +23,6 @@ export const SubsectorRowSchema = z.object({
     .nullable(),
   countrySectorId: z.string().min(1, "El rubro es obligatorio"),
   status: z.enum(CountrySubsectorStatus).nullable(),
-  isInUse: z.boolean(),
   impactedChildren: z.object({
     activeMainActivities: z.number().int().nonnegative(),
     organizationData: z.number().int().nonnegative(),

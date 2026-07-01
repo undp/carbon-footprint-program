@@ -12,7 +12,10 @@ export const useSoftDeleteCountrySector = () => {
       await apiClient.delete(`admin/country-sectors/${id}`);
     },
     onSuccess: async () => {
-      // Cascade soft-delete also affects subsectors and main activities.
+      // Cascade soft-delete also affects subsectors, main activities and
+      // subcategory recommendations. Each of those grids composes the sector
+      // CatalogUpdateDependency token in its query key, so firing it here
+      // refreshes them all (the recommendations grid included).
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>

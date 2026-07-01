@@ -147,8 +147,8 @@ describe("GET /api/admin/country-sectors - Integration Tests", () => {
     });
   });
 
-  describe("isInUse flag", () => {
-    it("rows expose an isInUse boolean", async () => {
+  describe("impactedChildren counts", () => {
+    it("counts ACTIVE catalog children", async () => {
       const sector = await createTestCountrySector(prisma, {
         name: uniqueName("InUseFlag"),
       });
@@ -167,10 +167,10 @@ describe("GET /api/admin/country-sectors - Integration Tests", () => {
 
       const row = body.find((r) => r.id === sector.id.toString());
       expect(row).toBeDefined();
-      expect(row!.isInUse).toBe(true);
+      expect(row!.impactedChildren.activeSubsectors).toBe(1);
     });
 
-    it("DELETED catalog children do not flip the parent isInUse to true", async () => {
+    it("does not count DELETED catalog children", async () => {
       const sector = await createTestCountrySector(prisma, {
         name: uniqueName("OnlyDeletedChild"),
       });
@@ -190,7 +190,7 @@ describe("GET /api/admin/country-sectors - Integration Tests", () => {
 
       const row = body.find((r) => r.id === sector.id.toString());
       expect(row).toBeDefined();
-      expect(row!.isInUse).toBe(false);
+      expect(row!.impactedChildren.activeSubsectors).toBe(0);
     });
   });
 });

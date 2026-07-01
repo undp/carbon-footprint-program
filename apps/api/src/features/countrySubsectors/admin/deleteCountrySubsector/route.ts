@@ -16,12 +16,11 @@ export const deleteCountrySubsectorRoute = defineRoute<{
     tags: ["admin-country-subsectors"],
     summary: "Soft-delete a country subsector",
     description:
-      "Transitions the row to status=DELETED. Blocked when ACTIVE catalog references (main activities, subcategory recommendations) point at it.",
+      "Transitions the row to status=DELETED and cascade soft-deletes its ACTIVE catalog children (main activities, subcategory recommendations). Organization-owned data is left untouched.",
     params: DeleteCountrySubsectorParamsSchema,
     response: {
       200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
-      409: ApiErrorResponseSchema,
     },
   },
   access: { mode: "private" },
