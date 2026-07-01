@@ -37,9 +37,8 @@ oidcUserManager.signinSilent = (args) => {
  */
 export async function getValidOidcUser(): Promise<User | null> {
   const user = await oidcUserManager.getUser();
-  if (!user || !user.expired) {
-    return user;
-  }
+  if (!user) return null;
+  if (!user.expired) return user;
   try {
     return await oidcUserManager.signinSilent();
   } catch (error) {
