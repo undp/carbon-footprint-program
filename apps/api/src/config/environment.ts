@@ -77,6 +77,18 @@ if (IS_PROD && AUTH_PROVIDER === "jwks" && !JWKS_URI) {
   );
 }
 
+// Fail closed on the claims that bind a token to THIS app. Without an expected
+// issuer/audience, jwksConfig.ts leaves allowedIss/allowedAud undefined, so any
+// token the JWKS can verify is accepted — including one minted for a DIFFERENT
+// app/tenant on the same IdP infrastructure. Require both in production jwks.
+if (IS_PROD && AUTH_PROVIDER === "jwks" && (!JWKS_ISSUER || !JWKS_AUDIENCE)) {
+  throw new Error(
+    "AUTH_PROVIDER=jwks requires JWKS_ISSUER and JWKS_AUDIENCE in production. " +
+      "Refusing to start: without them the API would accept any token the JWKS " +
+      "can verify, regardless of which issuer or app it was minted for."
+  );
+}
+
 export const FORCED_USER_EMAIL = process.env.FORCED_USER_EMAIL;
 
 export const FORCED_USER_IDP_ID = process.env.FORCED_USER_IDP_ID;
