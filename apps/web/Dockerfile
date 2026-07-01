@@ -60,17 +60,23 @@ FROM nginxinc/nginx-unprivileged:alpine-slim AS runner
 # in the CSP (the no-auth/local boot has no login flow to allow).
 ARG VITE_OIDC_ISSUER
 ARG VITE_API_BASE_URL
+# Object-storage origin for the CSP (MinIO domain on-prem, Azure Blob host in
+# cloud). Only consumed by nginx (the sed below), so it needs no VITE_ prefix.
+ARG STORAGE_ORIGIN
 
 USER root
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-# Substitute the IdP/API origins into the CSP. POSIX basic regex (busybox sed):
-# strip everything after scheme://host[:port].
+COPY apps/web/security-headers.conf /etc/nginx/snippets/security-headers.conf
+# Substitute the IdP/API/storage origins into the CSP. POSIX basic regex (busybox
+# sed): strip everything after scheme://host[:port]. Applied to both the server
+# config and the headers snippet.
 RUN set -eu; \
     origin() { printf '%s' "${1:-}" | sed 's#\(http[s]*://[^/]*\).*#\1#'; }; \
     sed -i \
       -e "s#__IDP_ORIGIN__#$(origin "${VITE_OIDC_ISSUER:-}")#g" \
       -e "s#__API_ORIGIN__#$(origin "${VITE_API_BASE_URL:-}")#g" \
-      /etc/nginx/conf.d/default.conf
+      -e "s#__STORAGE_ORIGIN__#$(origin "${STORAGE_ORIGIN:-}")#g" \
+      /etc/nginx/conf.d/default.conf /etc/nginx/snippets/security-headers.conf
 USER 101
 
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html

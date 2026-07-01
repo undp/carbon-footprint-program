@@ -126,6 +126,10 @@ services:
         VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:-}
         VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:-}
         VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
+        # Object-storage origin baked into the nginx CSP (connect-src/img-src).
+        # The browser-facing storage URL: MinIO domain on-prem, Azure Blob host in
+        # cloud. Empty -> storage omitted from the CSP (no external uploads allowed).
+        STORAGE_ORIGIN: ${STORAGE_ORIGIN:-}
         VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-dev}
         VITE_LOCAL_BYPASS_REQUIRED_FIELDS: ${VITE_LOCAL_BYPASS_REQUIRED_FIELDS:-false}

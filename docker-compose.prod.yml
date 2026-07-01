@@ -101,6 +101,11 @@ services:
         VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:?VITE_OIDC_REDIRECT_URI is required (browser-reachable /auth/callback URL)}
         VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:?VITE_OIDC_SCOPES is required (e.g. "openid profile email offline_access"; the app fails loud at boot if empty)}
         VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
+        # Browser-facing object-storage origin baked into the nginx CSP
+        # (connect-src/img-src) — e.g. https://storage.example.com (MinIO) or
+        # https://<account>.blob.core.windows.net. REQUIRED for browser uploads:
+        # if empty, the CSP omits storage and presigned PUT/GET are blocked.
+        STORAGE_ORIGIN: ${STORAGE_ORIGIN:-}
         VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-prod}
     container_name: huella-latam-web-prod
