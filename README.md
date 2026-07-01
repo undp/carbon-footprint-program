@@ -761,12 +761,16 @@ and recognized software best practices:
   [`PRIVACY.md`](./PRIVACY.md).
 - **Supply-chain hygiene (OpenSSF):** CI runs lint, type-check, format, tests, and build on
   every PR; GitHub Actions are **pinned to commit SHAs**; workflow tokens use **least
-  privilege**; dependencies are kept current via [Dependabot](./.github/dependabot.yml).
+  privilege**; dependencies are kept current via [Dependabot](./.github/dependabot.yml)
+  (version updates + security alerts).
+- **Static analysis (SAST):** a [CodeQL workflow](./.github/workflows/codeql.yml) scans the
+  code on every push, PR, and weekly. Results upload to GitHub code scanning once the
+  repository is public.
 - **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
 
-**Planned hardening (requires GitHub Advanced Security on this private repo):** enable secret
-scanning + push protection and Dependabot security alerts, and add a CodeQL (SAST) workflow
-and OpenSSF Scorecard workflow. These are documented in [`SECURITY.md`](./SECURITY.md).
+**Planned hardening:** once this repository is public, code scanning (CodeQL) is active and
+secret scanning + push protection can be enabled in Settings → Code security. An OpenSSF
+Scorecard badge workflow can then be added. See [`SECURITY.md`](./SECURITY.md).
 
 ## 📄 License
 
