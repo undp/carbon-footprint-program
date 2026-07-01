@@ -11,6 +11,23 @@ import { oidcSettings } from "@/config/oidcConfig";
  */
 export const oidcUserManager = new UserManager(oidcSettings);
 
+// Single-flight all silent renewals. Both getValidOidcUser (below) and the
+// library's own automaticSilentRenew timer call signinSilent(); when the token
+// expires, a burst of concurrent callers would each fire a parallel renew.
+// oidc-client-ts doesn't dedupe them, and parallel renews race on refresh-token
+// rotation (one wins, the rest fail → spurious logout). Wrapping signinSilent —
+// the single chokepoint both paths go through — makes them all await one renewal.
+const runSilentRenew = oidcUserManager.signinSilent.bind(oidcUserManager);
+let pendingRenewal: Promise<User | null> | null = null;
+oidcUserManager.signinSilent = (args) => {
+  if (!pendingRenewal) {
+    pendingRenewal = runSilentRenew(args).finally(() => {
+      pendingRenewal = null;
+    });
+  }
+  return pendingRenewal;
+};
+
 /**
  * Resolves the current OIDC user for non-React consumers (the `ky` HTTP client
  * and the `requireRole` route guard). If the stored token has expired (and
