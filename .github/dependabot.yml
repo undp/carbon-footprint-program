@@ -1,0 +1,45 @@
+# Dependabot configuration — keeps dependencies current (DPG Indicator 8 / OpenSSF
+# "Dependency-Update-Tool"). Version updates work on private repos without GitHub
+# Advanced Security. To also receive security-vulnerability updates, enable Dependabot
+# alerts/security updates in Settings → Code security and analysis.
+version: 2
+updates:
+  # JavaScript/TypeScript dependencies across the pnpm monorepo (root + workspaces).
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      # Batch low-risk updates to reduce PR noise.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # GitHub Actions used by CI workflows (kept SHA-pinned; Dependabot updates the SHAs).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+
+  # Docker base images. TODO: to satisfy OpenSSF "Pinned-Dependencies", pin each `FROM`
+  # to a digest (e.g. `node:24-alpine@sha256:...`); Dependabot will then keep the digest
+  # current. Left as tags for now to avoid guessing an architecture-specific digest.
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(docker)"
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(docker)"

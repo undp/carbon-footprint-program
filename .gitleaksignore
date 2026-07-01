@@ -1,0 +1,12 @@
+# gitleaks allowlist — verified FALSE POSITIVES, triaged 2026-07-01.
+# Each entry is a gitleaks finding fingerprint (commit:file:rule:line). These were
+# manually verified NOT to be secrets. Remove an entry if the underlying line changes.
+#
+# 1) Azure built-in "Key Vault Secrets Officer" role definition ID. This is a public,
+#    well-known Azure RBAC constant (same value in every tenant), not a credential.
+#    Ref: https://learn.microsoft.com/azure/role-based-access-control/built-in-roles
+9bae5ae002feb24ec472b66c8b3d8f4c971d7071:infra/modules/keyVault.bicep:generic-api-key:62
+#
+# 2) A JDBC/URL fragment ("<host>:5432/keycloak") in a Keycloak compose file (no longer in
+#    the working tree). A database host:port/name path, not a secret.
+169256c5113cf39ef767eb104d113dec19627f5d:compose/keycloak.yaml:generic-api-key:50
