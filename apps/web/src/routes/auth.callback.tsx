@@ -18,11 +18,21 @@ import type { OidcSignInState } from "@/contexts/AuthContext";
  *
  * - Success: navigate to the `returnTo` carried in `user.state`, else HOME.
  *   `returnTo` is app-generated (built via the router, never user input) and
- *   `navigate({ to })` only targets internal routes, so it needs no validation.
+ *   `navigate({ to })` only targets internal routes, so it isn't exploitable
+ *   today; we still assert it's an internal path (`isSafeInternalPath`) as
+ *   defense-in-depth, since it round-trips through the IdP and localStorage.
  * - Error / cancel / no session+params: go to Landing (with `authError` on a
  *   real error so Landing shows the snackbar). Also closes the no-params
  *   infinite-spinner gap.
  */
+/**
+ * Only follow an app-internal path. Rejects absolute and protocol-relative URLs
+ * (`https://evil.com`, `//evil.com`) so a future refactor that forwarded
+ * `returnTo` to `window.location` couldn't become an open redirect.
+ */
+const isSafeInternalPath = (path?: string): path is string =>
+  !!path && /^\/(?!\/)/.test(path);
+
 function AuthCallbackComponent() {
   const oidc = useOidcAuth();
   const navigate = useNavigate();
@@ -35,8 +45,10 @@ function AuthCallbackComponent() {
     if (oidc.isAuthenticated) {
       handledRef.current = true;
       const state = oidc.user?.state as OidcSignInState | undefined;
-      const returnTo = state?.returnTo ?? Routes.HOME;
-      void navigate({ to: returnTo });
+      const returnTo = state?.returnTo;
+      void navigate({
+        to: isSafeInternalPath(returnTo) ? returnTo : Routes.HOME,
+      });
       return;
     }
 
