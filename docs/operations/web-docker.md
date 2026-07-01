@@ -4,7 +4,9 @@ Reference for the `apps/web` container image: architecture, build args, and stan
 
 For the **full-stack docker-compose workflow** (postgres + migrate + api + web), see [docker-compose.md](./docker-compose.md).
 
-This is a minimal first version — no hardening or runtime env injection yet. See [Future improvements](#future-improvements).
+For a **line-by-line explanation of the nginx config** (the two ports, caching, SPA fallback, CSP and security headers — each with an example), see [web-nginx-config.md](./web-nginx-config.md).
+
+Security headers (CSP, X-Content-Type-Options, Referrer-Policy, …) and serving hardening live in [`apps/web/nginx.conf`](../../apps/web/nginx.conf) + [`apps/web/security-headers.conf`](../../apps/web/security-headers.conf). Runtime env injection is still build-time only (one build per environment). See [Future improvements](#future-improvements).
 
 ---
 
@@ -78,7 +80,6 @@ For running it as part of the full stack, see [docker-compose.md](./docker-compo
 
 Deliberately left out of this first version, to add when needed:
 
-- **Hardening** — `read_only: true` + tmpfs for `/tmp`, `/var/cache/nginx`, `/var/run`; drop capabilities.
-- **Security headers** — CSP, HSTS, X-Content-Type-Options, Referrer-Policy in `nginx.conf`.
-- **Runtime env injection** — envsubst entrypoint for a single multi-environment image.
+- **Container hardening** — `read_only: true` + tmpfs for `/tmp`, `/var/cache/nginx`, `/var/run`; drop capabilities. (Security _headers_ are already configured — see [web-nginx-config.md](./web-nginx-config.md).)
+- **Runtime env injection** — envsubst entrypoint for a single multi-environment image (today the CSP origins and `VITE_*` are baked per build).
 - **`apps/web/public/staticwebapp.config.json`** — legacy Azure Static Web Apps config, unused by nginx; remove once SWA deploys are retired.
