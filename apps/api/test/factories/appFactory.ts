@@ -10,10 +10,19 @@ import type { FastifyInstance } from "fastify";
 
 interface CreateTestAppOptions {
   storageDescriptor?: TestStorageDescriptor | null;
+  /**
+   * Opt-in public relay base for the MinIO leg. When set, the overridden
+   * storage adapter rewrites presigned URLs to this origin (mirrors the API
+   * relay base, `API_ORIGIN` + `/api/storage`), so relay tests can drive
+   * `/api/storage/*`. Left unset by every other test, which keeps asserting the
+   * internal-endpoint URL.
+   */
+  storagePublicBaseUrl?: string;
 }
 
 async function buildTestAdapter(
-  descriptor: TestStorageDescriptor
+  descriptor: TestStorageDescriptor,
+  publicBaseUrl?: string
 ): Promise<StorageAdapter> {
   switch (descriptor.provider) {
     case StorageProvider.AZURE_BLOB_STORAGE: {
@@ -29,6 +38,7 @@ async function buildTestAdapter(
         secretKey: descriptor.secretKey,
         region: descriptor.region,
         bucket: descriptor.bucket,
+        publicBaseUrl,
       });
     }
     default: {
@@ -54,7 +64,10 @@ export async function createTestApp(
   await app.ready();
 
   if (options?.storageDescriptor) {
-    app.storage = await buildTestAdapter(options.storageDescriptor);
+    app.storage = await buildTestAdapter(
+      options.storageDescriptor,
+      options.storagePublicBaseUrl
+    );
     // eslint-disable-next-line no-console
     console.log(
       `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider})`

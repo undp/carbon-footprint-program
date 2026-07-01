@@ -54,6 +54,13 @@ export interface MinioTestStorageOptions {
   region: string;
   bucket: string;
   forcePathStyle?: boolean;
+  /**
+   * Optional public relay base. When set, presigned URLs returned by the
+   * adapter are rewritten to this origin (mirrors the API relay base,
+   * `API_ORIGIN` + `/api/storage`, in production) so tests can exercise the
+   * relay rewrite path.
+   */
+  publicBaseUrl?: string;
 }
 
 /**
@@ -84,5 +91,10 @@ export async function createMinioTestAdapter(
     }
   }
 
-  return createMinioAdapterFromClient(s3, opts.bucket);
+  return createMinioAdapterFromClient(
+    s3,
+    opts.bucket,
+    undefined,
+    opts.publicBaseUrl
+  );
 }

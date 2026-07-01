@@ -31,6 +31,30 @@ function minutesToSeconds(minutes: number): number {
   return minutes * 60;
 }
 
+/**
+ * Rewrites the ORIGIN of a presigned URL to a public relay base,
+ * preserving the signed path + query (the SigV4 signature) byte-for-byte. The
+ * signature is computed against the internal endpoint, so only the string is
+ * swapped here — never the host the client (`S3Client`) signs against.
+ *
+ * The public base may carry its own path prefix (e.g. "/api/storage"); that
+ * prefix is prepended to the signed pathname so the relay route receives the
+ * full "/<bucket>/<key>?X-Amz-..." after stripping its own mount.
+ *
+ *   signed:  http://192.168.50.157:9100/files/KEY?X-Amz-Algorithm=...
+ *   base:    https://api.example.cl/api/storage
+ *   result:  https://api.example.cl/api/storage/files/KEY?X-Amz-Algorithm=...
+ */
+function rewriteOrigin(signedUrl: string, publicBaseUrl: string): string {
+  const signed = new URL(signedUrl);
+  const base = new URL(publicBaseUrl);
+  // Strip any trailing slash on the base path so the join is exactly one slash.
+  const basePath = base.pathname.replace(/\/+$/, "");
+  // Assemble by string so the already-encoded signed query is never re-encoded
+  // (re-encoding the X-Amz-* params would invalidate the signature).
+  return `${base.origin}${basePath}${signed.pathname}${signed.search}`;
+}
+
 function isNotFound(err: unknown): boolean {
   if (err instanceof NotFound) return true;
   if (err instanceof S3ServiceException) {
@@ -43,7 +67,10 @@ class MinioAdapter implements StorageAdapter {
   constructor(
     private readonly s3: S3Client,
     private readonly bucket: string,
-    private readonly defaultExpiryMinutes: number
+    private readonly defaultExpiryMinutes: number,
+    // When set, presigned URLs are rewritten to this public relay base. The
+    // S3Client still signs against the internal endpoint (see rewriteOrigin).
+    private readonly publicBaseUrl?: string
   ) {}
 
   async generateReadUrl(
@@ -61,7 +88,10 @@ class MinioAdapter implements StorageAdapter {
     const expiresIn = minutesToSeconds(
       opts?.expiresInMinutes ?? this.defaultExpiryMinutes
     );
-    const url = await getSignedUrl(this.s3, command, { expiresIn });
+    const signed = await getSignedUrl(this.s3, command, { expiresIn });
+    const url = this.publicBaseUrl
+      ? rewriteOrigin(signed, this.publicBaseUrl)
+      : signed;
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
     return { url, expiresAt };
   }
@@ -77,7 +107,10 @@ class MinioAdapter implements StorageAdapter {
   async generateWriteUrl(path: string): Promise<WriteUrlResult> {
     const command = new PutObjectCommand({ Bucket: this.bucket, Key: path });
     const expiresIn = minutesToSeconds(this.defaultExpiryMinutes);
-    const url = await getSignedUrl(this.s3, command, { expiresIn });
+    const signed = await getSignedUrl(this.s3, command, { expiresIn });
+    const url = this.publicBaseUrl
+      ? rewriteOrigin(signed, this.publicBaseUrl)
+      : signed;
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
     return {
       url,
@@ -190,7 +223,12 @@ export function createMinioAdapter(
     },
   });
 
-  return new MinioAdapter(s3, config.bucket, expiryMinutes);
+  return new MinioAdapter(
+    s3,
+    config.bucket,
+    expiryMinutes,
+    config.publicBaseUrl
+  );
 }
 
 /**
@@ -201,7 +239,8 @@ export function createMinioAdapter(
 export function createMinioAdapterFromClient(
   s3: S3Client,
   bucket: string,
-  expiryMinutes: number = DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES
+  expiryMinutes: number = DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES,
+  publicBaseUrl?: string
 ): StorageAdapter {
-  return new MinioAdapter(s3, bucket, expiryMinutes);
+  return new MinioAdapter(s3, bucket, expiryMinutes, publicBaseUrl);
 }

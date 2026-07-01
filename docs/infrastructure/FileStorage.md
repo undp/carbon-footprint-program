@@ -90,6 +90,7 @@ Optional:
 - `MINIO_BUCKET` — defaults to `files`.
 - `MINIO_REGION` — defaults to `us-east-1` (MinIO ignores this but the AWS SDK requires it).
 - `MINIO_FORCE_PATH_STYLE` — defaults to `true`. Set to `false` only for S3-compatible deployments that require virtual-hosted-style URLs.
+- `MINIO_RELAY_ENABLED` — defaults to `false`. Opt-in storage relay (see [Storage relay](#storage-relay-keeping-minio-internal)). When `true`, presigned URLs are rewritten to `<API_ORIGIN>/api/storage` and the API proxies them, so MinIO stays internal. Requires `API_ORIGIN`.
 
 ### Local dev with docker-compose
 
@@ -119,19 +120,32 @@ Open the console at `http://localhost:9001` (default credentials `minioadmin` / 
 
 Presigned PUT uploads happen directly from the browser. MinIO must allow the web app's origin. The compose service sets `MINIO_API_CORS_ALLOW_ORIGIN` (defaults to `*` for dev). For production-hardened MinIO deployments, restrict this to the actual web origin.
 
+### Storage relay (keeping MinIO internal)
+
+By default the browser talks to MinIO directly via presigned URLs, which means MinIO must be reachable from the browser (a public HTTPS endpoint) and must allow the web origin via CORS. When that is not acceptable — e.g. MinIO sits on an internal network that must not be exposed — set `MINIO_RELAY_ENABLED=true` (and `API_ORIGIN`) to enable the **storage relay**, in which the API acts as a transparent reverse proxy for MinIO's presigned URLs:
+
+- Set `MINIO_RELAY_ENABLED=true` and `API_ORIGIN` to the API's public origin (scheme + host, no path — e.g. `https://api.example.cl`). The API derives the relay base by appending its own `/api/storage` route; you never spell the path out, so it can't drift from the route. With the relay enabled but `API_ORIGIN` missing the API aborts at boot.
+- The presigned URL is still **signed against the internal `MINIO_ENDPOINT`**, then its origin is rewritten to `<API_ORIGIN>/api/storage` (e.g. `https://api.example.cl/api/storage`). The signature (path + query) is preserved verbatim.
+- The browser hits `<API_ORIGIN>/api/storage/<bucket>/<key>?X-Amz-...` (an API route), and the API forwards the request **unchanged** to the internal endpoint. Because the forward preserves the signed host/path/query, MinIO revalidates the original signature — there is **no re-signing**.
+- The relay streams uploads (`PUT`), downloads (`GET`), and range requests, and is served by `storageRelayPlugin` at `/api/storage/*`. MinIO never needs a public URL or CORS config; CORS is handled by the API.
+
+The relay is MinIO-only (Azure serves SAS URLs directly over HTTPS; enabling it with `STORAGE_PROVIDER=azure_blob_storage` aborts at boot). Leave `MINIO_RELAY_ENABLED` unset/`false` to keep the browser-direct behaviour described above. All file bytes flow through the API process, so size the API for the expected transfer volume.
+
 ## Env var reference
 
-| Variable                       | Provider | Required    | Default     | Notes                           |
-| ------------------------------ | -------- | ----------- | ----------- | ------------------------------- |
-| `STORAGE_PROVIDER`             | both     | yes         | —           | `azure_blob_storage` or `minio` |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Azure    | yes (Azure) | —           | Storage account name            |
-| `AZURE_STORAGE_CONTAINER_NAME` | Azure    | no          | `files`     | Container name                  |
-| `MINIO_ENDPOINT`               | MinIO    | yes (MinIO) | —           | Endpoint URL                    |
-| `MINIO_ACCESS_KEY`             | MinIO    | yes (MinIO) | —           | S3 access key id                |
-| `MINIO_SECRET_KEY`             | MinIO    | yes (MinIO) | —           | S3 secret access key            |
-| `MINIO_BUCKET`                 | MinIO    | no          | `files`     | Bucket name                     |
-| `MINIO_REGION`                 | MinIO    | no          | `us-east-1` | S3 client region                |
-| `MINIO_FORCE_PATH_STYLE`       | MinIO    | no          | `true`      | Path-style URLs                 |
+| Variable                       | Provider | Required    | Default     | Notes                                           |
+| ------------------------------ | -------- | ----------- | ----------- | ----------------------------------------------- |
+| `STORAGE_PROVIDER`             | both     | yes         | —           | `azure_blob_storage` or `minio`                 |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | Azure    | yes (Azure) | —           | Storage account name                            |
+| `AZURE_STORAGE_CONTAINER_NAME` | Azure    | no          | `files`     | Container name                                  |
+| `MINIO_ENDPOINT`               | MinIO    | yes (MinIO) | —           | Endpoint URL                                    |
+| `MINIO_ACCESS_KEY`             | MinIO    | yes (MinIO) | —           | S3 access key id                                |
+| `MINIO_SECRET_KEY`             | MinIO    | yes (MinIO) | —           | S3 secret access key                            |
+| `MINIO_BUCKET`                 | MinIO    | no          | `files`     | Bucket name                                     |
+| `MINIO_REGION`                 | MinIO    | no          | `us-east-1` | S3 client region                                |
+| `MINIO_FORCE_PATH_STYLE`       | MinIO    | no          | `true`      | Path-style URLs                                 |
+| `MINIO_RELAY_ENABLED`          | MinIO    | no          | `false`     | Enable the storage relay (keeps MinIO internal) |
+| `API_ORIGIN`                   | MinIO    | if relay    | —           | API public origin; relay appends `/api/storage` |
 
 ## Upload protocol
 
