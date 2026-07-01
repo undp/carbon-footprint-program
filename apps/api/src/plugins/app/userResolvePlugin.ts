@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
-import { Prisma, SystemRole } from "@repo/database";
+import { Prisma } from "@repo/database";
 
 const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
   // Find or create user on the DB with the data of the authenticated user with oid and email and attach to request
@@ -43,8 +43,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
               idpUserId: authUser.idpUserId,
               email: authUser.email,
               idpName: authUser.idpName,
-              // TODO: remove when finishing the demo
-              role: SystemRole.SUPERADMIN,
+              // No role set → DB default (USER). Never JIT-provision an admin.
               updatedAt: null,
             },
           });
