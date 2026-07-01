@@ -716,9 +716,69 @@ When running in development:
 - [pnpm Workspaces](https://pnpm.io/workspaces)
 - [Azure Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
 
+## 🌍 Relevance to the Sustainable Development Goals
+
+Huella Latam is a digital public good that helps organizations and Latin American countries
+measure, report, and reduce greenhouse-gas emissions. It advances the following UN
+Sustainable Development Goals:
+
+| SDG                                               | How Huella Latam contributes (specific targets)                                                                                                                                                                                                                                   | Evidence                                                                                                                                             |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SDG 13 — Climate Action**                       | Provides the measurement, inventory, and reduction-planning infrastructure countries need to **integrate climate-change measures into national policies and planning (Target 13.2)** and to **improve institutional capacity for mitigation and impact reduction (Target 13.3)**. | Carbon inventory, emissions summaries, and reduction-plan features (`apps/api` carbon-inventory domain; `docs/architecture/emission-calculation.md`) |
+| **SDG 12 — Responsible Consumption & Production** | Enables organizations to **adopt sustainable practices and integrate sustainability information into their reporting (Target 12.6)** through standardized carbon footprints and verifiable submissions.                                                                           | Organization inventories, verification/submission flow, methodology export (`docs/development/data-export.md`)                                       |
+| **SDG 9 — Industry, Innovation & Infrastructure** | Supports **sustainable, resource-efficient upgrading of industries (Target 9.4)** by giving sectors comparable emissions data and sector rankings to prioritize reductions.                                                                                                       | Sector ranking and equivalence features (carbon-inventory summaries)                                                                                 |
+
+## 🔓 Platform Independence
+
+Huella Latam is built primarily on open-source components and open standards, and can be run
+without proprietary software. The default deployment targets Microsoft Azure, but the
+application layer is cloud-portable.
+
+| Dependency                                | Open / closed        | Notes & open alternative                                                                                                                                                                                                                                           |
+| ----------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Node.js, TypeScript, Fastify, React, Vite | Open                 | Core runtime/frameworks; no lock-in                                                                                                                                                                                                                                |
+| PostgreSQL (via Prisma ORM)               | Open                 | Runs on any PostgreSQL; Azure Database for PostgreSQL is one option, not a requirement                                                                                                                                                                             |
+| Object storage                            | Open/closed          | Provider-agnostic storage adapter supports **Azure Blob Storage** _and_ **MinIO** (S3-compatible, open source) — see `packages/storage`                                                                                                                            |
+| Authentication (OIDC)                     | Open standard        | Uses OpenID Connect; default provider is Microsoft Entra ID, but any OIDC provider (e.g. Keycloak — an open-source option already used in local `compose/`) can be configured — see `docs/security/authentication.md`                                              |
+| Secrets management                        | Closed (swappable)   | Azure Key Vault by default; any secrets manager or environment injection can be substituted — see `docs/security/secrets.md`                                                                                                                                       |
+| Infrastructure as Code                    | Closed (Azure Bicep) | Bicep templates provision the Azure reference deployment; containers (`Dockerfile`, `docker-compose*.yml`) allow deployment to any container platform. **TODO:** provide a cloud-neutral IaC example (e.g. Terraform/Kubernetes manifests) for non-Azure adopters. |
+
+All mandatory application dependencies are open source. The closed dependencies above are
+**operational conveniences of the reference deployment**, each with a documented open
+alternative, so no adopter is locked into a single vendor.
+
+## ✅ Standards & Best Practices
+
+Huella Latam aims to follow the [Principles for Digital Development](https://digitalprinciples.org/)
+and recognized software best practices:
+
+- **Open standards:** OpenID Connect for auth, OpenAPI/Swagger for the API
+  (`http://localhost:8080/docs`), and non-proprietary data export (JSON/CSV via API).
+- **Reuse & open source:** built on open-source components; provider-agnostic storage;
+  AGPL-3.0 licensed for the public good.
+- **Privacy & security by design:** RBAC, OIDC, secrets in a vault, encryption at rest/in
+  transit, and audit logging — see [`docs/security/`](./docs/security/) and
+  [`PRIVACY.md`](./PRIVACY.md).
+- **Supply-chain hygiene (OpenSSF):** CI runs lint, type-check, format, tests, and build on
+  every PR; GitHub Actions are **pinned to commit SHAs**; workflow tokens use **least
+  privilege**; dependencies are kept current via [Dependabot](./.github/dependabot.yml).
+- **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
+
+**Planned hardening (requires GitHub Advanced Security on this private repo):** enable secret
+scanning + push protection and Dependabot security alerts, and add a CodeQL (SAST) workflow
+and OpenSSF Scorecard workflow. These are documented in [`SECURITY.md`](./SECURITY.md).
+
 ## 📄 License
 
-MIT
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [`LICENSE`](./LICENSE) file for the full text ([SPDX: `AGPL-3.0-only`](https://spdx.org/licenses/AGPL-3.0-only.html)).
+
+AGPL-3.0 is a strong (network) copyleft license: if you run a modified version of this software to provide a service over a network, you must make the corresponding source code of your modified version available to its users under the same license.
+
+## 🏛 Ownership
+
+Copyright © 2026 United Nations Development Programme (UNDP).
+
+Huella Latam is owned and maintained by the **United Nations Development Programme (UNDP)** as a digital public good. Contributions are accepted under the project's AGPL-3.0 license; see [`GOVERNANCE.md`](./GOVERNANCE.md) for the governance and contribution model and [`docs/governance.md`](./docs/governance.md) for licensing and country-level deployment details.
 
 ## 👥 Team
 
