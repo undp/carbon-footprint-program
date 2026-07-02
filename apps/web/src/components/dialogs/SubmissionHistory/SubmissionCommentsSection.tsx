@@ -1,13 +1,33 @@
 import { FC } from "react";
 import { Box, Stack, Typography, alpha, useTheme } from "@mui/material";
 import { Circle, ModeCommentOutlined } from "@mui/icons-material";
+import { SubmissionEventType } from "@repo/types";
+import { StatusFamily } from "@/labels/chips/types";
 
 type Props = {
   comment: string;
+  eventType: SubmissionEventType;
 };
 
-export const SubmissionCommentsSection: FC<Props> = ({ comment }) => {
+const POSITIVE_EVENT_TYPES: SubmissionEventType[] = [
+  SubmissionEventType.APPROVED,
+  SubmissionEventType.APPROVED_AUTOMATICALLY,
+];
+
+export const SubmissionCommentsSection: FC<Props> = ({
+  comment,
+  eventType,
+}) => {
   const theme = useTheme();
+
+  const isPositive = POSITIVE_EVENT_TYPES.includes(eventType);
+  const accentColor = isPositive
+    ? theme.palette.statusFamilyColors[StatusFamily.POSITIVE]
+    : theme.palette.warning.light;
+  const iconColor = isPositive
+    ? theme.palette.statusFamilyColors[StatusFamily.POSITIVE]
+    : theme.palette.warning.dark;
+
   const commentLines = comment
     .split(/\r?\n+/)
     .map((line) => line.trim())
@@ -22,8 +42,8 @@ export const SubmissionCommentsSection: FC<Props> = ({ comment }) => {
         display: "flex",
         alignItems: "flex-start",
         gap: 1.5,
-        bgcolor: alpha(theme.palette.warning.light, 0.12),
-        border: `1px solid ${alpha(theme.palette.warning.light, 0.5)}`,
+        bgcolor: alpha(accentColor, 0.12),
+        border: `1px solid ${alpha(accentColor, 0.5)}`,
         borderRadius: "10px",
         my: 1.5,
         px: 1.5,
@@ -32,7 +52,7 @@ export const SubmissionCommentsSection: FC<Props> = ({ comment }) => {
     >
       <ModeCommentOutlined
         sx={{
-          color: theme.palette.warning.dark,
+          color: iconColor,
           fontSize: 16,
           mt: "2px",
           flexShrink: 0,
