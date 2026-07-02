@@ -1,0 +1,37 @@
+version: 2
+
+updates:
+  # Application & workspace dependencies.
+  # pnpm monorepo: a single root pnpm-lock.yaml covers apps/*, packages/*, and
+  # tools/* via the workspace, so Dependabot is pointed at the root directory.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    # Wait at least a day before proposing a version. This mirrors the
+    # `minimumReleaseAge` (12h) supply-chain delay in pnpm-workspace.yaml, so
+    # Dependabot never proposes a version the CI install gate would reject.
+    cooldown:
+      default-days: 1
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      # Collapse low-risk updates into a single PR to cut review noise.
+      # Security updates and majors still open their own PRs.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions used by the CI workflow (checkout, setup-node, action-setup).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
