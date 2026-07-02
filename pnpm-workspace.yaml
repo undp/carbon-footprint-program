@@ -3,6 +3,17 @@ packages:
   - packages/*
   - tools/*
 
+# Reject dependencies published less than 12 hours ago (value is in minutes).
+minimumReleaseAge: 720
+
+allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+
 catalogs:
   shared:
     '@types/node': ^25.9.4
@@ -14,7 +25,7 @@ catalogs:
     vitest: ^4.1.9
     zod: ^4.4.3
 
-onlyBuiltDependencies:
-  - '@prisma/engines'
-  - esbuild
-  - prisma
+overrides:
+  'exceljs>uuid': ^11.1.1
+  '@hookform/devtools>uuid': ^11.1.1
+  '@prisma/dev>@hono/node-server': 1.19.13
