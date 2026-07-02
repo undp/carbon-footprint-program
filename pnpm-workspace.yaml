@@ -3,8 +3,27 @@ packages:
   - packages/*
   - tools/*
 
-# Reject dependencies published less than 12 hours ago (value is in minutes).
-minimumReleaseAge: 720
+# --- Supply-chain / security hardening ---
+# Reject dependency versions published less than 24 hours ago (value in minutes;
+# 1440 = the pnpm v11 default). Gives freshly published (possibly compromised)
+# releases time to be flagged before they can enter the tree.
+minimumReleaseAge: 1440
+# Refuse to install any package that declares incompatibility with the Node
+# engine required in package.json (engines.node >= 24).
+engineStrict: true
+
+# The settings below are pnpm v11 defaults, pinned explicitly for auditability
+# (DPG supply-chain review) so a future default change can't silently weaken them.
+# Fail the install if any dependency ships an unreviewed build script.
+strictDepBuilds: true
+# Never auto-run dependency build/install scripts — only those listed in allowBuilds.
+dangerouslyAllowAllBuilds: false
+# Integrity-check content-addressable store files before linking them.
+verifyStoreIntegrity: true
+# Transitive dependencies may not be resolved from git/tarball (exotic) sources.
+blockExoticSubdeps: true
+# Verify node_modules matches the lockfile before running any script.
+verifyDepsBeforeRun: install
 
 allowBuilds:
   '@prisma/engines': true
