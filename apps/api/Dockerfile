@@ -1,5 +1,5 @@
 # Stage 1: Base image with pnpm
-FROM node:24-alpine AS base
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -62,7 +62,7 @@ WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
 # Stage 4: Production image
-FROM node:24-alpine AS runner
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
 
 # Set environment to production

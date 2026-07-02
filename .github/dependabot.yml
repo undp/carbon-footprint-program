@@ -27,6 +27,19 @@ updates:
           - "minor"
           - "patch"
 
+  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...).
+  # With digests pinned, Dependabot opens PRs to bump them as the upstream
+  # tags move (e.g. Alpine security patches), keeping them current but reviewed.
+  - package-ecosystem: "docker"
+    directories:
+      - "/apps/api"
+      - "/apps/web"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
   # GitHub Actions used by the CI workflow (checkout, setup-node, action-setup).
   - package-ecosystem: "github-actions"
     directory: "/"
