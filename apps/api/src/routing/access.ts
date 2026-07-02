@@ -16,8 +16,7 @@ export type IdExtractor = (
 ) => string | null | undefined;
 
 export type SystemRolesRequirement =
-  | { kind: "any" }
-  | { kind: "roles"; roles: SystemRole[] };
+  { kind: "any" } | { kind: "roles"; roles: SystemRole[] };
 
 /**
  * Per-domain access options. All fields are optional; omitting a field selects
