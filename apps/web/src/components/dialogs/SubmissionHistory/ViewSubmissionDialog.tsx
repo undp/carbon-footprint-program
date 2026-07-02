@@ -218,7 +218,10 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   )}
 
                   {submissionComment && (
-                    <SubmissionCommentsSection comment={submissionComment} />
+                    <SubmissionCommentsSection
+                      comment={submissionComment}
+                      eventType={submission.eventType}
+                    />
                   )}
                   <Stack direction="column" spacing={2}>
                     {submission.files.length > 0 && (
