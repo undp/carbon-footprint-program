@@ -173,7 +173,7 @@ In either case:
   - Configure claims
   - Integrate authentication flows
 
-For details on the Entra ID setup, see [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md).
+For details on the Entra ID setup, see [Azure OIDC auth setup](./AzureAuthenticationSetup.md).
 
 ### 5. Azure Resource Provider Availability
 

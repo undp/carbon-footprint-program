@@ -4,7 +4,9 @@ Reference for the `apps/web` container image: architecture, build args, and stan
 
 For the **full-stack docker-compose workflow** (postgres + migrate + api + web), see [docker-compose.md](./docker-compose.md).
 
-This is a minimal first version — no hardening or runtime env injection yet. See [Future improvements](#future-improvements).
+For a **line-by-line explanation of the nginx config** (the two ports, caching, SPA fallback, CSP and security headers — each with an example), see [web-nginx-config.md](./web-nginx-config.md).
+
+Security headers (CSP, X-Content-Type-Options, Referrer-Policy, …) and serving hardening live in [`apps/web/nginx.conf`](../../apps/web/nginx.conf) + [`apps/web/security-headers.conf`](../../apps/web/security-headers.conf). Runtime env injection is still build-time only (one build per environment). See [Future improvements](#future-improvements).
 
 ---
 
@@ -29,16 +31,17 @@ Stages: `pruner` isolates the workspace to web's package.json + lockfile, `build
 
 Vite inlines `import.meta.env.VITE_*` into the bundle at **build time**. Runtime changes require a new image — one build per environment.
 
-| Variable                            | Required | Default | Purpose                                      |
-| ----------------------------------- | -------- | ------- | -------------------------------------------- |
-| `VITE_API_BASE_URL`                 | ✅       | —       | Backend API base URL                         |
-| `VITE_AZURE_FRONT_CLIENT_ID`        | ✅       | —       | Azure MSAL frontend client ID                |
-| `VITE_AZURE_AUTH_AUTHORITY`         | ✅       | —       | Azure tenant authority URL                   |
-| `VITE_FRONT_BASE_URL`               | ✅       | —       | Public web base URL                          |
-| `VITE_AZURE_API_CLIENT_ID`          | ✅       | —       | Azure MSAL API client ID                     |
-| `VITE_IS_DEMO_APP`                  |          | `false` | Demo mode flag                               |
-| `VITE_APP_VERSION`                  |          | `dev`   | Build identifier shown in the UI             |
-| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` |          | `false` | Local-only validation bypass (never in prod) |
+| Variable                             | Required | Default | Purpose                                                                       |
+| ------------------------------------ | -------- | ------- | ----------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`                  | ✅       | —       | Backend API base URL                                                          |
+| `VITE_OIDC_ISSUER`                   | ✅       | —       | OIDC issuer / authority URL (Entra or Keycloak)                               |
+| `VITE_OIDC_CLIENT_ID`                | ✅       | —       | Public SPA client ID                                                          |
+| `VITE_OIDC_SCOPES`                   | ✅       | —       | Space-separated scopes (Entra: append `api://<API_CLIENT_ID>/access_as_user`) |
+| `VITE_OIDC_REDIRECT_URI`             |          | origin  | Login redirect; defaults to `<origin>/auth/callback`                          |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` |          | origin  | Post-logout redirect; defaults to the serving origin                          |
+| `VITE_IS_DEMO_APP`                   |          | `false` | Demo mode flag                                                                |
+| `VITE_APP_VERSION`                   |          | `dev`   | Build identifier shown in the UI                                              |
+| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS`  |          | `false` | Local-only validation bypass (never in prod)                                  |
 
 Source of truth: [`apps/web/src/config/environment.ts`](../../apps/web/src/config/environment.ts) and the `requiredEnvVars` check in [`apps/web/vite.config.ts`](../../apps/web/vite.config.ts).
 
@@ -51,10 +54,10 @@ From the monorepo root (build context **must** be the root — the build needs t
 ```bash
 docker build -f apps/web/Dockerfile \
   --build-arg VITE_API_BASE_URL=https://api.example.com \
-  --build-arg VITE_AZURE_FRONT_CLIENT_ID=<id> \
-  --build-arg VITE_AZURE_AUTH_AUTHORITY=https://login.microsoftonline.com/<tenant> \
-  --build-arg VITE_FRONT_BASE_URL=https://app.example.com \
-  --build-arg VITE_AZURE_API_CLIENT_ID=<id> \
+  --build-arg VITE_OIDC_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0 \
+  --build-arg VITE_OIDC_CLIENT_ID=<front-client-id> \
+  --build-arg VITE_OIDC_SCOPES="openid profile email offline_access api://<api-client-id>/access_as_user" \
+  --build-arg VITE_OIDC_REDIRECT_URI=https://app.example.com/auth/callback \
   -t huella-web:latest .
 ```
 
@@ -77,7 +80,6 @@ For running it as part of the full stack, see [docker-compose.md](./docker-compo
 
 Deliberately left out of this first version, to add when needed:
 
-- **Hardening** — `read_only: true` + tmpfs for `/tmp`, `/var/cache/nginx`, `/var/run`; drop capabilities.
-- **Security headers** — CSP, HSTS, X-Content-Type-Options, Referrer-Policy in `nginx.conf`.
-- **Runtime env injection** — envsubst entrypoint for a single multi-environment image.
+- **Container hardening** — `read_only: true` + tmpfs for `/tmp`, `/var/cache/nginx`, `/var/run`; drop capabilities. (Security _headers_ are already configured — see [web-nginx-config.md](./web-nginx-config.md).)
+- **Runtime env injection** — envsubst entrypoint for a single multi-environment image (today the CSP origins and `VITE_*` are baked per build).
 - **`apps/web/public/staticwebapp.config.json`** — legacy Azure Static Web Apps config, unused by nginx; remove once SWA deploys are retired.

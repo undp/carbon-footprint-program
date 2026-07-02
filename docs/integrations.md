@@ -111,20 +111,22 @@ The API never streams file content through its own process. It generates a SAS U
 
 For full setup details, see [File Storage](./infrastructure/FileStorage.md).
 
-#### Microsoft Entra ID (JWKS / Authentication)
+#### OIDC Identity Provider (JWKS / Authentication)
 
-| Property              | Detail                                                          |
-| --------------------- | --------------------------------------------------------------- |
-| **Protocol**          | OpenID Connect / JWT (RS256)                                    |
-| **Integration point** | JWKS endpoint (`JWKS_URI`) polled at token validation time      |
-| **Cache**             | Signing keys cached for 10 minutes (max 5 entries)              |
-| **Validated claims**  | `iss` (issuer), `aud` (audience), `exp` (expiry), `scp` (scope) |
-| **User identifier**   | `oid` claim preferred; falls back to `sub`                      |
-| **Configuration**     | `AUTH_PROVIDER=jwks`, `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`      |
+The API validates access tokens issued by any OIDC-compliant issuer. Keycloak is the development IdP; Entra External ID, Auth0, Okta, and Google are also supported issuers.
 
-No token issuance or refresh logic runs inside the API. The API only validates tokens already issued by Entra ID and presented by the client.
+| Property              | Detail                                                                                                                                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Protocol**          | OpenID Connect / JWT (RS256)                                                                                                                                                                                                   |
+| **Integration point** | JWKS endpoint (`JWKS_URI`) polled at token validation time                                                                                                                                                                     |
+| **Cache**             | Signing keys cached for 10 minutes (max 5 entries)                                                                                                                                                                             |
+| **Validated claims**  | `iss` (issuer), `aud` (audience), `exp` (expiry), `scp` or `scope` (Entra emits `scp`, Keycloak `scope`)                                                                                                                       |
+| **User identifier**   | `oid` claim preferred; falls back to `sub`                                                                                                                                                                                     |
+| **Configuration**     | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`, `JWKS_REQUIRED_SCOPE` (default `access_as_user`), `JWKS_SKIP_SCOPE_CHECK` — the `AZURE_*` vars are deploy-time inputs translated into these `JWKS_*` values by the Bicep templates |
 
-For full setup details, see [Authentication](./security/authentication.md) and [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md).
+No token issuance or refresh logic runs inside the API. The API only validates tokens already issued by the configured IdP and presented by the client.
+
+For full setup details, see [Authentication](./security/authentication.md) and [OIDC authentication setup](./infrastructure/GenericOidcAuthenticationSetup.md) (which links to the provider-specific [Azure Entra setup](./infrastructure/AzureAuthenticationSetup.md) and Keycloak guides).
 
 #### Azure Database for PostgreSQL (Prisma)
 
@@ -176,7 +178,7 @@ The table below lists the published availability SLAs for each external service 
 | Azure AI Search                      | Basic                  | S1                             | **99.9%**                                          |
 | Azure OpenAI Service                 | Pay-as-you-go          | Pay-as-you-go                  | **99.9%**                                          |
 | Azure Communication Services (Email) | Pay-as-you-go          | Pay-as-you-go                  | **99.9%**                                          |
-| Microsoft Entra ID (External)        | —                      | —                              | **99.99%**                                         |
+| OIDC IdP (Entra, Keycloak, or other) | —                      | —                              | **99.99%** (Entra External ID; varies by issuer)   |
 
 ### GitHub
 
