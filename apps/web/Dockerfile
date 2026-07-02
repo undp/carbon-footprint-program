@@ -1,5 +1,7 @@
 # Stage 1: Base image with pnpm
-FROM node:24-alpine AS base
+# Base image pinned to its digest (Scorecard Pinned-Dependencies); the tag is
+# kept for readability and Dependabot bumps both tag and digest together.
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -50,7 +52,7 @@ COPY --from=pruner /app/out/full/ ./
 RUN pnpm turbo build --filter=web
 
 # Stage 4: Serve with nginx (non-root, port 8080)
-FROM nginxinc/nginx-unprivileged:alpine-slim AS runner
+FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:ee7751c78fd1a51a8c12ac5a0ab15b2de2d486df155ef95bf52db9cef7de0d2d AS runner
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 8080
