@@ -18,6 +18,13 @@ function getSeedPackagePath(): string {
   return path.dirname(require.resolve("@repo/seed/package.json"));
 }
 
+// pnpm-workspace.yaml sets `verifyDepsBeforeRun: install`, so `pnpm exec`/`pnpm run`
+// would auto-install before running. These test-setup subprocesses execute right after
+// a frozen install (node_modules is already in sync) with a stripped env that hides CI
+// from the child, so that auto-install would abort while purging node_modules (no TTY)
+// and fail the whole suite. Skip the pre-run deps check for these controlled calls.
+const PNPM = "pnpm --config.verify-deps-before-run=false";
+
 function createExecOptions(cwd: string, databaseUrl: string) {
   return {
     cwd,
@@ -34,7 +41,7 @@ function createExecOptions(cwd: string, databaseUrl: string) {
 }
 
 export function runPrismaMigrations(databaseUrl: string): void {
-  const command = "pnpm exec prisma migrate deploy";
+  const command = `${PNPM} exec prisma migrate deploy`;
   const opts = createExecOptions(getDatabasePackagePath(), databaseUrl);
 
   try {
@@ -48,7 +55,7 @@ export function runPrismaMigrations(databaseUrl: string): void {
 }
 
 export function runSeeds(databaseUrl: string): void {
-  const command = "pnpm run seed";
+  const command = `${PNPM} run seed`;
   const opts = createExecOptions(getSeedPackagePath(), databaseUrl);
 
   try {
