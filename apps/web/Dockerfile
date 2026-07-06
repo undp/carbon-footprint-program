@@ -53,7 +53,7 @@ COPY --from=pruner /app/out/full/ ./
 RUN pnpm turbo build --filter=web
 
 # Stage 4: Serve with nginx (non-root, port 8080)
-FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:ee7751c78fd1a51a8c12ac5a0ab15b2de2d486df155ef95bf52db9cef7de0d2d AS runner
+FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:defdc1caa3ea8401e9b6b2a5d336c1e3d17c6243fa4e12e6c3a466a16fb137ea AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin
