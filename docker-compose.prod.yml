@@ -25,7 +25,7 @@ services:
     container_name: huella-latam-api-prod
     ports:
       # Host port is configurable; the container always listens on 8080.
-      - "${API_PORT:-8080}:8080"
+      - "${API_PORT:-3061}:8080"
     environment:
       # --- Core ---
       - NODE_ENV=production
@@ -35,6 +35,8 @@ services:
       # user, URL-encoded password) — see .env.prod.dockercompose.example.
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (external PostgreSQL connection string)}
       # Unused when AUTH_PROVIDER=jwks is fully configured (tokens are
+      - DATABASE_URL=${DATABASE_URL}
+      # Unused when AUTH_PROVIDER=jwks/easy-auth is fully configured (tokens are
       # verified against the IdP's public keys). It is only the static HMAC
       # fallback if the JWKS config is incomplete — setting a strong value
       # (`openssl rand -base64 48`) keeps that fallback unforgeable.
@@ -106,19 +108,19 @@ services:
         # derives the IdP origin baked into the nginx CSP.
         VITE_OIDC_ISSUER: ${VITE_OIDC_ISSUER:?VITE_OIDC_ISSUER is required (the OIDC issuer / authority URL)}
         VITE_OIDC_CLIENT_ID: ${VITE_OIDC_CLIENT_ID:?VITE_OIDC_CLIENT_ID is required (public SPA client id)}
-        VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:?VITE_OIDC_REDIRECT_URI is required (browser-reachable /auth/callback URL)}
+        # VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:?VITE_OIDC_REDIRECT_URI is required (browser-reachable /auth/callback URL)}
         VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:?VITE_OIDC_SCOPES is required (e.g. "openid profile email offline_access"; the app fails loud at boot if empty)}
-        VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
+        # VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
         # Browser-facing object-storage origin baked into the nginx CSP
         # (connect-src/img-src) — e.g. https://storage.example.com (MinIO) or
         # https://<account>.blob.core.windows.net. REQUIRED for browser uploads:
         # if empty, the CSP omits storage and presigned PUT/GET are blocked.
         STORAGE_ORIGIN: ${STORAGE_ORIGIN:-}
         VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
-        VITE_APP_VERSION: ${VITE_APP_VERSION:-prod}
+        VITE_APP_VERSION: ${VITE_APP_VERSION}
     container_name: huella-latam-web-prod
     ports:
-      - "${WEB_PORT:-80}:8080"
+      - "${WEB_PORT:-3060}:8080"
     depends_on:
       # Wait until the API passes its /health check, not just until its
       # container starts — so the whole stack is coherent before web is up.

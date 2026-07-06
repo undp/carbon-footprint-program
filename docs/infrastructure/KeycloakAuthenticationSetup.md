@@ -22,16 +22,38 @@ Keycloak is a concrete instance of the [Generic OIDC contract](./GenericOidcAuth
 
 ## What the Overlay Provides
 
-A compose overlay (`compose/keycloak.yaml`) adds two services to the base stack:
+A compose overlay (`compose/keycloak.yaml`) adds one service to the base stack:
 
 - **`keycloak`** — `quay.io/keycloak/keycloak:26.1` in `start-dev --import-realm` mode, exposed on host port **8081** (container 8080). The base API already uses host 8080.
-- **`keycloak-db`** — a dedicated Postgres for Keycloak.
+
+There is no dedicated Postgres container for Keycloak. It stores its own tables in the **same external PostgreSQL server the app uses** (the `huella-rd` database), isolated under its own schema (`KEYCLOAK_DB_SCHEMA`, default `keycloack`) so it never collides with the app's tables (which live in the `public` schema).
 
 On first boot Keycloak imports the realm from `infra/keycloak/realm-huella.json`, so the `huella` realm, the `huella-web` client, scopes, and the API audience mapper all exist out of the box.
 
 ---
 
 ## Bring Up Keycloak
+
+### Database prerequisite
+
+Postgres does not auto-create schemas, and Keycloak does not either — the target schema must already exist in `huella-rd` **before the first boot**. Run this once against `huella-rd` (with a role that can grant to the Keycloak DB user):
+
+```sql
+CREATE SCHEMA IF NOT EXISTS keycloack AUTHORIZATION <KEYCLOAK_DB_USERNAME>;
+```
+
+Then set these in your env file (no defaults for host/credentials — they're environment-specific):
+
+```bash
+KEYCLOAK_DB_HOST=<huella-rd Postgres host>
+KEYCLOAK_DB_PORT=5432                 # optional, defaults to 5432
+KEYCLOAK_DB_NAME=huella-rd            # optional, this is the default
+KEYCLOAK_DB_SCHEMA=keycloack          # optional, this is the default
+KEYCLOAK_DB_USERNAME=<db user with access to huella-rd>
+KEYCLOAK_DB_PASSWORD=<db user password>
+```
+
+### Start the stack
 
 The overlay reuses the base `huella-network`; do not run it standalone. Combine it with the base stack either via the `COMPOSE_FILE` env var:
 
@@ -148,7 +170,8 @@ To make a user a platform superadmin, use the app's promote-superadmin flow as u
 | "The aud claim value is not allowed"    | `JWKS_AUDIENCE` ≠ `huella-api`               | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                       |
 | "Token missing required scope"          | `access_as_user` not granted                 | It's a default client scope in the imported realm — confirm you're using the `huella-web` client. |
 | `redirect_uri` error at login           | Web origin not in the client's redirect URIs | Use `:3000` or `:5173`, or add your origin to the `huella-web` client.                            |
-| Realm/client missing after `up`         | Import only runs on first boot               | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.            |
+| Realm/client missing after `up`         | Import only runs while the schema is empty   | Truncate/drop the `keycloack` schema's tables in `huella-rd` (`DROP SCHEMA keycloack CASCADE;` + recreate it), then `up` to re-import. |
+| Keycloak fails to boot: schema errors   | `KEYCLOAK_DB_SCHEMA` doesn't exist yet        | Create it first — see [Database prerequisite](#bring-up-keycloak) — Keycloak does not auto-create schemas. |
 
 ---
 

@@ -9,27 +9,18 @@
 # block in .env.dockercompose.example): AUTH_PROVIDER=jwks, JWKS_ISSUER,
 # JWKS_URI (internal host), JWKS_AUDIENCE=huella-api, JWKS_REQUIRED_SCOPE=access_as_user.
 #
+# Database: no dedicated Postgres container. Keycloak stores its own tables in
+# the SAME external PostgreSQL server the app uses (the `huella-rd` database),
+# isolated under its own schema (KEYCLOAK_DB_SCHEMA, default "keycloack") so it
+# never collides with the app's tables (default `public` schema).
+# ⚠️ Postgres does NOT auto-create schemas, and Keycloak does not either — the
+# schema must exist in `huella-rd` BEFORE first boot:
+#   CREATE SCHEMA IF NOT EXISTS keycloack AUTHORIZATION <KEYCLOAK_DB_USERNAME>;
+# Set KEYCLOAK_DB_HOST/PORT/NAME/SCHEMA/USERNAME/PASSWORD in your env file.
+#
 # Reuses the base `huella-network`; do not run this overlay standalone.
 
 services:
-  keycloak-db:
-    image: postgres:18-alpine
-    container_name: huella-latam-keycloak-db
-    environment:
-      - POSTGRES_USER=keycloak
-      - POSTGRES_PASSWORD=keycloak
-      - POSTGRES_DB=keycloak
-    volumes:
-      - keycloak-db-data:/var/lib/postgresql
-    restart: unless-stopped
-    networks:
-      - huella-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   keycloak:
     image: quay.io/keycloak/keycloak:26.1
     container_name: huella-latam-keycloak
@@ -46,18 +37,20 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
       - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
-      - KC_DB_USERNAME=keycloak
-      - KC_DB_PASSWORD=keycloak
+      # External PostgreSQL server — the SAME instance/database as the app
+      # (`huella-rd`), scoped to its own schema so it never touches the app's
+      # tables. Host/credentials have no default: they are environment-specific
+      # and must be provided.
+      - KC_DB_URL=jdbc:postgresql://${KEYCLOAK_DB_HOST:?KEYCLOAK_DB_HOST is required (the huella-rd Postgres server)}:${KEYCLOAK_DB_PORT:-5432}/${KEYCLOAK_DB_NAME:-huella-rd}
+      - KC_DB_SCHEMA=${KEYCLOAK_DB_SCHEMA:-keycloack}
+      - KC_DB_USERNAME=${KEYCLOAK_DB_USERNAME:?KEYCLOAK_DB_USERNAME is required}
+      - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD is required}
     ports:
       # Host 8081 → container 8080 (the api already maps host 8080). Issuer uses 8081.
       - "8081:8080"
     volumes:
       # Realm export imported on first boot via --import-realm.
       - ./infra/keycloak:/opt/keycloak/data/import:ro
-    depends_on:
-      keycloak-db:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - huella-network
@@ -72,7 +65,3 @@ services:
       timeout: 5s
       retries: 10
       start_period: 40s
-
-volumes:
-  keycloak-db-data:
-    driver: local
