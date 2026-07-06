@@ -46,7 +46,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^clean", "^build"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
