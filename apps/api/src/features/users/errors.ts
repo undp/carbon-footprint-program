@@ -12,6 +12,17 @@ export const IdpUserIdAlreadyInUseError = createError(
   409
 );
 
+// Login-time identity conflict: an authenticated principal presents a new IdP
+// identity (idpUserId) whose email already belongs to a different user row.
+// Identity is keyed on idpUserId and one email is NOT linked across multiple IdP
+// identities (see GETTING_STARTED_REVIEW.md R8), so this is a hard 409 rather
+// than silently forking the account or surfacing a misleading 404.
+export const EmailRegisteredUnderDifferentIdentityError = createError(
+  "EMAIL_REGISTERED_UNDER_DIFFERENT_IDENTITY",
+  "Email already registered under a different identity",
+  409
+);
+
 export const UserNotFoundError = createError(
   "USER_NOT_FOUND",
   "User with ID %s not found",
