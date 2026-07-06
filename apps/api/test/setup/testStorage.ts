@@ -37,8 +37,7 @@ export type TestStorageDescriptor =
     };
 
 export type TestStorageContainer =
-  | StartedAzuriteContainer
-  | StartedTestContainer;
+  StartedAzuriteContainer | StartedTestContainer;
 
 async function setupAzureTestStorage(): Promise<{
   descriptor: TestStorageDescriptor;

@@ -125,33 +125,35 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - Prisma client (via `@repo/database`)
 
 **API domains / feature modules:**
-| Module | Description |
-|---|---|
-| `users` | User registration, profile, role management |
-| `organizations` | Organization CRUD, accreditation lifecycle |
-| `carbonInventories` | Inventory creation, calculation, verification, recognition |
-| `methodologies` | Methodology versions and metadata |
-| `categories` / `subcategories` | Emission category hierarchy |
-| `emissionFactors` / `emissionFactorDimensions` | Factor data per subcategory |
-| `submissions` | Submission creation and review workflow |
-| `badges` | Badge previews and recognition |
-| `files` | File upload (SAS flow), download, delete |
-| `reductionProjects` | Reduction project management |
-| `transparency` | Public emissions rankings and views |
-| `forms` | Dynamic form configuration |
-| `requests` | Pending requests and admin actions |
-| `systemParameters` | Country/system-level configuration values |
-| `countryOrganizationSizes` / `countrySectors` / `organizationMainActivities` | Country taxonomy data |
-| `measurementUnits` | Units of measurement catalog |
-| `explanations` | Content blocks for UI guidance |
-| `jobPositions` | Job position catalog |
+
+| Module                                                                       | Description                                                |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `users`                                                                      | User registration, profile, role management                |
+| `organizations`                                                              | Organization CRUD, accreditation lifecycle                 |
+| `carbonInventories`                                                          | Inventory creation, calculation, verification, recognition |
+| `methodologies`                                                              | Methodology versions and metadata                          |
+| `categories` / `subcategories`                                               | Emission category hierarchy                                |
+| `emissionFactors` / `emissionFactorDimensions`                               | Factor data per subcategory                                |
+| `submissions`                                                                | Submission creation and review workflow                    |
+| `badges`                                                                     | Badge previews and recognition                             |
+| `files`                                                                      | File upload (SAS flow), download, delete                   |
+| `reductionProjects`                                                          | Reduction project management                               |
+| `transparency`                                                               | Public emissions rankings and views                        |
+| `forms`                                                                      | Dynamic form configuration                                 |
+| `requests`                                                                   | Pending requests and admin actions                         |
+| `systemParameters`                                                           | Country/system-level configuration values                  |
+| `countryOrganizationSizes` / `countrySectors` / `organizationMainActivities` | Country taxonomy data                                      |
+| `measurementUnits`                                                           | Units of measurement catalog                               |
+| `explanations`                                                               | Content blocks for UI guidance                             |
+| `jobPositions`                                                               | Job position catalog                                       |
 
 **Authentication providers (configurable via `AUTH_PROVIDER` env var):**
-| Provider | Use case |
-|---|---|
-| `jwks` | All environments — validates OIDC access tokens (Entra, Keycloak, …) via JWKS |
-| `forced-user` | Local development — bypasses auth with a fixed user |
-| `none` | Unauthenticated mode (not recommended except for initial testing) |
+
+| Provider      | Use case                                                                      |
+| ------------- | ----------------------------------------------------------------------------- |
+| `jwks`        | All environments — validates OIDC access tokens (Entra, Keycloak, …) via JWKS |
+| `forced-user` | Local development — bypasses auth with a fixed user                           |
+| `none`        | Unauthenticated mode (not recommended except for initial testing)             |
 
 **Plugin loading order:**
 

@@ -3,18 +3,48 @@ packages:
   - packages/*
   - tools/*
 
+# --- Supply-chain / security hardening ---
+# Reject dependency versions published less than 24 hours ago (value in minutes;
+# 1440 = the pnpm v11 default). Gives freshly published (possibly compromised)
+# releases time to be flagged before they can enter the tree.
+minimumReleaseAge: 1440
+# Refuse to install any package that declares incompatibility with the Node
+# engine required in package.json (engines.node >= 24).
+engineStrict: true
+
+# The settings below are pnpm v11 defaults, pinned explicitly for auditability
+# (DPG supply-chain review) so a future default change can't silently weaken them.
+# Fail the install if any dependency ships an unreviewed build script.
+strictDepBuilds: true
+# Never auto-run dependency build/install scripts — only those listed in allowBuilds.
+dangerouslyAllowAllBuilds: false
+# Integrity-check content-addressable store files before linking them.
+verifyStoreIntegrity: true
+# Transitive dependencies may not be resolved from git/tarball (exotic) sources.
+blockExoticSubdeps: true
+# Verify node_modules matches the lockfile before running any script.
+verifyDepsBeforeRun: install
+
+allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
+
 catalogs:
   shared:
-    "@types/node": ^25.9.1
-    eslint: ^9.39.1
+    '@types/node': ^25.9.4
+    eslint: ^9.39.4
     pino: ^10.3.1
-    tsx: ^4.22.3
-    rimraf: ^6.0.1
+    rimraf: ^6.1.3
+    tsx: ^4.22.5
     typescript: ^6.0.3
-    vitest: ^4.1.7
+    vitest: ^4.1.9
     zod: ^4.4.3
 
-onlyBuiltDependencies:
-  - "@prisma/engines"
-  - esbuild
-  - prisma
+overrides:
+  'exceljs>uuid': ^11.1.1
+  '@hookform/devtools>uuid': ^11.1.1
+  '@prisma/dev>@hono/node-server': 1.19.13

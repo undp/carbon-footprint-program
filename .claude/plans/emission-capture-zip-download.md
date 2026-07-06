@@ -105,9 +105,7 @@ export const methodologyExportSelect = {
   categories: {
     where: { status: CategoryStatus.ACTIVE },
     orderBy: { position: "asc" },
-    select: {
-      /* ...exact tree from getMethodologyExport/service.ts:38-95... */
-    },
+    select: {/* ...exact tree from getMethodologyExport/service.ts:38-95... */},
   },
 } satisfies Prisma.MethodologyVersionSelect;
 

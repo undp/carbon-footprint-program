@@ -8,8 +8,7 @@ import type {
 export function shouldShowSubcategory(
   subcategory: SubcategoryWithLines,
   formSubcategory:
-    | EmissionCaptureFormValues["subcategories"][string]
-    | undefined
+    EmissionCaptureFormValues["subcategories"][string] | undefined
 ): boolean {
   if (
     subcategory.lines.length === 0 &&

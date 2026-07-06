@@ -236,10 +236,11 @@ The tab displays:
 - An "Add user" form requiring an email address and role selection.
 
 Hooks used:
-| Hook | Purpose |
-|---|---|
-| `useMyOrganizationUsers` | Orchestrates dialog state and mutation side-effects |
-| `useUserMutations` | Wraps add, update-role, and remove mutations; shows toast notifications |
+
+| Hook                     | Purpose                                                                 |
+| ------------------------ | ----------------------------------------------------------------------- |
+| `useMyOrganizationUsers` | Orchestrates dialog state and mutation side-effects                     |
+| `useUserMutations`       | Wraps add, update-role, and remove mutations; shows toast notifications |
 
 ---
 

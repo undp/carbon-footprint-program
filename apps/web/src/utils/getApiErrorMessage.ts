@@ -104,8 +104,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   },
   EDIT_BLOCKED_BY_REFERENCES: (details) => {
     const referencedBy = details?.referencedBy as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const count = (value: unknown): number =>
       typeof value === "number" ? value : 0;
 
