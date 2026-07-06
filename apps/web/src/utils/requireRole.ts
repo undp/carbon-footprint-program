@@ -5,6 +5,7 @@ import { userKeys } from "@/api/query/users/keys";
 import { apiClient } from "@/api/http";
 import { oidcUserManager, getValidOidcUser } from "@/auth/oidcUserManager";
 import { Routes } from "@/interfaces";
+import { getApiErrorCode } from "@/utils/getApiErrorMessage";
 import type { GetMeResponse } from "@repo/types";
 
 type RequireRoleOptions = {
@@ -38,13 +39,16 @@ export function requireRole(
         queryKey: userKeys.me,
         queryFn: () => apiClient.get("users/me").json(),
       });
-    } catch {
+    } catch (error) {
       // Authenticated but /users/me failed. Drop the local session via
       // removeUser() (no IdP round-trip) and signal Landing to show the error
-      // snackbar via the authError search param (the guard runs outside React,
-      // so we can't call enqueueSnackbar directly here). Cleanup is best-effort:
-      // any failure must not block the redirect, otherwise the user is stranded
-      // on the protected route.
+      // snackbar via the authError search params (the guard runs outside React,
+      // so we can't call enqueueSnackbar directly here). We forward the API error
+      // code so Landing can show specific copy (e.g. the 409
+      // EMAIL_REGISTERED_UNDER_DIFFERENT_IDENTITY) instead of only the generic
+      // message. Cleanup is best-effort: any failure must not block the redirect,
+      // otherwise the user is stranded on the protected route.
+      const authErrorCode = getApiErrorCode(error) ?? undefined;
       try {
         await oidcUserManager.removeUser();
         queryClient.removeQueries({ queryKey: userKeys.me });
@@ -58,7 +62,7 @@ export function requireRole(
       // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw redirect({
         to: Routes.LANDING,
-        search: { authError: "login_failed" },
+        search: { authError: "login_failed", authErrorCode },
       });
     }
 

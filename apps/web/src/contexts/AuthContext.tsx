@@ -17,6 +17,7 @@ import { userKeys } from "@/api/query/users/keys";
 import { useUserStore } from "@/stores/userStore";
 import { IS_OIDC_CONFIGURED } from "@/config/environment";
 import { Routes } from "@/interfaces";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 /**
  * Generic data carried through the login redirect via the OIDC `state` param,
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = oidc.isAuthenticated;
   const isLoading = oidc.isLoading;
 
-  const { user, refetchUser, isUserError } = useInitializeUser({
+  const { user, refetchUser, isUserError, userError } = useInitializeUser({
     isAuthenticated,
   });
 
@@ -84,10 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: userKeys.me });
     clearUserStore();
     await navigate({ to: Routes.LANDING });
-    enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-      variant: "error",
-    });
-  }, [oidc, navigate, clearUserStore]);
+    // Map the /users/me failure to user-facing Spanish copy (e.g. the 409
+    // EMAIL_REGISTERED_UNDER_DIFFERENT_IDENTITY when the email already belongs to
+    // a different IdP identity); fall back to the generic message otherwise.
+    enqueueSnackbar(
+      getApiErrorMessage(userError, "Ocurrió un problema al iniciar sesión"),
+      { variant: "error" }
+    );
+  }, [oidc, navigate, clearUserStore, userError]);
 
   // Trigger the cleanup when OIDC is authenticated but /users/me failed. Reset
   // the guard once the user is no longer authenticated so a future login

@@ -239,6 +239,10 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",
   INSUFFICIENT_PERMISSIONS: "No tienes permisos para realizar esta acción.",
   INVALID_ROLE_TRANSITION: "La transición de rol solicitada no es válida.",
+
+  // Authentication / identity
+  EMAIL_REGISTERED_UNDER_DIFFERENT_IDENTITY:
+    "Este correo ya está registrado con otra identidad. Inicia sesión con el proveedor que usaste al registrarte.",
 };
 
 /**
@@ -263,6 +267,24 @@ export const getApiErrorMessage = (
       const entry = ERROR_MESSAGES[code];
       return typeof entry === "function" ? entry(error.apiDetails) : entry;
     }
+  }
+  return fallback;
+};
+
+/**
+ * Resolves a user-facing Spanish message from an API error *code* alone, for
+ * callers that only have the code (e.g. a route-guard redirect that carries it
+ * in a search param, with no `AppHttpError` / `details` in hand). String entries
+ * are returned directly; details-dependent (function) entries fall back, since
+ * there is no `details` payload to feed them.
+ */
+export const getApiErrorMessageFromCode = (
+  code: string | undefined,
+  fallback: string
+): string => {
+  if (code && Object.prototype.hasOwnProperty.call(ERROR_MESSAGES, code)) {
+    const entry = ERROR_MESSAGES[code];
+    if (typeof entry === "string") return entry;
   }
   return fallback;
 };
