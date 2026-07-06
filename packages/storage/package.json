@@ -22,8 +22,8 @@
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1078.0",
-    "@aws-sdk/s3-request-presigner": "^3.1078.0",
+    "@aws-sdk/client-s3": "^3.1079.0",
+    "@aws-sdk/s3-request-presigner": "^3.1079.0",
     "@azure/identity": "^4.13.1",
     "@azure/storage-blob": "^12.33.0"
   },
