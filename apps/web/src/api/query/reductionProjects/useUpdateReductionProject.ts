@@ -1,21 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type {
-  UpdateReductionProjectRequest,
-  UpdateReductionProjectResponse,
-} from "@repo/types";
+import type { UpdateReductionProjectRequest } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { ReductionProjectQueryKey } from "./keys";
 
 export const useUpdateReductionProject = (projectId: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    UpdateReductionProjectResponse,
-    Error,
-    UpdateReductionProjectRequest
-  >({
-    mutationFn: (data) =>
-      apiClient.patch(`reduction-projects/${projectId}`, { json: data }).json(),
+  return useMutation<void, Error, UpdateReductionProjectRequest>({
+    // The endpoint returns an empty body (`z.null()`); calling `.json()` on it
+    // would throw, so we await the request without parsing.
+    mutationFn: async (data) => {
+      await apiClient.patch(`reduction-projects/${projectId}`, { json: data });
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({

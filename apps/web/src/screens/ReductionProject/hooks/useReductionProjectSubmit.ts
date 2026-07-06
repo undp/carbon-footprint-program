@@ -5,7 +5,6 @@ import {
   useCreateReductionProject,
   useUpdateReductionProject,
 } from "@/api/query/reductionProjects";
-import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
 import type { ReductionProjectFormValues } from "../formSchema";
 import { Routes } from "@/interfaces";
@@ -19,59 +18,48 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
   const navigate = useNavigate();
   const createMutation = useCreateReductionProject();
   const updateMutation = useUpdateReductionProject(projectId ?? "");
-  const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
     async (data: ReductionProjectFormValues) => {
       try {
-        const { files, ...formData } = data;
-
-        const fileUuids = await preUploadFiles(files);
-        if (!fileUuids.length) {
-          enqueueSnackbar("No se pudieron subir los archivos", {
-            variant: "error",
-          });
-          return;
-        }
-
-        const mutationData = mapFormValuesToMutationData(formData, fileUuids);
+        // Files are never pre-uploaded here — the create/update endpoints only
+        // save the (possibly partial) draft. Documents are attached exclusively
+        // through the "Postular a reconocimiento" flow in the list actions cell.
+        const { files: _files, sworn: _sworn, ...formData } = data;
+        const mutationData = mapFormValuesToMutationData(formData);
 
         if (projectId) {
+          // The PATCH response is `null`; the mutation awaits without `.json()`.
           await updateMutation.mutateAsync(mutationData);
           enqueueSnackbar("Proyecto guardado exitosamente", {
             variant: "success",
           });
         } else {
           await createMutation.mutateAsync(mutationData);
-          enqueueSnackbar("Proyecto creado exitosamente", {
+          enqueueSnackbar("Borrador guardado exitosamente", {
             variant: "success",
           });
         }
 
         void navigate({ to: Routes.REDUCTION_PROJECTS });
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
         enqueueSnackbar(
           projectId
             ? "No se pudo guardar el proyecto"
-            : "No se pudo crear el proyecto",
+            : "No se pudo guardar el borrador",
           { variant: "error" }
         );
       }
     },
-    [
-      projectId,
-      createMutation,
-      updateMutation,
-      preUploadFiles,
-      enqueueSnackbar,
-      navigate,
-    ]
+    [projectId, createMutation, updateMutation, enqueueSnackbar, navigate]
   );
 
   return {
     submit,
-    isSubmitting:
-      (projectId ? updateMutation.isPending : createMutation.isPending) ||
-      isUploading,
+    isSubmitting: projectId
+      ? updateMutation.isPending
+      : createMutation.isPending,
   };
 };

@@ -31,11 +31,10 @@ export const UnaccreditedOrganizationDialog: FC<
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="unaccredited-organization-dialog-description">
-          No es posible enviar esta huella a cálculo porque la{" "}
-          {VOCAB.organization.noun.singular} asociada aún no se encuentra{" "}
-          {VOCAB.inscription.adjective.singular}. Por favor, complete el proceso
-          de {VOCAB.inscription.noun.singular} de la{" "}
-          {VOCAB.organization.noun.singular} antes de continuar.
+          No es posible continuar porque la {VOCAB.organization.noun.singular}{" "}
+          asociada aún no se encuentra {VOCAB.inscription.adjective.singular}.
+          Por favor, complete el proceso de {VOCAB.inscription.noun.singular} de
+          la {VOCAB.organization.noun.singular} antes de continuar.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

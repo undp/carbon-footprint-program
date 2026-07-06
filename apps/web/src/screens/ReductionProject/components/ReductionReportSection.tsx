@@ -84,7 +84,6 @@ export const ReductionReportSection: FC<Props> = ({
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
-                  required
                   fieldError={fieldState.error}
                 />
               )}
@@ -120,7 +119,6 @@ export const ReductionReportSection: FC<Props> = ({
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
-                  required
                   fieldError={fieldState.error}
                 />
               )}

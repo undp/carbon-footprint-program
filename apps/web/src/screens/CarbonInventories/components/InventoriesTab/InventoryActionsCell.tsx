@@ -27,9 +27,11 @@ import {
 } from "@/components";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
-import { MissingOrganizationDialog } from "../Dialogs/MissingOrganizationDialog";
-import { UnaccreditedOrganizationDialog } from "../Dialogs/UnaccreditedOrganizationDialog";
-import { BlockedOrganizationDialog } from "../Dialogs/BlockedOrganizationDialog";
+import {
+  MissingOrganizationDialog,
+  UnaccreditedOrganizationDialog,
+  BlockedOrganizationDialog,
+} from "@/components/dialogs";
 import {
   IncompleteInventoryDialog,
   IncompleteInventoryField,

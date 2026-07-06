@@ -105,7 +105,13 @@ export const ReductionProjectsScreen: FC = () => {
         : minimalProjects.filter(
             (p) => String(p.organizationId) === selectedOrganizationId
           );
-    return [...new Set(filtered.map((p) => p.year))]
+    // Null-year drafts have no year to offer; exclude them so the dropdown
+    // never gets an empty/"null" option (they still show in the unfiltered view).
+    return [
+      ...new Set(
+        filtered.map((p) => p.year).filter((y): y is number => y != null)
+      ),
+    ]
       .sort((a, b) => b - a)
       .map(String);
   }, [minimalProjects, selectedOrganizationId]);
@@ -165,13 +171,22 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number],
               GetAllReductionProjectsResponse[number]["year"]
             >
-          ) => (
-            <Tooltip title={params.value}>
-              <Typography variant="body2" noWrap>
-                {params.value}
+          ) =>
+            params.value == null ? (
+              <Typography
+                color="textDisabled"
+                className="italic"
+                variant="body2"
+              >
+                —
               </Typography>
-            </Tooltip>
-          ),
+            ) : (
+              <Tooltip title={params.value}>
+                <Typography variant="body2" noWrap>
+                  {params.value}
+                </Typography>
+              </Tooltip>
+            ),
         },
         {
           field: "firstReportDate",

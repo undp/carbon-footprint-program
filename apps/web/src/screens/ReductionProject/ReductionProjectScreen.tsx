@@ -26,11 +26,7 @@ import { ReductionProjectFormFields } from "./components/ReductionProjectFormFie
 import { GeiConsideredSection } from "./components/GeiConsideredSection";
 import { ReportedElsewhereSection } from "./components/ReportedElsewhereSection";
 import { ReductionReportSection } from "./components/ReductionReportSection";
-import { FileUploadSection } from "./components/FileUploadSection";
-import {
-  CarbonInventoryDisplayStatusEnum,
-  ReductionProjectDisplayStatusEnum,
-} from "@repo/types";
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
 import { useReductionProjectRouteGuard } from "./hooks/useReductionProjectRouteGuard";
@@ -92,11 +88,9 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const hasError = hasProjectInformationError || hasSelectorsError;
 
   const status = isEditMode || isViewMode ? project?.status : undefined;
-  const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
-  const showFileUpload = isCreateMode || (isReviewed && !isViewMode);
 
   // Form
-  const form = useReductionProjectForm({ project, showFileUpload });
+  const form = useReductionProjectForm({ project });
   const {
     control,
     handleSubmit,
@@ -202,7 +196,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const saveButton: FooterButton | undefined = isFormDisabled
     ? undefined
     : {
-        text: isCreateMode ? "Ingresar Proyecto" : "Subir Cambios",
+        text: isCreateMode ? "Guardar borrador" : "Guardar cambios",
         align: "right",
         buttonProps: {
           variant: "contained",
@@ -350,11 +344,6 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
           disabled={isFormDisabled}
           projectName={projectName}
         />
-
-        {/* File upload — visible in create mode and when REVIEWED */}
-        {showFileUpload && (
-          <FileUploadSection control={control} disabled={isSubmitting} />
-        )}
       </Box>
     </ReductionProjectLayout>
   );
