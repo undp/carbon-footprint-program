@@ -124,3 +124,19 @@ jobs:
       # minimumReleaseAge install check (which can transiently reject freshly
       # published, not-yet-aged lockfile entries).
       - run: pnpm audit --prod --audit-level moderate
+
+  docs-links:
+    needs: check-draft
+    name: Docs Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for broken local links in Markdown docs
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Offline mode validates only local/relative file links — the class of
+          # breakage that has bitten this repo (moved/renamed docs, wrong paths).
+          # External URLs are skipped, so the gate is deterministic and never
+          # flakes on network or rate limits. No GITHUB_TOKEN needed.
+          args: "--offline --no-progress --exclude-path node_modules README.md 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
+          fail: true

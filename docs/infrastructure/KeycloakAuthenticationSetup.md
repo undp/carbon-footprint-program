@@ -140,15 +140,29 @@ To make a user a platform superadmin, use the app's promote-superadmin flow as u
 
 ## Troubleshooting
 
-| Symptom                                 | Likely cause                                 | Fix                                                                                               |
-| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| API logs "JWKS client not configured"   | `JWKS_URI` empty                             | Set `JWKS_URI` (see host split above).                                                            |
-| 401 on every API call, JWKS fetch fails | API can't resolve the `JWKS_URI` host        | In compose use `http://keycloak:8080/...`; on host `pnpm dev` use `http://localhost:8081/...`.    |
-| "The iss claim value is not allowed"    | `JWKS_ISSUER` ≠ token `iss`                  | Set `JWKS_ISSUER=http://localhost:8081/realms/huella` (match `KC_HOSTNAME`).                      |
-| "The aud claim value is not allowed"    | `JWKS_AUDIENCE` ≠ `huella-api`               | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                       |
-| "Token missing required scope"          | `access_as_user` not granted                 | It's a default client scope in the imported realm — confirm you're using the `huella-web` client. |
-| `redirect_uri` error at login           | Web origin not in the client's redirect URIs | Use `:3000` or `:5173`, or add your origin to the `huella-web` client.                            |
-| Realm/client missing after `up`         | Import only runs on first boot               | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.            |
+| Symptom                                                                       | Likely cause                                                                                                                                                                  | Fix                                                                                               |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| API logs "JWKS client not configured"                                         | `JWKS_URI` empty                                                                                                                                                              | Set `JWKS_URI` (see host split above).                                                            |
+| 401 on every API call, JWKS fetch fails                                       | API can't resolve the `JWKS_URI` host                                                                                                                                         | In compose use `http://keycloak:8080/...`; on host `pnpm dev` use `http://localhost:8081/...`.    |
+| "The iss claim value is not allowed"                                          | `JWKS_ISSUER` ≠ token `iss`                                                                                                                                                   | Set `JWKS_ISSUER=http://localhost:8081/realms/huella` (match `KC_HOSTNAME`).                      |
+| "The aud claim value is not allowed"                                          | `JWKS_AUDIENCE` ≠ `huella-api`                                                                                                                                                | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                       |
+| "Token missing required scope"                                                | `access_as_user` not granted                                                                                                                                                  | It's a default client scope in the imported realm — confirm you're using the `huella-web` client. |
+| `redirect_uri` error at login                                                 | Web origin not in the `huella-web` client's redirect URIs ([generic explanation](../development/troubleshooting.md#oidc-redirect-uri-mismatch))                               | Use `:3000` or `:5173` (already whitelisted), or add your origin to the `huella-web` client.      |
+| Realm/client missing after `up`                                               | Import only runs on first boot                                                                                                                                                | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.            |
+| Admin console at `http://localhost:8081` shows "We are sorry… HTTPS required" | The admin console is served by the `master` realm, whose default `sslRequired=external`; the realm export only sets `sslRequired: none` on the `huella` realm, never `master` | Relax `master` to `sslRequired=NONE` (see below).                                                 |
+
+### "HTTPS required" on the admin console
+
+Opening http://localhost:8081 fails with Keycloak's **"We are sorry… HTTPS required"** page. The admin console lives in the **`master`** realm, and `infra/keycloak/realm-huella.json` only sets `sslRequired: none` for the imported **`huella`** realm — it never touches `master`, which keeps Keycloak's default `sslRequired=external`. On Docker Desktop (macOS/Windows) the browser request reaches Keycloak via the VM/bridge gateway, which Keycloak does not treat as loopback, so `external` demands HTTPS and blocks plain HTTP.
+
+Relax the `master` realm once (the container's internal HTTP port is 8080):
+
+```bash
+docker exec huella-latam-keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
+docker exec huella-latam-keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+```
+
+This persists across `docker compose ... restart` and `up` (it is stored in the `keycloak-db` volume). It only resets on `docker compose ... down -v`, which drops the volume and re-imports the realm — after which you re-run the two commands.
 
 ---
 

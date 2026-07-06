@@ -22,13 +22,13 @@ Backend API server for the Huella Latam project, built with Fastify, TypeScript,
 - **[Prisma](https://www.prisma.io/)** - Next-generation ORM
 - **[Zod](https://zod.dev/)** - TypeScript-first schema validation
 - **[Pino](https://getpino.io/)** - Super fast logger
-- **[JWT](https://jwt.io/)** - JSON Web Tokens for authentication
+- **[JWT](https://jwt.io/)** - JSON Web Token verification for OIDC access tokens
 
 ### Key Dependencies
 
 - `@fastify/swagger` & `@fastify/swagger-ui` - OpenAPI documentation
 - `@fastify/cors` - Cross-Origin Resource Sharing
-- `@fastify/jwt` - JWT authentication
+- `@fastify/jwt` & `jwks-rsa` - OIDC access-token verification via JWKS
 - `@fastify/rate-limit` - Rate limiting
 - `@fastify/helmet` - Security headers
 - `@fastify/under-pressure` - Health checks
@@ -200,7 +200,7 @@ Plugins are auto-loaded in order using `@fastify/autoload`:
 ### Loading Order
 
 1. **External Plugins** (`plugins/external/`) - Third-party integrations
-   - Authentication (JWT)
+   - Authentication (OIDC access-token verification via `@fastify/jwt`)
    - Documentation (Swagger)
    - Security (CORS, Rate Limiting)
 2. **App Plugins** (`plugins/app/`) - Custom application plugins
@@ -272,7 +272,7 @@ Use the REST client files in `src/rest/` to test your endpoints manually.
 When the server is running in development mode, access interactive API documentation at:
 
 ```
-http://localhost:8080/docs
+http://localhost:8080/api/docs
 ```
 
 The documentation is automatically generated from:
@@ -286,7 +286,7 @@ The documentation is automatically generated from:
 Raw OpenAPI JSON specification is available at:
 
 ```
-http://localhost:8080/docs/json
+http://localhost:8080/api/docs/json
 ```
 
 ## 📜 Scripts
@@ -317,25 +317,86 @@ Create a `.envrc` file in the workspace root:
 export DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb"
 
 # API Configuration
-export JWT_SECRET="your-super-secret-jwt-key-change-in-production"
 export LOG_LEVEL="debug"
 export NODE_ENV="development"
+
+# Authentication (see below)
+export AUTH_PROVIDER="forced-user"
+export FORCED_USER_EMAIL="dev@example.com"
+export FORCED_USER_IDP_ID="local-dev"
+
+# Object storage (required — the API refuses to boot without it)
+export STORAGE_PROVIDER="minio"
+export MINIO_ENDPOINT="http://localhost:9000"
+export MINIO_ACCESS_KEY="minioadmin"
+export MINIO_SECRET_KEY="minioadmin"
 ```
 
-### Environment Configuration
+The full, authoritative list of variables lives in [`../../docs/development/environment-variables.md`](../../docs/development/environment-variables.md).
 
-```typescript
-export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
-export const LOG_LEVEL = process.env.LOG_LEVEL;
-export const IS_PROD = process.env.NODE_ENV?.toLowerCase() === "production";
+### Authentication
+
+The API is a generic **OIDC access-token validator** (it migrated off MSAL /
+Azure-specific auth to work against any OIDC issuer). The provider is selected
+with `AUTH_PROVIDER`, defined in [`src/config/environment.ts`](src/config/environment.ts):
+
+| `AUTH_PROVIDER`          | Behaviour                                                                  |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `jwks` (default in prod) | Validate OIDC access tokens via JWKS (Entra, Keycloak, any OIDC issuer).   |
+| `forced-user`            | Skip token validation and act as a fixed user (recommended for local dev). |
+| `none` (default)         | No authentication (used when `AUTH_PROVIDER` is not set).                  |
+
+When `AUTH_PROVIDER=jwks`, token validation is configured with:
+
+```bash
+export JWKS_URI="https://issuer.example.com/.well-known/jwks.json"  # signing keys the API fetches
+export JWKS_ISSUER="https://issuer.example.com/"                    # expected `iss`
+export JWKS_AUDIENCE="<your-app-client-id>"                          # expected `aud`
+export JWKS_REQUIRED_SCOPE="access_as_user"                          # required scope (default: access_as_user)
 ```
+
+In production, `AUTH_PROVIDER=jwks` **fails closed**: the API refuses to boot
+unless `JWKS_URI`, `JWKS_ISSUER`, and `JWKS_AUDIENCE` are all set.
+
+When `AUTH_PROVIDER=forced-user`, the request is authenticated as a fixed user:
+
+```bash
+export FORCED_USER_EMAIL="dev@example.com"
+export FORCED_USER_IDP_ID="local-dev"
+```
+
+> **Note on `JWT_SECRET`.** A `JWT_SECRET` still exists in the code purely as a
+> **dev-only HMAC fallback** —
+> `export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";` — and
+> its default is public. It is **not** the authentication mechanism and should
+> **not** be configured to secure the API; use `AUTH_PROVIDER=jwks` instead.
+
+For end-to-end setup, see:
+
+- [`../../docs/infrastructure/KeycloakAuthenticationSetup.md`](../../docs/infrastructure/KeycloakAuthenticationSetup.md)
+- [`../../docs/infrastructure/GenericOidcAuthenticationSetup.md`](../../docs/infrastructure/GenericOidcAuthenticationSetup.md)
+- [`../../docs/development/environment-variables.md`](../../docs/development/environment-variables.md)
+
+### Object Storage
+
+`STORAGE_PROVIDER` is **required** — the API refuses to boot without it
+(validated by `@repo/storage`, see `packages/storage/src/config.ts`). It selects
+which object-storage backend to use, and each backend has its own provider-specific
+variables:
+
+| `STORAGE_PROVIDER`   | Required variables                                                                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `azure_blob_storage` | `AZURE_STORAGE_ACCOUNT_NAME` (container defaults to `files`; optional Service Principal via `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET`) |
+| `minio`              | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` (bucket defaults to `files`)                                                                                              |
+
+For details, see [`../../docs/infrastructure/FileStorage.md`](../../docs/infrastructure/FileStorage.md).
 
 ## 🔒 Security Features
 
 - **Helmet** - Security headers
 - **CORS** - Configurable cross-origin requests
 - **Rate Limiting** - Prevent abuse
-- **JWT Authentication** - Secure endpoints
+- **OIDC Authentication** - Secure endpoints via JWKS-validated access tokens (`AUTH_PROVIDER=jwks`)
 - **Request Validation** - Zod schemas prevent malformed data
 - **Logging Redaction** - Sensitive data (passwords, tokens) are redacted from logs
 
