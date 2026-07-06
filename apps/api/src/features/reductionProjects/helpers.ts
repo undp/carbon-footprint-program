@@ -255,37 +255,3 @@ export async function validateReductionProjectPrerequisites(
     throw new ReductionProjectInvalidDataError();
   }
 }
-
-/**
- * Cross-tenant guard for create/update. The carbon inventory a reduction project
- * points at must be an ACTIVE inventory belonging to the same organization.
- * Without this a member of org A could attach org B's inventory to their own
- * draft and read its name back through the detail/list endpoints.
- *
- * Deliberately throws a generic 422 (not a 403): failing the check does not
- * reveal whether the inventory is missing, deleted, or simply owned by another
- * org — that anti-enumeration stance is why this differs from the re-parent
- * membership failure, which is a plain "you lack access to org X" 403.
- *
- * Ownership only — the inventory's accreditation/verified state and field
- * completeness stay deferred to `request-verification` (the "user owns
- * consistency" stance for drafts).
- */
-export async function validateReductionProjectCarbonInventoryOwnership(
-  tx: PrismaClient | Prisma.TransactionClient,
-  organizationId: bigint,
-  carbonInventoryId: bigint
-): Promise<void> {
-  const inventory = await tx.carbonInventory.findFirst({
-    where: {
-      id: carbonInventoryId,
-      status: InventoryStatus.ACTIVE,
-      organizationId,
-    },
-    select: { id: true },
-  });
-
-  if (!inventory) {
-    throw new ReductionProjectInvalidDataError();
-  }
-}

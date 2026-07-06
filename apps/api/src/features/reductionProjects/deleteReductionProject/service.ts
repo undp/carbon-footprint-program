@@ -1,46 +1,31 @@
 import { type PrismaClient } from "@repo/database";
 import { ReductionProjectStatus, type User } from "@repo/types";
-import { isReductionProjectDeletable } from "@repo/utils";
-import {
-  ReductionProjectNotDeletableError,
-  ReductionProjectNotFoundError,
-} from "../errors.js";
-import {
-  calculateReductionProjectDisplayStatus,
-  reductionProjectWithSubmissionsMinimalSelect,
-} from "../helpers.js";
+import { ReductionProjectNotDeletableError } from "../errors.js";
 
 /**
- * Soft-deletes a reduction project, allowed only while DRAFT. Mirrors the
- * canonical `deleteCarbonInventory` (read-then-write, guarded by
- * `isReductionProjectDeletable`). The not-found branch is defensive: the
- * route's `reductionProject` auth filters `status: ACTIVE`, so a deleted or
- * unknown project already resolves to 403 there.
+ * Soft-deletes a reduction project. Only DRAFTs are deletable, and a DRAFT is
+ * exactly an ACTIVE project that was never submitted (no submission subject),
+ * so the guard lives entirely in the `where`: a conditional update that matches
+ * nothing means the project isn't a deletable DRAFT.
  */
 export const deleteReductionProjectService = async (
   prismaClient: PrismaClient,
   id: string,
   user: User | null
 ): Promise<void> => {
-  const project = await prismaClient.reductionProject.findUnique({
-    where: { id: BigInt(id) },
-    select: { ...reductionProjectWithSubmissionsMinimalSelect },
-  });
-
-  if (!project) {
-    throw new ReductionProjectNotFoundError(id);
-  }
-
-  const displayStatus = calculateReductionProjectDisplayStatus(project);
-  if (!isReductionProjectDeletable(displayStatus)) {
-    throw new ReductionProjectNotDeletableError(id, displayStatus);
-  }
-
-  await prismaClient.reductionProject.update({
-    where: { id: BigInt(id) },
+  const { count } = await prismaClient.reductionProject.updateMany({
+    where: {
+      id: BigInt(id),
+      status: ReductionProjectStatus.ACTIVE,
+      submission: { is: null },
+    },
     data: {
       status: ReductionProjectStatus.DELETED,
       updatedById: user ? BigInt(user.id) : null,
     },
   });
+
+  if (count === 0) {
+    throw new ReductionProjectNotDeletableError(id);
+  }
 };

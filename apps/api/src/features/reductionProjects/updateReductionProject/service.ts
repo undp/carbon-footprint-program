@@ -1,13 +1,15 @@
 import { type PrismaClient, OrganizationStatus } from "@repo/database";
 import { MembershipStatus } from "@repo/database/enums";
-import type {
-  UpdateReductionProjectRequest,
-  UpdateReductionProjectResponse,
-  User,
+import {
+  InventoryStatus,
+  type UpdateReductionProjectRequest,
+  type UpdateReductionProjectResponse,
+  type User,
 } from "@repo/types";
 import { isReductionProjectEditable } from "@repo/utils";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
+  ReductionProjectInvalidDataError,
   ReductionProjectNotFoundError,
   ReductionProjectNotUpdatableError,
   ReductionProjectOrganizationForbiddenError,
@@ -16,7 +18,6 @@ import {
   calculateReductionProjectDisplayStatus,
   reductionProjectWithSubmissionsMinimalSelect,
   REDUCTION_PROJECT_EDIT_ROLES,
-  validateReductionProjectCarbonInventoryOwnership,
 } from "../helpers.js";
 
 /**
@@ -92,13 +93,21 @@ export const updateReductionProjectService = async (
     // Ownership guard only when the org/inventory pairing actually changes —
     // re-validating an unchanged pair is redundant (it was validated at create)
     // and would needlessly block edits to a draft whose inventory later became
-    // non-ACTIVE.
+    // non-ACTIVE. The linked inventory must be an ACTIVE inventory of the
+    // effective org (prevents attaching another org's inventory).
     if (orgChanged || carbonInventoryChanged) {
-      await validateReductionProjectCarbonInventoryOwnership(
-        tx,
-        newOrganizationId,
-        newCarbonInventoryId
-      );
+      const inventory = await tx.carbonInventory.findFirst({
+        where: {
+          id: newCarbonInventoryId,
+          status: InventoryStatus.ACTIVE,
+          organizationId: newOrganizationId,
+        },
+        select: { id: true },
+      });
+
+      if (!inventory) {
+        throw new ReductionProjectInvalidDataError();
+      }
     }
 
     await tx.reductionProject.update({

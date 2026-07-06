@@ -20,8 +20,6 @@ export const mapProjectToFormValues = (
   year: project.year ?? "",
   baselineScenario: project.baselineScenario,
   projectScenario: project.projectScenario,
-  files: [],
-  sworn: false,
 });
 
 // Builds the full write body shared by create (POST) and update (PATCH). Every
@@ -30,7 +28,7 @@ export const mapProjectToFormValues = (
 // Create and update share the same `ReductionProjectWriteBodySchema`, so a
 // single request type is assignable to both mutations.
 export const mapFormValuesToMutationData = (
-  values: Omit<ReductionProjectFormValues, "files" | "sworn">
+  values: ReductionProjectFormValues
 ): CreateReductionProjectRequest => {
   return {
     name: values.name,

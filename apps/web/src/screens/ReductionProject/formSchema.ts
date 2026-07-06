@@ -32,8 +32,6 @@ export const reductionProjectFormSchema = z
     year: z.union([z.number().int(), z.literal("")]),
     baselineScenario: z.number().nullable(),
     projectScenario: z.number().nullable(),
-    sworn: z.boolean(),
-    files: z.array(z.instanceof(File)),
   })
   .superRefine((data, ctx) => {
     if (data.reportedElsewhere && !data.reportedElsewhereDescription.trim()) {
@@ -86,6 +84,4 @@ export const defaultFormValues: ReductionProjectFormValues = {
   year: "",
   baselineScenario: null,
   projectScenario: null,
-  sworn: false,
-  files: [],
 };

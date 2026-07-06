@@ -1,11 +1,12 @@
 import { type PrismaClient } from "@repo/database";
-import type {
-  CreateReductionProjectRequest,
-  CreateReductionProjectResponse,
-  User,
+import {
+  InventoryStatus,
+  type CreateReductionProjectRequest,
+  type CreateReductionProjectResponse,
+  type User,
 } from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
-import { validateReductionProjectCarbonInventoryOwnership } from "../helpers.js";
+import { ReductionProjectInvalidDataError } from "../errors.js";
 
 /**
  * Saves a reduction project as a DRAFT. `name` + organization + carbon
@@ -24,16 +25,23 @@ export const createReductionProjectService = async (
   const carbonInventoryId = mapBigIntField(data.carbonInventoryId);
 
   // Ownership guard + insert run in one transaction so a concurrent inventory
-  // soft-delete can't slip between the check and the write. The guard asserts
-  // the linked inventory is an ACTIVE inventory of this org (prevents attaching
-  // another org's inventory); verified/completeness checks stay deferred to
-  // request-verification.
+  // soft-delete can't slip between the check and the write. The linked inventory
+  // must be an ACTIVE inventory of this org (prevents attaching another org's
+  // inventory and reading its name back); verified/completeness checks stay
+  // deferred to request-verification.
   const project = await prismaClient.$transaction(async (tx) => {
-    await validateReductionProjectCarbonInventoryOwnership(
-      tx,
-      organizationId,
-      carbonInventoryId
-    );
+    const inventory = await tx.carbonInventory.findFirst({
+      where: {
+        id: carbonInventoryId,
+        status: InventoryStatus.ACTIVE,
+        organizationId,
+      },
+      select: { id: true },
+    });
+
+    if (!inventory) {
+      throw new ReductionProjectInvalidDataError();
+    }
 
     return tx.reductionProject.create({
       data: {

@@ -22,14 +22,9 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
   const submit = useCallback(
     async (data: ReductionProjectFormValues) => {
       try {
-        // Files are never pre-uploaded here — the create/update endpoints only
-        // save the (possibly partial) draft. Documents are attached exclusively
-        // through the "Postular a reconocimiento" flow in the list actions cell.
-        const { files: _files, sworn: _sworn, ...formData } = data;
-        const mutationData = mapFormValuesToMutationData(formData);
+        const mutationData = mapFormValuesToMutationData(data);
 
         if (projectId) {
-          // The PATCH response is `null`; the mutation awaits without `.json()`.
           await updateMutation.mutateAsync(mutationData);
           enqueueSnackbar("Proyecto guardado exitosamente", {
             variant: "success",

@@ -7,8 +7,6 @@ export const useUpdateReductionProject = (projectId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, UpdateReductionProjectRequest>({
-    // The endpoint returns an empty body (`z.null()`); calling `.json()` on it
-    // would throw, so we await the request without parsing.
     mutationFn: async (data) => {
       await apiClient.patch(`reduction-projects/${projectId}`, { json: data });
     },
