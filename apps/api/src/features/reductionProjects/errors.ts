@@ -18,14 +18,23 @@ export const ReductionProjectInvalidDataError = createError(
   422
 );
 
-export const ReductionProjectFileAttachmentsRequiredError = createError(
-  "REDUCTION_PROJECT_FILE_ATTACHMENTS_REQUIRED",
-  "File attachments are required to submit a reduction project",
-  400
-);
-
 export const ReductionProjectNotUpdatableError = createError(
   "REDUCTION_PROJECT_NOT_UPDATABLE",
   "Reduction project %s is not updatable in its current state (%s)",
   422
+);
+
+export const ReductionProjectNotDeletableError = createError(
+  "REDUCTION_PROJECT_NOT_DELETABLE",
+  "Reduction project %s is not deletable in its current state (%s)",
+  422
+);
+
+// Thrown when an edit re-parents a project to an organization the caller is not
+// a CONTRIBUTOR/ADMIN member of. The route's `reductionProject` auth resolves
+// the current (source) org from `:id`; this guards the destination org.
+export const ReductionProjectOrganizationForbiddenError = createError(
+  "REDUCTION_PROJECT_ORGANIZATION_FORBIDDEN",
+  "You do not have access to organization %s",
+  403
 );

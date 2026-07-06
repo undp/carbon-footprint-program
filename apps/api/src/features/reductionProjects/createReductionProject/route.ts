@@ -16,8 +16,9 @@ export const createReductionProjectRoute = defineRoute<{
   path: "/",
   schema: {
     tags: ["reduction-projects"],
-    summary: "Create a reduction project",
-    description: "Creates an empty reduction project row",
+    summary: "Create a reduction project draft",
+    description:
+      "Saves a DRAFT reduction project (organization + carbon inventory + name; other fields optional). No submission or files are created here — use request-verification to submit.",
     body: CreateReductionProjectRequestSchema,
     response: {
       201: CreateReductionProjectResponseSchema,

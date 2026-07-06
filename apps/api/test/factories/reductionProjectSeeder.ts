@@ -14,8 +14,15 @@ import {
   OrganizationDataStatus,
 } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
-import type { CreateReductionProjectRequest } from "@repo/types";
-import { InventoryStatus, ReductionProjectStatus } from "@repo/types";
+import type {
+  CreateReductionProjectRequest,
+  UpdateReductionProjectRequest,
+} from "@repo/types";
+import {
+  GwpSourceEnum,
+  InventoryStatus,
+  ReductionProjectStatus,
+} from "@repo/types";
 import { createTestOrganization } from "./organizationFactory.js";
 import { createTestOrganizationData } from "./organizationDataFactory.js";
 import { createTestMembership } from "./membershipFactory.js";
@@ -113,15 +120,43 @@ export async function setupReductionProjectPrerequisites(
 }
 
 /**
- * Builds a valid reduction project request payload
+ * Builds a create request payload. Same full body as update; deferred fields
+ * default to null (a partial DRAFT). Pass overrides to fill them for a complete
+ * first-save.
  */
-export function buildReductionProjectPayload(
+export function buildCreateReductionProjectPayload(
+  organizationId: string,
+  carbonInventoryId: string,
+  overrides?: Partial<CreateReductionProjectRequest>
+): CreateReductionProjectRequest {
+  return {
+    name: "Test Reduction Project",
+    organizationId,
+    carbonInventoryId,
+    implementationDate: null,
+    description: null,
+    subcategoryId: null,
+    gwpUsed: null,
+    consideredGei: [],
+    reportedElsewhere: false,
+    reportedElsewhereDescription: null,
+    year: null,
+    baselineScenario: null,
+    projectScenario: null,
+    ...overrides,
+  };
+}
+
+/**
+ * Builds a full-replace update payload. Every deferred field is present;
+ * pass overrides (e.g. `{ year: null }`) to model a partial/incomplete draft.
+ */
+export function buildUpdateReductionProjectPayload(
   organizationId: string,
   carbonInventoryId: string,
   subcategoryId: string,
-  fileUuids: string[],
-  overrides?: Partial<CreateReductionProjectRequest>
-): CreateReductionProjectRequest {
+  overrides?: Partial<UpdateReductionProjectRequest>
+): UpdateReductionProjectRequest {
   return {
     name: "Test Reduction Project",
     organizationId,
@@ -136,7 +171,6 @@ export function buildReductionProjectPayload(
     year: 2024,
     baselineScenario: 1000,
     projectScenario: 800,
-    fileUuids,
     ...overrides,
   };
 }
@@ -162,7 +196,7 @@ export async function createTestReductionProject(
       subcategoryId: data.subcategoryId,
       implementationDate: "2024-01-15",
       description: "Test description",
-      gwpUsed: null,
+      gwpUsed: GwpSourceEnum.IPCC_AR6,
       consideredGei: ["CO2"],
       reportedElsewhere: false,
       reportedElsewhereDescription: null,

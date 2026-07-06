@@ -6,19 +6,24 @@ import {
   afterAll,
   afterEach,
   inject,
-  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { uploadFixture } from "@test/factories/storageHelper.js";
+import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createTestMembership } from "@test/factories/membershipFactory.js";
 import {
   setupReductionProjectPrerequisites,
-  buildReductionProjectPayload,
+  buildUpdateReductionProjectPayload,
   createTestReductionProject,
   createTestReductionProjectSubmission,
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
-import { SubmissionStatus, SubmissionType } from "@repo/database";
+import {
+  SubmissionStatus,
+  SubmissionType,
+  OrganizationStatus,
+  MembershipStatus,
+} from "@repo/database";
 import { GwpSourceEnum } from "@repo/types";
 import { OrganizationRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
@@ -33,9 +38,7 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
-    app = await createTestApp(databaseUrl, {
-      storageDescriptor: inject("storageDescriptor"),
-    });
+    app = await createTestApp(databaseUrl);
     prisma = app.prisma;
     const testUser = await getTestLoggedUser(prisma);
     testUserId = testUser.id;
@@ -48,11 +51,19 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
 
   afterEach(async () => {
     await cleanupReductionProjectTestData(prisma);
-    vi.clearAllMocks();
   });
 
+  async function countVerificationSubmissions(reductionProjectId: bigint) {
+    return prisma.submission.count({
+      where: {
+        type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+        subject: { reductionProject: { reductionProjectId } },
+      },
+    });
+  }
+
   describe("Successful update", () => {
-    it("should update reduction project when displayStatus is REVIEWED", async () => {
+    it("should update a DRAFT project, return 200 with null body, and persist the fields", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -62,34 +73,13 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
         subcategoryId: subcategory.id,
         createdById: testUserId,
       });
+      // No submission = DRAFT.
 
-      // Set to REVIEWED status (editable)
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440100";
-      const originalName = "updated-evidence.pdf";
-      await uploadFixture(
-        app.storage,
-        `SUBMISSION/tmp/${uuid}-${originalName}`,
-        { contentType: "application/pdf" }
-      );
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName, fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
+      const payload = buildUpdateReductionProjectPayload(
         organization.id.toString(),
         carbonInventory.id.toString(),
         subcategory.id.toString(),
-        [uuid],
-        { name: "Updated Project Name" }
+        { name: "Updated Draft Name", description: "Updated description" }
       );
 
       const response = await app.inject({
@@ -99,15 +89,19 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.body).toBe("null");
 
-      // Verify the update
-      const updatedProject = await prisma.reductionProject.findUnique({
+      const updated = await prisma.reductionProject.findUnique({
         where: { id: project.id },
       });
-      expect(updatedProject?.name).toBe("Updated Project Name");
+      expect(updated?.name).toBe("Updated Draft Name");
+      expect(updated?.description).toBe("Updated description");
+
+      // Update never creates a submission.
+      expect(await countVerificationSubmissions(project.id)).toBe(0);
     });
 
-    it("should create new PENDING submission after update", async () => {
+    it("should update a REVIEWED project without creating a new submission", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -125,90 +119,18 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
         testUserId
       );
 
-      const uuid = "550e8400-e29b-41d4-a716-446655440101";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
+      const submissionCountBefore = await countVerificationSubmissions(
+        project.id
+      );
 
-      const payload = buildReductionProjectPayload(
+      const payload = buildUpdateReductionProjectPayload(
         organization.id.toString(),
         carbonInventory.id.toString(),
         subcategory.id.toString(),
-        [uuid]
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/reduction-projects/${project.id}`,
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      // Verify new submission was created
-      const submissions = await prisma.submission.findMany({
-        where: {
-          type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-          subject: {
-            reductionProject: {
-              reductionProjectId: project.id,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      // Should have 2 submissions: the original REVIEWED and the new PENDING
-      expect(submissions.length).toBeGreaterThanOrEqual(2);
-      expect(submissions[0].status).toBe(SubmissionStatus.PENDING);
-    });
-
-    it("should update all mutable fields", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440102";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid],
         {
           name: "New Name",
           description: "New description",
-          implementationDate: "2025-06-15",
           gwpUsed: GwpSourceEnum.IPCC_AR6,
-          consideredGei: ["CO2", "CH4"],
-          reportedElsewhere: true,
-          reportedElsewhereDescription: "External registry",
           year: 2025,
           baselineScenario: 2000,
           projectScenario: 1500,
@@ -229,48 +151,18 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       expect(updated?.name).toBe("New Name");
       expect(updated?.description).toBe("New description");
       expect(updated?.gwpUsed).toBe(GwpSourceEnum.IPCC_AR6);
-      expect(updated?.reportedElsewhere).toBe(true);
       expect(updated?.year).toBe(2025);
+
+      // Explicitly assert no new submission was created by the update.
+      const submissionCountAfter = await countVerificationSubmissions(
+        project.id
+      );
+      expect(submissionCountAfter).toBe(submissionCountBefore);
+      expect(submissionCountAfter).toBe(1);
     });
   });
 
   describe("Validation errors", () => {
-    it("should return 400 when fileUuids is empty", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [] // Empty
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/reduction-projects/${project.id}`,
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe(VALIDATION_ERROR_CODE);
-    });
-
     it("should return 400 when required fields are missing", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
@@ -282,198 +174,20 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
         createdById: testUserId,
       });
 
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
       const response = await app.inject({
         method: "PATCH",
         url: `/api/reduction-projects/${project.id}`,
-        payload: { name: "Just name" }, // Missing required fields
+        payload: { name: "Just name" },
       });
 
       expect(response.statusCode).toBe(400);
-    });
-  });
-
-  describe("Authorization errors", () => {
-    it("should return 403 when user has VIEWER role", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(
-          prisma,
-          testUserId,
-          OrganizationRole.VIEWER
-        );
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440103";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/reduction-projects/${project.id}`,
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it("should return 403 when user is not member of organization", async () => {
-      const { organization, carbonInventory, subcategory, membership } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-
-      await createTestReductionProjectSubmission(
-        prisma,
-        project.id,
-        SubmissionStatus.REVIEWED,
-        testUserId
-      );
-
-      // Remove membership
-      await prisma.userOrganizationMembership.delete({
-        where: { id: membership.id },
-      });
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440104";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/reduction-projects/${project.id}`,
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe("Not found errors", () => {
-    it("should return 404 when reduction project does not exist", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440105";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: "/api/reduction-projects/999999999",
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("REDUCTION_PROJECT_NOT_FOUND");
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
     });
   });
 
   describe("Business logic errors", () => {
-    it("should return 422 when displayStatus is DRAFT", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-      // No submission = DRAFT status
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440106";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
-      );
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/reduction-projects/${project.id}`,
-        payload,
-      });
-
-      expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("REDUCTION_PROJECT_NOT_UPDATABLE");
-    });
-
-    it("should return 422 when displayStatus is SUBMITTED", async () => {
+    it("should return 422 REDUCTION_PROJECT_NOT_UPDATABLE when displayStatus is SUBMITTED", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -487,25 +201,14 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       await createTestReductionProjectSubmission(
         prisma,
         project.id,
-        SubmissionStatus.PENDING, // PENDING = SUBMITTED display status
+        SubmissionStatus.PENDING,
         testUserId
       );
 
-      const uuid = "550e8400-e29b-41d4-a716-446655440107";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
+      const payload = buildUpdateReductionProjectPayload(
         organization.id.toString(),
         carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
+        subcategory.id.toString()
       );
 
       const response = await app.inject({
@@ -519,7 +222,7 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       expect(body.code).toBe("REDUCTION_PROJECT_NOT_UPDATABLE");
     });
 
-    it("should return 422 when displayStatus is APPROVED", async () => {
+    it("should return 422 REDUCTION_PROJECT_NOT_UPDATABLE when displayStatus is APPROVED", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -537,21 +240,10 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
         testUserId
       );
 
-      const uuid = "550e8400-e29b-41d4-a716-446655440108";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
+      const payload = buildUpdateReductionProjectPayload(
         organization.id.toString(),
         carbonInventory.id.toString(),
-        subcategory.id.toString(),
-        [uuid]
+        subcategory.id.toString()
       );
 
       const response = await app.inject({
@@ -564,40 +256,34 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("REDUCTION_PROJECT_NOT_UPDATABLE");
     });
+  });
 
-    it("should return 422 when displayStatus is REJECTED", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
+  describe("Carbon inventory ownership guard", () => {
+    it("should return 422 REDUCTION_PROJECT_INVALID_DATA when the new carbonInventoryId belongs to a different organization (no re-parent)", async () => {
+      const {
+        organization: orgA,
+        carbonInventory: ciA,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
 
       const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
+        organizationId: orgA.id,
+        carbonInventoryId: ciA.id,
         subcategoryId: subcategory.id,
         createdById: testUserId,
       });
 
-      await createTestReductionProjectSubmission(
+      // Org B's inventory — organizationId in the payload stays A.
+      const { carbonInventory: ciB } = await setupReductionProjectPrerequisites(
         prisma,
-        project.id,
-        SubmissionStatus.REJECTED,
         testUserId
       );
 
-      const uuid = "550e8400-e29b-41d4-a716-446655440109";
-      await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-test.pdf`, {
-        contentType: "application/pdf",
-      });
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName: "test.pdf", fileType: "SUBMISSION" },
-      });
-
-      const payload = buildReductionProjectPayload(
-        organization.id.toString(),
-        carbonInventory.id.toString(),
+      const payload = buildUpdateReductionProjectPayload(
+        orgA.id.toString(),
+        ciB.id.toString(),
         subcategory.id.toString(),
-        [uuid]
+        { name: "Cross-org CI attempt" }
       );
 
       const response = await app.inject({
@@ -608,7 +294,295 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("REDUCTION_PROJECT_NOT_UPDATABLE");
+      expect(body.code).toBe("REDUCTION_PROJECT_INVALID_DATA");
+
+      const unchanged = await prisma.reductionProject.findUnique({
+        where: { id: project.id },
+      });
+      expect(unchanged?.carbonInventoryId).toBe(ciA.id);
+    });
+
+    it("should return 422 REDUCTION_PROJECT_INVALID_DATA when re-parenting but keeping the source org's carbon inventory", async () => {
+      const {
+        organization: orgA,
+        carbonInventory: ciA,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: orgA.id,
+        carbonInventoryId: ciA.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      // Caller also belongs to org B (as CONTRIBUTOR/ADMIN).
+      const { organization: orgB } = await setupReductionProjectPrerequisites(
+        prisma,
+        testUserId
+      );
+
+      const payload = buildUpdateReductionProjectPayload(
+        orgB.id.toString(),
+        ciA.id.toString(),
+        subcategory.id.toString(),
+        { name: "Re-parent with stale CI" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_INVALID_DATA");
+
+      const unchanged = await prisma.reductionProject.findUnique({
+        where: { id: project.id },
+      });
+      expect(unchanged?.organizationId).toBe(orgA.id);
+      expect(unchanged?.carbonInventoryId).toBe(ciA.id);
+    });
+  });
+
+  describe("Cross-org IDOR regression", () => {
+    it("should return 403 when the caller is a CONTRIBUTOR of a different org and NOT a member of the project's org", async () => {
+      // Project lives in org B.
+      const {
+        organization: orgB,
+        carbonInventory: ciB,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: orgB.id,
+        carbonInventoryId: ciB.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      // Caller's membership is in org B — remove it, then give them a
+      // membership in an unrelated org A instead.
+      await prisma.userOrganizationMembership.deleteMany({
+        where: { userId: testUserId, organizationId: orgB.id },
+      });
+
+      // Caller is only granted a fresh CONTRIBUTOR membership in an
+      // unrelated org A here (used only to establish "member of a different
+      // org", not referenced further).
+      await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const payload = buildUpdateReductionProjectPayload(
+        orgB.id.toString(),
+        ciB.id.toString(),
+        subcategory.id.toString(),
+        { name: "IDOR attempt" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Re-parenting", () => {
+    it("should allow re-parenting to an org the caller belongs to and persist the new organizationId", async () => {
+      const {
+        organization: orgA,
+        carbonInventory: ciA,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: orgA.id,
+        carbonInventoryId: ciA.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      // Caller also belongs to org B (as CONTRIBUTOR/ADMIN).
+      const { organization: orgB, carbonInventory: ciB } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const payload = buildUpdateReductionProjectPayload(
+        orgB.id.toString(),
+        ciB.id.toString(),
+        subcategory.id.toString(),
+        { name: "Re-parented" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await prisma.reductionProject.findUnique({
+        where: { id: project.id },
+      });
+      expect(updated?.organizationId).toBe(orgB.id);
+      expect(updated?.carbonInventoryId).toBe(ciB.id);
+    });
+
+    it("should return 403 REDUCTION_PROJECT_ORGANIZATION_FORBIDDEN when re-parenting to an org the caller is not a member of", async () => {
+      const {
+        organization: orgA,
+        carbonInventory: ciA,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: orgA.id,
+        carbonInventoryId: ciA.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      // Org C exists but the caller has no membership there.
+      const {
+        organization: orgC,
+        carbonInventory: ciC,
+        membership: orgCMembership,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+      // Remove the caller's membership from org C so they are NOT a member.
+      await prisma.userOrganizationMembership.delete({
+        where: { id: orgCMembership.id },
+      });
+
+      const payload = buildUpdateReductionProjectPayload(
+        orgC.id.toString(),
+        ciC.id.toString(),
+        subcategory.id.toString(),
+        { name: "Forbidden re-parent attempt" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_ORGANIZATION_FORBIDDEN");
+
+      const unchanged = await prisma.reductionProject.findUnique({
+        where: { id: project.id },
+      });
+      expect(unchanged?.organizationId).toBe(orgA.id);
+    });
+
+    it("should return 403 REDUCTION_PROJECT_ORGANIZATION_FORBIDDEN when re-parenting to an org whose status is not ACTIVE, even with an ACTIVE CONTRIBUTOR membership there", async () => {
+      const {
+        organization: orgA,
+        carbonInventory: ciA,
+        subcategory,
+      } = await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: orgA.id,
+        carbonInventoryId: ciA.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      // A BLOCKED (non-ACTIVE) org the caller is an ACTIVE CONTRIBUTOR of —
+      // the membership lookup must also require the destination org to be
+      // ACTIVE.
+      const blockedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestMembership(prisma, testUserId, blockedOrg.id, {
+        role: OrganizationRole.CONTRIBUTOR,
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const payload = buildUpdateReductionProjectPayload(
+        blockedOrg.id.toString(),
+        ciA.id.toString(),
+        subcategory.id.toString(),
+        { name: "Re-parent into non-active org" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_ORGANIZATION_FORBIDDEN");
+
+      const unchanged = await prisma.reductionProject.findUnique({
+        where: { id: project.id },
+      });
+      expect(unchanged?.organizationId).toBe(orgA.id);
+    });
+  });
+
+  describe("Authorization errors", () => {
+    it("should return 403 when the reduction project does not exist", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const payload = buildUpdateReductionProjectPayload(
+        organization.id.toString(),
+        carbonInventory.id.toString(),
+        subcategory.id.toString()
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/reduction-projects/999999999",
+        payload,
+      });
+
+      // The route's `reductionProject` auth hook resolves the project from
+      // `:id` and 403s (not 404) before the service is ever reached.
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FORBIDDEN");
+    });
+
+    it("should return 403 when user has VIEWER role", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(
+          prisma,
+          testUserId,
+          OrganizationRole.VIEWER
+        );
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: organization.id,
+        carbonInventoryId: carbonInventory.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      const payload = buildUpdateReductionProjectPayload(
+        organization.id.toString(),
+        carbonInventory.id.toString(),
+        subcategory.id.toString()
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/reduction-projects/${project.id}`,
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

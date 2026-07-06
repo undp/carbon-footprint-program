@@ -1,42 +1,45 @@
-import { SubmissionType, type PrismaClient } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import type {
   CreateReductionProjectRequest,
   CreateReductionProjectResponse,
   User,
 } from "@repo/types";
-import type { StorageAdapter } from "@repo/storage";
-import {
-  linkFilesToSubmission,
-  cleanupSourceObjects,
-} from "@/features/files/helpers/linkFilesToSubmission.js";
 import { mapBigIntField } from "@/utils/bigint.js";
-import {
-  createReductionProjectSubmission,
-  validateReductionProjectPrerequisites,
-} from "../helpers.js";
+import { validateReductionProjectCarbonInventoryOwnership } from "../helpers.js";
 
+/**
+ * Saves a reduction project as a DRAFT. `name` + organization + carbon
+ * inventory are required; every other field is persisted as sent (null when the
+ * form left it blank), so one save keeps a full or partial draft. No
+ * prerequisite checks, no submission, no files — those gate at
+ * `request-verification`.
+ */
 export const createReductionProjectService = async (
   prismaClient: PrismaClient,
   data: CreateReductionProjectRequest,
-  user: User | null,
-  storage: StorageAdapter
+  user: User | null
 ): Promise<CreateReductionProjectResponse> => {
-  const createdById = user?.id ? BigInt(user.id) : null;
+  const createdById = user ? BigInt(user.id) : null;
+  const organizationId = mapBigIntField(data.organizationId);
+  const carbonInventoryId = mapBigIntField(data.carbonInventoryId);
 
-  const result = await prismaClient.$transaction(async (tx) => {
-    await validateReductionProjectPrerequisites(
+  // Ownership guard + insert run in one transaction so a concurrent inventory
+  // soft-delete can't slip between the check and the write. The guard asserts
+  // the linked inventory is an ACTIVE inventory of this org (prevents attaching
+  // another org's inventory); verified/completeness checks stay deferred to
+  // request-verification.
+  const project = await prismaClient.$transaction(async (tx) => {
+    await validateReductionProjectCarbonInventoryOwnership(
       tx,
-      data.organizationId,
-      data.carbonInventoryId,
-      createdById
+      organizationId,
+      carbonInventoryId
     );
 
-    // Create the reduction project record
-    const project = await tx.reductionProject.create({
+    return tx.reductionProject.create({
       data: {
         name: data.name,
-        organizationId: mapBigIntField(data.organizationId),
-        carbonInventoryId: mapBigIntField(data.carbonInventoryId),
+        organizationId,
+        carbonInventoryId,
         implementationDate: data.implementationDate,
         description: data.description,
         subcategoryId: mapBigIntField(data.subcategoryId),
@@ -51,27 +54,7 @@ export const createReductionProjectService = async (
         updatedAt: null,
       },
     });
-
-    // Create submission and link files atomically
-    const submissionId = await createReductionProjectSubmission(
-      tx,
-      project.id,
-      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-      createdById
-    );
-
-    const { sourceCleanup } = await linkFilesToSubmission(
-      tx,
-      submissionId,
-      data.fileUuids,
-      storage
-    );
-
-    return { id: project.id.toString(), sourceCleanup };
   });
 
-  // Cleanup source objects after the transaction commits
-  await cleanupSourceObjects(result.sourceCleanup);
-
-  return { id: result.id };
+  return { id: project.id.toString() };
 };
