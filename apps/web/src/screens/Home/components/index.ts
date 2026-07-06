@@ -1,3 +1,2 @@
 export * from "./Header";
-export * from "./NoneCarbonInventoriesSection";
-export * from "./UnverifiedCarbonInventoriesContent";
+export * from "./WelcomeHome";

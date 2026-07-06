@@ -1,35 +1,44 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { Box } from "@mui/material";
-import { useCarbonInventoriesMinimalData } from "@/api/query";
-import { Header } from "./components";
-import { capitalize, orderBy, uniq } from "lodash-es";
-import { EmissionResultsContent, ScreenEmptyState } from "@/components";
-import { UnverifiedCarbonInventoriesContent } from "./components/UnverifiedCarbonInventoriesContent";
+import {
+  useCarbonInventoriesMinimalData,
+  useMyOrganizations,
+} from "@/api/query";
+import { Header, WelcomeHome } from "./components";
+import { orderBy, uniq } from "lodash-es";
+import { EmissionResultsContent } from "@/components";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
-import { useNavigate } from "@tanstack/react-router";
-import { Routes } from "@/interfaces";
-import { VOCAB } from "@/config/vocab";
+import {
+  isDashboardReady,
+  selectPrimaryHuella,
+} from "./components/welcomeHome.config";
 
 export const HomeScreen: FC = () => {
-  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
     string | null
   >(null);
 
+  // Fetch every huella (no status filter) so we can tell apart the dashboard-
+  // ready ones from those still in progress, and derive the welcome home from
+  // the rest.
   const { data: inventories = [], isLoading: isLoadingInventories } =
-    useCarbonInventoriesMinimalData([
-      CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-      CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-    ]);
+    useCarbonInventoriesMinimalData();
+  const { data: organizations = [], isLoading: isLoadingOrganizations } =
+    useMyOrganizations();
+
+  const approvedInventories = useMemo(
+    () => inventories.filter((inv) => isDashboardReady(inv.status)),
+    [inventories]
+  );
 
   const availableYears = useMemo(() => {
-    const years = inventories
+    const years = approvedInventories
       .filter((inv) => inv.year !== null && inv.year !== undefined)
       .map((inv) => inv.year!.toString());
     return orderBy(uniq(years), Number, "desc");
-  }, [inventories]);
+  }, [approvedInventories]);
 
   const effectiveYear =
     selectedYear && availableYears.includes(selectedYear)
@@ -38,8 +47,10 @@ export const HomeScreen: FC = () => {
 
   const inventoriesForSelectedYear = useMemo(() => {
     if (!effectiveYear) return [];
-    return inventories.filter((inv) => inv.year?.toString() === effectiveYear);
-  }, [inventories, effectiveYear]);
+    return approvedInventories.filter(
+      (inv) => inv.year?.toString() === effectiveYear
+    );
+  }, [approvedInventories, effectiveYear]);
 
   const effectiveInventoryId =
     selectedCarbonInventoryId &&
@@ -47,25 +58,25 @@ export const HomeScreen: FC = () => {
       (inv) => inv.id === selectedCarbonInventoryId
     )
       ? selectedCarbonInventoryId
-      : (inventoriesForSelectedYear[0]?.id ?? "");
+      : (inventoriesForSelectedYear[0]?.id ?? approvedInventories[0]?.id ?? "");
 
-  const onNavigateToInventories = useCallback(() => {
-    void navigate({ to: Routes.CARBON_INVENTORIES });
-  }, [navigate]);
-
-  if (isLoadingInventories) {
+  if (isLoadingInventories || isLoadingOrganizations) {
     return <HomeScreenSkeleton />;
   }
 
-  if (!effectiveInventoryId) {
+  // No huella fills the dashboard yet: welcome the user and guide them forward.
+  // Shown on every login until a measurement/verification recognition is
+  // approved.
+  if (approvedInventories.length === 0) {
+    const inProgress = inventories.filter(
+      (inv) =>
+        inv.status !== CarbonInventoryDisplayStatusEnum.DELETED &&
+        !isDashboardReady(inv.status)
+    );
     return (
-      <ScreenEmptyState
-        title="No tienes huellas con reconocimiento de verificación"
-        description="Postula al reconocimiento de verificación alguna de tus huellas"
-        action={{
-          label: `Ir a Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
-          onClick: onNavigateToInventories,
-        }}
+      <WelcomeHome
+        hasOrganization={organizations.length > 0}
+        primaryHuella={selectPrimaryHuella(inProgress)}
       />
     );
   }
@@ -82,13 +93,7 @@ export const HomeScreen: FC = () => {
       />
 
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
-        {effectiveInventoryId && (
-          <EmissionResultsContent
-            inventoryId={effectiveInventoryId}
-            showBadges
-          />
-        )}
-        {!effectiveInventoryId && <UnverifiedCarbonInventoriesContent />}
+        <EmissionResultsContent inventoryId={effectiveInventoryId} showBadges />
       </Box>
     </Box>
   );
