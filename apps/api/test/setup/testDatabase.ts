@@ -4,7 +4,9 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const TEST_DATABASE_CONFIG = {
-  image: "postgres:18-alpine",
+  // Digest-pinned for reproducibility; bump the tag and digest together.
+  image:
+    "postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa",
   database: "testdb",
   username: "testuser",
   password: "testpass",

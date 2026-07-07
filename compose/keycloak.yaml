@@ -13,7 +13,8 @@
 
 services:
   keycloak-db:
-    image: postgres:18-alpine
+    # Digest-pinned for reproducibility; bump the tag and digest together.
+    image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
     container_name: huella-latam-keycloak-db
     environment:
       - POSTGRES_USER=keycloak
@@ -31,7 +32,8 @@ services:
       retries: 5
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.1
+    # Digest-pinned for reproducibility; bump the tag and digest together.
+    image: quay.io/keycloak/keycloak:26.1.5@sha256:be6a86215213145bfb4fb3e2b3ab982a806d00262655abdcf3ffa6a38d241c7c
     container_name: huella-latam-keycloak
     command: ["start-dev", "--import-realm"]
     environment:

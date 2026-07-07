@@ -1,4 +1,5 @@
 # Stage 1: Base image with pnpm
+# Digest-pinned for reproducibility; bump the tag and digest together.
 FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -55,7 +56,8 @@ COPY --from=pruner /app/out/full/ ./
 RUN pnpm turbo build --filter=web
 
 # Stage 4: Serve with nginx (non-root, port 8080)
-FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:defdc1caa3ea8401e9b6b2a5d336c1e3d17c6243fa4e12e6c3a466a16fb137ea AS runner
+# Digest-pinned for reproducibility; bump the tag and digest together.
+FROM nginxinc/nginx-unprivileged:1.31.2-alpine-slim@sha256:defdc1caa3ea8401e9b6b2a5d336c1e3d17c6243fa4e12e6c3a466a16fb137ea AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin
