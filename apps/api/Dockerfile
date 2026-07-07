@@ -1,4 +1,5 @@
 # Stage 1: Base image with pnpm
+# Digest-pinned for reproducibility; bump the tag and digest together.
 FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -64,6 +65,7 @@ WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
 # Stage 4: Production image
+# Digest-pinned for reproducibility; bump the tag and digest together.
 FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS runner
 WORKDIR /app
 
