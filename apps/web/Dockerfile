@@ -13,9 +13,10 @@ WORKDIR /app
 # Copy first so corepack picks the pinned pnpm from package.json's packageManager.
 COPY . .
 # Run turbo via `pnpm dlx` (no global install → avoids the pnpm global-bin PATH issue).
-# Pinned to the repo's turbo major to keep prune output compatible with the build.
+# Pinned to the repo's turbo version (root package.json) so prune output stays
+# compatible with the build — bump together when root turbo changes.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm dlx turbo@2.6.3 prune --scope=web --docker
+    pnpm dlx turbo@2.10.3 prune --scope=web --docker
 
 # Stage 3: Build the SPA
 FROM base AS builder
