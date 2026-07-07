@@ -2,6 +2,20 @@
 
 Central reference for common problems encountered during local development, testing, and deployment. Covers the issues most frequently reported or scattered across other guides.
 
+This is the **first-stop hub**. Deep, domain-specific troubleshooting lives next to its domain doc — check the index below and follow the links rather than expecting every detail here.
+
+### Domain-specific troubleshooting
+
+| Area                                       | See                                                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Local setup (step-by-step + its own FAQ)   | [Local Setup](./local-setup.md)                                                          |
+| Docker Compose (full stack, env, services) | [docker-compose reference](../operations/docker-compose.md)                              |
+| Keycloak (local OIDC IdP)                  | [Keycloak Authentication Setup](../infrastructure/KeycloakAuthenticationSetup.md)        |
+| Azure Entra ID auth                        | [Azure Authentication Setup](../infrastructure/AzureAuthenticationSetup.md)              |
+| Generic OIDC contract                      | [Generic OIDC Authentication Setup](../infrastructure/GenericOidcAuthenticationSetup.md) |
+| Object storage (MinIO / Azure Blob)        | [File Storage](../infrastructure/FileStorage.md)                                         |
+| Deployment / infrastructure                | [Deployment](../infrastructure/Deployment.md)                                            |
+
 ---
 
 ## Local Development
@@ -83,18 +97,15 @@ kill -9 <PID>
 
 **Cause:** `STORAGE_PROVIDER` is unset (the API refuses to boot without it), or the selected provider's required vars are missing.
 
-**Fix:** `STORAGE_PROVIDER` must be set — there is no default. Local dev defaults to `minio` (the value in `infra/.envrc.template`), set its `MINIO_*` vars. To use Azure Blob Storage locally, set `STORAGE_PROVIDER=azure_blob_storage` and provide an explicit Service Principal:
+**Fix:** `STORAGE_PROVIDER` must be set — there is no default. The local `.envrc.template` defaults to `minio`; set its `MINIO_*` vars and start MinIO (`docker compose -f docker-compose.minio.yml up -d`). To use Azure Blob Storage locally instead:
 
 ```bash
 export STORAGE_PROVIDER="azure_blob_storage"
 export AZURE_STORAGE_ACCOUNT_NAME="your-storage-account-name"
 export AZURE_STORAGE_CONTAINER_NAME="files"
-export AZURE_STORAGE_TENANT_ID="..."
-export AZURE_STORAGE_CLIENT_ID="..."
-export AZURE_STORAGE_CLIENT_SECRET="..."
 ```
 
-Local and on-premise hosts have no Azure Managed Identity, so they authenticate with the Service Principal above (`ClientSecretCredential`); `DefaultAzureCredential` is the Azure-hosted path only. See [Local Setup](./local-setup.md), [docker-compose reference](../operations/docker-compose.md), and [File Storage](../infrastructure/FileStorage.md).
+Azure Blob uses `DefaultAzureCredential`, which **falls back to your `az login` session locally** — run `az login` (the signed-in principal needs the **Storage Blob Data Contributor** role on the account). No Service Principal is needed for the `az login` path; to use one explicitly instead (e.g. CI / no-CLI hosts), set all three of `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET`. See [Local Setup](./local-setup.md), [docker-compose reference](../operations/docker-compose.md), and [File Storage](../infrastructure/FileStorage.md).
 
 ---
 
@@ -128,6 +139,147 @@ pnpm dev:api        # restart the API
 ```
 
 Verify the variable is set: `echo $AUTH_PROVIDER` — should print `forced-user`.
+
+---
+
+## Startup & Supporting Services (Docker)
+
+A working local stack has four moving parts before `pnpm dev`: **Postgres** (`packages/database/docker-compose.yml`), an **IdP** (Keycloak overlay), **object storage** (MinIO), and the **app itself** on the host. Most first-run problems are one of these not being up, or an env mismatch between the host (`.envrc`) and the containers (`.env.dockercompose`). See [Local Setup](./local-setup.md) for the full sequence.
+
+### Which env file? `.envrc` vs `.env.dockercompose`
+
+Two different mechanisms, easily confused:
+
+| You are running…                                 | Env source                                                      |
+| ------------------------------------------------ | --------------------------------------------------------------- |
+| The app on the **host** (`pnpm dev`)             | `.envrc` (loaded by direnv, or `source .envrc`)                 |
+| The stack **in containers** (`docker compose …`) | `.env.dockercompose` (copied from `.env.dockercompose.example`) |
+
+The bundled compose commands pass `--env-file .env.dockercompose` explicitly (Compose only auto-loads a file literally named `.env`). The legacy `docker-compose.env` is no longer used.
+
+### Compose logs "variable is not set" warnings
+
+**Symptom:** Starting only some services (e.g. `… up -d keycloak keycloak-db`) prints `WARN[…] The "X" variable is not set. Defaulting to a blank string`.
+
+**Cause:** Compose interpolates **every** service in the merged files, even ones you didn't start; vars only referenced by the API/web services show as unset.
+
+**Fix:** Harmless when you're only starting the supporting services — they don't read those vars. Passing `--env-file .env.dockercompose` quiets most of them.
+
+### Compose uses a stale or wrong value for a variable
+
+**Symptom:** A container receives a value you didn't put in `.env.dockercompose`.
+
+**Cause:** Interpolation precedence is **shell env > `--env-file` > defaults**. If direnv has loaded `.envrc` (for `pnpm dev`), those exports silently win over `--env-file`.
+
+**Fix:** See [docker-compose → variable precedence](../operations/docker-compose.md#compose-uses-the-wrong-value-for-a-variable-shell--direnv-overrides---env-file). Quickest workaround: run compose in a terminal where `.envrc` isn't loaded (`direnv deny`), or scrub the env for that command.
+
+### A supporting-service port is already in use
+
+Default host ports for the local stack:
+
+| Service               | Port(s)         |
+| --------------------- | --------------- |
+| Postgres (app)        | `5432`          |
+| API                   | `8080`          |
+| Web (Vite)            | `5173`          |
+| Keycloak              | `8081`          |
+| MinIO (API + console) | `9000` / `9001` |
+
+Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or stop the container: `docker ps` → `docker stop <name>`.
+
+### A container is unhealthy or exits immediately
+
+**Checklist:**
+
+1. `docker ps -a` — is the container `Up (healthy)`, `Restarting`, or `Exited`?
+2. `docker compose … logs <service>` (`keycloak`, `minio`, `postgres`, …) — read the actual error.
+3. Keycloak takes ~30–60s to become healthy on first boot (it imports the realm) — wait before assuming failure.
+
+### Re-configured a service but nothing changed (persisted volumes)
+
+**Symptom:** You changed a compose setting, the Keycloak realm, or the DB seed, but the old state persists.
+
+**Cause:** The stack uses **named volumes** (`postgres_data`, `keycloak-db-data`, `minio-data`) that survive `down`/`up`, and the Keycloak realm is imported **only on first boot**.
+
+**Fix:** Drop the volumes to start fresh: `docker compose … down -v`, then `up`. (For the app DB specifically, `pnpm db:restore` resets + migrates + seeds without touching Docker.)
+
+### Database looks empty, or the seed was skipped
+
+**Symptom:** `pnpm dev:migrate` says "Already in sync" and `pnpm db:seed` logs "Database already contains data — skipping" on what you thought was a clean machine.
+
+**Cause:** The `postgres_data` volume persisted from a previous run — the DB isn't fresh.
+
+**Fix:** `pnpm db:restore` (reset + migrate + seed). See also [Database connection refused](#database-connection-refused) above.
+
+### API exits: `Cannot find module '@repo/constants/dist/index.js'`
+
+**Symptom:** On `pnpm dev`, the API process exits at startup with `ERR_MODULE_NOT_FOUND` for a workspace package's `dist/`.
+
+**Cause:** A workspace package wasn't built before the API imported it (historically a `turbo` `clean`/`build` race, since fixed by removing `^clean` from the `dev` task).
+
+**Fix:** Build the packages once, then start: `pnpm build && pnpm dev`. If it recurs, the package watchers have since emitted `dist/` — just re-run `pnpm dev`.
+
+### Keycloak admin console: "We are sorry… HTTPS required"
+
+**Symptom:** Opening http://localhost:8081 (admin console) shows Keycloak's "HTTPS required" page.
+
+**Cause:** The admin console is served by the **`master`** realm, whose default `sslRequired=external`; the imported realm export only sets the **`huella`** realm to `none`.
+
+**Fix (local dev):** set the master realm's `sslRequired` to `NONE` — see [Keycloak → Troubleshooting](../infrastructure/KeycloakAuthenticationSetup.md#troubleshooting).
+
+### Keycloak realm or client missing after `up`
+
+**Symptom:** Login fails; the `huella` realm or the `huella-web` client isn't present in Keycloak.
+
+**Cause:** The realm import (`infra/keycloak/realm-huella.json`) runs **only on first boot**.
+
+**Fix:** `docker compose … down -v` to drop the `keycloak-db` volume, then `up` to re-import. See [Keycloak Authentication Setup](../infrastructure/KeycloakAuthenticationSetup.md).
+
+### Web console logs "OIDC login is not configured"
+
+**Symptom:** The browser console shows this error and the login button does nothing.
+
+**Cause:** One of `VITE_OIDC_ISSUER` / `VITE_OIDC_CLIENT_ID` / `VITE_OIDC_SCOPES` is empty. The app still boots and renders public pages, but login is disabled until all three are set.
+
+**Fix:** Set the three `VITE_OIDC_*` vars, then **restart the web dev server** (Vite reads `VITE_*` at startup). For a specific IdP, see the [Keycloak](../infrastructure/KeycloakAuthenticationSetup.md) / [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) guides.
+
+### Login fails after switching auth provider (same email)
+
+**Symptom:** After switching `AUTH_PROVIDER` / IdP, signing in with an email that already exists in the DB fails (the app can't resolve or create your user).
+
+**Cause:** Identity is keyed on the IdP subject (`idpUserId`), and email is unique. A new IdP issues a different subject for the same email, so the existing row can't be matched or re-created. Switching providers against a populated DB is **unsupported** locally.
+
+**Fix:** `pnpm db:restore` (fresh DB), or sign in with a different email. See [Local Setup → Authentication](./local-setup.md).
+
+### New account can't reach `/admin` (not a superadmin)
+
+**Symptom:** You logged in successfully, but admin routes return 403 or aren't visible.
+
+**Cause:** Just-in-time provisioning always creates users with the default `USER` role — it never grants admin.
+
+**Fix:** Set `SUPERADMIN_EMAIL` to the email you log in with, then run `pnpm db:promote-superadmin`.
+
+### API won't boot: "STORAGE_PROVIDER is required"
+
+**Symptom:** The API exits at startup with `STORAGE_PROVIDER is required. Allowed values are: azure_blob_storage, minio.`
+
+**Fix:** Set `STORAGE_PROVIDER` — `minio` locally (plus its `MINIO_*` vars, and start MinIO), or `azure_blob_storage` (+ `AZURE_STORAGE_ACCOUNT_NAME`). There is no default. See [File upload returns HTTP 503](#file-upload-returns-http-503) above and [File Storage](../infrastructure/FileStorage.md).
+
+### Azure Blob returns 403 even after `az login`
+
+**Symptom:** With `STORAGE_PROVIDER=azure_blob_storage` and a valid `az login`, uploads/downloads fail with 403. (The startup health check only logs a warning, so this surfaces at call time, not at boot.)
+
+**Cause:** The signed-in principal lacks the **Storage Blob Data Contributor** role on the storage account (required for the user-delegation SAS the adapter issues).
+
+**Fix:** Grant that role on the account, or switch to `STORAGE_PROVIDER=minio`. See [File Storage](../infrastructure/FileStorage.md).
+
+### Badges or uploaded files 404 after switching STORAGE_PROVIDER
+
+**Symptom:** After changing `STORAGE_PROVIDER`, previously-stored assets (badges, inventory/submission files) return broken links.
+
+**Cause:** `file.blob_path` in the DB is provider-agnostic, but the object only exists in the backend it was originally uploaded to.
+
+**Fix:** Reseed (`pnpm db:restore`), copy the objects between backends, or repoint the DB keys — see [File Storage → Switching storage providers](../infrastructure/FileStorage.md#switching-storage-providers).
 
 ---
 
@@ -231,18 +383,18 @@ After fixing, restart the App Service — environment variables are resolved at 
 
 **Checklist:**
 
-1. Is `JWKS_URI` set correctly? It should point to the Entra ID tenant's JWKS endpoint.
-2. Is `JWKS_AUDIENCE` set to the app registration's client ID?
-3. Is `JWKS_ISSUER` set to `https://login.microsoftonline.com/<tenant-id>/v2.0`?
-4. Has the Entra ID key been rotated recently? The JWKS cache refreshes every 10 minutes — wait and retry.
+1. Is `JWKS_URI` reachable **from where the API runs**? On host `pnpm dev` against local Keycloak it must be `http://localhost:8081/realms/huella/protocol/openid-connect/certs` — **not** the in-compose `http://keycloak:8080/...` host (the host process can't resolve the `keycloak` service name). See the [issuer-vs-JWKS host split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
+2. Is `JWKS_ISSUER` exactly the token's `iss`? Entra: `https://login.microsoftonline.com/<tenant-id>/v2.0` (or the CIAM host for External ID); Keycloak: `http://localhost:8081/realms/huella`.
+3. Is `JWKS_AUDIENCE` the API's expected audience? Entra: the API app-registration client ID; Keycloak: `huella-api`.
+4. Has the signing key rotated recently? The JWKS cache refreshes every ~10 minutes — wait and retry.
 
-For local development, use `AUTH_PROVIDER=forced-user` to bypass JWT validation entirely.
+For local development without an IdP, use `AUTH_PROVIDER=forced-user` to bypass JWT validation entirely.
 
 ---
 
 ### `CredentialUnavailableError` with Azure Blob Storage
 
-When `STORAGE_PROVIDER=azure_blob_storage`, the credential depends on **where the app runs**, not local-vs-prod. Azure-hosted compute (App Service / Container Apps) has a Managed Identity, so it uses `DefaultAzureCredential` with the three SP vars left empty. Local and on-premise hosts have no Managed Identity and must set all of `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET` (explicit `ClientSecretCredential`). If you see `CredentialUnavailableError` locally, set those SP vars — or switch to `STORAGE_PROVIDER=minio`. See [docker-compose reference](../operations/docker-compose.md) → "Azure Blob Storage".
+When `STORAGE_PROVIDER=azure_blob_storage`, authentication uses `DefaultAzureCredential`. Azure-hosted compute (App Service / Container Apps) resolves its **Managed Identity**; locally, `DefaultAzureCredential` **falls back to your `az login` session** — so `az login` is the simplest local path (the signed-in principal needs the **Storage Blob Data Contributor** role on the account). A `CredentialUnavailableError` locally usually means you're not logged in: run `az login`, or switch to `STORAGE_PROVIDER=minio`. To use an explicit Service Principal instead, set **all three** of `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET` (used only when all three are present → `ClientSecretCredential`). See [File Storage](../infrastructure/FileStorage.md) and the [docker-compose reference](../operations/docker-compose.md).
 
 ---
 

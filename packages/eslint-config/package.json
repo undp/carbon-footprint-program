@@ -10,7 +10,7 @@
     "./base": "./base.ts"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@tanstack/eslint-plugin-query": "^5.101.2",
     "@tanstack/eslint-plugin-router": "^1.162.0",
     "eslint": "catalog:shared",
@@ -18,7 +18,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-turbo": "^2.10.2",
+    "eslint-plugin-turbo": "^2.10.3",
     "globals": "^17.7.0",
     "typescript": "catalog:shared",
     "typescript-eslint": "^8.62.1"

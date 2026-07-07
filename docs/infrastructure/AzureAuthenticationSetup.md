@@ -474,9 +474,7 @@ FORCED_USER_EMAIL="dev@example.com"
 
 ### Login / redirect errors
 
-| Error                   | Cause                 | Solution                                                                |
-| ----------------------- | --------------------- | ----------------------------------------------------------------------- |
-| "redirect_uri_mismatch" | Redirect URI mismatch | Register `<origin>/auth/callback` exactly in the Azure app registration |
+`"redirect_uri_mismatch"` after login means the app's `<origin>/auth/callback` isn't registered on the Azure app registration — see [Troubleshooting → OIDC redirect URI mismatch](../development/troubleshooting.md#oidc-redirect-uri-mismatch). Register the exact SPA redirect URIs during portal setup (see the [External](#azure-portal-configuration--external-tenant-ciam) / [Organizational](#azure-portal-configuration--organizational-tenant-azure-ad) steps).
 
 ### Token Validation Errors
 
