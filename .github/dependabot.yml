@@ -20,6 +20,15 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    ignore:
+      # Defer the MUI Core v7 -> v9 major upgrade. It must land as one
+      # coordinated change (@mui/icons-material peer-depends on @mui/material's
+      # exact major), so we keep taking v7 minor/patch updates and ignore the
+      # major until it is done deliberately. Tracked in issue #443.
+      - dependency-name: "@mui/material"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@mui/icons-material"
+        update-types: ["version-update:semver-major"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
       # Security updates and majors still open their own PRs.
