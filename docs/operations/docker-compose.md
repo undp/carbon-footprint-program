@@ -78,7 +78,7 @@ dc down            # stop
 | `forced-user` | `FORCED_USER_EMAIL`, `FORCED_USER_IDP_ID`                                     | Local dev with a fake user     |
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
-The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see the compose overlay. The storage tenant below is separate.
+The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see [Keycloak Setup](../infrastructure/KeycloakSetup.md) (the `compose/keycloak-db.yaml` + `compose/keycloak.dev.yaml` overlays). The storage tenant below is separate.
 
 ### Web build args
 
@@ -248,6 +248,7 @@ The rule applies to **every** interpolated var (`JWT_SECRET`, `AZURE_STORAGE_*`,
 ## Related docs
 
 - [Production Deployment (on-premise)](./production-deployment.md) — `docker-compose.prod.yml` against an external PostgreSQL.
+- [Keycloak Setup](../infrastructure/KeycloakSetup.md) — the local Keycloak IdP overlays (`compose/keycloak-db.yaml` + `compose/keycloak.dev.yaml`) and the production Keycloak stack.
 - [Web App Docker Guide](./web-docker.md) — web image internals (nginx config, build args, hardening notes).
 - `apps/api/Dockerfile` — API multi-stage build (also the `migrate` base).
 - `apps/web/Dockerfile` — web SPA build + nginx runtime.

@@ -168,5 +168,6 @@ curl http://localhost:8080/health   # → {"status":"ok", ...} with database con
 ## Related docs
 
 - [Docker Compose — Full Stack (local dev)](./docker-compose.md) — the dev stack, storage SP walkthrough, shared troubleshooting.
+- [Keycloak Setup](../infrastructure/KeycloakSetup.md) — running Keycloak as the production IdP alongside this stack (`compose/keycloak.prod.yaml` + `compose/keycloak-db.yaml`).
 - `.env.prod.dockercompose.example` — committed template; source of truth for every production var.
 - [Operations Runbook](./runbook.md) — backup, restore, rollback, incident response.

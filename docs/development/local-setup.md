@@ -126,13 +126,13 @@ The overlay reads its config from `.env.dockercompose` — create it once from t
 
 ```bash
 cp .env.dockercompose.example .env.dockercompose
-docker compose -f docker-compose.yml -f compose/keycloak.yaml --env-file .env.dockercompose up -d keycloak keycloak-db
+docker compose -f docker-compose.yml -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml --env-file .env.dockercompose up -d keycloak keycloak-db keycloak-init
 ```
 
 - **Admin console:** http://localhost:8081 — bootstrap admin `admin` / `admin`.
 - On first boot the realm `huella` and client `huella-web` are imported automatically, so the OIDC login works out of the box.
 
-Then switch the API to `AUTH_PROVIDER=jwks` and set the `JWKS_*` variables (see [Authentication](#authentication-local-development) below). Full walkthrough: [Keycloak authentication setup](../infrastructure/KeycloakAuthenticationSetup.md).
+Then switch the API to `AUTH_PROVIDER=jwks` and set the `JWKS_*` variables (see [Authentication](#authentication-local-development) below). Full walkthrough: [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
 ### MinIO — object storage (required when `STORAGE_PROVIDER=minio`)
 
@@ -357,9 +357,9 @@ export FORCED_USER_IDP_ID="local-dev-user-001"
 
 To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the `JWKS_*` variables (derived from your IdP/tenant). See [Environment Variables](./environment-variables.md) and [Azure Entra authentication setup](../infrastructure/AzureAuthenticationSetup.md).
 
-To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakAuthenticationSetup.md).
+To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
-> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:8081/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:8081/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
+> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:8081/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:8081/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 > ⚠️ **Switching auth providers locally is unsupported against an existing DB.** User identity is keyed on the IdP subject (`idpUserId`), and `email` is unique. If you change `AUTH_PROVIDER`/IdP (e.g. Keycloak → Azure Entra) and then sign in with an email that already exists in the DB from the previous provider, the new IdP subject won't match the stored one and login fails for that account. Either reset the DB (`pnpm db:restore`) or sign in with a fresh email.
 
@@ -398,7 +398,7 @@ cd packages/database && pnpm dev:generate
 **401 on every API call / JWKS fetch failure (host `pnpm dev` with Keycloak):**
 
 - When the API runs on the **host** (not in compose), it can't resolve the in-compose `http://keycloak:8080/...` host. Set `JWKS_URI=http://localhost:8081/realms/huella/protocol/openid-connect/certs`.
-- Keep `JWKS_ISSUER=http://localhost:8081/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
+- Keep `JWKS_ISSUER=http://localhost:8081/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 **Database looks empty but migrations/seed do nothing (reused machine):**
 

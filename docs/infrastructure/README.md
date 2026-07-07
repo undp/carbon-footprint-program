@@ -26,12 +26,12 @@ Azure infrastructure for the Huella Latam platform: service requirements, provis
 
 The app uses a generic OIDC client (`oidc-client-ts`) + JWKS token validation (`AUTH_PROVIDER=jwks`); any compliant OIDC provider works. Start with the contract, then the specific IdP guide.
 
-| Document                                                                 | Description                                                                 |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| [Generic OIDC Authentication Setup](./GenericOidcAuthenticationSetup.md) | Provider-agnostic contract: token claims, JWKS/OIDC env vars, IdP checklist |
-| [Azure Entra Authentication Setup](./AzureAuthenticationSetup.md)        | Azure Entra app registration (external CIAM / organizational) + JWKS        |
-| [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md)        | Local-dev Keycloak IdP via the compose overlay                              |
-| [Auth Config Migration](./AuthConfigMigration.md)                        | Upgrade runbook: migrate existing `.envrc` / Azure deployments to `JWKS_*`  |
+| Document                                                                 | Description                                                                                                                                                           |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Generic OIDC Authentication Setup](./GenericOidcAuthenticationSetup.md) | Provider-agnostic contract: token claims, JWKS/OIDC env vars, IdP checklist                                                                                           |
+| [Azure Entra Authentication Setup](./AzureAuthenticationSetup.md)        | Azure Entra app registration (external CIAM / organizational) + JWKS                                                                                                  |
+| [Keycloak Setup](./KeycloakSetup.md)                                     | Keycloak IdP for local dev **and** production — bring-up (dev + prod), hardened realm, admin-console hardening, and how to derive each `JWKS_*` / `VITE_OIDC_*` value |
+| [Auth Config Migration](./AuthConfigMigration.md)                        | Upgrade runbook: migrate existing `.envrc` / Azure deployments to `JWKS_*`                                                                                            |
 
 ## Source documents
 

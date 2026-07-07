@@ -5,7 +5,7 @@ This is the **provider-agnostic contract** for authentication in Huella Latam. T
 Read this guide to understand _what the platform requires from an IdP_. For step-by-step portal/realm setup of a specific IdP, see:
 
 - [Azure Entra Authentication Setup](./AzureAuthenticationSetup.md) — Azure Entra External ID (CIAM) or organizational Azure AD.
-- [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md) — local-dev Keycloak via the compose overlay.
+- [Keycloak Setup](./KeycloakSetup.md) — Keycloak IdP for local dev (compose overlay) and production.
 
 There is **no MSAL** and **no Azure App Service Easy Auth gateway**. On Azure App Service, keep platform Authentication **disabled** so the `Authorization: Bearer` token reaches the app.
 
