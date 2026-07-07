@@ -1,6 +1,10 @@
 import { FC, ReactNode } from "react";
 import { Box, Typography, alpha, useTheme } from "@mui/material";
-import { CheckRounded, LockRounded, ScheduleRounded } from "@mui/icons-material";
+import {
+  CheckRounded,
+  LockRounded,
+  ScheduleRounded,
+} from "@mui/icons-material";
 
 export type OnboardingStepState = "done" | "active" | "pending" | "locked";
 

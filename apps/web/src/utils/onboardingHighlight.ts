@@ -6,6 +6,13 @@ export interface HighlightSpec {
   find: () => HTMLElement | null;
   title: string;
   description: string;
+  /** Delay before the first attempt, ms (default 300). Raise it to wait out an
+   *  animation (e.g. the sidebar expanding) so the popover lands on the settled
+   *  element rather than mid-transition. */
+  delayMs?: number;
+  /** Fires when the highlight is dismissed — on target click, close, or cleanup.
+   *  Use it to undo any state set up for the highlight (e.g. force-open sidebar). */
+  onDismiss?: () => void;
 }
 
 /**
@@ -15,7 +22,11 @@ export interface HighlightSpec {
  * never shows (e.g. the target button isn't available in the current state).
  */
 export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
-  const tour = driver({ allowClose: true, stagePadding: 6 });
+  const tour = driver({
+    allowClose: true,
+    stagePadding: 6,
+    onDestroyed: () => spec.onDismiss?.(),
+  });
   let attempts = 0;
   let timer: ReturnType<typeof setTimeout>;
   let target: HTMLElement | null = null;
@@ -37,7 +48,7 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
       timer = setTimeout(attempt, 200);
     }
   };
-  timer = setTimeout(attempt, 300);
+  timer = setTimeout(attempt, spec.delayMs ?? 300);
 
   return () => {
     clearTimeout(timer);

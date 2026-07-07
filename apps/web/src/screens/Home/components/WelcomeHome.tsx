@@ -6,7 +6,11 @@ import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
 import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
-import { markOnboardingFocus, OnboardingFocus } from "@/utils/onboardingSignals";
+import { useSidebarStore } from "@/stores/sidebarStore";
+import {
+  markOnboardingFocus,
+  OnboardingFocus,
+} from "@/utils/onboardingSignals";
 import {
   runOnboardingHighlight,
   findSidebarLink,
@@ -34,6 +38,7 @@ export const WelcomeHome: FC<Props> = ({
 }) => {
   const navigate = useNavigate();
   const firstName = useUserStore((state) => state.user?.firstName ?? null);
+  const setSidebarForcedOpen = useSidebarStore((state) => state.setForcedOpen);
   const namePart = firstName ? `, ${firstName}` : "";
 
   // Secondary links (already-done / in-review steps) still navigate directly —
@@ -53,10 +58,15 @@ export const WelcomeHome: FC<Props> = ({
   ) => {
     markOnboardingFocus(focus);
     activeHighlight.current?.();
+    // Open the sidebar so the spotlighted item's label is readable, and wait
+    // out its expand animation before positioning the popover.
+    setSidebarForcedOpen(true);
     activeHighlight.current = runOnboardingHighlight({
       find: findSidebarLink(route),
       title,
       description,
+      delayMs: 450,
+      onDismiss: () => setSidebarForcedOpen(false),
     });
   };
   useEffect(() => () => activeHighlight.current?.(), []);
