@@ -56,8 +56,13 @@ COPY --from=pruner /app/out/full/ ./
 RUN pnpm turbo build --filter=web
 
 # Stage 4: Serve with nginx (non-root, port 8080)
-# Digest-pinned for reproducibility; bump the tag and digest together.
-FROM nginxinc/nginx-unprivileged:1.31.2-alpine-slim@sha256:defdc1caa3ea8401e9b6b2a5d336c1e3d17c6243fa4e12e6c3a466a16fb137ea AS runner
+# nginx STABLE branch (even minor, 1.30.x) on purpose: it ships only critical
+# bug/security fixes with no feature or default-behavior changes — the right
+# trade-off for a container that just serves the static SPA build (we use none
+# of mainline's newer features, and stable gets the same security backports).
+# Digest-pinned for reproducibility; bump the tag and digest together, and move
+# to the next stable branch (1.32.x) deliberately rather than tracking mainline.
+FROM nginxinc/nginx-unprivileged:1.30.3-alpine-slim@sha256:655c2473e24d2daa31668390db9fe519e0c5a76cbbddb6a18b7d0dc08a36b654 AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin
