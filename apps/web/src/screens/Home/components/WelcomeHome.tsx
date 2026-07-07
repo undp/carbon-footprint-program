@@ -134,8 +134,8 @@ export const WelcomeHome: FC<Props> = ({
             hasOrganization
               ? step3Pending
                 ? "Ya registraste tu organización. Mientras tu inscripción está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe."
-                : "Ya registraste tu organización. Puedes editar su perfil cuando quieras."
-              : "Registra tu organización con unos datos básicos. Es el primer paso para empezar a medir."
+                : "Ya registraste tu organización. Puedes ver más información en la página “Mi organización”."
+              : "Crea el perfil de tu organización."
           }
           tag={
             hasOrganization
@@ -228,7 +228,7 @@ export const WelcomeHome: FC<Props> = ({
               : orgAccredited
                 ? "Tu organización está inscrita."
                 : step3Pending
-                  ? "Tu inscripción está en revisión. Te avisaremos cuando sea aprobada."
+                  ? "Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “Mi organización”."
                   : inscriptionStatus === SubmissionStatus.REJECTED
                     ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
                     : "Solicita la inscripción de tu organización para validarla oficialmente."
