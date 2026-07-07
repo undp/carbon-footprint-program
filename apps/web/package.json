@@ -23,7 +23,7 @@
     "@fontsource-variable/roboto": "^5.2.10",
     "@fontsource/roboto": "^5.2.10",
     "@hookform/resolvers": "^5.4.0",
-    "@mui/icons-material": "^7.3.11",
+    "@mui/icons-material": "^9.1.1",
     "@mui/material": "^7.3.11",
     "@mui/x-charts": "^9.8.0",
     "@mui/x-data-grid": "^9.8.0",
