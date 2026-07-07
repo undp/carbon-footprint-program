@@ -67,7 +67,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Internationalization Plan](./development/i18n-plan.md)           | Forward-looking plan for adding i18n (not yet implemented)                                                         |
 | [CI/CD Pipeline](./development/ci-cd.md)                          | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps                                  |
 | [Troubleshooting and FAQ](./development/troubleshooting.md)       | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour              |
-| [Docker Compose](./DockerCompose.md)                              | Local Docker Compose configuration                                                                                 |
+| [Docker Compose](./operations/docker-compose.md)                  | Local & full-stack Docker Compose guide (services, env, auth + storage setup, troubleshooting)                     |
 
 ## Security
 
@@ -122,13 +122,13 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 Original source documents used as input for the written documentation above.
 
-| Document                                                                                                                                | Description                                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [Infrastructure Provisioning & Deployment Model](./infrastructure/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf)         | Original infrastructure provisioning and deployment model document |
-| [Production — App Usage Assumptions & Estimations](./infrastructure/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf)       | Original production app usage assumptions and estimations          |
-| [Production — Consolidated Azure Services Requirements](./infrastructure/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements                    |
-| [Staging — App Usage Assumptions & Estimations](./infrastructure/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf)             | Original staging app usage assumptions and estimations             |
-| [Staging — Consolidated Azure Services Requirements](./infrastructure/Staging-Consolidated%20Azure%20Services%20Requirements.pdf)       | Original staging Azure services requirements                       |
+| Document                                                                                                                                        | Description                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [Infrastructure Provisioning & Deployment Model](./infrastructure/annexes/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf)         | Original infrastructure provisioning and deployment model document |
+| [Production — App Usage Assumptions & Estimations](./infrastructure/annexes/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf)       | Original production app usage assumptions and estimations          |
+| [Production — Consolidated Azure Services Requirements](./infrastructure/annexes/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements                    |
+| [Staging — App Usage Assumptions & Estimations](./infrastructure/annexes/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf)             | Original staging app usage assumptions and estimations             |
+| [Staging — Consolidated Azure Services Requirements](./infrastructure/annexes/Staging-Consolidated%20Azure%20Services%20Requirements.pdf)       | Original staging Azure services requirements                       |
 
 ---
 

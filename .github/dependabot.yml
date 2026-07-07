@@ -9,11 +9,13 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
-    # Wait at least a day before proposing a version. This mirrors the
-    # `minimumReleaseAge` (12h) supply-chain delay in pnpm-workspace.yaml, so
+    # Wait 7 days before proposing a version. A compromised release is usually
+    # caught and yanked within days, so this cooldown reduces supply-chain risk
+    # (zizmor's dependabot-cooldown audit). It is also well beyond the
+    # `minimumReleaseAge` (12h) install delay in pnpm-workspace.yaml, so
     # Dependabot never proposes a version the CI install gate would reject.
     cooldown:
-      default-days: 1
+      default-days: 7
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
@@ -36,6 +38,9 @@ updates:
       - "/apps/web"
     schedule:
       interval: "weekly"
+    # Supply-chain cooldown before proposing a new base-image digest.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -45,6 +50,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Supply-chain cooldown before proposing a new action version.
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "ci"
       include: "scope"
