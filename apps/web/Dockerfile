@@ -2,7 +2,9 @@
 FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Node 26 no longer bundles Corepack, so install it from npm before enabling it.
+# Corepack then provides the pnpm version pinned in package.json (packageManager).
+RUN npm install -g corepack@latest && corepack enable
 
 # Stage 2: Prune the workspace down to what 'web' needs
 FROM base AS pruner
