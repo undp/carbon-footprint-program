@@ -28,6 +28,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # tsc-alias >=1.9.0 regressed path-alias rewriting: with this repo's no-baseUrl
+    # tsconfig `paths` it silently rewrites 0 files, leaving `@/*` aliases in the
+    # compiled dist/ and breaking the production build (ERR_MODULE_NOT_FOUND).
+    # Pinned to 1.8.17 in apps/api/package.json; remove once fixed upstream
+    # (justkey007/tsc-alias).
+    ignore:
+      - dependency-name: "tsc-alias"
+        versions: [">=1.9.0"]
 
   # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...).
   # With digests pinned, Dependabot opens PRs to bump them as the upstream
