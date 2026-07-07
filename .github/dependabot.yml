@@ -93,6 +93,18 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      # Keep the web nginx image on the STABLE branch (even minor, 1.30.x).
+      # nginx uses even minors for stable and odd minors for mainline, but
+      # Dependabot's docker updater doesn't know this convention and treats
+      # tags as plain semver — so it would cross onto mainline (e.g. 1.31.x)
+      # simply because the number is higher. Take only patch security bumps on
+      # the current stable line; jump to the next stable (1.32.x) deliberately.
+      # See issue #454 §C and apps/web/Dockerfile.
+      - dependency-name: "nginxinc/nginx-unprivileged"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
 
   # GitHub Actions used by the CI workflow (checkout, setup-node, action-setup).
   - package-ecosystem: "github-actions"
