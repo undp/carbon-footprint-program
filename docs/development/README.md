@@ -6,12 +6,12 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 
 ## Getting started
 
-| Document                                            | Description                                           |
-| --------------------------------------------------- | ----------------------------------------------------- |
-| [Local Setup](./local-setup.md)                     | Step-by-step local development environment setup      |
-| [Environment Variables](./environment-variables.md) | Complete reference for all environment variables      |
-| [Docker Compose](../DockerCompose.md)               | Local Docker Compose configuration for the database   |
-| [Contributing Guide](./contributing.md)             | Branch workflow, code review process, and conventions |
+| Document                                            | Description                                                                              |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [Local Setup](./local-setup.md)                     | Step-by-step local development environment setup                                         |
+| [Environment Variables](./environment-variables.md) | Complete reference for all environment variables                                         |
+| [Docker Compose](../operations/docker-compose.md)   | Local & full-stack Docker Compose guide (services, env, auth + storage, troubleshooting) |
+| [Contributing Guide](./contributing.md)             | Branch workflow, code review process, and conventions                                    |
 
 ## Codebase guides
 

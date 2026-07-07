@@ -50,7 +50,9 @@ export function runPrismaMigrations(databaseUrl: string): void {
     console.log("Prisma migrations executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error executing Prisma migrations: ${errorMessage}`);
+    throw new Error(`Error executing Prisma migrations: ${errorMessage}`, {
+      cause: error,
+    });
   }
 }
 
@@ -64,7 +66,9 @@ export function runSeeds(databaseUrl: string): void {
     console.log("Seeds executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error executing seeds: ${errorMessage}`);
+    throw new Error(`Error executing seeds: ${errorMessage}`, {
+      cause: error,
+    });
   }
 }
 

@@ -25,12 +25,52 @@ has no `AZURE_*` auth vars; copy `.envrc.azure.example` for an Entra setup.
 | `AZURE_API_CLIENT_ID`    | Cond.    | —          | API App Registration ID. Becomes `JWKS_AUDIENCE` and the `api://…/access_as_user` scope.                  |
 | `AZURE_FRONT_CLIENT_ID`  | Cond.    | —          | Frontend (public SPA) App Registration ID. Becomes `VITE_OIDC_CLIENT_ID`.                                 |
 
-### Azure Blob Storage
+### Object Storage (`STORAGE_PROVIDER`)
 
-| Variable                       | Required | Default | Description                                                                                            |
-| ------------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | No       | —       | Storage account name. Required to enable file upload/download. Leave empty to disable storage locally. |
-| `AZURE_STORAGE_CONTAINER_NAME` | No       | `files` | Blob container name. Defaults to `files` (matches Bicep).                                              |
+The API selects an object-storage backend at boot via `STORAGE_PROVIDER`. It is
+**required**: the API refuses to start when it is missing or set to an
+unrecognized value (`storageConfigFromEnv` throws). The provider-specific
+variables (`MINIO_*` / `AZURE_STORAGE_*`) are read and validated by the shared
+`@repo/storage` parser — see [`../infrastructure/FileStorage.md`](../infrastructure/FileStorage.md)
+for the full reference.
+
+| Variable           | Required | Default | Description                                                                                                      |
+| ------------------ | -------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `STORAGE_PROVIDER` | **Yes**  | —       | Object-storage backend. Allowed values: `azure_blob_storage` \| `minio`. API refuses to boot if missing/invalid. |
+
+#### MinIO / S3-compatible (`STORAGE_PROVIDER=minio`)
+
+| Variable                 | Required | Default     | Description                                                                                                                           |
+| ------------------------ | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `MINIO_ENDPOINT`         | **Yes**  | —           | S3 endpoint URL. On the host: `http://localhost:9000`. Inside docker-compose: `http://minio:9000`.                                    |
+| `MINIO_ACCESS_KEY`       | **Yes**  | —           | Access key.                                                                                                                           |
+| `MINIO_SECRET_KEY`       | **Yes**  | —           | Secret key.                                                                                                                           |
+| `MINIO_BUCKET`           | No       | `files`     | Bucket name.                                                                                                                          |
+| `MINIO_REGION`           | No       | `us-east-1` | S3 region.                                                                                                                            |
+| `MINIO_FORCE_PATH_STYLE` | No       | `true`      | Use path-style addressing. Any value other than `false` (case-insensitive) resolves to `true`.                                        |
+| `MINIO_RELAY_ENABLED`    | No       | `false`     | When `true`, presigned URLs are rewritten to the API relay so MinIO stays internal. Only valid with `minio`; boot fails otherwise.    |
+| `API_ORIGIN`             | Cond.    | —           | Required when `MINIO_RELAY_ENABLED=true`: the API's public origin (e.g. `https://api.example.cl`). Must be a valid URL or boot fails. |
+
+#### Azure Blob Storage (`STORAGE_PROVIDER=azure_blob_storage`)
+
+| Variable                       | Required | Default | Description                                                                                       |
+| ------------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | **Yes**  | —       | Storage account name. Required when `STORAGE_PROVIDER=azure_blob_storage`; boot fails without it. |
+| `AZURE_STORAGE_CONTAINER_NAME` | No       | `files` | Blob container name. Defaults to `files` (matches Bicep).                                         |
+| `AZURE_STORAGE_TENANT_ID`      | No       | —       | Service Principal tenant ID. Part of the optional SP trio (see below).                            |
+| `AZURE_STORAGE_CLIENT_ID`      | No       | —       | Service Principal client ID. Part of the optional SP trio (see below).                            |
+| `AZURE_STORAGE_CLIENT_SECRET`  | No       | —       | Service Principal client secret. Part of the optional SP trio (see below).                        |
+
+**Credential selection.** The simple local path is `az login` + the default
+`DefaultAzureCredential` — no Service Principal variables needed. The
+`AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET`
+trio is the **optional alternative** (all-three-or-nothing): only when **all
+three** are set does the adapter use an explicit `ClientSecretCredential`;
+otherwise it falls back to `DefaultAzureCredential` (which resolves a Managed
+Identity when Azure-hosted, or the `az login` session locally). Whichever
+principal is used — the signed-in `az login` user, the Managed Identity, or the
+Service Principal — it needs the **Storage Blob Data Contributor** RBAC role on
+the storage account.
 
 ### Database
 
@@ -137,15 +177,16 @@ The Azure Entra auth inputs documented above under "Root `.envrc`" actually live
 
 The following variables are automatically set by `infra/modules/appService.bicep` during infrastructure deployment. They do not need to be set manually.
 
-| Variable                                     | Source                             | Description                                      |
-| -------------------------------------------- | ---------------------------------- | ------------------------------------------------ |
-| `DATABASE_URL`                               | Key Vault + Bicep                  | PostgreSQL connection string with SSL            |
-| `AZURE_STORAGE_ACCOUNT_NAME`                 | Bicep output                       | Storage account name                             |
-| `AZURE_STORAGE_CONTAINER_NAME`               | `files` (hardcoded)                | Blob container name                              |
-| `AUTH_PROVIDER`                              | `jwks` (when auth enabled)         | Auth provider                                    |
-| `JWKS_ISSUER` / `JWKS_URI` / `JWKS_AUDIENCE` | Bicep (derived from tenant params) | Token validation config (see `appService.bicep`) |
-| `NODE_ENV`                                   | `production`                       | Production mode                                  |
-| `WEBSITES_PORT`                              | `8080`                             | Port exposed by the container                    |
+| Variable                                     | Source                                         | Description                                                                                                             |
+| -------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                               | Key Vault + Bicep                              | PostgreSQL connection string with SSL                                                                                   |
+| `STORAGE_PROVIDER`                           | `azure_blob_storage` (when storage configured) | Object-storage backend. Set by `appService.bicep` when a storage account is configured (`storageAccountName` non-empty) |
+| `AZURE_STORAGE_ACCOUNT_NAME`                 | Bicep output                                   | Storage account name                                                                                                    |
+| `AZURE_STORAGE_CONTAINER_NAME`               | `files` (hardcoded)                            | Blob container name                                                                                                     |
+| `AUTH_PROVIDER`                              | `jwks` (when auth enabled)                     | Auth provider                                                                                                           |
+| `JWKS_ISSUER` / `JWKS_URI` / `JWKS_AUDIENCE` | Bicep (derived from tenant params)             | Token validation config (see `appService.bicep`)                                                                        |
+| `NODE_ENV`                                   | `production`                                   | Production mode                                                                                                         |
+| `WEBSITES_PORT`                              | `8080`                                         | Port exposed by the container                                                                                           |
 
 When auth is enabled, `appService.bicep` derives the `JWKS_*` values from the tenant inputs and sets them on the App Service automatically — no manual auth config is needed.
 

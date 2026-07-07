@@ -41,15 +41,13 @@ export const duplicateCarbonInventoryService = async (
   // Use a transaction to ensure atomicity
   const newInventory = await prismaClient.$transaction(async (tx) => {
     // Generate unique copy name inside the transaction to minimize race window
-    let duplicatedName = source.name;
-
     // TODO (Mati); you should use the same filter strategy as the one used at getCarbonInventories (by my orgs.)
     const existingNames = await tx.carbonInventory.findMany({
       where: { status: { not: InventoryStatus.DELETED } },
       select: { name: true },
     });
     const names = map(existingNames, "name").filter((n) => n !== null);
-    duplicatedName = generateUniqueCopyName(source.name ?? "", names);
+    const duplicatedName = generateUniqueCopyName(source.name ?? "", names);
 
     // 1. Duplicate the CarbonInventory
     const inventory = await tx.carbonInventory.create({
