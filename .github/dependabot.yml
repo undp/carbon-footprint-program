@@ -20,6 +20,8 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    # Single ignore list. Dependabot takes only the last `ignore:` key per entry,
+    # so every ignore rule for this ecosystem must live here.
     ignore:
       # Defer the MUI Core v7 -> v9 major upgrade. It must land as one
       # coordinated change (@mui/icons-material peer-depends on @mui/material's
@@ -29,6 +31,21 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@mui/icons-material"
         update-types: ["version-update:semver-major"]
+      # tsc-alias >=1.9.0 regressed path-alias rewriting: with this repo's no-baseUrl
+      # tsconfig `paths` it silently rewrites 0 files, leaving `@/*` aliases in the
+      # compiled dist/ and breaking the production build (ERR_MODULE_NOT_FOUND).
+      # Pinned to 1.8.17 in apps/api/package.json; remove once fixed upstream
+      # (justkey007/tsc-alias).
+      - dependency-name: "tsc-alias"
+        versions: [">=1.9.0"]
+      # eslint 10 removed the deprecated context.getFilename() (rule reads moved
+      # onto SourceCode). eslint-plugin-react (<=7.37.5, peer caps at eslint ^9.7)
+      # still calls it in version.js resolveBasedir(), so `react/display-name`
+      # throws at load and `pnpm lint` fails; eslint-plugin-jsx-a11y (<=6.10.2)
+      # likewise caps its peer at ^9. Defer the eslint v10 major until both ship
+      # ESLint 10 support, then bump them together. See PR #447.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
       # Security updates and majors still open their own PRs.
@@ -37,14 +54,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    # tsc-alias >=1.9.0 regressed path-alias rewriting: with this repo's no-baseUrl
-    # tsconfig `paths` it silently rewrites 0 files, leaving `@/*` aliases in the
-    # compiled dist/ and breaking the production build (ERR_MODULE_NOT_FOUND).
-    # Pinned to 1.8.17 in apps/api/package.json; remove once fixed upstream
-    # (justkey007/tsc-alias).
-    ignore:
-      - dependency-name: "tsc-alias"
-        versions: [">=1.9.0"]
 
   # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...).
   # With digests pinned, Dependabot opens PRs to bump them as the upstream
