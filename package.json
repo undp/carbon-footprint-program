@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Huella Latam monorepo",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.10.0",
   "license": "MIT",
   "engines": {
     "node": ">=24.0.0"

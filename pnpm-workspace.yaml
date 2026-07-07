@@ -35,7 +35,7 @@ allowBuilds:
 
 catalogs:
   shared:
-    '@types/node': ^25.9.4
+    '@types/node': ^26.0.1
     eslint: ^9.39.4
     pino: ^10.3.1
     rimraf: ^6.1.3
