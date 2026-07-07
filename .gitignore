@@ -27,6 +27,11 @@ packages/database/generated/**
 # docker-compose env
 .env.dockercompose
 .env.prod.dockercompose
+.env.keycloak
+.env.prod.keycloak
+
+# TLS material mounted into containers (compose/keycloak.prod.yaml direct-TLS mode)
+certs/
 
 # Logs
 logs

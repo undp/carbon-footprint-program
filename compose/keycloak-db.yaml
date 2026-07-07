@@ -1,0 +1,96 @@
+# Keycloak database — a dedicated, generic PostgreSQL instance for the `huella`
+# realm, shared by BOTH the dev overlay (compose/keycloak.dev.yaml) and the
+# production stack (compose/keycloak.prod.yaml). It is a SEPARATE database from
+# the application's own Postgres (the api/web in docker-compose.yml /
+# docker-compose.prod.yml) — Keycloak never shares a database with the app.
+#
+# ONE file, TWO environments — the only difference is env vars. Each env has its
+# own template, mirroring the app's .env.dockercompose / .env.prod.dockercompose:
+#   • Dev — usually NO env needed: everything defaults (user/pass/db = keycloak,
+#     container `huella-latam-keycloak-db`). An OPTIONAL .env.keycloak (from
+#     .env.keycloak.example) overrides those or points dev at an external DB.
+#   • Prod — .env.prod.keycloak (from .env.prod.keycloak.example) supplies strong
+#     credentials and the `-prod` container/volume names, so a dev DB and a prod
+#     DB never collide on the same host. Pairs with compose/keycloak.prod.yaml.
+#
+# Full copy-paste command matrix (dev/prod × bundled/external DB) is in the
+# "Quick Setup" section of docs/infrastructure/KeycloakSetup.md.
+#
+# To point Keycloak at an EXTERNAL managed Postgres instead, don't include this
+# file at all — set KC_DB_URL_HOST (and friends) to the external host and run
+# only the Keycloak service (via the env template for your environment above).
+#
+# The `huella-network` block below makes this file self-sufficient standalone
+# (e.g. for `docker compose ... config`). When combined with docker-compose.yml
+# / docker-compose.prod.yml (which declare the identical `huella-network:
+# driver: bridge` key), Compose merges them into one shared network, so
+# Keycloak and the api reach this DB by its service name `keycloak-db`.
+
+services:
+  keycloak-db:
+    # Digest-pinned for reproducibility; bump the tag and digest together.
+    image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
+    # Fixed default name, the same for dev and prod — the bundled DB is
+    # self-contained and needs no env to run. This is DB-container infrastructure,
+    # not connection config, so it deliberately does NOT live in the Keycloak env.
+    # Override KC_DB_CONTAINER_NAME only in the rare case of running a dev AND a
+    # prod bundled DB on the same host (normally they're different machines).
+    container_name: ${KC_DB_CONTAINER_NAME:-huella-latam-keycloak-db}
+    ports:
+      # Host-published port for reaching this DB from your machine (e.g. a SQL
+      # client inspecting the realm data). Bound to 127.0.0.1 so the DB is
+      # never exposed beyond the host itself (from a remote deploy server,
+      # tunnel over SSH). Defaults to 15432 — NOT 5432 — so it never clashes
+      # with the app's own dev Postgres, which publishes host 5432
+      # (POSTGRES_PORT_HOST_MAPPING). This affects HOST access only: Keycloak
+      # always connects container-to-container on the INTERNAL 5432
+      # (KC_DB_URL_PORT), which this mapping does not change.
+      - "127.0.0.1:${KC_DB_PORT_HOST_MAPPING:-15432}:5432"
+    environment:
+      # The SAME KC_DB_* variable names that compose/keycloak.dev.yaml and
+      # compose/keycloak.prod.yaml read for the connection — one set of values,
+      # consumed everywhere, nothing to keep in sync by hand. Dev-friendly
+      # defaults (keycloak/keycloak); this does NOT weaken production, because
+      # compose/keycloak.prod.yaml requires KC_DB_USERNAME / KC_DB_PASSWORD via
+      # `${VAR:?}` and fails fast if they are unset.
+      - POSTGRES_USER=${KC_DB_USERNAME:-keycloak}
+      - POSTGRES_PASSWORD=${KC_DB_PASSWORD:-keycloak}
+      - POSTGRES_DB=${KC_DB_URL_DATABASE:-keycloak}
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql
+    restart: unless-stopped
+    networks:
+      - huella-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${KC_DB_USERNAME:-keycloak} -d ${KC_DB_URL_DATABASE:-keycloak}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Modest defaults for a single-realm IdP database; override per deployment.
+    mem_limit: ${KC_DB_MEM_LIMIT:-512m}
+    cpus: ${KC_DB_CPUS:-1}
+    deploy:
+      # Honored under Swarm; Compose v2 also applies cpus/memory limits on a
+      # plain `docker compose up` (non-Swarm) — kept alongside mem_limit/cpus
+      # above so the limit holds under either orchestrator.
+      resources:
+        limits:
+          cpus: "${KC_DB_CPUS:-1}"
+          memory: ${KC_DB_MEM_LIMIT:-512m}
+
+volumes:
+  keycloak-db-data:
+    # Explicit, fixed name so the volume is deterministic across the repo's
+    # varying compose project names — same for dev and prod (the bundled DB
+    # needs no env). Override KC_DB_VOLUME_NAME only if a dev and a prod bundled
+    # DB must coexist on one host (rare; normally different machines).
+    name: ${KC_DB_VOLUME_NAME:-huella-latam-keycloak-db-data}
+    driver: local
+
+networks:
+  huella-network:
+    driver: bridge
