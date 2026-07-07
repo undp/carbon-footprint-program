@@ -148,6 +148,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         name:
           project.organization.name ??
           capitalize(VOCAB.organization.noun.singular),
+        // View-only selector (uses just id + name); a reduction project's
+        // organization is accredited by prerequisite.
+        isAccredited: true,
+        lastSubmissionStatus: null,
       },
     ];
   }, [isViewMode, project, organizations]);
