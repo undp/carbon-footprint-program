@@ -1,8 +1,8 @@
 import { FC, ReactNode } from "react";
 import { Box, Typography, alpha, useTheme } from "@mui/material";
-import { CheckRounded } from "@mui/icons-material";
+import { CheckRounded, LockRounded, ScheduleRounded } from "@mui/icons-material";
 
-export type OnboardingStepState = "done" | "active" | "locked";
+export type OnboardingStepState = "done" | "active" | "pending" | "locked";
 
 interface StepTag {
   label: string;
@@ -38,7 +38,12 @@ export const OnboardingStep: FC<Props> = ({
             bgcolor: alpha(theme.palette.success.main, 0.15),
             color: "success.main",
           }
-        : { bgcolor: "grey.100", color: "text.disabled" };
+        : state === "pending"
+          ? {
+              bgcolor: alpha(theme.palette.warning.main, 0.15),
+              color: "warning.main",
+            }
+          : { bgcolor: "grey.100", color: "text.disabled" };
 
   const tagSx: Record<StepTag["variant"], object> = {
     next: {
@@ -67,7 +72,15 @@ export const OnboardingStep: FC<Props> = ({
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
         sx={circleSx}
       >
-        {state === "done" ? <CheckRounded fontSize="small" /> : index}
+        {state === "done" ? (
+          <CheckRounded fontSize="small" />
+        ) : state === "pending" ? (
+          <ScheduleRounded fontSize="small" />
+        ) : state === "locked" ? (
+          <LockRounded fontSize="small" />
+        ) : (
+          index
+        )}
       </Box>
 
       <Box className="min-w-0 flex-1">

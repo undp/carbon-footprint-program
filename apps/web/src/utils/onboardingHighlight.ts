@@ -60,3 +60,11 @@ export const findButtonByText = (text: string) => (): HTMLElement | null => {
 /** Resolver: first element matching a CSS selector. */
 export const findBySelector = (selector: string) => (): HTMLElement | null =>
   document.querySelector<HTMLElement>(selector);
+
+/**
+ * Resolver: the sidebar navigation link for a route path. Used to guide the
+ * user to navigate themselves — we spotlight the menu item so they click it,
+ * instead of redirecting the route programmatically.
+ */
+export const findSidebarLink = (path: string) => (): HTMLElement | null =>
+  document.querySelector<HTMLElement>(`a[href="${path}"]`);

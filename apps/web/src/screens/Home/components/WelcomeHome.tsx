@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useRef } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowForwardRounded } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
@@ -6,7 +6,11 @@ import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
 import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
-import { markOnboardingFocus } from "@/utils/onboardingSignals";
+import { markOnboardingFocus, OnboardingFocus } from "@/utils/onboardingSignals";
+import {
+  runOnboardingHighlight,
+  findSidebarLink,
+} from "@/utils/onboardingHighlight";
 import { OnboardingStep } from "./OnboardingStep";
 import { WelcomeHero } from "./WelcomeHero";
 
@@ -32,15 +36,37 @@ export const WelcomeHome: FC<Props> = ({
   const firstName = useUserStore((state) => state.user?.firstName ?? null);
   const namePart = firstName ? `, ${firstName}` : "";
 
+  // Secondary links (already-done / in-review steps) still navigate directly —
+  // the guided flow below only applies to the active step's primary CTA.
   const goToOrg = () => void navigate({ to: Routes.MY_ORGANIZATION });
   const goToHuellas = () => void navigate({ to: Routes.CARBON_INVENTORIES });
+
+  // Rather than redirecting, the active step spotlights the matching sidebar
+  // link so the user navigates themselves; the destination screen then
+  // highlights the exact control to click (via the one-shot focus signal).
+  const activeHighlight = useRef<(() => void) | null>(null);
+  const guideToSidebar = (
+    focus: OnboardingFocus,
+    route: string,
+    title: string,
+    description: string
+  ) => {
+    markOnboardingFocus(focus);
+    activeHighlight.current?.();
+    activeHighlight.current = runOnboardingHighlight({
+      find: findSidebarLink(route),
+      title,
+      description,
+    });
+  };
+  useEffect(() => () => activeHighlight.current?.(), []);
 
   const hero = hasOrganization
     ? {
         eyebrow: "Qué bueno verte de nuevo",
         title: `Hola de nuevo${namePart}`,
         subtitle:
-          "Sigue avanzando con la huella de carbono de tu organización. Estos son tus próximos pasos.",
+          "Estos son tus próximos pasos para avanzar con tu huella de carbono.",
       }
     : {
         eyebrow: "Te damos la bienvenida",
@@ -64,7 +90,7 @@ export const WelcomeHome: FC<Props> = ({
             : "Tu camino en Huella Latam"}
         </Typography>
 
-        {/* Escape hatch — always available; standardised to navigate + focus. */}
+        {/* Escape hatch — always available; navigates directly to the calculator. */}
         <Box
           className="flex items-center gap-4 rounded-xl border border-dashed p-4"
           sx={{ borderColor: "divider", bgcolor: "background.paper" }}
@@ -96,8 +122,10 @@ export const WelcomeHome: FC<Props> = ({
           title="Crea tu organización"
           description={
             hasOrganization
-              ? "Ya registraste tu organización. Puedes editar su perfil cuando quieras."
-              : "Cuéntanos de tu empresa: rubro, tamaño y actividad principal. Es la base de todo."
+              ? step3Pending
+                ? "Ya registraste tu organización. Mientras tu inscripción está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe."
+                : "Ya registraste tu organización. Puedes editar su perfil cuando quieras."
+              : "Registra tu organización con unos datos básicos. Es el primer paso para empezar a medir."
           }
           tag={
             hasOrganization
@@ -114,10 +142,14 @@ export const WelcomeHome: FC<Props> = ({
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
-                onClick={() => {
-                  markOnboardingFocus("create-org");
-                  goToOrg();
-                }}
+                onClick={() =>
+                  guideToSidebar(
+                    "create-org",
+                    Routes.MY_ORGANIZATION,
+                    "Ve a Mi Organización",
+                    "Haz clic aquí en el menú para registrar tu organización."
+                  )
+                }
               >
                 Crear organización
               </Button>
@@ -152,10 +184,14 @@ export const WelcomeHome: FC<Props> = ({
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
-                onClick={() => {
-                  markOnboardingFocus("new-huella");
-                  goToHuellas();
-                }}
+                onClick={() =>
+                  guideToSidebar(
+                    "new-huella",
+                    Routes.CARBON_INVENTORIES,
+                    "Ve a Huella Organizacional",
+                    "Haz clic aquí en el menú para crear tu huella."
+                  )
+                }
               >
                 Crear huella
               </Button>
@@ -167,7 +203,13 @@ export const WelcomeHome: FC<Props> = ({
         <OnboardingStep
           index={3}
           state={
-            !hasOrganization ? "locked" : orgAccredited ? "done" : "active"
+            !hasOrganization
+              ? "locked"
+              : orgAccredited
+                ? "done"
+                : step3Pending
+                  ? "pending"
+                  : "active"
           }
           title="Inscribe tu organización"
           description={
@@ -204,10 +246,14 @@ export const WelcomeHome: FC<Props> = ({
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
-                onClick={() => {
-                  markOnboardingFocus("solicit-inscription");
-                  goToOrg();
-                }}
+                onClick={() =>
+                  guideToSidebar(
+                    "solicit-inscription",
+                    Routes.MY_ORGANIZATION,
+                    "Ve a Mi Organización",
+                    "Haz clic aquí en el menú para solicitar la inscripción."
+                  )
+                }
               >
                 Inscribir organización
               </Button>
@@ -222,8 +268,10 @@ export const WelcomeHome: FC<Props> = ({
           title="Autodeclara tu huella"
           description={
             orgAccredited
-              ? "Autodeclála para publicarla en tu inicio y ver tu dashboard de emisiones."
-              : "Se habilita cuando tu organización esté inscrita (paso 3)."
+              ? hasDraftHuella
+                ? "Autodeclála para publicarla en tu inicio y ver tu dashboard de emisiones."
+                : "Necesitas una huella en borrador para autodeclarar."
+              : "Se habilita cuando tengas una huella creada (paso 2) y tu organización esté inscrita (paso 3)."
           }
           tag={
             orgAccredited && hasDraftHuella
@@ -236,10 +284,14 @@ export const WelcomeHome: FC<Props> = ({
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
-                onClick={() => {
-                  markOnboardingFocus("self-declare");
-                  goToHuellas();
-                }}
+                onClick={() =>
+                  guideToSidebar(
+                    "self-declare",
+                    Routes.CARBON_INVENTORIES,
+                    "Ve a Huella Organizacional",
+                    "Haz clic aquí en el menú para autodeclarar tu huella."
+                  )
+                }
               >
                 Autodeclarar
               </Button>
