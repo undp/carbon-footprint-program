@@ -39,7 +39,7 @@ export const WelcomeHero: FC<Props> = ({ eyebrow, title, subtitle }) => {
         <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
           {title}
         </Typography>
-        <Typography variant="subtitle1" sx={{ mt: 1, maxWidth: "52ch" }}>
+        <Typography variant="subtitle1" sx={{ mt: 1 }}>
           {subtitle}
         </Typography>
       </Box>
