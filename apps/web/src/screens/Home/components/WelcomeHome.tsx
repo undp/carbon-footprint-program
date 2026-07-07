@@ -1,123 +1,93 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowForwardRounded } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
+import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
-import { StatusChip } from "@/components";
-import { NewInventoryDialog } from "@/components/dialogs";
-import { OrganizationFormDialog } from "@/screens/MyOrganization/components";
-import { DialogMode } from "@/screens/MyOrganization/types";
-import { CARBON_INVENTORY_STATUS_CONFIG } from "@/labels/chips/carbonInventory";
-import { StatusFamily } from "@/labels/chips/types";
 import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
+import { markOnboardingFocus } from "@/utils/onboardingSignals";
 import { OnboardingStep } from "./OnboardingStep";
 import { WelcomeHero } from "./WelcomeHero";
-import { getHuellaTreatment, HuellaItem } from "./welcomeHome.config";
 
 interface Props {
   hasOrganization: boolean;
-  /** The in-progress huella to feature, or null when none exists yet. */
-  primaryHuella: HuellaItem | null;
+  orgAccredited: boolean;
+  /** lastSubmissionStatus of the primary org — drives the inscribe step copy. */
+  inscriptionStatus: SubmissionStatus | null;
+  /** Has at least one huella that is not yet dashboard-ready. */
+  hasHuella: boolean;
+  /** Has at least one draft huella (the one that can be self-declared). */
+  hasDraftHuella: boolean;
 }
 
-export const WelcomeHome: FC<Props> = ({ hasOrganization, primaryHuella }) => {
+export const WelcomeHome: FC<Props> = ({
+  hasOrganization,
+  orgAccredited,
+  inscriptionStatus,
+  hasHuella,
+  hasDraftHuella,
+}) => {
   const navigate = useNavigate();
   const firstName = useUserStore((state) => state.user?.firstName ?? null);
-  const [orgDialogOpen, setOrgDialogOpen] = useState(false);
-  const [huellaDialogOpen, setHuellaDialogOpen] = useState(false);
-
   const namePart = firstName ? `, ${firstName}` : "";
-  const treatment = primaryHuella
-    ? getHuellaTreatment(primaryHuella.status)
-    : null;
 
-  // ---- Hero ----------------------------------------------------------------
-  const hero = !hasOrganization
+  const goToOrg = () => void navigate({ to: Routes.MY_ORGANIZATION });
+  const goToHuellas = () => void navigate({ to: Routes.CARBON_INVENTORIES });
+
+  const hero = hasOrganization
     ? {
+        eyebrow: "Qué bueno verte de nuevo",
+        title: `Hola de nuevo${namePart}`,
+        subtitle:
+          "Sigue avanzando con la huella de carbono de tu organización. Estos son tus próximos pasos.",
+      }
+    : {
         eyebrow: "Te damos la bienvenida",
         title: `¡Hola${namePart}! 👋`,
         subtitle:
-          "En Huella Latam mides, reportas y reduces la huella de carbono de tu organización. Pongamos todo en marcha.",
-        progress: undefined,
-        progressLabel: undefined,
-      }
-    : !treatment
-      ? {
-          eyebrow: "Qué bueno verte de nuevo",
-          title: `Hola de nuevo${namePart}`,
-          subtitle:
-            "Ya tienes tu organización lista. El siguiente paso es medir: calculemos tu primera huella de carbono.",
-          progress: 33,
-          progressLabel: "1 de 3",
-        }
-      : {
-          eyebrow: treatment.eyebrow,
-          title: `Hola de nuevo${namePart}`,
-          subtitle: treatment.heroSubtitle,
-          progress: 66,
-          progressLabel: treatment.progressLabel,
-        };
+          "En Huella Latam mides, reportas y reduces la huella de carbono de tu organización. Completa estos pasos para empezar.",
+      };
 
-  // ---- Section heading -----------------------------------------------------
-  const needsAttention =
-    !!primaryHuella &&
-    [StatusFamily.ACTION_REQUIRED, StatusFamily.NEGATIVE].includes(
-      CARBON_INVENTORY_STATUS_CONFIG[primaryHuella.status].family
-    );
-  const sectionTitle = !hasOrganization
-    ? "Tu camino en Huella Latam"
-    : !primaryHuella
-      ? "Continúa donde quedaste"
-      : needsAttention
-        ? "Tienes una tarea pendiente"
-        : "Vas muy bien";
-  const sectionHint = hasOrganization
-    ? "Paso 2 de 3"
-    : "El primer paso toma ~10 min";
+  // --- Step 3 (inscribe organization) has several sub-states -----------------
+  const step3Pending =
+    !orgAccredited && inscriptionStatus === SubmissionStatus.PENDING;
 
   return (
     <Box className="flex flex-1 flex-col gap-6">
       <WelcomeHero {...hero} />
 
       <Box className="flex flex-col gap-4">
-        <Box className="flex items-baseline justify-between gap-3">
-          <Typography variant="h6" fontWeight={700}>
-            {sectionTitle}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {sectionHint}
-          </Typography>
-        </Box>
+        <Typography variant="h6" fontWeight={700}>
+          {hasOrganization
+            ? "Continúa donde quedaste"
+            : "Tu camino en Huella Latam"}
+        </Typography>
 
-        {/* Escape hatch for brand-new users: try the calculator without committing. */}
-        {!hasOrganization && (
-          <Box
-            className="flex items-center gap-4 rounded-xl border border-dashed p-4"
-            sx={{ borderColor: "divider", bgcolor: "background.paper" }}
+        {/* Escape hatch — always available; standardised to navigate + focus. */}
+        <Box
+          className="flex items-center gap-4 rounded-xl border border-dashed p-4"
+          sx={{ borderColor: "divider", bgcolor: "background.paper" }}
+        >
+          <CalculatorIcon sx={{ color: "primary.main" }} />
+          <Typography variant="body2" color="text.secondary" className="flex-1">
+            <Box component="span" fontWeight={600} color="text.primary">
+              ¿Solo quieres explorar?
+            </Box>{" "}
+            Prueba la calculadora y estima las emisiones de tu rubro en minutos.
+          </Typography>
+          <Button
+            variant="outlined"
+            color="primary"
+            endIcon={<ArrowForwardRounded />}
+            onClick={() => {
+              markOnboardingFocus("new-huella");
+              goToHuellas();
+            }}
           >
-            <CalculatorIcon sx={{ color: "primary.main" }} />
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              className="flex-1"
-            >
-              <Box component="span" fontWeight={600} color="text.primary">
-                ¿Solo quieres explorar?
-              </Box>{" "}
-              Prueba la calculadora y estima emisiones de tu rubro sin crear una
-              organización.
-            </Typography>
-            <Button
-              variant="outlined"
-              color="primary"
-              endIcon={<ArrowForwardRounded />}
-              onClick={() => setHuellaDialogOpen(true)}
-            >
-              Usar calculadora
-            </Button>
-          </Box>
-        )}
+            Usar calculadora
+          </Button>
+        </Box>
 
         {/* Step 1 — organization */}
         <OnboardingStep
@@ -136,19 +106,18 @@ export const WelcomeHome: FC<Props> = ({ hasOrganization, primaryHuella }) => {
           }
           action={
             hasOrganization ? (
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => void navigate({ to: Routes.MY_ORGANIZATION })}
-              >
-                Ver perfil
+              <Button variant="outlined" color="primary" onClick={goToOrg}>
+                Ir a Mi Organización
               </Button>
             ) : (
               <Button
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
-                onClick={() => setOrgDialogOpen(true)}
+                onClick={() => {
+                  markOnboardingFocus("create-org");
+                  goToOrg();
+                }}
               >
                 Crear organización
               </Button>
@@ -156,95 +125,128 @@ export const WelcomeHome: FC<Props> = ({ hasOrganization, primaryHuella }) => {
           }
         />
 
-        {/* Step 2 — measure */}
+        {/* Step 2 — huella (unlocked by step 1) */}
         <OnboardingStep
           index={2}
-          state={hasOrganization ? "active" : "locked"}
-          title="Mide tu huella"
+          state={!hasOrganization ? "locked" : hasHuella ? "done" : "active"}
+          title="Crea tu huella"
           description={
-            !hasOrganization
-              ? "Registra tus consumos y fuentes de emisión del año. Te guiamos categoría por categoría."
-              : treatment
-                ? treatment.stepMessage
-                : "Elige cómo empezar: calcula con nuestra guía o sube tus datos."
+            hasHuella
+              ? "Ya tienes una huella creada. Revísala o crea una nueva cuando quieras."
+              : "Calcula con nuestra guía o sube tus datos. Es la base para medir tu impacto."
           }
           tag={
-            hasOrganization && !treatment
-              ? { label: "Continúa aquí", variant: "next" }
-              : !hasOrganization
-                ? { label: "Después", variant: "wait" }
-                : undefined
+            !hasOrganization
+              ? { label: "Después", variant: "wait" }
+              : hasHuella
+                ? { label: "Completado", variant: "ok" }
+                : { label: "Continúa aquí", variant: "next" }
           }
           action={
-            hasOrganization ? (
-              treatment ? (
-                <Button
-                  variant={treatment.emphasize ? "contained" : "outlined"}
-                  color="primary"
-                  endIcon={<ArrowForwardRounded />}
-                  onClick={() =>
-                    void navigate({ to: Routes.CARBON_INVENTORIES })
-                  }
-                >
-                  {treatment.ctaLabel}
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  endIcon={<ArrowForwardRounded />}
-                  onClick={() => setHuellaDialogOpen(true)}
-                >
-                  Crear huella
-                </Button>
-              )
-            ) : undefined
+            !hasOrganization ? undefined : hasHuella ? (
+              <Button variant="outlined" color="primary" onClick={goToHuellas}>
+                Ir a Huella Organizacional
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                endIcon={<ArrowForwardRounded />}
+                onClick={() => {
+                  markOnboardingFocus("new-huella");
+                  goToHuellas();
+                }}
+              >
+                Crear huella
+              </Button>
+            )
           }
-        >
-          {primaryHuella && (
-            <Box
-              className="mt-3 flex items-center gap-3 rounded-lg p-3"
-              sx={{ bgcolor: "grey.50", border: 1, borderColor: "divider" }}
-            >
-              <Box className="min-w-0 flex-1">
-                <Typography variant="body2" fontWeight={600} noWrap>
-                  {primaryHuella.name ?? "Huella"}
-                  {primaryHuella.year ? ` · ${primaryHuella.year}` : ""}
-                </Typography>
-                {primaryHuella.organizationName && (
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {primaryHuella.organizationName}
-                  </Typography>
-                )}
-              </Box>
-              <StatusChip
-                config={CARBON_INVENTORY_STATUS_CONFIG[primaryHuella.status]}
-                size="small"
-              />
-            </Box>
-          )}
-        </OnboardingStep>
+        />
 
-        {/* Step 3 — recognition (always the horizon here) */}
+        {/* Step 3 — inscribe organization (unlocked by step 1) */}
         <OnboardingStep
           index={3}
-          state="locked"
-          title="Obtén tu reconocimiento"
-          description="Verifica tu huella y obtén el reconocimiento oficial. Se habilita al aprobar tu medición."
-          tag={{ label: "El horizonte", variant: "wait" }}
+          state={
+            !hasOrganization ? "locked" : orgAccredited ? "done" : "active"
+          }
+          title="Inscribe tu organización"
+          description={
+            !hasOrganization
+              ? "Inscribe tu organización para validarla oficialmente."
+              : orgAccredited
+                ? "Tu organización está inscrita."
+                : step3Pending
+                  ? "Tu inscripción está en revisión. Te avisaremos cuando sea aprobada."
+                  : inscriptionStatus === SubmissionStatus.REJECTED
+                    ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
+                    : "Solicita la inscripción de tu organización para validarla oficialmente."
+          }
+          tag={
+            !hasOrganization
+              ? { label: "Después", variant: "wait" }
+              : orgAccredited
+                ? { label: "Inscrita", variant: "ok" }
+                : step3Pending
+                  ? { label: "En revisión", variant: "next" }
+                  : { label: "Cuando quieras", variant: "next" }
+          }
+          action={
+            !hasOrganization ? undefined : orgAccredited ? (
+              <Button variant="outlined" color="primary" onClick={goToOrg}>
+                Ir a Mi Organización
+              </Button>
+            ) : step3Pending ? (
+              <Button variant="outlined" color="primary" onClick={goToOrg}>
+                Ver estado
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                endIcon={<ArrowForwardRounded />}
+                onClick={() => {
+                  markOnboardingFocus("solicit-inscription");
+                  goToOrg();
+                }}
+              >
+                Inscribir organización
+              </Button>
+            )
+          }
+        />
+
+        {/* Step 4 — self-declare (unlocked by an inscribed org + a draft huella) */}
+        <OnboardingStep
+          index={4}
+          state={orgAccredited && hasDraftHuella ? "active" : "locked"}
+          title="Autodeclara tu huella"
+          description={
+            orgAccredited
+              ? "Autodeclála para publicarla en tu inicio y ver tu dashboard de emisiones."
+              : "Se habilita cuando tu organización esté inscrita (paso 3)."
+          }
+          tag={
+            orgAccredited && hasDraftHuella
+              ? { label: "Último paso", variant: "next" }
+              : { label: "Después", variant: "wait" }
+          }
+          action={
+            orgAccredited && hasDraftHuella ? (
+              <Button
+                variant="contained"
+                color="primary"
+                endIcon={<ArrowForwardRounded />}
+                onClick={() => {
+                  markOnboardingFocus("self-declare");
+                  goToHuellas();
+                }}
+              >
+                Autodeclarar
+              </Button>
+            ) : undefined
+          }
         />
       </Box>
-
-      <OrganizationFormDialog
-        open={orgDialogOpen}
-        onClose={() => setOrgDialogOpen(false)}
-        mode={DialogMode.create}
-        onCreated={() => setOrgDialogOpen(false)}
-      />
-      <NewInventoryDialog
-        open={huellaDialogOpen}
-        onClose={() => setHuellaDialogOpen(false)}
-      />
     </Box>
   );
 };

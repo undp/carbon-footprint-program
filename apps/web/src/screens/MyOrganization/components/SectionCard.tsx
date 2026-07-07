@@ -1,12 +1,13 @@
 import { FC, ReactNode } from "react";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 
-type ActionConfig = {
+export type ActionConfig = {
   label: string;
   icon?: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   title?: string;
+  variant?: "text" | "outlined" | "contained";
 };
 
 type SectionCardProps = {
@@ -37,7 +38,7 @@ export const SectionCard: FC<SectionCardProps> = ({
                 <span>
                   <Button
                     key={index}
-                    variant="outlined"
+                    variant={actionItem.variant ?? "outlined"}
                     color="primary"
                     startIcon={actionItem.icon}
                     onClick={actionItem.onClick}

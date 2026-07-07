@@ -9,10 +9,7 @@ import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent } from "@/components";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
-import {
-  isDashboardReady,
-  selectPrimaryHuella,
-} from "./components/welcomeHome.config";
+import { isDashboardReady } from "./components/welcomeHome.config";
 
 export const HomeScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
@@ -68,15 +65,19 @@ export const HomeScreen: FC = () => {
   // Shown on every login until a measurement/verification recognition is
   // approved.
   if (approvedInventories.length === 0) {
-    const inProgress = inventories.filter(
-      (inv) =>
-        inv.status !== CarbonInventoryDisplayStatusEnum.DELETED &&
-        !isDashboardReady(inv.status)
+    const activeHuellas = inventories.filter(
+      (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
     );
+    const primaryOrg = organizations[0];
     return (
       <WelcomeHome
         hasOrganization={organizations.length > 0}
-        primaryHuella={selectPrimaryHuella(inProgress)}
+        orgAccredited={primaryOrg?.isAccredited ?? false}
+        inscriptionStatus={primaryOrg?.lastSubmissionStatus ?? null}
+        hasHuella={activeHuellas.length > 0}
+        hasDraftHuella={activeHuellas.some(
+          (inv) => inv.status === CarbonInventoryDisplayStatusEnum.DRAFT
+        )}
       />
     );
   }

@@ -49,7 +49,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
 
       <Box className="flex items-center gap-2">
         <Button
-          variant="contained"
+          variant="outlined"
           color="primary"
           startIcon={<AddIcon />}
           onClick={onCreateOrganization}

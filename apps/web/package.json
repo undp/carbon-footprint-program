@@ -38,6 +38,7 @@
     "attr-accept": "^2.2.5",
     "client-zip": "^2.5.0",
     "date-fns": "^4.4.0",
+    "driver.js": "^1.6.0",
     "exceljs": "^4.4.0",
     "fuse.js": "^7.4.2",
     "katex": "^0.17.0",
