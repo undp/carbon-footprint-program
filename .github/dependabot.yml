@@ -38,13 +38,36 @@ updates:
       # (justkey007/tsc-alias).
       - dependency-name: "tsc-alias"
         versions: [">=1.9.0"]
+      # ESLint ecosystem: freeze every package's major until eslint v10 is
+      # adopted as one coordinated change.
       # eslint 10 removed the deprecated context.getFilename() (rule reads moved
       # onto SourceCode). eslint-plugin-react (<=7.37.5, peer caps at eslint ^9.7)
       # still calls it in version.js resolveBasedir(), so `react/display-name`
       # throws at load and `pnpm lint` fails; eslint-plugin-jsx-a11y (<=6.10.2)
-      # likewise caps its peer at ^9. Defer the eslint v10 major until both ship
-      # ESLint 10 support, then bump them together. See PR #447.
+      # likewise caps its peer at ^9. Because the whole toolchain must move to
+      # v10 together, we keep taking minor/patch updates but ignore majors for
+      # the entire ecosystem. This also holds @eslint/js in lockstep with eslint
+      # (they share a major line); letting it reach v10 on its own reintroduces
+      # an `unmet peer eslint` drift. See PR #447.
       - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-prettier"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-jsx-a11y"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-turbo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/eslint-plugin-query"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/eslint-plugin-router"
         update-types: ["version-update:semver-major"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
