@@ -1,0 +1,260 @@
+# Keycloak PRODUCTION overlay (generic OIDC IdP for the on-premise deployment).
+#
+# Counterpart to compose/keycloak.dev.yaml (dev: `start-dev`, plain HTTP,
+# hardcoded admin/admin, permissive realm; both pair with the shared
+# compose/keycloak-db.yaml). This file is production mode: `start
+# --optimized` against a pre-built image, DB connection fully env-driven,
+# hostname/proxy config for a real reverse proxy (or direct TLS), env-driven
+# bootstrap admin, resource limits, no hardcoded secrets.
+#
+# -----------------------------------------------------------------------------
+# Bring the stack up — ALWAYS run from the repo root, and ALWAYS pass
+# `--project-directory .` explicitly. This file lives in compose/, not the
+# repo root; Compose resolves every relative path in the merged model (build
+# context, volume sources, `env_file:`, …) against ONE project directory —
+# the directory of whichever `-f` file is listed FIRST, NOT the directory of
+# the file that happens to declare the path (verified empirically: swapping
+# `-f` order changes resolution even for paths declared in the file that
+# didn't move). `--project-directory .` pins that base to the repo root
+# regardless of file order, which is what makes `./infra/keycloak/prod` below
+# always mean "repo-root infra/keycloak/prod", whether this file is run
+# standalone or combined with docker-compose.prod.yml in either order.
+# -----------------------------------------------------------------------------
+# Pair with the database — either the bundled one (compose/keycloak-db.yaml)
+# or an external managed Postgres (see `.env.prod.keycloak.example`):
+#
+#   docker compose --project-directory . \
+#     -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
+#     --env-file .env.prod.keycloak up -d --build
+#
+# COMPOSE_FILE (in the env file) still needs the same flag on the CLI:
+#   COMPOSE_FILE=compose/keycloak-db.yaml:compose/keycloak.prod.yaml
+#   docker compose --project-directory . --env-file .env.prod.keycloak up -d --build
+#
+# -----------------------------------------------------------------------------
+# Networking Keycloak with the main api/web prod stack (for JWKS)
+# -----------------------------------------------------------------------------
+# The API needs to reach Keycloak internally to fetch JWKS keys (JWKS_URI).
+# Two options:
+#
+#   1. RECOMMENDED — combine all three files into ONE `docker compose`
+#      invocation/project:
+#        docker compose --project-directory . -f docker-compose.prod.yml \
+#          -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
+#          --env-file .env.prod.dockercompose --env-file .env.prod.keycloak \
+#          up -d --build
+#      (Compose ≥ 2.24 accepts repeatable --env-file; on older Compose, cat
+#      both env files into one and pass it once.) docker-compose.prod.yml
+#      already declares `name: huella-latam-prod` and a `huella-network:
+#      driver: bridge` — this file and keycloak-db.yaml declare the SAME
+#      network key with the same config, so Compose merges all three into one
+#      project sharing one bridge network. The api container can then reach
+#      Keycloak at JWKS_URI=http://keycloak:8080/realms/huella/protocol/openid-connect/certs
+#      (see the issuer/JWKS host split below). This file intentionally does
+#      NOT set a top-level `name:` — the merged project takes its name from
+#      docker-compose.prod.yml, so an already-running api/web stack is never
+#      silently renamed/duplicated by adding Keycloak into the same `-f` list.
+#
+#   2. Keycloak as a fully separate lifecycle/project (different team, own
+#      upgrade cadence). Run standalone with its own project name:
+#        docker compose --project-directory . -p huella-latam-keycloak-prod \
+#          -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
+#          --env-file .env.prod.keycloak up -d --build
+#      This gets its OWN bridge network, not shared with the api/web project.
+#      For the API to reach it you then need EITHER:
+#        a) publish Keycloak's HTTP port (KC_HTTP_PORT below) and point
+#           JWKS_URI at the docker host's address reachable from the api
+#           container (e.g. http://host.docker.internal:8080/... or the
+#           host's LAN/VPN IP — NOT `localhost`, which inside the api
+#           container means the api container itself); or
+#        b) pre-create a shared external network (`docker network create
+#           huella-shared`), attach it here via `networks: huella-shared:
+#           external: true`, and ALSO attach docker-compose.prod.yml's `api`
+#           service to it — both sides must join the shared network, so this
+#           option requires editing docker-compose.prod.yml too.
+#
+# -----------------------------------------------------------------------------
+# The issuer vs JWKS-host split (unchanged from dev — see
+# docs/infrastructure/KeycloakSetup.md for the full explanation)
+# -----------------------------------------------------------------------------
+#   JWKS_ISSUER / VITE_OIDC_ISSUER  → the BROWSER-facing host, i.e. KC_HOSTNAME
+#                                     below (e.g. https://idp.example.mmarn.gob.do/realms/huella)
+#   JWKS_URI                        → whatever resolves from the API PROCESS:
+#                                     http://keycloak:8080/realms/huella/protocol/openid-connect/certs
+#                                     when combined per option 1 above, or the
+#                                     published-port/host address per option 2.
+# These two are set in the API's OWN env file (.env.prod.dockercompose),
+# not here — just make sure they're consistent.
+#
+# -----------------------------------------------------------------------------
+# Production hostname/proxy: pick ONE of two modes via env (see
+# .env.prod.keycloak.example for the full toggle):
+#   A) Reverse proxy terminates TLS (default/primary) — KC_HTTP_ENABLED=true,
+#      KC_PROXY_HEADERS=xforwarded, KC_HOSTNAME=https://<public-host>.
+#   B) Keycloak terminates TLS itself — KC_HTTP_ENABLED=false,
+#      KC_HTTPS_CERTIFICATE_FILE / KC_HTTPS_CERTIFICATE_KEY_FILE set (PEM
+#      files mounted from KC_TLS_CERT_DIR).
+# -----------------------------------------------------------------------------
+
+services:
+  keycloak:
+    build:
+      # `.` here means the project directory (repo root), NOT compose/ — see
+      # the `--project-directory .` note at the top of this file. The inline
+      # Dockerfile below never COPYs from context, so this mostly just needs
+      # to be a valid, consistent directory.
+      context: .
+      # Optimized-image build: `kc.sh build` runs ONCE at image-build time
+      # (baking in the DB vendor + health/metrics providers), so the
+      # container starts with `start --optimized` — no re-augmentation on
+      # every restart, which is the documented production recommendation
+      # (see https://www.keycloak.org/server/containers). DB connection
+      # details, hostname, and proxy config are deliberately NOT baked in
+      # here — they're runtime options supplied via `environment:` below, so
+      # this SAME built image works against the bundled DB, an external
+      # managed Postgres, or a different hostname without a rebuild.
+      # KC_DB and KC_METRICS_ENABLED ARE build-time options in Keycloak, so
+      # changing them DOES require `docker compose build keycloak` again —
+      # their defaults below are resolved by Compose (not the Dockerfile) at
+      # `config`/`build` time, straight from this same env file.
+      # Base image digest-pinned for reproducibility; bump the tag and digest
+      # together (kept in sync with compose/keycloak.dev.yaml / keycloak-db.yaml).
+      dockerfile_inline: |
+        FROM quay.io/keycloak/keycloak:26.1.5@sha256:be6a86215213145bfb4fb3e2b3ab982a806d00262655abdcf3ffa6a38d241c7c AS builder
+        ENV KC_HEALTH_ENABLED=true
+        ENV KC_METRICS_ENABLED=${KC_METRICS_ENABLED:-false}
+        ENV KC_DB=${KC_DB:-postgres}
+        WORKDIR /opt/keycloak
+        RUN /opt/keycloak/bin/kc.sh build
+
+        FROM quay.io/keycloak/keycloak:26.1.5@sha256:be6a86215213145bfb4fb3e2b3ab982a806d00262655abdcf3ffa6a38d241c7c
+        COPY --from=builder /opt/keycloak/ /opt/keycloak/
+        ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+    image: huella-latam-keycloak:prod
+    container_name: huella-latam-keycloak-prod
+    # --optimized skips re-running `build` on every start (fast, deterministic
+    # boot). --import-realm is safe to always pass: Keycloak only imports a
+    # realm from the mounted dir if a realm of that name doesn't already
+    # exist in the DB, so restarts against an existing DB are a no-op.
+    command: ["start", "--optimized", "--import-realm"]
+    environment:
+      # --- Database (runtime — same built image works for either target) ---
+      - KC_DB=${KC_DB:-postgres}
+      # ⚠️ Keycloak treats a `KC_DB_URL` env var that is PRESENT-BUT-EMPTY as
+      # "db-url is set to the empty string" — NOT as "fall back to
+      # db-url-host/port/database" (verified against a real boot: `start
+      # --optimized` fails with "Datasource '<default>' is not configured"
+      # if this container ever sees KC_DB_URL="" ). So this file does NOT
+      # pass KC_DB_URL_HOST/PORT/DATABASE to Keycloak as separate env vars at
+      # all — they only feed the nested default below, evaluated by Compose
+      # itself at `config`/`up` time, so Keycloak always receives exactly one
+      # non-empty, fully-formed KC_DB_URL:
+      #   - unset/default              → built from the component defaults:
+      #                                   jdbc:postgresql://keycloak-db:5432/keycloak
+      #   - override KC_DB_URL_HOST    → e.g. an external managed Postgres,
+      #                                   same port/database
+      #   - override KC_DB_URL fully   → e.g. to add ?sslmode=require;
+      #                                   component vars are then ignored
+      - KC_DB_URL=${KC_DB_URL:-jdbc:postgresql://${KC_DB_URL_HOST:-keycloak-db}:${KC_DB_URL_PORT:-5432}/${KC_DB_URL_DATABASE:-keycloak}}
+      - KC_DB_USERNAME=${KC_DB_USERNAME:?KC_DB_USERNAME is required (Keycloak's database user)}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD:?KC_DB_PASSWORD is required (Keycloak's database password)}
+      # --- Hostname (browser-facing public URL → token `iss`) ---
+      - KC_HOSTNAME=${KC_HOSTNAME:?KC_HOSTNAME is required (the public URL Keycloak is reachable at, e.g. https://idp.example.org)}
+      - KC_HOSTNAME_STRICT=${KC_HOSTNAME_STRICT:-true}
+      # --- Reverse proxy (mode A, primary/default) ---
+      # xforwarded = trust X-Forwarded-* headers from the proxy in front of
+      # this container. This is the 26.x option name — NOT the old KC_PROXY.
+      - KC_PROXY_HEADERS=${KC_PROXY_HEADERS:-xforwarded}
+      - KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}
+      # --- Direct TLS termination (mode B, alternative — leave empty for
+      #     mode A). PEM files, mounted read-only from KC_TLS_CERT_DIR below.
+      #     Set KC_HTTP_ENABLED=false when using this mode. Unlike KC_DB_URL
+      #     above, a present-but-empty value here IS treated as unset
+      #     (verified against a real 26.1 boot), so mode A works with these
+      #     two passed through empty. ---
+      - KC_HTTPS_CERTIFICATE_FILE=${KC_HTTPS_CERTIFICATE_FILE:-}
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=${KC_HTTPS_CERTIFICATE_KEY_FILE:-}
+      # --- Health / metrics ---
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=${KC_METRICS_ENABLED:-false}
+      # --- Bootstrap admin (26.x names — NOT KEYCLOAK_ADMIN/KEYCLOAK_ADMIN_PASSWORD).
+      #     TEMPORARY: only used on the very first boot, when the `master`
+      #     realm doesn't exist yet. Rotate it after first boot — create a
+      #     named admin via the console or kcadm, disable/delete this
+      #     bootstrap account, and replace these values with fresh throwaway
+      #     ones (they must stay non-empty: `${VAR:?}` runs on every `up`). ---
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME:?KC_BOOTSTRAP_ADMIN_USERNAME is required (temporary first-boot admin — rotate after boot)}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD:?KC_BOOTSTRAP_ADMIN_PASSWORD is required (temporary first-boot admin — rotate after boot)}
+    ports:
+      # Published for either mode A (proxy forwards to this port) or direct
+      # host access; firewall these off at the network/VPN layer as needed.
+      # The management port (9000, health/metrics) is deliberately NOT
+      # published — only reachable inside the container/network.
+      - "${KC_HTTP_PORT:-8080}:8080"
+      - "${KC_HTTPS_PORT:-8443}:8443"
+    volumes:
+      # First-boot realm import (see --import-realm above). This mounts a
+      # PROD-ONLY import directory (infra/keycloak/prod/) that holds just the
+      # hardened realm-huella.prod.json — deliberately SEPARATE from
+      # infra/keycloak/dev/, the dev overlay's (compose/keycloak.dev.yaml) import
+      # dir holding the permissive realm-huella.dev.json (sslRequired none,
+      # open self-registration, no email verification) for the SAME realm
+      # name (`huella`). Keycloak's --import-realm only reads the files
+      # directly inside the mounted directory (it does not recurse), so the
+      # symmetric per-environment dirs mean each stack can only ever import
+      # its own realm — deterministic by construction, with no manual file
+      # shuffling before first boot. After first boot, realm
+      # changes go through the console/kcadm — re-importing does not update an
+      # already-existing realm.
+      - ./infra/keycloak/prod:/opt/keycloak/data/import:ro
+      # Only populated/used in direct-TLS mode (KC_HTTPS_CERTIFICATE_FILE
+      # set). Safe to leave at its default if unused — Docker creates an
+      # empty host directory and Keycloak never reads from it when the
+      # KC_HTTPS_CERTIFICATE* vars above are empty. Relative paths here
+      # resolve against the project directory (repo root) — see the
+      # `--project-directory .` note at the top of this file.
+      - ${KC_TLS_CERT_DIR:-./certs/keycloak}:/opt/keycloak/certs:ro
+    # No depends_on: this file must also work standalone against an external
+    # managed Postgres (no `keycloak-db` service defined in the model at
+    # all in that case — see the DB-indirection note above). Whether the DB
+    # is bundled (compose/keycloak-db.yaml) or external, if it's unreachable
+    # at boot the container exits and `restart: unless-stopped` retries
+    # until it answers — the same pattern docker-compose.prod.yml uses for
+    # the API's own external PostgreSQL.
+    restart: unless-stopped
+    networks:
+      - huella-network
+    healthcheck:
+      # The Keycloak image ships no curl/wget; probe the management port
+      # (9000) /health/ready over bash /dev/tcp. 127.0.0.1 forces IPv4: the
+      # management port listens IPv4-only and `localhost` would otherwise
+      # resolve to ::1 and fail.
+      # Mode B caveat: with KC_HTTPS_CERTIFICATE_FILE set, the management
+      # interface inherits TLS (Keycloak 26.1 has no http-management-scheme
+      # option to keep it plain HTTP), and bash /dev/tcp cannot speak TLS —
+      # so the probe degrades to a TCP connect on 9000 (listener up) instead
+      # of asserting the /health/ready body. The `$$` escapes are for
+      # Compose: the container's own env decides at runtime, not `up` time.
+      test:
+        - CMD-SHELL
+        - "if [ -n \"$$KC_HTTPS_CERTIFICATE_FILE\" ]; then exec 3<>/dev/tcp/127.0.0.1/9000; else exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q UP; fi"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    # Keycloak's JVM needs headroom beyond the container limit for its own
+    # heap/metaspace; size KC_MEM_LIMIT accordingly if you tune JAVA_OPTS.
+    mem_limit: ${KC_MEM_LIMIT:-1536m}
+    cpus: ${KC_CPUS:-2}
+    deploy:
+      # Honored under Swarm; Compose v2 also applies cpus/memory limits on a
+      # plain `docker compose up` (non-Swarm) — kept alongside mem_limit/cpus
+      # above so the limit holds under either orchestrator.
+      resources:
+        limits:
+          cpus: "${KC_CPUS:-2}"
+          memory: ${KC_MEM_LIMIT:-1536m}
+
+networks:
+  huella-network:
+    driver: bridge
