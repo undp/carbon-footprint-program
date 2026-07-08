@@ -11,8 +11,9 @@ the platform, start with the documentation:
 
 - <https://github.com/undp/carbon-footprint-program/tree/main/docs>
 
-Please **do not** file GitHub issues for questions. Issues are reserved
-for confirmed bugs, feature requests, and DPG-compliance gaps.
+Please **do not** file GitHub issues for questions. Issues are used for
+confirmed bugs, feature requests, DPG-compliance gaps, and the
+maintainer team's own task tracking.
 
 ## Where to report bugs
 

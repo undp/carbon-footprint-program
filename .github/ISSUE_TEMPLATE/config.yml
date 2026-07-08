@@ -1,4 +1,6 @@
-blank_issues_enabled: false
+# Blank issues stay enabled: the team tracks free-form pending tasks
+# (e.g. hand-off / project-exit checklists) that do not fit any template.
+blank_issues_enabled: true
 contact_links:
   - name: Security vulnerability
     url: https://github.com/undp/carbon-footprint-program/security/advisories/new
