@@ -180,3 +180,25 @@ jobs:
           # flakes on network or rate limits. No GITHUB_TOKEN needed.
           args: "--offline --no-progress --exclude-path node_modules README.md 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
           fail: true
+
+  secret-scan:
+    needs: check-draft
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          # Full history so the scan covers every commit on the branch, not just
+          # the tip — this is how the "0 findings" baseline was measured.
+          fetch-depth: 0
+      - name: Scan for secrets (betterleaks)
+        # betterleaks is the actively maintained successor to gitleaks (same author);
+        # gitleaks itself is now feature-frozen (security patches only). betterleaks is
+        # a drop-in replacement and reads the repo's .gitleaks.toml allowlist. Pinned by
+        # digest (v1.6.1). `detect` scans the full git history and exits non-zero on any
+        # finding that is not allowlisted.
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            ghcr.io/betterleaks/betterleaks@sha256:7a43a20d40be02a9c13801a6485f7bea9d9cdba512263440eae972103c5291f1 \
+            detect --source=. --config=.gitleaks.toml --redact --no-banner --exit-code=1

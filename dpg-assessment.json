@@ -43,7 +43,7 @@
     },
     "9A": {
       "status": "met",
-      "evidence": "gitleaks now clean (0 findings) — a .gitleaks.toml allowlist covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
+      "evidence": "Secret scan clean (0 findings). A CI Secret Scan step runs betterleaks (the actively-maintained gitleaks successor; gitleaks is now feature-frozen) on every PR over full git history, honoring a .gitleaks.toml allowlist that covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. GitHub native secret scanning + push protection are also enabled. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
     },
     "9B": {
       "status": "met",
