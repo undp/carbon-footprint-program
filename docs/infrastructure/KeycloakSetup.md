@@ -67,7 +67,7 @@ docker compose --project-directory . \
 
 ### Production — `start --optimized`, TLS/proxy, hardened realm
 
-Two things to fill in **before the first `up`**: `.env.prod.keycloak` (`cp .env.prod.keycloak.example .env.prod.keycloak`), and the `REPLACE_WITH_WEB_ORIGIN` placeholders in `infra/keycloak/prod/realm-huella.prod.json` (the realm is imported on first boot — a placeholder left in means login fails until the client's redirect URIs are fixed in the Admin Console). `--build` is required — Keycloak's optimized image builds locally.
+One file to fill in **before the first `up`**: `.env.prod.keycloak` (`cp .env.prod.keycloak.example .env.prod.keycloak`). That includes `HUELLA_WEB_ORIGIN` — the first-boot realm import substitutes it into the `huella-web` client's redirect URIs (a wrong value means login fails until the URIs are fixed in the Admin Console; the import only runs once). `--build` is required — Keycloak's optimized image builds locally.
 
 **Keycloak + bundled DB:**
 
@@ -177,7 +177,7 @@ docker exec huella-latam-keycloak /opt/keycloak/bin/kcadm.sh update realms/maste
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `compose/keycloak.prod.yaml`                 | The Keycloak service only (`start --import-realm`, no bundled dev conveniences).                                                                                                                 |
 | `compose/keycloak-db.yaml`                   | A dedicated, generic database service for Keycloak (swap for an external DB — see below).                                                                                                        |
-| `.env.prod.keycloak.example`                 | Template for Keycloak's own runtime vars (`KC_HOSTNAME`, `KC_PROXY_HEADERS`, bootstrap admin, DB conn).                                                                                          |
+| `.env.prod.keycloak.example`                 | Template for Keycloak's own runtime vars (`KC_HOSTNAME`, `KC_PROXY_HEADERS`, bootstrap admin, DB conn, `HUELLA_WEB_ORIGIN` for the realm import).                                                |
 | `infra/keycloak/prod/realm-huella.prod.json` | The production realm export — the **baseline** state Keycloak imports on first boot. Lives in its own `prod/` import directory, separate from the dev realm (see [Realm import](#realm-import)). |
 
 Like the dev overlay, `compose/keycloak.prod.yaml` reuses the base stack's network — do not run it standalone if you want the API to reach Keycloak internally. Combine it with `docker-compose.prod.yml` (the app's own production compose file, documented in [production-deployment.md](../operations/production-deployment.md)) either via `COMPOSE_FILE`:
@@ -211,7 +211,7 @@ Drop `-f compose/keycloak-db.yaml` (and the matching entry from `COMPOSE_FILE`) 
 
 ### Realm import
 
-On first boot, `compose/keycloak.prod.yaml` runs Keycloak in `start` mode (**not** `start-dev` — production must not use the dev command, which relaxes hostname/HTTPS enforcement that production relies on) with `--import-realm`, importing `infra/keycloak/prod/realm-huella.prod.json` from a mounted volume — same mechanism as dev, but from a dedicated prod-only import directory (see the note below). That file is the **baseline**: it already sets the production-appropriate values (`sslRequired`, token lifespans, the `huella-web` client, the audience mapper, `access_as_user` as a default scope, etc.). [Admin Console — Production Hardening](#admin-console--production-hardening) below is what an operator verifies and adjusts **after** that import — redirect URIs for the real `<web-host>`, the bootstrap admin, MFA, brute-force thresholds, and anything specific to the deployment that can't be baked into a generic export.
+On first boot, `compose/keycloak.prod.yaml` runs Keycloak in `start` mode (**not** `start-dev` — production must not use the dev command, which relaxes hostname/HTTPS enforcement that production relies on) with `--import-realm`, importing `infra/keycloak/prod/realm-huella.prod.json` from a mounted volume — same mechanism as dev, but from a dedicated prod-only import directory (see the note below). That file is the **baseline**: it already sets the production-appropriate values (`sslRequired`, token lifespans, the `huella-web` client, the audience mapper, `access_as_user` as a default scope, etc.), and the `huella-web` client's redirect URIs / web origins are filled in at import time from `HUELLA_WEB_ORIGIN` in `.env.prod.keycloak` — Keycloak substitutes `${VAR}` placeholders in the realm JSON from the container's environment. [Admin Console — Production Hardening](#admin-console--production-hardening) below is what an operator verifies and adjusts **after** that import — the imported redirect URIs, the bootstrap admin, MFA, brute-force thresholds, and anything specific to the deployment that can't be baked into a generic export.
 
 Import only runs when the realm doesn't already exist. To re-import (e.g. after fixing a mistake in the export before go-live), drop the Keycloak database/volume and bring the stack back up — do **not** do this once real users and data exist in the realm.
 
@@ -262,7 +262,7 @@ Repeat step 6 (TOTP) for every additional admin user — see [item 11](#11-tls--
 | Valid post-logout redirect URIs | `https://<web-host>/`              |
 | Web origins                     | `https://<web-host>`               |
 
-The URIs are **exact** — no `/*` wildcards in production (the dev realm allows them for convenience; prod keeps the redirect surface minimal). If the `REPLACE_WITH_WEB_ORIGIN` placeholder from the realm export wasn't filled in before the first boot, replace it here with the real `<web-host>`. If more than one origin serves the app (e.g. a staging alias alongside production), list each exact URI — a missing entry surfaces as a `redirect_uri` error at login (see [Troubleshooting](#troubleshooting) and the [generic redirect-URI mismatch note](../development/troubleshooting.md#oidc-redirect-uri-mismatch)).
+The URIs are **exact** — no `/*` wildcards in production (the dev realm allows them for convenience; prod keeps the redirect surface minimal). The import fills them from `HUELLA_WEB_ORIGIN` in `.env.prod.keycloak`; if that value was wrong at first boot, fix the URIs here with the real `<web-host>` (changing the env var afterwards has no effect — the import only runs when the realm doesn't exist). If more than one origin serves the app (e.g. a staging alias alongside production), list each exact URI — a missing entry surfaces as a `redirect_uri` error at login (see [Troubleshooting](#troubleshooting) and the [generic redirect-URI mismatch note](../development/troubleshooting.md#oidc-redirect-uri-mismatch)).
 
 ### 4. Audience mapper → `huella-api`
 

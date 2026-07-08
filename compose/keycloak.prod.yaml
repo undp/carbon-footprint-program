@@ -185,6 +185,19 @@ services:
       #     ones (they must stay non-empty: `${VAR:?}` runs on every `up`). ---
       - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME:?KC_BOOTSTRAP_ADMIN_USERNAME is required (temporary first-boot admin — rotate after boot)}
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD:?KC_BOOTSTRAP_ADMIN_PASSWORD is required (temporary first-boot admin — rotate after boot)}
+      # --- Realm import placeholder (first boot only). The realm export
+      #     (infra/keycloak/prod/realm-huella.prod.json) references the web
+      #     app's public origin as ${HUELLA_WEB_ORIGIN} in the huella-web
+      #     client's redirect URIs / web origins / post-logout URI —
+      #     --import-realm substitutes env vars in the realm JSON at import
+      #     time (verified against a real 26.1 boot). Deliberately NOT
+      #     KC_-prefixed: Keycloak parses KC_* env vars as server config
+      #     options; this is only an import placeholder. Like the bootstrap
+      #     admin above it only takes effect on the FIRST boot (import skips
+      #     an existing realm — later redirect-URI changes go through the
+      #     Admin Console), but it must stay set: `${VAR:?}` runs on every
+      #     `up`. ---
+      - HUELLA_WEB_ORIGIN=${HUELLA_WEB_ORIGIN:?HUELLA_WEB_ORIGIN is required (the web app's public origin, e.g. https://huella.example.org — substituted into the realm's redirect URIs on first-boot import)}
     ports:
       # Published for either mode A (proxy forwards to this port) or direct
       # host access; firewall these off at the network/VPN layer as needed.
