@@ -51,7 +51,7 @@ This PR also advances **Silver/Gold** and the **DPG Standard**, though these are
 - `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) → Silver `code_of_conduct`
 - `GOVERNANCE.md` + updated `docs/governance.md` → Silver `governance`, `roles_responsibilities`
 - `.github/workflows/codeql.yml` → Silver `static_analysis_common_vulnerabilities` (SAST)
-- `.gitleaksignore` (+ gitleaks in CI) → secret scanning
+- `.gitleaks.toml` allowlist (verified false positives; gitleaks reports 0 leaks) → secret scanning
 - `.github/CODEOWNERS` → Gold `code_review_standards` / `two_person_review` groundwork
 - SHA-pinned GitHub Actions + least-privilege workflow tokens → supply-chain hardening
 - `PRIVACY.md`, `CONTENT_MODERATION.md`, `dpg-assessment.json` → DPG Standard indicators (7, 9B, 8)

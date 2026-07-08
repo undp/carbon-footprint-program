@@ -43,7 +43,7 @@
     },
     "9A": {
       "status": "met",
-      "evidence": "gitleaks now clean (0 findings) after .gitleaksignore triaged the 2 verified false positives (Azure public role GUID; historical JDBC fragment). PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
+      "evidence": "gitleaks now clean (0 findings) — a .gitleaks.toml allowlist covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
     },
     "9B": {
       "status": "met",
