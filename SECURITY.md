@@ -58,7 +58,9 @@ infrastructure hardening, and audit logging.
 - ✅ Secrets managed via Azure Key Vault + managed identities (no credentials in code).
 - ✅ Encryption at rest (AES-256) and in transit (TLS 1.2+).
 - ✅ Dependency version updates via [Dependabot](./.github/dependabot.yml).
-- ⚠️ **TODO (requires GitHub Advanced Security on this private repo):** enable secret scanning with push protection, enable Dependabot security alerts, and add a CodeQL (SAST) workflow. See the "Standards & Best Practices" section of the README.
+- ✅ Secret scanning with push protection enabled (free for this public repository).
+- ✅ Dependabot security alerts and security updates enabled.
+- ✅ CodeQL (SAST) scanning via [`.github/workflows/codeql.yml`](./.github/workflows/codeql.yml), running on pull requests, pushes to `main`, and on a weekly schedule. See the "Standards & Best Practices" section of the README.
 
 ---
 
