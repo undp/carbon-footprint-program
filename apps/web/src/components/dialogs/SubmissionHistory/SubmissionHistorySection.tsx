@@ -81,7 +81,12 @@ export const HistoryCard: FC<{
         </Stack>
 
         {/* Comments */}
-        {entry.comment && <SubmissionCommentsSection comment={entry.comment} />}
+        {entry.comment && (
+          <SubmissionCommentsSection
+            comment={entry.comment}
+            eventType={entry.eventType}
+          />
+        )}
 
         {entry.files.length > 0 && (
           <FilesSection files={entry.files} sx={{ mt: 1.5 }} />

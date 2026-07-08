@@ -70,6 +70,9 @@ export const AdminActionsCard: FC<Props> = ({
   const { preUploadFiles } = usePreUploadSubmissionFiles();
 
   const isCommentRequired = selectedAction === "review";
+  const commentLabel = isCommentRequired
+    ? "Comentario"
+    : "Comentario (opcional)";
   const isOrganizationInscription =
     type === SubmissionType.ORGANIZATION_ACCREDITATION;
   const busy = isBusy || isUploading;
@@ -106,7 +109,7 @@ export const AdminActionsCard: FC<Props> = ({
           ? await preUploadFiles(recognitionFiles)
           : undefined;
         await onApprove({
-          reviewComments: comment || undefined,
+          reviewComments: comment.trim() || undefined,
           reviewFileUuids,
           recognitionFileUuids,
         });
@@ -255,43 +258,46 @@ export const AdminActionsCard: FC<Props> = ({
         {/* Contextual inputs */}
         {selectedAction && (
           <Stack spacing={2} sx={{ mt: 2 }}>
-            {isCommentRequired && (
-              <Stack spacing={0.5}>
-                <Typography
-                  variant="caption"
-                  fontWeight={600}
-                  color={theme.palette.text.primary}
-                >
-                  Comentario{" "}
-                  <Box component="span" color={theme.palette.error.main}>
-                    *
-                  </Box>
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value.slice(0, 2000))}
-                  slotProps={{ htmlInput: { maxLength: 2000 } }}
-                  placeholder="Escriba sus observaciones o comentarios sobre la postulación..."
-                  disabled={busy}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
-                      "& fieldset": { borderColor: theme.palette.divider },
-                    },
-                  }}
-                />
-                <Typography
-                  variant="caption"
-                  color={theme.palette.text.secondary}
-                  textAlign="right"
-                >
-                  {comment.length} / 2000
-                </Typography>
-              </Stack>
-            )}
+            <Stack spacing={0.5}>
+              <Typography
+                variant="caption"
+                fontWeight={600}
+                color={theme.palette.text.primary}
+              >
+                {commentLabel}
+                {isCommentRequired && (
+                  <>
+                    {" "}
+                    <Box component="span" color={theme.palette.error.main}>
+                      *
+                    </Box>
+                  </>
+                )}
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                value={comment}
+                onChange={(e) => setComment(e.target.value.slice(0, 2000))}
+                slotProps={{ htmlInput: { maxLength: 2000 } }}
+                placeholder="Escriba sus observaciones o comentarios sobre la postulación..."
+                disabled={busy}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    "& fieldset": { borderColor: theme.palette.divider },
+                  },
+                }}
+              />
+              <Typography
+                variant="caption"
+                color={theme.palette.text.secondary}
+                textAlign="right"
+              >
+                {comment.length} / 2000
+              </Typography>
+            </Stack>
 
             {showDocumentUploadSection && (
               <Stack spacing={0.5}>

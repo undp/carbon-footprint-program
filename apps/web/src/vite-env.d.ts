@@ -7,10 +7,12 @@ declare module "*.svg" {
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
-  readonly VITE_AZURE_FRONT_CLIENT_ID?: string;
-  readonly VITE_AZURE_AUTH_AUTHORITY?: string;
-  readonly VITE_FRONT_BASE_URL?: string;
-  readonly VITE_AZURE_API_CLIENT_ID?: string;
+  // Generic OIDC config — the IdP is selected per deployment via these.
+  readonly VITE_OIDC_ISSUER?: string;
+  readonly VITE_OIDC_CLIENT_ID?: string;
+  readonly VITE_OIDC_SCOPES?: string;
+  readonly VITE_OIDC_REDIRECT_URI?: string;
+  readonly VITE_OIDC_POST_LOGOUT_REDIRECT_URI?: string;
   readonly DEV: boolean;
 }
 

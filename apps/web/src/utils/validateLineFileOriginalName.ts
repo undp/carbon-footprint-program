@@ -1,8 +1,7 @@
 import { LineFileOriginalNameSchema } from "@repo/types";
 
 export type LineFileNameValidation =
-  | { ok: true }
-  | { ok: false; reason: string };
+  { ok: true } | { ok: false; reason: string };
 
 export const validateLineFileOriginalName = (
   name: string

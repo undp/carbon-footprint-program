@@ -18,6 +18,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppShellRouteImport } from './routes/app/_shell'
 import { Route as AppFullscreenRouteImport } from './routes/app/_fullscreen'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -47,6 +48,7 @@ import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport }
 import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
 import { Route as CarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/carbon-inventory/$inventoryId/emission-results'
 import { Route as CarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/carbon-inventory/$inventoryId/emission-capture'
+import { Route as CarbonInventoryInventoryIdClaimRouteImport } from './routes/carbon-inventory/$inventoryId/claim'
 import { Route as CarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/carbon-inventory/$inventoryId/business-profiling'
 import { Route as AppShellReductionProjectsRouteImport } from './routes/app/_shell/reduction-projects'
 import { Route as AppShellReductionPlanRouteImport } from './routes/app/_shell/reduction-plan'
@@ -105,6 +107,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppShellRoute = AppShellRouteImport.update({
   id: '/_shell',
@@ -256,6 +263,12 @@ const CarbonInventoryInventoryIdEmissionCaptureRoute =
     path: '/$inventoryId/emission-capture',
     getParentRoute: () => CarbonInventoryRoute,
   } as any)
+const CarbonInventoryInventoryIdClaimRoute =
+  CarbonInventoryInventoryIdClaimRouteImport.update({
+    id: '/$inventoryId/claim',
+    path: '/$inventoryId/claim',
+    getParentRoute: () => CarbonInventoryRoute,
+  } as any)
 const CarbonInventoryInventoryIdBusinessProfilingRoute =
   CarbonInventoryInventoryIdBusinessProfilingRouteImport.update({
     id: '/$inventoryId/business-profiling',
@@ -360,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -369,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/app/reduction-plan': typeof AppShellReductionPlanRoute
   '/app/reduction-projects': typeof AppShellReductionProjectsRouteWithChildren
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
+  '/carbon-inventory/$inventoryId/claim': typeof CarbonInventoryInventoryIdClaimRoute
   '/carbon-inventory/$inventoryId/emission-capture': typeof CarbonInventoryInventoryIdEmissionCaptureRoute
   '/carbon-inventory/$inventoryId/emission-results': typeof CarbonInventoryInventoryIdEmissionResultsRoute
   '/carbon-inventory/$inventoryId/emission-summary': typeof CarbonInventoryInventoryIdEmissionSummaryRoute
@@ -409,6 +424,7 @@ export interface FileRoutesByTo {
   '/admin/subsectors': typeof AdminSubsectorsRoute
   '/admin/units': typeof AdminUnitsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin': typeof AdminIndexRoute
   '/carbon-inventory': typeof CarbonInventoryIndexRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -417,6 +433,7 @@ export interface FileRoutesByTo {
   '/app/recognitions': typeof AppShellRecognitionsRoute
   '/app/reduction-plan': typeof AppShellReductionPlanRoute
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
+  '/carbon-inventory/$inventoryId/claim': typeof CarbonInventoryInventoryIdClaimRoute
   '/carbon-inventory/$inventoryId/emission-capture': typeof CarbonInventoryInventoryIdEmissionCaptureRoute
   '/carbon-inventory/$inventoryId/emission-results': typeof CarbonInventoryInventoryIdEmissionResultsRoute
   '/carbon-inventory/$inventoryId/emission-summary': typeof CarbonInventoryInventoryIdEmissionSummaryRoute
@@ -461,6 +478,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/app/_fullscreen': typeof AppFullscreenRouteWithChildren
   '/app/_shell': typeof AppShellRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/_shell/carbon-inventories': typeof AppShellCarbonInventoriesRoute
@@ -470,6 +488,7 @@ export interface FileRoutesById {
   '/app/_shell/reduction-plan': typeof AppShellReductionPlanRoute
   '/app/_shell/reduction-projects': typeof AppShellReductionProjectsRouteWithChildren
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
+  '/carbon-inventory/$inventoryId/claim': typeof CarbonInventoryInventoryIdClaimRoute
   '/carbon-inventory/$inventoryId/emission-capture': typeof CarbonInventoryInventoryIdEmissionCaptureRoute
   '/carbon-inventory/$inventoryId/emission-results': typeof CarbonInventoryInventoryIdEmissionResultsRoute
   '/carbon-inventory/$inventoryId/emission-summary': typeof CarbonInventoryInventoryIdEmissionSummaryRoute
@@ -514,6 +533,7 @@ export interface FileRouteTypes {
     | '/admin/subsectors'
     | '/admin/units'
     | '/admin/users'
+    | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
     | '/app/carbon-inventories'
@@ -523,6 +543,7 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/carbon-inventory/$inventoryId/business-profiling'
+    | '/carbon-inventory/$inventoryId/claim'
     | '/carbon-inventory/$inventoryId/emission-capture'
     | '/carbon-inventory/$inventoryId/emission-results'
     | '/carbon-inventory/$inventoryId/emission-summary'
@@ -563,6 +584,7 @@ export interface FileRouteTypes {
     | '/admin/subsectors'
     | '/admin/units'
     | '/admin/users'
+    | '/auth/callback'
     | '/admin'
     | '/carbon-inventory'
     | '/app/carbon-inventories'
@@ -571,6 +593,7 @@ export interface FileRouteTypes {
     | '/app/recognitions'
     | '/app/reduction-plan'
     | '/carbon-inventory/$inventoryId/business-profiling'
+    | '/carbon-inventory/$inventoryId/claim'
     | '/carbon-inventory/$inventoryId/emission-capture'
     | '/carbon-inventory/$inventoryId/emission-results'
     | '/carbon-inventory/$inventoryId/emission-summary'
@@ -614,6 +637,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/app/_fullscreen'
     | '/app/_shell'
+    | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
     | '/app/_shell/carbon-inventories'
@@ -623,6 +647,7 @@ export interface FileRouteTypes {
     | '/app/_shell/reduction-plan'
     | '/app/_shell/reduction-projects'
     | '/carbon-inventory/$inventoryId/business-profiling'
+    | '/carbon-inventory/$inventoryId/claim'
     | '/carbon-inventory/$inventoryId/emission-capture'
     | '/carbon-inventory/$inventoryId/emission-results'
     | '/carbon-inventory/$inventoryId/emission-summary'
@@ -644,6 +669,7 @@ export interface RootRouteChildren {
   CapinautRoute: typeof CapinautRoute
   CarbonInventoryRoute: typeof CarbonInventoryRouteWithChildren
   TransparencyRoute: typeof TransparencyRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -710,6 +736,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/_shell': {
       id: '/app/_shell'
@@ -912,6 +945,13 @@ declare module '@tanstack/react-router' {
       path: '/$inventoryId/emission-capture'
       fullPath: '/carbon-inventory/$inventoryId/emission-capture'
       preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionCaptureRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/claim': {
+      id: '/carbon-inventory/$inventoryId/claim'
+      path: '/$inventoryId/claim'
+      fullPath: '/carbon-inventory/$inventoryId/claim'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdClaimRouteImport
       parentRoute: typeof CarbonInventoryRoute
     }
     '/carbon-inventory/$inventoryId/business-profiling': {
@@ -1151,6 +1191,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface CarbonInventoryRouteChildren {
   CarbonInventoryIndexRoute: typeof CarbonInventoryIndexRoute
   CarbonInventoryInventoryIdBusinessProfilingRoute: typeof CarbonInventoryInventoryIdBusinessProfilingRoute
+  CarbonInventoryInventoryIdClaimRoute: typeof CarbonInventoryInventoryIdClaimRoute
   CarbonInventoryInventoryIdEmissionCaptureRoute: typeof CarbonInventoryInventoryIdEmissionCaptureRoute
   CarbonInventoryInventoryIdEmissionResultsRoute: typeof CarbonInventoryInventoryIdEmissionResultsRoute
   CarbonInventoryInventoryIdEmissionSummaryRoute: typeof CarbonInventoryInventoryIdEmissionSummaryRoute
@@ -1161,6 +1202,7 @@ const CarbonInventoryRouteChildren: CarbonInventoryRouteChildren = {
   CarbonInventoryIndexRoute: CarbonInventoryIndexRoute,
   CarbonInventoryInventoryIdBusinessProfilingRoute:
     CarbonInventoryInventoryIdBusinessProfilingRoute,
+  CarbonInventoryInventoryIdClaimRoute: CarbonInventoryInventoryIdClaimRoute,
   CarbonInventoryInventoryIdEmissionCaptureRoute:
     CarbonInventoryInventoryIdEmissionCaptureRoute,
   CarbonInventoryInventoryIdEmissionResultsRoute:
@@ -1183,6 +1225,7 @@ const rootRouteChildren: RootRouteChildren = {
   CapinautRoute: CapinautRoute,
   CarbonInventoryRoute: CarbonInventoryRouteWithChildren,
   TransparencyRoute: TransparencyRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,10 +11,7 @@ import {
 import { VOCAB } from "@/config/vocab";
 
 export type ProfilingEntityLabel =
-  | "rubro"
-  | "subrubro"
-  | "actividad principal"
-  | "tamaño";
+  "rubro" | "subrubro" | "actividad principal" | "tamaño";
 
 interface ImpactedChildren {
   activeSubsectors?: number;

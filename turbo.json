@@ -7,13 +7,9 @@
     "DATABASE_URL",
     "JWT_SECRET",
     "LOG_LEVEL",
-    "AZURE_TENANT_ID",
-    "AZURE_TENANT_SUBDOMAIN",
-    "AZURE_TENANT_TYPE",
-    "AZURE_API_CLIENT_ID",
     "AUTH_PROVIDER",
-    "FORCED_USER_EMAIL_WHEN_NO_PROVIDER",
-    "FORCED_USER_IDP_ID_WHEN_NO_PROVIDER",
+    "FORCED_USER_EMAIL",
+    "FORCED_USER_IDP_ID",
     "JWKS_URI",
     "JWKS_ISSUER",
     "JWKS_AUDIENCE",
@@ -34,6 +30,8 @@
     "MINIO_BUCKET",
     "MINIO_REGION",
     "MINIO_FORCE_PATH_STYLE",
+    "MINIO_RELAY_ENABLED",
+    "API_ORIGIN",
     "ALLOWED_ORIGIN",
     "SUPERADMIN_EMAIL",
     "LOCAL_BYPASS_REQUIRED_FIELDS"
@@ -48,7 +46,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^clean", "^build"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },

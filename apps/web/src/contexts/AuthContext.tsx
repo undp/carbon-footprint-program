@@ -4,13 +4,10 @@ import {
   useContext,
   useEffect,
   useRef,
-  useState,
   type ReactNode,
 } from "react";
-import { useMsal, useIsAuthenticated } from "@azure/msal-react";
+import { useAuth as useOidcAuth } from "react-oidc-context";
 import { useNavigate } from "@tanstack/react-router";
-import { loginRequest } from "@/config/msalConfig";
-import type { AccountInfo } from "@azure/msal-browser";
 import type { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
@@ -18,13 +15,26 @@ import { enqueueSnackbar } from "notistack";
 import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
 import { useUserStore } from "@/stores/userStore";
+import { IS_OIDC_CONFIGURED } from "@/config/environment";
+import { Routes } from "@/interfaces";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+
+/**
+ * Generic data carried through the login redirect via the OIDC `state` param,
+ * returned as `user.state` in `/auth/callback`. Auth stays domain-agnostic: it
+ * only knows *where to return to*, never *why*. The post-login action lives in
+ * the domain route `returnTo` points at. oidc-client-ts persists and validates
+ * `state` (CSRF), so no extra storage is needed.
+ */
+export interface OidcSignInState {
+  /** Internal path to return to after a successful login (HOME by default). */
+  returnTo?: string;
+}
 
 export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  account: AccountInfo | null;
-  signInPopup: () => Promise<void>;
-  signInRedirect: () => Promise<void>;
+  signInRedirect: (returnTo?: string) => Promise<void>;
   signOut: () => Promise<void>;
   user?: GetMeResponse;
   refetchUser: (
@@ -37,138 +47,117 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 );
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { instance, accounts, inProgress } = useMsal();
-  const isAuthenticated = useIsAuthenticated();
+  const oidc = useOidcAuth();
   const navigate = useNavigate();
   const clearUserStore = useUserStore((state) => state.clear);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const account: AccountInfo | null = accounts[0] || null;
+  const isAuthenticated = oidc.isAuthenticated;
+  const isLoading = oidc.isLoading;
 
-  const { user, refetchUser, isUserError } = useInitializeUser({
+  const { user, refetchUser, isUserError, userError } = useInitializeUser({
     isAuthenticated,
-    account,
   });
 
-  useEffect(() => {
-    // Set loading to false once MSAL finishes initialization
-    if (inProgress === "none") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- MSAL lifecycle transition; deriving from inProgress is not viable since we need to flip loading exactly once
-      setIsLoading(false);
-    }
-  }, [inProgress]);
+  // Ref guard: ensures cleanup runs once per login failure even if the effect
+  // re-runs while React Query is still in its error state.
+  const hasHandledLoginFailureRef = useRef(false);
 
   /**
-   * Handles the case where MSAL authentication succeeded but the
-   * follow-up GET /users/me request failed. Drops the local MSAL
-   * cache (without an Azure round-trip), clears app state, and
-   * sends the user back to Landing with an error snackbar.
+   * Handles the case where OIDC authentication succeeded but the follow-up
+   * GET /users/me request failed. Drops the local session via removeUser()
+   * (no IdP round-trip, so the in-memory snackbar survives), clears app state,
+   * and sends the user back to Landing with an error snackbar.
    */
-  // Ref guard: ensures cleanup runs once per login failure even if the
-  // effect re-runs while React Query is still in its error state.
-  const hasHandledLoginFailureRef = useRef(false);
   const handleLoginFailure = useCallback(async () => {
     if (hasHandledLoginFailureRef.current) return;
     hasHandledLoginFailureRef.current = true;
-    // clearCache is isolated: if it fails we still want to clear app
-    // state, redirect, and inform the user — otherwise a flaky MSAL
-    // call would strand the user in a half-broken session.
+    // removeUser is isolated: if it fails we still clear app state, redirect,
+    // and inform the user — otherwise a flaky call would strand the user in a
+    // half-broken session.
     try {
-      // clearCache wipes the local MSAL session without redirecting to
-      // Azure's logout endpoint, so the in-memory snackbar survives.
-      if (account) {
-        await instance.clearCache({ account });
-      } else {
-        await instance.clearCache();
-      }
+      await oidc.removeUser();
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("MSAL clearCache failed during login recovery:", error);
+      console.error("removeUser failed during login recovery:", error);
     }
-    // Drop the failed /users/me cache entry so the next login attempt
-    // refetches instead of replaying the cached error.
+    // Drop the failed /users/me cache entry so the next login attempt refetches
+    // instead of replaying the cached error.
     queryClient.removeQueries({ queryKey: userKeys.me });
     clearUserStore();
-    await navigate({ to: "/" });
-    enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-      variant: "error",
-    });
-  }, [account, instance, navigate, clearUserStore]);
+    await navigate({ to: Routes.LANDING });
+    // Map the /users/me failure to user-facing Spanish copy (e.g. the 409
+    // EMAIL_REGISTERED_UNDER_DIFFERENT_IDENTITY when the email already belongs to
+    // a different IdP identity); fall back to the generic message otherwise.
+    enqueueSnackbar(
+      getApiErrorMessage(userError, "Ocurrió un problema al iniciar sesión"),
+      { variant: "error" }
+    );
+  }, [oidc, navigate, clearUserStore, userError]);
 
-  // Trigger the cleanup when MSAL is authenticated but /users/me failed.
-  // Reset the guard once the user is no longer authenticated so a future
-  // login attempt in the same session can be handled again.
+  // Trigger the cleanup when OIDC is authenticated but /users/me failed. Reset
+  // the guard once the user is no longer authenticated so a future login
+  // attempt in the same session can be handled again.
   useEffect(() => {
     if (!isAuthenticated) {
       hasHandledLoginFailureRef.current = false;
       return;
     }
-    if (isUserError && account) {
+    if (isUserError) {
       void handleLoginFailure();
     }
-  }, [isAuthenticated, isUserError, account, handleLoginFailure]);
+  }, [isAuthenticated, isUserError, handleLoginFailure]);
 
   /**
-   * Sign in with popup (recommended for SPA)
+   * Sign in with a full-page redirect to the IdP (Authorization Code + PKCE) —
+   * the single login path for the whole app. Because the page is unloaded, no
+   * in-memory promise can hang on cancel/close (unlike a popup). An optional
+   * `returnTo` (a generic internal path) rides the OIDC `state` param and is
+   * resolved in `/auth/callback` on the way back.
    */
-  const signInPopup = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await instance.loginPopup(loginRequest);
-      instance.setActiveAccount(response.account);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Login popup failed:", error);
-      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-        variant: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [instance]);
+  const signInRedirect = useCallback(
+    async (returnTo?: string) => {
+      if (!IS_OIDC_CONFIGURED) {
+        enqueueSnackbar("El inicio de sesión no está configurado", {
+          variant: "error",
+        });
+        return;
+      }
+      try {
+        const state: OidcSignInState | undefined = returnTo
+          ? { returnTo }
+          : undefined;
+        await oidc.signinRedirect(state ? { state } : undefined);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Login redirect failed:", error);
+        enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
+          variant: "error",
+        });
+      }
+    },
+    [oidc]
+  );
 
   /**
-   * Sign in with redirect (alternative)
-   */
-  const signInRedirect = useCallback(async () => {
-    try {
-      await instance.loginRedirect(loginRequest);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Login redirect failed:", error);
-      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-        variant: "error",
-      });
-    }
-  }, [instance]);
-
-  /**
-   * Sign out
+   * Federated sign out via the IdP's end-session endpoint.
    */
   const signOut = useCallback(async () => {
     try {
-      setIsLoading(true);
-      await instance.logoutRedirect({
-        account,
-      });
+      await oidc.signoutRedirect();
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Logout failed:", error);
       enqueueSnackbar("Ocurrió un problema al cerrar sesión", {
         variant: "error",
       });
-    } finally {
-      setIsLoading(false);
     }
-  }, [instance, account]);
+  }, [oidc]);
 
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
-    account,
     user,
     refetchUser,
-    signInPopup,
     signInRedirect,
     signOut,
   };
@@ -177,9 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Hook to use auth context
- * Provides MSAL authentication state and methods.
- * For user data, use useUser(account?.username) with React Query.
+ * Hook to use auth context.
+ * Provides OIDC authentication state and methods.
+ * For user data, use the `user` field (GetMeResponse from /users/me).
  */
 export function useAuth() {
   const context = useContext(AuthContext);

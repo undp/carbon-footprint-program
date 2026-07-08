@@ -5,6 +5,8 @@ export const Routes = {
   CAPINAUT: "/capinaut",
   TRANSPARENCY: "/transparency",
   SIGN_IN: "/sign-in",
+  // Public OIDC redirect target — resolved before the /app and /admin guards.
+  AUTH_CALLBACK: "/auth/callback",
 
   // Carbon inventory layout + nested routes
   CARBON_INVENTORY: "/carbon-inventory",
@@ -18,6 +20,8 @@ export const Routes = {
     "/carbon-inventory/$inventoryId/emission-summary",
   CARBON_INVENTORY_EMISSION_RESULTS:
     "/carbon-inventory/$inventoryId/emission-results",
+  // Post-login target: claims the anonymous draft for the authenticated user.
+  CARBON_INVENTORY_CLAIM: "/carbon-inventory/$inventoryId/claim",
 
   // Admin layout + nested routes
   ADMIN: "/admin",

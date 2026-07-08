@@ -297,11 +297,9 @@ describe("GET /api/measurement-units - Integration Tests", () => {
     it("should still return the joined magnitude when its status is DELETED", async () => {
       const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       let customMagnitude:
-        | Awaited<ReturnType<typeof prisma.magnitude.create>>
-        | undefined;
+        Awaited<ReturnType<typeof prisma.magnitude.create>> | undefined;
       let customMu:
-        | Awaited<ReturnType<typeof prisma.measurementUnit.create>>
-        | undefined;
+        Awaited<ReturnType<typeof prisma.measurementUnit.create>> | undefined;
 
       try {
         customMagnitude = await prisma.magnitude.create({

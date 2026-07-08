@@ -4,7 +4,9 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const TEST_DATABASE_CONFIG = {
-  image: "postgres:18-alpine",
+  // Digest-pinned for reproducibility; bump the tag and digest together.
+  image:
+    "postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa",
   database: "testdb",
   username: "testuser",
   password: "testpass",
@@ -17,6 +19,13 @@ function getDatabasePackagePath(): string {
 function getSeedPackagePath(): string {
   return path.dirname(require.resolve("@repo/seed/package.json"));
 }
+
+// pnpm-workspace.yaml sets `verifyDepsBeforeRun: install`, so `pnpm exec`/`pnpm run`
+// would auto-install before running. These test-setup subprocesses execute right after
+// a frozen install (node_modules is already in sync) with a stripped env that hides CI
+// from the child, so that auto-install would abort while purging node_modules (no TTY)
+// and fail the whole suite. Skip the pre-run deps check for these controlled calls.
+const PNPM = "pnpm --config.verify-deps-before-run=false";
 
 function createExecOptions(cwd: string, databaseUrl: string) {
   return {
@@ -34,7 +43,7 @@ function createExecOptions(cwd: string, databaseUrl: string) {
 }
 
 export function runPrismaMigrations(databaseUrl: string): void {
-  const command = "pnpm exec prisma migrate deploy";
+  const command = `${PNPM} exec prisma migrate deploy`;
   const opts = createExecOptions(getDatabasePackagePath(), databaseUrl);
 
   try {
@@ -43,12 +52,14 @@ export function runPrismaMigrations(databaseUrl: string): void {
     console.log("Prisma migrations executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error executing Prisma migrations: ${errorMessage}`);
+    throw new Error(`Error executing Prisma migrations: ${errorMessage}`, {
+      cause: error,
+    });
   }
 }
 
 export function runSeeds(databaseUrl: string): void {
-  const command = "pnpm run seed";
+  const command = `${PNPM} run seed`;
   const opts = createExecOptions(getSeedPackagePath(), databaseUrl);
 
   try {
@@ -57,7 +68,9 @@ export function runSeeds(databaseUrl: string): void {
     console.log("Seeds executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error executing seeds: ${errorMessage}`);
+    throw new Error(`Error executing seeds: ${errorMessage}`, {
+      cause: error,
+    });
   }
 }
 
