@@ -14,7 +14,7 @@
     },
     "2": {
       "status": "met",
-      "evidence": "Root LICENSE = canonical AGPL-3.0 (SPDX AGPL-3.0-only); licensee confirms DPGA-approved. All package.json license fields + README updated."
+      "evidence": "Root LICENSE = canonical AGPL-3.0 (SPDX AGPL-3.0-only); licensee confirms DPGA-approved. All 11 workspace package.json files declare \"license\": \"AGPL-3.0-only\" (the 4 that previously carried MIT plus the 7 internal private packages, which had no license field); README updated."
     },
     "3": {
       "status": "met",
@@ -38,7 +38,7 @@
     },
     "8": {
       "status": "partial",
-      "evidence": "REMEDIATED substantially: OpenSSF Scorecard 2.8 -> 6.6 (Security-Policy 10, Dependency-Update-Tool 10, Token-Permissions 10, License 9, Pinned-Dependencies 3). Added SECURITY.md, .github/dependabot.yml, SHA-pinned GitHub Actions, least-privilege workflow tokens, and a README 'Standards & Best Practices' section citing Principles for Digital Development. REMAINING for 'full': register OpenSSF Best Practices Badge; enable GitHub Advanced Security + CodeQL (SAST=0, GHAS-gated on this private repo); pin Docker base-image digests (Pinned-Dependencies 3->10); clear OSV Vulnerabilities finding (run pnpm audit); apply branch protection on main.",
+      "evidence": "REMEDIATED substantially. At 2026-07-01 triage: OpenSSF Scorecard 2.8 -> 6.6 (Security-Policy 10, Dependency-Update-Tool 10, Token-Permissions 10, License 9, Pinned-Dependencies 3). Since then the two biggest gaps behind those sub-scores are closed: Docker base-image digests are pinned in the apps/api and apps/web Dockerfiles (#453), and the repo is now public with GitHub Advanced Security features active (CodeQL SAST workflow, secret scanning + push protection, Dependabot security updates), plus a betterleaks secret-scan gate in CI -- so a Scorecard re-run would score higher on Pinned-Dependencies and SAST. Also added SECURITY.md, .github/dependabot.yml, SHA-pinned GitHub Actions, least-privilege workflow tokens, and a README 'Standards & Best Practices' section citing Principles for Digital Development. REMAINING for 'full': register the OpenSSF Best Practices Badge; apply branch protection on main; work down the open dependency advisories (pnpm audit / Dependabot security PRs).",
       "remediation": "standards-section"
     },
     "9A": {
@@ -84,7 +84,7 @@
       },
       "security_architecture": {
         "rating": "strong",
-        "evidence": "Entra ID OIDC + RBAC + Key Vault + audit logging + hardening docs; secrets clean; SECURITY.md, Dependabot, SHA-pinned actions, least-privilege tokens. Remaining: GHAS/SAST, branch protection."
+        "evidence": "Entra ID OIDC + RBAC + Key Vault + audit logging + hardening docs; secrets clean; SECURITY.md, Dependabot, SHA-pinned actions, least-privilege tokens, pinned Docker digests, CodeQL SAST + betterleaks secret-scan in CI, GitHub secret scanning enabled. Remaining: branch protection."
       },
       "data_portability": {
         "rating": "strong",
@@ -92,7 +92,7 @@
       },
       "testing_cicd": {
         "rating": "adequate",
-        "evidence": "40 Vitest+Testcontainers integration tests; hardened CI (pinned, least-priv). No SAST (GHAS-gated)."
+        "evidence": "40 Vitest+Testcontainers integration tests; hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
       },
       "observability": {
         "rating": "adequate",
@@ -117,7 +117,7 @@
       {
         "dimension": "security_architecture",
         "endangers_indicator": "8",
-        "note": "SAST (CodeQL) and secret scanning require GitHub Advanced Security, disabled on this private repo; Scorecard SAST=0 and Pinned-Dependencies=3 cap Indicator 8 at 'partial'."
+        "note": "Largely resolved: the repo is public, CodeQL SAST + secret scanning + push protection are active, and Docker base-image digests are pinned (#453). Indicator 8 stays 'partial' pending OpenSSF Best Practices Badge registration, branch protection on main, and clearing the open dependency advisories."
       },
       {
         "dimension": "platform_independence",

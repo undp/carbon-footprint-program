@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Database seeding package for the Huella Latam project",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "seed": "tsx src/seed.ts",
