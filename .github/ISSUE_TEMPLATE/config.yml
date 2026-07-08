@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/undp/carbon-footprint-program/security/advisories/new
+    about: Report security vulnerabilities privately via GitHub Private Vulnerability Reporting. Do not open a public issue. See SECURITY.md.
+  - name: Privacy or data-protection concern
+    url: https://github.com/undp/carbon-footprint-program/blob/main/PRIVACY.md
+    about: For privacy or data-protection issues, follow PRIVACY.md. For a specific country deployment, contact that deployment's data-protection officer.
+  - name: Questions and documentation
+    url: https://github.com/undp/carbon-footprint-program/tree/main/docs
+    about: For how to use, deploy, configure or extend the platform, start with the documentation. Issues are reserved for confirmed bugs, feature requests and DPG-compliance gaps.
