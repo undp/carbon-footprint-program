@@ -6,6 +6,7 @@ import {
   createMinioTestAdapter,
 } from "@repo/storage/testing";
 import type { TestStorageDescriptor } from "../setup/testStorage.js";
+import { getPerFileDatabaseUrl } from "../setup/perFileDatabase.js";
 import type { FastifyInstance } from "fastify";
 
 interface CreateTestAppOptions {
@@ -57,7 +58,13 @@ export async function createTestApp(
   const app = await createApp(false);
   app.log.level = "debug";
 
-  await app.register(prismaPlugin, { databaseUrl });
+  // Prefer this file's private database (created in perFileDatabase.ts setup)
+  // so parallel files never collide. Falls back to the passed URL (the shared
+  // template) if per-file isolation isn't active — keeps the 148 existing
+  // `createTestApp(inject("databaseUrl"), …)` call sites working unchanged.
+  const effectiveDatabaseUrl = getPerFileDatabaseUrl() ?? databaseUrl;
+
+  await app.register(prismaPlugin, { databaseUrl: effectiveDatabaseUrl });
 
   // Must call ready() BEFORE overriding the storage adapter.
   // storagePlugin runs during ready() and would overwrite any earlier assignment.

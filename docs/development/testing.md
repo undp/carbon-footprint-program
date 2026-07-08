@@ -8,15 +8,15 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and Azure Blob Storage (Azurite) containers — there are no mocks for the database layer. All tests live under `apps/api/test/`.
 
-| Aspect         | Detail                                                |
-| -------------- | ----------------------------------------------------- |
-| Framework      | Vitest 4.x                                            |
-| Test type      | Integration (HTTP layer + real DB)                    |
-| Database       | Testcontainers — `postgres:18-alpine`                 |
-| Storage        | Testcontainers — Azurite (Azure Storage emulator)     |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests) |
-| Execution      | Sequential — single worker, no file parallelism       |
-| Coverage       | v8 provider; 80% thresholds enforced locally          |
+| Aspect         | Detail                                                               |
+| -------------- | -------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                           |
+| Test type      | Integration (HTTP layer + real DB)                                   |
+| Database       | Testcontainers — `postgres:18-alpine`                                |
+| Storage        | Testcontainers — Azurite (Azure Storage emulator)                    |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                |
+| Execution      | Parallel — files run across workers, each file gets its own database |
+| Coverage       | v8 provider; 80% thresholds enforced locally                         |
 
 ---
 
@@ -25,8 +25,10 @@ The API uses **Vitest** with **Testcontainers** for integration testing. Tests r
 ```
 apps/api/test/
 ├── setup/
-│   ├── globalSetup.ts          # Starts/stops containers; runs migrations + seeds
-│   └── testcontainers.ts       # Container lifecycle helpers
+│   ├── globalSetup.ts          # Starts/stops containers; migrates + seeds the template DB
+│   ├── testDatabase.ts         # Postgres container + migrate/seed helpers
+│   ├── testStorage.ts          # Azurite/MinIO container helpers
+│   └── perFileDatabase.ts      # Clones a private DB per test file from the template
 ├── factories/                  # Test data helpers (16 utilities)
 │   ├── appFactory.ts           # Creates a ready Fastify test instance
 │   ├── userFactory.ts
@@ -59,11 +61,35 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 
 1. **PostgreSQL container** — `postgres:18-alpine`, credentials `testuser:testpass`, database `testdb`. Startup timeout: 180 s (accounts for first image pull in CI).
 2. **Azurite container** — `mcr.microsoft.com/azure-storage/azurite`, in-memory mode. Container `test-files` is pre-created. Startup timeout: 120 s. If Azurite fails, database-only tests still run.
-3. **Migrations** — `prisma migrate deploy` is executed against the test database.
-4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.).
-5. **Context injection** — the database URL and storage connection string are passed to workers via Vitest's `project.provide()` interface.
+3. **Migrations** — `prisma migrate deploy` is executed once against the **template** database (`testdb`).
+4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.) in the template.
+5. **Context injection** — the template database URL and storage connection string are passed to workers via Vitest's `project.provide()` interface.
 
 The teardown function stops both containers after all tests complete.
+
+### Per-file database isolation
+
+`test/setup/perFileDatabase.ts` (registered in `setupFiles`, so it runs once per
+test file) gives every file its **own** database, cloned from the seeded template:
+
+```sql
+CREATE DATABASE "t_<sha256(testFilePath)[:16]>" TEMPLATE "testdb"
+```
+
+- `TEMPLATE testdb` is a fast, file-level Postgres copy of the already-migrated
+  **and** seeded database — no per-file migrate/seed cost.
+- `createTestApp(...)` automatically connects to the current file's database, so
+  the standard `createTestApp(inject("databaseUrl"))` call needs no changes.
+- **Consequence:** each file starts from pristine seeded state. You do **not**
+  need to clean up rows so the next file stays clean — files can no longer
+  contaminate each other, which is what lets them run in parallel.
+- The per-file databases are **not** dropped: the Postgres container is ephemeral
+  and is discarded when the suite ends. On the rare name clash (hash collision or
+  a re-run against a live container) the setup appends a numeric suffix so the
+  file still gets its own fresh database.
+
+> **Note:** the **storage** container (Azurite/MinIO) and its `test-files` bucket
+> are still shared across files. Storage-touching tests should use unique keys.
 
 **Requirements:**
 
@@ -123,8 +149,10 @@ describe("POST /api/<feature> - Integration Tests", () => {
     await app.close();
   });
 
+  // Optional: this file has its own database, so cleanup is NOT required for
+  // isolation from other files. Add an afterEach only if tests within THIS file
+  // need a clean slate from each other.
   afterEach(async () => {
-    // Delete only the records created by this test suite
     await prisma.<model>.deleteMany({ where: { ... } });
   });
 
@@ -146,15 +174,15 @@ describe("POST /api/<feature> - Integration Tests", () => {
 
 ### 3 — Key conventions
 
-| Convention           | Detail                                                                                       |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| Get the DB URL       | `const databaseUrl = inject("databaseUrl")`                                                  |
-| Create the app       | `createTestApp(databaseUrl)`                                                                 |
-| Make HTTP calls      | `app.inject({ method, url, payload })`                                                       |
-| Seed lookup data     | Already present from global seed; query with `prisma.<model>.findFirst()`                    |
-| Create test entities | Use the factories in `test/factories/`                                                       |
-| Clean up             | `afterEach` with targeted `deleteMany`; never truncate shared lookup tables                  |
-| Auth                 | All requests are automatically authenticated as the seeded test user; no auth headers needed |
+| Convention           | Detail                                                                                                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Get the DB URL       | `const databaseUrl = inject("databaseUrl")`                                                                                                                    |
+| Create the app       | `createTestApp(databaseUrl)`                                                                                                                                   |
+| Make HTTP calls      | `app.inject({ method, url, payload })`                                                                                                                         |
+| Seed lookup data     | Already present from global seed; query with `prisma.<model>.findFirst()`                                                                                      |
+| Create test entities | Use the factories in `test/factories/`                                                                                                                         |
+| Clean up             | Not needed for isolation — each file has its own database. Use `afterEach`/`beforeEach` only if a test needs a clean slate from _other tests in the same file_ |
+| Auth                 | All requests are automatically authenticated as the seeded test user; no auth headers needed                                                                   |
 
 ---
 
@@ -257,13 +285,13 @@ Every new endpoint should have tests covering:
 
 Key settings in `apps/api/vitest.config.ts`:
 
-| Setting                  | Value                                        | Reason                                                 |
-| ------------------------ | -------------------------------------------- | ------------------------------------------------------ |
-| `maxWorkers: 1`          | 1                                            | Sequential execution prevents container port conflicts |
-| `fileParallelism: false` | false                                        | Ensures deterministic test order                       |
-| `testTimeout`            | 30 000 ms                                    | Allows for slower container I/O                        |
-| `hookTimeout`            | 30 000 ms                                    | Allows beforeAll/afterAll to complete                  |
-| `teardownTimeout`        | 10 000 ms                                    | Container shutdown grace period                        |
-| `globalSetup`            | `./test/setup/globalSetup.ts`                | Container lifecycle                                    |
-| `setupFiles`             | Per-file environment initialization          |                                                        |
-| `coverage.thresholds`    | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI                       |
+| Setting               | Value                                        | Reason                                                             |
+| --------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| `maxWorkers`          | 2                                            | Run files in parallel; safe because each file has its own database |
+| `fileParallelism`     | true                                         | Files run concurrently across workers                              |
+| `testTimeout`         | 30 000 ms                                    | Allows for slower container I/O                                    |
+| `hookTimeout`         | 30 000 ms                                    | Allows beforeAll/afterAll to complete                              |
+| `teardownTimeout`     | 10 000 ms                                    | Container shutdown grace period                                    |
+| `globalSetup`         | `./test/setup/globalSetup.ts`                | Container lifecycle; migrate + seed the template DB                |
+| `setupFiles`          | `./test/setup/perFileDatabase.ts`            | Clones a private database per test file                            |
+| `coverage.thresholds` | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI                                   |
