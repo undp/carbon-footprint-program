@@ -95,7 +95,7 @@ docker compose --project-directory . \
 
 ### What the compose overlay provides
 
-Dev is two files on top of the base stack:
+Dev is two compose files (self-sufficient — they declare their own `huella-network`, so the base stack is only needed when the api/web run in Docker too; see [Bringing it up](#bringing-it-up)):
 
 - **`compose/keycloak.dev.yaml`** — two services: **`keycloak`** (`quay.io/keycloak/keycloak:26.1.5` in `start-dev --import-realm` mode, on host port **18080** — container 8080; Keycloak's usual 8080 is the base API's host port, so it gets the 1-prefix like the DB's 15432) and **`keycloak-init`**, a one-shot that relaxes the `master` realm to `sslRequired=NONE` after boot, so the whole dev instance — admin console included — works over **plain HTTP with no manual steps** (see ["HTTPS required" on the admin console](#https-required-on-the-admin-console)).
 - **`compose/keycloak-db.yaml`** — the **`keycloak-db`** service: a dedicated Postgres for Keycloak. This is the **same generic DB file production uses** (see [Bring Up — Production](#bring-up--production)); in dev it needs no configuration — it defaults to `keycloak`/`keycloak`.
@@ -104,7 +104,17 @@ On first boot Keycloak imports the realm from `infra/keycloak/dev/realm-huella.d
 
 ### Bringing it up
 
-The overlay reuses the base `huella-network` and the `keycloak-db` service; do not run it standalone. Combine the base stack, the DB, and the overlay — either via the `COMPOSE_FILE` env var:
+Two scenarios, depending on where the api/web run — both give the same Keycloak on http://localhost:18080:
+
+**App on the host (`pnpm dev`) — the usual case.** Run just the IdP pair, standalone. Nothing else is needed: both files declare their own `huella-network`, and the api reaches Keycloak through the published host port (see [the issuer/JWKS host split](#the-issuer-vs-jwks-host-split)):
+
+```bash
+docker compose --project-directory . \
+  -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml \
+  up -d
+```
+
+**App in Docker too.** Combine the base stack with the DB and the overlay, so Compose merges everything onto one network and the api container can reach Keycloak at `http://keycloak:8080` by service name — either via the `COMPOSE_FILE` env var:
 
 ```bash
 COMPOSE_FILE=docker-compose.yml:compose/keycloak-db.yaml:compose/keycloak.dev.yaml
@@ -116,6 +126,8 @@ or by passing all three files on the CLI (base compose first, so relative paths 
 ```bash
 docker compose -f docker-compose.yml -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml --env-file .env.dockercompose up --build
 ```
+
+One `up` here boots the **whole stack** — postgres, migrate, api, web, and the IdP (hence `--build`). If the app stack is already running and you only want to add Keycloak to it, append the IdP's service names instead of rebuilding everything: `... up -d keycloak keycloak-db keycloak-init` (the [Quick Setup](#quick-setup) variant).
 
 - **Admin console:** http://localhost:18080 — bootstrap admin `admin` / `admin`.
 - **Issuer:** http://localhost:18080/realms/huella
