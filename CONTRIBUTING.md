@@ -25,7 +25,7 @@ license this way.
 
 ## Development setup
 
-See the [README](./README.md#-getting-started) for prerequisites and local setup, and
+See the [README](./README.md#quick-start) for prerequisites and local setup, and
 the detailed [Contributing Guide](./docs/development/contributing.md) for the technical
 workflow (branch naming, PR template, local database, testing).
 
