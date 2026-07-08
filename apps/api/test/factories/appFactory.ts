@@ -5,6 +5,7 @@ import {
   createAzureBlobTestAdapter,
   createMinioTestAdapter,
 } from "@repo/storage/testing";
+import { createThrowingStorageAdapter } from "./throwingStorageAdapter.js";
 import type { TestStorageDescriptor } from "../setup/testStorage.js";
 import { getPerFileDatabaseUrl } from "../setup/perFileDatabase.js";
 import type { FastifyInstance } from "fastify";
@@ -70,19 +71,34 @@ export async function createTestApp(
   // storagePlugin runs during ready() and would overwrite any earlier assignment.
   await app.ready();
 
-  if (options?.storageDescriptor) {
+  const descriptor = options?.storageDescriptor;
+
+  if (descriptor === null) {
+    // The test explicitly requested storage (`storageDescriptor:
+    // inject("storageDescriptor")`) but the storage testcontainer failed to
+    // start, so globalSetup provided `null`. Fail early with a clear reason
+    // instead of a confusing adapter error deeper in the test.
+    throw new Error(
+      "createTestApp received `storageDescriptor: null` — the storage " +
+        "testcontainer failed to start (see the globalSetup warning above). " +
+        "This test requires real storage. Ensure Docker is available and the " +
+        "storage testcontainer starts successfully."
+    );
+  }
+
+  if (descriptor === undefined) {
+    // No descriptor requested → storage-agnostic test. Replace the boot adapter
+    // with one whose every method throws, so any accidental storage access fails
+    // loudly (see throwingStorageAdapter for the actionable message).
+    app.storage = createThrowingStorageAdapter();
+  } else {
     app.storage = await buildTestAdapter(
-      options.storageDescriptor,
-      options.storagePublicBaseUrl
+      descriptor,
+      options?.storagePublicBaseUrl
     );
     // eslint-disable-next-line no-console
     console.log(
-      `[createTestApp] Storage adapter configured (provider=${options.storageDescriptor.provider})`
-    );
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[createTestApp] No storage descriptor provided — storage-dependent assertions will fail unless the boot adapter is configured."
+      `[createTestApp] Storage adapter configured (provider=${descriptor.provider})`
     );
   }
 
