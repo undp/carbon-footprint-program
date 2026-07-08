@@ -1,5 +1,12 @@
 import { FC, ReactNode } from "react";
-import { Box, Typography, alpha, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  alpha,
+  useTheme,
+  type SxProps,
+  type Theme,
+} from "@mui/material";
 import {
   CheckRounded,
   LockRounded,
@@ -49,7 +56,7 @@ export const OnboardingStep: FC<Props> = ({
             }
           : { bgcolor: "grey.100", color: "text.disabled" };
 
-  const tagSx: Record<StepTag["variant"], object> = {
+  const tagSx: Record<StepTag["variant"], SxProps<Theme>> = {
     next: {
       color: "primary.main",
       bgcolor: alpha(theme.palette.primary.main, 0.12),
