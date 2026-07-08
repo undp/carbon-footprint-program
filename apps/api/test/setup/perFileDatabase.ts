@@ -36,12 +36,14 @@ function isDuplicateDatabaseError(error: unknown): boolean {
 function isTemplateInUseError(error: unknown): boolean {
   // 55006 = object_in_use: another concurrent clone briefly locked the template.
   const message = error instanceof Error ? error.message : String(error);
-  return /being accessed by other users/i.test(message) || /55006/.test(message);
+  return (
+    /being accessed by other users/i.test(message) || /55006/.test(message)
+  );
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-beforeAll(async (context) => {
+beforeAll(async () => {
   const templateUrl = inject("databaseUrl");
   const template = new URL(templateUrl);
   const templateDatabase = template.pathname.replace(/^\//, "") || "testdb";
@@ -49,17 +51,10 @@ beforeAll(async (context) => {
   // A short, unique, valid identifier per file. Hash the FULL test path (not the
   // basename — ~130 files are all named `integration.test.ts`). 16 hex chars of
   // sha256 make a collision effectively impossible; the create-with-suffix loop
-  // below makes even that self-healing. Prefer the file path from the hook's
-  // suite context, falling back to the matcher state.
-  const suite = context as {
-    file?: { filepath?: string };
-    filepath?: string;
-  };
-  const testPath =
-    suite.file?.filepath ??
-    suite.filepath ??
-    expect.getState().testPath ??
-    `unknown-${Date.now()}`;
+  // below makes even that self-healing. `expect.getState().testPath` is the
+  // per-file absolute path — a `beforeAll` hook cannot take a destructured
+  // fixture argument, so the matcher state is how we read the current file.
+  const testPath = expect.getState().testPath ?? `unknown-${Date.now()}`;
   const base = `t_${createHash("sha256").update(testPath).digest("hex").slice(0, 16)}`;
 
   // Admin connection targets the always-present `postgres` maintenance database,
