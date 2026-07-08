@@ -120,16 +120,15 @@ docker ps
 
 ### Keycloak — local OIDC IdP (recommended for a full login flow)
 
-With `AUTH_PROVIDER=forced-user` (Step 3) you don't need an IdP — the API auto-authenticates every request. To exercise a real browser login locally without an Azure tenant, run the bundled Keycloak overlay:
-
-The overlay reads its config from `.env.dockercompose` — create it once from the committed example (it's gitignored):
+With `AUTH_PROVIDER=forced-user` (Step 3) you don't need an IdP — the API auto-authenticates every request. To exercise a real browser login locally without an Azure tenant, run the bundled Keycloak overlay. It needs **no configuration** (admin/admin and its DB defaults are baked into the compose files) — bring it up straight from the repo root:
 
 ```bash
-cp .env.dockercompose.example .env.dockercompose
-docker compose -f docker-compose.yml -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml --env-file .env.dockercompose up -d keycloak keycloak-db keycloak-init
+docker compose --project-directory . -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml up -d
 ```
 
-- **Admin console:** http://localhost:8081 — bootstrap admin `admin` / `admin`.
+(Running the api/web in Docker too, instead of `pnpm dev`? Combine the overlay with the base stack in one invocation — see [Keycloak Setup → Quick Setup](../infrastructure/KeycloakSetup.md#quick-setup) for that variant.)
+
+- **Admin console:** http://localhost:18080 — bootstrap admin `admin` / `admin`.
 - On first boot the realm `huella` and client `huella-web` are imported automatically, so the OIDC login works out of the box.
 
 Then switch the API to `AUTH_PROVIDER=jwks` and set the `JWKS_*` variables (see [Authentication](#authentication-local-development) below). Full walkthrough: [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
@@ -359,7 +358,7 @@ To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDE
 
 To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
-> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:8081/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:8081/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
+> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:18080/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:18080/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 > ⚠️ **Switching auth providers locally is unsupported against an existing DB.** User identity is keyed on the IdP subject (`idpUserId`), and `email` is unique. If you change `AUTH_PROVIDER`/IdP (e.g. Keycloak → Azure Entra) and then sign in with an email that already exists in the DB from the previous provider, the new IdP subject won't match the stored one and login fails for that account. Either reset the DB (`pnpm db:restore`) or sign in with a fresh email.
 
@@ -386,7 +385,7 @@ cd packages/database && pnpm dev:generate
 
 **Port already in use:**
 
-- API default port is `8080`. Override with `API_PORT=8081` in `.envrc`
+- API default port is `8080`. Override with `API_PORT=8081` in `.envrc` (pick a port outside the [stack's default ports](./troubleshooting.md#a-supporting-service-port-is-already-in-use))
 - Web default port is `5173`. Vite will auto-increment if taken
 
 **Tests fail with "Docker not available":**
@@ -397,8 +396,8 @@ cd packages/database && pnpm dev:generate
 
 **401 on every API call / JWKS fetch failure (host `pnpm dev` with Keycloak):**
 
-- When the API runs on the **host** (not in compose), it can't resolve the in-compose `http://keycloak:8080/...` host. Set `JWKS_URI=http://localhost:8081/realms/huella/protocol/openid-connect/certs`.
-- Keep `JWKS_ISSUER=http://localhost:8081/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
+- When the API runs on the **host** (not in compose), it can't resolve the in-compose `http://keycloak:8080/...` host. Set `JWKS_URI=http://localhost:18080/realms/huella/protocol/openid-connect/certs`.
+- Keep `JWKS_ISSUER=http://localhost:18080/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 **Database looks empty but migrations/seed do nothing (reused machine):**
 

@@ -182,8 +182,11 @@ Default host ports for the local stack:
 | Postgres (app)        | `5432`          |
 | API                   | `8080`          |
 | Web (Vite)            | `5173`          |
-| Keycloak              | `8081`          |
+| Keycloak              | `18080`         |
+| Keycloak DB           | `15432`         |
 | MinIO (API + console) | `9000` / `9001` |
+
+The `1`-prefixed ports follow the repo convention for a secondary service whose usual port is already taken by the stack: Keycloak's own 8080 belongs to the API (→ `18080`), its Postgres's 5432 belongs to the app DB (→ `15432`).
 
 Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or stop the container: `docker ps` → `docker stop <name>`.
 
@@ -221,7 +224,7 @@ Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or s
 
 ### Keycloak admin console: "We are sorry… HTTPS required"
 
-**Symptom:** Opening http://localhost:8081 (admin console) shows Keycloak's "HTTPS required" page.
+**Symptom:** Opening http://localhost:18080 (admin console) shows Keycloak's "HTTPS required" page.
 
 **Cause:** The admin console is served by the **`master`** realm, whose default `sslRequired=external`; the imported realm export only sets the **`huella`** realm to `none`. The dev overlay ships a one-shot **`keycloak-init`** service that relaxes `master` automatically — seeing this error means it didn't run (e.g. `up` was limited to `keycloak keycloak-db` only).
 
@@ -391,8 +394,8 @@ After fixing, restart the App Service — environment variables are resolved at 
 
 **Checklist:**
 
-1. Is `JWKS_URI` reachable **from where the API runs**? On host `pnpm dev` against local Keycloak it must be `http://localhost:8081/realms/huella/protocol/openid-connect/certs` — **not** the in-compose `http://keycloak:8080/...` host (the host process can't resolve the `keycloak` service name). See the [issuer-vs-JWKS host split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
-2. Is `JWKS_ISSUER` exactly the token's `iss`? Entra: `https://login.microsoftonline.com/<tenant-id>/v2.0` (or the CIAM host for External ID); Keycloak: `http://localhost:8081/realms/huella`.
+1. Is `JWKS_URI` reachable **from where the API runs**? On host `pnpm dev` against local Keycloak it must be `http://localhost:18080/realms/huella/protocol/openid-connect/certs` — **not** the in-compose `http://keycloak:8080/...` host (the host process can't resolve the `keycloak` service name). See the [issuer-vs-JWKS host split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
+2. Is `JWKS_ISSUER` exactly the token's `iss`? Entra: `https://login.microsoftonline.com/<tenant-id>/v2.0` (or the CIAM host for External ID); Keycloak: `http://localhost:18080/realms/huella`.
 3. Is `JWKS_AUDIENCE` the API's expected audience? Entra: the API app-registration client ID; Keycloak: `huella-api`.
 4. Has the signing key rotated recently? The JWKS cache refreshes every ~10 minutes — wait and retry.
 

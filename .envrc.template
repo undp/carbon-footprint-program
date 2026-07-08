@@ -56,10 +56,10 @@ export AUTH_PROVIDER=""    # Options: jwks, forced-user, none  (Azure Entra? use
 # Keycloak (local dev) example — see the compose/keycloak-db.yaml +
 # compose/keycloak.dev.yaml overlays. Uncomment:
 # export AUTH_PROVIDER="jwks"
-# export JWKS_ISSUER="http://localhost:8081/realms/huella"                            # token `iss` (browser host)
-# export JWKS_URI="http://keycloak:8080/realms/huella/protocol/openid-connect/certs"  # internal (api container)
-# export JWKS_AUDIENCE="huella-api"                                                   # needs the realm audience mapper
-# export JWKS_REQUIRED_SCOPE="access_as_user"                                         # realm grants it as a default scope
+# export JWKS_ISSUER="http://localhost:18080/realms/huella"                             # token `iss` (browser host)
+# export JWKS_URI="http://localhost:18080/realms/huella/protocol/openid-connect/certs"  # host-resolvable: `pnpm dev` runs the api on the host, which can't resolve the in-compose `keycloak` name (api in Docker instead? use http://keycloak:8080/... in .env.dockercompose)
+# export JWKS_AUDIENCE="huella-api"                                                     # needs the realm audience mapper
+# export JWKS_REQUIRED_SCOPE="access_as_user"                                           # realm grants it as a default scope
 
 # Chatbot (optional AI feature — DPG optionality). Off by default platform-wide;
 # enabled here for local dev with the built-in mock provider (no cloud). For
@@ -76,7 +76,7 @@ export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the O
 # empty. VITE_OIDC_SCOPES baseline: openid (OIDC id_token) + email
 # (backend rejects tokens without it) + offline_access (refresh → silent renew) +
 # profile (display name).
-#   Keycloak → export VITE_OIDC_ISSUER="http://localhost:8081/realms/huella"
+#   Keycloak → export VITE_OIDC_ISSUER="http://localhost:18080/realms/huella"
 #   Entra    → use `.envrc.azure.example` (derives ISSUER/CLIENT_ID/SCOPES from tenant values)
 export VITE_OIDC_ISSUER=""
 export VITE_OIDC_CLIENT_ID="huella-web"

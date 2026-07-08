@@ -64,7 +64,7 @@
 #      For the API to reach it you then need EITHER:
 #        a) publish Keycloak's HTTP port (KC_HTTP_PORT below) and point
 #           JWKS_URI at the docker host's address reachable from the api
-#           container (e.g. http://host.docker.internal:8080/... or the
+#           container (e.g. http://host.docker.internal:18080/... or the
 #           host's LAN/VPN IP — NOT `localhost`, which inside the api
 #           container means the api container itself); or
 #        b) pre-create a shared external network (`docker network create
@@ -201,16 +201,22 @@ services:
     ports:
       # Published for either mode A (proxy forwards to this port) or direct
       # host access. Both vars accept an optional bind address (`ip:port`).
+      # Host side is 18080, NOT 8080: the api publishes host 8080
+      # (API_PORT in docker-compose.prod.yml), so combining both stacks into
+      # one invocation would collide on the host bind. Repo convention for a
+      # secondary service whose usual port is taken: prefix a `1` (same rule
+      # as the bundled DB's 15432). Container side stays 8080 — internal
+      # JWKS_URI (http://keycloak:8080/...) is unaffected.
       # ⚠️ Mode A trusts X-Forwarded-* (KC_PROXY_HEADERS=xforwarded), so
-      # ANYTHING that can reach 8080 directly can spoof client IP/scheme —
-      # defeating brute-force accounting, among others. Only the reverse
-      # proxy should reach it: bind to loopback when the proxy runs on this
-      # host (KC_HTTP_PORT=127.0.0.1:8080 — the env template's default);
-      # widen to a specific LAN/VPN interface only for a remote proxy, and
-      # firewall it to the proxy. The management port (9000, health/metrics)
-      # is deliberately NOT published — only reachable inside the
-      # container/network.
-      - "${KC_HTTP_PORT:-8080}:8080"
+      # ANYTHING that can reach the HTTP port directly can spoof client
+      # IP/scheme — defeating brute-force accounting, among others. Only the
+      # reverse proxy should reach it: bind to loopback when the proxy runs
+      # on this host (KC_HTTP_PORT=127.0.0.1:18080 — the default here and in
+      # the env template); widen to a specific LAN/VPN interface only for a
+      # remote proxy, and firewall it to the proxy. The management port
+      # (9000, health/metrics) is deliberately NOT published — only
+      # reachable inside the container/network.
+      - "${KC_HTTP_PORT:-127.0.0.1:18080}:8080"
       - "${KC_HTTPS_PORT:-8443}:8443"
     volumes:
       # First-boot realm import (see --import-realm above). This mounts a
