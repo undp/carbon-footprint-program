@@ -10,9 +10,12 @@ export interface HighlightSpec {
    *  animation (e.g. the sidebar expanding) so the popover lands on the settled
    *  element rather than mid-transition. */
   delayMs?: number;
-  /** Fires when the highlight is dismissed — on target click, close, or cleanup.
+  /** Fires once when the highlight ends — on target click, close, or cleanup.
    *  Use it to undo any state set up for the highlight (e.g. force-open sidebar). */
   onDismiss?: () => void;
+  /** Fires only when the user explicitly closes the popover (overlay / ✕ / Esc)
+   *  without following the spotlighted control. */
+  onUserClose?: () => void;
 }
 
 /**
@@ -22,23 +25,36 @@ export interface HighlightSpec {
  * never shows (e.g. the target button isn't available in the current state).
  */
 export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
+  let done = false;
+  // destroy() is triggered by us (target click / effect cleanup) or by the user
+  // closing the popover — only the latter counts as a user close.
+  let selfDestroy = false;
+  const finish = (userClosed: boolean) => {
+    if (done) return;
+    done = true;
+    if (userClosed) spec.onUserClose?.();
+    spec.onDismiss?.();
+  };
   const tour = driver({
     allowClose: true,
     stagePadding: 6,
-    onDestroyed: () => spec.onDismiss?.(),
+    onDestroyed: () => finish(!selfDestroy),
   });
   let attempts = 0;
   let timer: ReturnType<typeof setTimeout>;
   let target: HTMLElement | null = null;
-  const dismiss = () => tour.destroy();
+  // The spotlighted control opens a modal or navigates on click, which would
+  // leave the popover orphaned — so dismiss the highlight along with it.
+  const onTargetClick = () => {
+    selfDestroy = true;
+    tour.destroy();
+  };
 
   const attempt = () => {
     const element = spec.find();
     if (element) {
       target = element;
-      // The spotlighted control opens a modal or navigates on click, which
-      // would leave the popover orphaned — so dismiss the highlight on click.
-      element.addEventListener("click", dismiss, { once: true });
+      element.addEventListener("click", onTargetClick, { once: true });
       tour.highlight({
         element,
         popover: { title: spec.title, description: spec.description },
@@ -52,8 +68,12 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
 
   return () => {
     clearTimeout(timer);
-    target?.removeEventListener("click", dismiss);
+    target?.removeEventListener("click", onTargetClick);
+    selfDestroy = true;
     tour.destroy();
+    // driver only fires onDestroyed while a highlight is active — make sure the
+    // dismiss side effects also run when cleanup lands before the first show.
+    finish(false);
   };
 };
 
@@ -63,6 +83,8 @@ export const findButtonByText = (text: string) => (): HTMLElement | null => {
   return (
     Array.from(document.querySelectorAll<HTMLElement>("button")).find(
       (button) =>
+        // offsetParent is null while hidden (display:none anywhere in the tree).
+        button.offsetParent !== null &&
         (button.textContent ?? "").trim().toLowerCase().includes(needle)
     ) ?? null
   );

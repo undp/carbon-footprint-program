@@ -8,6 +8,7 @@ import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
 import {
+  clearOnboardingFocus,
   markOnboardingFocus,
   OnboardingFocus,
 } from "@/utils/onboardingSignals";
@@ -67,6 +68,9 @@ export const WelcomeHome: FC<Props> = ({
       description,
       delayMs: 450,
       onDismiss: () => setSidebarForcedOpen(false),
+      // Closing the guide without following it should also drop the pending
+      // focus — otherwise it would resurface on a later organic visit.
+      onUserClose: clearOnboardingFocus,
     });
   };
   useEffect(() => () => activeHighlight.current?.(), []);
@@ -279,7 +283,7 @@ export const WelcomeHome: FC<Props> = ({
           description={
             orgAccredited
               ? hasDraftHuella
-                ? "Autodeclála para publicarla en tu inicio y ver tu dashboard de emisiones."
+                ? "Autodeclárala para publicarla en tu inicio y ver tu dashboard de emisiones."
                 : "Necesitas una huella en borrador para autodeclarar."
               : "Se habilita cuando tengas una huella creada (paso 2) y tu organización esté inscrita (paso 3)."
           }

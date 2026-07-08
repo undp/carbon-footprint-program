@@ -23,3 +23,9 @@ export const consumeOnboardingFocus = (): OnboardingFocus | null => {
   if (value) window.sessionStorage.removeItem(FOCUS_KEY);
   return (value as OnboardingFocus | null) ?? null;
 };
+
+/** Drop a pending focus that the user chose not to follow, so it doesn't
+ *  resurface as a surprise highlight on a later organic visit. */
+export const clearOnboardingFocus = () => {
+  window.sessionStorage.removeItem(FOCUS_KEY);
+};
