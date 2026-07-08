@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
+FROM node:26-alpine@sha256:e3bc686ea3f5bceaf696ca928c0aa067c3a28806fbfa81faccb877bf81756313 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
