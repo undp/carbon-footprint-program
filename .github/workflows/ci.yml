@@ -99,7 +99,27 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - name: Install deps + pre-pull testcontainer images (overlapped)
+        run: |
+          # Pre-pull the digest-pinned integration-test images (Azurite, MinIO,
+          # Postgres) in the BACKGROUND while pnpm installs, then wait. This
+          # overlaps the image download with dependency install, so by the time
+          # `pnpm test` runs, testcontainers finds the images locally and skips
+          # the pull inside the ~7-minute test run.
+          #
+          # Why pre-pull instead of an actions/cache image tarball: `docker load`
+          # drops the image's RepoDigest, and testcontainers pins images by
+          # `@sha256:` — so it would re-pull a "cached" image anyway. A real
+          # `docker pull` preserves the digest, so pre-pulling is the approach
+          # that actually avoids the in-test pull. Image refs are read straight
+          # from the test setup files, so this never drifts from what the tests use.
+          images=$(grep -rhoE '"[a-z0-9./-]+:[A-Za-z0-9._-]+@sha256:[a-f0-9]+"' apps/api/test/setup/*.ts | tr -d '"' | sort -u)
+          echo "Pre-pulling these images:"; echo "$images"
+          for img in $images; do
+            docker pull -q "$img" >/dev/null 2>&1 || echo "  (pre-pull miss for $img — testcontainers will fetch it)" &
+          done
+          pnpm install --frozen-lockfile
+          wait
       - run: pnpm test
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
