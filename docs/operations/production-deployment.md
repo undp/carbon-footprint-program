@@ -125,6 +125,8 @@ docker save huella-latam-api:prod huella-latam-web:prod | gzip > huella-images-<
 
 Transfer **three artifacts** to the deploy server: `huella-images-<tag>.tar.gz`, `docker-compose.prod.yml`, and the filled `.env.prod.dockercompose`.
 
+> Deploying Keycloak on the same server? It ships extra files (its compose files, the realm import dir, its own env file) and its image builds on the deploy server in a separate step — see [Keycloak Setup → Bring Up — Production](../infrastructure/KeycloakSetup.md#bring-up--production) for the list and the two-step `build keycloak` + `up -d --no-build` sequence.
+
 **On the deploy server:**
 
 ```bash

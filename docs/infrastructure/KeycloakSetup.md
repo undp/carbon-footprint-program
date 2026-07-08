@@ -203,6 +203,21 @@ Two separate env files (`.env.prod.dockercompose` for the app, `.env.prod.keyclo
 
 > **`--build`, not `--no-build`, for Keycloak.** Unlike `api`/`web` (which the [production deployment model](../operations/production-deployment.md#image-delivery-build--save--load) builds once and ships as a tarball), `compose/keycloak.prod.yaml` builds its image locally via an inline Dockerfile that runs `kc.sh build` (baking in the DB vendor and health/metrics providers) so the container then starts fast with `start --optimized`. If you air-gap Keycloak the same way as `api`/`web` (build → `docker save` → transfer → `docker load`), switch to `--no-build` on the deploy server once the image is loaded — passing `--no-build` before any image exists will fail.
 >
+> **Combining with the tarball-deployed app stack — build in two steps.** On a deploy server that received `api`/`web` as a tarball (no monorepo source), a single combined `up -d --build` would try to rebuild `api`/`web` from source and fail, while `up -d --no-build` fails on the first deploy because Keycloak's image doesn't exist yet. Build only Keycloak first, then start everything without building:
+>
+> ```bash
+> docker compose --project-directory . \
+>   -f docker-compose.prod.yml -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
+>   --env-file .env.prod.dockercompose --env-file .env.prod.keycloak \
+>   build keycloak
+> docker compose --project-directory . \
+>   -f docker-compose.prod.yml -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
+>   --env-file .env.prod.dockercompose --env-file .env.prod.keycloak \
+>   up -d --no-build
+> ```
+>
+> On top of [production-deployment.md's three app artifacts](../operations/production-deployment.md#image-delivery-build--save--load), the Keycloak side needs these files on the deploy server: `compose/keycloak.prod.yaml`, `compose/keycloak-db.yaml` (if using the bundled DB), `infra/keycloak/prod/` (the first-boot realm import mounts it), and the filled `.env.prod.keycloak`.
+>
 > If you'd rather run Keycloak as a fully separate lifecycle (different team, own upgrade cadence) instead of merging it into the app's project, give it its own project name (`docker compose -p huella-latam-keycloak-prod ...`) — but then the API can't reach it by service name, and `JWKS_URI` must instead use a published port and a host/IP reachable from wherever the API runs (see the [Issuer vs JWKS host split](#the-issuer-vs-jwks-host-split)).
 
 ### Pointing at an external database instead of `keycloak-db.yaml`
