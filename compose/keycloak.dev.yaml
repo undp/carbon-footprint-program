@@ -11,7 +11,8 @@
 #   • the bundled compose/keycloak-db.yaml (the SAME generic DB file prod
 #     uses); zero config, defaults to keycloak/keycloak. OR
 #   • an external Postgres: omit keycloak-db.yaml and set KC_DB_URL_HOST
-#     (+ KC_DB_USERNAME / KC_DB_PASSWORD) in .env.dockercompose.
+#     (+ KC_DB_USERNAME / KC_DB_PASSWORD) in .env.keycloak (from
+#     .env.keycloak.example — the canonical home for dev Keycloak DB overrides).
 #
 # Bring-up — full copy-paste command matrix is in the "Quick Setup" section of
 # docs/infrastructure/KeycloakSetup.md. Alongside the full app stack (base

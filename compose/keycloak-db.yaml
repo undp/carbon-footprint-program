@@ -9,9 +9,10 @@
 #   • Dev — usually NO env needed: everything defaults (user/pass/db = keycloak,
 #     container `huella-latam-keycloak-db`). An OPTIONAL .env.keycloak (from
 #     .env.keycloak.example) overrides those or points dev at an external DB.
-#   • Prod — .env.prod.keycloak (from .env.prod.keycloak.example) supplies strong
-#     credentials and the `-prod` container/volume names, so a dev DB and a prod
-#     DB never collide on the same host. Pairs with compose/keycloak.prod.yaml.
+#   • Prod — .env.prod.keycloak (from .env.prod.keycloak.example) supplies
+#     strong credentials; container/volume names keep the same fixed defaults
+#     (see below — normally dev and prod run on different machines). Pairs
+#     with compose/keycloak.prod.yaml.
 #
 # Full copy-paste command matrix (dev/prod × bundled/external DB) is in the
 # "Quick Setup" section of docs/infrastructure/KeycloakSetup.md.

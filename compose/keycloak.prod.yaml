@@ -200,9 +200,16 @@ services:
       - HUELLA_WEB_ORIGIN=${HUELLA_WEB_ORIGIN:?HUELLA_WEB_ORIGIN is required (the web app's public origin, e.g. https://huella.example.org — substituted into the realm's redirect URIs on first-boot import)}
     ports:
       # Published for either mode A (proxy forwards to this port) or direct
-      # host access; firewall these off at the network/VPN layer as needed.
-      # The management port (9000, health/metrics) is deliberately NOT
-      # published — only reachable inside the container/network.
+      # host access. Both vars accept an optional bind address (`ip:port`).
+      # ⚠️ Mode A trusts X-Forwarded-* (KC_PROXY_HEADERS=xforwarded), so
+      # ANYTHING that can reach 8080 directly can spoof client IP/scheme —
+      # defeating brute-force accounting, among others. Only the reverse
+      # proxy should reach it: bind to loopback when the proxy runs on this
+      # host (KC_HTTP_PORT=127.0.0.1:8080 — the env template's default);
+      # widen to a specific LAN/VPN interface only for a remote proxy, and
+      # firewall it to the proxy. The management port (9000, health/metrics)
+      # is deliberately NOT published — only reachable inside the
+      # container/network.
       - "${KC_HTTP_PORT:-8080}:8080"
       - "${KC_HTTPS_PORT:-8443}:8443"
     volumes:
