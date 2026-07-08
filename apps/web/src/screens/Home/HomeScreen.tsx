@@ -26,7 +26,7 @@ export const HomeScreen: FC = () => {
     useMyOrganizations();
 
   const approvedInventories = useMemo(
-    () => inventories.filter((inv) => isDashboardReady(inv.status)),
+    () => inventories.filter(isDashboardReady),
     [inventories]
   );
 
@@ -65,17 +65,17 @@ export const HomeScreen: FC = () => {
   // Shown on every login until a measurement/verification recognition is
   // approved.
   if (approvedInventories.length === 0) {
-    const activeHuellas = inventories.filter(
-      (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
-    );
-    const primaryOrg = organizations[0];
+    // Prefer an accredited organization: with several memberships the steps
+    // should reflect the one furthest along, not an arbitrary first row.
+    const primaryOrg =
+      organizations.find((org) => org.isAccredited) ?? organizations[0];
     return (
       <WelcomeHome
         hasOrganization={organizations.length > 0}
         orgAccredited={primaryOrg?.isAccredited ?? false}
         inscriptionStatus={primaryOrg?.lastSubmissionStatus ?? null}
-        hasHuella={activeHuellas.length > 0}
-        hasDraftHuella={activeHuellas.some(
+        hasHuella={inventories.length > 0}
+        hasDraftHuella={inventories.some(
           (inv) => inv.status === CarbonInventoryDisplayStatusEnum.DRAFT
         )}
       />

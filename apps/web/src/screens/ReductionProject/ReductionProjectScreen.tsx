@@ -165,7 +165,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         organizationName: project.organization.name,
         name: project.carbonInventory.name,
         year: project.carbonInventory.year,
+        // View-only selector (uses just id + name); a reduction project's
+        // huella is verification-approved by prerequisite.
         status: CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+        isSelfDeclared: false,
       },
     ];
   }, [isViewMode, project, verifiedInventories]);
