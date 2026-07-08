@@ -42,7 +42,7 @@ Under AGPL-3.0, countries and delivery partners may:
 They **must**:
 
 - Keep derivative works licensed under AGPL-3.0.
-- Make the complete corresponding source code of any modified version **available to the users of their network service**, as required by AGPL-3.0 §13. (This reverses the permissive "keep modifications private" allowance of the project's earlier MIT declaration.)
+- Make the complete corresponding source code of any modified version **available to the users of their network service**, as required by AGPL-3.0 §13. (This is a change from the project's earlier MIT license, which did not require publishing modifications.)
 - Preserve the original license and copyright notices in derivative works.
 
 They **must not**:
