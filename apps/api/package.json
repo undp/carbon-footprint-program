@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "main": "dist/server.js",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=24.0.0"
   },

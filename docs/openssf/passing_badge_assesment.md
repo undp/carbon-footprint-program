@@ -9,21 +9,21 @@
 
 ## Basics
 
-| Criterion                   | Level     | Status | Evidence / Gap                                                                                            |
-| --------------------------- | --------- | ------ | --------------------------------------------------------------------------------------------------------- |
-| `description_good`          | MUST      | ✅     | `README.md` overview describes the platform and the problem it solves.                                    |
-| `interact`                  | MUST      | ✅     | README (getting started) + `docs/development/contributing.md` cover obtaining, feedback, contribution.    |
-| `contribution`              | MUST      | ✅     | `docs/development/contributing.md`: GitHub Flow, PRs, Conventional Commits.                               |
-| `contribution_requirements` | SHOULD    | ✅     | Contributing doc defines branch/commit conventions and a "definition of done".                            |
-| `floss_license`             | MUST      | ✅     | MIT declared in `package.json` (`"license": "MIT"`) — an OSI/FLOSS license.                               |
-| `floss_license_osi`         | SUGGESTED | ✅     | MIT is OSI-approved.                                                                                      |
-| `license_location`          | MUST      | ❌     | **No `LICENSE` file at repo root** — only the `package.json` field. Add `LICENSE` with the full MIT text. |
-| `documentation_basics`      | MUST      | ✅     | Extensive `docs/` (architecture, development, operations, security, …).                                   |
-| `documentation_interface`   | MUST      | ✅     | API documented via `@fastify/swagger` (OpenAPI) + `docs/` API conventions.                                |
-| `sites_https`               | MUST      | ✅     | Repo/homepage on GitHub (HTTPS); deployments HTTPS (Azure).                                               |
-| `discussion`                | MUST      | ⚠️     | GitHub Issues/PRs are URL-addressable — confirm Issues/Discussions are enabled on the public repo.        |
-| `english`                   | SHOULD    | ✅     | Documentation is in English (product UI is Spanish by design).                                            |
-| `maintained`                | MUST      | ✅     | Actively maintained (frequent recent commits, tags up to 1.5.0).                                          |
+| Criterion                   | Level     | Status | Evidence / Gap                                                                                         |
+| --------------------------- | --------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| `description_good`          | MUST      | ✅     | `README.md` overview describes the platform and the problem it solves.                                 |
+| `interact`                  | MUST      | ✅     | README (getting started) + `docs/development/contributing.md` cover obtaining, feedback, contribution. |
+| `contribution`              | MUST      | ✅     | `docs/development/contributing.md`: GitHub Flow, PRs, Conventional Commits.                            |
+| `contribution_requirements` | SHOULD    | ✅     | Contributing doc defines branch/commit conventions and a "definition of done".                         |
+| `floss_license`             | MUST      | ✅     | AGPL-3.0-only declared in `package.json` (`"license": "AGPL-3.0-only"`) — an OSI/FLOSS license.        |
+| `floss_license_osi`         | SUGGESTED | ✅     | AGPL-3.0 is OSI-approved.                                                                              |
+| `license_location`          | MUST      | ✅     | Root `LICENSE` file present with the full AGPL-3.0 text, alongside the `package.json` field.           |
+| `documentation_basics`      | MUST      | ✅     | Extensive `docs/` (architecture, development, operations, security, …).                                |
+| `documentation_interface`   | MUST      | ✅     | API documented via `@fastify/swagger` (OpenAPI) + `docs/` API conventions.                             |
+| `sites_https`               | MUST      | ✅     | Repo/homepage on GitHub (HTTPS); deployments HTTPS (Azure).                                            |
+| `discussion`                | MUST      | ⚠️     | GitHub Issues/PRs are URL-addressable — confirm Issues/Discussions are enabled on the public repo.     |
+| `english`                   | SHOULD    | ✅     | Documentation is in English (product UI is Spanish by design).                                         |
+| `maintained`                | MUST      | ✅     | Actively maintained (frequent recent commits, tags up to 1.5.0).                                       |
 
 ## Change Control
 
@@ -106,7 +106,7 @@
 
 ## Gaps to close for the Passing badge (MUST items)
 
-1. **Add a root `LICENSE` file** with the full MIT text (`license_location`).
+1. ~~Add a root `LICENSE` file~~ — **resolved:** root `LICENSE` now contains the full AGPL-3.0 text (`license_location`).
 2. **Publish release notes** — a `CHANGELOG.md` and/or GitHub Releases per tag, listing any fixed CVEs (`release_notes`, `release_notes_vulns`).
 3. **Add `SECURITY.md`** with a public vulnerability-reporting process, a private channel, and a ≤14-day response commitment (`vulnerability_report_process`, `vulnerability_report_private`, `vulnerability_report_response`).
 4. **Confirm the repo is public** and Issues are enabled (`repo_public`, `report_process`, `report_archive`).

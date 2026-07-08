@@ -1,3 +1,7 @@
+# Dependabot configuration — keeps dependencies current (DPG Indicator 8 / OpenSSF
+# "Dependency-Update-Tool"). Version updates work on private repos without GitHub
+# Advanced Security. To also receive security-vulnerability updates, enable Dependabot
+# alerts/security updates in Settings → Code security and analysis.
 version: 2
 
 updates:
@@ -17,9 +21,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
-      include: "scope"
+      prefix: "chore(deps)"
     # Single ignore list. Dependabot takes only the last `ignore:` key per entry,
     # so every ignore rule for this ecosystem must live here.
     ignore:
@@ -78,21 +80,23 @@ updates:
           - "minor"
           - "patch"
 
-  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...).
-  # With digests pinned, Dependabot opens PRs to bump them as the upstream
-  # tags move (e.g. Alpine security patches), keeping them current but reviewed.
+  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...), plus
+  # the pinned betterleaks image used by the CI "Secret Scan" job
+  # (.github/secret-scan/Dockerfile). With digests pinned, Dependabot opens PRs to
+  # bump them as the upstream tags move (e.g. Alpine security patches, betterleaks
+  # releases), keeping them current but reviewed.
   - package-ecosystem: "docker"
     directories:
       - "/apps/api"
       - "/apps/web"
+      - "/.github/secret-scan"
     schedule:
       interval: "weekly"
     # Supply-chain cooldown before proposing a new base-image digest.
     cooldown:
       default-days: 7
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "chore(docker)"
     ignore:
       # Keep the web nginx image on the STABLE branch (even minor, 1.30.x).
       # nginx uses even minors for stable and odd minors for mainline, but
@@ -111,9 +115,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
     # Supply-chain cooldown before proposing a new action version.
     cooldown:
       default-days: 7
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: "chore(ci)"
