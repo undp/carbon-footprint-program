@@ -21,6 +21,9 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    # Skip on draft PRs (matches the CI workflow's draft gate). Still runs on
+    # push to main and the weekly schedule, where there is no pull_request context.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     permissions:
       security-events: write # upload results to code scanning
       actions: read
