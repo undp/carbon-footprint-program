@@ -19,6 +19,7 @@ export const GetCarbonInventoriesMinimalItemSchema = z.object({
   name: z.string().nullable(),
   year: z.number().int().nullable(),
   status: CarbonInventoryDisplayStatusSchema,
+  isSelfDeclared: z.boolean(),
 });
 
 export const GetCarbonInventoriesMinimalResponseSchema = z.array(
