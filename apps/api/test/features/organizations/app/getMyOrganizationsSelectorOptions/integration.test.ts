@@ -10,7 +10,11 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import { OrganizationStatus, MembershipStatus } from "@repo/database";
+import {
+  OrganizationStatus,
+  MembershipStatus,
+  SubmissionStatus,
+} from "@repo/database";
 import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
 import {
   createTestOrganization,
@@ -19,6 +23,7 @@ import {
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 
 describe("GET /api/app/organizations/me - Integration Tests", () => {
   let app: FastifyInstance;
@@ -68,6 +73,8 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(body[0]).toEqual({
         id: org.id.toString(),
         name: "TestOrg",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
     });
 
@@ -110,10 +117,14 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(org1Response).toEqual({
         id: org1.id.toString(),
         name: "Organization One",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
       expect(org2Response).toEqual({
         id: org2.id.toString(),
         name: "Organization Two",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
     });
   });
@@ -212,6 +223,8 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(body[0]).toEqual({
         id: org.id.toString(),
         name: "Blocked Org",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
     });
 
@@ -258,10 +271,14 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(activeOrgResponse).toEqual({
         id: activeOrg.id.toString(),
         name: "Active Org",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
       expect(blockedOrgResponse).toEqual({
         id: blockedOrg.id.toString(),
         name: "Blocked Org",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
     });
   });
@@ -316,9 +333,12 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
 
       expect(body[0]).toHaveProperty("id");
       expect(body[0]).toHaveProperty("name");
+      expect(body[0]).toHaveProperty("isAccredited");
+      expect(body[0]).toHaveProperty("lastSubmissionStatus");
       expect(typeof body[0].id).toBe("string");
       expect(typeof body[0].name).toBe("string");
-      expect(Object.keys(body[0])).toHaveLength(2);
+      expect(typeof body[0].isAccredited).toBe("boolean");
+      expect(Object.keys(body[0])).toHaveLength(4);
     });
   });
 
@@ -358,6 +378,8 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(body[0]).toEqual({
         id: activeOrg.id.toString(),
         name: "Active Membership Org",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
     });
 
@@ -398,7 +420,128 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(body[0]).toEqual({
         id: blockedActiveOrg.id.toString(),
         name: "Blocked Active Membership",
+        isAccredited: false,
+        lastSubmissionStatus: null,
       });
+    });
+  });
+
+  describe("Accreditation and last submission status fields", () => {
+    it("should return isAccredited=false and lastSubmissionStatus=null when the organization has no submissions", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Draft Org No Submission",
+      });
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0].isAccredited).toBe(false);
+      expect(body[0].lastSubmissionStatus).toBeNull();
+    });
+
+    it("should return isAccredited=true and lastSubmissionStatus=APPROVED when the organization has an approved accreditation submission", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Approved Org",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0].isAccredited).toBe(true);
+      expect(body[0].lastSubmissionStatus).toBe(SubmissionStatus.APPROVED);
+    });
+
+    it("should keep isAccredited=true while lastSubmissionStatus=PENDING when a previously accredited organization submits a new edition", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+
+      // First edition: approved, grants accreditation.
+      const approvedData = await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Re-submitted Org",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        approvedData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      // Second edition: pending review, becomes the latest submission.
+      const pendingData = await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Re-submitted Org v2",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        pendingData.id,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0].isAccredited).toBe(true);
+      expect(body[0].lastSubmissionStatus).toBe(SubmissionStatus.PENDING);
+    });
+  });
+
+  describe("Authentication", () => {
+    it.skip("unauthenticated request receives 401", () => {
+      // Tests run with AUTH_PROVIDER=forced-user, which always resolves a
+      // pre-seeded user regardless of the Authorization header, so an
+      // "unauthenticated" request cannot be simulated through `app.inject` in
+      // this environment. The 401 path (declared on this route's schema and
+      // enforced by `requireAuth`) is exercised by the authentication
+      // plugin's own unit tests.
     });
   });
 });
