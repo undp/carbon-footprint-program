@@ -193,12 +193,14 @@ jobs:
           # the tip — this is how the "0 findings" baseline was measured.
           fetch-depth: 0
       - name: Scan for secrets (betterleaks)
-        # betterleaks is the actively maintained successor to gitleaks (same author);
-        # gitleaks itself is now feature-frozen (security patches only). betterleaks is
-        # a drop-in replacement and reads the repo's .gitleaks.toml allowlist. Pinned by
-        # digest (v1.6.1). `detect` scans the full git history and exits non-zero on any
-        # finding that is not allowlisted.
+        # The betterleaks image is pinned by digest in .github/secret-scan/Dockerfile
+        # rather than referenced inline here, so Dependabot's `docker` ecosystem keeps
+        # it current automatically (Dependabot cannot see an image used in a `run:`
+        # step). We build that single-FROM image and run it. betterleaks is the drop-in
+        # successor to the now feature-frozen gitleaks and reads the repo's
+        # .gitleaks.toml allowlist. `detect` scans the full git history and exits
+        # non-zero on any finding that is not allowlisted.
         run: |
-          docker run --rm -v "$PWD:/repo" -w /repo \
-            ghcr.io/betterleaks/betterleaks@sha256:7a43a20d40be02a9c13801a6485f7bea9d9cdba512263440eae972103c5291f1 \
+          docker build -t secret-scan .github/secret-scan
+          docker run --rm -v "$PWD:/repo" -w /repo secret-scan \
             detect --source=. --config=.gitleaks.toml --redact --no-banner --exit-code=1

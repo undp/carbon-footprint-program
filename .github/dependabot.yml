@@ -80,13 +80,16 @@ updates:
           - "minor"
           - "patch"
 
-  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...).
-  # With digests pinned, Dependabot opens PRs to bump them as the upstream
-  # tags move (e.g. Alpine security patches), keeping them current but reviewed.
+  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...), plus
+  # the pinned betterleaks image used by the CI "Secret Scan" job
+  # (.github/secret-scan/Dockerfile). With digests pinned, Dependabot opens PRs to
+  # bump them as the upstream tags move (e.g. Alpine security patches, betterleaks
+  # releases), keeping them current but reviewed.
   - package-ecosystem: "docker"
     directories:
       - "/apps/api"
       - "/apps/web"
+      - "/.github/secret-scan"
     schedule:
       interval: "weekly"
     # Supply-chain cooldown before proposing a new base-image digest.
