@@ -134,6 +134,15 @@ One `up` here boots the **whole stack** — postgres, migrate, api, web, and the
 - **OIDC discovery:** http://localhost:18080/realms/huella/.well-known/openid-configuration
 - **Realm database:** reachable on host port **15432** for inspection (e.g. `psql -h localhost -p 15432 -U keycloak`, password `keycloak`). It's `15432` — not `5432` — so it never clashes with the app's own dev Postgres (host `5432`); override with `KC_DB_PORT_HOST_MAPPING`. This is host access only; Keycloak connects to the DB internally on `5432`.
 
+### External database — choosing `KC_DB_URL_HOST`
+
+The dev overlay pairs with any Postgres (Quick Setup's second variant: omit `keycloak-db.yaml`, set the `KC_DB_*` vars in `.env.keycloak`). Two working options for `KC_DB_URL_HOST`:
+
+- **Another container → its container/service name** (e.g. `keycloak-db`). On a shared Docker network, the embedded DNS resolves container names between members. If the DB container was started outside compose, attach it first: `docker network connect <project>_huella-network <db-container>`.
+- **Anything else — the docker host itself or a remote server → a routable IP/DNS** (e.g. the host's static LAN IP `192.168.0.134`, or the DB server's DNS name). Containers reach any routable address out of the box; nothing changes on the compose side. Two requirements on the DB side: it must listen beyond loopback (`0.0.0.0` or that specific IP — a port bound to `127.0.0.1` on the host only accepts connections from the host itself, never from containers; that's also why the bundled DB's `127.0.0.1:15432` bind is host-only by design), and a native (non-Docker) Postgres additionally needs `listen_addresses`, the Docker subnet in `pg_hba.conf`, and the port open in the host firewall.
+
+**Why `localhost` is never valid here:** inside a container, `localhost` is the container's own network namespace — not your machine. Keycloak would dial _itself_ on the DB port, get connection refused, and crash-loop. A hostname always resolves relative to where the process runs — the same rule as the [issuer/JWKS host split](#the-issuer-vs-jwks-host-split), where `JWKS_URI` uses `keycloak:8080` in compose but `localhost:18080` from host `pnpm dev`.
+
 ### The imported dev realm
 
 From `infra/keycloak/dev/realm-huella.dev.json`:
@@ -235,6 +244,8 @@ Two separate env files (`.env.prod.dockercompose` for the app, `.env.prod.keyclo
 ### Pointing at an external database instead of `keycloak-db.yaml`
 
 Drop `-f compose/keycloak-db.yaml` (and the matching entry from `COMPOSE_FILE`) and point Keycloak at a real, externally managed database the same way the app itself already points at an external PostgreSQL server in production (see the [DBA contract](../operations/production-deployment.md#database-roles--privileges-dba-contract)). `compose/keycloak.prod.yaml` and `compose/keycloak-db.yaml` share one set of `KC_DB_*` variables in `.env.prod.keycloak` — `KC_DB_USERNAME` / `KC_DB_PASSWORD` / `KC_DB_URL_DATABASE` (plus `KC_DB_URL_HOST` / `KC_DB_URL_PORT` for the external case) — so switching to an external server is just re-pointing those host/port values and omitting the bundled `keycloak-db` service, with nothing else to keep in sync by hand. Keycloak's data (realms, clients, users, sessions) then survives independently of the compose project's lifecycle — the same rationale as keeping the app's own Postgres outside Docker.
+
+The host-resolution rules — what resolves from inside the container vs from the host — are the same as in dev; see [External database — choosing `KC_DB_URL_HOST`](#external-database--choosing-kc_db_url_host).
 
 ### Realm import
 
