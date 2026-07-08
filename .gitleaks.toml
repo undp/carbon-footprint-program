@@ -1,0 +1,36 @@
+# gitleaks configuration for Huella Latam.
+#
+# Extends the default gitleaks ruleset (all built-in secret rules stay active) and
+# allowlists a small set of VERIFIED FALSE POSITIVES by regex — NOT by per-commit
+# fingerprint. Regex/line allowlists survive commit- and line-number churn.
+#
+# Why not .gitleaksignore: its fingerprints are `commit:file:rule:line`, so they
+# silently stopped matching when `main` reintroduced compose/keycloak*.yaml under
+# new commits (and added compose/keycloak.prod.yaml), which made the previous
+# "0 findings" result untrue after merging main. Regex allowlists don't have that
+# failure mode.
+#
+# Triaged 2026-07-08. Add an entry ONLY after manually confirming the match is not
+# a real credential.
+
+title = "Huella Latam gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Verified false positives: dev DB connection string + public Azure role GUID"
+# Match against the whole source line, not just the extracted secret, so the rule
+# is robust regardless of how gitleaks tokenizes the value.
+regexTarget = "line"
+regexes = [
+  # Keycloak dev/compose JDBC connection string. This is a host:port/database path
+  # to an internal docker-compose service (`keycloak-db`), not a credential. The DB
+  # password is a separate KC_DB_PASSWORD dev dummy that gitleaks does not flag.
+  # Appears in compose/keycloak.yaml and in a comment in compose/keycloak.prod.yaml.
+  '''jdbc:postgresql://keycloak-db:5432/keycloak''',
+  # Azure built-in "Key Vault Secrets Officer" role definition ID — a public,
+  # well-known Azure RBAC constant (identical in every tenant), not a secret.
+  # https://learn.microsoft.com/azure/role-based-access-control/built-in-roles
+  '''b86a8fe4-44ce-4948-aee5-eccb2c155cd7''',
+]
