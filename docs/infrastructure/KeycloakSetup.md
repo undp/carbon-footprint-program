@@ -132,7 +132,7 @@ One `up` here boots the **whole stack** — postgres, migrate, api, web, and the
 - **Admin console:** http://localhost:18080 — bootstrap admin `admin` / `admin`.
 - **Issuer:** http://localhost:18080/realms/huella
 - **OIDC discovery:** http://localhost:18080/realms/huella/.well-known/openid-configuration
-- **Realm database:** reachable on host port **15432** for inspection (e.g. `psql -h localhost -p 15432 -U keycloak`, password `keycloak`). It's `15432` — not `5432` — so it never clashes with the app's own dev Postgres (host `5432`); override with `KC_DB_PORT_HOST_MAPPING`. This is host access only; Keycloak connects to the DB internally on `5432`.
+- **Realm database:** reachable on host port **15432** for inspection (e.g. `psql -h localhost -p 15432 -U keycloak`, password `keycloak`). It's `15432` — not `5432` — so it never clashes with the app's own dev Postgres (host `5432`), and it's fixed (infrastructure, not config). This is host access only; Keycloak connects to the DB internally on `5432` (`KC_DB_URL_PORT` — the one port a developer sets, according to [how Keycloak reaches the DB](#external-database--choosing-kc_db_url_host)).
 
 ### External database — choosing `KC_DB_URL_HOST`
 
@@ -140,6 +140,8 @@ The dev overlay pairs with any Postgres (Quick Setup's second variant: omit `key
 
 - **Another container → its container/service name** (e.g. `keycloak-db`). On a shared Docker network, the embedded DNS resolves container names between members. If the DB container was started outside compose, attach it first: `docker network connect <project>_huella-network <db-container>`.
 - **Anything else — the docker host itself or a remote server → a routable IP/DNS** (e.g. the host's static LAN IP `192.168.0.134`, or the DB server's DNS name). Containers reach any routable address out of the box; nothing changes on the compose side. Two requirements on the DB side: it must listen beyond loopback (`0.0.0.0` or that specific IP — a port bound to `127.0.0.1` on the host only accepts connections from the host itself, never from containers; that's also why the bundled DB's `127.0.0.1:15432` bind is host-only by design), and a native (non-Docker) Postgres additionally needs `listen_addresses`, the Docker subnet in `pg_hba.conf`, and the port open in the host firewall.
+
+`KC_DB_URL_PORT` follows the same decision as the host: it's the port the DB listens on **from where Keycloak connects** — the container's internal `5432` for the bundled DB over the docker network, the port a container publishes on the host when going through the host's IP, or the server's own port for a remote DB. (The bundled DB's fixed `127.0.0.1:15432` host publish is unrelated: that one exists only for you to inspect the data with `psql`; Keycloak never goes through it.)
 
 **Why `localhost` is never valid here:** inside a container, `localhost` is the container's own network namespace — not your machine. Keycloak would dial _itself_ on the DB port, get connection refused, and crash-loop. A hostname always resolves relative to where the process runs — the same rule as the [issuer/JWKS host split](#the-issuer-vs-jwks-host-split), where `JWKS_URI` uses `keycloak:8080` in compose but `localhost:18080` from host `pnpm dev`.
 

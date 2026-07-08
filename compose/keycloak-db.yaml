@@ -38,15 +38,17 @@ services:
     # prod bundled DB on the same host (normally they're different machines).
     container_name: ${KC_DB_CONTAINER_NAME:-huella-latam-keycloak-db}
     ports:
-      # Host-published port for reaching this DB from your machine (e.g. a SQL
-      # client inspecting the realm data). Bound to 127.0.0.1 so the DB is
-      # never exposed beyond the host itself (from a remote deploy server,
-      # tunnel over SSH). Defaults to 15432 — NOT 5432 — so it never clashes
-      # with the app's own dev Postgres, which publishes host 5432
-      # (POSTGRES_PORT_HOST_MAPPING). This affects HOST access only: Keycloak
-      # always connects container-to-container on the INTERNAL 5432
-      # (KC_DB_URL_PORT), which this mapping does not change.
-      - "127.0.0.1:${KC_DB_PORT_HOST_MAPPING:-15432}:5432"
+      # Fixed host-published port for reaching this DB from your machine (e.g.
+      # `psql -h localhost -p 15432` to inspect the realm data). Bound to
+      # 127.0.0.1 so the DB is never exposed beyond the host itself (from a
+      # remote deploy server, tunnel over SSH). 15432 — NOT 5432 — so it never
+      # clashes with the app's own Postgres on host 5432. Deliberately NOT a
+      # variable: like the container/volume names above, this is DB-container
+      # infrastructure, not connection config — the ONE port variable a
+      # developer sets is KC_DB_URL_PORT (where Keycloak dials, decided by how
+      # it reaches the DB), and this mapping never affects that: Keycloak
+      # connects container-to-container on the INTERNAL 5432.
+      - "127.0.0.1:15432:5432"
     environment:
       # The SAME KC_DB_* variable names that compose/keycloak.dev.yaml and
       # compose/keycloak.prod.yaml read for the connection — one set of values,
