@@ -145,6 +145,19 @@ The dev overlay pairs with any Postgres (Quick Setup's second variant: omit `key
 
 **Why `localhost` is never valid here:** inside a container, `localhost` is the container's own network namespace — not your machine. Keycloak would dial _itself_ on the DB port, get connection refused, and crash-loop. A hostname always resolves relative to where the process runs — the same rule as the [issuer/JWKS host split](#the-issuer-vs-jwks-host-split), where `JWKS_URI` uses `keycloak:8080` in compose but `localhost:18080` from host `pnpm dev`.
 
+### Targeting a specific schema — `KC_DB_SCHEMA`
+
+By default Keycloak puts its tables in the `public` schema. To namespace them into a specific Postgres schema — e.g. when Keycloak shares a database with other tenants — set `KC_DB_SCHEMA` in `.env.keycloak` (dev) or `.env.prod.keycloak` (prod); both compose overlays pass it through, defaulting to `public` when unset. The `:-public` fallback also maps an _empty_ value back to `public`, so Keycloak never receives an empty `db-schema`.
+
+The schema must **already exist** — Keycloak creates its tables inside it but never creates the schema itself, and boots into an error if it's missing. Create it before the first `up`:
+
+```bash
+# Bundled DB — via its host inspect port (see the note above about 15432):
+psql -h localhost -p 15432 -U keycloak -d keycloak -c 'CREATE SCHEMA IF NOT EXISTS mi_esquema;'
+```
+
+For an external/managed Postgres, have your DBA create the schema and grant `KC_DB_USERNAME` privileges on it (see the [DBA contract](../operations/production-deployment.md#database-roles--privileges-dba-contract)). Setting the full `KC_DB_URL` with `?currentSchema=…` is an equivalent one-off alternative, but `KC_DB_SCHEMA` is the idiomatic knob and composes with the component-based `KC_DB_URL_HOST`/`PORT`/`DATABASE`.
+
 ### The imported dev realm
 
 From `infra/keycloak/dev/realm-huella.dev.json`:

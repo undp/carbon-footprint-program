@@ -158,6 +158,14 @@ services:
       - KC_DB_URL=${KC_DB_URL:-jdbc:postgresql://${KC_DB_URL_HOST:-keycloak-db}:${KC_DB_URL_PORT:-5432}/${KC_DB_URL_DATABASE:-keycloak}}
       - KC_DB_USERNAME=${KC_DB_USERNAME:?KC_DB_USERNAME is required (Keycloak's database user)}
       - KC_DB_PASSWORD=${KC_DB_PASSWORD:?KC_DB_PASSWORD is required (Keycloak's database password)}
+      # Postgres schema (namespace) Keycloak's tables live in. Defaults to
+      # `public`; set it only when Keycloak shares a database with something
+      # else and must be namespaced (common on a managed/shared external
+      # Postgres). The `:-` fallback resolves an unset OR empty value to
+      # `public`, so Keycloak never receives an empty db-schema. The schema
+      # must already exist — Keycloak creates its tables inside it but not the
+      # schema itself; your DBA provisions it alongside the KC_DB_USERNAME grant.
+      - KC_DB_SCHEMA=${KC_DB_SCHEMA:-public}
       # --- Hostname (browser-facing public URL → token `iss`) ---
       - KC_HOSTNAME=${KC_HOSTNAME:?KC_HOSTNAME is required (the public URL Keycloak is reachable at, e.g. https://idp.example.org)}
       - KC_HOSTNAME_STRICT=${KC_HOSTNAME_STRICT:-true}
