@@ -86,11 +86,11 @@ See [Contributing Guide](./development/contributing.md) for the technical workfl
 
 ## Code Ownership and Security Contacts
 
-Sensitive areas of the codebase (authentication, data encryption, key management) should have **designated maintainers** whose review is required before merging changes. A `CODEOWNERS` file at the repository root is recommended to enforce this automatically via GitHub PR review rules.
+Sensitive areas of the codebase (authentication, data encryption, key management) should have **designated maintainers** whose review is required before merging changes. The repository's [`CODEOWNERS`](../.github/CODEOWNERS) file defines these review assignments and enforces them automatically via GitHub PR review rules.
 
-Security vulnerabilities should be reported **privately** to the maintainer team — not via public GitHub issues. A `SECURITY.md` file at the repository root is recommended, describing:
+Security vulnerabilities should be reported **privately** to the maintainer team — not via public GitHub issues. The root [`SECURITY.md`](../SECURITY.md) documents the reporting process, covering:
 
-- Where to report vulnerabilities (a dedicated email address).
+- Where to report vulnerabilities (private channels).
 - Expected response time.
 - Coordinated disclosure policy.
 
@@ -112,10 +112,10 @@ For a mature open-source digital public good, the repository root should contain
 | ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
 | `LICENSE`                       | License text                                                       | ✅ Present (AGPL-3.0-only)             |
 | `GOVERNANCE.md`                 | Ownership & decision-making                                        | ✅ Present at root                     |
-| `CODE_OF_CONDUCT.md`            | Community standards                                                | ❌ Missing                             |
-| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ❌ Missing at root                     |
-| `SECURITY.md`                   | Security reporting process                                         | ❌ Missing                             |
-| `CODEOWNERS`                    | PR review assignments                                              | ❌ Missing                             |
+| `CODE_OF_CONDUCT.md`            | Community standards                                                | ✅ Present at root                     |
+| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ✅ Present at root                     |
+| `SECURITY.md`                   | Security reporting process                                         | ✅ Present at root                     |
+| `CODEOWNERS`                    | PR review assignments                                              | ✅ Present (`.github/CODEOWNERS`)      |
 | `CHANGELOG.md` or release notes | Version history                                                    | ❌ Missing (releases in Git tags only) |
 
 Adding these files is a prerequisite for acceptance into the [Digital Public Goods Alliance](https://digitalpublicgoods.net/) registry, if that is a goal for the project.
@@ -124,6 +124,6 @@ Adding these files is a prerequisite for acceptance into the [Digital Public Goo
 
 ## Project Steering
 
-The project's long-term direction — roadmap priorities, acceptance of new country deployments, major architectural decisions — should be steered by a documented governance body (e.g., a steering committee of UNDP representatives plus country implementation leads). This governance should be reflected in a `GOVERNANCE.md` file at the repository root when the project reaches that maturity level.
+The project's long-term direction — roadmap priorities, acceptance of new country deployments, major architectural decisions — should be steered by a documented governance body (e.g., a steering committee of UNDP representatives plus country implementation leads). The root [`GOVERNANCE.md`](../GOVERNANCE.md) records the current ownership and decision-making model; the formal steering body described here should be documented there once it is established.
 
-Current state: informal governance led by the delivery team. Formalization is a post-launch concern.
+Current state: informal governance led by the delivery team. Formalizing the steering body is a post-launch concern.

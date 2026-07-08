@@ -48,11 +48,12 @@ codebase may be invited to become maintainers by the existing maintainer team.
 
 ## Escalation & do-no-harm
 
-- **Conduct / harassment concerns:** raise via the project's code of conduct process.
-  <!-- TODO: Add CODE_OF_CONDUCT.md and a contact channel (closes DPG Indicator 9C). -->
-- **Security vulnerabilities:** report privately following the guidance in
-  [`docs/security/`](./docs/security/); a top-level `SECURITY.md` disclosure policy is planned.
-  <!-- TODO: Add SECURITY.md with a private disclosure contact (supports DPG Indicator 8). -->
+- **Conduct / harassment concerns:** raise via the process in
+  [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+  <!-- TODO: Fill in the monitored conduct contact channel in CODE_OF_CONDUCT.md (closes DPG Indicator 9C). -->
+- **Security vulnerabilities:** report privately following the disclosure policy in
+  [`SECURITY.md`](./SECURITY.md) (see also [`docs/security/`](./docs/security/)).
+  <!-- TODO: Fill in the monitored security disclosure contact in SECURITY.md (supports DPG Indicator 8). -->
 - **Privacy / data decisions:** the UNDP Huella Latam team is responsible for privacy and
   data-handling decisions. See [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md).
   _(Supports DPG Indicators 7 and 9A–9C.)_
