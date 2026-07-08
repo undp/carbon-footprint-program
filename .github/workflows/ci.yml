@@ -49,6 +49,18 @@ jobs:
           # changed. Intentionally broad (errs toward running): a docs edit under
           # apps/** would still run the heavy jobs, but a pure docs/**-or-*.md PR
           # skips them.
+          #
+          # KEEP IN SYNC: this list is a second source of truth for "what affects
+          # the build". Any new root/tooling config that influences install,
+          # lint, type-check, test or build MUST be added here, or a change to it
+          # would be misclassified as docs-only and skip the heavy jobs. The
+          # `verify-changes-filter` job (scripts/check-ci-changes-filter.mjs)
+          # enforces this list and its expected behaviour.
+          #
+          # Deliberately excluded: format-only config (.prettierrc,
+          # .prettierignore) — the `format` job is ungated and always runs; and
+          # .tool-versions — CI derives Node from .nvmrc and pnpm from the
+          # package.json `packageManager` field, not from .tool-versions.
           filters: |
             code:
               - 'apps/**'
@@ -56,11 +68,27 @@ jobs:
               - 'tools/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
+              - '.npmrc'
+              - 'patches/**'
               - 'turbo.json'
               - '.nvmrc'
               - '**/package.json'
               - '**/tsconfig*.json'
               - '.github/workflows/ci.yml'
+
+  # Guards the `code` filter above against drift: fails if the pattern list is
+  # narrowed unexpectedly or if a representative path is misclassified. Runs on
+  # every PR (cheap, no install — plain Node), so a change to ci.yml is
+  # self-validating. See scripts/check-ci-changes-filter.mjs.
+  verify-changes-filter:
+    needs: check-draft
+    name: Verify changes filter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - run: node scripts/check-ci-changes-filter.mjs
 
   lint:
     needs: [check-draft, changes]
