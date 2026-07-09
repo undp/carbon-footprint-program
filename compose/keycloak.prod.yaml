@@ -130,6 +130,12 @@ services:
       # xforwarded = trust X-Forwarded-* headers from the proxy in front of
       # this container. This is the 26.x option name — NOT the old KC_PROXY.
       - KC_PROXY_HEADERS=${KC_PROXY_HEADERS:-xforwarded}
+      # Comma-separated proxy IP(s)/CIDR that Keycloak trusts to send X-Forwarded-*
+      # headers. Default 0.0.0.0/0,::/0 = trust all (KC's behavior when this is
+      # unset). Harden by setting this to the reverse proxy's own address so a
+      # rogue container on the shared network can't spoof X-Forwarded-For (defeats
+      # brute-force IP accounting) or X-Forwarded-Proto (satisfies sslRequired).
+      - KC_PROXY_TRUSTED_ADDRESSES=${KC_PROXY_TRUSTED_ADDRESSES:-0.0.0.0/0,::/0}
       - KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}
       # --- Direct TLS termination (mode B, alternative — leave empty for
       #     mode A). PEM files, mounted read-only from KC_TLS_CERT_DIR below.
