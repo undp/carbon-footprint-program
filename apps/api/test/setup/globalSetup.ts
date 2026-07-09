@@ -40,9 +40,18 @@ export default async function setup(project: TestProject) {
   // Database is required for all tests — let it propagate and fail fast.
   const { databaseUrl, container: dbContainer } = await setupTestDatabase();
 
-  // Storage is only required for file-upload tests. If the container fails to
-  // start (wrong Node.js version, missing Docker image, CI network issue, etc.)
-  // we still want database-only tests to run.
+  // Storage is best-effort: only the storage-manifest tests (the storage-*
+  // legs) need the testcontainer. If it fails to start (wrong Node.js version,
+  // missing Docker image, CI network issue, etc.) we still want the
+  // storage-independent tests to run.
+  //
+  // This invariant holds because each test script sets STORAGE_PROVIDER itself
+  // (base leg = azure_blob_storage), so `buildStorageConfig()` at `app.ready()`
+  // clears its "STORAGE_PROVIDER is required" check without the container. The
+  // remaining provider-required var (AZURE_STORAGE_ACCOUNT_NAME) comes from the
+  // CI job env, so boot succeeds in CI even when the container is down. Locally
+  // that var is only injected by `applyStorageEnv` on the happy path, so a
+  // failed container there still breaks boot unless it is exported in the shell.
   let storageDescriptor: TestStorageDescriptor | null = null;
   let storageContainer: TestStorageContainer | null = null;
 
