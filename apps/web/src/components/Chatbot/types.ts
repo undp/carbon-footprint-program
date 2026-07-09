@@ -6,6 +6,10 @@ export type ChatbotMessage = {
   role: "user" | "assistant";
   content: string;
   truncated?: boolean;
+  // Set when `content` holds an error notice (unreachable server, degraded,
+  // too-large, or a mid-stream failure) rather than a real assistant reply.
+  // MessageBubble renders these with distinct error styling.
+  error?: boolean;
 };
 
 export type SendMessageResult =

@@ -300,6 +300,7 @@ export const useChatStream = () => {
             updateLastAssistant((msg) => ({
               ...msg,
               content: DEGRADED_MESSAGE,
+              error: true,
             }));
             return;
           }
@@ -307,12 +308,18 @@ export const useChatStream = () => {
           updateLastAssistant((msg) => ({
             ...msg,
             content: GENERIC_ERROR_MESSAGE,
+            error: true,
           }));
           return;
         }
 
         if (!response) {
           setState("error");
+          updateLastAssistant((msg) => ({
+            ...msg,
+            content: GENERIC_ERROR_MESSAGE,
+            error: true,
+          }));
           return;
         }
 
@@ -323,6 +330,7 @@ export const useChatStream = () => {
             updateLastAssistant((msg) => ({
               ...msg,
               content: TOO_LARGE_MESSAGE,
+              error: true,
             }));
             return;
           }
@@ -335,13 +343,18 @@ export const useChatStream = () => {
               // fall through to generic
             }
             setState("error");
-            updateLastAssistant((msg) => ({ ...msg, content: serverMessage }));
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: serverMessage,
+              error: true,
+            }));
             return;
           }
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
             content: GENERIC_ERROR_MESSAGE,
+            error: true,
           }));
           return;
         }
@@ -363,6 +376,7 @@ export const useChatStream = () => {
             updateLastAssistant((msg) => ({
               ...msg,
               content: result.message,
+              error: true,
             }));
             break;
           case "degraded":

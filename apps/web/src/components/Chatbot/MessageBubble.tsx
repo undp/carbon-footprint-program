@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -22,6 +23,39 @@ export const MessageBubble = memo(function MessageBubble({
 }: MessageBubbleProps) {
   const theme = useTheme();
   const isUser = message.role === "user";
+
+  // A failed turn (unreachable server, degraded, too-large, or a mid-stream
+  // error) renders as a left-aligned tinted bubble with an error icon, so it
+  // never looks like a real assistant reply. Error text is a plain Spanish
+  // string, so it skips the markdown pipeline.
+  if (message.error) {
+    return (
+      <Box display="flex" justifyContent="flex-start" mb={1}>
+        <Box
+          sx={{
+            maxWidth: "85%",
+            display: "flex",
+            gap: 1,
+            alignItems: "flex-start",
+            bgcolor: alpha(theme.palette.error.main, 0.1),
+            color: theme.palette.error.dark,
+            border: `1px solid ${alpha(theme.palette.error.main, 0.4)}`,
+            borderRadius: 2,
+            px: 1.5,
+            py: 1,
+            overflowWrap: "anywhere",
+          }}
+        >
+          <ErrorOutlineIcon
+            fontSize="small"
+            sx={{ color: theme.palette.error.main, mt: "2px", flexShrink: 0 }}
+          />
+          <Typography variant="body2">{message.content}</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   const bubbleBg = isUser
     ? theme.palette.primary.main
     : alpha(theme.palette.text.primary, 0.06);
