@@ -12,7 +12,7 @@ const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
-  "El asistente no está disponible en este momento. Recarga la página o intenta más tarde.";
+  "El asistente no está disponible en este momento. Por favor intenta nuevamente en unos minutos.";
 
 type SsePayload = {
   id?: string;
@@ -324,28 +324,44 @@ export const useChatStream = () => {
         }
 
         if (!response.ok) {
+          // 5xx means the backend itself is failing, so treat it like a
+          // transport failure: increment the unavailability counter and let it
+          // escalate to "degraded" after two in a row. 4xx are per-turn client
+          // errors (the backend answered fine), so they reset the counter.
+          if (response.status >= 500) {
+            consecutiveFailuresRef.current += 1;
+            let serverMessage = GENERIC_ERROR_MESSAGE;
+            if (response.status === 503) {
+              try {
+                const json = (await response.json()) as { message?: string };
+                if (json.message) serverMessage = json.message;
+              } catch {
+                // fall through to generic
+              }
+            }
+            if (consecutiveFailuresRef.current >= 2) {
+              setState("degraded");
+              updateLastAssistant((msg) => ({
+                ...msg,
+                content: DEGRADED_MESSAGE,
+                error: true,
+              }));
+              return;
+            }
+            setState("error");
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: serverMessage,
+              error: true,
+            }));
+            return;
+          }
           consecutiveFailuresRef.current = 0;
           if (response.status === 413) {
             setState("error");
             updateLastAssistant((msg) => ({
               ...msg,
               content: TOO_LARGE_MESSAGE,
-              error: true,
-            }));
-            return;
-          }
-          if (response.status === 503) {
-            let serverMessage = GENERIC_ERROR_MESSAGE;
-            try {
-              const json = (await response.json()) as { message?: string };
-              if (json.message) serverMessage = json.message;
-            } catch {
-              // fall through to generic
-            }
-            setState("error");
-            updateLastAssistant((msg) => ({
-              ...msg,
-              content: serverMessage,
               error: true,
             }));
             return;

@@ -147,7 +147,7 @@ export function ChatbotWidget() {
     // button: the IconButton is disabled while busy, but the keyboard
     // path can still re-enter handleSend before React applies the
     // disabled prop on the next render.
-    if (isBusy || state === "degraded") return;
+    if (isBusy) return;
     const content = draft.trim();
     if (!content) return;
     markIntroduced();
@@ -290,17 +290,6 @@ export function ChatbotWidget() {
         ) : (
           messages.map((m) => <MessageBubble key={m.id} message={m} />)
         )}
-        {state === "degraded" ? (
-          <Typography
-            variant="caption"
-            color="error"
-            display="block"
-            textAlign="center"
-            mt={1}
-          >
-            El asistente no está disponible.
-          </Typography>
-        ) : null}
       </Box>
 
       <Box
@@ -318,14 +307,12 @@ export function ChatbotWidget() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Escribe tu pregunta…"
-            // Only disabled when the assistant is permanently unavailable.
-            // Keeping the field enabled while streaming preserves keyboard
-            // focus across the send cycle — disabling it would blur the
-            // input, and the browser does not restore focus when the field
-            // re-enables, so the next keystroke would land nowhere. Double-
-            // sends are still blocked by the `isBusy` guard in handleSend
-            // and by the send button being disabled.
-            disabled={state === "degraded"}
+            // Never disabled — kept enabled in every state (including
+            // "degraded") so the user can always retry in place without the
+            // destructive "Nueva conversación", and so streaming never blurs
+            // the input (the browser would not restore focus on re-enable).
+            // Double-sends while a turn is in flight are blocked by the isBusy
+            // guard in handleSend and the disabled send button.
             inputRef={inputRef}
             inputProps={{ maxLength: CHATBOT_MAX_USER_INPUT_CHARS }}
             onKeyDown={(e) => {
@@ -347,7 +334,7 @@ export function ChatbotWidget() {
           <IconButton
             color="primary"
             onClick={() => void handleSend()}
-            disabled={!draft.trim() || isBusy || state === "degraded"}
+            disabled={!draft.trim() || isBusy}
             aria-label="Enviar mensaje"
           >
             <SendIcon />
