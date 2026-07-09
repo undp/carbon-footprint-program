@@ -1,6 +1,5 @@
 name: Bug report
 description: Report a reproducible bug in the Huella Latam upstream codebase.
-title: "[Bug] "
 labels: ["type: bug", "status: triage"]
 body:
   - type: markdown

@@ -1,6 +1,5 @@
 name: Refactor / tech-debt / chore
 description: Propose an internal engineering change — refactor, tech-debt paydown, performance, hardening or chore — that adds no user-facing feature and is not a reproducible bug.
-title: "[Refactor] "
 labels: ["type: refactor", "status: triage"]
 body:
   - type: markdown
