@@ -104,6 +104,18 @@ export const loadConversationHistory = async (
   });
 };
 
+/**
+ * Server-side token cap on user input.
+ *
+ * Deliberately unreachable in foundation: the Zod body schema rejects any
+ * content over CHATBOT_MAX_USER_INPUT_CHARS (= CHATBOT_MAX_USER_INPUT_TOKENS
+ * * 4 = 16000) with a 400 before the handler runs, so the 413 branch never
+ * fires today. It is kept as defense-in-depth and as the single source of
+ * truth for the *token* limit (the char cap is only a proxy): V1 plans to
+ * widen the Zod char cap to admit multi-byte scripts where 4 chars/token
+ * under-counts, at which point this token check becomes the effective guard.
+ * Removing it now would silently drop that protection when the cap moves.
+ */
 export const enforceUserInputCap = (userContent: string): void => {
   if (estimateTokens(userContent) > CHATBOT_MAX_USER_INPUT_TOKENS) {
     throw new RequestTooLargeError(
