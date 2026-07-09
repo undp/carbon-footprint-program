@@ -4,7 +4,7 @@ import {
 } from "@repo/types";
 import { z } from "zod";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import type { FastifyZodInstance } from "@/types/fastify.js";
 import { chatbotIdentityPreHandler } from "@/features/chatbot/helpers/identity.js";
 import { sendMessageHandler } from "./handler.js";
 
@@ -17,11 +17,11 @@ const SendMessageStreamSchema = z
     "text/event-stream — `data:` SSE events with assistant deltas, terminal `event: done` carrying { inputTokens, outputTokens }, or terminal `event: error` carrying { code, message } on mid-stream provider failure."
   );
 
-export const sendMessageRoute: StandardRouteSignature = (fastify, options) => {
+export const sendMessageRoute = (fastify: FastifyZodInstance): void => {
   fastify.post<{ Body: SendMessageRequestBody }>(
     "/message",
     {
-      config: { public: options?.public ?? true },
+      config: { allowPublicAccess: true },
       schema: {
         tags: ["chatbot"],
         summary: "Send a chat message and stream the assistant response",

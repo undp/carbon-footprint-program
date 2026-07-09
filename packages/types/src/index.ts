@@ -3,6 +3,7 @@ export * from "./countryOrganizationSizes/index.js";
 export * from "./countrySectors/index.js";
 export * from "./countrySubsectors/index.js";
 export * from "./jobPositions/index.js";
+export * from "./magnitudes/index.js";
 export * from "./measurementUnits/index.js";
 export * from "./organizationMainActivities/index.js";
 export * from "./methodologies/index.js";

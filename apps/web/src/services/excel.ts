@@ -1,4 +1,5 @@
 import type ExcelJS from "exceljs";
+import { downloadBlob } from "@/utils/files";
 
 export const BASE_FONT_SIZE = 12;
 
@@ -49,17 +50,19 @@ export const downloadWorkbook = async (
   filename: string
 ) => {
   const buffer = await workbook.xlsx.writeBuffer();
+  downloadBuffer(buffer, filename);
+};
+
+/**
+ * Triggers a browser download for a pre-built workbook buffer. Lets the
+ * inventory and methodology workbook builders share the same download
+ * primitive without reassembling the workbook.
+ */
+export const downloadBuffer = (buffer: ArrayBuffer, filename: string): void => {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  // Defer revocation to ensure download starts
-  setTimeout(() => window.URL.revokeObjectURL(url), 100);
-  anchor.remove();
+  downloadBlob(blob, filename);
 };
 
 export const sanitizeExcelSheetName = (name: string) => {

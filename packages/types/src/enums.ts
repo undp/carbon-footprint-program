@@ -27,5 +27,5 @@ export {
   OrganizationMainActivityStatus,
   CountryOrganizationSizeStatus,
   MeasurementUnitStatus,
-  Magnitude,
+  MagnitudeStatus,
 } from "@repo/database/enums";

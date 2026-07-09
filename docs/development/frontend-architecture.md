@@ -9,13 +9,13 @@ This document describes the structure of `apps/web` — the React + Vite fronten
 ```
 apps/web/src/
 ├── api/           # HTTP client + TanStack Query hooks (organized by domain)
-├── auth/          # MSAL integration: initialization, token acquisition
+├── auth/          # OIDC integration: oidcUserManager singleton, token acquisition
 ├── components/    # Reusable UI components (form fields, layout, status chips)
-├── config/        # Environment constants, MSAL config
+├── config/        # Environment constants, OIDC config
 ├── contexts/      # React Context providers (AuthProvider, ExplanationProvider)
 ├── hooks/         # Custom hooks (e.g., useFuzzySearch)
 ├── icons/         # Custom SVG icon components
-├── interfaces/    # Shared TypeScript types (Routes enum, etc.)
+├── interfaces/    # Shared TypeScript types (e.g. routes/routes.const.ts — the Routes const object)
 ├── routes/        # TanStack Router route files (file-based routing)
 ├── screens/       # Full-page components (one per route)
 ├── services/      # Non-API services (excel generation, file download)
@@ -41,7 +41,7 @@ apps/web/src/
 | Styling              | Tailwind CSS 4 + Emotion (MUI's styling engine)       |
 | Forms                | react-hook-form + @hookform/resolvers + Zod           |
 | HTTP client          | ky                                                    |
-| Authentication       | @azure/msal-browser + @azure/msal-react               |
+| Authentication       | oidc-client-ts + react-oidc-context                   |
 | File exports         | exceljs                                               |
 | Notifications        | notistack                                             |
 
@@ -65,7 +65,7 @@ src/routes/
 **Root layout (`__root.tsx`)** wraps everything with:
 
 - `ThemeProvider` (MUI theme)
-- `MsalProvider` (auth context)
+- `AuthProvider` from `react-oidc-context` (auth context)
 - `QueryClientProvider` (TanStack Query)
 - `AuthProvider` (app-level auth state)
 - Global error boundary and 404 component
@@ -160,14 +160,14 @@ Never call `fetch` directly — always go through `apiClient` so authentication 
 
 ## Authentication
 
-MSAL handles the OAuth2/OIDC flow against Azure Entra ID.
+A generic OIDC client (`oidc-client-ts` via `react-oidc-context`) handles the Authorization Code + PKCE flow against the configured IdP (Entra, Keycloak, …).
 
-1. `initializeMsal()` is called once during app startup (in `main.tsx` or `__root.tsx`).
-2. `msalInstance.handleRedirectPromise()` completes the login redirect.
-3. `getAuthToken()` acquires access tokens silently (falls back to popup on consent failures).
+1. A singleton `UserManager` (`auth/oidcUserManager.ts`) is the session source of truth, shared by React and the non-React route guard / HTTP client.
+2. `react-oidc-context` completes the redirect at `/auth/callback` and establishes the session.
+3. `getAuthToken()` returns the current access token, silently renewing via the refresh token when expired.
 4. The `ky` `beforeRequest` hook attaches `Authorization: Bearer <token>` to every API call.
 
-See [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md) for tenant and app registration configuration.
+See [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) for the auth contract and JWKS/OIDC config (it links to the provider-specific [Azure Entra setup](../infrastructure/AzureAuthenticationSetup.md) and Keycloak guides).
 
 ---
 
@@ -240,7 +240,7 @@ Typical workflow for a new feature with a new page:
 
 5. **Add mutation hook** at `src/api/mutation/myFeature/useCreateMyFeature.ts` (if the screen submits data).
 
-6. **Update the route path enum** in `src/interfaces/routes.ts` if you add a new named route.
+6. **Update the route constants** (the `Routes` const object) in `src/interfaces/routes/routes.const.ts` if you add a new named route.
 
 7. **Run the dev server** — TanStack Router regenerates `routeTree.gen.ts` automatically.
 

@@ -1,0 +1,35 @@
+[
+  {
+    "key": "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
+    "value": "AUTOMATIC",
+    "description": "Defines how carbon inventory measurements are recognized. HIDDEN: measurement recognition is disabled. MANUAL: requires manual review and approval. AUTOMATIC: measurements are automatically recognized and approved.",
+    "type": "selector",
+    "options": ["HIDDEN", "MANUAL", "AUTOMATIC"]
+  },
+  {
+    "key": "SUBCATEGORY_RECOMMENDATION_MODE",
+    "value": "UNION",
+    "description": "Defines how subcategory recommendations are retrieved. UNION: returns sector-level recommendations combined with subsector-specific recommendations. SPECIFIC: returns only subsector-specific recommendations.",
+    "type": "selector",
+    "options": ["UNION", "SPECIFIC"]
+  },
+  {
+    "key": "USER_INACTIVE_THRESHOLD_DAYS",
+    "value": "90",
+    "description": "Number of days of inactivity after which a user is considered inactive. Used to classify users as active or inactive in the admin users screen.",
+    "type": "number"
+  },
+  {
+    "key": "TERMS_CONDITIONS_FILE_UUID",
+    "value": "",
+    "description": "UUID of the File row used as the current Terms & Conditions PDF on the public landing page. Empty when no T&C has been uploaded yet.",
+    "type": "file"
+  },
+  {
+    "key": "MEASURING_ORGANIZATIONS_YEAR_RANGE",
+    "value": "2",
+    "description": "Number of years (including the current year) considered as 'recent measurements' for carbon inventories in the organization summary view and admin dashboard KPIs. 1 = only the current year; 2 = current year and the previous one; 3 = current year and the two previous; and so on.",
+    "type": "number",
+    "min": 1
+  }
+]

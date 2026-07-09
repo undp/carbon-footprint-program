@@ -134,9 +134,13 @@ The authentication provider issuing JWT tokens. In production, Azure Entra Exter
 
 A standard endpoint exposing the public keys used to verify JWT signatures. The API fetches keys from the Entra ID JWKS endpoint to validate incoming tokens.
 
+### oidc-client-ts / react-oidc-context
+
+The provider-agnostic client-side OIDC libraries used in the frontend to initiate login and obtain access tokens for the API. They work against any OIDC issuer (Azure Entra, Keycloak, …), not just Microsoft.
+
 ### MSAL (Microsoft Authentication Library)
 
-Microsoft's client-side library for acquiring tokens from Entra ID. Used in the frontend to initiate login and obtain access tokens for the API.
+Microsoft's Entra-specific client-side token library. **Historical:** previously used in the frontend, removed during the generic-OIDC migration in favor of `oidc-client-ts` + `react-oidc-context`. No `@azure/msal-*` dependency remains.
 
 ### SAS URL (Shared Access Signature)
 

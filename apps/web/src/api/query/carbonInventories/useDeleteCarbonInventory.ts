@@ -1,13 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
-import { DeleteCarbonInventoryResponse } from "@repo/types";
 import { CarbonInventoryQueryKey } from "./keys";
 
 export const useDeleteCarbonInventory = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<DeleteCarbonInventoryResponse, Error, string>({
-    mutationFn: (id) => apiClient.delete(`carbon-inventories/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`carbon-inventories/${id}`);
+    },
     onSuccess: async (_data, id) => {
       await Promise.all([
         queryClient.invalidateQueries({

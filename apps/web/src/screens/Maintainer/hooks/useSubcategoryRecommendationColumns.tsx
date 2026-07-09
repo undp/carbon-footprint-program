@@ -17,7 +17,7 @@ import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { GetAllCountrySectorsResponse } from "@repo/types";
 import { useOverflowTooltip } from "@/hooks";
 import { SUBCATEGORY_RECOMMENDATIONS_LABELS } from "../constants";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import {
   isNewRow,
   type SubcategoryRecommendationRow,
@@ -210,6 +210,12 @@ export const useSubcategoryRecommendationColumns = ({
         flex: 3,
         minWidth: 320,
         sortable: false,
+        valueGetter: (_, row: SubcategoryRecommendationRow) =>
+          row.subcategoryIds
+            .map((id) => subcategoriesById.get(id)?.name)
+            .filter((name): name is string => !!name)
+            .sort((a, b) => a.localeCompare(b))
+            .join(", "),
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
         ) => {
@@ -295,6 +301,7 @@ export const useSubcategoryRecommendationColumns = ({
         width: 120,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
@@ -309,7 +316,7 @@ export const useSubcategoryRecommendationColumns = ({
             <Stack direction="row" spacing={0.5}>
               {isDirty && (
                 <>
-                  <ActionIconButton
+                  <AdminActionButton
                     icon={SaveOutlined}
                     tooltip={
                       SUBCATEGORY_RECOMMENDATIONS_LABELS.saveRowAriaLabel
@@ -318,7 +325,7 @@ export const useSubcategoryRecommendationColumns = ({
                     disabled={isSaving}
                     onClick={() => onSaveRow(rowIndex)}
                   />
-                  <ActionIconButton
+                  <AdminActionButton
                     icon={CloseOutlined}
                     tooltip={
                       SUBCATEGORY_RECOMMENDATIONS_LABELS.cancelRowAriaLabel
@@ -329,7 +336,7 @@ export const useSubcategoryRecommendationColumns = ({
                 </>
               )}
               {!isNew && !isDirty && (
-                <ActionIconButton
+                <AdminActionButton
                   icon={DeleteOutlined}
                   tooltip={SUBCATEGORY_RECOMMENDATIONS_LABELS.deleteRow}
                   disabled={isSaving}

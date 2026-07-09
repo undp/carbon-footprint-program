@@ -9,7 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import {
-  EditOutlined,
+  SettingsOutlined,
   VisibilityOutlined,
   ContentCopyOutlined,
   DeleteOutlined,
@@ -18,8 +18,9 @@ import {
   KeyboardArrowUpOutlined,
   KeyboardArrowDownOutlined,
   TuneOutlined,
+  FileDownloadOutlined,
 } from "@mui/icons-material";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
 
 interface ActionButtonProps {
   isActiveRow: boolean;
@@ -33,8 +34,15 @@ interface ActionButtonProps {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onConfigureVariables?: () => void;
+  onDownloadExcel?: () => void;
+  editDisabled?: boolean;
+  editTooltipTitle?: string;
+  duplicateDisabled?: boolean;
+  duplicateTooltipTitle?: string;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
+  downloadExcelDisabled?: boolean;
+  downloadExcelTooltipTitle?: string;
   deleteDisabled?: boolean;
   deleteTooltipTitle?: string;
   deleteConfirmMessage?: string;
@@ -63,8 +71,15 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onMoveUp,
   onMoveDown,
   onConfigureVariables,
+  onDownloadExcel,
+  editDisabled = false,
+  editTooltipTitle,
+  duplicateDisabled = false,
+  duplicateTooltipTitle,
   moveUpDisabled = false,
   moveDownDisabled = false,
+  downloadExcelDisabled = false,
+  downloadExcelTooltipTitle = "Descargar",
   deleteDisabled = false,
   deleteTooltipTitle,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
@@ -83,28 +98,33 @@ export const ActionButtons: FC<ActionButtonProps> = ({
     <>
       <Box className="flex justify-end gap-1">
         {isEditing && onStopEditCells && (
-          <ActionIconButton
+          <AdminActionButton
             icon={SaveOutlined}
             tooltip="Guardar cambios"
             onClick={onStopEditCells}
           />
         )}
         {isEditing && onCancelEdit && (
-          <ActionIconButton
+          <AdminActionButton
             icon={CloseOutlined}
             tooltip="Cancelar edición"
             onClick={onCancelEdit}
           />
         )}
         {onEdit && !isActiveRow && !isEditing && (
-          <ActionIconButton
-            icon={EditOutlined}
-            tooltip="Editar alcances"
+          <AdminActionButton
+            icon={SettingsOutlined}
+            tooltip={
+              editDisabled && editTooltipTitle
+                ? editTooltipTitle
+                : "Ajustar metodología"
+            }
             onClick={onEdit}
+            disabled={editDisabled}
           />
         )}
         {onView && isActiveRow && (
-          <ActionIconButton
+          <AdminActionButton
             icon={VisibilityOutlined}
             tooltip="Ver alcances"
             onClick={onView}
@@ -117,7 +137,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           }}
         >
           {!isEditing && onMoveUp && (
-            <ActionIconButton
+            <AdminActionButton
               icon={KeyboardArrowUpOutlined}
               tooltip="Mover arriba"
               onClick={onMoveUp}
@@ -125,7 +145,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             />
           )}
           {!isEditing && onMoveDown && (
-            <ActionIconButton
+            <AdminActionButton
               icon={KeyboardArrowDownOutlined}
               tooltip="Mover abajo"
               onClick={onMoveDown}
@@ -134,21 +154,34 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           )}
         </Box>
         {!isEditing && onConfigureVariables && !isActiveRow && (
-          <ActionIconButton
+          <AdminActionButton
             icon={TuneOutlined}
             tooltip="Configurar variables"
             onClick={onConfigureVariables}
           />
         )}
         {!isEditing && onDuplicate && (
-          <ActionIconButton
+          <AdminActionButton
             icon={ContentCopyOutlined}
-            tooltip="Duplicar"
+            tooltip={
+              duplicateDisabled && duplicateTooltipTitle
+                ? duplicateTooltipTitle
+                : "Duplicar"
+            }
             onClick={onDuplicate}
+            disabled={duplicateDisabled}
+          />
+        )}
+        {!isEditing && onDownloadExcel && (
+          <AdminActionButton
+            icon={FileDownloadOutlined}
+            tooltip={downloadExcelTooltipTitle}
+            onClick={onDownloadExcel}
+            disabled={downloadExcelDisabled}
           />
         )}
         {!isEditing && onDelete && (
-          <ActionIconButton
+          <AdminActionButton
             icon={DeleteOutlined}
             tooltip={resolvedDeleteTooltipTitle}
             onClick={() => setDeleteOpen(true)}

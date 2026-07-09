@@ -11,6 +11,7 @@ export const autoConfig: FastifyUnderPressureOptions = {
 
 export default fp<FastifyUnderPressureOptions>(
   async function (fastify, opts) {
+    if (process.env.NODE_ENV === "test") return;
     await fastify.register(fastifyUnderPressure, opts);
   },
   {

@@ -3,12 +3,7 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
 } from "@repo/types";
-import {
-  downloadWorkbook,
-  sanitizeFilenamePart,
-  display,
-  BASE_FONT_SIZE,
-} from "@/services/excel";
+import { display, BASE_FONT_SIZE } from "@/services/excel";
 import { formatter } from "@/utils/formatting";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
@@ -16,7 +11,8 @@ const NUM_FMT_DECIMAL = "#,##0.00";
 function buildSummarySheet(
   workbook: ExcelJS.Workbook,
   summaryData: GetEmissionsDetailedSummaryResponse,
-  year: number | null
+  year: number | null,
+  attachmentCount: number
 ) {
   const worksheet = workbook.addWorksheet("Resumen");
 
@@ -28,8 +24,8 @@ function buildSummarySheet(
     ["Nombre organización", display(inventoryAttributes.companyName)],
     ["País", display(inventoryAttributes.countryName)],
     ["Rubro", display(inventoryAttributes.sectorName)],
+    ["Sub-rubro", display(inventoryAttributes.subsectorName)],
     ["Tamaño", display(inventoryAttributes.sizeName)],
-    ["Sedes", display(inventoryAttributes.branchCount)],
     ["Medición", display(inventoryAttributes.name)],
     ["Año", display(year)],
     [
@@ -42,6 +38,7 @@ function buildSummarySheet(
           : null
       ),
     ],
+    ["Archivos adjuntos", attachmentCount],
   ];
 
   for (const [label, value] of attributes) {
@@ -57,7 +54,11 @@ function buildDetailTableSheet(
 ) {
   const worksheet = workbook.addWorksheet("Detalle emisiones");
 
+  // Item ID column at index 0 — same id is embedded in `archivos/` filenames
+  // (as the `item-{lineId}` segment) so users can cross-reference a row with
+  // its files.
   worksheet.columns = [
+    { width: 12 },
     { width: 28 },
     { width: 28 },
     { width: 36 },
@@ -66,6 +67,7 @@ function buildDetailTableSheet(
     { width: 22 },
     { width: 28 },
     { width: 20 },
+    { width: 40 },
   ];
 
   const sortedCategories = [...summaryData.categories].sort(
@@ -80,22 +82,9 @@ function buildDetailTableSheet(
       : category.name;
 
     for (const subcategory of category.subcategories) {
-      if (!subcategory.hasLines || subcategory.lines.length === 0) {
-        rows.push([
-          categoryLabel,
-          display(subcategory.name),
-          "-",
-          "-",
-          "-",
-          "-",
-          "-",
-          subcategory.subtotal,
-        ]);
-        continue;
-      }
-
       for (const line of subcategory.lines) {
         rows.push([
+          line.lineId,
           categoryLabel,
           display(subcategory.name),
           display(line.emissionSource),
@@ -104,6 +93,7 @@ function buildDetailTableSheet(
           line.factorValue,
           display(line.factorSource),
           line.emissions,
+          display(line.comment),
         ]);
       }
     }
@@ -125,6 +115,7 @@ function buildDetailTableSheet(
       showRowStripes: true,
     },
     columns: [
+      { name: "Item ID", filterButton: true },
       { name: "Categoría", filterButton: true },
       { name: "Sub-categoría", filterButton: true },
       { name: "Fuente de emisión", filterButton: true },
@@ -133,15 +124,16 @@ function buildDetailTableSheet(
       { name: "Factor kgCO₂e/unidad", filterButton: true },
       { name: "Fuente factor", filterButton: true },
       { name: "Emisiones (tCO₂e)", filterButton: true },
+      { name: "Comentario", filterButton: true },
     ],
     rows,
   });
 
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
-  worksheet.getColumn(5).numFmt = NUM_FMT_DECIMAL;
   worksheet.getColumn(6).numFmt = NUM_FMT_DECIMAL;
-  worksheet.getColumn(8).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(7).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(9).numFmt = NUM_FMT_DECIMAL;
 }
 
 function buildFactorsSheet(
@@ -206,20 +198,19 @@ function buildFactorsSheet(
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
 }
 
-export async function exportCarbonInventoryToExcel(
-  inventoryName: string | null,
+/**
+ * Pure builder — assembles the inventory workbook and returns it as an
+ * ArrayBuffer suitable for either downloading or streaming into a ZIP.
+ */
+export async function buildCarbonInventoryWorkbook(
   year: number | null,
   summaryData: GetEmissionsDetailedSummaryResponse,
-  factorsData: GetEmissionFactorsResponse
-) {
+  factorsData: GetEmissionFactorsResponse,
+  attachmentCount: number
+): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
-
-  buildSummarySheet(workbook, summaryData, year);
+  buildSummarySheet(workbook, summaryData, year, attachmentCount);
   buildDetailTableSheet(workbook, summaryData);
   buildFactorsSheet(workbook, factorsData);
-
-  const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
-  const yearSuffix = year != null ? `-${year}` : "";
-  const filename = `${safeName}${yearSuffix}-resumen-emisiones.xlsx`;
-  await downloadWorkbook(workbook, filename);
+  return workbook.xlsx.writeBuffer();
 }

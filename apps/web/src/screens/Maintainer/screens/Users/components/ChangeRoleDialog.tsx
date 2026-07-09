@@ -14,7 +14,8 @@ import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
 import { useUpdateUserRole } from "@/api/query/users";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { ROLE_LABELS, DIALOG_COPY, TOOLTIP_COPY } from "../constants";
+import { DIALOG_COPY, TOOLTIP_COPY } from "../constants";
+import { SYSTEM_ROLE_LABELS } from "@/labels/chips/role";
 
 interface ChangeRoleDialogProps {
   open: boolean;
@@ -106,7 +107,7 @@ export const ChangeRoleDialog: FC<ChangeRoleDialogProps> = ({
                 disabled={isDisabled}
                 title={isDisabled ? TOOLTIP_COPY.lastSuperadmin : undefined}
               >
-                {ROLE_LABELS[role]}
+                {SYSTEM_ROLE_LABELS[role].label}
               </MenuItem>
             );
           })}

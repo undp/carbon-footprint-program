@@ -1,17 +1,16 @@
 import { z } from "zod";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import type { FastifyZodInstance } from "@/types/fastify.js";
 import { chatbotIdentityPreHandler } from "@/features/chatbot/helpers/identity.js";
 import { deleteMyConversationHandler } from "./handler.js";
 
-export const deleteMyConversationRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
+export const deleteMyConversationRoute = (
+  fastify: FastifyZodInstance
+): void => {
   fastify.delete(
     "/conversations/me",
     {
-      config: { public: options?.public ?? true },
+      config: { allowPublicAccess: true },
       schema: {
         tags: ["chatbot"],
         summary: "Delete all conversations bound to the caller identity",

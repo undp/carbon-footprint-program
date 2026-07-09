@@ -10,7 +10,8 @@ export interface CurrentTermsConditionsBlob {
 
 /**
  * Resolves the current Terms & Conditions File row (if any) and returns the
- * blob coordinates the streaming handler needs to fetch the PDF from Azure.
+ * blob coordinates the streaming handler needs to fetch the PDF from object
+ * storage.
  *
  * Returns `null` when no current T&C is set OR when the SystemParameter
  * points at a File that has since been soft-deleted — both should produce a

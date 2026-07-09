@@ -1,4 +1,11 @@
-import { type PrismaClient, Prisma, CountrySectorStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  Prisma,
+  CountrySectorStatus,
+  CountrySubsectorStatus,
+  OrganizationMainActivityStatus,
+  SubcategoryRecommendationStatus,
+} from "@repo/database";
 import {
   type UpdateCountrySubsectorRequest,
   type UpdateCountrySubsectorResponse,
@@ -6,10 +13,12 @@ import {
 } from "@repo/types";
 import {
   DatabaseUniqueConstraintViolationError,
+  EditBlockedByReferencesError,
   ResourceNotFoundError,
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import { countConsumerReferences } from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -40,23 +49,140 @@ export const updateCountrySubsectorService = async (
       if (data.description !== undefined) {
         updateData.description = normalizeDescriptionInput(data.description);
       }
-      if (data.countrySectorId !== undefined) {
-        const newSectorId = BigInt(data.countrySectorId);
-        const parent = await tx.countrySector.findFirst({
-          where: { id: newSectorId, status: CountrySectorStatus.ACTIVE },
-          select: { id: true },
+
+      // Identity-changing edits to a subsector are guarded; description-only edits
+      // are always allowed, so the current row is fetched only when name or parent
+      // is touched. Two kinds of edit corrupt existing references and are blocked:
+      //
+      //  - Re-parenting (changing the parent sector) would silently move dependents —
+      //    and the denormalized parent columns the delete-cascade relies on — to a
+      //    different sector. Blocked while the subsector has ANY dependent: catalog
+      //    children (active main activities / subcategory recommendations), live
+      //    `organization_data` rows, or an ACTIVE carbon-inventory snapshot.
+      //  - Renaming a subsector a user already selected would make that user see a
+      //    name they never chose. Blocked while USER data references it (live
+      //    `organization_data` or an ACTIVE snapshot); catalog children alone do NOT
+      //    block a rename.
+      //
+      // Two denormalizations carry the subsector outside its own table: the live
+      // `organization_data` rows, and the frozen `carbon_inventory.organizationData`
+      // JSON snapshot (which stores `sectorId` + `subsectorId` as a point-in-time
+      // pair, written as strings — see `buildOrganizationDataSnapshot`). The snapshot
+      // is an independent copy, so it can reference this subsector even when no live
+      // organization_data row does. A no-op (same name / same sector) never blocks;
+      // re-identification is only allowed by soft-deleting (which cascades) and
+      // re-creating under the correct name/sector.
+      if (data.name !== undefined || data.countrySectorId !== undefined) {
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // before the reference check, instead of a misleading 409.
+        const existing = await tx.countrySubsector.findFirst({
+          where: { id: subsectorId, status: CountrySubsectorStatus.ACTIVE },
+          select: { name: true, countrySectorId: true },
         });
-        if (!parent) {
-          throw new ResourceNotFoundError(
-            "CountrySector",
-            data.countrySectorId
-          );
+        if (!existing) {
+          throw new ResourceNotFoundError("CountrySubsector", id);
         }
-        updateData.countrySector = { connect: { id: newSectorId } };
+
+        const isRename = data.name !== undefined && data.name !== existing.name;
+        const newSectorId =
+          data.countrySectorId !== undefined
+            ? BigInt(data.countrySectorId)
+            : null;
+        const isReparent =
+          newSectorId !== null && newSectorId !== existing.countrySectorId;
+
+        if (isReparent) {
+          const parent = await tx.countrySector.findFirst({
+            where: { id: newSectorId, status: CountrySectorStatus.ACTIVE },
+            select: { id: true },
+          });
+          if (!parent) {
+            throw new ResourceNotFoundError(
+              "CountrySector",
+              data.countrySectorId
+            );
+          }
+        }
+
+        if (isRename || isReparent) {
+          const { organizationDataCount, carbonInventoryCount } =
+            await countConsumerReferences(tx, {
+              organizationDataWhere: { subsectorId },
+              snapshotJsonKey: "subsectorId",
+              id: subsectorId,
+            });
+
+          // Catalog children only block re-parenting (renaming them is harmless).
+          let activeMainActivityCount = 0;
+          let activeSubcategoryRecommendationCount = 0;
+          if (isReparent) {
+            [activeMainActivityCount, activeSubcategoryRecommendationCount] =
+              await Promise.all([
+                tx.organizationMainActivity.count({
+                  where: {
+                    countrySubsectorId: subsectorId,
+                    status: OrganizationMainActivityStatus.ACTIVE,
+                  },
+                }),
+                tx.subcategoryRecommendation.count({
+                  where: {
+                    subsectorId,
+                    status: SubcategoryRecommendationStatus.ACTIVE,
+                  },
+                }),
+              ]);
+          }
+
+          const userDataRefs = organizationDataCount + carbonInventoryCount;
+          const catalogChildRefs =
+            activeMainActivityCount + activeSubcategoryRecommendationCount;
+          const nameBlocked = isRename && userDataRefs > 0;
+          const parentBlocked =
+            isReparent && (userDataRefs > 0 || catalogChildRefs > 0);
+
+          if (nameBlocked || parentBlocked) {
+            const referencedBy: string[] = [];
+            // A name-only block lists user data only; catalog children are not the
+            // reason a rename is rejected.
+            if (parentBlocked && activeMainActivityCount > 0)
+              referencedBy.push("main activities");
+            if (parentBlocked && activeSubcategoryRecommendationCount > 0)
+              referencedBy.push("subcategory recommendations");
+            if (organizationDataCount > 0)
+              referencedBy.push("organization data");
+            if (carbonInventoryCount > 0)
+              referencedBy.push("carbon inventories");
+
+            const referencedByDetail: Record<string, number> = {
+              organizationData: organizationDataCount,
+              carbonInventories: carbonInventoryCount,
+            };
+            if (parentBlocked) {
+              referencedByDetail.activeMainActivities = activeMainActivityCount;
+              referencedByDetail.activeSubcategoryRecommendations =
+                activeSubcategoryRecommendationCount;
+            }
+
+            const error = new EditBlockedByReferencesError(
+              referencedBy.join(", ")
+            );
+            throw attachDetails(error, {
+              resourceType: "CountrySubsector",
+              attemptedChange: parentBlocked ? "parent" : "name",
+              referencedBy: referencedByDetail,
+            });
+          }
+        }
+
+        if (isReparent && newSectorId !== null) {
+          updateData.countrySector = { connect: { id: newSectorId } };
+        }
       }
 
       const updated = await tx.countrySubsector.update({
-        where: { id: subsectorId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: { id: subsectorId, status: CountrySubsectorStatus.ACTIVE },
         data: updateData,
         select: adminCountrySubsectorSelect,
       });

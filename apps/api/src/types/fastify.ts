@@ -5,10 +5,12 @@ import type {
   RawRequestDefaultExpression,
   RawReplyDefaultExpression,
   FastifyBaseLogger,
+  onRequestAsyncHookHandler,
+  preHandlerAsyncHookHandler,
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
+import type { StorageAdapter } from "@repo/storage";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type {
@@ -36,28 +38,10 @@ declare module "fastify" {
     prisma: PrismaClient;
 
     /**
-     * Azure Blob Storage service client for SAS token generation.
-     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     * Backend-agnostic object storage adapter selected at startup via STORAGE_PROVIDER.
+     * Implementations live under `packages/storage/src/adapters/`.
      */
-    blobServiceClient?: BlobServiceClient;
-
-    /**
-     * Azure Blob Storage container client for file uploads/downloads.
-     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
-     */
-    blobStorage?: ContainerClient;
-
-    /**
-     * Azure Storage Account name (validated at startup).
-     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
-     */
-    storageAccountName?: string;
-
-    /**
-     * Azure Blob Storage container name.
-     * Undefined when AZURE_STORAGE_CONTAINER_NAME is not configured.
-     */
-    storageContainerName?: string;
+    storage: StorageAdapter;
 
     /**
      * Authentication service for managing auth providers.
@@ -76,10 +60,7 @@ declare module "fastify" {
      * // Protect individual route
      * fastify.get("/protected", { onRequest: [fastify.requireAuth] }, handler);
      */
-    requireAuth: (
-      request: FastifyRequest,
-      reply: FastifyReply
-    ) => Promise<void>;
+    requireAuth: onRequestAsyncHookHandler;
 
     /**
      * Require user to have at least one of the specified roles.
@@ -100,16 +81,14 @@ declare module "fastify" {
      *   onRequest: [fastify.requireAuth, fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])],
      * }, handler);
      */
-    requireRoles: (
-      allowedRoles: SystemRole[]
-    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requireRoles: (allowedRoles: SystemRole[]) => preHandlerAsyncHookHandler;
 
     /**
      * Require user to have at least one of the specified roles within an organization.
      * Must be used after requireAuth.
      *
      * @param organizationIdExtractor - Function to extract organization ID from request
-     * @param options.allowedRoles - Array of organization roles, user must have at least one
+     * @param options.requiredOrganizationRoles - When omitted, any active membership grants access. Otherwise, user must have one of these roles.
      * @param options.canAdminsBypass - When true, ADMIN and SUPERADMIN system roles bypass org checks
      * @returns Hook function for organization role-based authorization
      *
@@ -124,7 +103,7 @@ declare module "fastify" {
      *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
-     *       { allowedRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
+     *       { requiredOrganizationRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
      *     )
      *   ]
      * }, handler);
@@ -132,7 +111,7 @@ declare module "fastify" {
     requireOrganizationRole: (
       organizationIdExtractor: OrganizationIdExtractorFn,
       options: RequireOrganizationRoleOptions
-    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    ) => preHandlerAsyncHookHandler;
 
     /**
      * Require user to have access to a specific carbon inventory.
@@ -158,10 +137,7 @@ declare module "fastify" {
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
       carbonInventoryIdExtractor: IdExtractor<P>,
       options?: RequireCarbonInventoryAccessOptions
-    ) => (
-      request: FastifyRequest<{ Params: P }>,
-      reply: FastifyReply
-    ) => Promise<void>;
+    ) => preHandlerAsyncHookHandler;
 
     /**
      * Require access to a reduction project (creator or active org member).
@@ -169,7 +145,7 @@ declare module "fastify" {
     requireReductionProjectAccess: (options?: {
       requiredOrganizationRoles?: OrganizationRole[];
       canAdminsBypass?: boolean;
-    }) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    }) => preHandlerAsyncHookHandler;
   }
 
   interface FastifyRequest {
@@ -186,7 +162,15 @@ declare module "fastify" {
     currentUser?: GetMeResponse | null;
   }
   interface FastifyContextConfig {
-    /** Marks a route as public (no authentication required) */
-    public?: boolean;
+    /** Marks a route as truly public — no authentication or credentials required. */
+    allowPublicAccess?: boolean;
+    /**
+     * Marks a route as supporting anonymous access via an alternative credential
+     * (e.g. the `x-carbon-inventory-uuid` header). The route still works for
+     * authenticated users, but does not 401 when no bearer token is present —
+     * the route's own preHandler is responsible for validating the alternative
+     * credential and granting access.
+     */
+    allowAnonymousAccess?: boolean;
   }
 }

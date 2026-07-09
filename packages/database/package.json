@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Database package for the Huella Latam project",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,9 +25,8 @@
     "lint": "eslint .",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
-    "dev:seed": "prisma db seed",
     "dev:studio": "prisma studio",
-    "db:restore": "prisma migrate reset --force && prisma db seed",
+    "db:restore": "prisma migrate reset --force",
     "prod:deploy": "prisma migrate deploy",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
     "validate:version": "tsx scripts/validate-postgres-version.ts",
@@ -36,18 +36,14 @@
     "@repo/eslint-config": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
-    "prisma": "^7.0.1",
+    "prisma": "^7.8.0",
     "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
   },
   "dependencies": {
-    "@azure/identity": "^4.13.0",
-    "@azure/storage-blob": "^12.31.0",
-    "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/client": "^7.0.1",
-    "@prisma/client-runtime-utils": "^7.0.1",
-    "@repo/constants": "workspace:*",
-    "zod": "catalog:shared"
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@prisma/client-runtime-utils": "^7.8.0"
   }
 }

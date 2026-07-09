@@ -16,9 +16,8 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useUserRoleHistory } from "@/api/query/users";
-import { UserRoleChip } from "./UserRoleChip";
+import { SystemRoleChip } from "@/components/SystemRoleChip";
 import { DIALOG_COPY } from "../constants";
-import { SystemRole } from "@repo/types";
 
 interface UserRoleHistoryDialogProps {
   open: boolean;
@@ -78,11 +77,9 @@ export const UserRoleHistoryDialog: FC<UserRoleHistoryDialogProps> = ({
                           className="flex items-center gap-2"
                           sx={{ flexWrap: "wrap" }}
                         >
-                          <UserRoleChip
-                            role={entry.previousRole as SystemRole}
-                          />
+                          <SystemRoleChip role={entry.previousRole} />
                           <Typography variant="body2">→</Typography>
-                          <UserRoleChip role={entry.newRole as SystemRole} />
+                          <SystemRoleChip role={entry.newRole} />
                         </Box>
                       }
                       secondary={

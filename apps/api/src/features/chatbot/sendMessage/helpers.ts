@@ -33,7 +33,7 @@ export const writeSseHeaders = (reply: FastifyReply): void => {
     Connection: "keep-alive",
   };
   if (setCookie !== undefined) {
-    headers["Set-Cookie"] = setCookie as string | string[];
+    headers["Set-Cookie"] = setCookie;
   }
   reply.raw.writeHead(200, headers);
 };

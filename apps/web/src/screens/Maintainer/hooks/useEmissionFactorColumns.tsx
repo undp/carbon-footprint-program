@@ -79,7 +79,7 @@ const UnitEditSelect: FC<{
     name: `emissionFactors.${rowIndex}.rateMeasurementUnitId`,
   });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     "emissionFactors",
     rowIndex,
     "rateMeasurementUnitId"
@@ -119,7 +119,7 @@ const DimensionValueEditSelect: FC<{
     name: `emissionFactors.${rowIndex}.${fieldName}`,
   });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     "emissionFactors",
     rowIndex,
     fieldName
@@ -173,7 +173,7 @@ export const useEmissionFactorColumns = ({
     (rowId: string) => {
       const rows = getValues();
       const index = rows.findIndex((r) => r.id === rowId);
-      return { index, row: rows[index] as EmissionFactorForm | undefined };
+      return { index, row: rows[index] };
     },
     [getValues]
   );
@@ -439,6 +439,7 @@ export const useEmissionFactorColumns = ({
         width: 140,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
@@ -527,6 +528,7 @@ export const useEmissionFactorColumns = ({
               width: 100,
               sortable: false,
               filterable: false,
+              disableExport: true,
               headerAlign: "center" as const,
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<EmissionFactor>) => {

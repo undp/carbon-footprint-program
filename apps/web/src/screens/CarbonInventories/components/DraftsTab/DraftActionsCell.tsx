@@ -1,11 +1,12 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Button, CircularProgress, Tooltip } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import {
   EditOutlined,
   DeleteOutlined,
   FileCopyOutlined,
   FileDownloadOutlined,
   TaskAltRounded,
+  BusinessOutlined,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -16,6 +17,7 @@ import {
 import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
+import { AssociateOrganizationDialog } from "../Dialogs/AssociateOrganizationDialog";
 import {
   SelfDeclareValidationDialog,
   type SelfDeclareValidationReason,
@@ -27,14 +29,16 @@ import {
   useSelfDeclareCarbonInventory,
   useSystemParameters,
 } from "@/api/query";
+import { useMyOrganizations } from "@/api/query/organizations/useMyOrganizations";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
-import { BaseActionButton } from "../BaseActionButton";
+import { AppActionButton, primaryActionButtonSx } from "@/components";
 import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useDownloadCarbonInventory } from "@/hooks";
+import { VOCAB } from "@/config/vocab";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -48,10 +52,17 @@ export const DraftActionsCell: FC<Props> = ({
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
+  const [associateOrgDialogOpen, setAssociateOrgDialogOpen] = useState(false);
   const [selfDeclareValidationReason, setSelfDeclareValidationReason] =
     useState<SelfDeclareValidationReason>(null);
 
   const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
+  const hasOrganization = carbonInventory.organizationId !== null;
+
+  const { data: myOrganizations } = useMyOrganizations();
+  const hasNoOrganizationsToAssociate =
+    myOrganizations !== undefined && myOrganizations.length === 0;
+  const associateDisabled = hasOrganization || hasNoOrganizationsToAssociate;
 
   const isYearAlreadySelfDeclared = useMemo(
     () =>
@@ -192,94 +203,73 @@ export const DraftActionsCell: FC<Props> = ({
     <>
       <Box className="justify-left flex items-center gap-2">
         {/* Editar */}
-        <Tooltip title="Editar huella">
-          <BaseActionButton onClick={onEditClick} aria-label="Editar huella">
-            <EditOutlined fontSize="small" />
-          </BaseActionButton>
-        </Tooltip>
+        <AppActionButton tooltip="Editar huella" onClick={onEditClick}>
+          <EditOutlined fontSize="small" />
+        </AppActionButton>
 
         {/* Duplicar */}
-        <Tooltip title="Duplicar huella">
-          <span>
-            <BaseActionButton
-              onClick={onDuplicateClick}
-              disabled={isDuplicating}
-              aria-label="Duplicar huella"
-            >
-              <FileCopyOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+        <AppActionButton
+          tooltip="Duplicar huella"
+          onClick={onDuplicateClick}
+          disabled={isDuplicating}
+        >
+          <FileCopyOutlined fontSize="small" />
+        </AppActionButton>
 
         {/* Descargar */}
-        <Tooltip
-          title={
+        <AppActionButton
+          tooltip={
             isDownloading
               ? "Descargando..."
-              : carbonInventory.totalEmissions === 0
-                ? "Sin datos de emisiones"
+              : !carbonInventory.hasActiveLines
+                ? "Sin actividades registradas"
                 : "Descargar"
           }
+          onClick={onDownloadClick}
+          disabled={isDownloading || !carbonInventory.hasActiveLines}
+          aria-label="Descargar"
         >
-          <span>
-            <BaseActionButton
-              onClick={onDownloadClick}
-              disabled={isDownloading || carbonInventory.totalEmissions === 0}
-              aria-label="Descargar"
-            >
-              {isDownloading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <FileDownloadOutlined fontSize="small" />
-              )}
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          {isDownloading ? (
+            <CircularProgress size={16} />
+          ) : (
+            <FileDownloadOutlined fontSize="small" />
+          )}
+        </AppActionButton>
+
+        {/* Asociar organización */}
+        <AppActionButton
+          tooltip={
+            hasOrganization
+              ? `Esta huella ya tiene una ${VOCAB.organization.noun.singular} asociada`
+              : hasNoOrganizationsToAssociate
+                ? `No perteneces a ninguna ${VOCAB.organization.noun.singular} a la cual asociar esta huella`
+                : `Asociar ${VOCAB.organization.noun.singular}`
+          }
+          onClick={() => setAssociateOrgDialogOpen(true)}
+          disabled={associateDisabled}
+          aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
+        >
+          <BusinessOutlined fontSize="small" />
+        </AppActionButton>
 
         {/* Autodeclarar */}
-        <Tooltip title={"Autodeclarar"}>
-          <span>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<TaskAltRounded sx={{ fontSize: 16 }} />}
-              onClick={onSelfDeclareClick}
-              disableElevation
-              sx={(theme) => ({
-                minHeight: 30,
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.75rem",
-                minWidth: "auto",
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "4px",
-                backgroundColor: theme.palette.primary.main,
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-              })}
-              aria-label="Autodeclarar"
-            >
-              Autodeclarar
-            </Button>
-          </span>
-        </Tooltip>
+        <AppActionButton
+          tooltip="Autodeclarar"
+          onClick={onSelfDeclareClick}
+          sx={primaryActionButtonSx}
+        >
+          <TaskAltRounded fontSize="small" />
+        </AppActionButton>
 
         {/* Eliminar */}
-        <Tooltip
-          title={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
+        <AppActionButton
+          tooltip={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
+          onClick={() => setDeleteDialogOpen(true)}
+          disabled={!canDelete}
+          aria-label="Eliminar"
         >
-          <span>
-            <BaseActionButton
-              onClick={() => setDeleteDialogOpen(true)}
-              disabled={!canDelete}
-              aria-label="Eliminar"
-            >
-              <DeleteOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
+          <DeleteOutlined fontSize="small" />
+        </AppActionButton>
       </Box>
 
       <SelfDeclareValidationDialog
@@ -302,6 +292,12 @@ export const DraftActionsCell: FC<Props> = ({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={onDeleteConfirm}
+      />
+
+      <AssociateOrganizationDialog
+        open={associateOrgDialogOpen}
+        onClose={() => setAssociateOrgDialogOpen(false)}
+        carbonInventory={carbonInventory}
       />
     </>
   );

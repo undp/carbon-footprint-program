@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetCarbonInventoryMethodologyParams } from "@repo/types";
 import { getCarbonInventoryMethodologyService } from "./service.js";
 
 export const getCarbonInventoryMethodologyHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetCarbonInventoryMethodologyParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "methodology" });

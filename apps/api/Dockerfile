@@ -1,8 +1,11 @@
 # Stage 1: Base image with pnpm
-FROM node:24-alpine AS base
+# Digest-pinned for reproducibility; bump the tag and digest together.
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Node 26 no longer bundles Corepack, so install it from npm before enabling it.
+# Corepack then provides the pnpm version pinned in package.json (packageManager).
+RUN npm install -g corepack@latest && corepack enable
 
 # Stage 2: Install dependencies
 FROM base AS deps
@@ -14,14 +17,17 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # Copy necessary package.json files for dependency resolution
 COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
+COPY packages/storage/package.json ./packages/storage/
 COPY packages/types/package.json ./packages/types/
 COPY packages/utils/package.json ./packages/utils/
 COPY packages/constants/package.json ./packages/constants/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY tools/seed/package.json ./tools/seed/
 
-# Install dependencies for the entire workspace
+# Install dependencies for the api closure and the seed tool (used by the
+# docker-compose `migrate` service to seed the database).
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter api...
+    pnpm install --frozen-lockfile --filter api... --filter @repo/seed...
 
 # Stage 3: Build the application
 FROM base AS builder
@@ -35,25 +41,32 @@ COPY turbo.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=deps /app/packages/storage/node_modules ./packages/storage/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=deps /app/packages/constants/node_modules ./packages/constants/node_modules
 COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
+COPY --from=deps /app/tools/seed/node_modules ./tools/seed/node_modules
 
 # Copy all necessary source files
 COPY packages/database ./packages/database
+COPY packages/storage ./packages/storage
 COPY packages/types ./packages/types
 COPY packages/utils ./packages/utils
 COPY packages/constants ./packages/constants
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
+COPY tools/seed ./tools/seed
 
-# Build using turbo (automatically handles dependency order and prisma generate via prebuild)
+# Build using turbo (automatically handles dependency order and prisma generate
+# via prebuild). The api closure also builds @repo/storage, which @repo/seed
+# imports; @repo/seed itself has no build step and runs from source via tsx.
 WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
 # Stage 4: Production image
-FROM node:24-alpine AS runner
+# Digest-pinned for reproducibility; bump the tag and digest together.
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS runner
 WORKDIR /app
 
 # Set environment to production
@@ -61,8 +74,8 @@ ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Enable pnpm
-RUN corepack enable
+# Enable pnpm (Node 26 no longer bundles Corepack — install it first)
+RUN npm install -g corepack@latest && corepack enable
 
 # Install curl for health checks and debugging
 RUN apk add --no-cache curl
@@ -78,11 +91,12 @@ COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
 COPY --chown=fastify:nodejs packages/utils/package.json ./packages/utils/
 COPY --chown=fastify:nodejs packages/constants/package.json ./packages/constants/
+COPY --chown=fastify:nodejs packages/storage/package.json ./packages/storage/
 
-# Copy database package dist folder (includes compiled code, generated client, and compiled seeds)
+# Copy database package dist folder (includes compiled code and generated client)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
 
-# Copy prisma source files needed for migrations and seeds
+# Copy prisma source files needed for migrations
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/src/prisma ./packages/database/src/prisma
 
 # Copy prisma config needed for prisma commands
@@ -97,6 +111,9 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/utils/dist ./packages/u
 # Copy constants package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/constants/dist ./packages/constants/dist
 
+# Copy storage package dist folder
+COPY --from=builder --chown=fastify:nodejs /app/packages/storage/dist ./packages/storage/dist
+
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
@@ -104,6 +121,7 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules .
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/constants/node_modules ./packages/constants/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/storage/node_modules ./packages/storage/node_modules
 # Ensure @repo/types is available inside api node_modules (ESM resolution)
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist

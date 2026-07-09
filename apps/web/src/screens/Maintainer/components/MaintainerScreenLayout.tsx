@@ -85,6 +85,7 @@ export const MaintainerScreenLayout = ({
     <FormProvider {...form}>
       <MaintainerPageHeader
         title={title}
+        subtitle={isViewOnly ? readOnlyDescription : editDescription}
         onAddRow={isViewOnly ? undefined : onAddRow}
         addDisabled={addDisabled}
         addLabel={addLabel}
@@ -95,9 +96,6 @@ export const MaintainerScreenLayout = ({
         className="rounded-sm bg-white p-3"
         sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
       >
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          {isViewOnly ? readOnlyDescription : editDescription}
-        </Typography>
         <form id={formId} noValidate>
           <Box className="flex w-full">{children}</Box>
         </form>

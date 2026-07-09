@@ -7,8 +7,7 @@ import type {
 import { IS_PROD } from "@/config/environment.js";
 
 export type ChatbotIdentity =
-  | { kind: "user"; userId: bigint }
-  | { kind: "session"; sessionId: string };
+  { kind: "user"; userId: bigint } | { kind: "session"; sessionId: string };
 
 export const CHATBOT_SESSION_COOKIE_NAME = "chatbot_session_id";
 export const CHATBOT_SESSION_COOKIE_PATH = "/api/chatbot";

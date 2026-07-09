@@ -1,0 +1,123 @@
+# Dependabot configuration — keeps dependencies current (DPG Indicator 8 / OpenSSF
+# "Dependency-Update-Tool"). Version updates work on private repos without GitHub
+# Advanced Security. To also receive security-vulnerability updates, enable Dependabot
+# alerts/security updates in Settings → Code security and analysis.
+version: 2
+
+updates:
+  # Application & workspace dependencies.
+  # pnpm monorepo: a single root pnpm-lock.yaml covers apps/*, packages/*, and
+  # tools/* via the workspace, so Dependabot is pointed at the root directory.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    # Wait 7 days before proposing a version. A compromised release is usually
+    # caught and yanked within days, so this cooldown reduces supply-chain risk
+    # (zizmor's dependabot-cooldown audit). It is also well beyond the
+    # `minimumReleaseAge` (24h) install delay in pnpm-workspace.yaml, so
+    # Dependabot never proposes a version the CI install gate would reject.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    # Single ignore list. Dependabot takes only the last `ignore:` key per entry,
+    # so every ignore rule for this ecosystem must live here.
+    ignore:
+      # Defer the MUI Core v7 -> v9 major upgrade. It must land as one
+      # coordinated change (@mui/icons-material peer-depends on @mui/material's
+      # exact major), so we keep taking v7 minor/patch updates and ignore the
+      # major until it is done deliberately. Tracked in issue #443.
+      - dependency-name: "@mui/material"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@mui/icons-material"
+        update-types: ["version-update:semver-major"]
+      # tsc-alias >=1.9.0 regressed path-alias rewriting: with this repo's no-baseUrl
+      # tsconfig `paths` it silently rewrites 0 files, leaving `@/*` aliases in the
+      # compiled dist/ and breaking the production build (ERR_MODULE_NOT_FOUND).
+      # Pinned to 1.8.17 in apps/api/package.json; remove once fixed upstream
+      # (justkey007/tsc-alias).
+      - dependency-name: "tsc-alias"
+        versions: [">=1.9.0"]
+      # ESLint ecosystem: freeze every package's major until eslint v10 is
+      # adopted as one coordinated change.
+      # eslint 10 removed the deprecated context.getFilename() (rule reads moved
+      # onto SourceCode). eslint-plugin-react (<=7.37.5, peer caps at eslint ^9.7)
+      # still calls it in version.js resolveBasedir(), so `react/display-name`
+      # throws at load and `pnpm lint` fails; eslint-plugin-jsx-a11y (<=6.10.2)
+      # likewise caps its peer at ^9. Because the whole toolchain must move to
+      # v10 together, we keep taking minor/patch updates but ignore majors for
+      # the entire ecosystem. This also holds @eslint/js in lockstep with eslint
+      # (they share a major line); letting it reach v10 on its own reintroduces
+      # an `unmet peer eslint` drift. See PR #447.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-prettier"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-jsx-a11y"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-plugin-turbo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/eslint-plugin-query"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/eslint-plugin-router"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Collapse low-risk updates into a single PR to cut review noise.
+      # Security updates and majors still open their own PRs.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...), plus
+  # the pinned betterleaks image used by the CI "Secret Scan" job
+  # (.github/secret-scan/Dockerfile). With digests pinned, Dependabot opens PRs to
+  # bump them as the upstream tags move (e.g. Alpine security patches, betterleaks
+  # releases), keeping them current but reviewed.
+  - package-ecosystem: "docker"
+    directories:
+      - "/apps/api"
+      - "/apps/web"
+      - "/.github/secret-scan"
+    schedule:
+      interval: "weekly"
+    # Supply-chain cooldown before proposing a new base-image digest.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      # Keep the web nginx image on the STABLE branch (even minor, 1.30.x).
+      # nginx uses even minors for stable and odd minors for mainline, but
+      # Dependabot's docker updater doesn't know this convention and treats
+      # tags as plain semver — so it would cross onto mainline (e.g. 1.31.x)
+      # simply because the number is higher. Take only patch security bumps on
+      # the current stable line; jump to the next stable (1.32.x) deliberately.
+      # See issue #454 §C and apps/web/Dockerfile.
+      - dependency-name: "nginxinc/nginx-unprivileged"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
+
+  # GitHub Actions used by the CI workflow (checkout, setup-node, action-setup).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    # Supply-chain cooldown before proposing a new action version.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(ci)"

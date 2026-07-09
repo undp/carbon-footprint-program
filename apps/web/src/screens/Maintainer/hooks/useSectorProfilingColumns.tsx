@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
-import { Chip } from "@mui/material";
 import { RestoreOutlined } from "@mui/icons-material";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { AdminActionButton } from "@/components/AdminActionButton";
+import { profilingStatusColumn } from "../utils/profilingStatusColumn";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { z } from "zod";
 import { CountrySectorStatus } from "@repo/types";
@@ -22,7 +22,6 @@ export const SectorRowSchema = z.object({
     .max(2000, "La descripción no puede superar los 2000 caracteres")
     .nullable(),
   status: z.enum(CountrySectorStatus).nullable(),
-  isInUse: z.boolean(),
   impactedChildren: z.object({
     activeSubsectors: z.number().int().nonnegative(),
     activeMainActivities: z.number().int().nonnegative(),
@@ -126,31 +125,14 @@ export const useSectorProfilingColumns = ({
           );
         },
       },
-      {
-        field: "status",
-        headerName: "Estado",
-        width: 130,
-        valueGetter: (_value, row: SectorFormRow) =>
-          row.status === CountrySectorStatus.ACTIVE
-            ? "Activo"
-            : row.status === CountrySectorStatus.DELETED
-              ? "Eliminado"
-              : "Nuevo",
-        renderCell: ({ row }: GridRenderCellParams<SectorFormRow>) =>
-          row.status === CountrySectorStatus.ACTIVE ? (
-            <Chip label="Activo" size="small" color="success" />
-          ) : row.status === CountrySectorStatus.DELETED ? (
-            <Chip label="Eliminado" size="small" color="default" />
-          ) : (
-            <Chip label="Nuevo" size="small" color="info" />
-          ),
-      },
+      profilingStatusColumn<SectorFormRow>(),
       {
         field: "actions",
         headerName: "Acciones",
         width: 140,
         sortable: false,
         filterable: false,
+        disableExport: true,
         headerAlign: "center",
         align: "center",
         disableColumnMenu: true,
@@ -162,7 +144,7 @@ export const useSectorProfilingColumns = ({
 
           if (isDeleted) {
             return (
-              <ActionIconButton
+              <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
                 onClick={() => onRestore(params.row)}

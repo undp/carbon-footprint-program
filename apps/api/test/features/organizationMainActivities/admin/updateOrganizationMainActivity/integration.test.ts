@@ -11,8 +11,20 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
 import { createTestCountrySubsector } from "@test/factories/countrySubsectorFactory.js";
 import { createTestOrganizationMainActivity } from "@test/factories/organizationMainActivityFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import {
+  createCarbonInventory,
+  carbonInventoryPatterns,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
-import { type PrismaClient, CountrySectorStatus } from "@repo/database";
+import {
+  type PrismaClient,
+  CountrySectorStatus,
+  OrganizationMainActivityStatus,
+} from "@repo/database";
 import type { UpdateOrganizationMainActivityResponse } from "@repo/types";
 
 const TEST_PREFIX = "Test - AdminMAUpd ";
@@ -32,6 +44,15 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
   });
 
   afterEach(async () => {
+    // Orgs (and their organization_data) hold an FK to the main activity, so they
+    // must be cleared before the activity rows below.
+    await cleanupTestOrganization(prisma);
+    // Carbon inventories carry the activity only inside their organizationData
+    // JSON snapshot (no FK), so they never block the deletes below — but they
+    // must still be removed by name to avoid leaking across tests.
+    await prisma.carbonInventory.deleteMany({
+      where: { name: { startsWith: TEST_PREFIX } },
+    });
     await prisma.organizationMainActivity.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -193,6 +214,297 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         where: { id: ma.id },
       });
       expect(after!.countrySubsectorId).toBeNull();
+    });
+  });
+
+  describe("Re-parent blocked by dependents", () => {
+    it("re-parents to another sector when the activity has no dependents", async () => {
+      const sectorA = await createTestCountrySector(prisma, {
+        name: uniqueName("SecA"),
+      });
+      const sectorB = await createTestCountrySector(prisma, {
+        name: uniqueName("SecB"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Clean"),
+        countrySectorId: sectorA.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sectorB.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBe(sectorB.id);
+    });
+
+    it("blocks re-parent (409) when an organization profile references the activity", async () => {
+      const sectorA = await createTestCountrySector(prisma, {
+        name: uniqueName("SecA"),
+      });
+      const sectorB = await createTestCountrySector(prisma, {
+        name: uniqueName("SecB"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("WithOrg"),
+        countrySectorId: sectorA.id,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sectorB.id.toString() },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { referencedBy?: { organizationData?: number } };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBe(sectorA.id);
+    });
+
+    it("blocks re-parent (409) when an ACTIVE carbon inventory snapshot references the activity", async () => {
+      const sectorA = await createTestCountrySector(prisma, {
+        name: uniqueName("SecA"),
+      });
+      const sectorB = await createTestCountrySector(prisma, {
+        name: uniqueName("SecB"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("WithInv"),
+        countrySectorId: sectorA.id,
+      });
+      // The activity is referenced ONLY inside the inventory's frozen JSON
+      // snapshot (stored as a string) — no live organization_data row points at
+      // it — so this case is exactly the gap the FK-based count misses.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sectorB.id.toString() },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { referencedBy?: { carbonInventories?: number } };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBe(sectorA.id);
+    });
+
+    it("does NOT block re-parent when only a DELETED carbon inventory snapshot references the activity", async () => {
+      const sectorA = await createTestCountrySector(prisma, {
+        name: uniqueName("SecA"),
+      });
+      const sectorB = await createTestCountrySector(prisma, {
+        name: uniqueName("SecB"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("WithDeletedInv"),
+        countrySectorId: sectorA.id,
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sectorB.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBe(sectorB.id);
+    });
+
+    it("does NOT block when the effective pair equals the current one, even with dependents (no-op)", async () => {
+      const sectorA = await createTestCountrySector(prisma, {
+        name: uniqueName("SecA"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("SameParent"),
+        countrySectorId: sectorA.id,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sectorA.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBe(sectorA.id);
+    });
+  });
+
+  describe("Rename blocked by user data", () => {
+    it("blocks rename (409) when an organization profile references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { organizationData?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.organizationData).toBe(1);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.name).toBe(ma.name);
+    });
+
+    it("blocks rename (409) when an ACTIVE carbon inventory snapshot references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      // The activity is referenced ONLY inside the inventory's frozen JSON snapshot.
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: {
+          attemptedChange?: string;
+          referencedBy?: { carbonInventories?: number };
+        };
+      };
+      expect(body.code).toBe("EDIT_BLOCKED_BY_REFERENCES");
+      expect(body.details?.attemptedChange).toBe("name");
+      expect(body.details?.referencedBy?.carbonInventories).toBe(1);
+    });
+
+    it("does NOT block rename when only a DELETED carbon inventory snapshot references the activity", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Old"),
+      });
+      await createCarbonInventory(prisma, {
+        ...carbonInventoryPatterns.withOrganizationData({
+          mainActivityId: ma.id.toString(),
+        }),
+        name: uniqueName("Inv"),
+        status: "DELETED",
+      });
+
+      const newName = uniqueName("New");
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: newName },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.name).toBe(newName);
+    });
+  });
+
+  describe("Editing a soft-deleted row", () => {
+    it("returns 404 when renaming a DELETED activity still referenced by user data", async () => {
+      // A DELETED row can still carry user-data references, so this is the case
+      // that used to surface as a misleading 409 instead of not-found.
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Dead"),
+        status: OrganizationMainActivityStatus.DELETED,
+      });
+      const organization = await createTestOrganization(prisma);
+      await prisma.organizationData.create({
+        data: {
+          organizationId: organization.id,
+          legalName: "Test Org",
+          mainActivityId: ma.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name: uniqueName("New") },
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 });

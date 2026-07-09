@@ -1,12 +1,10 @@
 import { PrismaClient } from "@repo/database";
 import { BadgeType, BadgeStatus, GetBadgePreviewsResponse } from "@repo/types";
-import { BlobServiceClient } from "@azure/storage-blob";
-import { generateReadSasUrl } from "@/services/index.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const getBadgePreviewsService = async (
   prismaClient: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   badgeTypes?: BadgeType[]
 ): Promise<GetBadgePreviewsResponse> => {
   const badges = await prismaClient.badge.findMany({
@@ -23,9 +21,7 @@ export const getBadgePreviewsService = async (
 
   return Promise.all(
     badges.map(async (badge) => {
-      const { url: previewUrl } = await generateReadSasUrl(
-        blobServiceClient,
-        containerName,
+      const { url: previewUrl } = await storage.generateReadUrl(
         badge.file.blobPath,
         { contentType: badge.file.mimeType ?? undefined }
       );

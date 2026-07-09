@@ -14,15 +14,34 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MeasurementUnitStatus } from "@repo/database";
+import {
+  MagnitudeStatus,
+  MeasurementUnitStatus,
+  SubcategoryStatus,
+} from "@repo/database";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 
 describe("POST /api/measurement-units - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
+    const requiredCodes = ["mass", "volume"];
+    const missing = requiredCodes.filter((c) => !magnitudeIdByCode[c]);
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required seed magnitudes: ${missing.join(", ")}. Ensure the database seed has been applied before running this suite.`
+      );
+    }
   });
 
   afterAll(async () => {
@@ -40,6 +59,9 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     await prisma.measurementUnit.deleteMany({
       where: { abbreviation: { startsWith: "test-" } },
     });
+    await prisma.subcategory.deleteMany({
+      where: { name: { startsWith: "Test - Subcategory" } },
+    });
   });
 
   function buildPayload(overrides?: Record<string, unknown>) {
@@ -47,7 +69,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
     return {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
       ...overrides,
@@ -69,7 +91,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.id).toBeTruthy();
       expect(body.name).toBe(payload.name);
       expect(body.abbreviation).toBe(payload.abbreviation);
-      expect(body.magnitude).toBe("MASS");
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.mass);
       expect(body.baseFactor).toBe(500);
       expect(body.isBase).toBe(false);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
@@ -133,7 +155,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const payload = buildPayload({
         isBase: true,
         baseFactor: 1,
-        magnitude: "MASS",
+        magnitudeId: magnitudeIdByCode.mass,
       });
 
       const response = await app.inject({
@@ -142,7 +164,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload,
       });
 
-      // MASS already has a base unit (g) from seed data
+      // mass already has a base unit (g) from seed data
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("MAGNITUDE_ALREADY_HAS_BASE_UNIT");
@@ -178,7 +200,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitude: "VOLUME",
+        magnitudeId: magnitudeIdByCode.volume,
         baseFactor: 999,
       };
 
@@ -193,7 +215,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.action).toBe(MeasurementUnitCreationResultEnum.fullyRestored);
       expect(body.id).toBe(created.id); // same row, restored
       expect(body.name).toBe(restorePayload.name);
-      expect(body.magnitude).toBe("VOLUME");
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
       expect(body.baseFactor).toBe(999);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
 
@@ -246,7 +268,7 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const restorePayload = {
         ...payload,
         name: `Restored ${payload.name}`,
-        magnitude: "VOLUME",
+        magnitudeId: magnitudeIdByCode.volume,
         baseFactor: 999,
       };
 
@@ -265,11 +287,73 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.name).toBe(restorePayload.name);
       expect(body.abbreviation).toBe(payload.abbreviation);
       // Structural fields must remain unchanged in the labels-only branch.
-      expect(body.magnitude).toBe(payload.magnitude);
+      expect(body.magnitudeId).toBe(payload.magnitudeId);
       expect(body.baseFactor).toBe(payload.baseFactor);
       expect(body.isBase).toBe(payload.isBase);
       expect(body.status).toBe(MeasurementUnitStatus.ACTIVE);
       expect(body.referenceCount).toBeGreaterThan(0);
+    });
+
+    // A reference under a soft-deleted subcategory is not a real reference, so
+    // the restore must take the fullyRestored branch (not restoredLabelsOnly).
+    it("should fully restore when the only reference is under a soft-deleted subcategory", async () => {
+      const payload = buildPayload();
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+      const created = JSON.parse(
+        createResponse.body
+      ) as CreateMeasurementUnitResponse;
+
+      // Reference the unit from a fresh subcategory, then soft-delete that
+      // subcategory: the join row survives but must no longer count.
+      const category = await prisma.category.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(created.id),
+        },
+      });
+      await prisma.subcategory.update({
+        where: { id: subcategory.id },
+        data: { status: SubcategoryStatus.DELETED },
+      });
+
+      // Soft-delete the unit + canonical RMU (mirrors deleteMeasurementUnitService).
+      await prisma.measurementUnit.update({
+        where: { id: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+      await prisma.rateMeasurementUnit.updateMany({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+
+      const restorePayload = {
+        ...payload,
+        name: `Restored ${payload.name}`,
+        magnitudeId: magnitudeIdByCode.volume,
+        baseFactor: 999,
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload: restorePayload,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
+      expect(body.action).toBe(MeasurementUnitCreationResultEnum.fullyRestored);
+      expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
+      expect(body.baseFactor).toBe(999);
+      expect(body.referenceCount).toBe(0);
     });
   });
 
@@ -323,11 +407,11 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 for an invalid magnitude enum value", async () => {
+    it("should return 400 for a missing magnitudeId", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/measurement-units",
-        payload: buildPayload({ magnitude: "NOT_A_MAGNITUDE" }),
+        payload: buildPayload({ magnitudeId: undefined }),
       });
       expect(response.statusCode).toBe(400);
     });
@@ -375,6 +459,55 @@ describe("POST /api/measurement-units - Integration Tests", () => {
         payload: buildPayload({ name: "x".repeat(101) }),
       });
       expect(response.statusCode).toBe(400);
+    });
+
+    // The create endpoint must refuse measurement units that reference a
+    // soft-deleted magnitude. The chosen enforcement layer is service-level
+    // validation (the route schema only validates id shape, not DB state),
+    // so this test expects a 400 returned from the service.
+    it("should return 400 when magnitudeId references a DELETED magnitude", async () => {
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const deletedMagnitude = await prisma.magnitude.create({
+        data: {
+          code: `test_${suffix}`,
+          name: `Test Deleted Magnitude ${suffix}`,
+          isSystem: false,
+          status: MagnitudeStatus.DELETED,
+        },
+      });
+
+      try {
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/measurement-units",
+          payload: buildPayload({
+            magnitudeId: deletedMagnitude.id.toString(),
+          }),
+        });
+        expect(response.statusCode).toBe(400);
+      } finally {
+        // Tear down any MU that may have been created against this magnitude
+        // before deleting the magnitude row (FK is ON DELETE RESTRICT).
+        const orphans = await prisma.measurementUnit.findMany({
+          where: { magnitudeId: deletedMagnitude.id },
+          select: { id: true },
+        });
+        if (orphans.length > 0) {
+          const orphanIds = orphans.map((o) => o.id);
+          await prisma.rateMeasurementUnit.deleteMany({
+            where: {
+              OR: [
+                { numeratorMeasurementUnitId: { in: orphanIds } },
+                { denominatorMeasurementUnitId: { in: orphanIds } },
+              ],
+            },
+          });
+          await prisma.measurementUnit.deleteMany({
+            where: { id: { in: orphanIds } },
+          });
+        }
+        await prisma.magnitude.delete({ where: { id: deletedMagnitude.id } });
+      }
     });
   });
 });

@@ -9,7 +9,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
-import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
+import { PieChart, pieClasses } from "@mui/x-charts/PieChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardCategoryChart } from "@/api/query/dashboard";
 import { formatter } from "@/utils/formatting";
@@ -170,7 +170,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
               <PieChart
                 colors={pieColors}
                 sx={{
-                  [`& .${pieArcLabelClasses.root}`]: {
+                  [`& .${pieClasses.arcLabel}`]: {
                     fontSize: "12px",
                   },
                 }}

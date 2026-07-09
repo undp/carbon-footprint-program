@@ -6,22 +6,23 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 
 ## Getting started
 
-| Document                                            | Description                                           |
-| --------------------------------------------------- | ----------------------------------------------------- |
-| [Local Setup](./local-setup.md)                     | Step-by-step local development environment setup      |
-| [Environment Variables](./environment-variables.md) | Complete reference for all environment variables      |
-| [Docker Compose](../DockerCompose.md)               | Local Docker Compose configuration for the database   |
-| [Contributing Guide](./contributing.md)             | Branch workflow, code review process, and conventions |
+| Document                                            | Description                                                                              |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [Local Setup](./local-setup.md)                     | Step-by-step local development environment setup                                         |
+| [Environment Variables](./environment-variables.md) | Complete reference for all environment variables                                         |
+| [Docker Compose](../operations/docker-compose.md)   | Local & full-stack Docker Compose guide (services, env, auth + storage, troubleshooting) |
+| [Contributing Guide](./contributing.md)             | Branch workflow, code review process, and conventions                                    |
 
 ## Codebase guides
 
-| Document                                            | Description                                                                                                                                                                                                                              |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Frontend Architecture](./frontend-architecture.md) | React + Vite structure, TanStack Router, Zustand, TanStack Query, ky, react-hook-form, MUI + Tailwind, and how to add a new screen                                                                                                       |
-| [API Design Conventions](./api-conventions.md)      | Feature folder pattern, route/handler/service layering, plugin architecture, authorization, error handling, and how to add a new endpoint                                                                                                |
-| [Packages and Monorepo Internals](./packages.md)    | Shared packages (`@repo/types`, `@repo/database`, `@repo/utils`), dependency graph, Turborepo pipeline, and schema-change propagation                                                                                                    |
-| [Data Export and Reporting](./data-export.md)       | Excel exports (inventory, reduction project, reduction plan), file downloads via SAS URL, and what is not yet supported                                                                                                                  |
-| [Profiling Maintainers](./maintainers/profiling.md) | Admin maintainers for `country_sector` / `country_subsector` / `organization_main_activity` / `country_organization_size`: soft-delete lifecycle, blocking matrix, partial unique indexes, in-use warning dialog, selector union helper. |
+| Document                                             | Description                                                                                                                                                                                                                              |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Frontend Architecture](./frontend-architecture.md)  | React + Vite structure, TanStack Router, Zustand, TanStack Query, ky, react-hook-form, MUI + Tailwind, and how to add a new screen                                                                                                       |
+| [API Design Conventions](./api-conventions.md)       | Feature folder pattern, route/handler/service layering, plugin architecture, authorization, error handling, and how to add a new endpoint                                                                                                |
+| [Packages and Monorepo Internals](./packages.md)     | Shared packages (`@repo/types`, `@repo/database`, `@repo/utils`), dependency graph, Turborepo pipeline, and schema-change propagation                                                                                                    |
+| [Data Export and Reporting](./data-export.md)        | Excel exports (inventory, reduction project, reduction plan), file downloads via SAS URL, and what is not yet supported                                                                                                                  |
+| [Profiling Maintainers](./maintainers/profiling.md)  | Admin maintainers for `country_sector` / `country_subsector` / `organization_main_activity` / `country_organization_size`: soft-delete lifecycle, blocking matrix, partial unique indexes, in-use warning dialog, selector union helper. |
+| [Magnitudes Maintainer](./maintainers/magnitudes.md) | Country-extensibility recipe for `magnitude`: seed path vs. admin screen, and the protections that follow from the `isSystem` flag — currently set only on `mass`, with every other seeded magnitude admin-managed.                      |
 
 ## Configuration and operations
 

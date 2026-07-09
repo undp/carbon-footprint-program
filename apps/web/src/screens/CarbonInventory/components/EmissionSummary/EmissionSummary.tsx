@@ -45,7 +45,14 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
     );
   }
 
-  if (!totalEmissions) {
+  // Show the summary whenever there is at least one active line (even if it is
+  // incomplete and contributes zero emissions), so the user can review what is
+  // still pending. Only fall back to the empty state when nothing was registered.
+  const hasAnySubcategory = categories.some(
+    (category) => category.subcategories.length > 0
+  );
+
+  if (!hasAnySubcategory) {
     return (
       <EmptyStateMessage
         className="max-h-[120px]"

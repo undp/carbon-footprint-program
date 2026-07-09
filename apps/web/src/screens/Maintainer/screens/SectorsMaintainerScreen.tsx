@@ -5,9 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
-  CountrySectorStatus,
   type AdminCountrySector,
   type CreateCountrySectorRequest,
   type UpdateCountrySectorRequest,
@@ -20,8 +18,7 @@ import {
   useRestoreCountrySector,
 } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -33,7 +30,10 @@ import {
   type SectorFormRow,
 } from "../hooks/useSectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SECTORS_MAINTAINER_EXPLANATION_SLUGS = {
@@ -48,7 +48,6 @@ const toFormSector = (s: AdminCountrySector): SectorFormRow => ({
   name: s.name,
   description: s.description,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -67,9 +66,8 @@ export const SectorsMaintainerScreen: FC = () => {
       getFn: (row, path) => {
         const key = Array.isArray(path) ? path[0] : path;
         if (key === "statusLabel") {
-          return row.status === CountrySectorStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";
@@ -113,9 +111,7 @@ export const SectorsMaintainerScreen: FC = () => {
           : value) as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `sectors.${rowIndex}.${field}` as `sectors.${number}.name`
-      );
+      void form.trigger(`sectors.${rowIndex}.${field}`);
     },
     [form]
   );
@@ -143,13 +139,11 @@ export const SectorsMaintainerScreen: FC = () => {
         body.description = formRow.description;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) => body.name !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
       description: null,
       status: null,
-      isInUse: false,
       impactedChildren: {
         activeSubsectors: 0,
         activeMainActivities: 0,
@@ -237,16 +231,17 @@ export const SectorsMaintainerScreen: FC = () => {
       explanationSlug={SECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="rubro"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede cambiar el nombre del rubro"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }
@@ -257,7 +252,7 @@ export const SectorsMaintainerScreen: FC = () => {
             No hay rubros para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<SectorFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -270,8 +265,9 @@ export const SectorsMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar rubros...",
+              downloadFileName: "rubros",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

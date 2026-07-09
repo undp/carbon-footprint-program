@@ -272,19 +272,31 @@ export const useEmissionEditorColumns = ({
         minWidth: 157,
         flex: 1,
         cellClassName: "content-center",
-        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => (
-          <EmissionEditorActionsCell
-            rowId={params.id}
-            categoryColor={categoryColor}
-            uploadFiles={() => onUploadFiles(params.id.toString())}
-            updateComment={() =>
-              onUpdateComment(params.id.toString(), params.row.comment || "")
-            }
-            deleteSource={() => onDeleteLine(params.id.toString())}
-            disabled={isManualModeLoading}
-            hasComment={Boolean(params.row.comment)}
-          />
-        ),
+        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => {
+          const removedFileIds = params.row.removedFileIds ?? [];
+          const visibleFiles = (params.row.files ?? []).filter(
+            (f) => !removedFileIds.includes(f.id)
+          );
+          const pendingFilesCount = visibleFiles.filter(
+            (f) => f.isPending
+          ).length;
+          const linkedFilesCount = visibleFiles.length - pendingFilesCount;
+          return (
+            <EmissionEditorActionsCell
+              rowId={params.id}
+              categoryColor={categoryColor}
+              uploadFiles={() => onUploadFiles(params.id.toString())}
+              updateComment={() =>
+                onUpdateComment(params.id.toString(), params.row.comment || "")
+              }
+              deleteSource={() => onDeleteLine(params.id.toString())}
+              disabled={isManualModeLoading}
+              hasComment={Boolean(params.row.comment)}
+              pendingFilesCount={pendingFilesCount}
+              linkedFilesCount={linkedFilesCount}
+            />
+          );
+        },
       },
     ];
   }, [

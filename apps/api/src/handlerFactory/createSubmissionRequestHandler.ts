@@ -1,8 +1,7 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { User } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
+import type { StorageAdapter } from "@repo/storage";
 
 interface WithId {
   id: string;
@@ -11,10 +10,10 @@ interface WithId {
 /**
  * Generic handler factory for submission-style actions (e.g. request
  * verification, request accreditation) that optionally accept pre-uploaded
- * file UUIDs and may require blob storage access.
+ * file UUIDs and may require object storage access.
  *
  * The supplied `serviceFn` is called with the resolved prisma client,
- * resource id, current user, fileUuids, and storage credentials.
+ * resource id, current user, storage adapter, and fileUuids.
  */
 export const createSubmissionRequestHandler = <
   TParams extends WithId,
@@ -25,9 +24,8 @@ export const createSubmissionRequestHandler = <
     prisma: PrismaClient,
     id: string,
     user: User | null,
-    fileUuids?: string[],
-    blobServiceClient?: BlobServiceClient,
-    containerName?: string
+    storage: StorageAdapter,
+    fileUuids?: string[]
   ) => Promise<TResponse>,
   resourceName: string
 ) => {
@@ -44,21 +42,12 @@ export const createSubmissionRequestHandler = <
 
     log.info(`Performing action on ${resourceName} ${id}...`);
 
-    const prisma = request.server.prisma;
-    const user = request.currentUser ?? null;
-    const { blobServiceClient, storageContainerName } = request.server;
-
-    if (fileUuids?.length && (!blobServiceClient || !storageContainerName)) {
-      throw new StorageNotConfiguredError();
-    }
-
     const data = await serviceFn(
-      prisma,
+      request.server.prisma,
       id,
-      user,
-      fileUuids,
-      blobServiceClient ?? undefined,
-      storageContainerName ?? undefined
+      request.currentUser ?? null,
+      request.server.storage,
+      fileUuids
     );
 
     log.info(`${resourceName} ${id} action completed successfully`);

@@ -1,10 +1,5 @@
 export type ChatbotState =
-  | "empty"
-  | "loading"
-  | "streaming"
-  | "error"
-  | "truncated"
-  | "degraded";
+  "empty" | "loading" | "streaming" | "error" | "truncated" | "degraded";
 
 export type ChatbotMessage = {
   id: string;

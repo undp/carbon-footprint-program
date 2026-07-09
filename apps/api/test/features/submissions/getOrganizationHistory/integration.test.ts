@@ -38,29 +38,6 @@ import {
 } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
-const { mockCreateReadSasUrlSigner, mockSignReadSasUrl } = vi.hoisted(() => ({
-  mockCreateReadSasUrlSigner: vi.fn(),
-  mockSignReadSasUrl: vi.fn(),
-}));
-
-vi.mock("@/services/blobService.js", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/services/blobService.js")
-  >("@/services/blobService.js");
-
-  return {
-    ...actual,
-    createReadSasUrlSigner: mockCreateReadSasUrlSigner.mockResolvedValue(
-      mockSignReadSasUrl.mockImplementation((blobPath: string) =>
-        Promise.resolve({
-          url: `https://mock.blob.core.windows.net/test/${blobPath}?sig=mock`,
-          expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-        })
-      )
-    ),
-  };
-});
-
 describe("GET /api/submissions/organization/:id/history - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -69,8 +46,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl, {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
@@ -111,20 +87,9 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     });
   }
 
-  async function withStorageDisabled<T>(run: () => Promise<T>): Promise<T> {
-    const originalBlobServiceClient = app.blobServiceClient;
-    const originalContainerName = app.storageContainerName;
-
-    app.blobServiceClient = undefined;
-    app.storageContainerName = undefined;
-
-    try {
-      return await run();
-    } finally {
-      app.blobServiceClient = originalBlobServiceClient;
-      app.storageContainerName = originalContainerName;
-    }
-  }
+  // storage is now a required runtime dependency (no "disabled" mode), so the
+  // helper that toggled it off has been removed along with the tests that
+  // relied on a 503 fallback.
 
   it("returns a single POSTULATION event dated with createdAt for pending submissions", async () => {
     const organization = await createMemberOrganization();
@@ -307,31 +272,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     expect(history[0].files[0]?.originalName).toBe("internal-note.pdf");
   });
 
-  it("returns 503 when there are attached files but storage is not configured", async () => {
-    const organization = await createMemberOrganization();
-    const organizationData = await createTestOrganizationData(
-      prisma,
-      organization.id
-    );
-    const { submission } = await createTestOrganizationDataSubmission(
-      prisma,
-      organizationData.id,
-      SubmissionStatus.PENDING,
-      testUser.id
-    );
-
-    await createTestFileForSubmission(prisma, testUser.id, submission.id, {
-      type: SubmissionFileType.SUBMIT_ATTACHMENT,
-    });
-
-    const response = await withStorageDisabled(() =>
-      requestHistory(organization.id.toString())
-    );
-
-    expect(response.statusCode).toBe(503);
-  });
-
-  it("still returns 200 without storage when the history has no files", async () => {
+  it("returns 200 with an empty timeline when the history has no files", async () => {
     const organization = await createMemberOrganization();
     const organizationData = await createTestOrganizationData(
       prisma,
@@ -345,12 +286,9 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
       testUser.id
     );
 
-    const response = await withStorageDisabled(() =>
-      requestHistory(organization.id.toString())
-    );
+    const response = await requestHistory(organization.id.toString());
 
     expect(response.statusCode).toBe(200);
-    expect(mockCreateReadSasUrlSigner).not.toHaveBeenCalled();
   });
 
   it("orders the timeline by event date instead of submission createdAt only", async () => {

@@ -1,0 +1,32 @@
+import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { StatusChip } from "@/components/StatusChip";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+  type ProfilingDomainStatus,
+} from "@/labels/chips/profiling";
+import { toValueOptions } from "@/utils/dataGrid";
+
+/**
+ * Shared "Estado" column for the profiling maintainer grids (sector, subsector,
+ * main activity, organization size). Pass `overrides` for grid-specific flags
+ * such as disabling sort/filter.
+ */
+export const profilingStatusColumn = <
+  T extends { status: ProfilingDomainStatus | null },
+>(
+  overrides?: Partial<GridColDef<T>>
+): GridColDef<T> => ({
+  field: "status",
+  headerName: "Estado",
+  width: 130,
+  type: "singleSelect",
+  valueOptions: toValueOptions(PROFILING_STATUS_CONFIG),
+  valueGetter: (_value, row: T) => resolveProfilingStatusKey(row.status),
+  renderCell: ({ row }: GridRenderCellParams<T>) => (
+    <StatusChip
+      config={PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]}
+    />
+  ),
+  ...overrides,
+});

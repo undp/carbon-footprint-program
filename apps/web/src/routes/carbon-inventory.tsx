@@ -1,6 +1,4 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Routes } from "@/interfaces/routes";
-
-export const Route = createFileRoute(Routes.CARBON_INVENTORY)({
+export const Route = createFileRoute("/carbon-inventory")({
   component: () => <Outlet />,
 });

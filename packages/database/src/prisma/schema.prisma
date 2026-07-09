@@ -51,6 +51,8 @@ model SystemParameter {
   description String
   type        String
   options     String[]  @default([])
+  minValue    Int?      @map("min_value")
+  maxValue    Int?      @map("max_value")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
@@ -311,6 +313,7 @@ model User {
   emissionFactorsUpdated               EmissionFactor[]               @relation("emission_factor_updated_by")
   carbonInventoryLinesCreated          CarbonInventoryLine[]          @relation("carbon_inventory_line_created_by")
   carbonInventoryLinesUpdated          CarbonInventoryLine[]          @relation("carbon_inventory_line_updated_by")
+  carbonInventoryLineFilesCreated      CarbonInventoryLineFile[]      @relation("carbon_inventory_line_file_created_by")
   carbonInventoryLineInputsCreated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_created_by")
   carbonInventoryLineInputsUpdated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_updated_by")
   carbonInventoryLineFactorsCreated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_created_by")
@@ -373,19 +376,25 @@ model UserAccessLog {
   @@map("user_access_log")
 }
 
-enum Magnitude {
-  MASS
-  VOLUME
-  DISTANCE
-  TIME
-  ANIMALS
-  AREA
-  POWER
-  ENERGY
-  DISTANCE_MASS
-  ROOMS
+enum MagnitudeStatus {
+  ACTIVE
+  DELETED
 
-  @@map("Magnitude")
+  @@map("magnitude_status")
+}
+
+model Magnitude {
+  id        BigInt          @id @default(autoincrement())
+  code      String          @unique
+  name      String
+  isSystem  Boolean         @default(false) @map("is_system")
+  status    MagnitudeStatus @default(ACTIVE)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  measurementUnits MeasurementUnit[]
+
+  @@map("magnitude")
 }
 
 enum MeasurementUnitStatus {
@@ -398,16 +407,18 @@ enum MeasurementUnitStatus {
 model MeasurementUnit {
   id                          BigInt                       @id @default(autoincrement())
   name                        String
-  magnitude                   Magnitude
+  magnitudeId                 BigInt                       @map("magnitude_id")
   abbreviation                String                       @unique
   baseFactor                  Float                        @map("base_factor")
   isBase                      Boolean                      @map("is_base")
   status                      MeasurementUnitStatus        @default(ACTIVE)
+  magnitude                   Magnitude                    @relation(fields: [magnitudeId], references: [id], onDelete: Restrict)
   rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
   rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
   lineInputs                  CarbonInventoryLineInput[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
+  @@index([magnitudeId])
   @@map("measurement_unit")
 }
 
@@ -739,8 +750,23 @@ model CarbonInventoryLine {
   creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
   updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
   inputs            CarbonInventoryLineInput[]
+  files             CarbonInventoryLineFile[]
 
   @@map("carbon_inventory_line")
+}
+
+model CarbonInventoryLineFile {
+  lineId      BigInt   @map("line_id")
+  fileId      BigInt   @unique @map("file_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById BigInt?  @map("created_by_id")
+
+  line    CarbonInventoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  file    File                @relation(fields: [fileId], references: [id], onDelete: Restrict)
+  creator User?               @relation("carbon_inventory_line_file_created_by", fields: [createdById], references: [id])
+
+  @@id([lineId, fileId])
+  @@map("carbon_inventory_line_file")
 }
 
 /// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
@@ -985,9 +1011,10 @@ model File {
   deletedAt    DateTime?  @map("deleted_at")
   createdById  BigInt?    @map("created_by_id")
 
-  createdBy       User?            @relation("file_created_by", fields: [createdById], references: [id])
-  submissionFiles SubmissionFile[]
-  badge           Badge?           @relation("badge_file")
+  createdBy                User?                     @relation("file_created_by", fields: [createdById], references: [id])
+  submissionFiles          SubmissionFile[]
+  badge                    Badge?                    @relation("badge_file")
+  carbonInventoryLineFiles CarbonInventoryLineFile[]
 
   @@map("file")
 }

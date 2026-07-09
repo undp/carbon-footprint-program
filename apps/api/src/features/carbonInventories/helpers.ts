@@ -6,6 +6,7 @@ import {
 } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
 import {
+  FileType,
   type GetAllCategoriesResponse,
   IconName,
   IconNameSchema,
@@ -105,6 +106,7 @@ export type CategoryData = Pick<
     name: string;
     icon: IconName;
     subtotal: number;
+    hasIncompleteLines: boolean;
   }[];
 };
 
@@ -140,10 +142,23 @@ export async function fetchInventory(
 /**
  * Fetches the methodology categories/subcategories, subtotals from the DB view,
  * and builds category data with totals.
+ *
+ * By default only subcategories with computed emissions (`subtotal > 0`) are
+ * returned — the right behavior for rankings and reduction suggestions, which
+ * must not be polluted by subcategories that produce zero emissions.
+ *
+ * Pass `includeIncompleteSubcategories: true` to also return subcategories
+ * that have at least one ACTIVE line but no computed emissions yet (e.g. lines
+ * the user started but hasn't completed). The subtotals view INNER-joins ACTIVE
+ * lines, so a subcategory has a view row iff it has ≥1 active line; presence in
+ * `subtotalMap` is therefore the exact "has active lines" signal. The detailed
+ * summary uses this so the review screen lists every active line — complete or
+ * not — letting the user see what is still pending.
  */
 export async function fetchCategoryData(
   prismaClient: PrismaClient,
-  inventory: InventoryBase
+  inventory: InventoryBase,
+  options: { includeIncompleteSubcategories?: boolean } = {}
 ): Promise<{ categoryData: CategoryData[]; totalEmissions: number }> {
   const methodology = await prismaClient.methodologyVersion.findUnique({
     where: { id: inventory.methodologyVersionId },
@@ -174,20 +189,38 @@ export async function fetchCategoryData(
     where: { carbonInventoryId: inventory.id },
   });
 
-  const subtotalMap = new Map<string, number>();
+  // The view INNER-joins ACTIVE lines, so a row exists iff the subcategory has
+  // ≥1 active line. `activeCompletedLinesCount < activeLinesCount` means some of
+  // those lines have no computed result yet — i.e. the subtotal is provisional.
+  const subtotalMap = new Map<
+    string,
+    { subtotal: number; hasIncompleteLines: boolean }
+  >();
   for (const row of subtotals) {
-    subtotalMap.set(row.subcategoryId.toString(), kgToTon(Number(row.value)));
+    subtotalMap.set(row.subcategoryId.toString(), {
+      subtotal: kgToTon(Number(row.value)),
+      hasIncompleteLines:
+        Number(row.activeCompletedLinesCount) < Number(row.activeLinesCount),
+    });
   }
 
   const categoryData = methodology.categories.map((category) => {
     const subcategories = category.subcategories
-      .map((sub) => ({
-        id: sub.id.toString(),
-        name: sub.name,
-        icon: IconNameSchema.parse(sub.icon),
-        subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
-      }))
-      .filter((sub) => sub.subtotal > 0);
+      .map((sub) => {
+        const entry = subtotalMap.get(sub.id.toString());
+        return {
+          id: sub.id.toString(),
+          name: sub.name,
+          icon: IconNameSchema.parse(sub.icon),
+          subtotal: entry?.subtotal ?? 0,
+          hasIncompleteLines: entry?.hasIncompleteLines ?? false,
+        };
+      })
+      .filter((sub) =>
+        options.includeIncompleteSubcategories
+          ? subtotalMap.has(sub.id)
+          : sub.subtotal > 0
+      );
 
     const categorySubtotal = subcategories.reduce(
       (sum, sub) => sum + sub.subtotal,
@@ -452,3 +485,12 @@ export const resolveInventoryOrganizationDataReferences = async (
       : null,
   };
 };
+
+/**
+ * Builds the blob-path prefix that scopes line-file blobs to a single inventory.
+ * The prefix is set at upload time and is tamper-resistant, so callers can use
+ * `startsWith` to validate that a file belongs to the inventory it claims to.
+ */
+export const buildCarbonInventoryLineBlobPathPrefix = (
+  carbonInventoryId: string
+): string => `${FileType.CARBON_INVENTORY}/${carbonInventoryId}/LINES/`;

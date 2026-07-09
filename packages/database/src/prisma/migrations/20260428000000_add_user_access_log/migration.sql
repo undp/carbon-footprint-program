@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "user" ADD COLUMN "last_access_at" TIMESTAMP(3);
-
 -- CreateTable
 CREATE TABLE "user_access_log" (
     "id" BIGSERIAL NOT NULL,

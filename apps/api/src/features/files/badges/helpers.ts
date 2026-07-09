@@ -1,5 +1,4 @@
 import { type BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
-import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { ConfirmBadgeUploadResponse, BadgeDTO } from "@repo/types";
 import {
   checkFileRecordExists,
@@ -9,19 +8,17 @@ import {
   BADGE_ALLOWED_MIME_TYPES,
   BADGE_UPLOAD_MAX_BYTES,
 } from "@/config/constants.js";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { BadgeUploadValidationError } from "./errors.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export async function persistBadgeFileRecord(
   prisma: PrismaClient,
-  blobStorage: ContainerClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   params: PersistFileRecordParams,
   type: BadgeType
 ): Promise<ConfirmBadgeUploadResponse> {
   const { sizeBytes, mimeType } = await checkFileRecordExists(
-    blobStorage,
+    storage,
     params.blobPath,
     params.uuid
   );
@@ -61,10 +58,7 @@ export async function persistBadgeFileRecord(
   });
 
   const badge = file.badge!;
-  const signUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName
-  );
+  const signUrl = await storage.createReadUrlSigner();
   const { url: previewUrl } = await signUrl(file.blobPath, {
     contentType: file.mimeType ?? undefined,
   });

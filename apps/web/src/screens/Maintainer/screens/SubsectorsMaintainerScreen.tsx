@@ -5,10 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
-  CountrySubsectorStatus,
   type AdminCountrySubsector,
   type CreateCountrySubsectorRequest,
   type UpdateCountrySubsectorRequest,
@@ -22,8 +20,7 @@ import {
 } from "@/api/query/countrySubsectors";
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -35,7 +32,10 @@ import {
   type SubsectorFormRow,
 } from "../hooks/useSubsectorProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS = {
@@ -53,7 +53,6 @@ const toFormSubsector = (s: AdminCountrySubsector): SubsectorFormRow => ({
   description: s.description,
   countrySectorId: s.countrySectorId,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -90,9 +89,8 @@ export const SubsectorsMaintainerScreen: FC = () => {
           );
         }
         if (key === "statusLabel") {
-          return row.status === CountrySubsectorStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";
@@ -147,9 +145,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `subsectors.${rowIndex}.${field}` as `subsectors.${number}.name`
-      );
+      void form.trigger(`subsectors.${rowIndex}.${field}`);
     },
     [form]
   );
@@ -180,8 +176,6 @@ export const SubsectorsMaintainerScreen: FC = () => {
         body.countrySectorId = formRow.countrySectorId;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) =>
-      body.name !== undefined || body.countrySectorId !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -193,7 +187,6 @@ export const SubsectorsMaintainerScreen: FC = () => {
         subcategoryRecommendations: 0,
       },
       status: null,
-      isInUse: false,
     }),
     createMutation,
     updateMutation,
@@ -271,16 +264,17 @@ export const SubsectorsMaintainerScreen: FC = () => {
       explanationSlug={SUBSECTORS_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="subrubro"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede editar el subrubro"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }
@@ -296,7 +290,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
             No hay subrubros para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<SubsectorFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -309,8 +303,9 @@ export const SubsectorsMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar subrubros...",
+              downloadFileName: "subrubros",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

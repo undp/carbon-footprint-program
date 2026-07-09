@@ -1,29 +1,26 @@
 import {
+  GetReductionProjectsMinimalParams,
   GetReductionProjectsMinimalParamsSchema,
   GetReductionProjectsMinimalResponseSchema,
 } from "@repo/types";
-import type { GetReductionProjectsMinimalParams } from "@repo/types";
 import { getReductionProjectsMinimalHandler } from "./handler.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getReductionProjectsMinimalRoute: StandardRouteSignature = (
-  fastify,
-  _options
-) => {
-  fastify.get<{ Querystring: GetReductionProjectsMinimalParams }>(
-    "/minimal",
-    {
-      schema: {
-        tags: ["reduction-projects"],
-        summary: "List reduction projects (minimal)",
-        description:
-          "Returns id, name, organizationId, status, and year for each accessible project.",
-        querystring: GetReductionProjectsMinimalParamsSchema,
-        response: {
-          200: GetReductionProjectsMinimalResponseSchema,
-        },
-      },
+export const getReductionProjectsMinimalRoute = defineRoute<{
+  Querystring: GetReductionProjectsMinimalParams;
+}>({
+  method: "GET",
+  path: "/minimal",
+  schema: {
+    tags: ["reduction-projects"],
+    summary: "List reduction projects (minimal)",
+    description:
+      "Returns id, name, organizationId, status, and year for each accessible project.",
+    querystring: GetReductionProjectsMinimalParamsSchema,
+    response: {
+      200: GetReductionProjectsMinimalResponseSchema,
     },
-    getReductionProjectsMinimalHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: getReductionProjectsMinimalHandler,
+});

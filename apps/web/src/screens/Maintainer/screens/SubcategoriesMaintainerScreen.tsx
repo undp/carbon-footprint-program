@@ -63,9 +63,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     isNewRow,
   } = useMaintainerEditingState({ methodologyVersionId });
 
-  const addMutation = useAddSubcategory(methodologyVersionId);
-  const updateMutation = useUpdateSubcategory(methodologyVersionId);
-  const deleteMutation = useDeleteSubcategory(methodologyVersionId);
+  const addMutation = useAddSubcategory();
+  const updateMutation = useUpdateSubcategory();
+  const deleteMutation = useDeleteSubcategory();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
@@ -434,8 +434,16 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<SubcategoryForm>
         editingRowId={editingRowId}
+        searchable={{
+          fuseOptions: {
+            keys: ["name", "description"],
+          },
+          placeholder: "Buscar subcategoría...",
+          disableExport: true,
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady || scope.isLoadingMethodologies}

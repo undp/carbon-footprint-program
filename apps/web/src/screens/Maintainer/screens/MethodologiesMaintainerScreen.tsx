@@ -1,6 +1,14 @@
 import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -12,15 +20,20 @@ import {
 } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { useDownloadMethodology } from "@/hooks/useDownloadMethodology";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { MethodologyVersionStatus, MethodologyVersionForm } from "@repo/types";
-import { StylizedDataGrid } from "@components";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import {
+  EditModeToolbar,
+  EDIT_MODE_TOOLBAR_HEIGHT,
+} from "../components/EditModeToolbar";
 
 const METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "methodologies-maintainer",
@@ -31,6 +44,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
 
   // --- Data fetching ---
   const { data: methodologies = [], isLoading } = useMethodologies();
@@ -38,12 +52,16 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const updateMutation = useUpdateMethodology();
   const deleteMutation = useDeleteMethodology();
   const duplicateMutation = useDuplicateMethodology();
+  const { download: downloadMethodology, downloadingId: downloadingRowId } =
+    useDownloadMethodology();
 
   // --- Form setup ---
   const { form, fieldArray, handleCellChange } =
     useMethodologiesForm(methodologies);
   const startEditing = useMaintainerStore((s) => s.startEditing);
   const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
+  const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
+  const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const currentRows = form.watch("methodologies");
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
@@ -266,6 +284,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [isNewRow, enqueueSnackbar, startEditing, navigate]
   );
 
+  const handleExitEditMode = useCallback(() => {
+    setExitEditModeOpen(false);
+    stopEditing();
+  }, [stopEditing]);
+
   const handleDuplicate = useCallback(
     async (row: MethodologyVersionForm) => {
       if (isNewRow(row.id)) {
@@ -359,8 +382,16 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   // --- Column definitions via hook ---
 
+  const handleDownloadExcel = useCallback(
+    (row: MethodologyVersionForm) => {
+      void downloadMethodology(row.id);
+    },
+    [downloadMethodology]
+  );
+
   const columns = useMethodologyColumns({
     editingRowId,
+    actionsLocked: !!editingMethodology,
     onCellChange: handleCellChange,
     onToggle: handleToggle,
     onStartEditRow: handleStartEditRow,
@@ -370,6 +401,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onView: handleView,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,
+    onDownloadExcel: handleDownloadExcel,
+    downloadingRowId,
     rows: currentRows,
   });
 
@@ -377,28 +410,34 @@ export const MethodologiesMaintainerScreen: FC = () => {
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Metodologías"
+        subtitle="Gestiona las metodologías de cálculo. Haz clic en el ícono de
+          ajustes para modificar alcances, subcategorías y factores de emisión.
+          Siempre debe existir una única metodología activa."
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
         explanationSlug={METHODOLOGIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       />
-      <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa.
-        </Typography>
+      <Box
+        className="rounded-sm bg-white p-3"
+        sx={
+          editingMethodology
+            ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` }
+            : undefined
+        }
+      >
         <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
+            <MaintainerDataGrid<MethodologyVersionForm>
+              editingRowId={editingRowId}
+              searchable={{
+                fuseOptions: {
+                  keys: ["name", "description", "regulation", "version"],
                 },
-                "& .MuiDataGrid-cell .MuiTextField-root": {
-                  alignSelf: "center",
-                },
-              })}
+                placeholder: "Buscar metodología...",
+                disableExport: true,
+              }}
+              showToolbar
               loading={isLoading}
               columns={columns}
               rows={currentRows}
@@ -408,6 +447,35 @@ export const MethodologiesMaintainerScreen: FC = () => {
           </Box>
         </form>
       </Box>
+      {editingMethodology && (
+        <EditModeToolbar
+          methodologyName={editingMethodology.name}
+          onExitClick={() => setExitEditModeOpen(true)}
+        />
+      )}
+      <Dialog
+        open={exitEditModeOpen}
+        onClose={() => setExitEditModeOpen(false)}
+      >
+        <DialogTitle>Salir de modo edición</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Estás a punto de salir del modo edición de{" "}
+            <strong>{editingMethodology?.name ?? ""}</strong>. Podrás volver a
+            ajustarla desde esta pantalla cuando quieras.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleExitEditMode}
+          >
+            Salir
+          </Button>
+        </DialogActions>
+      </Dialog>
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}

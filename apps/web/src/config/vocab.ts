@@ -22,6 +22,16 @@ export const VOCAB = {
     },
     relationalAdjective: "organizacional",
   },
+  carbonInventory: {
+    noun: {
+      singular: "huella de carbono",
+      plural: "huellas de carbono",
+    },
+    article: {
+      singular: "la huella de carbono",
+      plural: "las huellas de carbono",
+    },
+  },
   inscription: {
     noun: {
       singular: "inscripción",

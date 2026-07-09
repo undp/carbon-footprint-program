@@ -1,8 +1,8 @@
 import ExcelJS from "exceljs";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
-import { formatDateToDDMMYYYY } from "@repo/utils";
-import { getReductionProjectStatusLabel } from "./reductionProject";
+import { formatter } from "./formatting";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(
@@ -28,7 +28,7 @@ export async function exportReductionProjectToExcel(
     ["Subcategoría", project.subcategory?.name ?? "—"],
     [
       "Fecha de Implementación",
-      formatDateToDDMMYYYY(project.implementationDate),
+      formatter.dateDDMMYYYY(project.implementationDate),
     ],
     ["Escenario Base (tCO₂e)", project.baselineScenario],
     ["Escenario Proyecto (tCO₂e)", project.projectScenario],
@@ -37,8 +37,8 @@ export async function exportReductionProjectToExcel(
     ["GEI Considerados", project.consideredGei.join(", ") || "—"],
     ["Reportado en Otra Iniciativa", project.reportedElsewhere ? "Sí" : "No"],
     ["Detalle Reporte Externo", project.reportedElsewhereDescription ?? "—"],
-    ["Estado", getReductionProjectStatusLabel(project.status)],
-    ["Fecha de Creación", formatDateToDDMMYYYY(project.createdAt)],
+    ["Estado", REDUCTION_PROJECT_STATUS_CONFIG[project.status].label],
+    ["Fecha de Creación", formatter.dateDDMMYYYY(project.createdAt)],
   ];
 
   for (const [field, value] of rows) {

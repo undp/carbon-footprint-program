@@ -61,9 +61,9 @@ export const DimensionsMaintainerScreen: FC = () => {
     isNewRow,
   } = useMaintainerEditingState({ methodologyVersionId });
 
-  const createMutation = useAddEmissionFactorDimension(methodologyVersionId);
-  const updateMutation = useUpdateEmissionFactorDimension(methodologyVersionId);
-  const deleteMutation = useDeleteEmissionFactorDimension(methodologyVersionId);
+  const createMutation = useAddEmissionFactorDimension();
+  const updateMutation = useUpdateEmissionFactorDimension();
+  const deleteMutation = useDeleteEmissionFactorDimension();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useDimensionsForm();
@@ -539,8 +539,16 @@ export const DimensionsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<DimensionFormRow>
         editingRowId={editingRowId}
+        searchable={{
+          fuseOptions: {
+            keys: ["name", "subcategoryName"],
+          },
+          placeholder: "Buscar dimensión...",
+          disableExport: true,
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady || scope.isLoadingMethodologies}

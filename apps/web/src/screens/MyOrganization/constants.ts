@@ -1,5 +1,5 @@
 import { OrganizationRole } from "@repo/types";
-import { ORGANIZATION_ROLE_LABELS } from "@/labels";
+import { ORGANIZATION_ROLE_LABELS } from "@/labels/chips/role";
 
 export const ROLE_OPTIONS = (
   Object.entries(ORGANIZATION_ROLE_LABELS) as [OrganizationRole, string][]

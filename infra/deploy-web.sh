@@ -50,6 +50,10 @@ log() {
   echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
+# Shared infra helpers
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 # Function to execute or simulate command
 run_cmd() {
   if [ "$DRY_RUN" = "true" ]; then
@@ -86,6 +90,9 @@ else
   echo -e "${RED}Error: .envrc file not found in $SCRIPT_DIR${NC}"
   exit 1
 fi
+
+# Validate FRONTEND_CUSTOM_DOMAIN shape (bare hostname, no scheme/path)
+validate_frontend_custom_domain
 
 # Check required tools
 log "${YELLOW}Checking prerequisites...${NC}"
@@ -136,11 +143,7 @@ log "${YELLOW}[1/5] Fetching Static Web App details...${NC}"
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 # Get Static Web App name
-SWA_NAME=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.staticWebAppName.value \
-  --output tsv)
+SWA_NAME=$(stack_output staticWebAppName)
 
 if [ -z "$SWA_NAME" ]; then
   log "${RED}Error: Could not find Static Web App name. Make sure infrastructure is deployed.${NC}"
@@ -229,19 +232,49 @@ if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
   fi
 fi
 
-export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
-export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
-export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+# Map the Azure/Entra values onto the generic OIDC build vars the frontend reads
+# (the frontend is a generic OIDC client; Entra is one such issuer). The API scope
+# is appended so the access token's aud is the API
+# (api://<API_CLIENT_ID>/access_as_user); the API validates that token directly
+# via JWKS (AUTH_PROVIDER=jwks), so the Bearer token reaches the app untouched.
+export VITE_OIDC_ISSUER=$AZURE_AUTH_AUTHORITY
+export VITE_OIDC_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
+export VITE_OIDC_SCOPES="openid profile email offline_access api://$AZURE_API_CLIENT_ID/access_as_user"
+
+# Resolve frontend base URL (used by Vite build for redirect URIs, etc.).
+# Precedence and the CORS-mismatch warning live in resolve_frontend_origin;
+# falls back to the SWA default hostname when the stack has no origin yet.
+# A manual VITE_FRONT_BASE_URL is intentionally ignored — if it disagreed with
+# bicep's allowedOrigin, the browser would hit CORS errors.
+if [ -n "${VITE_FRONT_BASE_URL:-}" ]; then
+  log "${YELLOW}   ⚠ Ignoring VITE_FRONT_BASE_URL from environment (was: ${VITE_FRONT_BASE_URL}); deriving from FRONTEND_CUSTOM_DOMAIN / stack instead.${NC}"
+  unset VITE_FRONT_BASE_URL
+fi
+
+resolve_frontend_origin
+if [ -n "$RESOLVED_ORIGIN" ]; then
+  export VITE_FRONT_BASE_URL="$RESOLVED_ORIGIN"
+  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from ${RESOLVED_ORIGIN_SOURCE}: ${VITE_FRONT_BASE_URL}${NC}"
+else
+  export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+  log "${GREEN}   ✓ VITE_FRONT_BASE_URL resolved from Static Web App hostname: ${VITE_FRONT_BASE_URL}${NC}"
+fi
+
+# OIDC redirect URIs derived from the resolved frontend origin (the /auth/callback
+# route). VITE_OIDC_REDIRECT_URI must be registered in the Entra app registration.
+export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL%/}/auth/callback"
+export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="$VITE_FRONT_BASE_URL"
+
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
 if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
   export VITE_IS_DEMO_APP
 fi
 
 log "${GREEN}   ✓ All required VITE_ environment variables are set.${NC}"
-log "  - VITE_AZURE_FRONT_CLIENT_ID=${VITE_AZURE_FRONT_CLIENT_ID:0:8}..."
-log "  - VITE_AZURE_API_CLIENT_ID=${VITE_AZURE_API_CLIENT_ID:0:8}..."
-log "  - VITE_AZURE_AUTH_AUTHORITY=${VITE_AZURE_AUTH_AUTHORITY:0:30}..."
+log "  - VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID:0:8}..."
+log "  - VITE_OIDC_ISSUER=${VITE_OIDC_ISSUER:0:30}..."
+log "  - VITE_OIDC_SCOPES=${VITE_OIDC_SCOPES}"
+log "  - VITE_OIDC_REDIRECT_URI=${VITE_OIDC_REDIRECT_URI}"
 log "  - VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}"
 if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
   log "  - VITE_IS_DEMO_APP=${VITE_IS_DEMO_APP}"
@@ -378,18 +411,9 @@ else
 fi
 echo ""
 
-# Check if Front Door is enabled
-FRONTDOOR_ENDPOINT=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.frontDoorEndpoint.value \
-  --output tsv 2>/dev/null || echo "")
-
-FRONTDOOR_CUSTOM_DOMAIN=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.frontDoorCustomDomain.value \
-  --output tsv 2>/dev/null || echo "")
+# Resolve public endpoints (Front Door / custom domain) for the final summary
+FRONTDOOR_ENDPOINT=$(stack_output frontDoorEndpoint)
+FRONTEND_CUSTOM_DOMAIN_OUTPUT=$(stack_output frontendCustomDomain)
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
@@ -402,13 +426,13 @@ echo -e "   Static Web App:  ${BLUE}https://$SWA_HOSTNAME${NC}"
 
 if [ -n "$FRONTDOOR_ENDPOINT" ]; then
   echo -e "   Front Door CDN:  ${BLUE}https://$FRONTDOOR_ENDPOINT${NC}"
-  
-  if [ -n "$FRONTDOOR_CUSTOM_DOMAIN" ]; then
-    echo -e "   Custom Domain:   ${BLUE}https://$FRONTDOOR_CUSTOM_DOMAIN${NC} ${GREEN}← Use this for production${NC}"
+
+  if [ -n "$FRONTEND_CUSTOM_DOMAIN_OUTPUT" ]; then
+    echo -e "   Custom Domain:   ${BLUE}https://$FRONTEND_CUSTOM_DOMAIN_OUTPUT${NC} ${GREEN}← Use this for production${NC}"
     echo ""
     echo -e "${YELLOW}💡 Custom domain configured! Make sure DNS records are set:${NC}"
-    echo -e "   ${CYAN}TXT Record:${NC}   _dnsauth.$FRONTDOOR_CUSTOM_DOMAIN → [validation-token]"
-    echo -e "   ${CYAN}CNAME Record:${NC} $FRONTDOOR_CUSTOM_DOMAIN → $FRONTDOOR_ENDPOINT"
+    echo -e "   ${CYAN}TXT Record:${NC}   _dnsauth.$FRONTEND_CUSTOM_DOMAIN_OUTPUT → [validation-token]"
+    echo -e "   ${CYAN}CNAME Record:${NC} $FRONTEND_CUSTOM_DOMAIN_OUTPUT → $FRONTDOOR_ENDPOINT"
     echo ""
     echo -e "${YELLOW}   SSL certificate will be provisioned automatically after DNS validation.${NC}"
   else
@@ -416,6 +440,13 @@ if [ -n "$FRONTDOOR_ENDPOINT" ]; then
     echo -e "${YELLOW}💡 Tip: The Front Door URL provides global CDN, better performance,"
     echo -e "   and additional security features.${NC}"
   fi
+elif [ -n "$FRONTEND_CUSTOM_DOMAIN_OUTPUT" ]; then
+  echo -e "   Custom Domain:   ${BLUE}https://$FRONTEND_CUSTOM_DOMAIN_OUTPUT${NC} ${GREEN}← Use this for production${NC}"
+  echo ""
+  echo -e "${YELLOW}💡 Custom domain configured on Static Web App. Required DNS record:${NC}"
+  echo -e "   ${CYAN}CNAME Record:${NC} $FRONTEND_CUSTOM_DOMAIN_OUTPUT → $SWA_HOSTNAME"
+  echo ""
+  echo -e "${YELLOW}   SSL certificate will be provisioned automatically after CNAME validation.${NC}"
 fi
 
 echo ""

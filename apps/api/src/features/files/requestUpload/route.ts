@@ -1,43 +1,27 @@
 import {
   RequestUploadBody,
   RequestUploadBodySchema,
-  RequestUploadResponse,
   RequestUploadResponseSchema,
-  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { requestUploadHandler } from "./handler.js";
-import type { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const requestUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance,
-  _options
-) => {
-  fastify.post<{
-    Body: RequestUploadBody;
-    Reply: RequestUploadResponse;
-  }>(
-    "/request-upload",
-    {
-      schema: {
-        tags: ["files"],
-        summary: "Request a temporary upload URL for a file",
-        body: RequestUploadBodySchema,
-        response: {
-          200: RequestUploadResponseSchema,
-          400: ApiErrorResponseSchema,
-          503: ApiErrorResponseSchema,
-        },
-      },
-      preHandler: [
-        fastify.requireRoles([
-          SystemRole.USER,
-          SystemRole.ADMIN,
-          SystemRole.SUPERADMIN,
-        ]),
-      ],
+export const requestUploadRoute = defineRoute<{
+  Body: RequestUploadBody;
+}>({
+  method: "POST",
+  path: "/request-upload",
+  schema: {
+    tags: ["files"],
+    summary: "Request a temporary upload URL for a file",
+    body: RequestUploadBodySchema,
+    response: {
+      200: RequestUploadResponseSchema,
+      400: ApiErrorResponseSchema,
+      503: ApiErrorResponseSchema,
     },
-    requestUploadHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: requestUploadHandler,
+});

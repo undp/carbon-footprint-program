@@ -1,1 +1,0 @@
-# Mantenedor de sub-categorías

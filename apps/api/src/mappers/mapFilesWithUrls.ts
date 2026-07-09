@@ -1,4 +1,4 @@
-import type { ReadSasUrlSigner } from "@/services/blobService.js";
+import type { ReadUrlSigner } from "@repo/storage";
 import type { SubmissionHistoryFileRow } from "../features/submissions/helpers.js";
 
 /**
@@ -6,13 +6,13 @@ import type { SubmissionHistoryFileRow } from "../features/submissions/helpers.j
  */
 export async function mapFilesWithUrls(
   files: SubmissionHistoryFileRow[],
-  signReadSasUrl: ReadSasUrlSigner
+  signReadUrl: ReadUrlSigner
 ) {
   if (files.length === 0) return [];
 
   return Promise.all(
     files.map(async (file) => {
-      const { url, expiresAt } = await signReadSasUrl(file.blobPath, {
+      const { url, expiresAt } = await signReadUrl(file.blobPath, {
         contentType: file.mimeType,
       });
       return {

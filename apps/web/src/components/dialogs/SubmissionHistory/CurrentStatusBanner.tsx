@@ -6,12 +6,9 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/types";
-import {
-  getRequestStatusColor,
-  REQUEST_STATUS_LABEL,
-  REQUEST_TYPE_LABEL,
-  EVENT_TYPE_LABEL,
-} from "@/utils/submissions";
+import { EVENT_TYPE_LABEL } from "@/utils/submissions";
+import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
+import { SUBMISSION_TYPE_LABELS } from "@/labels/chips/submissionType";
 
 type Props = {
   status: SubmissionStatus | null;
@@ -26,13 +23,13 @@ export const CurrentStatusBanner: FC<Props> = ({
 }) => {
   const theme = useTheme();
   const statusColor = status
-    ? getRequestStatusColor(status, theme)
+    ? theme.palette.statusFamilyColors[SUBMISSION_STATUS_CONFIG[status].family]
     : theme.palette.text.secondary;
 
   return (
     <Box
       sx={{
-        bgcolor: statusColor ? alpha(statusColor, 0.18) : undefined,
+        bgcolor: alpha(statusColor, 0.18),
         display: "flex",
         alignItems: "center",
         gap: 1.5,
@@ -64,7 +61,7 @@ export const CurrentStatusBanner: FC<Props> = ({
             }}
           >
             {status
-              ? REQUEST_STATUS_LABEL[status]
+              ? SUBMISSION_STATUS_CONFIG[status].label
               : EVENT_TYPE_LABEL[eventType]}
           </Typography>
         </Stack>
@@ -87,7 +84,7 @@ export const CurrentStatusBanner: FC<Props> = ({
                 fontSize: 16,
               }}
             >
-              {REQUEST_TYPE_LABEL[submissionType]}
+              {SUBMISSION_TYPE_LABELS[submissionType].label}
             </Typography>
           </Stack>
         </Box>

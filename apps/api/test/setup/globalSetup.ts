@@ -1,35 +1,60 @@
 import {
   runPrismaMigrations,
-  runPrismaSeeds,
+  runSeeds,
   setupTestDatabase,
+} from "./testDatabase.js";
+import {
   setupTestStorage,
-} from "./testcontainers.js";
-import type { StartedAzuriteContainer } from "@testcontainers/azurite";
+  type TestStorageContainer,
+  type TestStorageDescriptor,
+} from "./testStorage.js";
 import type { TestProject } from "vitest/node";
+import { StorageProvider } from "@repo/storage";
 
-type TestStorageContainer = StartedAzuriteContainer | null;
+/**
+ * Sets process.env for the chosen storage provider before workers are spawned,
+ * so the storage plugin's `buildStorageConfig()` validation passes at
+ * `app.ready()` in each worker.
+ *
+ * Connection details are dummies — real values are injected per-app in
+ * `createTestApp`. The storagePlugin will still construct an adapter at boot
+ * (its background health check will warn), but `createTestApp` then overrides
+ * `app.storage` with the testcontainer-backed adapter.
+ */
+function applyStorageEnv(descriptor: TestStorageDescriptor): void {
+  process.env.STORAGE_PROVIDER = descriptor.provider;
+  if (descriptor.provider === StorageProvider.AZURE_BLOB_STORAGE) {
+    process.env.AZURE_STORAGE_ACCOUNT_NAME ??= "devstoreaccount1";
+    process.env.AZURE_STORAGE_CONTAINER_NAME = descriptor.containerName;
+  }
+  if (descriptor.provider === StorageProvider.MINIO) {
+    process.env.MINIO_ENDPOINT = descriptor.endpoint;
+    process.env.MINIO_ACCESS_KEY = descriptor.accessKey;
+    process.env.MINIO_SECRET_KEY = descriptor.secretKey;
+    process.env.MINIO_BUCKET = descriptor.bucket;
+    process.env.MINIO_REGION = descriptor.region;
+  }
+}
 
 export default async function setup(project: TestProject) {
   // Database is required for all tests — let it propagate and fail fast.
   const { databaseUrl, container: dbContainer } = await setupTestDatabase();
 
-  // Storage is only required for file-upload tests. If Azurite fails to start
-  // (wrong Node.js version, missing Docker image, CI network issue, etc.) we
-  // still want database-only tests to run, so we handle the failure here
-  // instead of letting it abort the whole setup via Promise.all.
-  let storageConnectionString = "";
-  let storageContainerName = "";
-  let storageContainer: TestStorageContainer = null;
+  // Storage is only required for file-upload tests. If the container fails to
+  // start (wrong Node.js version, missing Docker image, CI network issue, etc.)
+  // we still want database-only tests to run.
+  let storageDescriptor: TestStorageDescriptor | null = null;
+  let storageContainer: TestStorageContainer | null = null;
 
   try {
     const storage = await setupTestStorage();
-    storageConnectionString = storage.connectionString;
-    storageContainerName = storage.containerName;
+    storageDescriptor = storage.descriptor;
     storageContainer = storage.container;
+    applyStorageEnv(storageDescriptor);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.warn(
-      "\n⚠️  Azurite storage container failed to start — storage-dependent tests will fail.\n",
+      "\n⚠️  Storage testcontainer failed to start — storage-dependent tests will fail.\n",
       error
     );
   }
@@ -37,12 +62,11 @@ export default async function setup(project: TestProject) {
   // Provide values BEFORE migrations/seeds so that an error in the next block
   // doesn't leave test workers with stale (never-provided) context.
   project.provide("databaseUrl", databaseUrl);
-  project.provide("storageConnectionString", storageConnectionString);
-  project.provide("storageContainerName", storageContainerName);
+  project.provide("storageDescriptor", storageDescriptor);
 
   try {
     runPrismaMigrations(databaseUrl);
-    runPrismaSeeds(databaseUrl);
+    runSeeds(databaseUrl);
   } catch (error) {
     await dbContainer.stop();
     if (storageContainer) await storageContainer.stop();
@@ -58,7 +82,7 @@ export default async function setup(project: TestProject) {
 declare module "vitest" {
   export interface ProvidedContext {
     databaseUrl: string;
-    storageConnectionString: string;
-    storageContainerName: string;
+    /** `null` when the storage testcontainer failed to start. */
+    storageDescriptor: TestStorageDescriptor | null;
   }
 }

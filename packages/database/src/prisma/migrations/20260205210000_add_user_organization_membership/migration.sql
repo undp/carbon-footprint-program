@@ -22,6 +22,11 @@ CREATE TABLE "user_organization_membership" (
 -- CreateIndex
 CREATE INDEX "user_organization_membership_user_id_organization_id_idx" ON "user_organization_membership"("user_id", "organization_id");
 
+-- CreateIndex: partial unique index — at most one ACTIVE membership per user per org.
+-- NOTE: Prisma does not track partial indexes (the WHERE clause) on schema diffs.
+-- Preserve this WHERE clause manually when touching this table.
+CREATE UNIQUE INDEX "user_organization_membership_user_id_organization_id_active_key" ON "user_organization_membership"("user_id", "organization_id") WHERE status = 'ACTIVE';
+
 -- AddForeignKey
 ALTER TABLE "user_organization_membership" ADD CONSTRAINT "user_organization_membership_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 

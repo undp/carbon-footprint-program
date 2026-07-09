@@ -86,6 +86,7 @@ export const EmissionEditorFactorSourceCell: FC<
       size="small"
       disabled={disabled || !validation.canSelectFactorSource}
       onChange={(e) => onChange(e.target.value)}
+      inputProps={{ autoComplete: "off" }}
       sx={{
         "& .MuiInputBase-input.Mui-disabled": {
           WebkitTextFillColor:

@@ -5,15 +5,15 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Stack,
   Typography,
 } from "@mui/material";
+import { CloudUploadOutlined, HistoryOutlined } from "@mui/icons-material";
+import { StatusChip } from "@/components/StatusChip";
 import {
-  CheckCircleOutlined,
-  CloudUploadOutlined,
-  HistoryOutlined,
-} from "@mui/icons-material";
+  BADGE_STATUS_CONFIG,
+  BadgeActivationStatus,
+} from "@/labels/chips/badge";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
@@ -176,12 +176,14 @@ export const BadgeCard: FC<BadgeCardProps> = ({
               fontWeight={600}
             >
               {BADGE_TYPE_LABELS[type]}
-              <Chip
-                icon={<CheckCircleOutlined />}
-                label={activeBadge ? "Activo" : "Inactivo"}
-                size="small"
-                color={activeBadge ? "success" : "warning"}
-                variant="outlined"
+              <StatusChip
+                config={
+                  BADGE_STATUS_CONFIG[
+                    activeBadge
+                      ? BadgeActivationStatus.ACTIVE
+                      : BadgeActivationStatus.INACTIVE
+                  ]
+                }
               />
             </Typography>
           </Stack>

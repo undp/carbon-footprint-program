@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import {
+  MagnitudeBaseSchema,
   MeasurementUnitBaseSchema,
   MeasurementUnitStatusSchema,
 } from "../../baseSchemas/index.js";
@@ -8,8 +9,25 @@ import {
 const NestedMeasurementUnitSchema = MeasurementUnitBaseSchema.pick({
   id: true,
   name: true,
-  magnitude: true,
+  magnitudeId: true,
   abbreviation: true,
+}).extend({
+  magnitude: MagnitudeBaseSchema,
+});
+
+const RateMeasurementUnitReferenceCountsSchema = z.object({
+  emissionFactors: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("Count of EmissionFactor rows referencing this rate unit."),
+  lineFactorsAsApplied: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe(
+      "Count of CarbonInventoryLineFactor rows with appliedFactorRateUnitId set to this rate unit."
+    ),
 });
 
 const RateMeasurementUnitItemSchema = z.object({
@@ -28,6 +46,16 @@ const RateMeasurementUnitItemSchema = z.object({
   denominatorUnit: NestedMeasurementUnitSchema.describe(
     "The denominator measurement unit of the rate measurement unit"
   ),
+  referenceCounts: RateMeasurementUnitReferenceCountsSchema.describe(
+    "Breakdown of how many records reference this rate unit, by category."
+  ),
+  totalReferenceCount: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe(
+      "Sum of the two referenceCounts categories (emissionFactors and lineFactorsAsApplied). Derived; used for default sort."
+    ),
 });
 
 export const GetAllRateMeasurementUnitsResponseSchema = z.array(

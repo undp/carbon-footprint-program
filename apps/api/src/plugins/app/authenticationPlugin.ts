@@ -7,9 +7,9 @@
  * ## Configuration
  *
  * Set AUTH_PROVIDER environment variable to choose provider:
- * - "jwks" - Use JWT tokens with JWKS validation (default)
- * - "easy-auth" - Use Azure App Service Easy Auth
- * - "none" - Disable authentication (development only)
+ * - "jwks" - Validate OIDC access tokens via JWKS (recommended for production)
+ * - "forced-user" - Inject a fixed dev user
+ * - "none" - Disable authentication; default when AUTH_PROVIDER is unset (development only)
  *
  * ## Usage in Routes
  *
@@ -32,44 +32,28 @@
 
 import fp from "fastify-plugin";
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
-import type { AuthProviderType } from "../../auth/types.js";
 import { authService } from "../../auth/index.js";
 
 /**
- * Plugin options for authentication.
+ * Authentication plugin that integrates AuthService with Fastify. The provider
+ * is selected from AUTH_PROVIDER at module load (see auth/index.ts).
  */
-export interface AuthPluginOptions {
-  /** Override the default provider from environment */
-  provider?: AuthProviderType;
-}
-
-/**
- * Authentication plugin that integrates AuthService with Fastify.
- */
-const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
-  fastify,
-  _options
-) => {
+const authenticationPlugin: FastifyPluginAsync = (fastify) => {
   // Decorate fastify with the auth service
   fastify.decorate("authService", authService);
 
   /**
-   * Decorator to require authentication on a route.
-   * Fails with 401 if authentication fails.
-   * Skips authentication if AUTH_PROVIDER=none (development mode).
+   * Decorator to require authentication on a route. Fails with 401 when a
+   * private route resolves no user; public routes (allowPublicAccess /
+   * allowAnonymousAccess) pass through with a null user. With AUTH_PROVIDER=none
+   * the NoneProvider resolves no user, so every private route 401s.
    */
   fastify.decorate(
     "requireAuth",
     async function (request: FastifyRequest, reply: FastifyReply) {
-      const isPrivateRoute = !request.routeOptions?.config?.public;
-      // Skip authentication if provider is none (development mode)
-      if (!authService.isEnabled()) {
-        request.log.debug(
-          { provider: authService.getConfiguredProvider() },
-          "Authentication disabled; allowing request without auth"
-        );
-        return;
-      }
+      const routeConfig = request.routeOptions?.config;
+      const isPrivateRoute =
+        !routeConfig?.allowPublicAccess && !routeConfig?.allowAnonymousAccess;
 
       const result = await authService.authenticate(request);
 

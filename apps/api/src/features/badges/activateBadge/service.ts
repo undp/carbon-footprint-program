@@ -1,16 +1,14 @@
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { BadgeStatus } from "@repo/database";
 import type { ActivateBadgeResponse } from "@repo/types";
 import { ResourceNotFoundError } from "@/errors/index.js";
-import { createReadSasUrlSigner } from "@/services/blobService.js";
 import { buildBadgeCatalogEntry } from "../helpers.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export async function activateBadgeService(
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   id: string
 ): Promise<ActivateBadgeResponse> {
   const badgeId = BigInt(id);
@@ -53,9 +51,6 @@ export async function activateBadgeService(
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
   );
 
-  const signUrl = await createReadSasUrlSigner(
-    blobServiceClient,
-    containerName
-  );
+  const signUrl = await storage.createReadUrlSigner();
   return buildBadgeCatalogEntry(type, updatedBadges, signUrl);
 }

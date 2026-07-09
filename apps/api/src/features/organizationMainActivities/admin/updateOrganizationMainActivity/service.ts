@@ -3,6 +3,7 @@ import {
   Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
+  OrganizationMainActivityStatus,
 } from "@repo/database";
 import {
   type UpdateOrganizationMainActivityRequest,
@@ -15,6 +16,10 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import {
+  countConsumerReferences,
+  throwEditBlockedByConsumers,
+} from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { SectorSubsectorMismatchError } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
@@ -34,10 +39,16 @@ export const updateOrganizationMainActivityService = async (
 
   try {
     return await prismaClient.$transaction(async (tx) => {
-      const existing = await tx.organizationMainActivity.findUnique({
-        where: { id: activityId },
+      // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+      // before the reference check, instead of a misleading 409.
+      const existing = await tx.organizationMainActivity.findFirst({
+        where: {
+          id: activityId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+        },
         select: {
           id: true,
+          name: true,
           countrySectorId: true,
           countrySubsectorId: true,
         },
@@ -72,7 +83,7 @@ export const updateOrganizationMainActivityService = async (
         if (!sector) {
           throw new ResourceNotFoundError(
             "CountrySector",
-            data.countrySectorId as string
+            data.countrySectorId
           );
         }
       }
@@ -91,7 +102,7 @@ export const updateOrganizationMainActivityService = async (
         if (!subsector) {
           throw new ResourceNotFoundError(
             "CountrySubsector",
-            data.countrySubsectorId as string
+            data.countrySubsectorId
           );
         }
         validatedSubsector = { countrySectorId: subsector.countrySectorId };
@@ -110,6 +121,44 @@ export const updateOrganizationMainActivityService = async (
           }));
         if (!subsector || subsector.countrySectorId !== effectiveSectorId) {
           throw new SectorSubsectorMismatchError();
+        }
+      }
+
+      // Identity-changing edits to an activity already selected by a user are
+      // blocked, because both denormalizations that carry `mainActivityId` resolve
+      // their value by id at read time — the live `organization_data.mainActivityId`
+      // rows and the frozen `carbon_inventory.organizationData` JSON snapshot (which
+      // stores `mainActivityId` as a string):
+      //
+      //  - Re-parenting (moving the activity to a different sector/subsector pair)
+      //    would silently invalidate the parent stored alongside those references.
+      //  - Renaming would make those users see a name they never chose.
+      //
+      // An activity is a leaf (no catalog children), so both edits are guarded by the
+      // same user-data reference set. A no-op patch (same name, same effective pair)
+      // never blocks; re-identification is only allowed by soft-deleting and
+      // re-creating the activity under the correct name/parents.
+      const isRename = data.name !== undefined && data.name !== existing.name;
+      const isReparent =
+        (data.countrySectorId !== undefined ||
+          data.countrySubsectorId !== undefined) &&
+        (effectiveSectorId !== existing.countrySectorId ||
+          effectiveSubsectorId !== existing.countrySubsectorId);
+      if (isRename || isReparent) {
+        const { organizationDataCount, carbonInventoryCount } =
+          await countConsumerReferences(tx, {
+            organizationDataWhere: { mainActivityId: activityId },
+            snapshotJsonKey: "mainActivityId",
+            id: activityId,
+          });
+
+        if (organizationDataCount > 0 || carbonInventoryCount > 0) {
+          throwEditBlockedByConsumers({
+            resourceType: "OrganizationMainActivity",
+            attemptedChange: isReparent ? "parent" : "name",
+            organizationDataCount,
+            carbonInventoryCount,
+          });
         }
       }
 
@@ -134,7 +183,12 @@ export const updateOrganizationMainActivityService = async (
       }
 
       const updated = await tx.organizationMainActivity.update({
-        where: { id: activityId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: {
+          id: activityId,
+          status: OrganizationMainActivityStatus.ACTIVE,
+        },
         data: updateData,
         select: adminMainActivitySelect,
       });
@@ -142,6 +196,9 @@ export const updateOrganizationMainActivityService = async (
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        throw new ResourceNotFoundError("OrganizationMainActivity", id);
+      }
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {

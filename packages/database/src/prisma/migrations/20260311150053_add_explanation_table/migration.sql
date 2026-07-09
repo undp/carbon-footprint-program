@@ -1,9 +1,3 @@
--- AlterTable
-ALTER TABLE "category" ADD COLUMN "explanation" TEXT;
-
--- AlterTable
-ALTER TABLE "subcategory" ADD COLUMN "explanation" TEXT;
-
 -- CreateTable
 CREATE TABLE "explanation" (
     "slug" TEXT NOT NULL,

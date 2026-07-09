@@ -7,12 +7,15 @@ import { apiClient } from "@/api/http";
 
 export const useSoftDeleteCountrySubsector = () => {
   const queryClient = useQueryClient();
-  return useMutation<null, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`admin/country-subsectors/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`admin/country-subsectors/${id}`);
+    },
     onSuccess: async () => {
-      // Cascade soft-delete also affects main activities; sector list refreshes
-      // because its impactedChildren counts shift.
+      // Cascade soft-delete also affects main activities and subcategory
+      // recommendations; sector list refreshes because its impactedChildren
+      // counts shift. The recommendations grid composes the subsector
+      // CatalogUpdateDependency token, so firing it here refreshes it too.
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>

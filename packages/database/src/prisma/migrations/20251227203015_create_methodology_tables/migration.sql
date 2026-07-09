@@ -44,12 +44,14 @@ CREATE TABLE "category" (
     "icon" TEXT NOT NULL,
     "color" TEXT NOT NULL,
     "position" INTEGER NOT NULL,
+    "explanation" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
-    CONSTRAINT "category_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "category_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "category_position_check" CHECK (position > 0)
 );
 
 -- CreateTable
@@ -60,6 +62,7 @@ CREATE TABLE "subcategory" (
     "icon" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "status" "subcategory_status" NOT NULL DEFAULT 'ACTIVE',
+    "explanation" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -82,7 +85,8 @@ CREATE TABLE "emission_factor_dimension" (
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
-    CONSTRAINT "emission_factor_dimension_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "emission_factor_dimension_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "emission_factor_dimension_position_check" CHECK (position > 0)
 );
 
 -- CreateTable
@@ -128,6 +132,9 @@ CREATE TABLE "subcategory_measurement_unit" (
 
     CONSTRAINT "subcategory_measurement_unit_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex: Partial unique index excluding DELETED rows
+CREATE UNIQUE INDEX "methodology_version_country_id_name_version_active_unique" ON "methodology_version" ("country_id", "name", "version") WHERE "status" <> 'DELETED';
 
 -- CreateIndex: Partial unique indexes excluding DELETED rows
 CREATE UNIQUE INDEX "category_methodology_version_id_name_active_unique"

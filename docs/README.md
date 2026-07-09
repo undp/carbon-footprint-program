@@ -37,17 +37,17 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ## Infrastructure
 
-| Document                                                                    | Description                                                                        |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [Infrastructure Requirements](./infrastructure/requirements.md)             | Consolidated Azure services, SKUs, capacity sizing per environment                 |
-| [App Usage Assumptions](./infrastructure/app-usage-assumptions.md)          | Expected load, reliability targets, AI/background workloads (Staging & Production) |
-| [Infrastructure Provisioning Model](./infrastructure/provisioning-model.md) | IaC standard, CI/CD approach, IT team prerequisites                                |
-| [Deployment Guide](./infrastructure/Deployment.md)                          | Azure Bicep infrastructure deployment                                              |
-| [API Deployment](./infrastructure/ApiDeployment.md)                         | Deploying the API via Docker + ACR + App Service                                   |
-| [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md)           | Deploying the frontend via Azure Static Web Apps                                   |
-| [File Storage](./infrastructure/FileStorage.md)                             | Azure Blob Storage setup and SAS upload flow                                       |
-| [Database Migrations](./infrastructure/Migrations.md)                       | Running Prisma migrations against Azure PostgreSQL                                 |
-| [MSAL / Easy Auth Setup](./infrastructure/MSAL-EasyAuth-Setup.md)           | Azure App Service Easy Auth and MSAL frontend configuration                        |
+| Document                                                                        | Description                                                                        |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [Infrastructure Requirements](./infrastructure/requirements.md)                 | Consolidated Azure services, SKUs, capacity sizing per environment                 |
+| [App Usage Assumptions](./infrastructure/app-usage-assumptions.md)              | Expected load, reliability targets, AI/background workloads (Staging & Production) |
+| [Infrastructure Provisioning Model](./infrastructure/provisioning-model.md)     | IaC standard, CI/CD approach, IT team prerequisites                                |
+| [Deployment Guide](./infrastructure/Deployment.md)                              | Azure Bicep infrastructure deployment                                              |
+| [API Deployment](./infrastructure/ApiDeployment.md)                             | Deploying the API via Docker + ACR + App Service                                   |
+| [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md)               | Deploying the frontend via Azure Static Web Apps                                   |
+| [File Storage](./infrastructure/FileStorage.md)                                 | Azure Blob Storage setup and SAS upload flow                                       |
+| [Database Migrations](./infrastructure/Migrations.md)                           | Running Prisma migrations against Azure PostgreSQL                                 |
+| [OIDC authentication setup](./infrastructure/GenericOidcAuthenticationSetup.md) | Auth contract + JWKS/OIDC config; links to Azure Entra and Keycloak setup guides   |
 
 ## Development
 
@@ -63,22 +63,23 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Packages and Monorepo Internals](./development/packages.md)      | Shared packages, dependency graph, Turborepo pipeline, schema change propagation                                   |
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior                                    |
 | [User Activity Tracking](./development/user-activity-tracking.md) | Session-level access logging, active/inactive classification, and admin UI integration                             |
-| [Country Onboarding Guide](./development/country-onboarding.md)   | How to deploy the platform in a new country: seed data, methodology, Entra ID, and infrastructure                  |
+| [Country Onboarding Guide](./development/country-onboarding.md)   | How to deploy the platform in a new country: seed data, methodology, OIDC IdP, and infrastructure                  |
 | [Internationalization Plan](./development/i18n-plan.md)           | Forward-looking plan for adding i18n (not yet implemented)                                                         |
 | [CI/CD Pipeline](./development/ci-cd.md)                          | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps                                  |
 | [Troubleshooting and FAQ](./development/troubleshooting.md)       | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour              |
-| [Docker Compose](./DockerCompose.md)                              | Local Docker Compose configuration                                                                                 |
+| [Docker Compose](./operations/docker-compose.md)                  | Local & full-stack Docker Compose guide (services, env, auth + storage setup, troubleshooting)                     |
 
 ## Security
 
-| Document                                                | Description                                                           |
-| ------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Authentication](./security/authentication.md)          | Authentication providers, token validation, provider selection        |
-| [RBAC and Authorization](./security/rbac.md)            | Role model, authorization plugins, permission matrix                  |
-| [Sensitive Data Handling](./security/sensitive-data.md) | PII inventory, encryption at rest/transit, compliance considerations  |
-| [Secrets Management](./security/secrets.md)             | Managed identities, Key Vault, env var classification, anti-patterns  |
-| [Infrastructure Hardening](./security/hardening.md)     | TLS, CORS, security headers, network isolation, WAF, input validation |
-| [Audit and Logging](./security/audit-logging.md)        | Log structure, redaction, security events, database audit trail       |
+| Document                                                       | Description                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [Authentication](./security/authentication.md)                 | Authentication providers, token validation, provider selection        |
+| [Frontend Auth Recovery](./security/frontend-auth-recovery.md) | Recovery flow when OIDC login succeeds but `GET /users/me` fails      |
+| [RBAC and Authorization](./security/rbac.md)                   | Role model, authorization plugins, permission matrix                  |
+| [Sensitive Data Handling](./security/sensitive-data.md)        | PII inventory, encryption at rest/transit, compliance considerations  |
+| [Secrets Management](./security/secrets.md)                    | Managed identities, Key Vault, env var classification, anti-patterns  |
+| [Infrastructure Hardening](./security/hardening.md)            | TLS, CORS, security headers, network isolation, WAF, input validation |
+| [Audit and Logging](./security/audit-logging.md)               | Log structure, redaction, security events, database audit trail       |
 
 ## Operations
 
@@ -121,13 +122,13 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 Original source documents used as input for the written documentation above.
 
-| Document                                                                                                                                | Description                                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [Infrastructure Provisioning & Deployment Model](./infrastructure/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf)         | Original infrastructure provisioning and deployment model document |
-| [Production — App Usage Assumptions & Estimations](./infrastructure/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf)       | Original production app usage assumptions and estimations          |
-| [Production — Consolidated Azure Services Requirements](./infrastructure/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements                    |
-| [Staging — App Usage Assumptions & Estimations](./infrastructure/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf)             | Original staging app usage assumptions and estimations             |
-| [Staging — Consolidated Azure Services Requirements](./infrastructure/Staging-Consolidated%20Azure%20Services%20Requirements.pdf)       | Original staging Azure services requirements                       |
+| Document                                                                                                                                        | Description                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [Infrastructure Provisioning & Deployment Model](./infrastructure/annexes/Infrastructure%20Provisioning%20%26%20Deployment%20Model.pdf)         | Original infrastructure provisioning and deployment model document |
+| [Production — App Usage Assumptions & Estimations](./infrastructure/annexes/Production-App%20Usage%20Assumptions%20%26%20Estimations.pdf)       | Original production app usage assumptions and estimations          |
+| [Production — Consolidated Azure Services Requirements](./infrastructure/annexes/Production-Consolidated%20Azure%20Services%20Requirements.pdf) | Original production Azure services requirements                    |
+| [Staging — App Usage Assumptions & Estimations](./infrastructure/annexes/Staging-App%20Usage%20Assumptions%20%26%20Estimations.pdf)             | Original staging app usage assumptions and estimations             |
+| [Staging — Consolidated Azure Services Requirements](./infrastructure/annexes/Staging-Consolidated%20Azure%20Services%20Requirements.pdf)       | Original staging Azure services requirements                       |
 
 ---
 

@@ -1,10 +1,15 @@
 import type { z } from "zod";
-import type { CarbonInventoryDisplayStatusSchema } from "./schemas.js";
+import type {
+  CarbonInventoryDisplayStatusSchema,
+  LineFileSummarySchema,
+} from "./schemas.js";
 import { SubmissionType } from "../enums.js";
 
 export type CarbonInventoryDisplayStatus = z.infer<
   typeof CarbonInventoryDisplayStatusSchema
 >;
+
+export type LineFileSummary = z.infer<typeof LineFileSummarySchema>;
 
 export type CarbonInventoryRecognitionsType = Exclude<
   SubmissionType,

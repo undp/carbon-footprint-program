@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   RequestOrganizationAccreditationResponse,
   User,
 } from "@repo/types";
+import type { StorageAdapter } from "@repo/storage";
 import {
   OrganizationDataStatus,
   SubmissionStatus,
@@ -11,7 +11,7 @@ import {
 } from "@repo/database";
 import {
   linkFilesToSubmission,
-  cleanupSourceBlobs,
+  cleanupSourceObjects,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
 import {
   OrganizationDataNotFoundError,
@@ -31,9 +31,8 @@ export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   user: User | null,
-  fileUuids?: string[],
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  storage: StorageAdapter,
+  fileUuids?: string[]
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
@@ -150,17 +149,17 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    if (blobServiceClient && containerName) {
-      const fileMetadata = await linkFilesToSubmission(
-        tx,
-        submission.id,
-        fileUuids,
-        blobServiceClient,
-        containerName
-      );
-      await cleanupSourceBlobs(fileMetadata.sourceCleanup);
-    }
+    // 4. Create SubmissionFile records. NOTE: the object copy/cleanup currently
+    // runs inside this transaction, holding it open across network-bound storage
+    // I/O. Tracked for extraction in
+    // https://github.com/undp/carbon-footprint-program/issues/387
+    const fileMetadata = await linkFilesToSubmission(
+      tx,
+      submission.id,
+      fileUuids,
+      storage
+    );
+    await cleanupSourceObjects(fileMetadata.sourceCleanup);
 
     return { submissionId: submission.id.toString() };
   });

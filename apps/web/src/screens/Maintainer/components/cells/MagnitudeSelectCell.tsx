@@ -1,15 +1,20 @@
 import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { MenuItem, Select, Typography } from "@mui/material";
-import { Magnitude } from "@repo/types";
-import { MAGNITUDE_LABELS } from "../../screens/MeasurementUnitsScreen/constants.js";
+import { MenuItem, Select, Typography, useTheme } from "@mui/material";
 import { getNestedError } from "./cellUtils";
+
+interface MagnitudeOption {
+  id: string;
+  name: string;
+}
 
 interface MagnitudeSelectCellProps {
   formArrayName: string;
   rowIndex: number;
   isEditing: boolean;
-  onChange: (value: Magnitude) => void;
+  options: MagnitudeOption[];
+  labelById?: ReadonlyMap<string, string>;
+  onChange: (value: string) => void;
   onClick?: () => void;
 }
 
@@ -17,27 +22,37 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
   formArrayName,
   rowIndex,
   isEditing,
+  options,
+  labelById,
   onChange,
   onClick,
 }) => {
-  const formPath = `${formArrayName}.${rowIndex}.magnitude`;
+  const theme = useTheme();
+  const formPath = `${formArrayName}.${rowIndex}.magnitudeId`;
   const { control } = useFormContext();
-  const magnitude = useWatch({ name: formPath }) as Magnitude;
+  const magnitudeId = useWatch({ name: formPath }) as string;
   const { errors } = useFormState({ control, name: formPath });
   const fieldError = getNestedError(
-    errors as unknown as Record<string, unknown>,
+    errors,
     formArrayName,
     rowIndex,
-    "magnitude"
+    "magnitudeId"
   );
 
-  const label = MAGNITUDE_LABELS[magnitude] ?? magnitude;
+  const optionLabelById = new Map(options.map((m) => [m.id, m.name]));
+  const resolveLabel = (id: string): string =>
+    labelById?.get(id) ?? optionLabelById.get(id) ?? id;
+  const label = magnitudeId ? resolveLabel(magnitudeId) : "";
+  const isCurrentInOptions = magnitudeId
+    ? options.some((o) => o.id === magnitudeId)
+    : true;
 
   if (!isEditing) {
     return (
       <Typography
         onClick={onClick}
         sx={{
+          color: !isCurrentInOptions ? theme.palette.grey[400] : undefined,
           px: 1,
           py: 0.5,
           borderRadius: 1,
@@ -47,6 +62,7 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
         }}
       >
         {label}
+        {!isCurrentInOptions ? " (Eliminado)" : ""}
       </Typography>
     );
   }
@@ -55,19 +71,28 @@ export const MagnitudeSelectCell: FC<MagnitudeSelectCellProps> = ({
     <Select
       fullWidth
       size="small"
-      value={magnitude}
-      onChange={(e) => onChange(e.target.value as Magnitude)}
+      value={magnitudeId}
+      onChange={(e) => onChange(e.target.value)}
       error={!!fieldError}
       onKeyDown={(e) => e.stopPropagation()}
       sx={{ backgroundColor: "white" }}
+      displayEmpty
     >
-      {Object.values(Magnitude)
-        .sort((a, b) => a.localeCompare(b))
-        .map((mag) => (
-          <MenuItem key={mag} value={mag}>
-            {MAGNITUDE_LABELS[mag]}
-          </MenuItem>
-        ))}
+      {!magnitudeId && (
+        <MenuItem value="" disabled>
+          Selecciona una magnitud
+        </MenuItem>
+      )}
+      {magnitudeId && !isCurrentInOptions && (
+        <MenuItem value={magnitudeId} disabled>
+          {label} (Eliminado)
+        </MenuItem>
+      )}
+      {options.map((mag) => (
+        <MenuItem key={mag.id} value={mag.id}>
+          {mag.name}
+        </MenuItem>
+      ))}
     </Select>
   );
 };

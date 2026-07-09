@@ -38,29 +38,6 @@ import {
 } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
-const { mockCreateReadSasUrlSigner, mockSignReadSasUrl } = vi.hoisted(() => ({
-  mockCreateReadSasUrlSigner: vi.fn(),
-  mockSignReadSasUrl: vi.fn(),
-}));
-
-vi.mock("@/services/blobService.js", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/services/blobService.js")
-  >("@/services/blobService.js");
-
-  return {
-    ...actual,
-    createReadSasUrlSigner: mockCreateReadSasUrlSigner.mockResolvedValue(
-      mockSignReadSasUrl.mockImplementation((blobPath: string) =>
-        Promise.resolve({
-          url: `https://mock.blob.core.windows.net/test/${blobPath}?sig=mock`,
-          expiresAt: new Date("2099-12-31T23:59:59.000Z"),
-        })
-      )
-    ),
-  };
-});
-
 describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -69,8 +46,7 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl, {
-      storageConnectionString: inject("storageConnectionString"),
-      storageContainerName: inject("storageContainerName"),
+      storageDescriptor: inject("storageDescriptor"),
     });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);

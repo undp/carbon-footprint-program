@@ -4,11 +4,11 @@ import { getAuthToken } from "./auth";
 import { AppHttpError, normalizeError } from "./errors";
 
 export const apiClient = ky.create({
-  prefixUrl: API_BASE_URL,
+  prefix: API_BASE_URL,
   hooks: {
     beforeRequest: [
-      async (request) => {
-        // Get token asynchronously from MSAL
+      async ({ request }) => {
+        // Attach the OIDC access token (silently renewed if expired)
         const token = await getAuthToken();
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
@@ -16,7 +16,7 @@ export const apiClient = ky.create({
       },
     ],
     afterResponse: [
-      async (request, _options, response) => {
+      async ({ request, response }) => {
         if (!response.ok) {
           const normalized = await normalizeError(request, response);
           throw new AppHttpError(normalized);

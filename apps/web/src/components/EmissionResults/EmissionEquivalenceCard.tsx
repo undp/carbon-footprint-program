@@ -5,6 +5,7 @@ import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { VOCAB } from "@/config/vocab";
+import { OverflowTooltipText } from "../OverflowTooltipText";
 
 interface EmissionEquivalenceCardProps {
   value: string | null;
@@ -54,17 +55,24 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
 
       {!isLoading && !hasError && exists && (
         <Box className="flex w-full flex-1 flex-col justify-center pb-3">
-          <Typography
-            variant="h2"
+          <OverflowTooltipText
             fontWeight="fontWeightBold"
-            sx={{ color: theme.palette.primary.main }}
+            noWrap
+            sx={{
+              color: theme.palette.primary.main,
+              fontSize: { md: "3rem", xl: "4rem" },
+              lineHeight: 1.2,
+            }}
           >
             {value}
-          </Typography>
+          </OverflowTooltipText>
           <Typography
             variant="body1"
             fontWeight="fontWeightBold"
-            sx={{ color: theme.palette.primary.main }}
+            sx={{
+              color: theme.palette.primary.main,
+              pr: { xl: 16 },
+            }}
           >
             {unit}
           </Typography>
@@ -73,7 +81,13 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
 
       {!isLoading && exists && (
         <EmissionResultsScreenTrashIcon
-          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
+          sx={{
+            fontSize: { xs: 0, md: 40, xl: 80 },
+            position: "absolute",
+            bottom: 8,
+            right: 8,
+            pointerEvents: "none",
+          }}
         />
       )}
 

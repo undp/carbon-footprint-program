@@ -5,7 +5,7 @@ import { MaintainerLayout } from "@/screens/Maintainer/layout/MaintainerLayout";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
 
-export const Route = createFileRoute(Routes.ADMIN)({
+export const Route = createFileRoute("/admin")({
   beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], {
     redirectTo: Routes.HOME,
   }),

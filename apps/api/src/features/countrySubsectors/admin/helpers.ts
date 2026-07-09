@@ -1,4 +1,8 @@
-import { OrganizationMainActivityStatus, Prisma } from "@repo/database";
+import {
+  OrganizationMainActivityStatus,
+  Prisma,
+  SubcategoryRecommendationStatus,
+} from "@repo/database";
 import type { AdminCountrySubsector } from "@repo/types";
 
 export const adminCountrySubsectorSelect = {
@@ -17,7 +21,9 @@ export const adminCountrySubsectorSelect = {
       organizationMainActivities: {
         where: { status: OrganizationMainActivityStatus.ACTIVE },
       },
-      subcategoryRecommendations: true,
+      subcategoryRecommendations: {
+        where: { status: SubcategoryRecommendationStatus.ACTIVE },
+      },
     },
   },
 } satisfies Prisma.CountrySubsectorSelect;
@@ -40,11 +46,6 @@ export const mapCountrySubsectorToAdmin = (
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
     createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
-    isInUse:
-      counts.organizationData +
-        counts.organizationMainActivities +
-        counts.subcategoryRecommendations >
-      0,
     impactedChildren: {
       activeMainActivities: counts.organizationMainActivities,
       organizationData: counts.organizationData,

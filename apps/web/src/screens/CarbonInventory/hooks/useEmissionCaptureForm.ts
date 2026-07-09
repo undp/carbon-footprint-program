@@ -42,6 +42,8 @@ const createNewLine = (
     baseFactorId: null,
     isNew: true,
     isDeleted: false,
+    files: [],
+    removedFileIds: [],
   };
 };
 
@@ -128,7 +130,13 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
         const linesRecord = serverLines.reduce(
           (acc, line) => {
-            acc[line.id] = { ...line, isNew: false, isDeleted: false };
+            acc[line.id] = {
+              ...line,
+              isNew: false,
+              isDeleted: false,
+              files: line.files ?? [],
+              removedFileIds: [],
+            };
             return acc;
           },
           {} as Record<LineId, EmissionCaptureFormLine>
@@ -149,6 +157,8 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
             ...line,
             isNew: false,
             isDeleted: true,
+            files: line.files ?? [],
+            removedFileIds: [],
           };
         });
 
@@ -205,7 +215,15 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         }
       }
     });
-  }, [data, reset, getValues, resetField, setValue, dirtyFields]);
+    // `dirtyFields` is intentionally excluded: reconciliation must run only when
+    // the server data (`data`) changes. The effect READS dirty state (to detect a
+    // mode change) but must not be RE-TRIGGERED by it. react-hook-form reassigns
+    // the dirtyFields identity on every setValue(shouldDirty) over a non-pristine
+    // field (updateTouchAndDirty), and STEP 4 does exactly that → keeping it as a
+    // dependency makes the effect re-trigger itself endlessly (the auto-height
+    // DataGrid is the first to cross React's update limit).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, reset, getValues, resetField, setValue]);
 
   /**
    * Adds a new line to a subcategory locally.
@@ -275,6 +293,57 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     return dirtyLineIds;
   }, [form]);
 
+  /**
+   * Scoped variant of resetAfterSave for a single subcategory.
+   *
+   * Used by the manual-mode toggle, whose submit path persists only the toggled
+   * subcategory and does NOT run the global resetAfterSave (which would clobber
+   * unsaved new lines in OTHER subcategories). It drops that subcategory's
+   * temp/new and just-deleted lines and clears their dirty state, so the refetch
+   * triggered after the toggle repopulates them with their server ids instead of
+   * duplicating them alongside the freshly created server rows.
+   *
+   * It works at the `subcategories.${id}` level (not over `*.lines` directly),
+   * mirroring the force-sync hammer in the reconciliation effect:
+   * - `setValue` unconditionally replaces the subcategory node in `_formValues`,
+   *   dropping the temp lines so the refetch can't merge them into duplicates.
+   *   This is what prevents duplication and must NOT rely on resetField alone,
+   *   which is a no-op when the subcategory's fields aren't registered (e.g. the
+   *   grid collapsed to total mode unmounted the line cells).
+   * - `resetField` then clears the dirty/touched state and updates the defaults.
+   * It also sets `waitingForFreshDataRef` so the dirtyFields change does not
+   * re-fire the reconciliation effect against stale (pre-refetch) data.
+   */
+  const resetAfterSaveForSubcategory = useCallback(
+    (subcategoryId: SubcategoryId) => {
+      const subcatData = getValues().subcategories?.[subcategoryId];
+      if (!subcatData) return;
+
+      // Keep only the already-persisted lines; the temp/new and just-deleted
+      // ones are dropped so the refetch repopulates them with their server ids.
+      const cleanedLines = Object.fromEntries(
+        Object.entries(subcatData.lines || {}).filter(
+          ([, line]) => !line.isNew && !line.isDeleted
+        )
+      );
+
+      const cleanedSubcategory = { ...subcatData, lines: cleanedLines };
+
+      // Suppress the stale reconciliation pass that the dirtyFields change from
+      // resetField would otherwise trigger before the refetch lands.
+      waitingForFreshDataRef.current = true;
+
+      setValue(`subcategories.${subcategoryId}`, cleanedSubcategory, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+      resetField(`subcategories.${subcategoryId}`, {
+        defaultValue: cleanedSubcategory,
+      });
+    },
+    [getValues, setValue, resetField]
+  );
+
   const resetAfterSave = useCallback(() => {
     const currentValues = getValues();
     const cleanedFormData: EmissionCaptureFormValues = {
@@ -291,11 +360,16 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
             return;
           }
 
-          // For lines that were new but are now saved, mark them as not new
+          // For lines that were new but are now saved, mark them as not new.
+          // Clear file-related client state — the server response will
+          // re-populate `files[]` on the next reconciliation, and
+          // `removedFileIds` was already consumed by the sync transaction.
           cleanedLines[lineId] = {
             ...line,
             isNew: false,
             isDeleted: false,
+            files: [],
+            removedFileIds: [],
           };
         });
 
@@ -330,6 +404,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     addLine,
     removeLine,
     resetAfterSave,
+    resetAfterSaveForSubcategory,
     getDirtyLineIds,
   };
 };

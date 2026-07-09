@@ -1,4 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { registerRoutes } from "@/routing/defineRoute.js";
 import { getAllRequestsRoute } from "@/features/requests/admin/getAllRequests/route.js";
 import { getRequestsKpisRoute } from "@/features/requests/admin/getRequestsKpis/route.js";
 import { approveRequestRoute } from "@/features/requests/admin/approveRequest/route.js";
@@ -7,14 +8,15 @@ import { SystemRole } from "@repo/database";
 import { reviewSubmissionRoute } from "@/features/requests/admin/reviewSubmission/route.js";
 
 export default function adminRequestsRoutes(fastify: FastifyZodInstance) {
-  fastify.addHook("onRequest", fastify.requireAuth);
-  fastify.addHook(
-    "preHandler",
-    fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
+  registerRoutes(
+    fastify,
+    [
+      getRequestsKpisRoute,
+      getAllRequestsRoute,
+      approveRequestRoute,
+      rejectRequestRoute,
+      reviewSubmissionRoute,
+    ],
+    { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
   );
-  getRequestsKpisRoute(fastify);
-  getAllRequestsRoute(fastify);
-  approveRequestRoute(fastify);
-  rejectRequestRoute(fastify);
-  reviewSubmissionRoute(fastify);
 }

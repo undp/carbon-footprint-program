@@ -69,6 +69,7 @@ export const useCategoryColumns = ({
         width: 60,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -175,6 +176,7 @@ export const useCategoryColumns = ({
         width: 120,
         headerAlign: "center",
         align: "center",
+        disableExport: true,
         renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const hasContent = !!params.row.explanation;
@@ -209,6 +211,7 @@ export const useCategoryColumns = ({
               width: 120,
               sortable: false,
               filterable: false,
+              disableExport: true,
               headerAlign: "center" as const,
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<CategoryForm>) => {

@@ -1,4 +1,8 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import {
+  type PrismaClient,
+  Prisma,
+  CountryOrganizationSizeStatus,
+} from "@repo/database";
 import {
   type UpdateCountryOrganizationSizeRequest,
   type UpdateCountryOrganizationSizeResponse,
@@ -10,6 +14,10 @@ import {
   attachDetails,
   getDuplicatedFieldsFromP2002Error,
 } from "@/errors/index.js";
+import {
+  countConsumerReferences,
+  throwEditBlockedByConsumers,
+} from "@/helpers/catalogReferenceGuard.js";
 import { normalizeDescriptionInput } from "@/helpers/normalizeDescriptionInput.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -39,8 +47,51 @@ export const updateCountryOrganizationSizeService = async (
         updateData.description = normalizeDescriptionInput(data.description);
       }
 
+      // A size has no parent, so it can only be re-identified by renaming. Renaming
+      // a size that a user already selected is blocked: both the live
+      // `organization_data.countryOrganizationSizeId` rows and the frozen
+      // `carbon_inventory.organizationData` JSON snapshot (which stores `sizeId` as a
+      // string — see `buildOrganizationDataSnapshot`) resolve the display name by id
+      // at read time, so a rename would make those users see a name they never chose.
+      // Only a genuine rename is guarded (a no-op or description-only edit never
+      // blocks), and only ACTIVE inventories matter — a DELETED inventory's frozen
+      // reference is inert. Re-identification is only allowed by soft-deleting and
+      // re-creating the size, so existing references keep resolving to the original
+      // name.
+      if (data.name !== undefined) {
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // before the reference check, instead of a misleading 409.
+        const existing = await tx.countryOrganizationSize.findFirst({
+          where: { id: sizeId, status: CountryOrganizationSizeStatus.ACTIVE },
+          select: { name: true },
+        });
+        if (!existing) {
+          throw new ResourceNotFoundError("CountryOrganizationSize", id);
+        }
+
+        if (data.name !== existing.name) {
+          const { organizationDataCount, carbonInventoryCount } =
+            await countConsumerReferences(tx, {
+              organizationDataWhere: { countryOrganizationSizeId: sizeId },
+              snapshotJsonKey: "sizeId",
+              id: sizeId,
+            });
+
+          if (organizationDataCount > 0 || carbonInventoryCount > 0) {
+            throwEditBlockedByConsumers({
+              resourceType: "CountryOrganizationSize",
+              attemptedChange: "name",
+              organizationDataCount,
+              carbonInventoryCount,
+            });
+          }
+        }
+      }
+
       const updated = await tx.countryOrganizationSize.update({
-        where: { id: sizeId },
+        // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found
+        // (P2025 -> ResourceNotFoundError), matching the delete/restore flows.
+        where: { id: sizeId, status: CountryOrganizationSizeStatus.ACTIVE },
         data: updateData,
         select: adminCountryOrganizationSizeSelect,
       });

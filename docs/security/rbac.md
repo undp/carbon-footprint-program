@@ -3,6 +3,7 @@
 This document covers the role-based access control (RBAC) model and the authorization plugin chain used to protect API routes.
 
 For how user identity is established before authorization runs, see [Authentication](./authentication.md).
+For the access modes a route can opt into (private / public / anonymous), see [Route Access Modes](./route-access-modes.md).
 
 ---
 
@@ -136,7 +137,7 @@ fastify.post(
     onRequest: [fastify.requireAuth],
     preHandler: [
       fastify.requireOrganizationRole((req) => req.params.organizationId, {
-        allowedRoles: [OrganizationRole.ADMIN],
+        requiredOrganizationRoles: [OrganizationRole.ADMIN],
         canAdminsBypass: true,
       }),
     ],
@@ -147,10 +148,10 @@ fastify.post(
 
 **Options:**
 
-| Option            | Type                 | Description                                                                      |
-| ----------------- | -------------------- | -------------------------------------------------------------------------------- |
-| `allowedRoles`    | `OrganizationRole[]` | User must have at least one of these roles.                                      |
-| `canAdminsBypass` | `boolean`            | When `true`, users with `ADMIN` or `SUPERADMIN` system roles skip the org check. |
+| Option                      | Type                 | Description                                                                                      |
+| --------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
+| `requiredOrganizationRoles` | `OrganizationRole[]` | When omitted, any active membership grants access. Otherwise, user must have one of these roles. |
+| `canAdminsBypass`           | `boolean`            | When `true`, users with `ADMIN` or `SUPERADMIN` system roles skip the org check.                 |
 
 ---
 
@@ -222,14 +223,14 @@ Request arrives
     │
     ▼
 [onRequest] requireRoles([SystemRole.ADMIN])    ← if route requires it
-    ├── currentUser.role not in allowedRoles? → 403 Forbidden
+    ├── currentUser.role not in required roles? → 403 Forbidden
     └── OK → continue
     │
     ▼
 [preHandler] requireOrganizationRole(extractor, options)  ← if route requires it
     ├── canAdminsBypass && ADMIN/SUPERADMIN? → bypass, continue
     ├── No active membership in org? → 403 Forbidden
-    ├── Role not in allowedRoles? → 403 Forbidden
+    ├── Role not in requiredOrganizationRoles? → 403 Forbidden
     └── OK → continue
     │
     ▼

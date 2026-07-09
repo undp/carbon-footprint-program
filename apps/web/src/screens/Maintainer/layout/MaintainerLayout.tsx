@@ -23,6 +23,8 @@ import {
   AutoAwesomeMotionOutlined,
   StraightenOutlined,
   PeopleOutlined,
+  PercentOutlined,
+  CategoryOutlined,
 } from "@mui/icons-material";
 import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
 import PrecisionManufacturingOutlinedIcon from "@mui/icons-material/PrecisionManufacturingOutlined";
@@ -53,7 +55,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
       },
       {
         text: "Categorías/Alcances",
-        icon: <ScienceOutlined fontSize="small" />,
+        icon: <CategoryOutlined fontSize="small" />,
         path: Routes.ADMIN_CATEGORIES,
       },
       {
@@ -75,8 +77,24 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   },
   {
     text: "Unidades",
-    icon: <SquareFootOutlined />,
-    path: Routes.ADMIN_UNITS,
+    icon: <StraightenOutlined />,
+    children: [
+      {
+        text: "Magnitudes",
+        icon: <ScienceOutlined fontSize="small" />,
+        path: Routes.ADMIN_MAGNITUDES,
+      },
+      {
+        text: "Unidades de medida",
+        icon: <SquareFootOutlined fontSize="small" />,
+        path: Routes.ADMIN_UNITS,
+      },
+      {
+        text: "Tasas",
+        icon: <PercentOutlined fontSize="small" />,
+        path: Routes.ADMIN_RATE_MEASUREMENT_UNITS,
+      },
+    ],
   },
   {
     text: "Perfilamiento",

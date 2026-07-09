@@ -1,4 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { registerRoutes } from "@/routing/defineRoute.js";
 import { addOrganizationUserRoute } from "@/features/organizations/app/addOrganizationUser/route.js";
 import { getOrganizationUsersRoute } from "@/features/organizations/app/getOrganizationUsers/route.js";
 import { updateOrganizationUserRoleRoute } from "@/features/organizations/app/updateOrganizationUserRole/route.js";
@@ -12,29 +13,31 @@ import { getOrganizationRecognitionsRoute } from "@/features/organizations/app/g
 import { SystemRole } from "@repo/types";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
-  fastify.addHook("onRequest", fastify.requireAuth);
-  fastify.addHook(
-    "preHandler",
-    fastify.requireRoles([
-      SystemRole.SUPERADMIN,
-      SystemRole.ADMIN,
-      SystemRole.USER,
-    ])
+  registerRoutes(
+    fastify,
+    [
+      // Org. ADMIN
+      updateOrganizationRoute,
+      requestOrganizationAccreditationRoute,
+      addOrganizationUserRoute,
+      updateOrganizationUserRoleRoute,
+      removeOrganizationUserRoute,
+
+      // ORG. ADMIN, CONTRIBUTOR, VIEWER
+      getOrganizationUsersRoute,
+      getOrganizationByIdRoute,
+      getOrganizationRecognitionsRoute,
+
+      // AUTHENTICATED (No organization membership required)
+      getMyOrganizationsRoute,
+      createOrganizationRoute,
+    ],
+    {
+      defaultSystemRoles: [
+        SystemRole.SUPERADMIN,
+        SystemRole.ADMIN,
+        SystemRole.USER,
+      ],
+    }
   );
-
-  // Org. ADMIN
-  updateOrganizationRoute(fastify);
-  requestOrganizationAccreditationRoute(fastify);
-  addOrganizationUserRoute(fastify);
-  updateOrganizationUserRoleRoute(fastify);
-  removeOrganizationUserRoute(fastify);
-
-  // ORG. ADMIN, CONTRIBUTOR, VIEWER
-  getOrganizationUsersRoute(fastify);
-  getOrganizationByIdRoute(fastify);
-  getOrganizationRecognitionsRoute(fastify);
-
-  // AUTHENTICATED (No organization membership required)
-  getMyOrganizationsRoute(fastify);
-  createOrganizationRoute(fastify);
 }

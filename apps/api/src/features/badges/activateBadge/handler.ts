@@ -1,7 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { ActivateBadgeParams } from "@repo/types";
 import { activateBadgeService } from "./service.js";
-import { StorageNotConfiguredError } from "../../files/errors.js";
 
 export const activateBadgeHandler = async (
   request: FastifyRequest<{ Params: ActivateBadgeParams }>,
@@ -10,16 +9,10 @@ export const activateBadgeHandler = async (
   const log = request.log.child({ module: "badges" });
   const { id } = request.params;
 
-  const { blobServiceClient, storageContainerName } = request.server;
-  if (!blobServiceClient || !storageContainerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   log.info({ id }, "Activating badge...");
   const data = await activateBadgeService(
     request.server.prisma,
-    blobServiceClient,
-    storageContainerName,
+    request.server.storage,
     id
   );
 

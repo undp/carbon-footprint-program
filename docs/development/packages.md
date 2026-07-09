@@ -16,16 +16,19 @@ undp-huella-latam/
 ├── packages/
 │   ├── types/        # @repo/types  — Zod schemas and TypeScript types
 │   ├── database/     # @repo/database — Prisma client and migrations
+│   ├── storage/      # @repo/storage — Object storage credentials and helpers
 │   ├── utils/        # @repo/utils  — Shared business logic utilities
 │   ├── constants/    # @repo/constants — Shared constant values
 │   ├── eslint-config/ # @repo/eslint-config — Shared ESLint rules
 │   └── typescript-config/ # @repo/typescript-config — Shared tsconfig presets
+├── tools/
+│   └── seed/         # @repo/seed — Database seeding tool (not imported by any package)
 ├── turbo.json        # Turborepo pipeline
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
-`pnpm-workspace.yaml` declares two workspace globs: `apps/*` and `packages/*`. All packages are installed in a single lockfile.
+`pnpm-workspace.yaml` declares three workspace globs: `apps/*`, `packages/*`, and `tools/*`. All packages are installed in a single lockfile. `packages/` holds libraries consumed by other workspace members; `tools/` holds executable tooling that nothing imports.
 
 ---
 
@@ -66,13 +69,13 @@ Every schema is defined in Zod. TypeScript types are inferred from Zod with `z.i
 
 **Location:** `packages/database/`
 
-Owns the Prisma schema, all migration files, and seed scripts. Exports the `PrismaClient` and database enums.
+Owns the Prisma schema, all migration files, the generated `PrismaClient`, and database enums. Pure Prisma — seeding lives in `@repo/seed` and storage credentials in `@repo/storage`.
 
 **Exports:**
 
 | Export path   | Contents                                                |
 | ------------- | ------------------------------------------------------- |
-| `.` (default) | `PrismaClient`, model types                             |
+| `.` (default) | `PrismaClient`, model types, `generatePrismaAdapter`    |
 | `./enums`     | Database enums (`SystemRole`, `SubmissionStatus`, etc.) |
 
 **Schema location:** `packages/database/src/prisma/schema.prisma`
@@ -83,14 +86,43 @@ Owns the Prisma schema, all migration files, and seed scripts. Exports the `Pris
 | -------------- | ------------------------------------------------------- |
 | `dev:migrate`  | Create and apply a new migration interactively          |
 | `dev:generate` | Regenerate the Prisma client after schema changes       |
-| `dev:seed`     | Run seed scripts (uses `SEEDS_DATASET` env var)         |
 | `dev:studio`   | Open Prisma Studio at http://localhost:5555             |
-| `dev:reset`    | Drop the database, reapply all migrations, reseed       |
+| `db:restore`   | Drop the database and reapply all migrations (no seed)  |
 | `prod:deploy`  | Apply pending migrations non-interactively (used in CI) |
 
 **Build note:** `prebuild` runs `prisma generate` automatically, so the generated client is always in sync with the schema before the TypeScript compiler runs.
 
-**Dependencies:** `@prisma/client@7.0.1`, `@prisma/adapter-pg`, `@azure/identity`, `@azure/storage-blob`, `zod`
+**Dependencies:** `@prisma/client`, `@prisma/adapter-pg`
+
+---
+
+### `@repo/storage` — Object Storage
+
+**Location:** `packages/storage/`
+
+Provider-agnostic object-storage abstraction shared by the API and the seed tool. The public barrel exports the `StorageAdapter` interface and its object types/errors (`ObjectNotFoundError`, `ObjectMetadata`, `ObjectStream`, …), the `createStorageAdapter` factory, the `StorageProvider` enum, and config helpers (`storageConfigFromEnv`, `StorageConfig`, `DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES`). Two adapter implementations live behind the interface: Azure Blob Storage and MinIO (S3-compatible); `createStorageAdapter` selects one from `STORAGE_PROVIDER`. Credential resolution (`getStorageCredential` — `ClientSecretCredential` when an explicit service principal is configured, `DefaultAzureCredential` → Managed Identity otherwise) is package-internal and not exported. A `@repo/storage/testing` subpath provides test-only adapter builders for Azurite and MinIO testcontainers.
+
+**Dependencies:** `@azure/identity`, `@azure/storage-blob`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `@repo/types`
+
+---
+
+### `@repo/seed` — Database Seeding Tool
+
+**Location:** `tools/seed/`
+
+Executable tool that populates a fresh database with reference data (countries, methodologies, system parameters, badges, terms & conditions, etc.). It lives under `tools/` because nothing imports it — it is invoked, not consumed.
+
+**Key script:**
+
+| Script | Purpose                                                              |
+| ------ | -------------------------------------------------------------------- |
+| `seed` | Run all seed scripts via `tsx` (dataset selected by `SEEDS_DATASET`) |
+
+It is invoked through the root scripts `pnpm db:seed` / `pnpm db:restore` (which use `turbo run seed --filter=@repo/seed` so dependencies are built first), by the docker-compose `migrate` service, and by the API integration test setup. The package is not compiled — it runs directly from `src/` with `tsx` (lint and type-check only).
+
+Seed data (JSON datasets, badge SVGs, legal PDFs) lives in `tools/seed/src/data/`.
+
+**Dependencies:** `@repo/database`, `@repo/storage`, `@repo/constants`, `@azure/storage-blob`, `zod`
 
 ---
 
@@ -158,6 +190,7 @@ Three tsconfig presets extended by `tsconfig.json` in each app/package:
 ```
 apps/api (Fastify)
 ├── @repo/database    ← Prisma client, model types
+├── @repo/storage     ← Object storage credentials
 ├── @repo/types       ← Request/response schemas (Zod)
 │   ├── @repo/database  (imports Prisma enums)
 │   └── @repo/constants
@@ -168,6 +201,11 @@ apps/api (Fastify)
 apps/web (React + Vite)
 ├── @repo/types       ← Same schemas for frontend forms and API calls
 ├── @repo/utils       ← Same state guards for UI button visibility
+└── @repo/constants
+
+tools/seed (executable, imported by nothing)
+├── @repo/database    ← PrismaClient + adapter
+├── @repo/storage     ← Credentials for uploading seed assets
 └── @repo/constants
 ```
 
@@ -188,7 +226,7 @@ Both apps share the exact same Zod schemas from `@repo/types`. A schema change i
 | `type-check` | `^build`                            | No              |
 | `clean`      | —                                   | No              |
 
-`^build` means "build all packages this app depends on first." Running `pnpm build` at the root builds packages in dependency order: `constants` → `database` → `types` → `utils` → `api` / `web`.
+`^build` means "build all packages this app depends on first." Running `pnpm build` at the root builds packages in dependency order: `constants` → `database` / `storage` → `types` → `utils` → `api` / `web`. `@repo/seed` has no build step — it runs from source with `tsx`.
 
 ---
 

@@ -104,12 +104,12 @@ export const useEmissionFactorsForm = (
         if (field === "subcategoryId") {
           form.setValue(
             `emissionFactors.${rowIndex}.dimensionValue1Name`,
-            null as never,
+            null,
             { shouldDirty: true }
           );
           form.setValue(
             `emissionFactors.${rowIndex}.dimensionValue2Name`,
-            null as never,
+            null,
             { shouldDirty: true }
           );
         }

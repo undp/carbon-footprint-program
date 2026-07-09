@@ -6,12 +6,12 @@ import { randomUUID } from "crypto";
  * Gets a pre-seeded test user by email
  */
 export async function getTestLoggedUser(prisma: PrismaClient): Promise<User> {
-  const idpUserId = process.env.FORCED_USER_IDP_ID_WHEN_NO_PROVIDER;
-  const email = process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+  const idpUserId = process.env.FORCED_USER_IDP_ID;
+  const email = process.env.FORCED_USER_EMAIL;
 
   if (!idpUserId || !email) {
     throw new Error(
-      "Environment variable FORCED_USER_IDP_ID_WHEN_NO_PROVIDER or FORCED_USER_EMAIL_WHEN_NO_PROVIDER is not set. " +
+      "Environment variable FORCED_USER_IDP_ID or FORCED_USER_EMAIL is not set. " +
         "Please set them to the IDP ID and email of a pre-seeded test user in the database before running tests."
     );
   }
@@ -57,10 +57,10 @@ export async function createTestUser(
  */
 export async function cleanupTestUsers(prisma: PrismaClient): Promise<void> {
   // Delete users created for testing (exclude the main test user)
-  const mainTestUserEmail = process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+  const mainTestUserEmail = process.env.FORCED_USER_EMAIL;
   if (!mainTestUserEmail) {
     throw new Error(
-      "Environment variable FORCED_USER_EMAIL_WHEN_NO_PROVIDER is not set. " +
+      "Environment variable FORCED_USER_EMAIL is not set. " +
         "Please set it to the email of the main test user in the database before running tests."
     );
   }

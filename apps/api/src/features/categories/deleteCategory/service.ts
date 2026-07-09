@@ -1,14 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import {
-  CategoryStatus,
-  EmissionFactorDimensionStatus,
-  EmissionFactorDimensionValueStatus,
-  EmissionFactorStatus,
-  SubcategoryStatus,
-  User,
-} from "@repo/types";
+import { CategoryStatus, SubcategoryStatus, User } from "@repo/types";
 import { CategoryNotFoundError } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { softDeleteSubcategoryDependents } from "../../../helpers/softDeleteSubcategoryDependents.js";
 
 export const deleteCategoryService = async (
   prismaClient: PrismaClient,
@@ -40,38 +34,7 @@ export const deleteCategoryService = async (
       },
     });
 
-    await tx.emissionFactor.updateMany({
-      where: {
-        subcategory: { categoryId },
-        status: EmissionFactorStatus.ACTIVE,
-      },
-      data: {
-        status: EmissionFactorStatus.DELETED,
-        updatedById: BigInt(user.id),
-      },
-    });
-
-    await tx.emissionFactorDimensionValue.updateMany({
-      where: {
-        dimension: { subcategory: { categoryId } },
-        status: EmissionFactorDimensionValueStatus.ACTIVE,
-      },
-      data: {
-        status: EmissionFactorDimensionValueStatus.DELETED,
-        updatedById: BigInt(user.id),
-      },
-    });
-
-    await tx.emissionFactorDimension.updateMany({
-      where: {
-        subcategory: { categoryId },
-        status: EmissionFactorDimensionStatus.ACTIVE,
-      },
-      data: {
-        status: EmissionFactorDimensionStatus.DELETED,
-        updatedById: BigInt(user.id),
-      },
-    });
+    await softDeleteSubcategoryDependents(tx, { categoryId }, BigInt(user.id));
 
     await tx.subcategory.updateMany({
       where: {

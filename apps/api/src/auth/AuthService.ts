@@ -16,7 +16,7 @@
  *
  * ```typescript
  * // Create service with specific provider
- * const authService = new AuthService({ provider: "jwks", enabled: true });
+ * const authService = new AuthService("jwks");
  *
  * // Authenticate a request
  * const result = await authService.authenticate(request);
@@ -27,14 +27,12 @@
  *
  * @see AuthProvider - Interface for implementing new providers
  * @see JwksAuthProvider - JWT/JWKS-based authentication
- * @see EasyAuthProvider - Azure App Service Easy Auth
  */
 
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "./AuthProvider.js";
 import type { AuthProviderType } from "./types.js";
 import { JwksAuthProvider } from "./providers/JwksAuthProvider.js";
-import { EasyAuthProvider } from "./providers/EasyAuthProvider.js";
 import { NoneProvider } from "./providers/NoneProvider.js";
 import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
 
@@ -45,29 +43,18 @@ import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
  */
 export class AuthService {
   private readonly provider_type: AuthProviderType;
-  private readonly provider: AuthProvider | undefined;
+  private readonly provider: AuthProvider;
 
   constructor(provider_type: AuthProviderType) {
     this.provider_type = provider_type;
 
     if (this.provider_type === "jwks") {
       this.provider = new JwksAuthProvider();
-    } else if (this.provider_type === "easy-auth") {
-      this.provider = new EasyAuthProvider();
     } else if (this.provider_type === "forced-user") {
       this.provider = new ForcedUserProvider();
-    } else if (this.provider_type === "none") {
-      this.provider = new NoneProvider();
     } else {
-      this.provider = undefined;
+      this.provider = new NoneProvider();
     }
-  }
-
-  /**
-   * Check if authentication is enabled.
-   */
-  isEnabled(): boolean {
-    return !!this.provider;
   }
 
   /**
@@ -78,16 +65,12 @@ export class AuthService {
   }
 
   /**
-   * Authenticate a request using the configured provider.
+   * Authenticate a request using the configured provider. Every AUTH_PROVIDER
+   * value resolves a provider, so there is no "disabled" short-circuit: with
+   * "none" the NoneProvider resolves no user, which leaves private routes to
+   * 401 and public routes to render.
    */
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
-    if (!this.isEnabled()) {
-      return {
-        user: null,
-        error: "Authentication is disabled",
-      };
-    }
-
-    return this.provider!.authenticate(request);
+    return this.provider.authenticate(request);
   }
 }

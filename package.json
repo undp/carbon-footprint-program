@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "Huella Latam monorepo",
   "private": true,
-  "packageManager": "pnpm@10.23.0",
-  "license": "MIT",
+  "packageManager": "pnpm@11.10.0",
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -22,14 +22,15 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
-    "db:restore": "turbo run db:restore --filter=@repo/database",
+    "db:restore": "turbo run db:restore --filter=@repo/database && turbo run seed --filter=@repo/seed",
+    "db:seed": "turbo run seed --filter=@repo/seed",
     "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
   },
   "devDependencies": {
-    "cpy-cli": "^5.0.0",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "rimraf": "^6.0.1",
-    "turbo": "^2.6.3"
+    "cpy-cli": "^7.0.0",
+    "prettier": "^3.9.4",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "rimraf": "^6.1.3",
+    "turbo": "^2.10.3"
   }
 }

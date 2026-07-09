@@ -11,15 +11,28 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { CreateMeasurementUnitResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MeasurementUnitStatus } from "@repo/database";
+import { MeasurementUnitStatus, SubcategoryStatus } from "@repo/database";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 
 describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  const magnitudeIdByCode: Record<string, string> = {};
 
   beforeAll(async () => {
     app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
+    const magnitudes = await prisma.magnitude.findMany({
+      select: { id: true, code: true },
+    });
+    for (const m of magnitudes) {
+      magnitudeIdByCode[m.code] = m.id.toString();
+    }
+    if (!magnitudeIdByCode.mass) {
+      throw new Error(
+        "required magnitude 'mass' not found in seed data. Ensure the database seed has been applied before running this suite."
+      );
+    }
   });
 
   afterAll(async () => {
@@ -28,6 +41,13 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Links reference both the subcategory and the unit, so drop them first.
+    await prisma.subcategoryMeasurementUnit.deleteMany({
+      where: { subcategory: { name: { startsWith: "Test - Subcategory" } } },
+    });
+    await prisma.subcategory.deleteMany({
+      where: { name: { startsWith: "Test - Subcategory" } },
+    });
     // Re-activate any soft-deleted test units so other tests don't fail
     await prisma.rateMeasurementUnit.updateMany({
       where: { abbreviation: { startsWith: "kg/test-" } },
@@ -50,7 +70,7 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     const payload = {
       name: `Test Unit ${suffix}`,
       abbreviation: `test-${suffix}`,
-      magnitude: "MASS",
+      magnitudeId: magnitudeIdByCode.mass,
       baseFactor: 500,
       isBase: false,
     };
@@ -149,6 +169,69 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("BASE_UNIT_IMMUTABLE");
+    });
+  });
+
+  describe("Referenced units", () => {
+    // The delete guard shares the reference-count definition with the list
+    // endpoint and the edit guard, so a unit the UI shows as "in use" cannot be
+    // deleted via the API either.
+    it("should return 422 when the unit is referenced by existing data", async () => {
+      const created = await createUnit();
+      const category = await prisma.category.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(created.id),
+        },
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("MEASUREMENT_UNIT_REFERENCED");
+
+      // The unit stays ACTIVE: the delete was rejected, not partially applied.
+      const mu = await prisma.measurementUnit.findUnique({
+        where: { id: BigInt(created.id) },
+      });
+      expect(mu!.status).toBe(MeasurementUnitStatus.ACTIVE);
+    });
+
+    it("should soft-delete when the only reference is under a soft-deleted subcategory", async () => {
+      const created = await createUnit();
+      const category = await prisma.category.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      await prisma.subcategoryMeasurementUnit.create({
+        data: {
+          subcategoryId: subcategory.id,
+          measurementUnitId: BigInt(created.id),
+        },
+      });
+      await prisma.subcategory.update({
+        where: { id: subcategory.id },
+        data: { status: SubcategoryStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const mu = await prisma.measurementUnit.findUnique({
+        where: { id: BigInt(created.id) },
+      });
+      expect(mu!.status).toBe(MeasurementUnitStatus.DELETED);
     });
   });
 

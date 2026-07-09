@@ -21,7 +21,9 @@ import {
 } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
-import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
+import { ReductionProjectNameCell } from "./components/ReductionProjectNameCell";
+import { StatusChip } from "@/components/StatusChip";
+import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
 import {
   useReductionProjects,
   useReductionProjectsMinimal,
@@ -38,7 +40,6 @@ import {
 import { StylizedDataGrid } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
-import { formatDateToDDMMYYYY } from "@repo/utils";
 
 const REDUCTION_PROJECTS_EXPLANATION_SLUGS = {
   MAIN: "reduction-projects-list",
@@ -129,9 +130,9 @@ export const ReductionProjectsScreen: FC = () => {
               LongName="Nombre Proyecto"
             />
           ),
-          align: "center",
-          headerAlign: "center",
-          minWidth: 150,
+          align: "left",
+          headerAlign: "left",
+          minWidth: 225,
           flex: 1,
           cellClassName: "content-center",
           renderCell: (
@@ -139,18 +140,10 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number]
             >
           ) => (
-            <Box className="flex flex-col items-center gap-1">
-              <Tooltip title={params.row.organizationName}>
-                <Typography variant="caption" noWrap>
-                  {params.row.organizationName}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={params.row.name}>
-                <Typography variant="body2" noWrap>
-                  {params.row.name}
-                </Typography>
-              </Tooltip>
-            </Box>
+            <ReductionProjectNameCell
+              name={params.row.name}
+              organizationName={params.row.organizationName}
+            />
           ),
         },
         {
@@ -202,7 +195,7 @@ export const ReductionProjectsScreen: FC = () => {
           ) =>
             params.value ? (
               <Typography variant="body2" noWrap>
-                {formatDateToDDMMYYYY(params.value)}
+                {formatter.dateDDMMYYYY(params.value)}
               </Typography>
             ) : (
               <Typography
@@ -243,7 +236,11 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number],
               ReductionProjectDisplayStatus
             >
-          ) => <ReductionProjectStatusChip status={params.value!} />,
+          ) => (
+            <StatusChip
+              config={REDUCTION_PROJECT_STATUS_CONFIG[params.value!]}
+            />
+          ),
         },
         {
           field: "actions",

@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetCarbonInventoryMetadataParams } from "@repo/types";
 import { getCarbonInventoryMetadataService } from "./service.js";
 
 export const getCarbonInventoryMetadataHandler = async (
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: GetCarbonInventoryMetadataParams }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "carbonInventoryMetadata" });

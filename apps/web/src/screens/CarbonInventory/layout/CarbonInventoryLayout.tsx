@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
-import { BaseHeader } from "../../../components";
+import { BaseHeader, OverflowTooltipText } from "../../../components";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
 
@@ -29,21 +29,26 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
       position="sticky"
       showLogo
       titleComponent={
-        <Box className="flex flex-row items-center gap-2">
-          <Typography variant="h6">{title}</Typography>
+        <Box className="flex min-w-0 flex-1 flex-row items-center gap-2">
+          <Typography variant="h6" noWrap className="shrink-0">
+            {title}
+          </Typography>
           {subtitle && (
             <>
-              <Typography color="textSecondary" variant="h6">
-                •
-              </Typography>
               <Typography
                 color="textSecondary"
-                noWrap
                 variant="h6"
-                title={subtitle}
+                className="shrink-0"
+              >
+                •
+              </Typography>
+              <OverflowTooltipText
+                color="textSecondary"
+                variant="h6"
+                className="min-w-0 flex-1"
               >
                 {subtitle}
-              </Typography>
+              </OverflowTooltipText>
             </>
           )}
         </Box>
@@ -154,7 +159,7 @@ export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   }, [hasError, onError]);
 
   return (
-    <Box className="flex h-screen flex-col">
+    <Box className="flex h-screen min-w-0 flex-col">
       <CarbonInventoryHeader {...headerProps} />
       <Box className="flex min-h-0 flex-1 flex-col p-6">
         {isLoading && (

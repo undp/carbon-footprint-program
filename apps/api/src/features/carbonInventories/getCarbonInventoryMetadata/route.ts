@@ -5,37 +5,28 @@ import {
   GetCarbonInventoryMetadataResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
-import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get<{ Params: GetCarbonInventoryMetadataParams }>(
-    "/:id/metadata",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Get carbon inventory metadata",
-        description:
-          "Retrieves the metadata attributes of a carbon inventory, including resolved organization, sector, size, and main activity names.",
-        params: GetCarbonInventoryMetadataParamsSchema,
-        response: {
-          200: GetCarbonInventoryMetadataResponseSchema,
-          403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        public: options?.public ?? false,
-      },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
-          canAdminsBypass: true,
-        }),
-      ],
+export const getCarbonInventoryMetadataRoute = defineRoute<{
+  Params: GetCarbonInventoryMetadataParams;
+}>({
+  method: "GET",
+  path: "/:id/metadata",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Get carbon inventory metadata",
+    description:
+      "Retrieves the metadata attributes of a carbon inventory, including resolved organization, sector, size, and main activity names.",
+    params: GetCarbonInventoryMetadataParamsSchema,
+    response: {
+      200: GetCarbonInventoryMetadataResponseSchema,
+      403: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
     },
-    getCarbonInventoryMetadataHandler
-  );
-};
+  },
+  access: {
+    mode: "anonymous",
+    options: { canAdminsBypass: true },
+  },
+  handler: getCarbonInventoryMetadataHandler,
+});

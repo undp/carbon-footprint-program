@@ -31,7 +31,7 @@ export const EmissionEditorCommentDialog = ({
       disableAutoFocus={false}
       disableEnforceFocus={false}
     >
-      <DialogTitle>Agrega un comentario</DialogTitle>
+      <DialogTitle>Información adicional</DialogTitle>
       <DialogContent
         sx={{
           display: "flex",
@@ -59,7 +59,7 @@ export const EmissionEditorCommentDialog = ({
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
         <Button color="primary" variant="contained" onClick={onSave}>
-          Guardar
+          Actualizar
         </Button>
       </DialogActions>
     </Dialog>

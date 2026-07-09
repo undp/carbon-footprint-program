@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { GetTransparencyDataQuery } from "@repo/types";
 import { getTransparencyDataService } from "./service.js";
 
 export const getTransparencyDataHandler = async (
-  request: FastifyRequest<{ Querystring: { year?: string } }>,
+  request: FastifyRequest<{ Querystring: GetTransparencyDataQuery }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "transparency" });

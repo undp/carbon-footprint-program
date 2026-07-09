@@ -4,7 +4,7 @@ import { Routes } from "@/interfaces/routes";
 import { requireRole } from "@/utils/requireRole";
 import { SubcategoriesMaintainerScreen } from "@/screens/Maintainer/screens/SubcategoriesMaintainerScreen";
 
-export const Route = createFileRoute(Routes.ADMIN_SUBCATEGORIES)({
+export const Route = createFileRoute("/admin/subcategories")({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
     redirectTo: Routes.ADMIN_DASHBOARD,
   }),

@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { MeasurementUnitBaseSchema } from "../../baseSchemas/index.js";
+import {
+  MagnitudeBaseSchema,
+  MeasurementUnitBaseSchema,
+} from "../../baseSchemas/index.js";
 
 export const GetAllMeasurementUnitsResponseSchema = z.array(
-  MeasurementUnitBaseSchema
+  MeasurementUnitBaseSchema.extend({
+    magnitude: MagnitudeBaseSchema,
+  })
 );

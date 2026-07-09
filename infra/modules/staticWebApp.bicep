@@ -32,6 +32,9 @@ param appLocation string = '/apps/web'
 @description('Build output location relative to app location')
 param outputLocation string = 'dist'
 
+@description('Custom domain to bind to the Static Web App (e.g., app.example.com). Empty to skip. Use a CNAME-validated subdomain; apex domains require dns-txt-token validation and additional setup.')
+param customDomainName string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -64,6 +67,18 @@ resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
       branch: branch
     } : {}
   )
+}
+
+// Custom domain (CNAME validation). The DNS CNAME record must already point to
+// defaultHostname and be propagated BEFORE deploy: 'cname-delegation' validates
+// synchronously at create time, so an unresolved record fails this resource and,
+// because it lives in the deployment stack, fails the whole deploy.sh run.
+resource customDomain 'Microsoft.Web/staticSites/customDomains@2025-03-01' = if (customDomainName != '') {
+  parent: staticWebApp
+  name: customDomainName
+  properties: {
+    validationMethod: 'cname-delegation'
+  }
 }
 
 // Outputs

@@ -1,6 +1,4 @@
 import { randomUUID } from "crypto";
-import type { PrismaClient } from "@repo/database";
-import type { BlobServiceClient } from "@azure/storage-blob";
 import {
   FileType,
   RequestBadgeUploadBody,
@@ -8,15 +6,14 @@ import {
   RequestBadgeUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "@/services/blobService.js";
+import { buildPresignedUploadResponse } from "../../helpers/buildPresignedUploadResponse.js";
+import type { StorageAdapter } from "@repo/storage";
 
 type BadgeRequestUploadInput = RequestBadgeUploadBody &
   RequestBadgeUploadParams;
 
 export const badgeRequestUploadService = async (
-  _prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
+  storage: StorageAdapter,
   input: BadgeRequestUploadInput
 ): Promise<RequestBadgeUploadResponse> => {
   const { badgeType, originalName } = input;
@@ -29,15 +26,5 @@ export const badgeRequestUploadService = async (
     name: originalName,
   });
 
-  const { url, expiresAt } = await generateWriteSasUrl(
-    blobServiceClient,
-    containerName,
-    blobPath
-  );
-
-  return {
-    uuid: fileUuid,
-    uploadUrl: url,
-    expiresAt: expiresAt.toISOString(),
-  };
+  return buildPresignedUploadResponse(storage, blobPath, fileUuid);
 };

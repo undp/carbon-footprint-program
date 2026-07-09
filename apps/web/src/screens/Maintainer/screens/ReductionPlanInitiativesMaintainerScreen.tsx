@@ -342,7 +342,6 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null || !selectedMethodologyVersionId}
         addLabel="Agregar fila"
-        showDownload={false}
         extra={methodologySelector}
         explanationSlug={
           REDUCTION_PLAN_INITIATIVES_MAINTAINER_EXPLANATION_SLUGS.MAIN
@@ -351,9 +350,17 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
       <Box className="rounded-sm bg-white p-3">
         <form id="reduction-plan-initiatives-form" noValidate>
           <Box className="flex w-full">
-            <MaintainerDataGrid
+            <MaintainerDataGrid<ReductionPlanInitiativeFormRow>
               apiRef={apiRef}
               editingRowId={editingRowId}
+              searchable={{
+                fuseOptions: {
+                  keys: ["title", "description"],
+                },
+                placeholder: "Buscar iniciativa...",
+                downloadFileName: "iniciativas-reduccion",
+              }}
+              showToolbar
               columns={columns}
               rows={currentRows}
               loading={isLoading}

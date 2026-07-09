@@ -1,21 +1,116 @@
 services:
+  # One-shot: applies migrations and seeds the database, then exits.
+  # Reuses the API image (it already ships prisma + migrations + the seed tool).
+  migrate:
+    # Uses the API Dockerfile's `builder` stage (full source + tsx + prisma +
+    # node_modules) — the minimal runner image lacks src/environment.ts and tsx,
+    # which prisma.config.ts and @repo/seed need. Different image name than
+    # `api`, so the shared base/deps/builder layers are reused from cache
+    # without a name collision.
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder
+    image: huella-latam-migrate:local
+    container_name: huella-latam-migrate
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - "pnpm --filter @repo/database prod:deploy && pnpm --filter @repo/seed seed"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      # Storage — needed to seed badges & terms. The seeds build the adapter via
+      # storageConfigFromEnv(process.env), so STORAGE_PROVIDER must be present
+      # here too (otherwise the seeds silently skip storage writes).
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      # Dedicated service principal for storage (different tenant than JWKS).
+      # When set, `getStorageCredential()` uses ClientSecretCredential explicitly.
+      # When unset (prod on Azure), it falls back to DefaultAzureCredential → Managed Identity.
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      # MinIO / S3-compatible (used when STORAGE_PROVIDER=minio)
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
+      # No relay vars here: the seed uploads server-side (direct SDK), never
+      # presigns for the browser, so the storage relay does not apply to migrate.
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - huella-network
+
   api:
+    image: huella-latam-api:local
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: huella-latam-api
     ports:
-      - "${API_PORT}:8080"
+      # Host port is configurable; the container always listens on 8080.
+      - "${API_PORT:-8080}:8080"
     environment:
-      - NODE_ENV=${NODE_ENV}
-      - API_HOST=${API_HOST}
-      - API_PORT=${API_PORT}
+      # --- Core ---
+      - NODE_ENV=${NODE_ENV:-development}
+      - API_HOST=${API_HOST:-0.0.0.0}
+      - API_PORT=8080
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       - JWT_SECRET=${JWT_SECRET}
-      - LOG_LEVEL=${LOG_LEVEL}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - APP_VERSION=${APP_VERSION:-dev}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      # Public origin of THIS API (browser-reachable, no path) — required when
+      # MINIO_RELAY_ENABLED=true so the relay can rewrite presigned URLs.
+      - API_ORIGIN=${API_ORIGIN:-}
+      - LOCAL_BYPASS_REQUIRED_FIELDS=${LOCAL_BYPASS_REQUIRED_FIELDS:-false}
+      # --- Auth: none | forced-user | jwks ---
+      - AUTH_PROVIDER=${AUTH_PROVIDER:-none}
+      - FORCED_USER_EMAIL=${FORCED_USER_EMAIL:-}
+      - FORCED_USER_IDP_ID=${FORCED_USER_IDP_ID:-}
+      - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-}
+      # --- JWKS: how the API validates OIDC tokens (AUTH_PROVIDER=jwks). The API
+      #     reads JWKS_* directly — no AZURE_* auth vars. Azure Entra values are
+      #     derived into these by the env (.envrc.azure.example) or the doc. ---
+      - JWKS_URI=${JWKS_URI:-}
+      - JWKS_ISSUER=${JWKS_ISSUER:-}
+      - JWKS_AUDIENCE=${JWKS_AUDIENCE:-}
+      - JWKS_REQUIRED_SCOPE=${JWKS_REQUIRED_SCOPE:-}
+      - JWKS_SKIP_SCOPE_CHECK=${JWKS_SKIP_SCOPE_CHECK:-}
+      # --- Object storage: azure_blob_storage | minio ---
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
+      # --- Azure Blob Storage (used when STORAGE_PROVIDER=azure_blob_storage) ---
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      # Dedicated service principal for storage (different tenant than JWKS).
+      # When set, `getStorageCredential()` uses ClientSecretCredential explicitly.
+      # When unset (prod on Azure), it falls back to DefaultAzureCredential → Managed Identity.
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      # --- MinIO / S3-compatible (used when STORAGE_PROVIDER=minio) ---
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
+      # Storage relay: true = API proxies presigned MinIO URLs at
+      # /api/storage (needs API_ORIGIN); false/unset = browser-direct.
+      - MINIO_RELAY_ENABLED=${MINIO_RELAY_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
     networks:
       - huella-network
@@ -26,22 +121,63 @@ services:
       retries: 3
       start_period: 40s
 
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        # Generic OIDC config — the IdP is selected per deployment via these.
+        # VITE_OIDC_ISSUER also derives the IdP origin baked into the nginx CSP.
+        VITE_OIDC_ISSUER: ${VITE_OIDC_ISSUER:-}
+        VITE_OIDC_CLIENT_ID: ${VITE_OIDC_CLIENT_ID:-}
+        VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:-}
+        VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:-}
+        VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
+        # Object-storage origin baked into the nginx CSP (connect-src/img-src).
+        # The browser-facing storage URL: MinIO domain on-prem, Azure Blob host in
+        # cloud. Empty -> storage omitted from the CSP (no external uploads allowed).
+        STORAGE_ORIGIN: ${STORAGE_ORIGIN:-}
+        VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-dev}
+        VITE_LOCAL_BYPASS_REQUIRED_FIELDS: ${VITE_LOCAL_BYPASS_REQUIRED_FIELDS:-false}
+    container_name: huella-latam-web
+    ports:
+      - "${WEB_PORT:-3000}:8080"
+    depends_on:
+      # Wait until the API passes its /health check, not just until its
+      # container starts — so the whole stack is coherent before web is up.
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - huella-network
+    healthcheck:
+      # 127.0.0.1 forces IPv4: nginx listens IPv4-only and BusyBox wget won't
+      # fall back from localhost→::1, so localhost would fail the healthcheck.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   postgres:
-    image: postgres:18-alpine
+    # Digest-pinned for reproducibility; bump the tag and digest together.
+    image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
     container_name: huella-latam-postgres
     ports:
-      - "${POSTGRES_PORT_HOST_MAPPING}:5432"
+      - "${POSTGRES_PORT_HOST_MAPPING:-5432}:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     restart: unless-stopped
     networks:
       - huella-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5

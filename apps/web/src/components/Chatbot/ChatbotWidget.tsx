@@ -21,7 +21,7 @@ import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
 import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
@@ -226,8 +226,7 @@ export function ChatbotWidget() {
       >
         <Typography variant="subtitle1">Asistente Huella Latam</Typography>
         <Box sx={{ color: "inherit" }}>
-          <ActionIconButton
-            icon={AddIcon}
+          <BaseActionButton
             tooltip="Nueva conversación"
             color="inherit"
             disabled={isBusy}
@@ -240,16 +239,19 @@ export function ChatbotWidget() {
               // focus on this IconButton.
               focusInputAtEnd();
             }}
-          />
-          <ActionIconButton
-            icon={MinimizeIcon}
+          >
+            <AddIcon fontSize="small" />
+          </BaseActionButton>
+          <BaseActionButton
             tooltip="Minimizar"
             color="inherit"
             onClick={() => {
               markIntroduced();
               setOpen(false);
             }}
-          />
+          >
+            <MinimizeIcon fontSize="small" />
+          </BaseActionButton>
         </Box>
       </Box>
 

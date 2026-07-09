@@ -142,6 +142,16 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     [rateUnits]
   );
 
+  const subcategoryNameById = useMemo(
+    () => new Map(subcategoryOptions.map((o) => [o.id, o.name])),
+    [subcategoryOptions]
+  );
+
+  const rateUnitNameById = useMemo(
+    () => new Map(rateUnitOptions.map((o) => [o.id, o.name])),
+    [rateUnitOptions]
+  );
+
   // --- Editing state ---
   const {
     editingRowId,
@@ -158,9 +168,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     pageSize: 25,
   });
 
-  const addMutation = useAddEmissionFactor(methodologyVersionId);
-  const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
-  const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
+  const addMutation = useAddEmissionFactor();
+  const updateMutation = useUpdateEmissionFactor();
+  const deleteMutation = useDeleteEmissionFactor();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(
@@ -548,9 +558,31 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid
+      <MaintainerDataGrid<EmissionFactorForm>
         editingRowId={editingRowId}
         cellMaxHeight={60}
+        searchable={{
+          fuseOptions: {
+            keys: [
+              {
+                name: "subcategoryId",
+                getFn: (row) =>
+                  subcategoryNameById.get(row.subcategoryId) ?? "",
+              },
+              {
+                name: "rateMeasurementUnitId",
+                getFn: (row) =>
+                  rateUnitNameById.get(row.rateMeasurementUnitId) ?? "",
+              },
+              "dimensionValue1Name",
+              "dimensionValue2Name",
+              "source",
+            ],
+          },
+          placeholder: "Buscar factor de emisión...",
+          disableExport: true,
+        }}
+        showToolbar
         columns={columns}
         rows={currentRows}
         loading={!isDataReady}

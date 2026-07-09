@@ -1,0 +1,30 @@
+{
+  "name": "@repo/seed",
+  "version": "0.0.0",
+  "description": "Database seeding package for the Huella Latam project",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "seed": "tsx src/seed.ts",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf .turbo"
+  },
+  "dependencies": {
+    "@repo/constants": "workspace:*",
+    "@repo/database": "workspace:*",
+    "@repo/storage": "workspace:*",
+    "@repo/types": "workspace:*",
+    "zod": "catalog:shared"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "catalog:shared",
+    "eslint": "catalog:shared",
+    "rimraf": "catalog:shared",
+    "tsx": "catalog:shared",
+    "typescript": "catalog:shared"
+  }
+}

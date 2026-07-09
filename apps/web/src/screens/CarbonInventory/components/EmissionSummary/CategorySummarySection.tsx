@@ -3,6 +3,7 @@ import { Box, Divider, Typography, alpha } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
+import { INCOMPLETE_SOURCES_TOOLTIP } from "../../constants";
 import { SubcategoryLinesTable } from "./SubcategoryLinesTable";
 import { SubcategoryManualRow } from "./SubcategoryManualRow";
 
@@ -42,6 +43,9 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
           percentage={category.percentage}
           categoryColor={category.color}
           highlighted
+          incompleteTooltip={
+            category.hasIncompleteLines ? INCOMPLETE_SOURCES_TOOLTIP : undefined
+          }
         />
       </Box>
 

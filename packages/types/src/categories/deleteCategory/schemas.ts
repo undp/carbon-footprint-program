@@ -10,8 +10,5 @@ export const DeleteCategoryParamsSchema = z
 
 // Response Schema
 export const DeleteCategoryResponseSchema = z
-  .object({
-    message: z.string().describe("Confirmation message"),
-    id: IdSchema.describe("The ID of the deleted category"),
-  })
-  .strict();
+  .null()
+  .describe("Successfully soft-deleted category");

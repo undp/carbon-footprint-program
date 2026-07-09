@@ -36,7 +36,6 @@ export const mapCountryOrganizationSizeToAdmin = (
     updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
     createdById: row.createdById?.toString() ?? null,
     updatedById: row.updatedById?.toString() ?? null,
-    isInUse: counts.organizationData > 0,
     impactedChildren: {
       organizationData: counts.organizationData,
     },

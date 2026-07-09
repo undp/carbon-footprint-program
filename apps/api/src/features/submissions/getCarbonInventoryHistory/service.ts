@@ -1,20 +1,19 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryHistoryResponse } from "@repo/types";
 import { SubmissionEventType } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../../carbonInventories/errors.js";
 import {
   buildSelfDeclarationEvent,
-  createHistoryReadSasSigner,
+  createHistoryReadUrlSigner,
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
 import { mapTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const getCarbonInventoryHistoryService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient | null,
-  containerName: string | null,
+  storage: StorageAdapter,
   carbonInventoryId: string
 ): Promise<GetCarbonInventoryHistoryResponse> => {
   const ciId = BigInt(carbonInventoryId);
@@ -49,15 +48,11 @@ export const getCarbonInventoryHistoryService = async (
     }),
   ]);
 
-  const signReadSasUrl = await createHistoryReadSasSigner(
-    submissions,
-    blobServiceClient,
-    containerName
-  );
+  const signReadUrl = await createHistoryReadUrlSigner(submissions, storage);
 
   const submissionEventGroups = await Promise.all(
     submissions.map((submission) =>
-      mapSubmissionEventGroup(submission, orgHistorySummary, signReadSasUrl)
+      mapSubmissionEventGroup(submission, orgHistorySummary, signReadUrl)
     )
   );
 

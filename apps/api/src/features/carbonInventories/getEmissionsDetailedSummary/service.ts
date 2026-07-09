@@ -20,9 +20,14 @@ export const getEmissionsDetailedSummaryService = async (
   id: string
 ): Promise<GetEmissionsDetailedSummaryResponse> => {
   const inventory = await fetchInventory(prismaClient, id);
+  // Include subcategories that have active lines but no computed emissions yet,
+  // so the review screen lists every active line (complete or incomplete) and
+  // the user can see what is still pending. An incomplete line surfaces with a
+  // null factor and null emissions in the mapping below.
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,
-    inventory
+    inventory,
+    { includeIncompleteSubcategories: true }
   );
 
   // 1. Resolve inventory attributes
@@ -109,42 +114,46 @@ export const getEmissionsDetailedSummaryService = async (
       const firstLine = subLines[0];
       const description = firstLine?.subcategory.description ?? null;
 
-      // Determine if subcategory has factor-based lines
-      const factorBasedLines = subLines.filter((l) => {
-        const input = l.inputs[0];
-        return input && input.inputType !== "DIRECT";
-      });
-      const hasLines = factorBasedLines.length > 0;
+      // `hasLines` toggles the screen between the detailed lines table
+      // (factor-based) and the manual-mode subtotal row, so it stays
+      // factor-only. The `lines` payload itself emits every line — DIRECT
+      // included — so the Excel `Item ID` column matches every
+      // `item-{lineId}` filename in `archivos/`. A subcategory is uniformly
+      // factor-based or manual, never mixed.
+      const hasLines = subLines.some(
+        (l) => l.inputs[0] && l.inputs[0].inputType !== "DIRECT"
+      );
 
-      const emissionLines = hasLines
-        ? factorBasedLines
-            .map((line) => {
-              const input = line.inputs[0];
-              if (!input) return null;
+      const emissionLines = subLines
+        .map((line) => {
+          const input = line.inputs[0];
+          if (!input) return null;
 
-              const emissionSource =
-                [input.selection1?.value, input.selection2?.value]
-                  .filter(Boolean)
-                  .join(" / ") || sub.name;
+          const emissionSource =
+            [input.selection1?.value, input.selection2?.value]
+              .filter(Boolean)
+              .join(" / ") || sub.name;
 
-              const lineEmissions = input.result
-                ? kgToTon(Number(input.result.totalEmissions))
-                : 0;
+          // Null (not 0) when there is no computed result yet, so the UI
+          // can render "—" for an incomplete line instead of a misleading 0.
+          const lineEmissions = input.result
+            ? kgToTon(Number(input.result.totalEmissions))
+            : null;
 
-              return {
-                lineId: line.id.toString(),
-                emissionSource,
-                measurementUnitName: input.measurementUnit?.name ?? null,
-                quantity: input.quantity?.toNumber() ?? null,
-                factorValue: input.factor
-                  ? input.factor.appliedFactorValue.toNumber()
-                  : null,
-                factorSource: input.factor?.appliedFactorSource ?? null,
-                emissions: lineEmissions,
-              };
-            })
-            .filter((item) => item !== null)
-        : [];
+          return {
+            lineId: line.id.toString(),
+            emissionSource,
+            measurementUnitName: input.measurementUnit?.name ?? null,
+            quantity: input.quantity?.toNumber() ?? null,
+            factorValue: input.factor
+              ? input.factor.appliedFactorValue.toNumber()
+              : null,
+            factorSource: input.factor?.appliedFactorSource ?? null,
+            emissions: lineEmissions,
+            comment: input.comment ?? null,
+          };
+        })
+        .filter((item) => item !== null);
 
       return {
         id: sub.id,
@@ -155,10 +164,16 @@ export const getEmissionsDetailedSummaryService = async (
         lines: emissionLines,
         subtotal: sub.subtotal,
         percentage: subcategoryPercentages[subIdx],
+        hasIncompleteLines: sub.hasIncompleteLines,
       };
     });
 
-    // Build GHG breakdown for category position=1
+    // Build GHG breakdown for category position=1.
+    // NOTE: since incomplete subcategories are now included, this may contain
+    // zero-valued rows (subcategories whose lines have no result yet). The
+    // GHGBreakdownTable is currently not rendered (see the TODO in
+    // EmissionSummaryScreen.tsx); when it is re-enabled, filter out the
+    // zero-emission rows there if they should not be displayed.
     const ghgBreakdown =
       category.position === 1
         ? buildGHGBreakdown(category, linesBySubcategory)
@@ -175,6 +190,7 @@ export const getEmissionsDetailedSummaryService = async (
       subtotal: category.subtotal,
       percentage: categoryPercentages[catIdx],
       ghgBreakdown,
+      hasIncompleteLines: subcategories.some((sub) => sub.hasIncompleteLines),
     };
   });
 

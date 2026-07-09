@@ -1,0 +1,128 @@
+[
+  {
+    "name": "gramos",
+    "magnitudeCode": "mass",
+    "abbreviation": "g",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "kilógramos",
+    "magnitudeCode": "mass",
+    "abbreviation": "kg",
+    "baseFactor": 1000.0,
+    "isBase": false
+  },
+  {
+    "name": "toneladas",
+    "magnitudeCode": "mass",
+    "abbreviation": "ton",
+    "baseFactor": 1000000.0,
+    "isBase": false
+  },
+  {
+    "name": "litros",
+    "magnitudeCode": "volume",
+    "abbreviation": "L",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "metros cúbicos",
+    "magnitudeCode": "volume",
+    "abbreviation": "m3",
+    "baseFactor": 1000.0,
+    "isBase": false
+  },
+  {
+    "name": "galones",
+    "magnitudeCode": "volume",
+    "abbreviation": "gal",
+    "baseFactor": 3.78541,
+    "isBase": false
+  },
+  {
+    "name": "metros",
+    "magnitudeCode": "distance",
+    "abbreviation": "m",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "kilómetros",
+    "magnitudeCode": "distance",
+    "abbreviation": "km",
+    "baseFactor": 1000.0,
+    "isBase": false
+  },
+  {
+    "name": "millas",
+    "magnitudeCode": "distance",
+    "abbreviation": "mi",
+    "baseFactor": 1609.34,
+    "isBase": false
+  },
+  {
+    "name": "horas",
+    "magnitudeCode": "time",
+    "abbreviation": "h",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "días",
+    "magnitudeCode": "time",
+    "abbreviation": "d",
+    "baseFactor": 24.0,
+    "isBase": false
+  },
+  {
+    "name": "animales",
+    "magnitudeCode": "animals",
+    "abbreviation": "cant anim",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "hectáreas",
+    "magnitudeCode": "area",
+    "abbreviation": "ha",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "megawatts hora",
+    "magnitudeCode": "power",
+    "abbreviation": "MWh",
+    "baseFactor": 1000.0,
+    "isBase": false
+  },
+  {
+    "name": "kilowatts hora",
+    "magnitudeCode": "power",
+    "abbreviation": "kWh",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "gigajoules",
+    "magnitudeCode": "energy",
+    "abbreviation": "GJ",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "kilómetros tonelada",
+    "magnitudeCode": "distance_mass",
+    "abbreviation": "km-ton",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "piezas arrendadas",
+    "magnitudeCode": "rooms",
+    "abbreviation": "pieza arre",
+    "baseFactor": 1.0,
+    "isBase": true
+  }
+]

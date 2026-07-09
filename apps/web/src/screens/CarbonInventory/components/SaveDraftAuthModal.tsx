@@ -8,11 +8,9 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
-import { useSnackbar } from "notistack";
+import { useRouter } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
-import { useClaimCarbonInventory } from "@/api/query";
-import { getInventoryUuidFromLocalStorage } from "@/api/query/carbonInventories/authHeaders";
-import { useCommonNavigation } from "../hooks/useCommonNavigation";
+import { Routes } from "@/interfaces";
 
 interface Props {
   open: boolean;
@@ -25,53 +23,32 @@ export const SaveDraftAuthModal: FC<Props> = ({
   onClose,
   inventoryId,
 }) => {
-  const { signInPopup } = useAuth();
-  const { goToList } = useCommonNavigation();
-  const { enqueueSnackbar } = useSnackbar();
-  const claimMutation = useClaimCarbonInventory();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const { signInRedirect } = useAuth();
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const isLoading = isSigningIn || claimMutation.isPending;
-
+  // Full-page redirect to the IdP, returning to the claim route once
+  // authenticated — that route (domain-owned) reclaims this draft and lands on
+  // the list. The claim does NOT live here or in auth, so closing/cancelling
+  // the IdP page can never strand this modal (the page is unloaded; there is no
+  // pending promise to hang on).
   const handleSignIn = useCallback(async () => {
-    setIsSigningIn(true);
+    setIsRedirecting(true);
     try {
-      await signInPopup();
-    } catch {
-      setIsSigningIn(false);
-      return;
+      const returnTo = router.buildLocation({
+        to: Routes.CARBON_INVENTORY_CLAIM,
+        params: { inventoryId },
+      }).href;
+      await signInRedirect(returnTo);
+    } finally {
+      // Only reached if the redirect didn't start (e.g. OIDC not configured);
+      // on success the page is already navigating away.
+      setIsRedirecting(false);
     }
-    setIsSigningIn(false);
-
-    const uuid = getInventoryUuidFromLocalStorage(inventoryId);
-    if (!uuid) {
-      enqueueSnackbar("No se pudo recuperar el inventario.", {
-        variant: "error",
-      });
-      return;
-    }
-
-    try {
-      await claimMutation.mutateAsync({ inventoryId, uuid });
-      onClose();
-      goToList();
-    } catch {
-      enqueueSnackbar(
-        "No se pudo guardar el inventario. Es posible que ya esté asociado a otro usuario.",
-        { variant: "error" }
-      );
-    }
-  }, [
-    signInPopup,
-    inventoryId,
-    enqueueSnackbar,
-    goToList,
-    claimMutation,
-    onClose,
-  ]);
+  }, [signInRedirect, router, inventoryId]);
 
   return (
-    <Dialog open={open} onClose={isLoading ? undefined : onClose}>
+    <Dialog open={open} onClose={isRedirecting ? undefined : onClose}>
       <DialogTitle>Guarda tu inventario</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -79,15 +56,15 @@ export const SaveDraftAuthModal: FC<Props> = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={isLoading}>
+        <Button onClick={onClose} disabled={isRedirecting}>
           Cancelar
         </Button>
         <Button
           onClick={() => void handleSignIn()}
           color="primary"
           variant="contained"
-          disabled={isLoading}
-          startIcon={isLoading ? <CircularProgress size={16} /> : undefined}
+          disabled={isRedirecting}
+          startIcon={isRedirecting ? <CircularProgress size={16} /> : undefined}
         >
           Iniciar Sesión
         </Button>

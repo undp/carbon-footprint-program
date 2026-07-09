@@ -5,11 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountrySectorStatus,
   CountrySubsectorStatus,
-  OrganizationMainActivityStatus,
   type AdminOrganizationMainActivity,
   type CreateOrganizationMainActivityRequest,
   type UpdateOrganizationMainActivityRequest,
@@ -24,8 +22,7 @@ import {
 import { useAdminCountrySectors } from "@/api/query/countrySectors";
 import { useAdminCountrySubsectors } from "@/api/query/countrySubsectors";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -37,7 +34,10 @@ import {
   type MainActivityFormRow,
 } from "../hooks/useMainActivityProfilingColumns";
 import { sortByStatusThenName } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { VOCAB } from "@/config/vocab";
 
 const MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS = {
@@ -58,7 +58,6 @@ const toFormMainActivity = (
   countrySectorId: s.countrySectorId,
   countrySubsectorId: s.countrySubsectorId,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -117,9 +116,8 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             : "";
         }
         if (key === "statusLabel") {
-          return row.status === OrganizationMainActivityStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";
@@ -167,9 +165,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `mainActivities.${rowIndex}.${field}` as `mainActivities.${number}.name`
-      );
+      void form.trigger(`mainActivities.${rowIndex}.${field}`);
     },
     [form]
   );
@@ -249,10 +245,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
         body.countrySubsectorId = formRow.countrySubsectorId;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) =>
-      body.name !== undefined ||
-      body.countrySectorId !== undefined ||
-      body.countrySubsectorId !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -260,7 +252,6 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       countrySectorId: null,
       countrySubsectorId: null,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,
@@ -345,16 +336,17 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       explanationSlug={MAIN_ACTIVITIES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="actividad principal"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede editar la actividad principal"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }
@@ -365,7 +357,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             No hay actividades principales para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<MainActivityFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -378,8 +370,9 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar actividades...",
+              downloadFileName: "actividades-principales",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

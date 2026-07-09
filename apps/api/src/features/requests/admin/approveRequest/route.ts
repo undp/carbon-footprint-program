@@ -1,33 +1,33 @@
 import { approveRequestHandler } from "./handler.js";
 import {
-  ApproveRequestParamsSchema,
+  ApproveRequestBody,
   ApproveRequestBodySchema,
+  ApproveRequestParams,
+  ApproveRequestParamsSchema,
   ApproveRequestResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const approveRequestRoute: StandardRouteSignature = (
-  fastify,
-  _options
-) => {
-  fastify.post(
-    "/:id/approve",
-    {
-      schema: {
-        tags: ["admin-requests"],
-        summary: "Approve a request",
-        description: "Approve a pending submission request",
-        params: ApproveRequestParamsSchema,
-        body: ApproveRequestBodySchema,
-        response: {
-          200: ApproveRequestResponseSchema,
-          400: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
-          409: ApiErrorResponseSchema,
-        },
-      },
+export const approveRequestRoute = defineRoute<{
+  Params: ApproveRequestParams;
+  Body: ApproveRequestBody;
+}>({
+  method: "POST",
+  path: "/:id/approve",
+  schema: {
+    tags: ["admin-requests"],
+    summary: "Approve a request",
+    description: "Approve a pending submission request",
+    params: ApproveRequestParamsSchema,
+    body: ApproveRequestBodySchema,
+    response: {
+      200: ApproveRequestResponseSchema,
+      400: ApiErrorResponseSchema,
+      404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
-    approveRequestHandler
-  );
-};
+  },
+  access: { mode: "private" },
+  handler: approveRequestHandler,
+});

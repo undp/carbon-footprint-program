@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
-import { maintainerKeys } from "./keys";
+import { maintainerKeys, MaintainerQueryKey } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllCategoriesResponse,
@@ -8,7 +8,6 @@ import type {
   CreateCategoryResponse,
   UpdateCategoryRequest,
   UpdateCategoryResponse,
-  DeleteCategoryResponse,
   SwapCategoryPositionsRequest,
   SwapCategoryPositionsResponse,
 } from "@repo/types";
@@ -26,17 +25,17 @@ export const useCategories = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useAddCategory = (methodologyVersionId?: string) => {
+export const useAddCategory = () => {
   const queryClient = useQueryClient();
   return useMutation<CreateCategoryResponse, Error, CreateCategoryRequest>({
     mutationFn: (data) => apiClient.post("categories", { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.categories.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.CategoriesUpdateDependency
+          ),
+      });
     },
   });
 };
@@ -46,38 +45,40 @@ interface UpdateCategoryVariables {
   data: UpdateCategoryRequest;
 }
 
-export const useUpdateCategory = (methodologyVersionId?: string) => {
+export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
   return useMutation<UpdateCategoryResponse, Error, UpdateCategoryVariables>({
     mutationFn: ({ id, data }) =>
       apiClient.patch(`categories/${id}`, { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.categories.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.CategoriesUpdateDependency
+          ),
+      });
     },
   });
 };
 
-export const useDeleteCategory = (methodologyVersionId?: string) => {
+export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation<DeleteCategoryResponse, Error, string>({
-    mutationFn: (id) => apiClient.delete(`categories/${id}`).json(),
+  return useMutation<void, Error, string>({
+    mutationFn: async (id) => {
+      await apiClient.delete(`categories/${id}`);
+    },
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.categories.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.CategoriesUpdateDependency
+          ),
+      });
     },
   });
 };
 
-export const useSwapCategoryPositions = (methodologyVersionId?: string) => {
+export const useSwapCategoryPositions = () => {
   const queryClient = useQueryClient();
   return useMutation<
     SwapCategoryPositionsResponse,
@@ -87,12 +88,12 @@ export const useSwapCategoryPositions = (methodologyVersionId?: string) => {
     mutationFn: (data) =>
       apiClient.post("categories/swap-positions", { json: data }).json(),
     onSuccess: () => {
-      if (methodologyVersionId) {
-        void queryClient.invalidateQueries({
-          queryKey: maintainerKeys.categories.all(methodologyVersionId),
-          exact: true,
-        });
-      }
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.CategoriesUpdateDependency
+          ),
+      });
     },
   });
 };

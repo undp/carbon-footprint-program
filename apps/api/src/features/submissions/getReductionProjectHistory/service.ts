@@ -1,18 +1,17 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { GetReductionProjectHistoryResponse } from "@repo/types";
 import { ReductionProjectNotFoundError } from "../../reductionProjects/errors.js";
 import {
-  createHistoryReadSasSigner,
+  createHistoryReadUrlSigner,
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
 import { mapTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
+import type { StorageAdapter } from "@repo/storage";
 
 export const getReductionProjectHistoryService = async (
   prisma: PrismaClient,
-  blobServiceClient: BlobServiceClient | null,
-  containerName: string | null,
+  storage: StorageAdapter,
   reductionProjectId: string
 ): Promise<GetReductionProjectHistoryResponse> => {
   const rpId = BigInt(reductionProjectId);
@@ -40,15 +39,11 @@ export const getReductionProjectHistoryService = async (
     }),
   ]);
 
-  const signReadSasUrl = await createHistoryReadSasSigner(
-    submissions,
-    blobServiceClient,
-    containerName
-  );
+  const signReadUrl = await createHistoryReadUrlSigner(submissions, storage);
 
   const submissionEventGroups = await Promise.all(
     submissions.map((submission) =>
-      mapSubmissionEventGroup(submission, orgHistorySummary, signReadSasUrl)
+      mapSubmissionEventGroup(submission, orgHistorySummary, signReadUrl)
     )
   );
 

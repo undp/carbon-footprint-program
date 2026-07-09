@@ -47,7 +47,7 @@ describe("GET /api/system-parameters - Integration Tests", () => {
       expect(body.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should return items with only key and value fields", async () => {
+    it("should return items with key, value and numeric bounds fields", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/system-parameters",
@@ -57,13 +57,31 @@ describe("GET /api/system-parameters - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetSystemParametersResponse;
 
       for (const param of body) {
-        expect(Object.keys(param)).toEqual(
-          expect.arrayContaining(["key", "value"])
+        expect(Object.keys(param).sort()).toEqual(
+          ["key", "maxValue", "minValue", "value"].sort()
         );
-        expect(Object.keys(param)).toHaveLength(2);
         expect(typeof param.key).toBe("string");
         expect(typeof param.value).toBe("string");
+        expect(
+          param.minValue === null || typeof param.minValue === "number"
+        ).toBe(true);
+        expect(
+          param.maxValue === null || typeof param.maxValue === "number"
+        ).toBe(true);
       }
+    });
+
+    it("should expose min=1 for MEASURING_ORGANIZATIONS_YEAR_RANGE", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/system-parameters?keys=${SystemParameterKeyEnum.MEASURING_ORGANIZATIONS_YEAR_RANGE}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetSystemParametersResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].minValue).toBe(1);
+      expect(body[0].maxValue).toBeNull();
     });
   });
 

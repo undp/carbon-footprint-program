@@ -48,6 +48,8 @@ export const useEmissionCaptureData = ({
               ...line,
               lineId: line.id,
               baseFactorId: null,
+              files: line.files ?? [],
+              removedFileIds: [],
             })),
             isTotalManualEmissionsModeAvailable:
               inventorySubcategory?.isTotalManualEmissionsModeAvailable ??

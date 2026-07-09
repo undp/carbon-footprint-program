@@ -1,0 +1,74 @@
+[
+  {
+    "name": "kg por g",
+    "abbreviation": "kg/g"
+  },
+  {
+    "name": "kg por kg",
+    "abbreviation": "kg/kg"
+  },
+  {
+    "name": "kg por ton",
+    "abbreviation": "kg/ton"
+  },
+  {
+    "name": "kg por km",
+    "abbreviation": "kg/km"
+  },
+  {
+    "name": "kg por mi",
+    "abbreviation": "kg/mi"
+  },
+  {
+    "name": "kg por m",
+    "abbreviation": "kg/m"
+  },
+  {
+    "name": "kg por L",
+    "abbreviation": "kg/L"
+  },
+  {
+    "name": "kg por gal",
+    "abbreviation": "kg/gal"
+  },
+  {
+    "name": "kg por m3",
+    "abbreviation": "kg/m3"
+  },
+  {
+    "name": "kg por d",
+    "abbreviation": "kg/d"
+  },
+  {
+    "name": "kg por h",
+    "abbreviation": "kg/h"
+  },
+  {
+    "name": "kg por cant anim",
+    "abbreviation": "kg/cant anim"
+  },
+  {
+    "name": "kg por ha",
+    "abbreviation": "kg/ha"
+  },
+  {
+    "name": "kg por MWh",
+    "abbreviation": "kg/MWh"
+  },
+  {
+    "name": "kg por kWh",
+    "abbreviation": "kg/kWh"
+  },
+  {
+    "name": "kg por GJ",
+    "abbreviation": "kg/GJ"
+  },
+  {
+    "name": "kg por km-ton",
+    "abbreviation": "kg/km-ton"
+  },
+  {
+    "name": "kg por pieza arre",
+    "abbreviation": "kg/pieza arre"
+  }
+]

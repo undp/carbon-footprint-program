@@ -1,33 +1,28 @@
 import { createCarbonInventoryHandler } from "./handler.js";
 import {
+  CreateCarbonInventoryRequest,
   CreateCarbonInventoryRequestSchema,
   CreateCarbonInventoryResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "@/routes/api/index.js";
+import { defineRoute } from "@/routing/defineRoute.js";
 
-export const createCarbonInventoryRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.post(
-    "/",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Create a new carbon inventory",
-        description: "Create a new carbon inventory with the provided data",
-        body: CreateCarbonInventoryRequestSchema,
-        response: {
-          201: CreateCarbonInventoryResponseSchema,
-          400: ApiErrorResponseSchema,
-          422: ApiErrorResponseSchema,
-        },
-      },
-      config: {
-        public: options?.public ?? false,
-      },
+export const createCarbonInventoryRoute = defineRoute<{
+  Body: CreateCarbonInventoryRequest;
+}>({
+  method: "POST",
+  path: "/",
+  schema: {
+    tags: ["carbon-inventories"],
+    summary: "Create a new carbon inventory",
+    description: "Create a new carbon inventory with the provided data",
+    body: CreateCarbonInventoryRequestSchema,
+    response: {
+      201: CreateCarbonInventoryResponseSchema,
+      400: ApiErrorResponseSchema,
+      422: ApiErrorResponseSchema,
     },
-    createCarbonInventoryHandler
-  );
-};
+  },
+  access: { mode: "public" },
+  handler: createCarbonInventoryHandler,
+});

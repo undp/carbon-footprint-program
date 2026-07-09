@@ -1,5 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { SystemRole } from "@repo/database";
+import { registerRoutes } from "@/routing/defineRoute.js";
 import { createOrganizationMainActivityRoute } from "@/features/organizationMainActivities/admin/createOrganizationMainActivity/route.js";
 import { getAllAdminOrganizationMainActivitiesRoute } from "@/features/organizationMainActivities/admin/getAllAdminOrganizationMainActivities/route.js";
 import { updateOrganizationMainActivityRoute } from "@/features/organizationMainActivities/admin/updateOrganizationMainActivity/route.js";
@@ -9,15 +10,15 @@ import { restoreOrganizationMainActivityRoute } from "@/features/organizationMai
 export default function adminOrganizationMainActivitiesRoutes(
   fastify: FastifyZodInstance
 ) {
-  fastify.addHook("onRequest", fastify.requireAuth);
-  fastify.addHook(
-    "preHandler",
-    fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
+  registerRoutes(
+    fastify,
+    [
+      getAllAdminOrganizationMainActivitiesRoute,
+      createOrganizationMainActivityRoute,
+      updateOrganizationMainActivityRoute,
+      deleteOrganizationMainActivityRoute,
+      restoreOrganizationMainActivityRoute,
+    ],
+    { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
   );
-
-  getAllAdminOrganizationMainActivitiesRoute(fastify);
-  createOrganizationMainActivityRoute(fastify);
-  updateOrganizationMainActivityRoute(fastify);
-  deleteOrganizationMainActivityRoute(fastify);
-  restoreOrganizationMainActivityRoute(fastify);
 }

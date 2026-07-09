@@ -9,7 +9,13 @@ import type { Linter } from "eslint";
  */
 export const config: Linter.Config[] = [
   {
-    ignores: ["dist/**", "build/**", "coverage/**", "node_modules/**"],
+    ignores: [
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "vitest-report/**",
+      "node_modules/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

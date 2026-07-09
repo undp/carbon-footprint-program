@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Box, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
-import type { GridValidRowModel } from "@mui/x-data-grid";
 import {
   CountryOrganizationSizeStatus,
   type AdminCountryOrganizationSize,
@@ -21,8 +20,7 @@ import {
   useSwapCountryOrganizationSizePositions,
 } from "@/api/query/countryOrganizationSizes";
 import { ProfilingMaintainerScreenLayout } from "../components/ProfilingMaintainerScreenLayout";
-import { InUseWarningDialog } from "../components/dialogs/InUseWarningDialog";
-import { RestoreBlockedDialog } from "../components/dialogs/RestoreBlockedDialog";
+import { BlockedActionDialog } from "../components/dialogs/BlockedActionDialog";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { useProfilingEditingState } from "../hooks/useProfilingEditingState";
 import { useProfilingFormSync } from "../hooks/useProfilingFormSync";
@@ -34,7 +32,10 @@ import {
   type OrganizationSizeFormRow,
 } from "../hooks/useOrganizationSizeProfilingColumns";
 import { sortByStatusThenPosition } from "../utils/profilingSort";
-import { PROFILING_STATUS_LABELS } from "../constants";
+import {
+  PROFILING_STATUS_CONFIG,
+  resolveProfilingStatusKey,
+} from "@/labels/chips/profiling";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { VOCAB } from "@/config/vocab";
@@ -56,7 +57,6 @@ const toFormSize = (
   description: s.description,
   position: s.position,
   status: s.status,
-  isInUse: s.isInUse,
   impactedChildren: s.impactedChildren,
 });
 
@@ -77,9 +77,8 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       getFn: (row, path) => {
         const key = Array.isArray(path) ? path[0] : path;
         if (key === "statusLabel") {
-          return row.status === CountryOrganizationSizeStatus.ACTIVE
-            ? PROFILING_STATUS_LABELS.ACTIVE
-            : PROFILING_STATUS_LABELS.DELETED;
+          return PROFILING_STATUS_CONFIG[resolveProfilingStatusKey(row.status)]
+            .label;
         }
         const value = (row as Record<string, unknown>)[key];
         return typeof value === "string" ? value : "";
@@ -128,9 +127,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
         next as never,
         { shouldDirty: true }
       );
-      void form.trigger(
-        `organizationSizes.${rowIndex}.${field}` as `organizationSizes.${number}.name`
-      );
+      void form.trigger(`organizationSizes.${rowIndex}.${field}`);
     },
     [form]
   );
@@ -158,7 +155,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
         body.description = formRow.description;
       return Object.keys(body).length === 0 ? null : body;
     },
-    visibleFieldsChanged: (body) => body.name !== undefined,
     newRowDefaults: () => ({
       id: `temp_${Date.now()}`,
       name: "",
@@ -166,7 +162,6 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       // Server assigns the real position on create; this temp value is replaced after persist.
       position: Number.MAX_SAFE_INTEGER,
       status: null,
-      isInUse: false,
       impactedChildren: { organizationData: 0 },
     }),
     createMutation,
@@ -297,16 +292,17 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
       explanationSlug={ORGANIZATION_SIZES_MAINTAINER_EXPLANATION_SLUGS.MAIN}
       extraDialogs={
         <>
-          <InUseWarningDialog
-            open={actions.pendingPatch !== null}
-            entityLabel="tamaño"
-            onCancel={actions.cancelPendingPatch}
-            onConfirm={actions.dispatchPendingPatch}
-          />
-          <RestoreBlockedDialog
+          <BlockedActionDialog
             open={actions.restoreBlockedMessage !== null}
+            title="No se puede restaurar"
             message={actions.restoreBlockedMessage ?? ""}
             onClose={actions.dismissRestoreBlocked}
+          />
+          <BlockedActionDialog
+            open={actions.updateBlockedMessage !== null}
+            title="No se puede cambiar el nombre del tamaño de organización"
+            message={actions.updateBlockedMessage ?? ""}
+            onClose={actions.dismissUpdateBlocked}
           />
         </>
       }
@@ -317,7 +313,7 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             No hay tamaños para mostrar.
           </Typography>
         ) : (
-          <MaintainerDataGrid
+          <MaintainerDataGrid<OrganizationSizeFormRow>
             editingRowId={editingRowId}
             columns={columns}
             rows={currentRows}
@@ -330,8 +326,9 @@ export const OrganizationSizesMaintainerScreen: FC = () => {
             onPaginationModelChange={setPaginationModel}
             showToolbar
             searchable={{
-              fuseOptions: fuseOptions as IFuseOptions<GridValidRowModel>,
+              fuseOptions,
               placeholder: "Buscar tamaños...",
+              downloadFileName: "tamanos-organizacion",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}

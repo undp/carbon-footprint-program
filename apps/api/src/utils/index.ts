@@ -1,4 +1,5 @@
 export * from "./bigint.js";
+export * from "./contentDisposition.js";
 export * from "./decimal.js";
 export * from "./number.js";
 export * from "./string.js";

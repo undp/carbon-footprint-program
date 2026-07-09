@@ -1,11 +1,12 @@
-import { Badge, Box, IconButton, SxProps, Theme } from "@mui/material";
+import { Badge, Box, SxProps, Theme } from "@mui/material";
 import {
-  SourceOutlined,
+  UploadFileOutlined,
   CommentOutlined,
   DeleteOutlined,
 } from "@mui/icons-material";
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
+import { AppActionButton } from "@/components";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -15,6 +16,8 @@ interface EmissionEditorActionsCellProps {
   categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
+  pendingFilesCount?: number;
+  linkedFilesCount?: number;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -25,68 +28,81 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   categoryColor,
   disabled = false,
   hasComment = false,
+  pendingFilesCount = 0,
+  linkedFilesCount = 0,
 }) => {
+  const totalFilesCount = pendingFilesCount + linkedFilesCount;
   const categoryColorPalette = categoryColor
     ? getColorPalette(categoryColor)
     : undefined;
 
   const iconSx: SxProps<Theme> = {
-    borderRadius: 1,
-    border: "1px solid",
     width: 32,
     height: 32,
     color: (theme) =>
-      disabled
-        ? theme.palette.action.disabled
-        : categoryColorPalette
-          ? categoryColorPalette.main
-          : theme.palette.text.primary,
+      categoryColorPalette
+        ? categoryColorPalette.main
+        : theme.palette.text.primary,
   };
 
   return (
-    <Box className="flex justify-center gap-1">
+    <Box className="flex justify-center gap-3">
       {uploadFiles && (
-        <IconButton
-          sx={iconSx}
-          aria-label="uploadFiles"
-          onClick={() => uploadFiles(rowId)}
-          disabled={disabled}
+        <Badge
+          badgeContent={totalFilesCount}
+          invisible={totalFilesCount === 0}
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+              backgroundColor: (theme) => theme.palette.primary.main,
+              color: (theme) => theme.palette.common.white,
+            },
+          }}
         >
-          <SourceOutlined fontSize="inherit" />
-        </IconButton>
+          <AppActionButton
+            tooltip="Adjuntar archivos"
+            onClick={() => uploadFiles(rowId)}
+            disabled={disabled}
+            sx={iconSx}
+          >
+            <UploadFileOutlined />
+          </AppActionButton>
+        </Badge>
       )}
       {updateComment && (
         <Badge
           variant="dot"
-          color="primary"
           invisible={!hasComment}
           overlap="circular"
           sx={{
             "& .MuiBadge-badge": {
               top: 2,
               right: 2,
+              backgroundColor: (theme) => theme.palette.primary.main,
             },
           }}
         >
-          <IconButton
-            sx={iconSx}
-            aria-label="addComment"
+          <AppActionButton
+            tooltip="Agregar información adicional"
             onClick={() => updateComment(rowId)}
             disabled={disabled}
+            sx={iconSx}
           >
-            <CommentOutlined fontSize="inherit" />
-          </IconButton>
+            <CommentOutlined />
+          </AppActionButton>
         </Badge>
       )}
       {deleteSource && (
-        <IconButton
-          sx={iconSx}
-          aria-label="delete"
+        <AppActionButton
+          tooltip="Eliminar fuente"
           onClick={() => deleteSource(rowId)}
           disabled={disabled}
+          sx={iconSx}
         >
-          <DeleteOutlined fontSize="inherit" />
-        </IconButton>
+          <DeleteOutlined />
+        </AppActionButton>
       )}
     </Box>
   );

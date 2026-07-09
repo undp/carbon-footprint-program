@@ -261,14 +261,21 @@ See [System Parameters Reference](../development/system-parameters.md) for full 
 
 ## Measurement Units
 
-Two models handle unit-related data:
+Three models handle unit-related data:
 
 ```prisma
+model Magnitude {
+  id       BigInt   @id @default(autoincrement())
+  code     String   @unique // lowercase, ^[a-z][a-z0-9_]*$ (e.g. mass, volume, distance_mass)
+  name     String           // admin-editable Spanish label
+  isSystem Boolean  @default(false)
+}
+
 model MeasurementUnit {
   id           BigInt    @id @default(autoincrement())
   name         String
   abbreviation String
-  magnitude    Magnitude // MASS | VOLUME | DISTANCE | TIME | AREA | POWER | ENERGY | ANIMALS | ROOMS | DISTANCE_MASS
+  magnitudeId  BigInt    // FK → Magnitude
   baseFactor   Decimal   // conversion factor to the base unit of this magnitude
   isBase       Boolean
 }
@@ -279,13 +286,13 @@ model RateMeasurementUnit {
 }
 ```
 
-`Magnitude` classifies the physical dimension of a unit. `baseFactor` enables unit conversions (e.g., 1 ton = 1000 × baseFactor of kg). `RateMeasurementUnit` expresses the shape of an emission factor (mass-per-volume, mass-per-distance, etc.).
+`Magnitude` classifies the physical dimension of a unit; the platform seeds ten magnitudes (`mass`, `volume`, `distance`, `time`, `animals`, `area`, `power`, `energy`, `distance_mass`, `rooms`) and admins may add country-specific ones. Only `mass` is created with `isSystem = true` (the engine normalizes every emission to `kg`); the rest are seeded with `isSystem = false` and are freely relabeled or soft-deleted by admins. `baseFactor` enables unit conversions (e.g., 1 ton = 1000 × baseFactor of kg). `RateMeasurementUnit` expresses the shape of an emission factor (mass-per-volume, mass-per-distance, etc.).
 
 ---
 
 ## Seed Data Format
 
-The methodology data is seeded from `packages/database/src/prisma/seeds/data/base/methodologies.json`. The file is an array of methodology definitions, one per country:
+The methodology data is seeded from `tools/seed/src/data/base/methodologies.json`. The file is an array of methodology definitions, one per country:
 
 ```jsonc
 [

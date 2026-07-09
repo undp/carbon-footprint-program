@@ -4,10 +4,14 @@ import { Box, Chip, Stack, Typography } from "@mui/material";
 import { HistoryOutlined, ManageAccountsOutlined } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import type { GetAllUsersResponse } from "@repo/types";
-import { UserRoleChip } from "../components/UserRoleChip";
-import { ActionIconButton } from "@/components/ActionIconButton";
+import { SystemRoleChip } from "@/components/SystemRoleChip";
+import { AdminActionButton } from "@/components/AdminActionButton";
 import { ACTION_LABELS, COLUMN_HEADERS, type TabKey } from "../constants";
-import { ORGANIZATION_ROLE_LABELS } from "@/labels";
+import {
+  ORGANIZATION_ROLE_LABELS,
+  SYSTEM_ROLE_LABELS,
+} from "@/labels/chips/role";
+import { toValueOptions } from "@/utils/dataGrid";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -106,8 +110,11 @@ export const useUsersColumns = ({
               headerName: COLUMN_HEADERS.role,
               cellClassName,
               flex: 0.9,
+              type: "singleSelect",
+              valueOptions: toValueOptions(SYSTEM_ROLE_LABELS),
+              valueGetter: (_, row) => row.role,
               renderCell: (params: { row: UserRow }) => (
-                <UserRoleChip role={params.row.role} />
+                <SystemRoleChip role={params.row.role} />
               ),
             } satisfies GridColDef<UserRow>,
           ]
@@ -129,13 +136,14 @@ export const useUsersColumns = ({
         flex: showChangeRole ? 0.8 : 0.6,
         sortable: false,
         filterable: false,
+        disableExport: true,
         disableColumnMenu: true,
         renderCell: (params) => {
           const isOwnRow = params.row.id === viewerId;
           const showChangeRoleButton = showChangeRole && !isOwnRow;
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <ActionIconButton
+              <AdminActionButton
                 icon={HistoryOutlined}
                 tooltip={ACTION_LABELS.viewHistory}
                 onClick={() => onViewHistory(params.row.id)}
@@ -146,7 +154,7 @@ export const useUsersColumns = ({
                     visibility: showChangeRoleButton ? "visible" : "hidden",
                   }}
                 >
-                  <ActionIconButton
+                  <AdminActionButton
                     icon={ManageAccountsOutlined}
                     tooltip={ACTION_LABELS.changeRole}
                     onClick={() => onChangeRole(params.row.id)}

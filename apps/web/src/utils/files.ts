@@ -1,3 +1,18 @@
+/**
+ * Triggers a browser download for an in-memory Blob. The Blob's own `type` is
+ * preserved (e.g. `application/zip` for an archive), so the download is tagged
+ * with the correct MIME type and no extra copy of the bytes is materialized.
+ */
+export const downloadBlob = (blob: Blob, filename: string): void => {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  anchor.remove();
+};
+
 export const formatFileSize = (bytes: number): string => {
   if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
   if (bytes >= 1_000) return `${Math.round(bytes / 1_000)} KB`;
@@ -43,3 +58,24 @@ export const mergeUniqueFiles = (
 
   return [...existingFiles, ...uniqueIncoming];
 };
+
+// Zip files are reported with inconsistent MIME types across browsers/OSes
+// (Windows often reports `application/x-zip-compressed`, others may report
+// `application/octet-stream`). The `.zip` extension is added as a fallback so
+// dropzone accepts legitimate zips even when the browser-reported MIME differs.
+const ZIP_MIME_TYPES = new Set<string>([
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
+// Builds the `accept` prop expected by react-dropzone (`Record<MIME, ext[]>`)
+// from a flat list of allowed MIME types. Use this whenever a dropzone needs
+// to accept a configurable set of file types — keeps the zip MIME quirk
+// handled in one place.
+export const buildDropzoneAcceptMap = (
+  allowedMimeTypes: readonly string[]
+): Record<string, string[]> =>
+  allowedMimeTypes.reduce<Record<string, string[]>>((acc, mime) => {
+    acc[mime] = ZIP_MIME_TYPES.has(mime) ? [".zip"] : [];
+    return acc;
+  }, {});

@@ -12,15 +12,9 @@ export const SubmissionNotFoundError = createError(
   404
 );
 
-export const StorageNotConfiguredError = createError(
-  "STORAGE_NOT_CONFIGURED",
-  "Blob storage is not configured. Set AZURE_STORAGE_ACCOUNT_NAME to enable file uploads.",
-  503
-);
-
-export const BlobMoveError = createError(
-  "BLOB_MOVE_ERROR",
-  "Failed to move blobs from %s to %s",
+export const ObjectMoveError = createError(
+  "OBJECT_MOVE_ERROR",
+  "Failed to move objects from %s to %s",
   500
 );
 

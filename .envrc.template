@@ -1,18 +1,35 @@
-# Azure Authentication
-# AZURE_TENANT_TYPE: "external" (CIAM / ciamlogin.com) or "organizational" (Azure AD / login.microsoftonline.com)
-export AZURE_TENANT_TYPE="external"
-export AZURE_TENANT_ID=""            # Tenant ID (GUID)
-export AZURE_TENANT_SUBDOMAIN=""     # Tenant subdomain (only required for AZURE_TENANT_TYPE="external")
-export AZURE_API_CLIENT_ID=""        # API App Registration ID
-export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
+# Authentication (provider-agnostic OIDC)
+# The API validates OIDC access tokens via JWKS and the web app is a generic
+# OIDC client. There are NO AZURE_* auth variables — pick an identity provider by
+# setting AUTH_PROVIDER + the JWKS_* (backend) and VITE_OIDC_* (frontend) values.
+#   • Azure Entra → copy `.envrc.azure.example` instead; it derives every JWKS_*
+#     and VITE_OIDC_* value from a few raw tenant inputs (tenant id, subdomain,
+#     client ids), so you never hand-write an issuer/JWKS URL.
+#   • Keycloak (local dev) → use the example blocks below (see compose/keycloak.yaml).
 
-# Azure Blob Storage (local development only)
+# Object Storage Provider Selection
+# Required. Selects which backend the API uses for object storage.
+# Allowed values: "azure_blob_storage" or "minio".
+export STORAGE_PROVIDER="minio"
+
+# Azure Blob Storage (only required when STORAGE_PROVIDER=azure_blob_storage)
 # In production these are set automatically by the Bicep infrastructure (appService.bicep).
 # For local development, set AZURE_STORAGE_ACCOUNT_NAME to your Azure Storage account
 # and run `az login` so DefaultAzureCredential can authenticate.
-# Leave empty to disable file upload/download locally.
 export AZURE_STORAGE_ACCOUNT_NAME=""    # Storage account name (e.g., "stj7k8m9n0p1")
 export AZURE_STORAGE_CONTAINER_NAME=""  # Blob container name. Defaults to "files" if empty.
+
+# MinIO / S3-compatible Storage (only required when STORAGE_PROVIDER=minio)
+# The docker-compose `minio` and `minio-init` services pre-create the bucket
+# with these credentials. Set them BEFORE `docker compose up`.
+export MINIO_ENDPOINT="http://localhost:9000"   # MinIO endpoint URL (use http://minio:9000 inside compose)
+export MINIO_ACCESS_KEY="minioadmin"             # MinIO root user / S3 access key id
+export MINIO_SECRET_KEY="minioadmin"             # MinIO root password / S3 secret access key
+export MINIO_BUCKET="files"                      # Bucket name. Defaults to "files".
+export MINIO_REGION="us-east-1"                  # Region passed to the S3 client.
+export MINIO_FORCE_PATH_STYLE="true"             # MinIO requires path-style URLs (default true).
+# MINIO_API_CORS_ALLOW_ORIGIN: configure on the MinIO container so browser
+# presigned PUTs from the web dev origin succeed. Defaults to "*" in compose.
 
 # Database
 export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:password@localhost:5432/dbname
@@ -21,29 +38,41 @@ export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:
 export APP_VERSION=""
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
-export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
-# export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
-# export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
+export AUTH_PROVIDER=""    # Options: jwks, forced-user, none  (Azure Entra? use .envrc.azure.example)
+# export FORCED_USER_IDP_ID=""     # Must be set when using AUTH_PROVIDER="forced-user"
+# export FORCED_USER_EMAIL=""      # Must be set when using AUTH_PROVIDER="forced-user"
 # export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 # export LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation (e.g. allow empty strings) for local testing
 
-# Generic JWKS overrides (optional, for non-Azure IdPs)
-# export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
-# export JWKS_ISSUER=""           # Expected token issuer (overrides Azure-derived value)
-# export JWKS_AUDIENCE=""         # Expected token audience (overrides Azure-derived value)
+# JWKS — what the API uses to validate access tokens (when AUTH_PROVIDER="jwks").
+# The API reads these as-is; it does NOT derive them from any provider settings.
+# export JWKS_URI=""              # JWKS endpoint, reachable from the API process
+# export JWKS_ISSUER=""           # Expected token issuer (`iss`); empty disables issuer validation
+# export JWKS_AUDIENCE=""         # Expected token audience (`aud`)
 # export JWKS_REQUIRED_SCOPE=""   # Required scope claim (default: "access_as_user")
 # export JWKS_SKIP_SCOPE_CHECK="" # Set to "true" to disable scope enforcement entirely
+#
+# Keycloak (local dev) example — see compose/keycloak.yaml. Uncomment:
+# export AUTH_PROVIDER="jwks"
+# export JWKS_ISSUER="http://localhost:8081/realms/huella"                            # token `iss` (browser host)
+# export JWKS_URI="http://keycloak:8080/realms/huella/protocol/openid-connect/certs"  # internal (api container)
+# export JWKS_AUDIENCE="huella-api"                                                   # needs the realm audience mapper
+# export JWKS_REQUIRED_SCOPE="access_as_user"                                         # realm grants it as a default scope
 
 # Web
 export VITE_APP_VERSION=""
 export VITE_API_BASE_URL=""  # URL for the API
-export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
-export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-# Authority URL: derived from AZURE_TENANT_TYPE
-if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
-  export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}/v2.0"
-else
-  export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
-fi
-export VITE_FRONT_BASE_URL=""
+export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the OIDC redirect URIs)
+# Generic OIDC config (build-time). Select the IdP via VITE_OIDC_ISSUER.
+# ISSUER + CLIENT_ID + SCOPES are required — the app fails loud at boot if any is
+# empty. VITE_OIDC_SCOPES baseline: openid (OIDC id_token) + email
+# (backend rejects tokens without it) + offline_access (refresh → silent renew) +
+# profile (display name).
+#   Keycloak → export VITE_OIDC_ISSUER="http://localhost:8081/realms/huella"
+#   Entra    → use `.envrc.azure.example` (derives ISSUER/CLIENT_ID/SCOPES from tenant values)
+export VITE_OIDC_ISSUER=""
+export VITE_OIDC_CLIENT_ID="huella-web"
+export VITE_OIDC_SCOPES="openid profile email offline_access"
+export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL}/auth/callback"
+export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
 # export VITE_LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation in the web app for local testing
