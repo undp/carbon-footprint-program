@@ -165,14 +165,35 @@ export const sendMessageHandler = async (
       { err, assistantRowId: assistantRowId.toString(), firstChunkSeen },
       "chatbot LLM provider stream errored"
     );
+    // If the client already disconnected, the reply.raw "close" handler owns
+    // finalization (it marks the row truncated via the conditional UPDATE) and
+    // the socket is gone — do not write to it or double-finalize here.
+    if (clientDisconnected) {
+      return;
+    }
+    // Genuine provider error while the client is still connected. The "close"
+    // handler will NOT finalize the row here: reply.raw.end() below sets
+    // writableEnded=true synchronously, so the close handler's
+    // `if (reply.raw.writableEnded) return` guard short-circuits before it can
+    // run the UPDATE. Finalize the row explicitly instead — persist any
+    // partial buffer and mark it truncated, leaving latency_ms NULL so
+    // loadConversationHistory excludes this failed turn from future prompts.
+    try {
+      await prisma.chatbotChatMessage.updateMany({
+        where: { id: assistantRowId, latencyMs: null },
+        data: { truncated: true, content: assistantBuffer },
+      });
+    } catch (finalizeErr) {
+      request.log.error(
+        { err: finalizeErr, assistantRowId: assistantRowId.toString() },
+        "chatbot mid-stream error finalizer UPDATE failed"
+      );
+    }
     writeSseEvent(reply, "error", {
       code: "EXTERNAL_SERVICE_ERROR",
       message: CHATBOT_GENERIC_ERROR_MESSAGE,
     });
     reply.raw.end();
-    // The reply.raw.on("close") handler marks the assistant row truncated
-    // via the conditional UPDATE — same path for both pre-stream and
-    // mid-stream errors, since headers are already on the wire either way.
     return;
   }
 
