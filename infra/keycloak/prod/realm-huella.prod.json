@@ -20,9 +20,9 @@
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 900,
   "ssoSessionMaxLifespan": 28800,
-  "offlineSessionIdleTimeout": 1209600,
+  "offlineSessionIdleTimeout": 86400,
   "offlineSessionMaxLifespanEnabled": true,
-  "offlineSessionMaxLifespan": 2592000,
+  "offlineSessionMaxLifespan": 172800,
   "actionTokenGeneratedByUserLifespan": 300,
   "actionTokenGeneratedByAdminLifespan": 43200,
 

@@ -74,13 +74,14 @@ export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the O
 # Generic OIDC config (build-time). Select the IdP via VITE_OIDC_ISSUER.
 # ISSUER + CLIENT_ID + SCOPES are required — the app fails loud at boot if any is
 # empty. VITE_OIDC_SCOPES baseline: openid (OIDC id_token) + email
-# (backend rejects tokens without it) + offline_access (refresh → silent renew) +
-# profile (display name).
+# (backend rejects tokens without it) + profile (display name). offline_access is
+# intentionally NOT requested: silent renew uses the SSO-session-bound refresh
+# token (8h) instead of a long-lived offline one.
 #   Keycloak → export VITE_OIDC_ISSUER="http://localhost:18080/realms/huella"
 #   Entra    → use `.envrc.azure.example` (derives ISSUER/CLIENT_ID/SCOPES from tenant values)
 export VITE_OIDC_ISSUER=""
 export VITE_OIDC_CLIENT_ID="huella-web"
-export VITE_OIDC_SCOPES="openid profile email offline_access"
+export VITE_OIDC_SCOPES="openid profile email"
 # Both redirect vars are OPTIONAL — empty and undeclared behave the same: the
 # app falls back to the serving origin. The ${VAR:+...} guard keeps
 # VITE_OIDC_REDIRECT_URI empty when VITE_FRONT_BASE_URL is empty (otherwise the
