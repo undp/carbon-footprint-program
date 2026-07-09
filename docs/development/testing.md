@@ -8,15 +8,15 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All tests live under `apps/api/test/`.
 
-| Aspect         | Detail                                                               |
-| -------------- | -------------------------------------------------------------------- |
-| Framework      | Vitest 4.x                                                           |
-| Test type      | Integration (HTTP layer + real DB)                                   |
-| Database       | Testcontainers — `postgres:18-alpine`                                |
-| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`  |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                |
-| Execution      | Parallel — files run across workers, each file gets its own database |
-| Coverage       | v8 provider; 80% thresholds enforced locally                         |
+| Aspect         | Detail                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                                              |
+| Test type      | Integration (HTTP layer + real DB)                                                      |
+| Database       | Testcontainers — `postgres:18-alpine`                                                   |
+| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`                     |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                   |
+| Execution      | Parallel — files run across workers, each file gets its own database                    |
+| Coverage       | v8 provider; thresholds disabled (0%) in all environments (see the coverage note below) |
 
 ---
 
@@ -29,7 +29,7 @@ apps/api/test/
 │   ├── testDatabase.ts              # PostgreSQL container + migration/seed helpers
 │   ├── testStorage.ts               # Storage container (Azurite or MinIO, per STORAGE_PROVIDER)
 │   ├── perFileDatabase.ts           # Clones a private DB per test file from the template
-│   ├── storageTestManifest.ts       # Manifest of storage-dependent tests (minio CI leg)
+│   ├── storageTestManifest.ts       # Manifest of storage-dependent tests (both storage CI legs)
 │   └── assertStorageTestManifest.ts # Static verifier (pnpm test:verify-storage-manifest)
 ├── factories/                  # Test data helpers
 │   ├── appFactory.ts           # Creates a ready Fastify test instance
@@ -285,13 +285,22 @@ Every new endpoint should have tests covering:
 
 Key settings in `apps/api/vitest.shared.ts`, shared by `vitest.config.ts` (full suite, the default), `vitest.base.config.ts` (`pnpm test:base` — the full suite **minus** the storage manifest, used by the `base` CI leg), and `vitest.storage.config.ts` (`pnpm test:storage-azure` / `pnpm test:storage-minio` — **only** the files in the storage manifest, used by the storage CI legs):
 
-| Setting               | Value                                        | Reason                                                             |
-| --------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
-| `maxWorkers`          | 4                                            | Run files in parallel; safe because each file has its own database |
-| `fileParallelism`     | true                                         | Files run concurrently across workers                              |
-| `testTimeout`         | 30 000 ms                                    | Allows for slower container I/O                                    |
-| `hookTimeout`         | 30 000 ms                                    | Allows beforeAll/afterAll to complete                              |
-| `teardownTimeout`     | 10 000 ms                                    | Container shutdown grace period                                    |
-| `globalSetup`         | `./test/setup/globalSetup.ts`                | Container lifecycle; migrate + seed the template DB                |
-| `setupFiles`          | `./test/setup/perFileDatabase.ts`            | Clones a private database per test file                            |
-| `coverage.thresholds` | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI                                   |
+| Setting               | Value                                                           | Reason                                                                                                 |
+| --------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `maxWorkers`          | 4                                                               | Run files in parallel; safe because each file has its own database                                     |
+| `fileParallelism`     | true                                                            | Files run concurrently across workers                                                                  |
+| `testTimeout`         | 30 000 ms                                                       | Allows for slower container I/O                                                                        |
+| `hookTimeout`         | 30 000 ms                                                       | Allows beforeAll/afterAll to complete                                                                  |
+| `teardownTimeout`     | 10 000 ms                                                       | Container shutdown grace period                                                                        |
+| `globalSetup`         | `./test/setup/globalSetup.ts`                                   | Container lifecycle; migrate + seed the template DB                                                    |
+| `setupFiles`          | `./test/setup/perFileDatabase.ts`                               | Clones a private database per test file                                                                |
+| `coverage.thresholds` | 0% in all environments (branches, functions, lines, statements) | Forced to 0 everywhere (`process.env.CI \|\| true` in `vitest.shared.ts`); see the coverage note below |
+
+> **Note on coverage:** the 80% thresholds are currently **disabled in every
+> environment**. `vitest.shared.ts` forces them to 0 (`process.env.CI || true`
+> always evaluates truthy), so coverage is reported but never enforced — not even
+> locally. On top of that, coverage is now **per-leg and partial**: the three legs
+> (`base`, `storage-azure`, `storage-minio`) each emit their own coverage artifact
+> and these are **not merged**, so no single report reflects the whole suite.
+> Re-enabling the 80% gate is therefore incompatible with the current setup until
+> per-leg coverage is merged into one report.

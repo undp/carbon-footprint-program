@@ -4,10 +4,11 @@
  * `createTestApp({ storageDescriptor })`).
  *
  * Why this list exists:
- * - The `azure_blob_storage` CI leg runs the whole suite; the `minio` leg runs
- *   ONLY these files (see `vitest.storage.config.ts`). Together they prove the
- *   storage layer works against both providers without paying to run every test
- *   file twice.
+ * - Both storage CI legs (storage-azure and storage-minio) run ONLY these files
+ *   against their provider (see `vitest.storage.config.ts`); the base leg
+ *   EXCLUDES them (it runs the full suite except this manifest). Together they
+ *   prove the storage layer works against both providers without paying to run
+ *   every test file twice.
  * - `test:verify-storage-manifest` (test/setup/assertStorageTestManifest.ts)
  *   keeps this list honest: CI fails if a test touches storage but is missing
  *   here, if an entry no longer exists on disk, or if an entry no longer shows

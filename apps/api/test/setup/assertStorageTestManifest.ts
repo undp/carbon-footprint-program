@@ -33,6 +33,11 @@ interface StorageMarker {
 /**
  * A test "touches real storage" if it matches any of these. `createMockStorageAdapter`
  * is deliberately excluded — it stubs storage for unit tests and needs no container.
+ *
+ * NOTE: this regex-based detection is best-effort and intentionally incomplete —
+ * it only catches the common storage-usage patterns. The authoritative enforcement
+ * is the throwing storage adapter at runtime: any storage test that slips into the
+ * base leg and touches `app.storage` fails loudly.
  */
 const STORAGE_MARKERS: readonly StorageMarker[] = [
   // Injects the real testcontainer descriptor into createTestApp.
@@ -84,7 +89,7 @@ function main(): void {
       errors.push(
         `${relPath}\n` +
           `    Looks like it uses REAL storage (matched: ${markers.join(", ")}) but is NOT in the manifest.\n` +
-          `    → If it touches real storage, add it to STORAGE_TEST_MANIFEST in test/setup/storageTestManifest.ts (so the MinIO CI leg runs it).\n` +
+          `    → If it touches real storage, add it to STORAGE_TEST_MANIFEST in test/setup/storageTestManifest.ts (so the storage CI legs run it).\n` +
           `    → If it does NOT, remove the storageDescriptor / storage usage so it runs against the throwing test adapter.`
       );
     }

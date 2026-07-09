@@ -7,7 +7,7 @@ const STORAGE_WITHOUT_DESCRIPTOR_MESSAGE = [
   "storage, do BOTH:",
   '  1. pass `storageDescriptor: inject("storageDescriptor")` to createTestApp, and',
   "  2. add its path to STORAGE_TEST_MANIFEST in apps/api/test/setup/storageTestManifest.ts",
-  "     (so the MinIO CI leg runs it).",
+  "     (so the storage CI legs run it).",
   "If it does NOT need storage, remove the storage call.",
 ].join("\n");
 
