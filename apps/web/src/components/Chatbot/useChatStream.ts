@@ -199,13 +199,14 @@ export const useChatStream = () => {
       });
       setState("loading");
 
-      const attempt = async (
-        withLastEventId: boolean
-      ): Promise<{ response: Response | null; transportError: boolean }> => {
+      const attempt = async (): Promise<{
+        response: Response | null;
+        transportError: boolean;
+      }> => {
         const headers: Record<string, string> = {
           "content-type": "application/json",
         };
-        if (withLastEventId && lastEventIdRef.current) {
+        if (lastEventIdRef.current) {
           // Forward-compatibility plumbing only: the foundation backend
           // does not consume Last-Event-ID (it always streams from the
           // beginning) — see chatbot-message-streaming spec. Wired now so
@@ -226,28 +227,30 @@ export const useChatStream = () => {
         }
       };
 
-      const initialAttempt = await attempt(false);
-      let response = initialAttempt.response;
-      if (initialAttempt.transportError) {
-        const retry = await attempt(true);
-        if (retry.transportError) {
-          consecutiveFailuresRef.current += 1;
-          if (consecutiveFailuresRef.current >= 2) {
-            setState("degraded");
-            updateLastAssistant((msg) => ({
-              ...msg,
-              content: DEGRADED_MESSAGE,
-            }));
-            return;
-          }
-          setState("error");
+      // POST /message is NOT idempotent: it appends a turn and triggers an
+      // LLM run. A fetch rejection does not prove the request never reached
+      // the server, so we must not auto-retry — retrying after the first
+      // request landed would double-submit the turn (duplicate turns, doubled
+      // LLM cost, faster turn-cap exhaustion). Surface the failure instead;
+      // the consecutive-failure counter still escalates to "degraded" on a
+      // second straight failure.
+      const { response, transportError } = await attempt();
+      if (transportError) {
+        consecutiveFailuresRef.current += 1;
+        if (consecutiveFailuresRef.current >= 2) {
+          setState("degraded");
           updateLastAssistant((msg) => ({
             ...msg,
-            content: GENERIC_ERROR_MESSAGE,
+            content: DEGRADED_MESSAGE,
           }));
           return;
         }
-        response = retry.response;
+        setState("error");
+        updateLastAssistant((msg) => ({
+          ...msg,
+          content: GENERIC_ERROR_MESSAGE,
+        }));
+        return;
       }
 
       if (!response) {
