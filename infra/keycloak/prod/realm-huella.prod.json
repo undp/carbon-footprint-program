@@ -207,7 +207,7 @@
       "webOrigins": ["${HUELLA_WEB_ORIGIN}"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "${HUELLA_WEB_ORIGIN}/"
+        "post.logout.redirect.uris": "${HUELLA_WEB_ORIGIN}##${HUELLA_WEB_ORIGIN}/"
       },
       "defaultClientScopes": ["basic", "profile", "email", "access_as_user"],
       "optionalClientScopes": ["offline_access"],
