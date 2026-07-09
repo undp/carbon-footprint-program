@@ -15,7 +15,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { IS_DEVELOPMENT } from "../config/environment";
+import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
 import { ChatbotWidget } from "@/components/Chatbot/ChatbotWidget";
@@ -46,8 +46,10 @@ function RootComponent() {
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
-                  {/* Minimum-viable placement — design review may relocate. */}
-                  <ChatbotWidget />
+                  {/* Optional AI feature (DPG optionality) — only mounted when
+                      the deployment enables it. Minimum-viable placement;
+                      design review may relocate. */}
+                  {IS_CHATBOT_ENABLED && <ChatbotWidget />}
                 </ExplanationProvider>
               </AuthProvider>
             </QueryClientProvider>
