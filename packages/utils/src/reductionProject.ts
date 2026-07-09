@@ -123,3 +123,59 @@ export function getReductionProjectMissingFields(
 
   return missing;
 }
+
+/**
+ * Semantic-validity identifiers a reduction project must satisfy — beyond mere
+ * field presence — before it can be submitted for verification. These mirror the
+ * two cross-field invariants the web form enforces in its `superRefine`. String
+ * values (like the missing-field identifiers) feed the frontend's label map;
+ * labels themselves stay in the frontend (contracts/utils are language-agnostic).
+ */
+export const ReductionProjectInvalidField = {
+  // The baseline scenario must be at least the project scenario; otherwise the
+  // reduction (baseline - project) is negative, i.e. it does not actually reduce.
+  SCENARIO_ORDER: "scenarioOrder",
+  // The implementation year cannot be later than the project's reporting year.
+  IMPLEMENTATION_DATE_YEAR: "implementationDateYear",
+} as const;
+
+export type ReductionProjectInvalidField =
+  (typeof ReductionProjectInvalidField)[keyof typeof ReductionProjectInvalidField];
+
+function scenarioToNumber(value: ScenarioValue): number {
+  return typeof value === "number" ? value : value.toNumber();
+}
+
+/**
+ * Returns the semantic invariants a reduction project violates. Complements
+ * `getReductionProjectMissingFields`: that gate checks field presence, this one
+ * checks relationships between already-present fields. Pure — shared by the
+ * server submit gate (source of truth) and the web form's validation so the two
+ * can't drift. Null/absent fields are skipped here: their absence is a
+ * completeness concern owned by `getReductionProjectMissingFields`.
+ */
+export function getReductionProjectInvalidFields(
+  project: ReductionProjectCompletenessFields
+): ReductionProjectInvalidField[] {
+  const invalid: ReductionProjectInvalidField[] = [];
+
+  if (
+    project.baselineScenario != null &&
+    project.projectScenario != null &&
+    scenarioToNumber(project.baselineScenario) <
+      scenarioToNumber(project.projectScenario)
+  ) {
+    invalid.push(ReductionProjectInvalidField.SCENARIO_ORDER);
+  }
+
+  if (project.implementationDate && project.year != null) {
+    const implementationYear = new Date(
+      project.implementationDate
+    ).getFullYear();
+    if (implementationYear > project.year) {
+      invalid.push(ReductionProjectInvalidField.IMPLEMENTATION_DATE_YEAR);
+    }
+  }
+
+  return invalid;
+}

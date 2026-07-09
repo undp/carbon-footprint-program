@@ -13,7 +13,9 @@ export {
   canRequestReductionProjectVerification,
   isReductionProjectDeletable,
   getReductionProjectMissingFields,
+  getReductionProjectInvalidFields,
   ReductionProjectMissingField,
+  ReductionProjectInvalidField,
 } from "./reductionProject.js";
 export type { ReductionProjectCompletenessFields } from "./reductionProject.js";
 export { arraysEqualUnordered } from "./arrays.js";

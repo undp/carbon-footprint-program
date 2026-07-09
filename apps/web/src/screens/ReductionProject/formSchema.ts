@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { ConsideredGeiSchema, GwpSourceSchema } from "@repo/types";
 import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
+import {
+  getReductionProjectInvalidFields,
+  ReductionProjectInvalidField,
+  type ReductionProjectCompletenessFields,
+} from "@repo/utils";
 
 // A reduction project is saved as a (possibly partial) draft: only name,
 // organization and carbon inventory are required. Every other field is
@@ -42,10 +47,31 @@ export const reductionProjectFormSchema = z
           "La descripción es requerida cuando las emisiones se reportan en otro lugar",
       });
     }
+
+    // The two cross-field invariants (scenario order and implementation-year vs.
+    // reporting year) are decided by the shared `getReductionProjectInvalidFields`
+    // — the single source of truth also used by the server submit gate — so the
+    // web form and API can't drift. The form only owns the Spanish messages and
+    // the field paths they attach to. Null fields are skipped by the util,
+    // mirroring the previous inline guards.
+    const completenessFields: ReductionProjectCompletenessFields = {
+      implementationDate: data.implementationDate || null,
+      description: data.description || null,
+      subcategoryId: data.subcategoryId || null,
+      year: data.year === "" ? null : data.year,
+      baselineScenario: data.baselineScenario,
+      projectScenario: data.projectScenario,
+      consideredGei: data.consideredGei,
+      gwpUsed: data.gwpUsed || null,
+      reportedElsewhere: data.reportedElsewhere,
+      reportedElsewhereDescription: data.reportedElsewhereDescription || null,
+    };
+    const invalidFields = getReductionProjectInvalidFields(completenessFields);
+
     if (
-      data.year !== "" &&
-      data.implementationDate &&
-      new Date(data.implementationDate).getFullYear() > data.year
+      invalidFields.includes(
+        ReductionProjectInvalidField.IMPLEMENTATION_DATE_YEAR
+      )
     ) {
       ctx.addIssue({
         code: "custom",
@@ -53,11 +79,7 @@ export const reductionProjectFormSchema = z
         message: `El año no puede ser posterior al año de la huella (${data.year})`,
       });
     }
-    if (
-      data.baselineScenario !== null &&
-      data.projectScenario !== null &&
-      data.baselineScenario < data.projectScenario
-    ) {
+    if (invalidFields.includes(ReductionProjectInvalidField.SCENARIO_ORDER)) {
       ctx.addIssue({
         code: "custom",
         path: ["baselineScenario"],
