@@ -29,6 +29,7 @@ packages/database/generated/**
 .env.prod.dockercompose
 .env.keycloak
 .env.prod.keycloak
+.env.prod
 
 # TLS material mounted into containers (compose/keycloak.prod.yaml direct-TLS
 # mode; anchored to the repo root — the KC_TLS_CERT_DIR default ./certs/keycloak)
