@@ -229,16 +229,19 @@ services:
       # The Keycloak image ships no curl/wget; probe the management port
       # (9000) /health/ready over bash /dev/tcp. 127.0.0.1 forces IPv4: the
       # management port listens IPv4-only and `localhost` would otherwise
-      # resolve to ::1 and fail.
+      # resolve to ::1 and fail. Match the response STATUS LINE (HTTP 200) —
+      # /health/ready returns 200 only when ready, 503 otherwise — rather than
+      # grepping the JSON body for `UP`, which false-positives when the
+      # top-level status is DOWN but a nested per-check body contains UP.
       # Mode B caveat: with KC_HTTPS_CERTIFICATE_FILE set, the management
       # interface inherits TLS (Keycloak 26.1 has no http-management-scheme
       # option to keep it plain HTTP), and bash /dev/tcp cannot speak TLS —
       # so the probe degrades to a TCP connect on 9000 (listener up) instead
-      # of asserting the /health/ready body. The `$$` escapes are for
+      # of asserting the /health/ready 200 status. The `$$` escapes are for
       # Compose: the container's own env decides at runtime, not `up` time.
       test:
         - CMD-SHELL
-        - "if [ -n \"$$KC_HTTPS_CERTIFICATE_FILE\" ]; then exec 3<>/dev/tcp/127.0.0.1/9000; else exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q UP; fi"
+        - "if [ -n \"$$KC_HTTPS_CERTIFICATE_FILE\" ]; then exec 3<>/dev/tcp/127.0.0.1/9000; else exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -qE '^HTTP/[0-9.]+ 200'; fi"
       interval: 15s
       timeout: 5s
       retries: 10

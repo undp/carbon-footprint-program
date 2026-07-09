@@ -86,9 +86,12 @@ services:
       # The Keycloak image ships no curl/wget; probe the management port (9000)
       # /health/ready over bash /dev/tcp. 127.0.0.1 forces IPv4: the management
       # port listens IPv4-only and localhost would otherwise resolve to ::1.
+      # Match the response STATUS LINE (HTTP 200 ⇒ ready, else 503), not a JSON
+      # `UP` substring, which false-positives when a nested per-check body
+      # contains UP while the top-level status is DOWN.
       test:
         - CMD-SHELL
-        - "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q UP"
+        - "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -qE '^HTTP/[0-9.]+ 200'"
       interval: 15s
       timeout: 5s
       retries: 10
