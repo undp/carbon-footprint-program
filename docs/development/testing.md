@@ -6,17 +6,17 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 ## Overview
 
-The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and Azure Blob Storage (Azurite) containers — there are no mocks for the database layer. All tests live under `apps/api/test/`.
+The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All tests live under `apps/api/test/`.
 
-| Aspect         | Detail                                                               |
-| -------------- | -------------------------------------------------------------------- |
-| Framework      | Vitest 4.x                                                           |
-| Test type      | Integration (HTTP layer + real DB)                                   |
-| Database       | Testcontainers — `postgres:18-alpine`                                |
-| Storage        | Testcontainers — Azurite (Azure Storage emulator)                    |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                |
-| Execution      | Parallel — files run across workers, each file gets its own database |
-| Coverage       | v8 provider; 80% thresholds enforced locally                         |
+| Aspect         | Detail                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                                              |
+| Test type      | Integration (HTTP layer + real DB)                                                      |
+| Database       | Testcontainers — `postgres:18-alpine`                                                   |
+| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`                     |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                   |
+| Execution      | Parallel — files run across workers, each file gets its own database                    |
+| Coverage       | v8 provider; thresholds disabled (0%) in all environments (see the coverage note below) |
 
 ---
 
@@ -25,17 +25,19 @@ The API uses **Vitest** with **Testcontainers** for integration testing. Tests r
 ```
 apps/api/test/
 ├── setup/
-│   ├── globalSetup.ts          # Starts/stops containers; migrates + seeds the template DB
-│   ├── testDatabase.ts         # Postgres container + migrate/seed helpers
-│   ├── testStorage.ts          # Azurite/MinIO container helpers
-│   └── perFileDatabase.ts      # Clones a private DB per test file from the template
-├── factories/                  # Test data helpers (16 utilities)
+│   ├── globalSetup.ts               # Starts/stops containers; migrates + seeds the template DB
+│   ├── testDatabase.ts              # PostgreSQL container + migration/seed helpers
+│   ├── testStorage.ts               # Storage container (Azurite or MinIO, per STORAGE_PROVIDER)
+│   ├── perFileDatabase.ts           # Clones a private DB per test file from the template
+│   ├── storageTestManifest.ts       # Manifest of storage-dependent tests (both storage CI legs)
+│   └── assertStorageTestManifest.ts # Static verifier (pnpm test:verify-storage-manifest)
+├── factories/                  # Test data helpers
 │   ├── appFactory.ts           # Creates a ready Fastify test instance
 │   ├── userFactory.ts
 │   ├── organizationFactory.ts
 │   ├── submissionFactory.ts
 │   ├── carbonInventorySeeder.ts
-│   ├── blobHelper.ts           # Uploads blobs directly to Azurite
+│   ├── storageHelper.ts        # Seeds fixture objects via the storage adapter
 │   └── ...                     # One factory per domain entity
 └── features/                   # Integration tests
     ├── carbonInventories/
@@ -60,10 +62,10 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 `test/setup/globalSetup.ts` runs once before all tests:
 
 1. **PostgreSQL container** — `postgres:18-alpine`, credentials `testuser:testpass`, database `testdb`. Startup timeout: 180 s (accounts for first image pull in CI).
-2. **Azurite container** — `mcr.microsoft.com/azure-storage/azurite`, in-memory mode. Container `test-files` is pre-created. Startup timeout: 120 s. If Azurite fails, database-only tests still run.
+2. **Storage container** — Azurite (`mcr.microsoft.com/azure-storage/azurite`, in-memory) by default, or MinIO (`minio/minio`) when `STORAGE_PROVIDER=minio` (see `test/setup/testStorage.ts`). The `test-files` container/bucket is not pre-created — the test adapters in `@repo/storage/testing` create it lazily and idempotently. Startup timeout: 120 s. If the storage container fails, database-only tests still run.
 3. **Migrations** — `prisma migrate deploy` is executed once against the **template** database (`testdb`).
 4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.) in the template.
-5. **Context injection** — the template database URL and storage connection string are passed to workers via Vitest's `project.provide()` interface.
+5. **Context injection** — the template database URL (`databaseUrl`) and a storage descriptor (`storageDescriptor`, provider + connection details) are passed to workers via Vitest's `project.provide()` interface.
 
 The teardown function stops both containers after all tests complete.
 
@@ -174,15 +176,16 @@ describe("POST /api/<feature> - Integration Tests", () => {
 
 ### 3 — Key conventions
 
-| Convention           | Detail                                                                                                                                                         |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Get the DB URL       | `const databaseUrl = inject("databaseUrl")`                                                                                                                    |
-| Create the app       | `createTestApp(databaseUrl)`                                                                                                                                   |
-| Make HTTP calls      | `app.inject({ method, url, payload })`                                                                                                                         |
-| Seed lookup data     | Already present from global seed; query with `prisma.<model>.findFirst()`                                                                                      |
-| Create test entities | Use the factories in `test/factories/`                                                                                                                         |
-| Clean up             | Not needed for isolation — each file has its own database. Use `afterEach`/`beforeEach` only if a test needs a clean slate from _other tests in the same file_ |
-| Auth                 | All requests are automatically authenticated as the seeded test user; no auth headers needed                                                                   |
+| Convention           | Detail                                                                                                                                                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Get the DB URL       | `const databaseUrl = inject("databaseUrl")`                                                                                                                                                                                |
+| Create the app       | `createTestApp(databaseUrl)`                                                                                                                                                                                               |
+| Storage tests        | Pass `{ storageDescriptor: inject("storageDescriptor") }` to `createTestApp` and list the file in the [storage test manifest](./ci-cd.md#storage-test-manifest); without a descriptor, `app.storage` is a throwing adapter |
+| Make HTTP calls      | `app.inject({ method, url, payload })`                                                                                                                                                                                     |
+| Seed lookup data     | Already present from global seed; query with `prisma.<model>.findFirst()`                                                                                                                                                  |
+| Create test entities | Use the factories in `test/factories/`                                                                                                                                                                                     |
+| Clean up             | Not needed for isolation — each file has its own database. Use `afterEach`/`beforeEach` only if a test needs a clean slate from _other tests in the same file_                                                             |
+| Auth                 | All requests are automatically authenticated as the seeded test user; no auth headers needed                                                                                                                               |
 
 ---
 
@@ -190,23 +193,23 @@ describe("POST /api/<feature> - Integration Tests", () => {
 
 Factories create test-specific entities and return them for use in assertions. They are not fixtures — they write to the database.
 
-| Factory                      | Purpose                                                                               |
-| ---------------------------- | ------------------------------------------------------------------------------------- |
-| `appFactory.ts`              | `createTestApp(databaseUrl)` — Fastify instance with Prisma and optional Blob storage |
-| `userFactory.ts`             | `getTestLoggedUser()`, `createTestUser()`, `cleanupTestUsers()`                       |
-| `organizationFactory.ts`     | `createTestOrganization()`, `cleanupTestOrganization()`                               |
-| `organizationDataFactory.ts` | Creates `OrganizationData` linked to an organization                                  |
-| `submissionFactory.ts`       | `buildOrganizationDataSubmission()` — creates org → org data → submission chain       |
-| `carbonInventorySeeder.ts`   | `cleanupCarbonInventoryTestData()`                                                    |
-| `methodologyFactory.ts`      | `getTestMethodologyVersionId()`, `getTestCountryId()`                                 |
-| `fileFactory.ts`             | `createTestFile()`, `createTestFileForSubmission()`, `createTestFileForBadge()`       |
-| `blobHelper.ts`              | `uploadBlobToAzurite()` — uploads a blob directly to the Azurite container            |
+| Factory                      | Purpose                                                                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appFactory.ts`              | `createTestApp(databaseUrl, options?)` — Fastify instance with Prisma; a real storage adapter when `storageDescriptor` is passed, a throwing adapter otherwise |
+| `userFactory.ts`             | `getTestLoggedUser()`, `createTestUser()`, `cleanupTestUsers()`                                                                                                |
+| `organizationFactory.ts`     | `createTestOrganization()`, `cleanupTestOrganization()`                                                                                                        |
+| `organizationDataFactory.ts` | Creates `OrganizationData` linked to an organization                                                                                                           |
+| `submissionFactory.ts`       | `buildOrganizationDataSubmission()` — creates org → org data → submission chain                                                                                |
+| `carbonInventorySeeder.ts`   | `cleanupCarbonInventoryTestData()`                                                                                                                             |
+| `methodologyFactory.ts`      | `getTestMethodologyVersionId()`, `getTestCountryId()`                                                                                                          |
+| `fileFactory.ts`             | `createTestFile()`, `createTestFileForSubmission()`, `createTestFileForBadge()`                                                                                |
+| `storageHelper.ts`           | `uploadFixture()` — seeds a fixture object via the storage adapter (provider-agnostic)                                                                         |
 
 ---
 
 ## Testing Multi-Step Workflows
 
-For features that span multiple HTTP calls (e.g., request-upload → upload → confirm), write a single `it` block that executes the full sequence:
+For features that span multiple HTTP calls (e.g., request-upload → upload → confirm), write a single `it` block that executes the full sequence. These tests touch real storage, so create the app with `createTestApp(databaseUrl, { storageDescriptor: inject("storageDescriptor") })` and list the file in the storage test manifest:
 
 ```typescript
 it("should complete the full file upload lifecycle", async () => {
@@ -220,11 +223,8 @@ it("should complete the full file upload lifecycle", async () => {
   const { uuid, uploadUrl } = JSON.parse(requestResponse.body);
 
   // Step 2 — Simulate client uploading the file directly to storage
-  const storageConnectionString = inject("storageConnectionString");
   const blobPath = `BADGE/CARBON_INVENTORY_CALCULATION/${uuid}-badge.png`;
-  await uploadBlobToAzurite(app.blobStorage!, blobPath, {
-    contentType: "image/png",
-  });
+  await uploadFixture(app.storage, blobPath, { contentType: "image/png" });
 
   // Step 3 — Confirm the upload
   const confirmResponse = await app.inject({
@@ -283,15 +283,24 @@ Every new endpoint should have tests covering:
 
 ## Vitest Configuration Reference
 
-Key settings in `apps/api/vitest.config.ts`:
+Key settings in `apps/api/vitest.shared.ts`, shared by `vitest.config.ts` (full suite, the default), `vitest.base.config.ts` (`pnpm test:base` — the full suite **minus** the storage manifest, used by the `base` CI leg), and `vitest.storage.config.ts` (`pnpm test:storage-azure` / `pnpm test:storage-minio` — **only** the files in the storage manifest, used by the storage CI legs):
 
-| Setting               | Value                                        | Reason                                                             |
-| --------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
-| `maxWorkers`          | 2                                            | Run files in parallel; safe because each file has its own database |
-| `fileParallelism`     | true                                         | Files run concurrently across workers                              |
-| `testTimeout`         | 30 000 ms                                    | Allows for slower container I/O                                    |
-| `hookTimeout`         | 30 000 ms                                    | Allows beforeAll/afterAll to complete                              |
-| `teardownTimeout`     | 10 000 ms                                    | Container shutdown grace period                                    |
-| `globalSetup`         | `./test/setup/globalSetup.ts`                | Container lifecycle; migrate + seed the template DB                |
-| `setupFiles`          | `./test/setup/perFileDatabase.ts`            | Clones a private database per test file                            |
-| `coverage.thresholds` | 80% (branches, functions, lines, statements) | Enforced locally; disabled in CI                                   |
+| Setting               | Value                                                           | Reason                                                                                                 |
+| --------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `maxWorkers`          | 4                                                               | Run files in parallel; safe because each file has its own database                                     |
+| `fileParallelism`     | true                                                            | Files run concurrently across workers                                                                  |
+| `testTimeout`         | 30 000 ms                                                       | Allows for slower container I/O                                                                        |
+| `hookTimeout`         | 30 000 ms                                                       | Allows beforeAll/afterAll to complete                                                                  |
+| `teardownTimeout`     | 10 000 ms                                                       | Container shutdown grace period                                                                        |
+| `globalSetup`         | `./test/setup/globalSetup.ts`                                   | Container lifecycle; migrate + seed the template DB                                                    |
+| `setupFiles`          | `./test/setup/perFileDatabase.ts`                               | Clones a private database per test file                                                                |
+| `coverage.thresholds` | 0% in all environments (branches, functions, lines, statements) | Forced to 0 everywhere (`process.env.CI \|\| true` in `vitest.shared.ts`); see the coverage note below |
+
+> **Note on coverage:** the 80% thresholds are currently **disabled in every
+> environment**. `vitest.shared.ts` forces them to 0 (`process.env.CI || true`
+> always evaluates truthy), so coverage is reported but never enforced — not even
+> locally. On top of that, coverage is now **per-leg and partial**: the three legs
+> (`base`, `storage-azure`, `storage-minio`) each emit their own coverage artifact
+> and these are **not merged**, so no single report reflects the whole suite.
+> Re-enabling the 80% gate is therefore incompatible with the current setup until
+> per-leg coverage is merged into one report.

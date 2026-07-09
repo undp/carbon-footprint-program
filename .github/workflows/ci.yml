@@ -152,25 +152,48 @@ jobs:
 
   test:
     needs: [check-draft, changes]
-    name: Test (${{ matrix.storage_provider }})
+    name: Test (${{ matrix.leg }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        storage_provider: [azure_blob_storage, minio]
+        # Three legs that partition the suite into disjoint sets (check names
+        # `Test (base)`, `Test (storage-azure)`, `Test (storage-minio)` are
+        # required under branch protection):
+        #   - base:          the full suite EXCEPT the storage manifest
+        #                     (vitest.base.config.ts) — the bulk, run once.
+        #   - storage-azure: the storage manifest against Azurite.
+        #   - storage-minio: the storage manifest against MinIO.
+        # base ∪ storage-* == full suite; the storage manifest is the single
+        # source of truth for both the base `exclude` and the storage `include`.
+        # Each `test:storage-*` script sets STORAGE_PROVIDER itself, which picks
+        # the testcontainer in globalSetup.ts.
+        include:
+          - leg: base
+            test_script: test:base
+            coverage_artifact: coverage-report-base
+          - leg: storage-azure
+            test_script: test:storage-azure
+            coverage_artifact: coverage-report-storage-azure
+          - leg: storage-minio
+            test_script: test:storage-minio
+            coverage_artifact: coverage-report-storage-minio
     env:
-      STORAGE_PROVIDER: ${{ matrix.storage_provider }}
       # Provider-specific vars below satisfy the conditional validation in
-      # apps/api/src/config/environment.ts. Real connection details come from
-      # the testcontainer started by globalSetup.ts.
+      # apps/api/src/config/environment.ts. STORAGE_PROVIDER itself is set by
+      # each test script (azure_blob_storage for test:base and
+      # test:storage-azure, minio for test:storage-minio); base sets it so its
+      # app.ready() boot never depends on the storage container starting.
+      # Real connection details come from the testcontainer.
       AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1
       AZURE_STORAGE_CONTAINER_NAME: test-files
       MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: test-files
-    # This is the ~7-minute job; gating its steps is where docs-only PRs save the
-    # most. Both matrix legs still report their required "Test (...)" checks.
+    # The storage legs are quick (18 files each); the base leg is the long pole.
+    # Gating every step is where docs-only PRs save the most. All three legs
+    # still report their required "Test (...)" checks.
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         if: needs.changes.outputs.code == 'true'
@@ -185,12 +208,23 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: needs.changes.outputs.code == 'true'
-      - run: pnpm test
+      # Anti-drift gate: fail if the storage manifest is out of sync with the
+      # tests that actually touch storage. The manifest drives both the storage
+      # legs' `include` and the base leg's `exclude`, so a stale manifest would
+      # either skip a storage test or run it in the wrong (provider-less) leg.
+      - run: pnpm test:verify-storage-manifest
         if: needs.changes.outputs.code == 'true'
+      - name: Run tests
+        if: needs.changes.outputs.code == 'true'
+        # Indirection via env (never interpolate matrix values into `run:`
+        # directly — that is a template-injection finding for zizmor).
+        env:
+          TEST_SCRIPT: ${{ matrix.test_script }}
+        run: pnpm "$TEST_SCRIPT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always() && needs.changes.outputs.code == 'true'
         with:
-          name: coverage-report-${{ matrix.storage_provider }}
+          name: ${{ matrix.coverage_artifact }}
           path: apps/api/coverage/
           retention-days: 7
 
