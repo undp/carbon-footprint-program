@@ -165,7 +165,7 @@ Prefer the component vars (`KC_DB_URL_HOST` / `KC_DB_URL_PORT` / `KC_DB_URL_DATA
 1. **`jdbc:` prefix is mandatory** — `jdbc:postgresql://host:port/db`, never a bare `postgresql://…`. The bare form is exactly what triggers "Driver does not support the provided URL".
 2. **No credentials in the URL** — pgJDBC does not accept `user:pass@host` userinfo. Put them in `KC_DB_USERNAME` / `KC_DB_PASSWORD` instead (and use the raw password there, **not** percent-encoded).
 3. **Set the schema via `KC_DB_SCHEMA`, not in the URL** — the overlay always injects `KC_DB_SCHEMA=${KC_DB_SCHEMA:-public}`, which shadows any `?currentSchema=` in a `KC_DB_URL` override (tables would silently land in `public`); set the schema through `KC_DB_SCHEMA` (above) instead.
-4. **Escape `$` as `$$`** in the env file — Compose interpolates env-file values, so a `$` in a password (or URL) is otherwise eaten (`S3cr$…` → `N…`). Verify with `docker compose … config` before `up`.
+4. **Escape `$` as `$$`** in the env file — Compose interpolates env-file values, so an unescaped `$` in a password (or URL) is otherwise eaten (Compose reads `$et` as a variable reference, so `S3cr$et` collapses to `S3cr`). Verify with `docker compose … config` before `up`.
 
 So a libpq-style `postgresql://keycloak:S3cr%24et@db.internal.example:5432/keycloak?sslmode=require` — with the schema set separately via `KC_DB_SCHEMA` — becomes:
 
@@ -173,7 +173,7 @@ So a libpq-style `postgresql://keycloak:S3cr%24et@db.internal.example:5432/keycl
 KC_DB_URL=jdbc:postgresql://db.internal.example:5432/keycloak?sslmode=require
 KC_DB_SCHEMA=keycloak
 KC_DB_USERNAME=keycloak
-KC_DB_PASSWORD=S3cr$$et   # $ escaped for Compose; the real password is S3cr$et
+KC_DB_PASSWORD=S3cr$$et   # raw password S3cr$et, with each literal $ escaped as $$ for Compose
 ```
 
 ### The imported dev realm
