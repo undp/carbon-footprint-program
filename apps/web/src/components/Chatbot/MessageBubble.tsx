@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import ReactMarkdown from "react-markdown";
@@ -11,7 +12,14 @@ interface MessageBubbleProps {
   message: ChatbotMessage;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+// Memoized: each SSE delta replaces the `messages` array, but only the
+// in-flight assistant message object gets a new identity (updateLastAssistant
+// mutates just that index) — every prior bubble keeps its reference. Without
+// memo, one delta would re-render and re-parse every message through
+// react-markdown + remark-* + rehype-katex (O(messages) per token).
+export const MessageBubble = memo(function MessageBubble({
+  message,
+}: MessageBubbleProps) {
   const theme = useTheme();
   const isUser = message.role === "user";
   const bubbleBg = isUser
@@ -68,4 +76,4 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       </Box>
     </Box>
   );
-}
+});
