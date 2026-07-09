@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "test:base": "vitest run --config vitest.base.config.ts",
+    "test:base": "STORAGE_PROVIDER=azure_blob_storage vitest run --config vitest.base.config.ts",
     "test:storage-azure": "STORAGE_PROVIDER=azure_blob_storage vitest run --config vitest.storage.config.ts",
     "test:storage-minio": "STORAGE_PROVIDER=minio vitest run --config vitest.storage.config.ts",
     "test:verify-storage-manifest": "tsx test/setup/assertStorageTestManifest.ts",
