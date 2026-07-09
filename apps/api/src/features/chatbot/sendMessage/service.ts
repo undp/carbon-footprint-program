@@ -88,7 +88,17 @@ export const loadConversationHistory = async (
   limit = 50
 ) => {
   return prisma.chatbotChatMessage.findMany({
-    where: { conversationId },
+    // Exclude unfinalized assistant rows: an assistant row is created empty
+    // inside the turn transaction and only gets `latencyMs` set once its
+    // stream finalizes successfully. A row left with `latencyMs = null` is
+    // either in-flight or belongs to a failed/disconnected turn, and feeding
+    // its empty/partial content back as `{ role: assistant }` would corrupt
+    // the next prompt. User rows also carry `latencyMs = null`, so the filter
+    // is scoped to the ASSISTANT role.
+    where: {
+      conversationId,
+      NOT: { role: ChatMessageRole.ASSISTANT, latencyMs: null },
+    },
     orderBy: { createdAt: "asc" },
     take: limit,
   });
