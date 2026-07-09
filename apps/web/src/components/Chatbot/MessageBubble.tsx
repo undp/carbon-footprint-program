@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ReactMarkdown from "react-markdown";
@@ -88,13 +88,27 @@ export const MessageBubble = memo(function MessageBubble({
             {message.content}
           </Typography>
         ) : (
-          <Box sx={{ "& p": { my: 0.5 } }}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-            >
-              {message.content || "…"}
-            </ReactMarkdown>
+          // Raw markdown elements (<p>, <li>, …) don't inherit MUI typography,
+          // so pin the container to body2 — the same size the user bubble uses
+          // — to keep both roles' message text visually consistent.
+          <Box sx={{ typography: "body2", "& p": { my: 0.5 } }}>
+            {message.content ? (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+              >
+                {message.content}
+              </ReactMarkdown>
+            ) : (
+              // No content yet — the turn is in flight (loading, before the
+              // first token). Show a spinner instead of a static placeholder.
+              <CircularProgress
+                size={18}
+                thickness={5}
+                aria-label="Generando respuesta"
+                sx={{ display: "block", my: 0.5, color: "text.secondary" }}
+              />
+            )}
             {message.truncated ? (
               <Typography
                 variant="caption"
