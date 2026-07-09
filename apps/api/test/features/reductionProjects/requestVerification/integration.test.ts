@@ -46,8 +46,30 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
     await cleanupReductionProjectTestData(prisma);
   });
 
+  /**
+   * Uploads and confirms a submission fixture file, returning its UUID so it can
+   * be attached to a request-verification call. Postulating now requires at
+   * least one file (see the service's file gate), so every happy-path submit
+   * goes through this helper. Files are cleaned up by the afterEach hook, so the
+   * default UUID can be reused across tests.
+   */
+  async function uploadSubmissionFile(
+    uuid = "550e8400-e29b-41d4-a716-446655440201",
+    originalName = "evidence.pdf"
+  ): Promise<string> {
+    await uploadFixture(app.storage, `SUBMISSION/tmp/${uuid}-${originalName}`, {
+      contentType: "application/pdf",
+    });
+    await app.inject({
+      method: "POST",
+      url: "/api/files/confirm-upload",
+      payload: { uuid, originalName, fileType: "SUBMISSION" },
+    });
+    return uuid;
+  }
+
   describe("Successful submission", () => {
-    it("should submit a complete DRAFT (no fileUuids) and return 200 with a new PENDING submission", async () => {
+    it("should submit a complete DRAFT with a file and return 200 with a new PENDING submission linked to the file", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -58,9 +80,12 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
         createdById: testUserId,
       });
 
+      const uuid = await uploadSubmissionFile();
+
       const response = await app.inject({
         method: "POST",
         url: `/api/reduction-projects/${project.id}/request-verification`,
+        payload: { fileUuids: [uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -73,39 +98,6 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
       });
       expect(submissions).toHaveLength(1);
       expect(submissions[0].status).toBe(SubmissionStatus.PENDING);
-    });
-
-    it("should submit a complete DRAFT with fileUuids and link the files to the new submission", async () => {
-      const { organization, carbonInventory, subcategory } =
-        await setupReductionProjectPrerequisites(prisma, testUserId);
-
-      const project = await createTestReductionProject(prisma, {
-        organizationId: organization.id,
-        carbonInventoryId: carbonInventory.id,
-        subcategoryId: subcategory.id,
-        createdById: testUserId,
-      });
-
-      const uuid = "550e8400-e29b-41d4-a716-446655440201";
-      const originalName = "evidence.pdf";
-      await uploadFixture(
-        app.storage,
-        `SUBMISSION/tmp/${uuid}-${originalName}`,
-        { contentType: "application/pdf" }
-      );
-      await app.inject({
-        method: "POST",
-        url: "/api/files/confirm-upload",
-        payload: { uuid, originalName, fileType: "SUBMISSION" },
-      });
-
-      const response = await app.inject({
-        method: "POST",
-        url: `/api/reduction-projects/${project.id}/request-verification`,
-        payload: { fileUuids: [uuid] },
-      });
-
-      expect(response.statusCode).toBe(200);
 
       const fileRecord = await prisma.file.findUnique({
         where: { uuid },
@@ -114,7 +106,7 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
       expect(fileRecord?.submissionFiles).toHaveLength(1);
     });
 
-    it("should re-submit a REVIEWED project, creating a new PENDING submission (display status -> SUBMITTED)", async () => {
+    it("should re-submit a REVIEWED project with a file, creating a new PENDING submission (display status -> SUBMITTED)", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -132,9 +124,12 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
         testUserId
       );
 
+      const uuid = await uploadSubmissionFile();
+
       const response = await app.inject({
         method: "POST",
         url: `/api/reduction-projects/${project.id}/request-verification`,
+        payload: { fileUuids: [uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -151,7 +146,7 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
       expect(submissions[0].status).toBe(SubmissionStatus.PENDING);
     });
 
-    it("should submit a complete DRAFT that is reportedElsewhere with a non-null description", async () => {
+    it("should submit a complete DRAFT that is reportedElsewhere with a non-null description and a file", async () => {
       const { organization, carbonInventory, subcategory } =
         await setupReductionProjectPrerequisites(prisma, testUserId);
 
@@ -169,9 +164,12 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
         }
       );
 
+      const uuid = await uploadSubmissionFile();
+
       const response = await app.inject({
         method: "POST",
         url: `/api/reduction-projects/${project.id}/request-verification`,
+        payload: { fileUuids: [uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -184,6 +182,113 @@ describe("POST /api/reduction-projects/:id/request-verification - Integration Te
       });
       expect(submissions).toHaveLength(1);
       expect(submissions[0].status).toBe(SubmissionStatus.PENDING);
+    });
+  });
+
+  describe("File requirement", () => {
+    it("should return 422 REDUCTION_PROJECT_INVALID_DATA when a complete DRAFT is submitted with no files, creating no submission", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(prisma, {
+        organizationId: organization.id,
+        carbonInventoryId: carbonInventory.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/reduction-projects/${project.id}/request-verification`,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_INVALID_DATA");
+
+      const submissionCount = await prisma.submission.count({
+        where: {
+          type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+          subject: { reductionProject: { reductionProjectId: project.id } },
+        },
+      });
+      expect(submissionCount).toBe(0);
+    });
+  });
+
+  describe("Semantic validation", () => {
+    it("should return 422 REDUCTION_PROJECT_INVALID_DATA when projectScenario exceeds baselineScenario, creating no submission", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(
+        prisma,
+        {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        },
+        // Baseline < project => the "reduction" would be negative.
+        { baselineScenario: 800, projectScenario: 1000 }
+      );
+
+      const uuid = await uploadSubmissionFile();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/reduction-projects/${project.id}/request-verification`,
+        payload: { fileUuids: [uuid] },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_INVALID_DATA");
+
+      const submissionCount = await prisma.submission.count({
+        where: {
+          type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+          subject: { reductionProject: { reductionProjectId: project.id } },
+        },
+      });
+      expect(submissionCount).toBe(0);
+    });
+
+    it("should return 422 REDUCTION_PROJECT_INVALID_DATA when the implementation year is later than the reporting year, creating no submission", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const project = await createTestReductionProject(
+        prisma,
+        {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        },
+        // Implementation in 2025 but reporting year 2024.
+        { implementationDate: "2025-06-01", year: 2024 }
+      );
+
+      const uuid = await uploadSubmissionFile();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/reduction-projects/${project.id}/request-verification`,
+        payload: { fileUuids: [uuid] },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("REDUCTION_PROJECT_INVALID_DATA");
+
+      const submissionCount = await prisma.submission.count({
+        where: {
+          type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+          subject: { reductionProject: { reductionProjectId: project.id } },
+        },
+      });
+      expect(submissionCount).toBe(0);
     });
   });
 
