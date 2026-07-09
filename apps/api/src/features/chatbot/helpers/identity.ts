@@ -15,7 +15,15 @@ export const CHATBOT_SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 const baseCookieOptions = () => ({
   httpOnly: true as const,
-  sameSite: "lax" as const,
+  // Production serves the web app and API from different registrable domains
+  // (cross-site), so the session cookie must be SameSite=None to ride the
+  // frontend's `credentials: "include"` fetches — SameSite=Lax would drop it
+  // and every anonymous turn would mint a new session and lose history.
+  // SameSite=None requires Secure, so prod always sets Secure (TLS is
+  // terminated in front of the API). In local dev the Vite proxy makes
+  // requests same-origin, so Lax over plain HTTP is correct and avoids the
+  // Secure-over-HTTP restriction.
+  sameSite: IS_PROD ? ("none" as const) : ("lax" as const),
   secure: IS_PROD,
   path: CHATBOT_SESSION_COOKIE_PATH,
   maxAge: CHATBOT_SESSION_COOKIE_MAX_AGE,
