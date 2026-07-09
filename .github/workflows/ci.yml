@@ -181,8 +181,10 @@ jobs:
     env:
       # Provider-specific vars below satisfy the conditional validation in
       # apps/api/src/config/environment.ts. STORAGE_PROVIDER itself is set by
-      # each test:storage-* script (base defaults to Azurite via globalSetup.ts);
-      # real connection details come from the testcontainer.
+      # each test script (azure_blob_storage for test:base and
+      # test:storage-azure, minio for test:storage-minio); base sets it so its
+      # app.ready() boot never depends on the storage container starting.
+      # Real connection details come from the testcontainer.
       AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1
       AZURE_STORAGE_CONTAINER_NAME: test-files
       MINIO_ENDPOINT: http://localhost:9000

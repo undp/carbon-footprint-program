@@ -103,13 +103,15 @@ Runs the Vitest + Testcontainers integration tests. Docker is available on the G
 
 This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once:
 
-| Leg (check name)       | `STORAGE_PROVIDER`   | Command                   | Scope                                                                                         |
-| ---------------------- | -------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `Test (base)`          | unset (→ Azurite)    | `pnpm test:base`          | The full suite **except** the storage manifest — the bulk, run once.                          |
-| `Test (storage-azure)` | `azure_blob_storage` | `pnpm test:storage-azure` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
-| `Test (storage-minio)` | `minio`              | `pnpm test:storage-minio` | **Only** the storage manifest against MinIO.                                                  |
+| Leg (check name)       | `STORAGE_PROVIDER`    | Command                   | Scope                                                                                         |
+| ---------------------- | --------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `Test (base)`          | `azure_blob_storage`¹ | `pnpm test:base`          | The full suite **except** the storage manifest — the bulk, run once.                          |
+| `Test (storage-azure)` | `azure_blob_storage`  | `pnpm test:storage-azure` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
+| `Test (storage-minio)` | `minio`               | `pnpm test:storage-minio` | **Only** the storage manifest against MinIO.                                                  |
 
-`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base leg's `exclude` and the storage legs' `include`; each `test:storage-*` script sets `STORAGE_PROVIDER` itself, which selects the testcontainer in `globalSetup.ts`.
+`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base leg's `exclude` and the storage legs' `include`; each test script sets `STORAGE_PROVIDER` itself, which selects the testcontainer in `globalSetup.ts`.
+
+¹ The `base` leg sets `STORAGE_PROVIDER=azure_blob_storage` only so `buildStorageConfig()` passes at `app.ready()` without depending on the storage container starting — it never touches real storage (its `app.storage` is the throwing adapter). It runs against Azurite like `storage-azure` at the container level, but exercises zero storage-manifest files.
 
 Before running the tests, all three legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
 
@@ -152,7 +154,7 @@ Builds all apps and packages via Turborepo. The frontend build requires `VITE_AP
 The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner, so no external Azure or MinIO credentials are required.
 
 - `build` sets `VITE_API_BASE_URL` to a placeholder.
-- `test` provides dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. `STORAGE_PROVIDER` itself is set by each `test:storage-*` script (the `base` leg leaves it unset and defaults to `azure_blob_storage` in `globalSetup.ts`). None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
+- `test` provides dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. `STORAGE_PROVIDER` itself is set by each test script (`azure_blob_storage` for `test:base` and `test:storage-azure`, `minio` for `test:storage-minio`); the `base` leg sets it purely so boot validation passes without the storage container. None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
 
 ---
 

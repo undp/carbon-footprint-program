@@ -13,7 +13,7 @@ import type { FastifyInstance } from "fastify";
 interface CreateTestAppOptions {
   storageDescriptor?: TestStorageDescriptor | null;
   /**
-   * Opt-in public relay base for the MinIO leg. When set, the overridden
+   * Opt-in public relay base for the storage-minio leg. When set, the overridden
    * storage adapter rewrites presigned URLs to this origin (mirrors the API
    * relay base, `API_ORIGIN` + `/api/storage`), so relay tests can drive
    * `/api/storage/*`. Left unset by every other test, which keeps asserting the
