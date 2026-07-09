@@ -5,10 +5,7 @@
  * state) so the destination screen can spotlight the exact control to click.
  */
 export type OnboardingFocus =
-  | "create-org"
-  | "solicit-inscription"
-  | "new-huella"
-  | "self-declare";
+  "create-org" | "solicit-inscription" | "new-huella" | "self-declare";
 
 const FOCUS_KEY = "onboarding:focus";
 
@@ -17,11 +14,25 @@ export const markOnboardingFocus = (target: OnboardingFocus) => {
   window.sessionStorage.setItem(FOCUS_KEY, target);
 };
 
-/** Read-and-clear the focus target (one-shot; null when none pending). */
-export const consumeOnboardingFocus = (): OnboardingFocus | null => {
-  const value = window.sessionStorage.getItem(FOCUS_KEY);
-  if (value) window.sessionStorage.removeItem(FOCUS_KEY);
-  return (value as OnboardingFocus | null) ?? null;
+/** Read the pending focus without clearing it (null when none pending). */
+export const peekOnboardingFocus = (): OnboardingFocus | null =>
+  (window.sessionStorage.getItem(FOCUS_KEY) as OnboardingFocus | null) ?? null;
+
+/**
+ * Consume the pending focus only if it is one this screen actually handles.
+ * Returns and clears the key when the stored focus is in `expected`; otherwise
+ * returns null and leaves it pending, so a focus meant for another screen
+ * survives when the user lands somewhere else first (peek-then-consume-on-match).
+ */
+export const consumeOnboardingFocus = (
+  expected: OnboardingFocus[]
+): OnboardingFocus | null => {
+  const value = peekOnboardingFocus();
+  if (value && expected.includes(value)) {
+    window.sessionStorage.removeItem(FOCUS_KEY);
+    return value;
+  }
+  return null;
 };
 
 /** Drop a pending focus that the user chose not to follow, so it doesn't

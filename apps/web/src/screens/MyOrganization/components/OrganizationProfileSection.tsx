@@ -50,6 +50,7 @@ const OrganizationProfileSectionComponent: FC<
       disabled: false,
       title: `Solicitar ${VOCAB.inscription.noun.singular} de ${VOCAB.organization.article.singular}`,
       variant: "contained",
+      onboardingId: "solicit-inscription",
     });
   }
 

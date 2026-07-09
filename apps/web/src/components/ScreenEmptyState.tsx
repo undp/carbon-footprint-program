@@ -1,9 +1,15 @@
 import { FC, ReactNode } from "react";
 import { Box, Button, Typography } from "@mui/material";
+import {
+  onboardingTargetProps,
+  OnboardingFocus,
+} from "@/utils/onboardingHighlight";
 
 interface ScreenEmptyStateAction {
   label: string;
   onClick: () => void;
+  /** Tags this CTA for the home onboarding highlight (optional). */
+  onboardingId?: OnboardingFocus;
 }
 
 interface ScreenEmptyStateProps {
@@ -35,7 +41,14 @@ export const ScreenEmptyState: FC<ScreenEmptyStateProps> = ({
           {description}
         </Typography>
         {action && (
-          <Button variant="contained" color="primary" onClick={action.onClick}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={action.onClick}
+            {...(action.onboardingId
+              ? onboardingTargetProps(action.onboardingId)
+              : {})}
+          >
             {action.label}
           </Button>
         )}

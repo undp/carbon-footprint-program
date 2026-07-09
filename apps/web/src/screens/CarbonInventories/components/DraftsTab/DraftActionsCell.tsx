@@ -39,15 +39,19 @@ import {
 } from "../../hooks/useCarbonInventoriesStore";
 import { useDownloadCarbonInventory } from "@/hooks";
 import { VOCAB } from "@/config/vocab";
+import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
   inventories: GetAllCarbonInventoriesResponse;
+  /** Tags this row's Autodeclarar action for the home onboarding highlight. */
+  isOnboardingTarget?: boolean;
 }
 
 export const DraftActionsCell: FC<Props> = ({
   carbonInventory,
   inventories,
+  isOnboardingTarget = false,
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -257,6 +261,7 @@ export const DraftActionsCell: FC<Props> = ({
           tooltip="Autodeclarar"
           onClick={onSelfDeclareClick}
           sx={primaryActionButtonSx}
+          {...(isOnboardingTarget ? onboardingTargetProps("self-declare") : {})}
         >
           <TaskAltRounded fontSize="small" />
         </AppActionButton>

@@ -67,6 +67,7 @@ export const WelcomeHome: FC<Props> = ({
       title,
       description,
       delayMs: 450,
+      debugLabel: `sidebar:${focus}`,
       onDismiss: () => setSidebarForcedOpen(false),
       // Closing the guide without following it should also drop the pending
       // focus — otherwise it would resurface on a later organic visit.

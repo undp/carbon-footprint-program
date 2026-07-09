@@ -25,6 +25,12 @@ export const DraftsTab: FC<DraftsTabProps> = ({
 }) => {
   const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
 
+  // The home onboarding spotlights the Autodeclarar action of a single draft.
+  // Tag the first row's action (the most-recent draft, matching the previous
+  // row-0 target) so the highlight resolves it by a stable attribute instead of
+  // DataGrid-internal selectors.
+  const onboardingTargetId = darftInventories[0]?.id;
+
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
       () => [
@@ -138,11 +144,12 @@ export const DraftsTab: FC<DraftsTabProps> = ({
             <DraftActionsCell
               carbonInventory={params.row}
               inventories={allInventories}
+              isOnboardingTarget={params.row.id === onboardingTargetId}
             />
           ),
         },
       ],
-      [allInventories, isWiderScreen]
+      [allInventories, isWiderScreen, onboardingTargetId]
     );
 
   return (

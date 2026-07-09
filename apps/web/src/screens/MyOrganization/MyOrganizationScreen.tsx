@@ -142,6 +142,7 @@ export const MyOrganizationScreen: FC = () => {
           action={{
             label: `Crear ${capitalize(VOCAB.organization.noun.singular)}`,
             onClick: onEditOrganizationProfile,
+            onboardingId: "create-org",
           }}
         />
         <OrganizationFormDialog

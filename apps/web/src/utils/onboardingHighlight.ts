@@ -1,5 +1,11 @@
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { IS_DEVELOPMENT } from "@/config/environment";
+import { OnboardingFocus } from "./onboardingSignals";
+
+// Re-exported so the onboarding-target API (id type + tagging helper +
+// resolver) can be imported from a single module.
+export type { OnboardingFocus } from "./onboardingSignals";
 
 export interface HighlightSpec {
   /** Resolve the element to spotlight; retried until it appears. */
@@ -16,7 +22,25 @@ export interface HighlightSpec {
   /** Fires only when the user explicitly closes the popover (overlay / ✕ / Esc)
    *  without following the spotlighted control. */
   onUserClose?: () => void;
+  /** Identifies the target in the dev-only warning emitted when it never
+   *  resolves, so a contributor who breaks a target gets a signal, not silence. */
+  debugLabel?: string;
 }
+
+/**
+ * Attribute stamped on each control the home onboarding points at. Resolving by
+ * this exact attribute is stable across copy/layout changes, unlike matching
+ * button text or DataGrid-internal selectors. Single source of truth for both
+ * the tagging helper and the resolver below.
+ */
+export const ONBOARDING_TARGET_ATTR = "data-onboarding-id" as const;
+
+/** Spread onto the target control so the destination screen can find it. */
+export const onboardingTargetProps = (
+  id: OnboardingFocus
+): Record<typeof ONBOARDING_TARGET_ATTR, OnboardingFocus> => ({
+  [ONBOARDING_TARGET_ATTR]: id,
+});
 
 /**
  * Spotlight an element with a one-off driver.js highlight, polling until the
@@ -62,6 +86,20 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
     } else if (attempts < 25) {
       attempts += 1;
       timer = setTimeout(attempt, 200);
+    } else {
+      // Poll exhausted: the target never rendered. No highlight was shown, so
+      // driver's onDestroyed never fires — run finish() ourselves so onDismiss
+      // still runs (e.g. releasing the forced-open sidebar) instead of leaking
+      // that state until the component unmounts.
+      if (IS_DEVELOPMENT) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[onboarding] highlight target${
+            spec.debugLabel ? ` "${spec.debugLabel}"` : ""
+          } never resolved after ${attempts} attempts; skipping spotlight.`
+        );
+      }
+      finish(false);
     }
   };
   timer = setTimeout(attempt, spec.delayMs ?? 300);
@@ -77,22 +115,13 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
   };
 };
 
-/** Resolver: first visible button whose text contains `text` (case-insensitive). */
-export const findButtonByText = (text: string) => (): HTMLElement | null => {
-  const needle = text.trim().toLowerCase();
-  return (
-    Array.from(document.querySelectorAll<HTMLElement>("button")).find(
-      (button) =>
-        // offsetParent is null while hidden (display:none anywhere in the tree).
-        button.offsetParent !== null &&
-        (button.textContent ?? "").trim().toLowerCase().includes(needle)
-    ) ?? null
-  );
-};
-
 /** Resolver: first element matching a CSS selector. */
 export const findBySelector = (selector: string) => (): HTMLElement | null =>
   document.querySelector<HTMLElement>(selector);
+
+/** Resolver: the control tagged with `onboardingTargetProps(id)`. */
+export const findOnboardingTarget = (id: OnboardingFocus) =>
+  findBySelector(`[${ONBOARDING_TARGET_ATTR}="${id}"]`);
 
 /**
  * Resolver: the sidebar navigation link for a route path. Used to guide the
