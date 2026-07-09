@@ -50,6 +50,18 @@ export const CHATBOT_SIZE_KEY = "huella-latam:chatbot-size";
  */
 export const CHATBOT_INTRODUCED_KEY = "huella-latam:chatbot-introduced";
 
+/**
+ * Client-side safety nets for a streaming chat turn so a stalled connection
+ * can't pin the widget in `loading`/`streaming` forever (both states disable
+ * send + new-conversation, leaving a full page reload as the only escape).
+ * Both abort the per-turn `AbortController` in `useChatStream`.
+ *
+ * `CHATBOT_STREAM_IDLE_TIMEOUT_MS` fires when no frame arrives within the
+ * window; `CHATBOT_STREAM_OVERALL_TIMEOUT_MS` bounds total turn duration.
+ */
+export const CHATBOT_STREAM_IDLE_TIMEOUT_MS = 30_000;
+export const CHATBOT_STREAM_OVERALL_TIMEOUT_MS = 120_000;
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 

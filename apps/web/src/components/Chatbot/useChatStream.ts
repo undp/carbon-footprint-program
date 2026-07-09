@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  CHATBOT_STREAM_IDLE_TIMEOUT_MS,
+  CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
+} from "@/config/constants";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
@@ -9,14 +13,6 @@ const GENERIC_ERROR_MESSAGE =
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Recarga la página o intenta más tarde.";
-
-// Client-side safety nets so a stalled stream can't pin the widget in
-// "loading"/"streaming" forever (both states disable send + new-conversation,
-// leaving a full reload as the only escape). The idle cap fires when no frame
-// arrives within the window; the overall cap bounds total turn duration. Both
-// abort the per-turn AbortController.
-const STREAM_IDLE_TIMEOUT_MS = 30_000;
-const STREAM_OVERALL_TIMEOUT_MS = 120_000;
 
 type SsePayload = {
   id?: string;
@@ -123,7 +119,7 @@ export const useChatStream = () => {
         if (idleTimer) clearTimeout(idleTimer);
         idleTimer = setTimeout(
           () => controller.abort(),
-          STREAM_IDLE_TIMEOUT_MS
+          CHATBOT_STREAM_IDLE_TIMEOUT_MS
         );
       };
       // Single classifier so the post-EOF buffer flush below dispatches
@@ -248,7 +244,7 @@ export const useChatStream = () => {
       abortRef.current = controller;
       const overallTimer = setTimeout(
         () => controller.abort(),
-        STREAM_OVERALL_TIMEOUT_MS
+        CHATBOT_STREAM_OVERALL_TIMEOUT_MS
       );
 
       const attempt = async (): Promise<{
