@@ -69,7 +69,19 @@
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
-    "test:storage": {
+    "test:base": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
+      "outputs": []
+    },
+    "test:storage-azure": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
+      "outputs": []
+    },
+    "test:storage-minio": {
       "cache": false,
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
