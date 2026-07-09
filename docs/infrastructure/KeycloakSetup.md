@@ -30,12 +30,12 @@ The fixed contract is identical in dev and production:
 
 What differs is the operational surface:
 
-| Concern        | Dev                                                      | Production                                                                                                                                                                                    |
-| -------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Command        | `start-dev` (relaxed defaults, HTTP, no hostname checks) | `start` (Keycloak refuses to boot with insecure defaults unless hostname/proxy are configured)                                                                                                |
-| Database       | Throwaway Postgres in the same compose project           | A separately managed, durable database — on-prem, mirroring how the app's own DB is external in [production-deployment.md](../operations/production-deployment.md)                            |
-| Network edge   | Direct `http://localhost:18080`                          | A reverse proxy terminates TLS; Keycloak sits behind it on the internal network                                                                                                               |
-| Realm defaults | `sslRequired: none`, self-registration on, no admin MFA  | `sslRequired: external` (or stricter), **self-registration on** (external orgs self-serve), email verification + MFA deferred (see [Hardening Beyond the Pilot](#hardening-beyond-the-pilot)) |
+| Concern        | Dev                                                      | Production                                                                                                                                                                                 |
+| -------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Command        | `start-dev` (relaxed defaults, HTTP, no hostname checks) | `start` (Keycloak refuses to boot with insecure defaults unless hostname/proxy are configured)                                                                                             |
+| Database       | Throwaway Postgres in the same compose project           | A separately managed, durable database — on-prem, mirroring how the app's own DB is external in [production-deployment.md](../operations/production-deployment.md)                         |
+| Network edge   | Direct `http://localhost:18080`                          | A reverse proxy terminates TLS; Keycloak sits behind it on the internal network                                                                                                            |
+| Realm defaults | `sslRequired: none`, self-registration on, no admin MFA  | `sslRequired: external` (or `all`), **self-registration on** (external orgs self-serve), email verification + MFA deferred (see [Hardening Beyond the Pilot](#hardening-beyond-the-pilot)) |
 
 The rest of this guide follows that split: [Bring Up — Dev](#bring-up--dev) and [Bring Up — Production](#bring-up--production) cover getting an instance running; [Admin Console — Production Hardening](#admin-console--production-hardening) and [Hardening Beyond the Pilot](#hardening-beyond-the-pilot) are production-only; and [Environment Variables](#environment-variables-dev--production) covers deriving the app's config in both environments, side by side.
 
@@ -156,7 +156,7 @@ The schema must **already exist** — Keycloak creates its tables inside it but 
 psql -h localhost -p 15432 -U keycloak -d keycloak -c 'CREATE SCHEMA IF NOT EXISTS mi_esquema;'
 ```
 
-For an external/managed Postgres, have your DBA create the schema and grant `KC_DB_USERNAME` privileges on it (see the [DBA contract](../operations/production-deployment.md#database-roles--privileges-dba-contract)). Setting the full `KC_DB_URL` with `?currentSchema=…` is an equivalent one-off alternative, but `KC_DB_SCHEMA` is the idiomatic knob and composes with the component-based `KC_DB_URL_HOST`/`PORT`/`DATABASE`.
+For an external/managed Postgres, have your DBA create the schema and grant `KC_DB_USERNAME` privileges on it (see the [DBA contract](../operations/production-deployment.md#database-roles--privileges-dba-contract)). `KC_DB_SCHEMA` is the **only** supported way to set the schema: the compose overlays always inject `KC_DB_SCHEMA=${KC_DB_SCHEMA:-public}`, which shadows any `?currentSchema=…` in a `KC_DB_URL` override — tables would silently land in `public`. A full `KC_DB_URL` override is only for extras the component vars can't express (e.g. `?sslmode=require`) and must **not** carry `?currentSchema=`.
 
 ### Overriding `KC_DB_URL` — it must be a **JDBC** URL
 
@@ -228,7 +228,7 @@ docker exec huella-latam-keycloak /opt/keycloak/bin/kcadm.sh update realms/maste
 
 | File                                         | Role                                                                                                                                                                                             |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `compose/keycloak.prod.yaml`                 | The Keycloak service only (`start --import-realm`, no bundled dev conveniences).                                                                                                                 |
+| `compose/keycloak.prod.yaml`                 | The Keycloak service only (`start --optimized --import-realm`, no bundled dev conveniences).                                                                                                     |
 | `compose/keycloak-db.yaml`                   | A dedicated, generic database service for Keycloak (swap for an external DB — see below).                                                                                                        |
 | `.env.prod.keycloak.example`                 | Template for Keycloak's own runtime vars (`KC_HOSTNAME`, `KC_PROXY_HEADERS`, bootstrap admin, DB conn, `HUELLA_WEB_ORIGIN` for the realm import).                                                |
 | `infra/keycloak/prod/realm-huella.prod.json` | The production realm export — the **baseline** state Keycloak imports on first boot. Lives in its own `prod/` import directory, separate from the dev realm (see [Realm import](#realm-import)). |
@@ -281,7 +281,7 @@ The host-resolution rules — what resolves from inside the container vs from th
 
 ### Realm import
 
-On first boot, `compose/keycloak.prod.yaml` runs Keycloak in `start` mode (**not** `start-dev` — production must not use the dev command, which relaxes hostname/HTTPS enforcement that production relies on) with `--import-realm`, importing `infra/keycloak/prod/realm-huella.prod.json` from a mounted volume — same mechanism as dev, but from a dedicated prod-only import directory (see the note below). That file is the **baseline**: it already sets the production-appropriate values (`sslRequired`, token lifespans, the `huella-web` client, the audience mapper, `access_as_user` as a default scope, etc.), and the `huella-web` client's redirect URIs / web origins are filled in at import time from `HUELLA_WEB_ORIGIN` in `.env.prod.keycloak` — Keycloak substitutes `${VAR}` placeholders in the realm JSON from the container's environment. [Admin Console — Production Hardening](#admin-console--production-hardening) below is what an operator verifies and adjusts **after** that import — the imported redirect URIs, the bootstrap admin, MFA, brute-force thresholds, and anything specific to the deployment that can't be baked into a generic export.
+On first boot, `compose/keycloak.prod.yaml` runs Keycloak in `start --optimized` mode (**not** `start-dev` — production must not use the dev command, which relaxes hostname/HTTPS enforcement that production relies on) with `--import-realm`, importing `infra/keycloak/prod/realm-huella.prod.json` from a mounted volume — same mechanism as dev, but from a dedicated prod-only import directory (see the note below). That file is the **baseline**: it already sets the production-appropriate values (`sslRequired`, token lifespans, the `huella-web` client, the audience mapper, `access_as_user` as a default scope, etc.), and the `huella-web` client's redirect URIs / web origins are filled in at import time from `HUELLA_WEB_ORIGIN` in `.env.prod.keycloak` — Keycloak substitutes `${VAR}` placeholders in the realm JSON from the container's environment. [Admin Console — Production Hardening](#admin-console--production-hardening) below is what an operator verifies and adjusts **after** that import — the imported redirect URIs, the bootstrap admin, MFA, brute-force thresholds, and anything specific to the deployment that can't be baked into a generic export.
 
 Import only runs when the realm doesn't already exist. To re-import (e.g. after fixing a mistake in the export before go-live), drop the Keycloak database/volume and bring the stack back up — do **not** do this once real users and data exist in the realm.
 
@@ -358,7 +358,7 @@ Shorter access tokens are safe because `oidc-client-ts`'s `automaticSilentRenew`
 
 ### 7. Brute-force protection
 
-**Realm Settings → Security defenses → Brute force detection**. Disabled by default in Keycloak — turn it on for production:
+**Realm Settings → Security defenses → Brute force detection**. The imported realm already ships `bruteForceProtected: true` — confirm it's enabled and that the thresholds match; tighten only if a mandate requires it:
 
 - Max login failures: `5`
 - Wait increment: `60s`
@@ -369,7 +369,7 @@ This locks an account out temporarily after repeated bad passwords instead of al
 
 ### 8. Password policy
 
-**Authentication → Policies → Password policy**. Add at minimum a length requirement (12+), and consider `notUsername` and `passwordHistory`. Leave the hashing at Keycloak's default — `pbkdf2-sha512` at 210,000 iterations since Keycloak 24 — by **not** adding `hashAlgorithm`/`hashIterations` terms at all (the imported realm deliberately omits them); pinning older values like `pbkdf2-sha256` @ 100k would be a downgrade.
+**Authentication → Policies → Password policy**. The imported realm already ships a strong policy — `length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername() and notEmail() and passwordHistory(5)`; confirm it imported and tighten only if a mandate requires it. Leave the hashing at Keycloak's default — `pbkdf2-sha512` at 210,000 iterations since Keycloak 24 — by **not** adding `hashAlgorithm`/`hashIterations` terms at all (the imported realm deliberately omits them); pinning older values like `pbkdf2-sha256` @ 100k would be a downgrade.
 
 ### 9. Email verification + SMTP
 
