@@ -14,6 +14,8 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/server.js",
     "test": "vitest run",
+    "test:storage": "vitest run --config vitest.storage.config.ts",
+    "test:verify-storage-manifest": "tsx test/setup/assertStorageTestManifest.ts",
     "test:ui": "vitest --ui",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",

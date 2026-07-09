@@ -17,6 +17,8 @@
     "start:api": "turbo run start --filter=api",
     "start:web": "turbo run start --filter=web",
     "test": "turbo run test",
+    "test:storage": "turbo run test:storage --filter=api",
+    "test:verify-storage-manifest": "turbo run test:verify-storage-manifest --filter=api",
     "lint": "turbo run lint -- --max-warnings=0",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",

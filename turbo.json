@@ -69,6 +69,17 @@
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
+    "test:storage": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
+      "outputs": []
+    },
+    "test:verify-storage-manifest": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
     "lint": {
       "cache": false,
       "dependsOn": ["^build"],

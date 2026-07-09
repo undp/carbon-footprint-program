@@ -157,7 +157,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        storage_provider: [azure_blob_storage, minio]
+        # Two asymmetric legs (check names stay `Test (azure_blob_storage)` and
+        # `Test (minio)` for branch protection). The azure leg runs the full
+        # suite; the minio leg runs only the storage manifest (`test:storage`,
+        # see apps/api/vitest.storage.config.ts) — enough to prove the storage
+        # layer works on MinIO without re-running every file.
+        include:
+          - storage_provider: azure_blob_storage
+            test_script: test
+            coverage_artifact: coverage-report-azure_blob_storage
+          - storage_provider: minio
+            test_script: test:storage
+            coverage_artifact: coverage-report-minio-storage
     env:
       STORAGE_PROVIDER: ${{ matrix.storage_provider }}
       # Provider-specific vars below satisfy the conditional validation in
@@ -185,12 +196,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: needs.changes.outputs.code == 'true'
-      - run: pnpm test
+      # Anti-drift gate: fail if the storage manifest (which the minio leg runs)
+      # is out of sync with the tests that actually touch storage.
+      - run: pnpm test:verify-storage-manifest
         if: needs.changes.outputs.code == 'true'
+      - name: Run tests
+        if: needs.changes.outputs.code == 'true'
+        # Indirection via env (never interpolate matrix values into `run:`
+        # directly — that is a template-injection finding for zizmor).
+        env:
+          TEST_SCRIPT: ${{ matrix.test_script }}
+        run: pnpm "$TEST_SCRIPT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always() && needs.changes.outputs.code == 'true'
         with:
-          name: coverage-report-${{ matrix.storage_provider }}
+          name: ${{ matrix.coverage_artifact }}
           path: apps/api/coverage/
           retention-days: 7
 
