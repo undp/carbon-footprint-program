@@ -1,0 +1,100 @@
+name: Refactor / tech-debt / chore
+description: Propose an internal engineering change — refactor, tech-debt paydown, performance, hardening or chore — that adds no user-facing feature and is not a reproducible bug.
+title: "[Refactor] "
+labels: ["type: refactor", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **internal engineering changes** that
+        neither add a user-facing feature nor fix a reproducible bug:
+        refactors, tech-debt paydown, performance work, defensive
+        hardening, and naming/tooling/dependency chores.
+
+        Pick a different template if it fits better:
+        - A reproducible defect with observable wrong behaviour → **Bug report**.
+        - A new user-facing capability or enhancement → **Feature request**.
+        - A gap against the DPGA Standard → **DPG compliance report**.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of change
+      options:
+        - Refactor (restructure, no behaviour change)
+        - Tech debt / consistency
+        - Performance
+        - Robustness / hardening
+        - Chore (naming, tooling, dependencies)
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem / motivation
+      description: What is wrong with the current code or structure, and why is it worth changing? Include the risk or cost of leaving it as-is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current state
+      description: How it works today. Point at the specific code (file paths, line numbers, symbols).
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What to change and the shape of the target state. If an existing pattern in the repo already does this correctly, link it so the change stays consistent.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and out of scope
+      description: Which files/modules this touches, and what is deliberately left out (e.g. legitimate names to keep, follow-ups deferred to other issues).
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - Web application (apps/web)
+        - API (apps/api)
+        - Database / Prisma schema (packages/database)
+        - Shared packages (packages/*)
+        - Infrastructure (infra/)
+        - Tooling / CI
+        - Documentation (docs/)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Behaviour / migration risk
+      options:
+        - None — pure refactor, no behaviour or schema change
+        - Low — internal only, covered by existing tests
+        - Medium — behaviour-adjacent, or needs a data migration
+        - High — schema/contract change or security-relevant
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How we know the change is complete and correct (e.g. no behaviour change, tests green, no remaining references to the old symbol).
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Where it surfaced (PR/review), related issues, migration guides or references.

@@ -1,7 +1,7 @@
 name: DPG compliance report
 description: Report a gap against the Digital Public Goods Alliance Standard v1.1.6.
 title: "[DPG] "
-labels: [dpg, governance, triage]
+labels: ["type: dpg", "governance", "status: triage"]
 body:
   - type: markdown
     attributes:
