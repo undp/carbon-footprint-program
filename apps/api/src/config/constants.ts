@@ -45,6 +45,20 @@ export const CHATBOT_MAX_TURNS_PER_CONVERSATION = 50;
 export const CHATBOT_CONVERSATION_TTL_DAYS = 30;
 
 /**
+ * Overall wall-clock budget (ms) for a single LLM streaming completion. Bounds
+ * total stream duration so a stuck upstream cannot hold the request open until
+ * the SDK's ~600s default.
+ */
+export const CHATBOT_LLM_STREAM_TIMEOUT_MS = 120_000;
+
+/**
+ * Idle budget (ms) between stream frames. Fires when the provider accepts the
+ * request but stops emitting tokens, so a stalled stream fails fast instead of
+ * waiting out the overall budget.
+ */
+export const CHATBOT_LLM_STREAM_IDLE_TIMEOUT_MS = 30_000;
+
+/**
  * Per-address budget (ms) for Node's Happy Eyeballs connection attempts
  * (`autoSelectFamilyAttemptTimeout`). Node 20–24 default it to 250ms, which
  * aborts every outbound connection — http/https (JWKS key download, storage

@@ -9,6 +9,10 @@ import {
   AZURE_OPENAI_ENDPOINT,
   AZURE_OPENAI_DEPLOYMENT_NAME,
 } from "@/config/environment.js";
+import {
+  CHATBOT_LLM_STREAM_IDLE_TIMEOUT_MS,
+  CHATBOT_LLM_STREAM_TIMEOUT_MS,
+} from "@/config/constants.js";
 import type {
   LLMProvider,
   LlmMessage,
@@ -77,40 +81,78 @@ export const azureOpenAIProvider: LLMProvider = {
       }
       return { role, content: m.content };
     });
-    const stream = await client.chat.completions.create(
-      {
-        model: AZURE_OPENAI_DEPLOYMENT_NAME!,
-        messages: openAiMessages,
-        max_tokens: options.maxOutputTokens,
-        stream: true,
-        stream_options: { include_usage: true },
-      },
-      { signal: options.signal }
-    );
-
-    let outputBuffer = "";
-    let inputTokens: number | undefined;
-    let outputTokens: number | undefined;
-
-    for await (const chunk of stream) {
-      if (options.signal?.aborted) return;
-      const delta = chunk.choices[0]?.delta?.content;
-      if (delta) {
-        outputBuffer += delta;
-        yield { type: "delta", content: delta };
-      }
-      if (chunk.usage) {
-        inputTokens = chunk.usage.prompt_tokens;
-        outputTokens = chunk.usage.completion_tokens;
-      }
-    }
-
-    yield {
-      type: "usage",
-      inputTokens:
-        inputTokens ??
-        estimateTokens(messages.map((m) => m.content).join("\n")),
-      outputTokens: outputTokens ?? estimateTokens(outputBuffer),
+    // Fail fast on a stuck upstream. Two server-side guards abort an internal
+    // controller: an overall wall-clock cap and an idle-between-frames cap
+    // (reset on every chunk). The internal controller is merged with the
+    // caller's disconnect signal, so whichever fires first tears down the SDK
+    // request. On a timeout the caller's `options.signal` is NOT aborted, so
+    // the SDK's rejection propagates as a thrown error (surfaced by the
+    // handler as a terminal SSE error) instead of the silent client-disconnect
+    // return below.
+    const timeoutController = new AbortController();
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    const overallTimer = setTimeout(() => {
+      timeoutController.abort(
+        new Error("Azure OpenAI stream overall timeout exceeded")
+      );
+    }, CHATBOT_LLM_STREAM_TIMEOUT_MS);
+    const clearTimers = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      clearTimeout(overallTimer);
     };
+    const resetIdleTimer = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        timeoutController.abort(
+          new Error("Azure OpenAI stream idle timeout exceeded")
+        );
+      }, CHATBOT_LLM_STREAM_IDLE_TIMEOUT_MS);
+    };
+    resetIdleTimer();
+
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeoutController.signal])
+      : timeoutController.signal;
+
+    try {
+      const stream = await client.chat.completions.create(
+        {
+          model: AZURE_OPENAI_DEPLOYMENT_NAME!,
+          messages: openAiMessages,
+          max_tokens: options.maxOutputTokens,
+          stream: true,
+          stream_options: { include_usage: true },
+        },
+        { signal }
+      );
+
+      let outputBuffer = "";
+      let inputTokens: number | undefined;
+      let outputTokens: number | undefined;
+
+      for await (const chunk of stream) {
+        if (options.signal?.aborted) return;
+        resetIdleTimer();
+        const delta = chunk.choices[0]?.delta?.content;
+        if (delta) {
+          outputBuffer += delta;
+          yield { type: "delta", content: delta };
+        }
+        if (chunk.usage) {
+          inputTokens = chunk.usage.prompt_tokens;
+          outputTokens = chunk.usage.completion_tokens;
+        }
+      }
+
+      yield {
+        type: "usage",
+        inputTokens:
+          inputTokens ??
+          estimateTokens(messages.map((m) => m.content).join("\n")),
+        outputTokens: outputTokens ?? estimateTokens(outputBuffer),
+      };
+    } finally {
+      clearTimers();
+    }
   },
 };
