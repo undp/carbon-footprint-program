@@ -33,11 +33,18 @@ services:
     container_name: huella-latam-keycloak
     command: ["start-dev", "--import-realm"]
     environment:
-      # Browser-facing base URL → token issuer = http://localhost:18080/realms/huella.
-      # The api fetches JWKS internally at http://keycloak:8080/... via an explicit
-      # JWKS_URI (no discovery), so this localhost host never has to resolve from
+      # Browser-facing base URL → token issuer = <KC_HOSTNAME>/realms/huella.
+      # Env-driven with a localhost default (same pattern as
+      # compose/keycloak.prod.yaml), so the zero-config dev path is unchanged.
+      # It MUST match VITE_OIDC_ISSUER / JWKS_ISSUER in the app env: the browser
+      # posts the token request to this exact host and the web CSP is built from
+      # VITE_OIDC_ISSUER, so a mismatch (e.g. localhost here vs a LAN IP there) is
+      # blocked. Override it to your machine's LAN IP (e.g. http://<lan-ip>:18080)
+      # to reach the app from another device on the network.
+      # The api still fetches JWKS internally at http://keycloak:8080/... via an
+      # explicit JWKS_URI (no discovery), so this host never has to resolve from
       # inside the api container. This split is the #1 thing to get right.
-      - KC_HOSTNAME=http://localhost:18080
+      - KC_HOSTNAME=${KC_HOSTNAME:-http://localhost:18080}
       - KC_HTTP_ENABLED=true
       - KC_HEALTH_ENABLED=true
       # Bootstrap admin (dev only) — Keycloak 26 env names.
