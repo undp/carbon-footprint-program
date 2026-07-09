@@ -33,7 +33,6 @@ export const sendMessageRoute = (fastify: FastifyZodInstance): void => {
           400: ApiErrorResponseSchema,
           413: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
-          503: ApiErrorResponseSchema,
         },
       },
       preHandler: [chatbotIdentityPreHandler({ requireIdentity: true })],

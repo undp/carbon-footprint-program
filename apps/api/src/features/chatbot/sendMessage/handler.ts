@@ -2,7 +2,6 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 import { ChatMessageRole } from "@repo/database/enums";
 import type { SendMessageRequestBody } from "@repo/types";
 import { CHATBOT_MAX_OUTPUT_TOKENS } from "@/config/constants.js";
-import { ExternalServiceError } from "@/errors/ExternalServiceError.js";
 import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
 import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
 import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
@@ -119,18 +118,16 @@ export const sendMessageHandler = async (
     );
   });
 
-  let stream: AsyncIterable<
-    | { type: "delta"; content: string }
-    | { type: "usage"; inputTokens: number; outputTokens: number }
-  >;
-  try {
-    stream = provider.streamCompletion(llmMessages, {
-      maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
-      signal: abortController.signal,
-    });
-  } catch {
-    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
-  }
+  // provider.streamCompletion is an async generator: calling it only builds
+  // the iterator and cannot throw synchronously — the provider body (the
+  // network call included) runs lazily inside the `for await` below. A
+  // pre-stream failure is therefore impossible, so every provider error
+  // surfaces as a terminal SSE `error` event mid-stream (handled in the catch
+  // below), never as a pre-stream HTTP status.
+  const stream = provider.streamCompletion(llmMessages, {
+    maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
+    signal: abortController.signal,
+  });
 
   // Hijack the response so we own the raw stream and Fastify won't try to
   // serialize a JSON body for the 200 response schema.
