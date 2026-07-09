@@ -84,10 +84,10 @@ export VITE_APP_VERSION=""
 export VITE_CHATBOT_ENABLED="true"   # show the chatbot widget (mirror of CHATBOT_ENABLED)
 export VITE_API_BASE_URL=""    # URL for the API (e.g. http://localhost:8080/api)
 export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the OIDC redirect URIs below)
-# Both OPTIONAL — empty and undeclared behave the same (the app falls back to
-# the serving origin). The ${VAR:+...} guard keeps the value empty when
-# VITE_FRONT_BASE_URL is empty, instead of the literal "/auth/callback" (which
-# would skip the fallback and fail the IdP's exact redirect-URI match).
+# Both OPTIONAL — empty and undeclared behave the same: the app falls back to
+# the serving origin. The ${VAR:+...} guard keeps VITE_OIDC_REDIRECT_URI empty
+# when VITE_FRONT_BASE_URL is empty (otherwise the literal "/auth/callback"
+# would skip the fallback and fail the IdP's match).
 export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL:+${VITE_FRONT_BASE_URL}/auth/callback}"
 export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
 export VITE_IS_DEMO_APP="false"
