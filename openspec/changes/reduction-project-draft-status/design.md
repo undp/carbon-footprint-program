@@ -4,7 +4,7 @@ Reduction projects today are created and submitted atomically: `createReductionP
 
 This change wires that flow up by **mirroring CI** wherever the domains are analogous, so reviewers can reason by analogy and the two flows stay convergent. Two issues surfaced while grounding the design in the code and are folded in: (1) the update route authorizes against the organization named in the request body rather than the project's actual owner, and (2) the getById mapper dereferences soon-to-be-nullable columns unconditionally.
 
-Constraints: dev-phase migration convention (edit the existing migration in place, no incremental migration); strict typing and Zod contracts in `packages/types`; Spanish-only UI; delivery as chained PRs.
+Constraints: the create-table migration is already applied in QA, so the nullability change ships as an incremental migration (editing it in place would break the deployed migration history) — the adopted convention going forward; strict typing and Zod contracts in `packages/types`; Spanish-only UI; delivered as a single PR/branch, not chained PRs.
 
 ## Goals / Non-Goals
 
@@ -31,7 +31,7 @@ Keep `ReductionProjectStatus = ACTIVE | DELETED`; DRAFT = an ACTIVE project with
 
 ### Deferred columns become nullable; completeness deferred to submit
 
-`implementationDate`, `description`, `subcategoryId`, `year`, `baselineScenario`, `projectScenario` become nullable (and the `subcategory` relation optional); `consideredGei` stays an array defaulting to empty (empty = "not provided"). The migration is **edited in place** on the create-table migration per dev-phase convention. **Alternative considered:** keep columns NOT NULL and require full data at create — rejected; it defeats the savable-draft goal.
+`implementationDate`, `description`, `subcategoryId`, `year`, `baselineScenario`, `projectScenario` become nullable (and the `subcategory` relation optional); `consideredGei` stays an array defaulting to empty (empty = "not provided"). The change ships as an **incremental migration** because the create-table migration is already applied in QA. **Alternative considered:** keep columns NOT NULL and require full data at create — rejected; it defeats the savable-draft goal.
 
 ### One submit endpoint for first-submit and re-submit
 
@@ -52,9 +52,11 @@ CI's update schema is `.partial().strict()` (optional per-field). RP's form subm
 
 **Create shares this exact write body** (one `ReductionProjectWriteBodySchema` used by both create and update). Unlike CI — whose `create` is a minimal shell (`usageMode` + org) because a CI is built up across many screens — a reduction project is a **single form**. So `create` must persist whatever the user filled in one request; a 3-field-shell create would silently drop the rest of a fully-filled form on first save. Create is therefore the full nullable-always-sent body, differing from update only in the route (`POST /`, body-org auth, returns `{ id }`) — not the payload.
 
-### Delete mirrors the canonical CI delete
+### Delete uses an atomic conditional `updateMany`, not CI's read-then-write
 
-`DELETE /:id` clones `deleteCarbonInventory` (read-then-write, `isReductionProjectDeletable` guard = DRAFT only, distinct `ReductionProjectNotDeletableError`). No hand-rolled optimistic `updateMany`. Because `requireReductionProjectAccess` filters `status: ACTIVE`, an already-deleted or unknown project resolves to 403 at the auth layer; the service's not-found branch is defensive/unreachable, mirroring CI.
+`DELETE /:id` deliberately diverges from `deleteCarbonInventory`'s read-then-write shape (`findUnique` → check `isCarbonInventoryDeletable` → `update`). Instead the guard is folded directly into a single conditional `updateMany`'s `where`: `status: ACTIVE, submission: { is: null }`. The check-and-write happen as one atomic statement, so there's no window between reading the status and writing the new one for a concurrent request (another delete, a submit) to race through — TOCTOU-free. A project that isn't a deletable DRAFT (already submitted, already reviewed/approved/rejected, already deleted, or nonexistent) simply matches zero rows; `count === 0` throws `ReductionProjectNotDeletableError`. **Alternative considered:** clone CI's read-then-write shape for consistency — rejected; it reintroduces the race CI happens to tolerate, for no simplicity gain.
+
+`submission: { is: null }` checks for the absence of a submission **subject**, not specifically a verification submission — this is equivalent here only because a reduction project's submission subject is always created together with its one `REDUCTION_PROJECT_VERIFICATION` submission (there's no second submission type that could create a subject on its own), so "no submission subject" and "no verification submission" (the condition `calculateReductionProjectDisplayStatus` uses to derive DRAFT) coincide today. The team decided to keep this `updateMany` shortcut rather than align it with `calculateReductionProjectDisplayStatus` explicitly, accepting that the two definitions could silently diverge if a future change ever introduces a second submission type. `deleteReductionProject/integration.test.ts`'s `it.each` over SUBMITTED/REVIEWED/APPROVED/REJECTED asserts the guard rejects deletion for every non-DRAFT status; a dedicated `describe("Regression: submission-subject vs verification-submission DRAFT parity")` block pins the equivalence directly by asserting, on the same fixtures, that `calculateReductionProjectDisplayStatus` (via `GET`) and the delete guard (via `DELETE`) agree on DRAFT-ness — so the suite fails loudly the day that equivalence breaks. Because `requireReductionProjectAccess` filters `status: ACTIVE`, an already-deleted or unknown project also resolves to 403 at the auth layer before the service runs; the web-layer `isReductionProjectDeletable(status)` (DRAFT only) still gates the delete button/action for UX, kept in sync with this server-side invariant.
 
 ### Completeness helper is shared and client-computed
 
@@ -69,16 +71,18 @@ CI's update schema is `.partial().strict()` (optional per-field). RP's form subm
 - **Reviewer sees live edits on a REVIEWED project (no snapshot)** → Accepted, mirrors CI; admins can only _act_ on PENDING submissions, so no unreviewed state is ever approved. Tracked as a follow-up issue.
 - **Re-parenting a REVIEWED project carries its submission history (reviewed under the old org) into the new org** → Not a security issue (it must be re-submitted to progress, and is re-reviewed fresh); acceptable data-lineage oddity under the "user owns consistency" stance.
 - **No client dialog for "linked CI not verified" at submit** → Surfaces as the generic error snackbar. Low impact: the create form's CI picker is filtered to `VERIFICATION_APPROVED`, so a draft can only link an already-verified CI; this 422 is reachable only if a CI's verification changes after linking or via a raw API call.
-- **In-place migration edit** → Only valid in the current dev phase (no deployed data to migrate); consistent with `[[feedback_migrations]]`.
-- **Large full-stack surface** → Mitigated by chained PRs (API first with full test coverage, then web) and by mirroring CI structure to keep review by-analogy.
+- **Incremental migration (not in-place edit)** → The create-table migration is already applied in QA; editing it in place would break the deployed migration checksum/history, so the nullability change ships as a new incremental migration.
+- **Large full-stack surface** → Mitigated by mirroring CI structure to keep review by-analogy, and by landing as two ordered commits on a single branch/PR — API with full integration-test coverage first, then web — rather than splitting into chained PRs.
 
 ## Migration Plan
 
-1. **PR1 (API):** edit the create-table migration in place to drop `NOT NULL` on the deferred columns; regenerate the Prisma client; land types, utils, the four service changes (create strip, new request-verification, update rewrite + auth, new delete), errors, route registration, mappers; add/extend integration tests.
-2. **PR2 (Web):** actions cell (Postular + delete), query hooks, form/screen/hooks, shared dialogs relocation, VOCAB fix, null-safe rendering.
+Shipped as a single PR on one branch, landed as two ordered commits (API, then web) rather than chained PRs:
+
+1. **API commit:** add an incremental migration that drops `NOT NULL` on the deferred columns (and sets the `considered_gei` empty-array default); regenerate the Prisma client; land types, utils, the four service changes (create strip, new request-verification, update rewrite + auth, new delete), errors, route registration, mappers; add/extend integration tests.
+2. **Web commit:** actions cell (Postular + delete), query hooks, form/screen/hooks, shared dialogs relocation, VOCAB fix, null-safe rendering.
 3. **Follow-up:** open the reviewer-visibility (snapshot-on-submit) issue.
 
-No production rollback concern (dev phase, no deployed reduction-project data). If needed, the change is revertible per PR since PR2 depends on PR1's contract.
+No production rollback concern (dev phase, no deployed reduction-project data). If needed, the whole PR is revertible as a unit; internally, the web commit depends on the API commit's contract having landed first.
 
 ## Open Questions
 
