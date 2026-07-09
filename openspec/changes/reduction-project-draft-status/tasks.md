@@ -72,9 +72,9 @@
 ## 10. Web — VOCAB & gate
 
 - [x] 10.1 `labels/chips/reductionProject.ts`: fix tooltips to "reconocimiento de reducción" (not "sello").
-- [ ] 10.2 `pnpm format && pnpm lint && pnpm type-check` clean; manual E2E via app-browser (create draft → edit/guardar borrador → Postular incomplete shows dialogs → complete → SUBMITTED → review → REVIEWED → edit → re-Postular → SUBMITTED; delete a DRAFT; delete of a non-draft blocked).
+- [x] 10.2 `pnpm format && pnpm lint && pnpm type-check` clean; manual E2E via app-browser (create draft → edit/guardar borrador → Postular incomplete shows dialogs → complete → SUBMITTED → review → REVIEWED → edit → re-Postular → SUBMITTED; delete a DRAFT; delete of a non-draft blocked). (manual E2E passed 2026-07-09: create draft → edit → Postular file+declaration gate → draft-only delete, verified in the running app)
 
 ## 11. Follow-up
 
-- [ ] 11.1 Open a GitHub issue for the deferred reviewer-visibility leak (submissions carry no snapshot; reviewers read live entity data — affects CI + RP; proposed fix = snapshot-on-submit).
+- [ ] 11.1 Open a GitHub issue for the deferred reviewer-visibility leak (submissions carry no snapshot; reviewers read live entity data — affects CI + RP; proposed fix = snapshot-on-submit). (tracked: https://github.com/undp/carbon-footprint-program/issues/473)
 - [ ] 11.2 Refactor-list item (separate change): unify the update-response convention to `z.null()` across the repo — CI's `UpdateCarbonInventoryResponseSchema` currently returns the entity. Verify no CI front consumer reads the update body (they should invalidate + refetch) before switching.
