@@ -101,16 +101,19 @@ Verifies Prettier formatting without modifying files. If any file is not formatt
 
 Runs the Vitest + Testcontainers integration tests. Docker is available on the GitHub-hosted runner, so Testcontainers can spin up PostgreSQL, Azurite, and MinIO containers.
 
-This is a matrix job with two asymmetric legs, so the storage layer is exercised against **both** storage providers without running every test file twice:
+This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once:
 
-| Leg (check name)            | `STORAGE_PROVIDER`   | Command             | Scope                                                                                       |
-| --------------------------- | -------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
-| `Test (azure_blob_storage)` | `azure_blob_storage` | `pnpm test`         | The **full** suite.                                                                         |
-| `Test (minio)`              | `minio`              | `pnpm test:storage` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against MinIO. |
+| Leg (check name)       | `STORAGE_PROVIDER`   | Command                   | Scope                                                                                         |
+| ---------------------- | -------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `Test (base)`          | unset (→ Azurite)    | `pnpm test:base`          | The full suite **except** the storage manifest — the bulk, run once.                          |
+| `Test (storage-azure)` | `azure_blob_storage` | `pnpm test:storage-azure` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
+| `Test (storage-minio)` | `minio`              | `pnpm test:storage-minio` | **Only** the storage manifest against MinIO.                                                  |
 
-Before running the tests, both legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
+`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base leg's `exclude` and the storage legs' `include`; each `test:storage-*` script sets `STORAGE_PROVIDER` itself, which selects the testcontainer in `globalSetup.ts`.
 
-**Coverage artifact:** After each leg (even on failure), its coverage report is uploaded — `coverage-report-azure_blob_storage` and `coverage-report-minio-storage`:
+Before running the tests, all three legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
+
+**Coverage artifact:** After each leg (even on failure), its coverage report is uploaded — `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio`:
 
 ```yaml
 - uses: actions/upload-artifact@v7
@@ -149,7 +152,7 @@ Builds all apps and packages via Turborepo. The frontend build requires `VITE_AP
 The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner, so no external Azure or MinIO credentials are required.
 
 - `build` sets `VITE_API_BASE_URL` to a placeholder.
-- `test` sets `STORAGE_PROVIDER` (`azure_blob_storage` or `minio`, per matrix leg) plus dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
+- `test` provides dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. `STORAGE_PROVIDER` itself is set by each `test:storage-*` script (the `base` leg leaves it unset and defaults to `azure_blob_storage` in `globalSetup.ts`). None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
 
 ---
 
@@ -161,20 +164,21 @@ In the GitHub Actions run UI, expand the failing job and step to see the full ou
 
 ### Download the coverage report
 
-The `coverage-report-azure_blob_storage` and `coverage-report-minio-storage` artifacts are uploaded after every test run. Download them from the "Artifacts" section of the run summary to see which lines are not covered.
+The `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio` artifacts are uploaded after every test run. Download them from the "Artifacts" section of the run summary to see which lines are not covered. (Each leg reports coverage for only the files it ran, so no single artifact is the whole picture.)
 
 ### Reproduce locally
 
 Every CI job runs the same command you can run locally:
 
-| CI job       | Local command                                                                        |
-| ------------ | ------------------------------------------------------------------------------------ |
-| lint         | `pnpm lint`                                                                          |
-| type-check   | `pnpm type-check`                                                                    |
-| format       | `pnpm format:check` (or `pnpm format` to fix)                                        |
-| test (azure) | `pnpm test:verify-storage-manifest && STORAGE_PROVIDER=azure_blob_storage pnpm test` |
-| test (minio) | `pnpm test:verify-storage-manifest && STORAGE_PROVIDER=minio pnpm test:storage`      |
-| build        | `VITE_API_BASE_URL=https://example.invalid pnpm build`                               |
+| CI job               | Local command                                                  |
+| -------------------- | -------------------------------------------------------------- |
+| lint                 | `pnpm lint`                                                    |
+| type-check           | `pnpm type-check`                                              |
+| format               | `pnpm format:check` (or `pnpm format` to fix)                  |
+| test (base)          | `pnpm test:verify-storage-manifest && pnpm test:base`          |
+| test (storage-azure) | `pnpm test:verify-storage-manifest && pnpm test:storage-azure` |
+| test (storage-minio) | `pnpm test:verify-storage-manifest && pnpm test:storage-minio` |
+| build                | `VITE_API_BASE_URL=https://example.invalid pnpm build`         |
 
 ### Common failures
 

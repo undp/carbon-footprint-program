@@ -222,7 +222,7 @@ The setup is in `apps/api/test/setup/testStorage.ts` (storage container) and `te
 
 Neither path creates the bucket/container up front — `createAzureBlobTestAdapter`/`createMinioTestAdapter` (`@repo/storage/testing`) create it lazily and idempotently the first time a test app is built against the descriptor.
 
-CI runs this as two asymmetric legs instead of the full suite twice: the `azure_blob_storage` leg runs the complete `apps/api` suite (`pnpm test`), while the `minio` leg runs only the storage-dependent tests listed in the manifest (`pnpm test:storage`). Both legs must pass for a PR to merge. See [Storage test manifest](../development/ci-cd.md#storage-test-manifest) for how that manifest is kept honest.
+CI partitions this into three legs instead of running the full suite twice: `Test (base)` (`pnpm test:base`) runs everything **except** the storage manifest, while `Test (storage-azure)` (`pnpm test:storage-azure`) and `Test (storage-minio)` (`pnpm test:storage-minio`) run **only** the manifest against each provider. All three must pass for a PR to merge. See [Storage test manifest](../development/ci-cd.md#storage-test-manifest) for how that manifest is kept honest.
 
 ## Operational notes
 

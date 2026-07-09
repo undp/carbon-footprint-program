@@ -283,7 +283,7 @@ Every new endpoint should have tests covering:
 
 ## Vitest Configuration Reference
 
-Key settings in `apps/api/vitest.base.ts`, shared by `vitest.config.ts` (full suite, the default) and `vitest.storage.config.ts` (`pnpm test:storage` — only the files in the storage manifest, used by the `minio` CI leg):
+Key settings in `apps/api/vitest.shared.ts`, shared by `vitest.config.ts` (full suite, the default), `vitest.base.config.ts` (`pnpm test:base` — the full suite **minus** the storage manifest, used by the `base` CI leg), and `vitest.storage.config.ts` (`pnpm test:storage-azure` / `pnpm test:storage-minio` — **only** the files in the storage manifest, used by the storage CI legs):
 
 | Setting               | Value                                        | Reason                                                             |
 | --------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
