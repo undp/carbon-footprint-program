@@ -1,31 +1,6 @@
-# Keycloak database — a dedicated, generic PostgreSQL instance for the `huella`
-# realm, shared by BOTH the dev overlay (compose/keycloak.dev.yaml) and the
-# production stack (compose/keycloak.prod.yaml). It is a SEPARATE database from
-# the application's own Postgres (the api/web in docker-compose.yml /
-# docker-compose.prod.yml) — Keycloak never shares a database with the app.
-#
-# ONE file, TWO environments — the only difference is env vars. Each env has its
-# own template, mirroring the app's .env.dockercompose / .env.prod.dockercompose:
-#   • Dev — usually NO env needed: everything defaults (user/pass/db = keycloak,
-#     container `huella-latam-keycloak-db`). An OPTIONAL .env.keycloak (from
-#     .env.keycloak.example) overrides those or points dev at an external DB.
-#   • Prod — .env.prod.keycloak (from .env.prod.keycloak.example) supplies
-#     strong credentials; container/volume names keep the same fixed defaults
-#     (see below — normally dev and prod run on different machines). Pairs
-#     with compose/keycloak.prod.yaml.
-#
-# Full copy-paste command matrix (dev/prod × bundled/external DB) is in the
-# "Quick Setup" section of docs/infrastructure/KeycloakSetup.md.
-#
-# To point Keycloak at an EXTERNAL managed Postgres instead, don't include this
-# file at all — set KC_DB_URL_HOST (and friends) to the external host and run
-# only the Keycloak service (via the env template for your environment above).
-#
-# The `huella-network` block below makes this file self-sufficient standalone
-# (e.g. for `docker compose ... config`). When combined with docker-compose.yml
-# / docker-compose.prod.yml (which declare the identical `huella-network:
-# driver: bridge` key), Compose merges them into one shared network, so
-# Keycloak and the api reach this DB by its service name `keycloak-db`.
+# Dedicated Keycloak Postgres shared by the dev/prod overlays; separate from
+# the app DB; omit this file for an external DB. `huella-network` merges with
+# the app compose files.
 
 services:
   keycloak-db:
@@ -38,16 +13,8 @@ services:
     # prod bundled DB on the same host (normally they're different machines).
     container_name: ${KC_DB_CONTAINER_NAME:-huella-latam-keycloak-db}
     ports:
-      # Fixed host-published port for reaching this DB from your machine (e.g.
-      # `psql -h localhost -p 15432` to inspect the realm data). Bound to
-      # 127.0.0.1 so the DB is never exposed beyond the host itself (from a
-      # remote deploy server, tunnel over SSH). 15432 — NOT 5432 — so it never
-      # clashes with the app's own Postgres on host 5432. Deliberately NOT a
-      # variable: like the container/volume names above, this is DB-container
-      # infrastructure, not connection config — the ONE port variable a
-      # developer sets is KC_DB_URL_PORT (where Keycloak dials, decided by how
-      # it reaches the DB), and this mapping never affects that: Keycloak
-      # connects container-to-container on the INTERNAL 5432.
+      # Host-only 127.0.0.1:15432 for psql inspection (avoids the app
+      # Postgres 5432); Keycloak connects internally on 5432.
       - "127.0.0.1:15432:5432"
     environment:
       # The SAME KC_DB_* variable names that compose/keycloak.dev.yaml and

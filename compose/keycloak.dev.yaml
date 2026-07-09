@@ -1,11 +1,8 @@
 # Keycloak dev IdP overlay (generic OIDC, local development only).
 #
 # Two services: `keycloak` itself and `keycloak-init`, a one-shot (same
-# pattern as the base stack's `migrate`) that relaxes the `master` realm to
-# sslRequired=NONE after boot — so the WHOLE dev instance works over plain
-# HTTP, admin console included, with no manual kcadm step. (The realm import
-# only covers `huella`; Keycloak creates `master` itself with sslRequired=
-# external, which on Docker Desktop demands HTTPS for the admin console.)
+# pattern as the base stack's `migrate`) — see its comment below for what it
+# does.
 #
 # Database — pairs with EITHER:
 #   • the bundled compose/keycloak-db.yaml (the SAME generic DB file prod
@@ -67,11 +64,8 @@ services:
       # schema itself (for the bundled DB, `public` always exists).
       - KC_DB_SCHEMA=${KC_DB_SCHEMA:-public}
     ports:
-      # Host 18080 → container 8080. Keycloak's own port is 8080, but the api
-      # already publishes host 8080, so the host side gets a leading `1` — the
-      # repo convention for a secondary service whose usual port is taken
-      # (same rule as the bundled DB's 15432, and the same host port prod
-      # uses). Issuer uses 18080.
+      # Host 18080→container 8080 to avoid the api's host 8080 (1-prefix,
+      # like the DB's 15432); container/JWKS stays 8080.
       - "18080:8080"
     volumes:
       # Realm export imported on first boot via --import-realm. This mounts the
@@ -100,15 +94,8 @@ services:
       retries: 10
       start_period: 40s
 
-  # One-shot (dev only): relaxes the `master` realm to sslRequired=NONE so the
-  # admin console works over plain HTTP everywhere — including Docker Desktop
-  # (macOS/Windows), where browser requests arrive via the VM/bridge gateway,
-  # which Keycloak does not treat as loopback and would otherwise block with
-  # "HTTPS required". The imported dev realm only relaxes `huella`; `master`
-  # is created by Keycloak itself and can't be shipped via --import-realm
-  # (import skips realms that already exist). Idempotent: safe on every `up`,
-  # and self-heals after a `down -v` re-import. Same one-shot pattern as the
-  # base stack's `migrate` service.
+  # Dev one-shot: sets master.sslRequired=NONE so the admin console works
+  # over HTTP; idempotent, re-runs on every up.
   keycloak-init:
     # Digest-pinned for reproducibility; bump the tag and digest together.
     image: quay.io/keycloak/keycloak:26.1.5@sha256:be6a86215213145bfb4fb3e2b3ab982a806d00262655abdcf3ffa6a38d241c7c

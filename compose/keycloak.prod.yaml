@@ -8,17 +8,9 @@
 # bootstrap admin, resource limits, no hardcoded secrets.
 #
 # -----------------------------------------------------------------------------
-# Bring the stack up — ALWAYS run from the repo root, and ALWAYS pass
-# `--project-directory .` explicitly. This file lives in compose/, not the
-# repo root; Compose resolves every relative path in the merged model (build
-# context, volume sources, `env_file:`, …) against ONE project directory —
-# the directory of whichever `-f` file is listed FIRST, NOT the directory of
-# the file that happens to declare the path (verified empirically: swapping
-# `-f` order changes resolution even for paths declared in the file that
-# didn't move). `--project-directory .` pins that base to the repo root
-# regardless of file order, which is what makes `./infra/keycloak/prod` below
-# always mean "repo-root infra/keycloak/prod", whether this file is run
-# standalone or combined with docker-compose.prod.yml in either order.
+# Bring the stack up — ALWAYS run from the repo root and pass
+# `--project-directory .` explicitly, so build context and volume paths
+# resolve to the repo root regardless of `-f` order.
 # -----------------------------------------------------------------------------
 # Pair with the database — either the bundled one (compose/keycloak-db.yaml)
 # or an external managed Postgres (see `.env.prod.keycloak.example`):
@@ -34,45 +26,10 @@
 # -----------------------------------------------------------------------------
 # Networking Keycloak with the main api/web prod stack (for JWKS)
 # -----------------------------------------------------------------------------
-# The API needs to reach Keycloak internally to fetch JWKS keys (JWKS_URI).
-# Two options:
-#
-#   1. RECOMMENDED — combine all three files into ONE `docker compose`
-#      invocation/project:
-#        docker compose --project-directory . -f docker-compose.prod.yml \
-#          -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
-#          --env-file .env.prod.dockercompose --env-file .env.prod.keycloak \
-#          up -d --build
-#      (Compose ≥ 2.24 accepts repeatable --env-file; on older Compose, cat
-#      both env files into one and pass it once.) docker-compose.prod.yml
-#      already declares `name: huella-latam-prod` and a `huella-network:
-#      driver: bridge` — this file and keycloak-db.yaml declare the SAME
-#      network key with the same config, so Compose merges all three into one
-#      project sharing one bridge network. The api container can then reach
-#      Keycloak at JWKS_URI=http://keycloak:8080/realms/huella/protocol/openid-connect/certs
-#      (see the issuer/JWKS host split below). This file intentionally does
-#      NOT set a top-level `name:` — the merged project takes its name from
-#      docker-compose.prod.yml, so an already-running api/web stack is never
-#      silently renamed/duplicated by adding Keycloak into the same `-f` list.
-#
-#   2. Keycloak as a fully separate lifecycle/project (different team, own
-#      upgrade cadence). Run standalone with its own project name:
-#        docker compose --project-directory . -p huella-latam-keycloak-prod \
-#          -f compose/keycloak-db.yaml -f compose/keycloak.prod.yaml \
-#          --env-file .env.prod.keycloak up -d --build
-#      This gets its OWN bridge network, not shared with the api/web project.
-#      For the API to reach it you then need EITHER:
-#        a) publish Keycloak's HTTP port (KC_HTTP_PORT below) and point
-#           JWKS_URI at the docker host's address reachable from the api
-#           container (e.g. http://host.docker.internal:18080/... or the
-#           host's LAN/VPN IP — NOT `localhost`, which inside the api
-#           container means the api container itself); or
-#        b) pre-create a shared external network (`docker network create
-#           huella-shared`), attach it here via `networks: huella-shared:
-#           external: true`, and ALSO attach docker-compose.prod.yml's `api`
-#           service to it — both sides must join the shared network, so this
-#           option requires editing docker-compose.prod.yml too.
-#
+# Prefer one combined project (all three compose files in one invocation) so
+# the API reaches Keycloak at http://keycloak:8080; a standalone Keycloak
+# instead needs a published host address or a shared external network for
+# the API to reach it.
 # -----------------------------------------------------------------------------
 # The issuer vs JWKS-host split (unchanged from dev — see
 # docs/infrastructure/KeycloakSetup.md for the full explanation)
