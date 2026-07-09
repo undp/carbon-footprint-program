@@ -54,7 +54,7 @@ services:
       # like ?sslmode=require. The URL is composed by Compose so Keycloak always
       # receives one non-empty value (a present-but-empty KC_DB_URL="" would
       # otherwise fail — same guard as prod).
-      - KC_DB=postgres
+      - KC_DB=${KC_DB:-postgres}
       - KC_DB_URL=${KC_DB_URL:-jdbc:postgresql://${KC_DB_URL_HOST:-keycloak-db}:${KC_DB_URL_PORT:-5432}/${KC_DB_URL_DATABASE:-keycloak}}
       - KC_DB_USERNAME=${KC_DB_USERNAME:-keycloak}
       - KC_DB_PASSWORD=${KC_DB_PASSWORD:-keycloak}
