@@ -186,7 +186,7 @@ Default host ports for the local stack:
 | Keycloak DB           | `15432`         |
 | MinIO (API + console) | `9000` / `9001` |
 
-The `1`-prefixed ports follow the repo convention for a secondary service whose usual port is already taken by the stack: Keycloak's own 8080 belongs to the API (→ `18080`), its Postgres's 5432 belongs to the app DB (→ `15432`).
+Secondary services prefix a taken port with `1`: Keycloak 8080→18080, DB 5432→15432.
 
 Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or stop the container: `docker ps` → `docker stop <name>`.
 

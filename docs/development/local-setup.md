@@ -358,7 +358,7 @@ To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDE
 
 To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
-> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:18080/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:18080/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
+> ⚠️ If the API runs on the host (`pnpm dev`), use `localhost:18080` for `JWKS_URI`; `keycloak:8080` only resolves inside compose. See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 > ⚠️ **Switching auth providers locally is unsupported against an existing DB.** User identity is keyed on the IdP subject (`idpUserId`), and `email` is unique. If you change `AUTH_PROVIDER`/IdP (e.g. Keycloak → Azure Entra) and then sign in with an email that already exists in the DB from the previous provider, the new IdP subject won't match the stored one and login fails for that account. Either reset the DB (`pnpm db:restore`) or sign in with a fresh email.
 

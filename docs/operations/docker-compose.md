@@ -78,7 +78,7 @@ dc down            # stop
 | `forced-user` | `FORCED_USER_EMAIL`, `FORCED_USER_IDP_ID`                                     | Local dev with a fake user     |
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
-The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see [Keycloak Setup](../infrastructure/KeycloakSetup.md) (the `compose/keycloak-db.yaml` + `compose/keycloak.dev.yaml` overlays). The storage tenant below is separate.
+The API reads `JWKS_*` directly; derive Azure values from the [Azure setup](../infrastructure/AzureAuthenticationSetup.md) / `.envrc.azure.example` and Keycloak values from [Keycloak Setup](../infrastructure/KeycloakSetup.md). The storage tenant below is separate.
 
 ### Web build args
 
