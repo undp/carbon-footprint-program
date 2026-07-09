@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 // Obtener __dirname en ESM
@@ -21,15 +21,23 @@ export interface ApiVitestConfigOverrides {
   /**
    * Overrides `test.include`. Defaults to the full suite. The storage-only
    * config (`vitest.storage.config.ts`) passes the storage manifest here so the
-   * MinIO CI leg runs just the storage-dependent files.
+   * `test:storage-*` legs run just the storage-dependent files.
    */
   include?: string[];
+  /**
+   * Extra `test.exclude` globs, appended to Vitest's defaults (never replacing
+   * them — dropping `configDefaults.exclude` would let node_modules/dist leak
+   * in). The base config (`vitest.base.config.ts`) passes the storage manifest
+   * here so `test:base` runs everything EXCEPT the storage-dependent files.
+   */
+  exclude?: string[];
 }
 
 /**
- * Single source of truth for the apps/api Vitest config. Both `vitest.config.ts`
- * (full suite) and `vitest.storage.config.ts` (storage manifest only) call this,
- * so everything except `test.include` stays identical between the two runs.
+ * Single source of truth for the apps/api Vitest config. Every runnable config
+ * (`vitest.config.ts` full suite, `vitest.base.config.ts` no-storage,
+ * `vitest.storage.config.ts` storage manifest only) calls this, so everything
+ * except `test.include` / `test.exclude` stays identical across runs.
  */
 export function defineApiVitestConfig(
   overrides: ApiVitestConfigOverrides = {}
@@ -52,6 +60,7 @@ export function defineApiVitestConfig(
       // Multiple reporters for better visibility
       reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
       include: overrides.include ?? DEFAULT_TEST_INCLUDE,
+      exclude: [...configDefaults.exclude, ...(overrides.exclude ?? [])],
       testTimeout: 30000,
       hookTimeout: 30000,
       teardownTimeout: 10000,

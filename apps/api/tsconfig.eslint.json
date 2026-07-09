@@ -5,7 +5,8 @@
     "test",
     "eslint.config.ts",
     "vitest.config.ts",
-    "vitest.base.ts",
+    "vitest.shared.ts",
+    "vitest.base.config.ts",
     "vitest.storage.config.ts"
   ],
   "compilerOptions": {
