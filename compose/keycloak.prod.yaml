@@ -171,10 +171,13 @@ services:
       - HUELLA_WEB_ORIGIN=${HUELLA_WEB_ORIGIN:?HUELLA_WEB_ORIGIN is required (the web app's public origin, e.g. https://huella.example.org — substituted into the realm's redirect URIs on first-boot import)}
     ports:
       # Published for either mode A (proxy forwards to this port) or direct
-      # host access. Both vars accept an optional bind address (`ip:port`).
-      # Host side is 18080, NOT 8080: the api publishes host 8080
-      # (API_PORT in docker-compose.prod.yml), so combining both stacks into
-      # one invocation would collide on the host bind. Repo convention for a
+      # host access. The *_BIND vars hold the HOST side of the publish —
+      # `port` or `ip:port` (they are compose-only and never reach the
+      # container; Keycloak's real KC_HTTP(S)_PORT listen options stay at
+      # their defaults, hence the distinct name). Host side is 18080, NOT
+      # 8080: the api publishes host 8080 (API_PORT in
+      # docker-compose.prod.yml), so combining both stacks into one
+      # invocation would collide on the host bind. Repo convention for a
       # secondary service whose usual port is taken: prefix a `1` (same rule
       # as the bundled DB's 15432). Container side stays 8080 — internal
       # JWKS_URI (http://keycloak:8080/...) is unaffected.
@@ -182,17 +185,17 @@ services:
       # ANYTHING that can reach the HTTP port directly can spoof client
       # IP/scheme — defeating brute-force accounting, among others. Only the
       # reverse proxy should reach it: bind to loopback when the proxy runs
-      # on this host (KC_HTTP_PORT=127.0.0.1:18080 — the default here and in
+      # on this host (KC_HTTP_BIND=127.0.0.1:18080 — the default here and in
       # the env template); widen to a specific LAN/VPN interface only for a
       # remote proxy, and firewall it to the proxy. The management port
       # (9000, health/metrics) is deliberately NOT published — only
       # reachable inside the container/network.
-      - "${KC_HTTP_PORT:-127.0.0.1:18080}:8080"
+      - "${KC_HTTP_BIND:-127.0.0.1:18080}:8080"
       # HTTPS (8443) has no listener in mode A (reverse proxy terminates TLS),
       # so it defaults to a loopback bind like the HTTP port above rather than
       # publishing on 0.0.0.0. Direct-TLS (mode B) operators widen it the same
-      # way as the HTTP port (e.g. KC_HTTPS_PORT=<iface>:8443).
-      - "${KC_HTTPS_PORT:-127.0.0.1:8443}:8443"
+      # way as the HTTP port (e.g. KC_HTTPS_BIND=<iface>:8443).
+      - "${KC_HTTPS_BIND:-127.0.0.1:8443}:8443"
     volumes:
       # First-boot realm import (see --import-realm above). This mounts a
       # PROD-ONLY import directory (infra/keycloak/prod/) that holds just the

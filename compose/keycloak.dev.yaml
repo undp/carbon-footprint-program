@@ -72,8 +72,12 @@ services:
       - KC_DB_SCHEMA=${KC_DB_SCHEMA:-public}
     ports:
       # Host 18080→container 8080 to avoid the api's host 8080 (1-prefix,
-      # like the DB's 15432); container/JWKS stays 8080.
-      - "18080:8080"
+      # like the DB's 15432); container/JWKS stays 8080. KC_HTTP_BIND holds
+      # the HOST side only (`port` or `ip:port` — same var as prod, which
+      # defaults to loopback): the default publishes on all interfaces so the
+      # KC_HOSTNAME LAN override above works out of the box; set
+      # KC_HTTP_BIND=127.0.0.1:18080 for a loopback-only dev instance.
+      - "${KC_HTTP_BIND:-18080}:8080"
     volumes:
       # Realm export imported on first boot via --import-realm. This mounts the
       # dev-only import dir infra/keycloak/dev/ (its permissive
