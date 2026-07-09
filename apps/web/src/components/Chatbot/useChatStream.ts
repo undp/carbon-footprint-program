@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
@@ -9,6 +9,14 @@ const GENERIC_ERROR_MESSAGE =
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Recarga la página o intenta más tarde.";
+
+// Client-side safety nets so a stalled stream can't pin the widget in
+// "loading"/"streaming" forever (both states disable send + new-conversation,
+// leaving a full reload as the only escape). The idle cap fires when no frame
+// arrives within the window; the overall cap bounds total turn duration. Both
+// abort the per-turn AbortController.
+const STREAM_IDLE_TIMEOUT_MS = 30_000;
+const STREAM_OVERALL_TIMEOUT_MS = 120_000;
 
 type SsePayload = {
   id?: string;
@@ -64,6 +72,22 @@ export const useChatStream = () => {
     messageIdCounterRef.current += 1;
     return `${role}-${messageIdCounterRef.current}`;
   }, []);
+  // AbortController for the in-flight turn, so the fetch + read loop can be
+  // cancelled by the user (Stop), a client timeout, or unmount.
+  const abortRef = useRef<AbortController | null>(null);
+  // Guards against setState after unmount once the aborted fetch/read settles.
+  const mountedRef = useRef(true);
+
+  // Abort any in-flight turn on unmount so a stalled request cannot outlive
+  // the widget and fire state updates after it is gone. Re-set `mountedRef`
+  // in the body so StrictMode's mount/unmount/remount cycle leaves it true.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
@@ -80,7 +104,10 @@ export const useChatStream = () => {
   );
 
   const consumeStream = useCallback(
-    async (response: Response): Promise<SendMessageResult> => {
+    async (
+      response: Response,
+      controller: AbortController
+    ): Promise<SendMessageResult> => {
       if (!response.body) {
         return { kind: "error", message: GENERIC_ERROR_MESSAGE };
       }
@@ -88,6 +115,17 @@ export const useChatStream = () => {
       const decoder = new TextDecoder();
       let buffer = "";
       let firstChunkSeen = false;
+      // Abort the turn if no frame arrives within the idle window. Aborting
+      // rejects the pending reader.read() below, which the catch turns into a
+      // truncated/error result instead of hanging in "streaming" forever.
+      let idleTimer: ReturnType<typeof setTimeout> | undefined;
+      const resetIdleTimer = () => {
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(
+          () => controller.abort(),
+          STREAM_IDLE_TIMEOUT_MS
+        );
+      };
       // Single classifier so the post-EOF buffer flush below dispatches
       // events the same way as the main loop. Returns a terminal result for
       // `done` / `error`, or `null` for content deltas (mutations are
@@ -129,10 +167,12 @@ export const useChatStream = () => {
         }
         return null;
       };
+      resetIdleTimer();
       try {
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
+          resetIdleTimer();
           buffer += decoder.decode(value, { stream: true });
           const { events, rest } = parseEvents(buffer);
           buffer = rest;
@@ -146,6 +186,7 @@ export const useChatStream = () => {
           ? { kind: "truncated" }
           : { kind: "error", message: GENERIC_ERROR_MESSAGE };
       } finally {
+        if (idleTimer) clearTimeout(idleTimer);
         reader.releaseLock();
       }
       // EOF flush: if the server closed the connection with one final frame
@@ -199,6 +240,17 @@ export const useChatStream = () => {
       });
       setState("loading");
 
+      // Per-turn AbortController: cancellable by the user (Stop), the overall
+      // timeout below, the idle timeout inside consumeStream, or unmount. The
+      // signal is threaded into the fetch so aborting also tears down the
+      // request and its stream.
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const overallTimer = setTimeout(
+        () => controller.abort(),
+        STREAM_OVERALL_TIMEOUT_MS
+      );
+
       const attempt = async (): Promise<{
         response: Response | null;
         transportError: boolean;
@@ -220,6 +272,7 @@ export const useChatStream = () => {
             credentials: "include",
             headers,
             body: JSON.stringify({ content }),
+            signal: controller.signal,
           });
           return { response, transportError: false };
         } catch {
@@ -227,92 +280,108 @@ export const useChatStream = () => {
         }
       };
 
-      // POST /message is NOT idempotent: it appends a turn and triggers an
-      // LLM run. A fetch rejection does not prove the request never reached
-      // the server, so we must not auto-retry — retrying after the first
-      // request landed would double-submit the turn (duplicate turns, doubled
-      // LLM cost, faster turn-cap exhaustion). Surface the failure instead;
-      // the consecutive-failure counter still escalates to "degraded" on a
-      // second straight failure.
-      const { response, transportError } = await attempt();
-      if (transportError) {
-        consecutiveFailuresRef.current += 1;
-        if (consecutiveFailuresRef.current >= 2) {
-          setState("degraded");
-          updateLastAssistant((msg) => ({
-            ...msg,
-            content: DEGRADED_MESSAGE,
-          }));
-          return;
-        }
-        setState("error");
-        updateLastAssistant((msg) => ({
-          ...msg,
-          content: GENERIC_ERROR_MESSAGE,
-        }));
-        return;
-      }
-
-      if (!response) {
-        setState("error");
-        return;
-      }
-
-      if (!response.ok) {
-        consecutiveFailuresRef.current = 0;
-        if (response.status === 413) {
-          setState("error");
-          updateLastAssistant((msg) => ({
-            ...msg,
-            content: TOO_LARGE_MESSAGE,
-          }));
-          return;
-        }
-        if (response.status === 503) {
-          let serverMessage = GENERIC_ERROR_MESSAGE;
-          try {
-            const json = (await response.json()) as { message?: string };
-            if (json.message) serverMessage = json.message;
-          } catch {
-            // fall through to generic
+      try {
+        // POST /message is NOT idempotent: it appends a turn and triggers an
+        // LLM run. A fetch rejection does not prove the request never reached
+        // the server, so we must not auto-retry — retrying after the first
+        // request landed would double-submit the turn (duplicate turns,
+        // doubled LLM cost, faster turn-cap exhaustion). Surface the failure
+        // instead; the consecutive-failure counter still escalates to
+        // "degraded" on a second straight failure.
+        const { response, transportError } = await attempt();
+        if (!mountedRef.current) return;
+        if (transportError) {
+          // An abort (user Stop, unmount, or a timeout) before any response
+          // is a deliberate cancel, not a network failure — reset to idle
+          // without escalating the failure counter.
+          if (controller.signal.aborted) {
+            setState("empty");
+            return;
+          }
+          consecutiveFailuresRef.current += 1;
+          if (consecutiveFailuresRef.current >= 2) {
+            setState("degraded");
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: DEGRADED_MESSAGE,
+            }));
+            return;
           }
           setState("error");
-          updateLastAssistant((msg) => ({ ...msg, content: serverMessage }));
+          updateLastAssistant((msg) => ({
+            ...msg,
+            content: GENERIC_ERROR_MESSAGE,
+          }));
           return;
         }
-        setState("error");
-        updateLastAssistant((msg) => ({
-          ...msg,
-          content: GENERIC_ERROR_MESSAGE,
-        }));
-        return;
-      }
 
-      consecutiveFailuresRef.current = 0;
-      const result = await consumeStream(response);
+        if (!response) {
+          setState("error");
+          return;
+        }
 
-      switch (result.kind) {
-        case "completed":
-          setState("empty");
-          break;
-        case "truncated":
-          setState("truncated");
-          updateLastAssistant((msg) => ({ ...msg, truncated: true }));
-          break;
-        case "error":
+        if (!response.ok) {
+          consecutiveFailuresRef.current = 0;
+          if (response.status === 413) {
+            setState("error");
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: TOO_LARGE_MESSAGE,
+            }));
+            return;
+          }
+          if (response.status === 503) {
+            let serverMessage = GENERIC_ERROR_MESSAGE;
+            try {
+              const json = (await response.json()) as { message?: string };
+              if (json.message) serverMessage = json.message;
+            } catch {
+              // fall through to generic
+            }
+            setState("error");
+            updateLastAssistant((msg) => ({ ...msg, content: serverMessage }));
+            return;
+          }
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
-            content: result.message,
+            content: GENERIC_ERROR_MESSAGE,
           }));
-          break;
-        case "degraded":
-          setState("degraded");
-          break;
+          return;
+        }
+
+        consecutiveFailuresRef.current = 0;
+        const result = await consumeStream(response, controller);
+        if (!mountedRef.current) return;
+
+        switch (result.kind) {
+          case "completed":
+            setState("empty");
+            break;
+          case "truncated":
+            setState("truncated");
+            updateLastAssistant((msg) => ({ ...msg, truncated: true }));
+            break;
+          case "error":
+            setState("error");
+            updateLastAssistant((msg) => ({
+              ...msg,
+              content: result.message,
+            }));
+            break;
+          case "degraded":
+            setState("degraded");
+            break;
+        }
+        // Turn finished — clear the in-flight pointer so the next turn starts
+        // clean and stale indices can't leak across turns.
+        inFlightAssistantIndexRef.current = -1;
+      } finally {
+        clearTimeout(overallTimer);
+        // Only clear the shared ref if it still points at THIS turn's
+        // controller — a newer turn may already have replaced it.
+        if (abortRef.current === controller) abortRef.current = null;
       }
-      // Turn finished — clear the in-flight pointer so the next turn starts
-      // clean and stale indices can't leak across turns.
-      inFlightAssistantIndexRef.current = -1;
     },
     [consumeStream, nextMessageId, updateLastAssistant]
   );
@@ -337,5 +406,12 @@ export const useChatStream = () => {
     }
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory };
+  // User-facing cancel for the in-flight turn. Aborting rejects the fetch /
+  // reader.read(), which sendMessage resolves to a truncated (or empty) turn,
+  // releasing the widget from "loading"/"streaming".
+  const stop = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  return { state, messages, sendMessage, deleteHistory, stop };
 };

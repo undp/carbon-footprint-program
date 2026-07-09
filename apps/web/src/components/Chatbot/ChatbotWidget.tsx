@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import MinimizeIcon from "@mui/icons-material/Minimize";
 import SendIcon from "@mui/icons-material/Send";
+import StopIcon from "@mui/icons-material/Stop";
 import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
@@ -66,7 +67,7 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, deleteHistory } = useChatStream();
+  const { state, messages, sendMessage, deleteHistory, stop } = useChatStream();
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
@@ -226,6 +227,15 @@ export function ChatbotWidget() {
       >
         <Typography variant="subtitle1">Asistente Huella Latam</Typography>
         <Box sx={{ color: "inherit" }}>
+          {isBusy ? (
+            <BaseActionButton
+              tooltip="Detener"
+              color="inherit"
+              onClick={() => stop()}
+            >
+              <StopIcon fontSize="small" />
+            </BaseActionButton>
+          ) : null}
           <BaseActionButton
             tooltip="Nueva conversación"
             color="inherit"
