@@ -9,14 +9,14 @@ description: How to finish and ship a change in this repo. Use when committing, 
 
 ## PR titles
 
-Use a plain, descriptive phrase of the change — no prefixes (e.g. `Add carbon inventory export`, `Fix duplicate emissions on re-import`). Don't use the commit-style `type(scope):` or a `[AREA] Type:` prefix; the area and type of the change are expressed through labels (see below), not the title.
+Use the **Conventional Commits** format — `<type>(<scope>): <short description>` (e.g. `feat(organizations): add bulk accreditation endpoint`, `fix(carbonInventory): correct emission factor lookup`). The PR title becomes the squash commit message when merged, so it must be a valid Conventional Commit. Types: `feat` / `fix` / `docs` / `style` / `refactor` / `test` / `chore` / `perf` / `ci` / `infra`. Use the imperative mood and keep the subject under 72 characters. See `docs/development/contributing.md` and `docs/release/versioning.md#commit-convention` for the full reference.
 
 ## PR labels
 
-Apply the repo's **namespaced** labels when opening a PR — never bare/legacy ones. These carry the area and type of the change that used to live in the title. The source of truth is `.github/labels.yml` (managed as code and synced to the repo; a label removed there is removed from the repo).
+Apply the repo's **namespaced** labels when opening a PR — never bare/legacy ones — to drive triage and filtering alongside the Conventional-Commit title. The source of truth is `.github/labels.yml` (managed as code and synced to the repo; a label removed there is removed from the repo).
 
-- `type:` — the kind of change (replaces the old `Type:` title prefix): `bug` / `feature` / `refactor` / `tech-debt` / `performance` / `chore` / `security` / `docs` / `dpg` (align it with the PR's "Type of change" checkbox).
-- `area:` — the part of the monorepo touched (replaces the old `[AREA]` title prefix): `web` / `api` / `database` / `packages` / `infra` / `ci` / `docs`. Add more than one for cross-cutting PRs.
+- `type:` — the kind of change: `bug` / `feature` / `refactor` / `tech-debt` / `performance` / `chore` / `security` / `docs` / `dpg`. This taxonomy is broader than the commit types, so pick the closest match and align it with the PR's "Type of change" checkbox.
+- `area:` — the part of the monorepo touched (mirrors the commit scope): `web` / `api` / `database` / `packages` / `infra` / `ci` / `docs`. Add more than one for cross-cutting PRs.
 - `priority:` — `critical` / `high` / `medium` / `low`. Always **ask the user** which priority level applies before opening the PR, and apply the matching label; never guess it.
 - Leave `status:` labels (`triage` / `blocked` / `needs-repro` / `duplicate` / `wontfix`) to triage; only add one if it genuinely applies (e.g. `blocked`).
 - Don't hand-apply the Dependabot-managed labels (`dependencies`, `github_actions`, `docker`, `javascript`) — those are auto-applied to dependency PRs.
