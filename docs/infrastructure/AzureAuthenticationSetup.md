@@ -119,6 +119,7 @@ Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcA
    - **Redirect URIs** (Platform: Single-page application / SPA):
      - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
      - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
+     - Running several git worktrees at once? SPA registrations don't allow wildcards, so register the dev port range too (`http://localhost:5174/auth/callback` … `5183/auth/callback`, plus the bare `http://localhost:5174` … origins for post-logout) — or use Keycloak for worktree dev. See [Running several git worktrees](../development/worktree-isolation.md).
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.
@@ -219,6 +220,7 @@ For organizational deployments, responsibilities are typically split:
    - **Redirect URIs** (Platform: Single-page application / SPA):
      - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
      - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
+     - Running several git worktrees at once? SPA registrations don't allow wildcards, so register the dev port range too (`http://localhost:5174/auth/callback` … `5183/auth/callback`, plus the bare `http://localhost:5174` … origins for post-logout) — or use Keycloak for worktree dev. See [Running several git worktrees](../development/worktree-isolation.md).
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.

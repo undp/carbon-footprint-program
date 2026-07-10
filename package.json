@@ -27,8 +27,10 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
     "db:restore": "turbo run db:restore --filter=@repo/database && turbo run seed --filter=@repo/seed",
+    "db:provision": "pnpm --filter=@repo/database prod:deploy && pnpm db:seed",
     "db:seed": "turbo run seed --filter=@repo/seed",
-    "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
+    "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin",
+    "db:drop:worktree": "pnpm --filter=@repo/database db:drop:worktree"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",

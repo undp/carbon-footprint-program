@@ -275,15 +275,29 @@ pnpm clean
 
 ## Database Management
 
-> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed` and `pnpm db:restore` are root-level scripts.
+> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed`, `pnpm db:provision`, `pnpm db:restore`, and `pnpm db:drop:worktree` are root-level scripts.
 
-| Command             | Description                                                     |
-| ------------------- | --------------------------------------------------------------- |
-| `pnpm dev:migrate`  | Apply pending migrations                                        |
-| `pnpm dev:generate` | Regenerate Prisma client after schema changes                   |
-| `pnpm dev:studio`   | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
-| `pnpm db:seed`      | Run database seed scripts (from root, via `@repo/seed`)         |
-| `pnpm db:restore`   | Reset + re-seed (from root, ⚠️ destructive)                     |
+| Command                 | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `pnpm dev:migrate`      | Apply pending migrations                                        |
+| `pnpm dev:generate`     | Regenerate Prisma client after schema changes                   |
+| `pnpm dev:studio`       | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
+| `pnpm db:seed`          | Run database seed scripts (from root, via `@repo/seed`)         |
+| `pnpm db:provision`     | Create + migrate + seed a database (from root; non-destructive) |
+| `pnpm db:restore`       | Reset + re-seed (from root, ⚠️ destructive)                     |
+| `pnpm db:drop:worktree` | Drop THIS worktree's private database (from root; see below)    |
+
+### Running several git worktrees at once (optional)
+
+Need to keep multiple git worktrees of this repo running at the same time? By
+default they'd all fight over API port 8080 and the same database. Opt-in
+per-worktree isolation gives each its own API port and database (and lets OIDC
+redirects follow the actual web port). A single checkout needs none of this and
+keeps the defaults (API 8080, web 5173).
+
+See **[Running several git worktrees at once](./worktree-isolation.md)** for the
+full guide — turning it on, first-time provisioning, ADE automation, login/OIDC
+behavior, and common pitfalls.
 
 ### Creating a New Migration
 
