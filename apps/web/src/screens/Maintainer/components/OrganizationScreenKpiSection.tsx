@@ -14,10 +14,7 @@ import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 
 type OrganizationKpiKey =
-  | "total"
-  | "withMeasurements"
-  | "registered"
-  | "notAccredited";
+  "total" | "withMeasurements" | "registered" | "notAccredited";
 
 const KPI_ORDER: OrganizationKpiKey[] = [
   "total",

@@ -72,14 +72,13 @@ dc down            # stop
 
 `AUTH_PROVIDER` selects the strategy:
 
-| Mode          | Required vars                                                                                         | Use case                       |
-| ------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `none`        | —                                                                                                     | API open (simplest local boot) |
-| `forced-user` | `FORCED_USER_EMAIL_WHEN_NO_PROVIDER`, `FORCED_USER_IDP_ID_WHEN_NO_PROVIDER`                           | Local dev with a fake user     |
-| `jwks`        | `AZURE_TENANT_TYPE`, `AZURE_TENANT_ID`, `AZURE_TENANT_SUBDOMAIN` (if external), `AZURE_API_CLIENT_ID` | Azure Entra ID auth            |
-| `easy-auth`   | —                                                                                                     | Azure App Service Easy Auth    |
+| Mode          | Required vars                                                                 | Use case                       |
+| ------------- | ----------------------------------------------------------------------------- | ------------------------------ |
+| `none`        | —                                                                             | API open (simplest local boot) |
+| `forced-user` | `FORCED_USER_EMAIL`, `FORCED_USER_IDP_ID`                                     | Local dev with a fake user     |
+| `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
-`AZURE_TENANT_ID` is always the **Entra External ID (CIAM) tenant** that validates user tokens — distinct from the storage tenant below. For non-Azure IdPs, use the generic `JWKS_*` overrides.
+The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see the compose overlay. The storage tenant below is separate.
 
 ### Web build args
 
@@ -87,17 +86,19 @@ dc down            # stop
 
 > ⚠️ `API_PORT` and `VITE_API_BASE_URL` are independent. If you change the API's host port, update `VITE_API_BASE_URL` to match and rebuild `web` — otherwise the browser keeps calling the old port. See [Web serves a stale or wrong API URL](docker-compose.md#web-serves-a-stale-or-wrong-api-url).
 
-| Var                                 | Default                                                |
-| ----------------------------------- | ------------------------------------------------------ |
-| `WEB_PORT`                          | `3000` (host; container listens on 8080)               |
-| `VITE_API_BASE_URL`                 | `http://localhost:8080`                                |
-| `VITE_FRONT_BASE_URL`               | `http://localhost:3000`                                |
-| `VITE_AZURE_FRONT_CLIENT_ID`        | `00000000-...` (placeholder unless using JWKS locally) |
-| `VITE_AZURE_API_CLIENT_ID`          | `00000000-...`                                         |
-| `VITE_AZURE_AUTH_AUTHORITY`         | `https://login.microsoftonline.com/organizations/v2.0` |
-| `VITE_APP_VERSION`                  | `local`                                                |
-| `VITE_IS_DEMO_APP`                  | `false`                                                |
-| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                                                |
+| Var                                  | Default                                                                     |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| `WEB_PORT`                           | `3000` (host; container listens on 8080)                                    |
+| `VITE_API_BASE_URL`                  | `http://localhost:8080`                                                     |
+| `VITE_FRONT_BASE_URL`                | `http://localhost:3000`                                                     |
+| `VITE_OIDC_ISSUER`                   | _(empty; set per IdP, e.g. Keycloak `http://localhost:8081/realms/huella`)_ |
+| `VITE_OIDC_CLIENT_ID`                | `huella-web`                                                                |
+| `VITE_OIDC_SCOPES`                   | `openid profile email offline_access`                                       |
+| `VITE_OIDC_REDIRECT_URI`             | _(empty; defaults to `<origin>/auth/callback`)_                             |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | _(empty; defaults to the serving origin)_                                   |
+| `VITE_APP_VERSION`                   | `local`                                                                     |
+| `VITE_IS_DEMO_APP`                   | `false`                                                                     |
+| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS`  | `false`                                                                     |
 
 See [web-docker.md](./web-docker.md) for the image internals.
 

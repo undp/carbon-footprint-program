@@ -1,8 +1,11 @@
 # Stage 1: Base image with pnpm
-FROM node:24-alpine AS base
+# Digest-pinned for reproducibility; bump the tag and digest together.
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Node 26 no longer bundles Corepack, so install it from npm before enabling it.
+# Corepack then provides the pnpm version pinned in package.json (packageManager).
+RUN npm install -g corepack@latest && corepack enable
 
 # Stage 2: Install dependencies
 FROM base AS deps
@@ -62,7 +65,8 @@ WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
 # Stage 4: Production image
-FROM node:24-alpine AS runner
+# Digest-pinned for reproducibility; bump the tag and digest together.
+FROM node:26-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS runner
 WORKDIR /app
 
 # Set environment to production
@@ -70,8 +74,8 @@ ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Enable pnpm
-RUN corepack enable
+# Enable pnpm (Node 26 no longer bundles Corepack — install it first)
+RUN npm install -g corepack@latest && corepack enable
 
 # Install curl for health checks and debugging
 RUN apk add --no-cache curl

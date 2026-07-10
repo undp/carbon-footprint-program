@@ -191,6 +191,7 @@ Known package security tools applicable to this stack:
 - `pnpm audit` — checks for known vulnerabilities in installed packages
 - GitHub Dependabot — can be configured to open PRs for security updates automatically
 - CodeRabbit — automated code review on pull requests (already configured in CI)
+- `zizmor` — static analysis of the GitHub Actions workflows themselves (action pinning, token permissions, credential persistence); runs as a CI gate, see [GitHub Actions Security](./github-actions-security.md)
 
 ---
 

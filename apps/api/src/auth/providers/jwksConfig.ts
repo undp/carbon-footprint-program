@@ -4,9 +4,9 @@
  * Provides generic JWKS-based token validation configuration.
  * Supports any OAuth 2.0 / OpenID Connect provider that exposes a JWKS endpoint.
  *
- * Currently configured providers (via environment variables):
- * - Azure Entra ID — external (CIAM) or organizational (default if AZURE_TENANT_ID is set)
- * - Any custom OIDC provider (via JWKS_URI, JWKS_ISSUER, JWKS_AUDIENCE)
+ * Configured entirely via environment variables (JWKS_URI, JWKS_ISSUER,
+ * JWKS_AUDIENCE) — works with any OIDC issuer (Entra, Keycloak, …). The
+ * provider-specific URL formats are produced by the env templates / deploy, not here.
  *
  * This configuration is used by:
  * - The jwt.ts plugin to configure @fastify/jwt
@@ -19,18 +19,18 @@ import type { FastifyJWTOptions } from "@fastify/jwt";
 import { JwksClient } from "jwks-rsa";
 import {
   JWT_SECRET,
-  RESOLVED_JWKS_URI,
-  RESOLVED_JWKS_ISSUERS,
-  RESOLVED_JWKS_AUDIENCE,
+  JWKS_URI,
+  JWKS_ISSUER,
+  JWKS_AUDIENCE,
 } from "@/config/environment.js";
 
 /**
  * JWKS client for token validation.
  * Caches keys for performance.
  */
-const jwksClient = RESOLVED_JWKS_URI
+const jwksClient = JWKS_URI
   ? new JwksClient({
-      jwksUri: RESOLVED_JWKS_URI,
+      jwksUri: JWKS_URI,
       cache: true,
       cacheMaxEntries: 5,
       cacheMaxAge: 600000, // 10 minutes
@@ -46,9 +46,7 @@ const jwksClient = RESOLVED_JWKS_URI
  */
 async function getSigningKey(kid?: string): Promise<string> {
   if (!jwksClient) {
-    throw new Error(
-      "JWKS client not configured - check JWKS_URI or AZURE_TENANT_ID"
-    );
+    throw new Error("JWKS client not configured - check JWKS_URI");
   }
 
   // If kid is provided, get the specific key
@@ -67,23 +65,9 @@ async function getSigningKey(kid?: string): Promise<string> {
 }
 
 /**
- * Check if JWKS authentication is configured.
- */
-export function isJwksConfigured(): boolean {
-  return !!RESOLVED_JWKS_URI;
-}
-
-/**
- * Get the configured JWKS URI.
- */
-export function getJwksUri(): string | undefined {
-  return RESOLVED_JWKS_URI;
-}
-
-/**
  * FastifyJWT configuration for JWKS validation.
  *
- * When JWKS is configured (via JWKS_URI or AZURE_TENANT_ID):
+ * When JWKS is configured (via JWKS_URI):
  * - Uses dynamic secret resolution via JWKS
  * - Validates issuer and audience if configured
  *
@@ -91,16 +75,16 @@ export function getJwksUri(): string | undefined {
  * - Falls back to static JWT_SECRET for development
  */
 // Warn at startup if JWKS is configured but issuer validation will be skipped
-if (RESOLVED_JWKS_URI && RESOLVED_JWKS_ISSUERS.length === 0) {
+if (JWKS_URI && !JWKS_ISSUER) {
   // eslint-disable-next-line no-console
   console.warn(
-    `[auth] WARNING: JWKS URI is configured (${RESOLVED_JWKS_URI}) but no issuers are set. ` +
+    `[auth] WARNING: JWKS URI is configured (${JWKS_URI}) but no issuer is set. ` +
       "Issuer validation is DISABLED — tokens from any issuer will be accepted. " +
-      "Set JWKS_ISSUER or configure Azure AD issuer variables to enable issuer validation."
+      "Set JWKS_ISSUER to enable issuer validation."
   );
 }
 
-export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
+export const jwtConfig: FastifyJWTOptions = JWKS_URI
   ? {
       // Decode with complete: true so the secret callback receives the full
       // decoded token (including header.kid) instead of just the payload.
@@ -113,12 +97,9 @@ export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
       },
       verify: {
         // Verify the token issuer if configured
-        allowedIss:
-          RESOLVED_JWKS_ISSUERS.length > 0 ? RESOLVED_JWKS_ISSUERS : undefined,
+        allowedIss: JWKS_ISSUER ? [JWKS_ISSUER] : undefined,
         // Verify the token audience if configured
-        allowedAud: RESOLVED_JWKS_AUDIENCE
-          ? [RESOLVED_JWKS_AUDIENCE]
-          : undefined,
+        allowedAud: JWKS_AUDIENCE ? [JWKS_AUDIENCE] : undefined,
       },
     }
   : {

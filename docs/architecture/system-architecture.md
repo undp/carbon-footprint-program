@@ -31,10 +31,10 @@ Huella Latam is a **full-stack web application** organized as a **pnpm monorepo*
 └─────────────────────┘  └─────────────────────┘  └─────────────────────┘
               │
               ▼
-┌─────────────────────┐
-│  Azure Entra ID     │
-│  (identity provider)│
-└─────────────────────┘
+┌───────────────────────────┐
+│  OIDC IdP                 │
+│  (Entra / Keycloak / …)   │
+└───────────────────────────┘
 ```
 
 ---
@@ -69,7 +69,7 @@ A Single-Page Application (SPA) built with React 19 and Vite. It communicates wi
 **Key responsibilities:**
 
 - Render the user interface across all application domains
-- Authenticate users via Azure MSAL (redirects to Azure Entra ID)
+- Authenticate users via OIDC (oidc-client-ts; redirects to the configured IdP — Entra, Keycloak, …)
 - Manage client-side routing (TanStack Router)
 - Handle global UI state (Zustand)
 - Manage form input and validation (React Hook Form + Zod)
@@ -85,7 +85,7 @@ A Single-Page Application (SPA) built with React 19 and Vite. It communicates wi
 - Zustand v5 (global state)
 - React Hook Form v7 + Zod (forms and validation)
 - ky (HTTP client)
-- @azure/msal-browser + @azure/msal-react (authentication)
+- oidc-client-ts + react-oidc-context (authentication)
 - notistack (toast notifications)
 - date-fns (date utilities)
 - react-dropzone (file upload UI)
@@ -101,7 +101,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 
 **Key responsibilities:**
 
-- Authenticate and authorize requests (JWT validation via JWKS or Azure Easy Auth)
+- Authenticate and authorize requests (JWT validation via JWKS)
 - Expose REST endpoints for all application domains
 - Perform business logic and data validation
 - Interact with PostgreSQL via Prisma
@@ -121,38 +121,39 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - fastify-type-provider-zod (Zod schema integration)
 - Pino (structured JSON logging)
 - Zod (request/response schema validation)
-- @azure/identity + @azure/storage-blob (Azure Blob Storage via Managed Identity)
+- Azure Blob Storage via Managed Identity — the `@azure/identity` + `@azure/storage-blob` SDKs live in the `@repo/storage` package; `apps/api` depends on `@repo/storage` rather than on the SDKs directly
 - Prisma client (via `@repo/database`)
 
 **API domains / feature modules:**
-| Module | Description |
-|---|---|
-| `users` | User registration, profile, role management |
-| `organizations` | Organization CRUD, accreditation lifecycle |
-| `carbonInventories` | Inventory creation, calculation, verification, recognition |
-| `methodologies` | Methodology versions and metadata |
-| `categories` / `subcategories` | Emission category hierarchy |
-| `emissionFactors` / `emissionFactorDimensions` | Factor data per subcategory |
-| `submissions` | Submission creation and review workflow |
-| `badges` | Badge previews and recognition |
-| `files` | File upload (SAS flow), download, delete |
-| `reductionProjects` | Reduction project management |
-| `transparency` | Public emissions rankings and views |
-| `forms` | Dynamic form configuration |
-| `requests` | Pending requests and admin actions |
-| `systemParameters` | Country/system-level configuration values |
-| `countryOrganizationSizes` / `countrySectors` / `organizationMainActivities` | Country taxonomy data |
-| `measurementUnits` | Units of measurement catalog |
-| `explanations` | Content blocks for UI guidance |
-| `jobPositions` | Job position catalog |
+
+| Module                                                                       | Description                                                |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `users`                                                                      | User registration, profile, role management                |
+| `organizations`                                                              | Organization CRUD, accreditation lifecycle                 |
+| `carbonInventories`                                                          | Inventory creation, calculation, verification, recognition |
+| `methodologies`                                                              | Methodology versions and metadata                          |
+| `categories` / `subcategories`                                               | Emission category hierarchy                                |
+| `emissionFactors` / `emissionFactorDimensions`                               | Factor data per subcategory                                |
+| `submissions`                                                                | Submission creation and review workflow                    |
+| `badges`                                                                     | Badge previews and recognition                             |
+| `files`                                                                      | File upload (SAS flow), download, delete                   |
+| `reductionProjects`                                                          | Reduction project management                               |
+| `transparency`                                                               | Public emissions rankings and views                        |
+| `forms`                                                                      | Dynamic form configuration                                 |
+| `requests`                                                                   | Pending requests and admin actions                         |
+| `systemParameters`                                                           | Country/system-level configuration values                  |
+| `countryOrganizationSizes` / `countrySectors` / `organizationMainActivities` | Country taxonomy data                                      |
+| `measurementUnits`                                                           | Units of measurement catalog                               |
+| `explanations`                                                               | Content blocks for UI guidance                             |
+| `jobPositions`                                                               | Job position catalog                                       |
 
 **Authentication providers (configurable via `AUTH_PROVIDER` env var):**
-| Provider | Use case |
-|---|---|
-| `jwks` | Production — validates Azure Entra ID JWT tokens via JWKS |
-| `easy-auth` | Production (App Service) — trusts Azure Easy Auth headers |
-| `forced-user` | Local development — bypasses auth with a fixed user |
-| `none` | Unauthenticated mode (not recommended except for initial testing) |
+
+| Provider      | Use case                                                                      |
+| ------------- | ----------------------------------------------------------------------------- |
+| `jwks`        | All environments — validates OIDC access tokens (Entra, Keycloak, …) via JWKS |
+| `forced-user` | Local development — bypasses auth with a fixed user                           |
+| `none`        | Unauthenticated mode (not recommended except for initial testing)             |
 
 **Plugin loading order:**
 
@@ -216,7 +217,7 @@ Azure resources defined as Infrastructure as Code using **Azure Bicep**, deploye
 ```
 Browser
   │
-  │  1. User authenticates via Azure Entra ID (MSAL redirect)
+  │  1. User authenticates via the IdP (OIDC redirect, oidc-client-ts)
   │     → Receives JWT access token
   │
   │  2. Frontend makes HTTP request to API
@@ -227,9 +228,9 @@ Azure Front Door (optional)
   ▼
 Azure App Service (Fastify API)
   │
-  ├─ 3. Auth plugin validates JWT:
-  │     - JWKS: fetches public keys from Azure Entra ID JWKS endpoint
-  │     - Easy Auth: reads X-MS-CLIENT-PRINCIPAL header
+  ├─ 3. Auth plugin validates the JWT via JWKS:
+  │     fetches the issuer's public keys (Entra, Keycloak, …) and checks
+  │     signature, issuer, audience, expiry
   │
   ├─ 4. Auth plugin resolves user from token (upsert in DB)
   │

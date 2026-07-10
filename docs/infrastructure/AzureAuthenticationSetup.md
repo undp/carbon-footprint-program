@@ -1,6 +1,10 @@
-# Authentication Configuration Guide
+# Azure Entra Authentication Setup
 
-This guide explains how to configure authentication for the Huella Latam application. The platform supports two Azure Entra tenant types, each suited to different deployment scenarios.
+How to configure **Azure Entra** as the OIDC Identity Provider for Huella Latam. The platform supports two Azure Entra tenant types, each suited to different deployment scenarios.
+
+Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcAuthenticationSetup.md) — read that first for the provider-agnostic picture. For a local Keycloak IdP, see [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md).
+
+> **How auth works here:** the frontend is a generic OIDC client (`oidc-client-ts`) and the API validates access tokens directly via **JWKS** (`AUTH_PROVIDER=jwks`). There is no MSAL and no Azure App Service Easy Auth gateway — on Azure App Service, keep platform Authentication **disabled** so the `Authorization: Bearer` token reaches the app.
 
 ## Table of Contents
 
@@ -12,7 +16,7 @@ This guide explains how to configure authentication for the Huella Latam applica
 6. [Infrastructure (Bicep) Configuration](#infrastructure-bicep-configuration)
 7. [Environment Variables](#environment-variables)
 8. [Backend Authentication](#backend-authentication)
-9. [Frontend MSAL Configuration](#frontend-msal-configuration)
+9. [Frontend OIDC Configuration](#frontend-oidc-configuration)
 10. [Testing](#testing)
 11. [Troubleshooting](#troubleshooting)
 12. [Additional Resources](#additional-resources)
@@ -32,7 +36,7 @@ This guide explains how to configure authentication for the Huella Latam applica
 | **User flows**          | Required (Email OTP sign-up/sign-in)                 | Not needed                                           |
 | **`AZURE_TENANT_TYPE`** | `"external"`                                         | `"organizational"`                                   |
 
-> The application code handles both types automatically. The only difference is the Azure Portal setup and environment variable configuration.
+> The deploy tooling (`.envrc.azure.example` locally, `appService.bicep` on deploy) handles both tenant types automatically — the difference is only the Azure Portal setup and the derived issuer/JWKS URLs. The API itself is tenant-type-agnostic (it consumes the resulting `JWKS_*`).
 
 ---
 
@@ -41,35 +45,34 @@ This guide explains how to configure authentication for the Huella Latam applica
 ```
 ┌─────────────┐                    ┌──────────────────┐
 │   Browser   │                    │  Azure Entra ID  │
-│             │◄──────(1)─────────►│  (External or    │
-│  MSAL.js    │   OAuth 2.0 Flow   │   Organizational)│
-└──────┬──────┘                    └──────────────────┘
+│ OIDC client │◄──────(1)─────────►│  (External or    │
+│ (oidc-      │  Auth Code + PKCE  │   Organizational)│
+│  client-ts) │                    └──────────────────┘
+└──────┬──────┘
        │
-       │ (2) Access Token
+       │ (2) Access Token (Bearer)
        │
        ▼
 ┌─────────────┐     (3)            ┌──────────────────┐
-│   Frontend  │────────────────────►│  Azure App       │
-│   (React)   │   API Request       │  Service         │
-│             │   + Bearer Token    │  (Easy-Auth or   │
-└─────────────┘                    │   JWKS)          │
+│   Frontend  │───────────────────►│   API Backend    │
+│   (React)   │   API Request       │   (Fastify)      │
+│             │   + Bearer Token    │  AUTH_PROVIDER   │
+└─────────────┘                    │     = jwks       │
                                    └────────┬─────────┘
                                             │
-                                            │ (4) Validates token
-                                            │
+                                            │ (4) Validate via JWKS
                                             ▼
                                    ┌──────────────────┐
-                                   │   API Backend    │
-                                   │   (Fastify)      │
+                                   │  Entra JWKS keys │
                                    └──────────────────┘
 ```
 
 **Flow:**
 
-1. User authenticates via MSAL against Azure Entra ID
-2. MSAL receives Access Token and ID Token
+1. User authenticates via `oidc-client-ts` (Authorization Code + PKCE) against Azure Entra ID
+2. The SPA receives an Access Token and ID Token
 3. Frontend sends API requests with `Authorization: Bearer <token>`
-4. Backend validates the token (via Easy-Auth headers or JWKS verification)
+4. The API validates the token itself against Entra's JWKS keys (signature, issuer, audience, expiry) — **no** App Service Easy Auth gateway
 
 ---
 
@@ -111,11 +114,11 @@ This guide explains how to configure authentication for the Huella Latam applica
 1. Switch to your External Tenant directory
 2. Navigate to **App registrations** → **"New registration"**
 3. Configure:
-   - **Name**: e.g. `Huella Latam Web App - Frontend MSAL`
+   - **Name**: e.g. `Huella Latam Web App - Frontend (SPA)`
    - **Supported account types**: "Accounts in this organizational directory only"
    - **Redirect URIs** (Platform: Single-page application / SPA):
-     - `http://localhost:5173` and `http://localhost:5173/app/home` (development)
-     - `https://<your-production-domain>.com` and `https://<your-production-domain>.com/app/home` (production)
+     - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
+     - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.
@@ -158,25 +161,9 @@ This guide explains how to configure authentication for the Huella Latam applica
    - **State**: Enabled
 4. Click **Add scope** → **Save and continue** with default Application ID URI
 
-### Step 6: Enable Easy Auth on App Service (API)
+### Step 6: Token Validation (no Easy Auth gateway)
 
-1. Switch to your **principal Tenant directory** (not the External Tenant)
-2. Navigate to **Azure Portal** → **Resource Groups** → Select your API App Service
-3. Go to **Settings** → **"Authentication"** → **"Add identity provider"**
-4. Select **"Microsoft"** and configure:
-   - **Tenant**: Choose **External Configuration**
-   - **App registration type**: "Provide the details of an existing app registration"
-     - **Application (client) ID**: Your API App Registration ID
-     - **Issuer URL**: `https://<tenant-id>.ciamlogin.com/<tenant-id>/v2.0`
-     - **Allowed token audiences**: Your API App Registration ID
-   - **Client application requirement**: "Allow requests from specific client applications"
-     - Add your **Frontend App Registration ID**
-   - **Identity requirement**: "Allow requests from any identity"
-   - **Tenant requirement**: "Allow requests from specific tenants"
-     - Add your External Tenant ID
-   - **Restrict access**: "Allow unauthenticated access" (the API handles authorization)
-   - **Token store**: Enable
-5. Click **"Add"**
+The API validates Entra access tokens itself via JWKS (`AUTH_PROVIDER=jwks`), using the issuer/audience derived from the `AZURE_*` settings. **Do not enable** App Service Authentication (Easy Auth) — leave platform Authentication with no identity provider, so the `Authorization: Bearer` token reaches the app untouched.
 
 ### Step 7: Grant Permission from Frontend to Backend
 
@@ -212,7 +199,7 @@ For organizational deployments, responsibilities are typically split:
 
 - **Implementation team** is responsible for:
   - Backend API deployment
-  - App Service authentication (Easy Auth) configuration
+  - API token validation (JWKS) configuration
   - Token validation and integration
 
 ### Step 1: Prerequisites
@@ -227,11 +214,11 @@ For organizational deployments, responsibilities are typically split:
 1. Ensure you are in the organizational tenant directory
 2. Navigate to **App registrations** → **"New registration"**
 3. Configure:
-   - **Name**: e.g. `Huella Latam Web App - Frontend MSAL`
+   - **Name**: e.g. `Huella Latam Web App - Frontend (SPA)`
    - **Supported account types**: "Accounts in this organizational directory only (Single tenant)"
    - **Redirect URIs** (Platform: Single-page application / SPA):
-     - `http://localhost:5173` and `http://localhost:5173/app/home` (development)
-     - `https://<your-production-domain>.com` and `https://<your-production-domain>.com/app/home` (production)
+     - `http://localhost:5173/auth/callback` (login redirect) and `http://localhost:5173` (post-logout) — development
+     - `https://<your-production-domain>.com/auth/callback` (login redirect) and `https://<your-production-domain>.com` (post-logout) — production
 4. Click **"Register"**
 
 > Save the **Frontend App Registration ID**.
@@ -290,24 +277,9 @@ Users are managed directly within the organizational tenant. Self-service sign-u
 4. Select your API app → Check `access_as_user`
 5. Click **Add permissions** → **"Grant admin consent"**
 
-### Step 7: Enable Easy Auth on App Service (API)
+### Step 7: Token Validation (no Easy Auth gateway)
 
-1. Navigate to your API App Service
-2. Go to **Settings** → **"Authentication"** → **"Add identity provider"**
-3. Select **"Microsoft"** and configure:
-   - **Tenant**: Choose your organizational tenant
-   - **App registration type**: "Provide the details of an existing app registration"
-     - **Application (client) ID**: Your API App Registration ID
-     - **Issuer URL**: `https://login.microsoftonline.com/<tenant-id>/v2.0`
-     - **Allowed token audiences**: `api://<API_CLIENT_ID>`
-   - **Client application requirement**: "Allow requests from specific client applications"
-     - Add your **Frontend App Registration ID**
-   - **Identity requirement**: "Allow requests from any identity"
-   - **Tenant requirement**: "Allow requests from specific tenants"
-     - Add your organizational Tenant ID
-   - **Restrict access**: "Allow unauthenticated access" (the API handles authorization)
-   - **Token store**: Enable
-4. Click **"Add"**
+The API validates Entra access tokens itself via JWKS (`AUTH_PROVIDER=jwks`). **Do not enable** App Service Authentication (Easy Auth) — leave platform Authentication disabled so the `Authorization: Bearer` token reaches the app.
 
 > **Note on token audience**: Both organizational and external tenants set the `aud` claim in tokens to the bare Application ID (GUID). The `api://` prefix form (e.g., `api://<API_CLIENT_ID>`) is only used in the Azure App Service **"Allowed token audiences"** configuration — it is not present in the actual token. The backend config variable `JWKS_AUDIENCE` should be set to the bare client ID GUID to match the token's `aud` claim.
 
@@ -331,7 +303,7 @@ Provide the following values:
 After completing the Azure Portal steps, you'll have:
 
 - **Tenant ID** (and subdomain if external)
-- **Frontend App Registration ID** (Client ID for MSAL)
+- **Frontend App Registration ID** (Client ID for the SPA / `VITE_OIDC_CLIENT_ID`)
 - **API App Registration ID** (Client ID for token audience)
 
 ### Step 1: Configure Deployment Environment Variables
@@ -364,8 +336,8 @@ cd infra
 The Bicep deployment will:
 
 - Store credentials securely in Azure Key Vault
-- Set up environment variables for the API
-- Generate authority URL automatically based on tenant type
+- Derive the API's `JWKS_ISSUER` / `JWKS_URI` / `JWKS_AUDIENCE` from your tenant values and set them on the App Service (`infra/modules/appService.bicep`) — the API consumes those generic values; it has no `AZURE_*` auth awareness
+- Generate the frontend authority URL based on tenant type (consumed by `deploy-web.sh`)
 
 ---
 
@@ -373,59 +345,56 @@ The Bicep deployment will:
 
 ### API (apps/api)
 
-| Variable                 | Description                                           | Required                       |
-| ------------------------ | ----------------------------------------------------- | ------------------------------ |
-| `AZURE_TENANT_TYPE`      | `"external"` or `"organizational"`                    | Yes (defaults to `"external"`) |
-| `AZURE_TENANT_ID`        | Tenant ID (GUID)                                      | Yes                            |
-| `AZURE_TENANT_SUBDOMAIN` | Tenant subdomain (e.g. `undphuella`)                  | Only for external              |
-| `AZURE_API_CLIENT_ID`    | API App Registration ID                               | Yes                            |
-| `AUTH_PROVIDER`          | `"jwks"`, `"easy-auth"`, `"forced-user"`, or `"none"` | Yes                            |
-| `JWKS_URI`               | Override JWKS endpoint                                | No (auto-computed)             |
-| `JWKS_ISSUER`            | Override expected issuer                              | No (auto-computed)             |
-| `JWKS_AUDIENCE`          | Override expected audience                            | No (auto-computed)             |
+The API is a generic OIDC validator — it reads these directly and does **not** derive anything from `AZURE_*`:
 
-**Auto-computed values based on `AZURE_TENANT_TYPE`:**
+| Variable              | Description                                          | Required         |
+| --------------------- | ---------------------------------------------------- | ---------------- |
+| `AUTH_PROVIDER`       | `"jwks"`, `"forced-user"`, or `"none"`               | Yes              |
+| `JWKS_URI`            | JWKS endpoint (signing keys), reachable from the API | Yes (for `jwks`) |
+| `JWKS_ISSUER`         | Expected token issuer (`iss`)                        | Yes (for `jwks`) |
+| `JWKS_AUDIENCE`       | Expected token audience (`aud`)                      | Yes (for `jwks`) |
+| `JWKS_REQUIRED_SCOPE` | Required scope claim (default `access_as_user`)      | No               |
 
-| Value    | External (CIAM)                                                     | Organizational                                                      |
-| -------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Issuer   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
-| JWKS URI | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
-| Audience | `{API_CLIENT_ID}` (bare GUID)                                       | `{API_CLIENT_ID}` (bare GUID)                                       |
+You don't set these by hand for Azure — they're **derived from your tenant values**: locally by the `.envrc.azure.example` direnv helper, and on deploy by `infra/modules/appService.bicep`. The derivation:
 
-> Only v2.0 tokens are accepted. For organizational tenants, ensure the API app registration manifest has `accessTokenAcceptedVersion` set to `2`.
+| Derived value   | External (CIAM)                                                     | Organizational                                                      |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `JWKS_ISSUER`   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
+| `JWKS_URI`      | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
+| `JWKS_AUDIENCE` | `{API_CLIENT_ID}` (bare GUID)                                       | `{API_CLIENT_ID}` (bare GUID)                                       |
+
+> **CIAM split:** the token `iss` (→ `JWKS_ISSUER`) uses the tenant-**GUID** host, while the JWKS endpoint (→ `JWKS_URI`) uses the tenant-**subdomain** host. Entra issues v2.0 tokens; for organizational tenants set the API app registration manifest's `accessTokenAcceptedVersion` to `2`. The API relies on the issuer match to reject older tokens (a v1.0 token has a different `iss`), not a separate version check.
 
 ### Web (apps/web)
 
-| Variable                     | Description                               | Required |
-| ---------------------------- | ----------------------------------------- | -------- |
-| `VITE_AZURE_FRONT_CLIENT_ID` | Frontend App Registration ID              | Yes      |
-| `VITE_AZURE_API_CLIENT_ID`   | API App Registration ID (for token scope) | Yes      |
-| `VITE_AZURE_AUTH_AUTHORITY`  | Authority URL                             | Yes      |
-| `VITE_FRONT_BASE_URL`        | Frontend base URL                         | Yes      |
+| Variable                 | Description                                                           | Required |
+| ------------------------ | --------------------------------------------------------------------- | -------- |
+| `VITE_OIDC_ISSUER`       | OIDC issuer / authority URL (= the Entra authority)                   | Yes      |
+| `VITE_OIDC_CLIENT_ID`    | Frontend (public SPA) App Registration ID                             | Yes      |
+| `VITE_OIDC_SCOPES`       | Space-separated scopes; append `api://<API_CLIENT_ID>/access_as_user` | Yes      |
+| `VITE_OIDC_REDIRECT_URI` | Login redirect URI; defaults to `<serving-origin>/auth/callback`      | No       |
 
-**Authority URL examples:**
+On Azure, `deploy-web.sh` derives all `VITE_OIDC_*` from the `AZURE_*` values, so you set the `AZURE_*` ones in `infra/.envrc` (not the `VITE_OIDC_*` directly).
+
+**Issuer URL examples:**
 
 ```bash
 # External (CIAM):
-VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
+VITE_OIDC_ISSUER="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # Organizational:
-VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
+VITE_OIDC_ISSUER="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
 
 ## Backend Authentication
 
-The API supports multiple authentication providers via the `AUTH_PROVIDER` environment variable.
+The API supports the following authentication providers via the `AUTH_PROVIDER` environment variable.
 
-### Easy-Auth (Recommended for Azure App Service)
+### JWKS (all environments — local, on-prem, and Azure)
 
-Set `AUTH_PROVIDER=easy-auth`. Azure App Service handles token validation and injects user claims via headers (`X-MS-CLIENT-PRINCIPAL`). No code changes required.
-
-### JWKS (Recommended for local development and non-Azure hosting)
-
-Set `AUTH_PROVIDER=jwks`. The API validates JWT tokens directly using the JWKS endpoint. This works with both external and organizational tenants automatically.
+Set `AUTH_PROVIDER=jwks` and the `JWKS_*` values above. The API validates JWT access tokens directly against the configured JWKS endpoint (signature, issuer, audience, expiry, required scope) — the same code path for Entra (external or organizational) and any other OIDC issuer (e.g. Keycloak). On Azure App Service, keep platform Authentication (Easy Auth) **disabled** so the `Authorization: Bearer` token reaches the app.
 
 ### Forced User (Development only)
 
@@ -433,13 +402,13 @@ Set `AUTH_PROVIDER=forced-user` to bypass authentication and use a hardcoded use
 
 ```bash
 AUTH_PROVIDER=forced-user
-FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="some-uuid"
-FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
+FORCED_USER_IDP_ID="some-uuid"
+FORCED_USER_EMAIL="dev@example.com"
 ```
 
 ### Token Claim Differences
 
-Only v2.0 tokens are accepted for both tenant types:
+Entra issues v2.0 tokens for both tenant types. The API reads these claims (it performs no Azure-specific version check — a v1.0 token simply fails the issuer match):
 
 | Claim    | External (CIAM)                 | Organizational (Azure AD)             |
 | -------- | ------------------------------- | ------------------------------------- |
@@ -452,20 +421,20 @@ Only v2.0 tokens are accepted for both tenant types:
 
 ---
 
-## Frontend MSAL Configuration
+## Frontend OIDC Configuration
 
-The frontend MSAL configuration is the same for both tenant types. The authority URL (`VITE_AZURE_AUTH_AUTHORITY`) is the only value that differs, and it's passed via environment variables.
+The frontend uses a generic OIDC client (`oidc-client-ts`). The issuer is the only value that differs between tenants, passed via `VITE_OIDC_ISSUER`. On Azure, `deploy-web.sh` derives the `VITE_OIDC_*` values from the `AZURE_*` variables.
 
-See `apps/web/src/config/msalConfig.ts` for the current configuration.
+See `apps/web/src/config/oidcConfig.ts` for the current configuration.
 
 ### Local Development
 
 ```bash
 # .envrc — External tenant example
-export VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
+export VITE_OIDC_ISSUER="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # .envrc — Organizational tenant example
-export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
+export VITE_OIDC_ISSUER="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
@@ -484,54 +453,44 @@ export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-...
 
 ### Test API Authentication Locally
 
-For local development with JWKS validation:
+For local development with JWKS validation, copy `.envrc.azure.example` to `.envrc` and fill in your tenant values — it derives the `JWKS_*` (and `VITE_OIDC_*`) for you, so you never hand-write an issuer/JWKS URL:
 
 ```bash
-AUTH_PROVIDER=jwks
-AZURE_TENANT_TYPE="organizational"  # or "external"
-AZURE_TENANT_ID="your-tenant-id"
-AZURE_API_CLIENT_ID="your-api-client-id"
-AZURE_TENANT_SUBDOMAIN="your-ciam-subdomain"  # required when AZURE_TENANT_TYPE="external"
+cp .envrc.azure.example .envrc   # then set AZURE_TENANT_ID / SUBDOMAIN / API_CLIENT_ID / FRONT_CLIENT_ID
+direnv allow
 ```
 
 For local development without auth:
 
 ```bash
 AUTH_PROVIDER=forced-user
-FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="some-uuid"
-FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
+FORCED_USER_IDP_ID="some-uuid"
+FORCED_USER_EMAIL="dev@example.com"
 ```
 
 ---
 
 ## Troubleshooting
 
-### MSAL Errors
+### Login / redirect errors
 
-| Error                     | Cause                           | Solution                                             |
-| ------------------------- | ------------------------------- | ---------------------------------------------------- |
-| "MSAL is not initialized" | MSAL not initialized before use | Ensure `initializeMsal()` is called before rendering |
-| "Popup blocked"           | Browser blocks auth popup       | Allow popups or use redirect flow                    |
-| "redirect_uri_mismatch"   | Redirect URI mismatch           | Check URI matches exactly in Azure Portal            |
+`"redirect_uri_mismatch"` after login means the app's `<origin>/auth/callback` isn't registered on the Azure app registration — see [Troubleshooting → OIDC redirect URI mismatch](../development/troubleshooting.md#oidc-redirect-uri-mismatch). Register the exact SPA redirect URIs during portal setup (see the [External](#azure-portal-configuration--external-tenant-ciam) / [Organizational](#azure-portal-configuration--organizational-tenant-azure-ad) steps).
 
 ### Token Validation Errors
 
-| Error                                | Cause                    | Solution                                                                                                                                               |
-| ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| "Token version X is not supported"   | v1.0 token received      | Set `accessTokenAcceptedVersion` to `2` in the API app registration manifest (App registrations > [API App] > Manifest).                               |
-| "Token issuer is not a v2.0 issuer"  | v1.0 issuer in token     | Same fix: set `accessTokenAcceptedVersion` to `2` in the manifest. Ensure authority URL includes `/v2.0`.                                              |
-| "Token missing required scope"       | Missing `access_as_user` | Ensure the API app exposes the `access_as_user` scope and the frontend requests `api://{client-id}/access_as_user`.                                    |
-| "The iss claim value is not allowed" | Issuer mismatch          | Check `AZURE_TENANT_TYPE` and `AZURE_TENANT_ID`. The expected issuer is `https://login.microsoftonline.com/{tenant-id}/v2.0` for organizational.       |
-| "The aud claim value is not allowed" | Audience mismatch        | With v2.0 tokens, the audience is the bare client ID GUID. Check `AZURE_API_CLIENT_ID` matches the token's `aud` claim.                                |
-| "Token payload missing email claim"  | Token lacks email field  | Ensure the app registration includes `email` and `profile` in the token's optional claims, or that users have email addresses in their Azure profiles. |
-| "Token expired"                      | Access token expired     | MSAL handles refresh tokens automatically; check `offline_access` scope is included.                                                                   |
+| Error                                | Cause                                                | Solution                                                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The iss claim value is not allowed" | Issuer mismatch (a v1.0 token's `iss` lacks `/v2.0`) | Ensure `JWKS_ISSUER` matches the token's `iss`. For organizational tenants, set `accessTokenAcceptedVersion` to `2` in the API app registration manifest so Entra issues v2.0 tokens. |
+| "Token missing required scope"       | Missing `access_as_user`                             | Ensure the API app exposes the `access_as_user` scope and the frontend requests `api://{client-id}/access_as_user`.                                                                   |
+| "The aud claim value is not allowed" | Audience mismatch                                    | Check `JWKS_AUDIENCE` matches the token's `aud` claim (the bare API client-id GUID for v2.0 tokens).                                                                                  |
+| "Token payload missing email claim"  | Token lacks email field                              | Ensure the app registration includes `email` and `profile` in the token's optional claims, or that users have email addresses in their Azure profiles.                                |
+| "Token expired"                      | Access token expired                                 | oidc-client-ts handles silent renew automatically; check the `offline_access` scope is included.                                                                                      |
 
-### Easy-Auth Errors
+### 401 from the API on Azure
 
-| Error                                    | Cause                   | Solution                                                                        |
-| ---------------------------------------- | ----------------------- | ------------------------------------------------------------------------------- |
-| "X-MS-CLIENT-PRINCIPAL header not found" | Easy-Auth not enabled   | Verify `AUTH_PROVIDER=easy-auth` and check Azure Portal Authentication settings |
-| "Failed to parse principal"              | Header format incorrect | Check App Service authentication logs                                           |
+| Error                        | Cause                                    | Solution                                                                                              |
+| ---------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 401 after a successful login | App Service Easy Auth gateway is enabled | Disable platform Authentication (no identity provider) so the `Bearer` token reaches the app for JWKS |
 
 ### Network Issues
 
@@ -546,6 +505,5 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 
 - [Azure Entra External ID Documentation](https://learn.microsoft.com/en-us/entra/external-id/)
 - [Azure Entra ID (Organizational) Documentation](https://learn.microsoft.com/en-us/entra/identity/)
-- [MSAL.js Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js)
-- [Azure Easy-Auth Documentation](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization)
-- [Infrastructure Deployment Guide](./infrastructure/Deployment.md)
+- [oidc-client-ts Documentation](https://github.com/authts/oidc-client-ts)
+- [Infrastructure Deployment Guide](./Deployment.md)

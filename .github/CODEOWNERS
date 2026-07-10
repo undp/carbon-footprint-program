@@ -1,0 +1,19 @@
+# Code owners for Huella Latam.
+# Owners are requested for review automatically when matching files change.
+# Syntax: https://docs.github.com/articles/about-code-owners
+#
+# TODO: Replace the placeholder team below with the real GitHub team slug (or
+# individual @usernames) for the UNDP Huella Latam maintainers. An unresolved team
+# is ignored by GitHub, so review assignment will not work until this is set.
+
+# Default owners for everything in the repo
+*                       @undp/huella-latam-maintainers
+
+# Security-sensitive areas — require maintainer review
+/infra/                 @undp/huella-latam-maintainers
+/.github/               @undp/huella-latam-maintainers
+/docs/security/         @undp/huella-latam-maintainers
+/packages/database/     @undp/huella-latam-maintainers
+SECURITY.md             @undp/huella-latam-maintainers
+LICENSE                 @undp/huella-latam-maintainers
+GOVERNANCE.md           @undp/huella-latam-maintainers

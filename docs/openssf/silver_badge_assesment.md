@@ -1,0 +1,105 @@
+# OpenSSF Best Practices — Silver Level Assessment
+
+> Self-assessment against the [OpenSSF Best Practices **Silver** criteria](https://www.bestpractices.dev/en/criteria/1).
+> Assessment date: **2026-07-09** (re-assessment; supersedes the 2026-07-02 review). Silver **requires the [Passing badge](./passing_badge_assesment.md) first**; this file lists only the criteria **added at the Silver level**.
+
+**Legend:** ✅ Met · ⚠️ Partial / needs verification · ❌ Missing · ➖ Not applicable
+
+**Summary:** Silver moved forward substantially. The DPG-readiness work (PR #407) landed the community/governance artifacts and vulnerability-handling policy, and the repo going public activated **CodeQL SAST**, **secret scanning**, and **branch protection**. So `governance`, `code_of_conduct`, `roles_responsibilities`, `vulnerability_report_credit`, `vulnerability_response_process`, `dependency_monitoring`, and — newly — `static_analysis_common_vulnerabilities` (CodeQL) are now met. The remaining Silver work is concrete and well-scoped: a **forward roadmap**, **enforced ≥80% test coverage** (incl. the untested `apps/web`), **registering `@fastify/helmet`**, an **assurance case / threat model**, and **signed releases**.
+
+## Basics
+
+| Criterion                      | Level  | Status | Evidence / Gap                                                                                                                                                                                                                                                                   |
+| ------------------------------ | ------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contribution_requirements`    | MUST   | ✅     | `CONTRIBUTING.md` specifies coding/commit standards + acceptance criteria + definition of done.                                                                                                                                                                                  |
+| `dco`                          | SHOULD | ❌     | No DCO/CLA sign-off. `web_commit_signoff_required` is off; no `Signed-off-by` enforcement.                                                                                                                                                                                       |
+| `governance`                   | MUST   | ✅     | Root `GOVERNANCE.md` + `docs/governance.md` document ownership and the decision-making model.                                                                                                                                                                                    |
+| `code_of_conduct`              | MUST   | ✅     | Root `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 + end-user protection subsections).                                                                                                                                                                                          |
+| `roles_responsibilities`       | MUST   | ✅     | `GOVERNANCE.md` "Roles" (Maintainers/Reviewers/Contributors/Adopters). Caveat: specific maintainer handles are still a `TODO`.                                                                                                                                                   |
+| `access_continuity`            | MUST   | ⚠️     | Org-level (UNDP) — confirm no single-person lock-in (repo/deploy access shared).                                                                                                                                                                                                 |
+| `bus_factor`                   | SHOULD | ⚠️     | Multiple active committers appear in the release history; confirm ≥2 can maintain/release.                                                                                                                                                                                       |
+| `documentation_roadmap`        | MUST   | ❌     | No forward roadmap (≥1 year). An `docs/development/i18n-plan.md` exists but is not a full roadmap.                                                                                                                                                                               |
+| `documentation_architecture`   | MUST   | ✅     | `docs/architecture/` high-level design (system architecture, tech stack, taxonomy).                                                                                                                                                                                              |
+| `documentation_security`       | MUST   | ✅     | `docs/security/` + `SECURITY.md` document expectations/limitations.                                                                                                                                                                                                              |
+| `documentation_quick_start`    | MUST   | ✅     | README "Quick Start".                                                                                                                                                                                                                                                            |
+| `documentation_current`        | MUST   | ⚠️     | Largely current, **but** the README "Standards & Best Practices" / "Planned hardening" section still says code scanning & secret scanning "can be enabled **once the repository is public**" — the repo **is** public and these are already active. Refresh that stale language. |
+| `documentation_achievements`   | MUST   | ⚠️     | Link the OpenSSF badge (once earned) within 48h of achieving it.                                                                                                                                                                                                                 |
+| `accessibility_best_practices` | SHOULD | ⚠️     | Web app — verify a11y practices (MUI helps; not audited). DPG audit rates accessibility "weak".                                                                                                                                                                                  |
+| `internationalization`         | SHOULD | ⚠️     | UI is Spanish-only today; i18n is planned (`docs/development/i18n-plan.md`) but not implemented.                                                                                                                                                                                 |
+| `sites_password_security`      | MUST   | ➖     | No local passwords — auth delegated to OIDC IdP.                                                                                                                                                                                                                                 |
+
+## Change Control
+
+| Criterion               | Level | Status | Evidence / Gap                                                                                                      |
+| ----------------------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------- |
+| `maintenance_or_update` | MUST  | ⚠️     | `SECURITY.md` says deployments should track the latest release; document a fuller supported-version / upgrade path. |
+
+## Reporting
+
+| Criterion                        | Level | Status | Evidence / Gap                                                                                 |
+| -------------------------------- | ----- | ------ | ---------------------------------------------------------------------------------------------- |
+| `report_tracker`                 | MUST  | ✅     | GitHub Issues (with templates).                                                                |
+| `vulnerability_report_credit`    | MUST  | ✅     | `SECURITY.md` commits to crediting reporters (unless they prefer anonymity).                   |
+| `vulnerability_response_process` | MUST  | ✅     | `SECURITY.md` "What to expect" documents the acknowledge → assess → coordinated-disclose flow. |
+
+## Quality
+
+| Criterion                         | Level  | Status | Evidence / Gap                                                                                              |
+| --------------------------------- | ------ | ------ | ----------------------------------------------------------------------------------------------------------- |
+| `coding_standards`                | MUST   | ✅     | ESLint config + Prettier + `docs/development/` conventions.                                                 |
+| `coding_standards_enforced`       | MUST   | ✅     | ESLint (`--max-warnings=0`) + `format:check` as **required** CI checks.                                     |
+| `build_standard_variables`        | MUST   | ➖     | No native compiler/linker (JS/TS).                                                                          |
+| `build_preserve_debug`            | SHOULD | ⚠️     | Source maps available; confirm they're produced/retained where useful.                                      |
+| `build_non_recursive`             | MUST   | ✅     | Turborepo orchestrates by dependency graph (not recursive make).                                            |
+| `build_repeatable`                | MUST   | ⚠️     | Lockfile + pinned Docker digests aid repeatability; bit-for-bit not verified.                               |
+| `installation_common`             | MUST   | ⚠️     | App (not a package): `pnpm install` + Docker/compose — document uninstall/teardown.                         |
+| `installation_standard_variables` | MUST   | ➖     | Not an OS-installed artifact (no `DESTDIR`).                                                                |
+| `installation_development_quick`  | MUST   | ✅     | README + docker-compose spin up a dev env + tests quickly.                                                  |
+| `external_dependencies`           | MUST   | ✅     | `package.json` + `pnpm-lock.yaml` (machine-processable).                                                    |
+| `dependency_monitoring`           | MUST   | ✅     | Dependabot (npm/docker/actions) + `pnpm audit` CI gate + `minimumReleaseAge` + Dependabot security updates. |
+| `updateable_reused_components`    | MUST   | ✅     | pnpm workspace + Dependabot make updates straightforward.                                                   |
+| `interfaces_current`              | SHOULD | ⚠️     | Deps kept current; no systematic deprecation scan.                                                          |
+| `automated_integration_testing`   | MUST   | ✅     | CI runs the suite on each PR (required checks) and uploads coverage artifacts.                              |
+| `regression_tests_added50`        | MUST   | ⚠️     | Likely in practice but not measured; track "test-per-bug" going forward.                                    |
+| `test_statement_coverage80`       | MUST   | ❌     | `apps/api/vitest.config.ts` **forces thresholds to 0** (`process.env.CI                                     |     | true`); `apps/web` has **no tests**. Enforce ≥80% in CI. |
+| `test_policy_mandated`            | MUST   | ⚠️     | `CONTRIBUTING.md` requires tests; formalize it as a mandated policy.                                        |
+| `tests_documented_added`          | MUST   | ✅     | Documented in the contributing guide.                                                                       |
+| `warnings_strict`                 | MUST   | ✅     | TS `strict` + typed ESLint, zero-warnings CI.                                                               |
+
+## Security
+
+| Criterion                         | Level     | Status | Evidence / Gap                                                                                                                                                                                                                     |
+| --------------------------------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `implement_secure_design`         | MUST      | ⚠️     | RBAC, OIDC, Zod validation, and production fail-closed auth guards are present — but `@fastify/helmet` is **declared in `package.json`, not registered** in `app.ts` (no API security headers). Register it.                       |
+| `crypto_weaknesses`               | MUST      | ✅     | No weak default algorithms.                                                                                                                                                                                                        |
+| `crypto_algorithm_agility`        | SHOULD    | ⚠️     | JWKS supports key rotation; document algorithm flexibility.                                                                                                                                                                        |
+| `crypto_credential_agility`       | MUST      | ⚠️     | Secrets via env / Azure Key Vault / JWKS (replaceable); remove the hardcoded `JWT_SECRET` dev fallback to fully satisfy this.                                                                                                      |
+| `crypto_used_network`             | SHOULD    | ✅     | HTTPS/TLS; DB `sslmode=require`.                                                                                                                                                                                                   |
+| `crypto_tls12`                    | SHOULD    | ✅     | TLS 1.2+ (Azure).                                                                                                                                                                                                                  |
+| `crypto_certificate_verification` | MUST      | ✅     | Standard TLS clients verify certs by default.                                                                                                                                                                                      |
+| `crypto_verification_private`     | MUST      | ✅     | Private data only over verified HTTPS.                                                                                                                                                                                             |
+| `signed_releases`                 | MUST      | ❌     | Releases/images are not cryptographically signed. Add signing (e.g. cosign for images, signed tags) + document verification.                                                                                                       |
+| `version_tags_signed`             | SUGGESTED | ❌     | Tags are lightweight/unsigned commit refs.                                                                                                                                                                                         |
+| `input_validation`                | MUST      | ✅     | Zod schemas validate untrusted input (allowlist style).                                                                                                                                                                            |
+| `hardening`                       | SHOULD    | ⚠️     | Web nginx ships a strong header set (`apps/web/security-headers.conf`: CSP, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-Frame-Options, COOP; HSTS at the edge). The **API** side lacks helmet — close that gap. |
+| `assurance_case`                  | MUST      | ❌     | No documented assurance case / threat model. Author one (e.g. in `docs/security/`) tying controls to the security requirements they satisfy.                                                                                       |
+
+## Analysis
+
+| Criterion                                | Level | Status | Evidence / Gap                                                                                                                                     |
+| ---------------------------------------- | ----- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `static_analysis_common_vulnerabilities` | MUST  | ✅     | **CodeQL** (`.github/workflows/codeql.yml`, `security-and-quality` queries) now runs on push/PR/weekly — previously the single biggest Silver gap. |
+| `dynamic_analysis_unsafe`                | MUST  | ➖     | Memory-safe language (TS/JS).                                                                                                                      |
+
+## Gaps to close for the Silver badge (MUST items)
+
+1. **Roadmap:** publish a forward **roadmap** (≥1 year) (`documentation_roadmap`).
+2. **Test coverage:** stop forcing coverage thresholds to 0 and enforce **≥80% statement coverage** in CI, adding **`apps/web` tests** (`test_statement_coverage80`); formalize the test-mandate policy (`test_policy_mandated`).
+3. **Security engineering:** **register `@fastify/helmet`** on the API (`implement_secure_design`, `hardening`) and author an **assurance case / threat model** (`assurance_case`).
+4. **Release integrity:** **sign release artifacts** and document verification (`signed_releases`).
+5. **Doc currency:** refresh the stale "once the repository is public" language in the README (`documentation_current`).
+6. **Process/policy:** document a supported-version/upgrade path (`maintenance_or_update`), confirm continuity/access (`access_continuity`), and start measuring regression-tests-per-bug (`regression_tests_added50`).
+
+`SHOULD`-level extras worth doing: DCO sign-off (`dco`), i18n, an accessibility audit, algorithm agility, and removing the `JWT_SECRET` fallback (`crypto_credential_agility`).
+
+> **Already met at Silver (no action needed):** `governance`, `code_of_conduct`, `roles_responsibilities`, `vulnerability_report_credit`, `vulnerability_response_process`, `dependency_monitoring`, `coding_standards*`, `input_validation`, `automated_integration_testing`, and `static_analysis_common_vulnerabilities` (CodeQL).

@@ -88,3 +88,4 @@ public/dist
 
 # Superset
 .superset/
+.claude/settings.local.json

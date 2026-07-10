@@ -94,7 +94,7 @@ export const StylizedDataGrid = ({
         toolbarQuickFilterLabel: "Buscar",
         toolbarQuickFilterPlaceholder: "Buscar...",
         toolbarQuickFilterDeleteIconLabel: "Borrar",
-        filterPanelColumns: "Columnas",
+        filterPanelColumn: "Columnas",
         filterPanelOperator: "Operadores",
         filterPanelInputLabel: "Valor",
         filterPanelInputPlaceholder: "Valor de filtro",

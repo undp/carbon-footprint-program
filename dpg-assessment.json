@@ -1,0 +1,135 @@
+{
+  "schema": "dpg-assessment/v1",
+  "repo": "/home/nolski/code/undp/carbon-footprint-program",
+  "project_type": "software",
+  "current_tier": 1,
+  "target_tier": 2,
+  "audit_confidence": "full",
+  "tools_not_run": [],
+  "remediation_note": "Heavily remediated 2026-07-01. Indicator 8 is now the SOLE remaining blocker; because it is mandatory at Tier 2, the strict ladder holds at Tier 1, but every indicator mandatory at Tiers 3 AND 4 (4,6,7,9A,9B,9C) is already met. Closing Indicator 8 promotes the project directly toward Tier 4 / DPG nomination.",
+  "indicators": {
+    "1": {
+      "status": "met",
+      "evidence": "REMEDIATED: README 'Relevance to the Sustainable Development Goals' section maps to SDG 13 (targets 13.2, 13.3), SDG 12 (12.6), SDG 9 (9.4) with feature evidence. Audit sections.sdg=true."
+    },
+    "2": {
+      "status": "met",
+      "evidence": "Root LICENSE = canonical AGPL-3.0 (SPDX AGPL-3.0-only); licensee confirms DPGA-approved. All 11 workspace package.json files declare \"license\": \"AGPL-3.0-only\" (the 4 that previously carried MIT plus the 7 internal private packages, which had no license field); README updated."
+    },
+    "3": {
+      "status": "met",
+      "evidence": "Root GOVERNANCE.md (UNDP ownership + decision-making) + README 'Ownership' section, 'Copyright (c) 2026 United Nations Development Programme (UNDP)'. .github/CODEOWNERS added (placeholder team, TODO to confirm slug)."
+    },
+    "4": {
+      "status": "met",
+      "evidence": "REMEDIATED: README 'Platform Independence' section lists core tech + each closed dependency with a documented open alternative (MinIO for Blob, OIDC/Keycloak for Entra ID, any Postgres, container deploy for Bicep). All mandatory app deps open source. TODO: cloud-neutral IaC example."
+    },
+    "5": {
+      "status": "met",
+      "evidence": "Thorough README + rich docs/ tree + OpenAPI/Swagger."
+    },
+    "6": {
+      "status": "met",
+      "evidence": "docs/development/data-export.md + OpenAPI API + export endpoints; audit sections.data_export=true."
+    },
+    "7": {
+      "status": "met",
+      "evidence": "REMEDIATED: root PRIVACY.md answers all 6 Enhanced Privacy Framework questions, synthesizing docs/security/sensitive-data.md; documents alignment with LATAM data-protection laws (LFPDPPP/1581/25.326/LGPD/19.628/29733) + GDPR. Operational gaps (consent flow, DSAR workflow, contacts) flagged as deployment responsibility with TODOs."
+    },
+    "8": {
+      "status": "partial",
+      "evidence": "REMEDIATED substantially. At 2026-07-01 triage: OpenSSF Scorecard 2.8 -> 6.6 (Security-Policy 10, Dependency-Update-Tool 10, Token-Permissions 10, License 9, Pinned-Dependencies 3). Since then the two biggest gaps behind those sub-scores are closed: Docker base-image digests are pinned in the apps/api and apps/web Dockerfiles (#453), and the repo is now public with GitHub Advanced Security features active (CodeQL SAST workflow, secret scanning + push protection, Dependabot security updates), plus a betterleaks secret-scan gate in CI -- so a Scorecard re-run would score higher on Pinned-Dependencies and SAST. Also added SECURITY.md, .github/dependabot.yml, SHA-pinned GitHub Actions, least-privilege workflow tokens, and a README 'Standards & Best Practices' section citing Principles for Digital Development. REMAINING for 'full': register the OpenSSF Best Practices Badge; apply branch protection on main; work down the open dependency advisories (pnpm audit / Dependabot security PRs).",
+      "remediation": "standards-section"
+    },
+    "9A": {
+      "status": "met",
+      "evidence": "Secret scan clean (0 findings). A CI Secret Scan step runs betterleaks (the actively-maintained gitleaks successor; gitleaks is now feature-frozen) on every PR over full git history, honoring a .gitleaks.toml allowlist that covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. GitHub native secret scanning + push protection are also enabled. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
+    },
+    "9B": {
+      "status": "met",
+      "evidence": "REMEDIATED: root CONTENT_MODERATION.md documents scope (private evidence uploads, not public content), prohibited content incl. zero-tolerance CSAM, detection/reporting/removal/appeals, with per-deployment escalation TODOs. (Low-risk: not a public content platform.)"
+    },
+    "9C": {
+      "status": "met",
+      "evidence": "REMEDIATED: root CODE_OF_CONDUCT.md = Contributor Covenant 2.1 + appended end-user harassment-protection and underage-safety subsections (platform not directed at minors; no minors' data; RBAC-scoped interaction). TODO: enforcement contact."
+    }
+  },
+  "blockers": ["8"],
+  "blockers_note": "Indicator 8 is mandatory at Tier 2 (entry) and Tier 4 (full). Since 9B and 9C (the other Tier-4 sub-indicators) and all Tier-3 indicators are now met, Indicator 8 is the only indicator standing between the project and DPG-nomination readiness.",
+  "architecture": {
+    "dimensions": {
+      "modularity": {
+        "rating": "strong",
+        "evidence": "pnpm/Turborepo monorepo; feature-based API; shared packages."
+      },
+      "api_first": {
+        "rating": "strong",
+        "evidence": "Auto-generated OpenAPI/Swagger; Zod-derived contracts."
+      },
+      "platform_independence": {
+        "rating": "adequate",
+        "evidence": "Azure-native reference deployment, but now with a documented open alternative for each closed dependency (MinIO, OIDC/Keycloak, any Postgres, container deploy) in README 'Platform Independence'. Remaining: cloud-neutral IaC."
+      },
+      "scalability": {
+        "rating": "adequate",
+        "evidence": "Stateless Fastify + PostgreSQL, containerized."
+      },
+      "offline_low_connectivity": {
+        "rating": "weak",
+        "evidence": "No service workers / sync (offline signals: 0)."
+      },
+      "localization_accessibility": {
+        "rating": "weak",
+        "evidence": "Spanish-only, no i18n framework; no WCAG evidence."
+      },
+      "security_architecture": {
+        "rating": "strong",
+        "evidence": "Entra ID OIDC + RBAC + Key Vault + audit logging + hardening docs; secrets clean; SECURITY.md, Dependabot, SHA-pinned actions, least-privilege tokens, pinned Docker digests, CodeQL SAST + betterleaks secret-scan in CI, GitHub secret scanning enabled. Remaining: branch protection."
+      },
+      "data_portability": {
+        "rating": "strong",
+        "evidence": "data-export docs + OpenAPI + non-proprietary JSON/API export."
+      },
+      "testing_cicd": {
+        "rating": "adequate",
+        "evidence": "40 Vitest+Testcontainers integration tests; hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
+      },
+      "observability": {
+        "rating": "adequate",
+        "evidence": "Pino structured logging + audit-logging docs; no metrics/tracing detected."
+      },
+      "documentation": {
+        "rating": "strong",
+        "evidence": "Extensive docs/ tree + README + live OpenAPI + full DPG policy set."
+      },
+      "maintainability": {
+        "rating": "strong",
+        "evidence": "GOVERNANCE.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, CODEOWNERS, conventional commits, hardened CI."
+      }
+    },
+    "strengths": [
+      "API-first with auto-generated OpenAPI spec",
+      "Strong modular monorepo separation",
+      "Complete DPG policy/governance file set with substantive content",
+      "Strong PII-security posture; no leaked secrets; hardened CI supply chain"
+    ],
+    "risks": [
+      {
+        "dimension": "security_architecture",
+        "endangers_indicator": "8",
+        "note": "Largely resolved: the repo is public, CodeQL SAST + secret scanning + push protection are active, and Docker base-image digests are pinned (#453). Indicator 8 stays 'partial' pending OpenSSF Best Practices Badge registration, branch protection on main, and clearing the open dependency advisories."
+      },
+      {
+        "dimension": "platform_independence",
+        "endangers_indicator": "4",
+        "note": "Reference IaC is Azure Bicep only; a cloud-neutral IaC example would remove residual lock-in perception."
+      },
+      {
+        "dimension": "localization_accessibility",
+        "endangers_indicator": "9",
+        "note": "No accessibility evidence weakens the inclusive 'do no harm' posture."
+      }
+    ],
+    "advisory_note": "Does not change current_tier/blockers."
+  }
+}

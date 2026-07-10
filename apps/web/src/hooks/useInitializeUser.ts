@@ -3,13 +3,11 @@ import { useEffect } from "react";
 import { useUserStore } from "@/stores/userStore";
 
 import { useMe } from "@/api/query";
-import { AccountInfo } from "@azure/msal-browser";
-import { GetMeResponse } from "../../../../packages/types/src/users";
+import { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 
 interface Props {
   isAuthenticated: boolean;
-  account: AccountInfo | null;
 }
 
 interface ReturnType {
@@ -22,29 +20,25 @@ interface ReturnType {
 }
 
 /**
- * Hook to initialize user data on app mount
- * Fetches user data when authenticated and updates the Zustand store
- * Clears user data when logged out
- *
+ * Hook to initialize user data on app mount.
+ * Fetches user data when authenticated and updates the Zustand store.
+ * Clears user data when logged out.
  */
-export function useInitializeUser({
-  isAuthenticated,
-  account,
-}: Props): ReturnType {
+export function useInitializeUser({ isAuthenticated }: Props): ReturnType {
   const { setUser, clear } = useUserStore();
-  // Surface useMe's error state so AuthContext can react when MSAL succeeded
+  // Surface useMe's error state so AuthContext can react when OIDC succeeded
   // but the follow-up GET /users/me failed.
   const { data: me, refetch, error, isError } = useMe(isAuthenticated);
 
   useEffect(() => {
     // Clear user data if not authenticated
-    if (!isAuthenticated || !account) {
+    if (!isAuthenticated) {
       clear();
       return;
     }
 
     if (me) setUser(me);
-  }, [isAuthenticated, account, setUser, clear, me]);
+  }, [isAuthenticated, setUser, clear, me]);
 
   return {
     user: me,

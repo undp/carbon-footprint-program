@@ -9,38 +9,51 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
 import { theme } from "@/theme";
 import { SnackbarProvider } from "notistack";
-import { initializeMsal, msalInstance } from "../auth/initializeMsal";
-import { MsalProvider } from "@azure/msal-react";
+import { AuthProvider as OidcAuthProvider } from "react-oidc-context";
+import { oidcUserManager } from "../auth/oidcUserManager";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
-import { useEffect } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { IS_DEVELOPMENT } from "../config/environment";
+import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
+import { ChatbotWidget } from "@/components/Chatbot/ChatbotWidget";
+
+// Strip the ?code&state params once react-oidc-context completes the redirect
+// callback; the /auth/callback route then navigates to HOME.
+function onSigninCallback() {
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
 
 function RootComponent() {
-  useEffect(() => {
-    // Initialize MSAL authentication
-    void initializeMsal();
-  }, []);
-
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <SnackbarProvider preventDuplicate autoHideDuration={4000}>
-          <MsalProvider instance={msalInstance}>
+          <OidcAuthProvider
+            userManager={oidcUserManager}
+            onSigninCallback={onSigninCallback}
+          >
             <QueryClientProvider client={queryClient}>
-              {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
+              {IS_DEVELOPMENT && (
+                <ReactQueryDevtools
+                  initialIsOpen={false}
+                  buttonPosition="bottom-left"
+                />
+              )}
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
+                  {/* Optional AI feature (DPG optionality) — only mounted when
+                      the deployment enables it. Minimum-viable placement;
+                      design review may relocate. */}
+                  {IS_CHATBOT_ENABLED && <ChatbotWidget />}
                 </ExplanationProvider>
               </AuthProvider>
             </QueryClientProvider>
-          </MsalProvider>
+          </OidcAuthProvider>
         </SnackbarProvider>
       </ThemeProvider>
     </LocalizationProvider>

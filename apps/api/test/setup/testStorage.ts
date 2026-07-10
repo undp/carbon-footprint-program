@@ -5,12 +5,16 @@ import type { StartedTestContainer } from "testcontainers";
 import { StorageProvider } from "@repo/storage";
 
 const AZURE_TEST_CONFIG = {
-  image: "mcr.microsoft.com/azure-storage/azurite:3.35.0",
+  // Digest-pinned for reproducibility; bump the tag and digest together.
+  image:
+    "mcr.microsoft.com/azure-storage/azurite:3.35.0@sha256:647c63a91102a9d8e8000aab803436e1fc85fbb285e7ce830a82ee5d6661cf37",
   containerName: "test-files",
 } as const;
 
 const MINIO_TEST_CONFIG = {
-  image: "minio/minio:RELEASE.2025-09-07T16-13-09Z",
+  // Digest-pinned for reproducibility; bump the tag and digest together.
+  image:
+    "minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
@@ -37,8 +41,7 @@ export type TestStorageDescriptor =
     };
 
 export type TestStorageContainer =
-  | StartedAzuriteContainer
-  | StartedTestContainer;
+  StartedAzuriteContainer | StartedTestContainer;
 
 async function setupAzureTestStorage(): Promise<{
   descriptor: TestStorageDescriptor;
