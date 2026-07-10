@@ -344,6 +344,7 @@ model User {
   roleAuditAsTarget                    UserRoleAudit[]                @relation("user_role_audit_target")
   roleAuditAsActor                     UserRoleAudit[]                @relation("user_role_audit_actor")
   accessLogs                           UserAccessLog[]
+  chatbotConversations                 ChatbotChatConversation[]      @relation("chatbot_conversation_user")
 
   @@map("user")
 }
@@ -924,14 +925,15 @@ model Organization {
   createdById BigInt?            @map("created_by_id")
   updatedById BigInt?            @map("updated_by_id")
 
-  country           Country                      @relation(fields: [countryId], references: [id])
-  creator           User?                        @relation("organization_created_by", fields: [createdById], references: [id])
-  updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
-  data              OrganizationData[]
-  carbonInventories CarbonInventory[]
-  reductionProjects ReductionProject[]
-  memberships       UserOrganizationMembership[]
-  summary           OrganizationSummaryView?
+  country              Country                      @relation(fields: [countryId], references: [id])
+  creator              User?                        @relation("organization_created_by", fields: [createdById], references: [id])
+  updater              User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
+  data                 OrganizationData[]
+  carbonInventories    CarbonInventory[]
+  reductionProjects    ReductionProject[]
+  memberships          UserOrganizationMembership[]
+  summary              OrganizationSummaryView?
+  chatbotConversations ChatbotChatConversation[]    @relation("chatbot_conversation_organization")
 
   @@map("organization")
 }
@@ -1232,4 +1234,132 @@ model ReductionPlanInitiative {
   // ("subcategory_id", "title") WHERE status = 'ACTIVE'
 
   @@map("reduction_plan_initiative")
+}
+
+// ============================================================================
+// Chatbot
+// ============================================================================
+// Foundation tables for the Huella Latam chatbot. The corpus_* tables ship
+// dormant — no application code reads from or writes to them in this change.
+
+enum ChatMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+
+  @@map("chatbot_chat_message_role")
+}
+
+enum CorpusSourceType {
+  PDF
+  MD
+  URL
+  XLSX
+
+  @@map("chatbot_corpus_source_type")
+}
+
+enum CorpusSourceScope {
+  GLOBAL
+  NATIONAL
+
+  @@map("chatbot_corpus_source_scope")
+}
+
+enum CorpusSourceStatus {
+  DRAFT
+  ACTIVE
+  OUTDATED
+
+  @@map("chatbot_corpus_source_status")
+}
+
+model ChatbotChatConversation {
+  id             BigInt    @id @default(autoincrement())
+  userId         BigInt?   @map("user_id")
+  sessionId      String?   @map("session_id")
+  organizationId BigInt?   @map("organization_id")
+  ipHash         String?   @map("ip_hash")
+  expiresAt      DateTime  @map("expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  lastMessageAt  DateTime? @map("last_message_at")
+
+  user         User?                @relation("chatbot_conversation_user", fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization?        @relation("chatbot_conversation_organization", fields: [organizationId], references: [id], onDelete: SetNull)
+  messages     ChatbotChatMessage[]
+
+  // Indexes declared in raw SQL in the migration to control collation / order:
+  //   (session_id, created_at DESC), (user_id, expires_at), (expires_at), (ip_hash, created_at DESC)
+  // CHECK constraint declared in raw SQL:
+  //   ((user_id IS NOT NULL AND session_id IS NULL)
+  //    OR (user_id IS NULL AND session_id IS NOT NULL)
+  //    OR (user_id IS NULL AND session_id IS NULL))
+  @@map("chatbot_chat_conversation")
+}
+
+model ChatbotChatMessage {
+  id             BigInt          @id @default(autoincrement())
+  conversationId BigInt          @map("conversation_id")
+  role           ChatMessageRole
+  content        String
+  tokensUsed     Int?            @map("tokens_used")
+  latencyMs      Int?            @map("latency_ms")
+  truncated      Boolean         @default(false)
+  sourcesCited   Json            @default("[]") @map("sources_cited")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  conversation ChatbotChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // Index (conversation_id, created_at) declared in raw SQL in the migration.
+  @@map("chatbot_chat_message")
+}
+
+model ChatbotCorpusSource {
+  id             BigInt             @id @default(autoincrement())
+  name           String
+  version        String
+  sourceType     CorpusSourceType   @map("source_type")
+  scope          CorpusSourceScope
+  blobPath       String?            @map("blob_path")
+  citeUrl        String?            @map("cite_url")
+  citeLabel      String?            @map("cite_label")
+  status         CorpusSourceStatus
+  embeddingModel String?            @map("embedding_model")
+  ingestedAt     DateTime           @default(now()) @map("ingested_at")
+  activatedAt    DateTime?          @map("activated_at")
+  deactivatedAt  DateTime?          @map("deactivated_at")
+
+  chunks     ChatbotCorpusChunk[]
+  ingestRuns ChatbotCorpusIngestRun[]
+
+  @@map("chatbot_corpus_source")
+}
+
+model ChatbotCorpusChunk {
+  id           BigInt  @id @default(autoincrement())
+  sourceId     BigInt  @map("source_id")
+  chunkIndex   Int     @map("chunk_index")
+  content      String
+  pageNumber   Int?    @map("page_number")
+  sectionTitle String? @map("section_title")
+  tokens       Int?
+
+  source ChatbotCorpusSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("chatbot_corpus_chunk")
+}
+
+model ChatbotCorpusIngestRun {
+  id             BigInt    @id @default(autoincrement())
+  sourceId       BigInt?   @map("source_id")
+  startedAt      DateTime  @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  chunksCreated  Int?      @map("chunks_created")
+  embeddingModel String?   @map("embedding_model")
+  triggeredBy    String?   @map("triggered_by")
+
+  source ChatbotCorpusSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@map("chatbot_corpus_ingest_run")
 }

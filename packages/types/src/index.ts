@@ -30,3 +30,4 @@ export * from "./submissions/index.js";
 export * from "./transparency/index.js";
 export * from "./termsConditions/index.js";
 export * from "./dashboard/index.js";
+export * from "./chatbot/index.js";

@@ -137,6 +137,8 @@ export function defineApiVitestConfig(
         FORCED_USER_IDP_ID: "test-user-idp-id",
         FORCED_USER_EMAIL: "me@test.com",
         LOCAL_BYPASS_REQUIRED_FIELDS: "false",
+        LLM_PROVIDER: "mock",
+        COOKIE_SECRET: "test-cookie-secret-do-not-use-in-prod",
       },
     },
   });

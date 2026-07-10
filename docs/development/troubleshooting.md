@@ -243,6 +243,14 @@ Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or s
 
 **Fix:** Set the three `VITE_OIDC_*` vars, then **restart the web dev server** (Vite reads `VITE_*` at startup). For a specific IdP, see the [Keycloak](../infrastructure/KeycloakAuthenticationSetup.md) / [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) guides.
 
+### Chatbot widget shows but every message fails (404)
+
+**Symptom:** The chatbot widget is visible in the UI, but sending any message fails — the Network tab shows `POST /api/chatbot/message` returning 404.
+
+**Cause:** Contradictory feature flags. The widget mounts on `VITE_CHATBOT_ENABLED=true` (baked into the web bundle at build time), but the API only registers `/api/chatbot/*` when `CHATBOT_ENABLED=true` (read at boot). With the widget on and the API off, every request hits an unregistered route. The two flags are read independently by two separate processes — nothing cross-checks them — so the mismatch is silent until a message is sent.
+
+**Fix:** Set `CHATBOT_ENABLED=true` on the API (and restart it), or set `VITE_CHATBOT_ENABLED=false` and rebuild the web bundle. In Docker Compose both come from the same `.env`, so set them together. The reverse mismatch — `CHATBOT_ENABLED=true` with `VITE_CHATBOT_ENABLED=false` — is fine and intentional: the endpoints stay live for direct API testing while the widget stays hidden. See [Chatbot Variables](./environment-variables.md#chatbot-variables).
+
 ### Login fails after switching auth provider (same email)
 
 **Symptom:** After switching `AUTH_PROVIDER` / IdP, signing in with an email that already exists in the DB fails (the app can't resolve or create your user).

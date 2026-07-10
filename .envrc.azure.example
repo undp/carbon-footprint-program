@@ -69,8 +69,18 @@ export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 # export SUPERADMIN_EMAIL=""   # Email promoted via `pnpm db:promote-superadmin`
 
+# ── Chatbot (optional AI feature — DPG optionality) ──────────────────────────
+# Off by default platform-wide. This Azure example enables it end-to-end. To
+# run without AI, set CHATBOT_ENABLED="false" and leave the rest blank.
+export CHATBOT_ENABLED="true"
+export LLM_PROVIDER="azure-openai"        # "mock" (no cloud) is rejected in production when enabled
+export AZURE_OPENAI_ENDPOINT=""           # e.g. https://<resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT_NAME=""    # your chat model deployment name
+export COOKIE_SECRET=""                   # long random string — signs the anonymous session cookie
+
 # ── Web ──────────────────────────────────────────────────────────────────────
 export VITE_APP_VERSION=""
+export VITE_CHATBOT_ENABLED="true"   # show the chatbot widget (mirror of CHATBOT_ENABLED)
 export VITE_API_BASE_URL=""    # URL for the API (e.g. http://localhost:8080/api)
 export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the OIDC redirect URIs above)
 export VITE_IS_DEMO_APP="false"

@@ -37,6 +37,12 @@ function applyStorageEnv(descriptor: TestStorageDescriptor): void {
 }
 
 export default async function setup(project: TestProject) {
+  // The chatbot is opt-in (CHATBOT_ENABLED defaults off). Enable it for the
+  // suite so its routes register and the chatbot integration tests run
+  // (LLM_PROVIDER defaults to "mock"). Set before workers spawn so each worker
+  // inherits it — same mechanism as the storage env below.
+  process.env.CHATBOT_ENABLED = "true";
+
   // Database is required for all tests — let it propagate and fail fast.
   const { databaseUrl, container: dbContainer } = await setupTestDatabase();
 
