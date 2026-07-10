@@ -1,8 +1,11 @@
 # chatbot-message-streaming Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Endpoint accepts user message and streams the assistant response via Server-Sent Events
 
 The system SHALL expose `POST /api/chatbot/message`. The request body SHALL include the user's message text. The response SHALL be served as Server-Sent Events with `Content-Type: text/event-stream` and SHALL stream assistant token chunks as `data: ...` events terminated by a final completion event. The response status SHALL be 200 from the moment the response head is sent.
@@ -210,4 +213,3 @@ The endpoint SHALL be exposed at exactly `/api/chatbot/message` under the API ba
 
 - **WHEN** a `POST` is made to `/api/chatbot/message`
 - **THEN** the route SHALL be matched and the streaming handler SHALL run
-

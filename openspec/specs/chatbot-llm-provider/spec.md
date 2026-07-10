@@ -1,8 +1,11 @@
 # chatbot-llm-provider Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: System exposes an `LLMProvider` interface
 
 The system SHALL define an `LLMProvider` TypeScript interface with a single async method `streamCompletion(messages, options)`. The method SHALL accept an array of typed messages of the shape `{ role: ChatMessageRole; content: string }[]` and an `options` object including at minimum `maxOutputTokens: number` and an optional `signal: AbortSignal`. The method SHALL return an async iterable that yields token chunks (`{ type: "delta", content: string }`) terminated by a final usage event (`{ type: "usage", inputTokens: number, outputTokens: number }`). The interface SHALL live under `apps/api/src/features/chatbot/llmProvider/types.ts`.
@@ -128,4 +131,3 @@ Both `mock` and `azureOpenAI` implementations of `streamCompletion` SHALL accept
 
 - **WHEN** the `azureOpenAI` implementation is invoked with an `AbortSignal`
 - **THEN** the underlying `openai` SDK call SHALL receive the same signal, so aborting the consumer cancels the upstream request
-

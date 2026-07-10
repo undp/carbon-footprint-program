@@ -1,8 +1,11 @@
 # chatbot-corpus-schema Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Corpus source table tracks versioned ingested documents
 
 The migration SHALL create a `chatbot_corpus_source` table in the `public` schema with the following columns:
@@ -158,4 +161,3 @@ The migration SHALL NOT install the `vector` extension or any other Postgres ext
 
 - **WHEN** a future migration adds the `vector` extension, the `embedding` column on `chatbot_corpus_chunk`, and an HNSW index, on top of a database where the foundation migration has already run
 - **THEN** the V1 migration SHALL apply without modifying any column shipped in this change (this scenario is intent-only at foundation time — V1 verifies it concretely when its migration ships)
-

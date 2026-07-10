@@ -1,8 +1,11 @@
 # chatbot-conversation-persistence Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Conversation table stores anonymous and authenticated sessions
 
 The system SHALL persist chat conversations in the `chatbot_chat_conversation` table. Each row SHALL be scoped to one of: an authenticated `user_id` (BIGINT, foreign key to `user.id`) or an anonymous `session_id` (TEXT). Both columns SHALL be nullable. The CHECK constraint SHALL be declared as:
@@ -327,4 +330,3 @@ A feature-local preHandler SHALL run on chatbot endpoints to resolve caller iden
 
 - **WHEN** the request has no auth and no cookie, on `DELETE /api/chatbot/conversations/me`
 - **THEN** the preHandler SHALL leave `request.chatbotIdentity` undefined and SHALL NOT respond with HTTP 401
-

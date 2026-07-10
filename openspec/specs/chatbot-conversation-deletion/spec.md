@@ -1,8 +1,11 @@
 # chatbot-conversation-deletion Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Endpoint deletes all conversations bound to the caller identity
 
 The system SHALL expose `DELETE /api/chatbot/conversations/me`. When invoked, it SHALL delete every `chatbot_chat_conversation` row where the row's identity column matches the caller: `user_id = currentUser.id` for authenticated callers, or `session_id = <signed cookie value>` for anonymous callers. Cascade delete on `chatbot_chat_message.conversation_id` SHALL ensure all associated messages are also removed.
@@ -91,4 +94,3 @@ The route schema SHALL declare response shapes for HTTP 204 (success / no-op) an
 
 - **WHEN** the deletion handler completes successfully
 - **THEN** the response status SHALL be 204 and the response body SHALL be empty
-

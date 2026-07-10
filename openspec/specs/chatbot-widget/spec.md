@@ -1,8 +1,11 @@
 # chatbot-widget Specification
 
 ## Purpose
+
 TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Widget is mounted at the web app's root layout
 
 The system SHALL render `<ChatbotWidget />` inside the root layout at `apps/web/src/routes/__root.tsx`, so the widget is reachable from both the public landing route (`/`) and authenticated routes (`/app/**`, `/admin/**`). The component SHALL live under `apps/web/src/components/Chatbot/ChatbotWidget.tsx`. This is a minimum-viable placement; the final placement is subject to a separate design review and MAY change in a future change.
@@ -184,4 +187,3 @@ The widget shipped by this change SHALL NOT include a first-open disclaimer, pol
 
 - **WHEN** a developer runs `pnpm dev` locally with `LLM_PROVIDER=mock`, opens the widget, and sends a message
 - **THEN** the widget SHALL render the mock response incrementally, and a corresponding pair of `chatbot_chat_message` rows (USER + ASSISTANT) SHALL be persisted under a `chatbot_chat_conversation` row scoped to the caller identity
-
