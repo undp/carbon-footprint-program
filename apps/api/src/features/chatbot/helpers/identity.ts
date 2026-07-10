@@ -13,7 +13,7 @@ export const CHATBOT_SESSION_COOKIE_NAME = "chatbot_session_id";
 export const CHATBOT_SESSION_COOKIE_PATH = "/api/chatbot";
 export const CHATBOT_SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-const baseCookieOptions = () => ({
+export const baseCookieOptions = () => ({
   httpOnly: true as const,
   // Production serves the web app and API from different registrable domains
   // (cross-site), so the session cookie must be SameSite=None to ride the
