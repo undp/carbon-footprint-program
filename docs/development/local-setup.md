@@ -275,15 +275,56 @@ pnpm clean
 
 ## Database Management
 
-> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed` and `pnpm db:restore` are root-level scripts.
+> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed`, `pnpm db:provision`, `pnpm db:restore`, and `pnpm db:drop:worktree` are root-level scripts.
 
-| Command             | Description                                                     |
-| ------------------- | --------------------------------------------------------------- |
-| `pnpm dev:migrate`  | Apply pending migrations                                        |
-| `pnpm dev:generate` | Regenerate Prisma client after schema changes                   |
-| `pnpm dev:studio`   | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
-| `pnpm db:seed`      | Run database seed scripts (from root, via `@repo/seed`)         |
-| `pnpm db:restore`   | Reset + re-seed (from root, ⚠️ destructive)                     |
+| Command                 | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `pnpm dev:migrate`      | Apply pending migrations                                        |
+| `pnpm dev:generate`     | Regenerate Prisma client after schema changes                   |
+| `pnpm dev:studio`       | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
+| `pnpm db:seed`          | Run database seed scripts (from root, via `@repo/seed`)         |
+| `pnpm db:provision`     | Create + migrate + seed a database (from root; non-destructive) |
+| `pnpm db:restore`       | Reset + re-seed (from root, ⚠️ destructive)                     |
+| `pnpm db:drop:worktree` | Drop THIS worktree's private database (from root; see below)    |
+
+### Running several git worktrees at once (optional)
+
+Working in multiple git worktrees at the same time? By default they'd all fight
+over API port 8080 and the same database. Opt in **per worktree** by uncommenting
+the last line of that worktree's `.envrc`:
+
+```bash
+eval "$(node scripts/dev/worktree-env.mjs)"
+```
+
+It gives this worktree its own API port, a matching `VITE_API_BASE_URL`, and its
+own database name (e.g. `huella_latam` → `huella_latam_1a2b3c4d`); it also lets
+OIDC redirects follow the actual web port. Every tool that reads the environment
+follows automatically — the app, `prisma migrate`, `db:seed`, `dev:studio`. A
+single checkout needs none of this and keeps the defaults (API 8080, web 5173).
+Remote/cloud `DATABASE_URL`s are left untouched, and tests are unaffected (they
+use their own Testcontainers Postgres).
+
+- **API port** is assigned from a small registry shared by all worktrees (a file
+  in the repo's common `.git` dir), so each worktree gets a unique port in
+  8100–8999 with **zero collisions**. It's assigned once and read back on every
+  reload, so it's stable; deleting a worktree frees its port automatically.
+- **Web port** is left to Vite, which binds the next free port itself (5173,
+  5174, …) — collision-free by design.
+- **Login via Keycloak:** the dev realm accepts any `http://localhost:*` redirect,
+  so a worktree whose web lands on any port completes the OIDC flow.
+- **Login via Entra:** its SPA registration requires exact redirect URIs (no
+  wildcard), so a floating web port won't match. Prefer Keycloak for multi-worktree
+  dev, or register the dev port range in the Azure app registration (see
+  [Azure authentication setup](../infrastructure/AzureAuthenticationSetup.md)).
+- **First time in a worktree:** after uncommenting the line and `direnv allow`, run
+  `pnpm db:provision` to create, migrate, and seed this worktree's database
+  (non-destructive — `prisma migrate deploy` creates it if it doesn't exist yet).
+  The first direnv load prints a one-time reminder of this. Provisioning stays
+  manual — the env script never touches the database. (Use `pnpm db:restore` only
+  to wipe and rebuild an existing worktree DB.)
+- **When you delete a worktree:** `pnpm db:drop:worktree` removes its database;
+  its port is reclaimed automatically on the next assignment.
 
 ### Creating a New Migration
 
