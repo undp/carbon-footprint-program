@@ -7,7 +7,7 @@
 # worktree-env.mjs prunes deleted worktrees from its registry automatically.
 #
 # Safe: `pnpm db:drop:worktree` only ever drops a localhost per-worktree database
-# (never the shared base DB or a remote server). See docs/development/local-setup.md.
+# (never the shared base DB or a remote server). See docs/development/worktree-isolation.md.
 set -euo pipefail
 
 TARGET="$(git rev-parse --show-toplevel)"

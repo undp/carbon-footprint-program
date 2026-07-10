@@ -289,72 +289,15 @@ pnpm clean
 
 ### Running several git worktrees at once (optional)
 
-Working in multiple git worktrees at the same time? By default they'd all fight
-over API port 8080 and the same database. Opt in **per worktree** by uncommenting
-the last line of that worktree's `.envrc`:
+Need to keep multiple git worktrees of this repo running at the same time? By
+default they'd all fight over API port 8080 and the same database. Opt-in
+per-worktree isolation gives each its own API port and database (and lets OIDC
+redirects follow the actual web port). A single checkout needs none of this and
+keeps the defaults (API 8080, web 5173).
 
-```bash
-eval "$(node scripts/dev/worktree-env.mjs)"
-```
-
-It gives this worktree its own API port, a matching `VITE_API_BASE_URL`, and its
-own database name (e.g. `huella_latam` → `huella_latam_1a2b3c4d`); it also lets
-OIDC redirects follow the actual web port. Every tool that reads the environment
-follows automatically — the app, `prisma migrate`, `db:seed`, `dev:studio`. A
-single checkout needs none of this and keeps the defaults (API 8080, web 5173).
-Remote/cloud `DATABASE_URL`s are left untouched, and tests are unaffected (they
-use their own Testcontainers Postgres).
-
-- **API port** is assigned from a small registry shared by all worktrees (a file
-  in the repo's common `.git` dir), so each worktree gets a unique port in
-  8100–8999 with **zero collisions**. It's assigned once and read back on every
-  reload, so it's stable; deleting a worktree frees its port automatically.
-- **Web port** is left to Vite, which binds the next free port itself (5173,
-  5174, …) — collision-free by design.
-- **Login via Keycloak:** the dev realm accepts any `http://localhost:*` redirect,
-  so a worktree whose web lands on any port completes the OIDC flow.
-- **Login via Entra:** its SPA registration requires exact redirect URIs (no
-  wildcard), so a floating web port won't match. Prefer Keycloak for multi-worktree
-  dev, or register the dev port range in the Azure app registration (see
-  [Azure authentication setup](../infrastructure/AzureAuthenticationSetup.md)).
-- **First time in a worktree:** after uncommenting the line and `direnv allow`, run
-  `pnpm db:provision` to create, migrate, and seed this worktree's database
-  (non-destructive — `prisma migrate deploy` creates it if it doesn't exist yet).
-  The first direnv load prints a one-time reminder of this. Provisioning stays
-  manual — the env script never touches the database. (Use `pnpm db:restore` only
-  to wipe and rebuild an existing worktree DB.)
-- **When you delete a worktree:** `pnpm db:drop:worktree` removes its database;
-  its port is reclaimed automatically on the next assignment.
-
-### Automating worktree setup/teardown (ADEs)
-
-If you use an Agentic Development Environment (Emdash, Superset, …) with lifecycle
-hooks, point them at the versioned scripts so a new worktree comes up ready and a
-removed one cleans up after itself:
-
-- **On create** → `bash scripts/dev/worktree-setup.sh` — seeds the gitignored env
-  files (`.envrc`, `infra/.envrc`) from the primary clone, `direnv allow`s them,
-  then runs `pnpm install`, `pnpm build`, and `pnpm db:provision`.
-- **On destroy** → `bash scripts/dev/worktree-teardown.sh` — drops this worktree's
-  database via `pnpm db:drop:worktree`; the API port is released automatically.
-
-Because setup copies `.envrc` from the primary clone, **enable isolation once in
-your primary clone's `.envrc`** (uncomment the `eval "$(node scripts/dev/worktree-env.mjs)"`
-line) and every worktree seeded from it inherits it — the setup script never edits
-`.envrc` itself.
-
-Example — Superset `.superset/config.json` (this file stays local / gitignored):
-
-```json
-{
-  "setup": ["bash scripts/dev/worktree-setup.sh"],
-  "teardown": ["bash scripts/dev/worktree-teardown.sh"]
-}
-```
-
-For Emdash, set the same two commands as its worktree setup/teardown hooks. The ADE
-config is tool- and machine-specific — keep it local (gitignored); only the scripts
-it calls are versioned here.
+See **[Running several git worktrees at once](./worktree-isolation.md)** for the
+full guide — turning it on, first-time provisioning, ADE automation, login/OIDC
+behavior, and common pitfalls.
 
 ### Creating a New Migration
 

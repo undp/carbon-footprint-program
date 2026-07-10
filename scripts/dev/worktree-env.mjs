@@ -96,7 +96,7 @@ if (process.env.DATABASE_URL) {
 // these are empty, so login follows whatever port Vite serves — but the IdP must
 // accept that port. The dev Keycloak realm allows any localhost redirect URI;
 // Entra's SPA registration needs each dev port registered (no wildcard), so prefer
-// Keycloak for worktree dev. See docs/development/local-setup.md.
+// Keycloak for worktree dev. See docs/development/worktree-isolation.md.
 out.push("unset VITE_OIDC_REDIRECT_URI VITE_OIDC_POST_LOGOUT_REDIRECT_URI");
 notes.push("OIDC     redirect follows the web origin (Vite's actual port)");
 

@@ -60,15 +60,17 @@ From `infra/keycloak/realm-huella.json`:
 
 **Client `huella-web`** — the public SPA client:
 
-| Setting               | Value                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------- |
-| Type                  | Public (no secret)                                                                    |
-| Flow                  | Standard (Authorization Code) + PKCE `S256`                                           |
-| Redirect URIs         | `http://localhost:5173/auth/callback`, `http://localhost:3000/auth/callback` (+ `/*`) |
-| Web origins           | `http://localhost:5173`, `http://localhost:3000`                                      |
-| Default client scopes | `basic`, `profile`, `email`, `access_as_user`                                         |
-| Optional client scope | `offline_access`                                                                      |
-| Audience mapper       | Adds `huella-api` to the access token `aud`                                           |
+| Setting               | Value                                                      |
+| --------------------- | ---------------------------------------------------------- |
+| Type                  | Public (no secret)                                         |
+| Flow                  | Standard (Authorization Code) + PKCE `S256`                |
+| Redirect URIs         | `http://localhost:*` (any localhost port — see note below) |
+| Web origins           | `*` (dev realm only)                                       |
+| Default client scopes | `basic`, `profile`, `email`, `access_as_user`              |
+| Optional client scope | `offline_access`                                           |
+| Audience mapper       | Adds `huella-api` to the access token `aud`                |
+
+> **Why the wildcard redirect?** The dev realm deliberately accepts any `http://localhost:*` redirect (and `*` web origins) so a dev server on any port completes the OIDC flow — this is what lets several git worktrees run at once, each on its own web port. It applies to this **dev-only** realm export; a production realm must whitelist exact URIs. See [Running several git worktrees](../development/worktree-isolation.md).
 
 Two things that map straight onto the backend config:
 
@@ -103,7 +105,7 @@ VITE_OIDC_SCOPES=openid profile email offline_access   # access_as_user is a def
 VITE_OIDC_REDIRECT_URI=http://localhost:3000/auth/callback   # or your dev origin; defaults to <origin>/auth/callback
 ```
 
-The realm's `huella-web` client already whitelists the `:3000` and `:5173` redirect URIs and web origins, so both the Docker web (`:3000`) and a host Vite dev server (`:5173`) work.
+The realm's `huella-web` client accepts any `http://localhost:*` redirect URI and web origin, so the Docker web (`:3000`), a host Vite dev server (`:5173`), and any other localhost port all work out of the box.
 
 ---
 
@@ -140,16 +142,16 @@ To make a user a platform superadmin, use the app's promote-superadmin flow as u
 
 ## Troubleshooting
 
-| Symptom                                                                       | Likely cause                                                                                                                                                                  | Fix                                                                                               |
-| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| API logs "JWKS client not configured"                                         | `JWKS_URI` empty                                                                                                                                                              | Set `JWKS_URI` (see host split above).                                                            |
-| 401 on every API call, JWKS fetch fails                                       | API can't resolve the `JWKS_URI` host                                                                                                                                         | In compose use `http://keycloak:8080/...`; on host `pnpm dev` use `http://localhost:8081/...`.    |
-| "The iss claim value is not allowed"                                          | `JWKS_ISSUER` ≠ token `iss`                                                                                                                                                   | Set `JWKS_ISSUER=http://localhost:8081/realms/huella` (match `KC_HOSTNAME`).                      |
-| "The aud claim value is not allowed"                                          | `JWKS_AUDIENCE` ≠ `huella-api`                                                                                                                                                | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                       |
-| "Token missing required scope"                                                | `access_as_user` not granted                                                                                                                                                  | It's a default client scope in the imported realm — confirm you're using the `huella-web` client. |
-| `redirect_uri` error at login                                                 | Web origin not in the `huella-web` client's redirect URIs ([generic explanation](../development/troubleshooting.md#oidc-redirect-uri-mismatch))                               | Use `:3000` or `:5173` (already whitelisted), or add your origin to the `huella-web` client.      |
-| Realm/client missing after `up`                                               | Import only runs on first boot                                                                                                                                                | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.            |
-| Admin console at `http://localhost:8081` shows "We are sorry… HTTPS required" | The admin console is served by the `master` realm, whose default `sslRequired=external`; the realm export only sets `sslRequired: none` on the `huella` realm, never `master` | Relax `master` to `sslRequired=NONE` (see below).                                                 |
+| Symptom                                                                       | Likely cause                                                                                                                                                                  | Fix                                                                                                     |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| API logs "JWKS client not configured"                                         | `JWKS_URI` empty                                                                                                                                                              | Set `JWKS_URI` (see host split above).                                                                  |
+| 401 on every API call, JWKS fetch fails                                       | API can't resolve the `JWKS_URI` host                                                                                                                                         | In compose use `http://keycloak:8080/...`; on host `pnpm dev` use `http://localhost:8081/...`.          |
+| "The iss claim value is not allowed"                                          | `JWKS_ISSUER` ≠ token `iss`                                                                                                                                                   | Set `JWKS_ISSUER=http://localhost:8081/realms/huella` (match `KC_HOSTNAME`).                            |
+| "The aud claim value is not allowed"                                          | `JWKS_AUDIENCE` ≠ `huella-api`                                                                                                                                                | Set `JWKS_AUDIENCE=huella-api` (the realm audience mapper).                                             |
+| "Token missing required scope"                                                | `access_as_user` not granted                                                                                                                                                  | It's a default client scope in the imported realm — confirm you're using the `huella-web` client.       |
+| `redirect_uri` error at login                                                 | Origin not covered by the `huella-web` client's `http://localhost:*` redirect ([generic explanation](../development/troubleshooting.md#oidc-redirect-uri-mismatch))           | Any `http://localhost:<port>` is accepted; for a non-localhost host, add it to the `huella-web` client. |
+| Realm/client missing after `up`                                               | Import only runs on first boot                                                                                                                                                | `docker compose ... down -v` to drop the `keycloak-db` volume, then `up` to re-import.                  |
+| Admin console at `http://localhost:8081` shows "We are sorry… HTTPS required" | The admin console is served by the `master` realm, whose default `sslRequired=external`; the realm export only sets `sslRequired: none` on the `huella` realm, never `master` | Relax `master` to `sslRequired=NONE` (see below).                                                       |
 
 ### "HTTPS required" on the admin console
 

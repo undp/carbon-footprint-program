@@ -11,7 +11,7 @@
 #
 # Per-worktree isolation (own API port + DB + OIDC) is opt-in via the
 # `eval "$(node scripts/dev/worktree-env.mjs)"` line in .envrc — see
-# docs/development/local-setup.md. Uncomment it in your PRIMARY clone's .envrc and
+# docs/development/worktree-isolation.md. Uncomment it in your PRIMARY clone's .envrc and
 # every worktree seeded here inherits it; this script does not edit .envrc.
 #
 # Idempotent and safe to re-run.

@@ -86,6 +86,7 @@ export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
 # port — all derived from the worktree path, so parallel worktrees never collide.
 # A single checkout does NOT need this: leave it commented and `pnpm dev` uses the
 # defaults (API 8080, web 5173). Keep it as the LAST line so it sees the values
-# above. Provision this worktree's database once with `pnpm db:restore`; drop it
-# with `pnpm db:drop:worktree`. See docs/development/local-setup.md.
+# above. Provision this worktree's database once with `pnpm db:provision`
+# (non-destructive); drop it with `pnpm db:drop:worktree`. See
+# docs/development/worktree-isolation.md.
 # eval "$(node scripts/dev/worktree-env.mjs)"
