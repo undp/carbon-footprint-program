@@ -155,7 +155,7 @@ with it. How each provider copes:
 - **Keycloak (recommended for worktree dev):** the dev realm accepts any
   `http://localhost:*` redirect URI and web origin, so a worktree whose web lands
   on any port completes the OIDC flow with no extra setup. See
-  [Keycloak Authentication Setup](../infrastructure/KeycloakAuthenticationSetup.md).
+  [Keycloak Setup](../infrastructure/KeycloakSetup.md).
 - **Azure Entra:** its SPA registration requires **exact** redirect URIs (no
   wildcard), so a floating web port won't match. Either prefer Keycloak for
   multi-worktree dev, or register the dev port range in the Azure app registration.
