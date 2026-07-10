@@ -180,8 +180,8 @@ The Huella Latam chatbot persists conversations to power per-user history and ri
 **Cookie security:**
 
 - Name: `chatbot_session_id`. Signed with `COOKIE_SECRET` via `@fastify/cookie`.
-- `HttpOnly`, `SameSite=Lax`, `Path=/api/chatbot`, `Max-Age=2592000` (sliding 30 days, refreshed on each interaction).
-- `Secure` is set when `NODE_ENV=production` and omitted otherwise (to permit local HTTP development).
+- `HttpOnly`, `Path=/api/chatbot`, `Max-Age=2592000` (sliding 30 days, refreshed on each interaction).
+- `SameSite=None; Secure` in production — the web app and API are served from different registrable domains (cross-site), so the cookie must be `SameSite=None` (which requires `Secure`) to ride the frontend's `credentials: "include"` requests. In local dev it is `SameSite=Lax` without `Secure` (plain HTTP; the Vite proxy keeps the widget same-origin). The clearing cookie emitted on delete mirrors these attributes.
 - A tampered cookie (signature invalid) is treated as no session and a fresh one is minted.
 
 **Right to be forgotten:**

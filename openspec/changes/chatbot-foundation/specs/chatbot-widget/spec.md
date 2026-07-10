@@ -37,9 +37,9 @@ The widget SHALL render exactly one of the following six canonical states at any
 - **empty** — no conversation visible
 - **loading** — request initiated but no chunk yet received
 - **streaming** — at least one chunk received, stream not yet terminated
-- **error** — request failed before any chunk was received (HTTP 4xx, HTTP 5xx, or network error during initial connection)
+- **error** — a failed turn: a transport failure, a non-OK HTTP response (4xx/5xx), or a terminal SSE `error` event; the input stays enabled so the user can resend
 - **truncated** — stream was interrupted mid-turn; the partial content is visible and labeled as incomplete
-- **degraded** — two consecutive failed connection attempts when initiating a new turn; streaming path disabled, user sees an explicit error message and SHALL NOT receive automatic retries
+- **degraded** — two consecutive failed turns (transport-level or HTTP 5xx); the widget shows an escalated "assistant unavailable, try again later" message but keeps the input enabled for a manual retry (no polling, no automatic retries)
 
 The widget's root element SHALL carry `data-testid="chatbot-widget"` plus a `data-state="<state>"` attribute whose value is one of the six canonical state names above. Tests SHALL reach the widget via the `data-testid` selector and assert the entered state via `data-state`.
 
@@ -79,40 +79,54 @@ When `POST /api/chatbot/message` responds with a non-streaming HTTP error (4xx o
 - **WHEN** the API responds with any 4xx or 5xx status not specifically handled above (e.g., 400 from a malformed body, an unexpected 500)
 - **THEN** the widget SHALL transition to the `error` state and display a generic Spanish error message
 
-### Requirement: Reconnection model — two-strike fallback applies only to new-turn initiation
+### Requirement: Failure handling — no auto-retry; consecutive failures escalate `error` → `degraded`
 
-When the widget initiates a new turn (the initial `fetch` call), it SHALL retry once after a short backoff if the request fails at the transport level (network error, DNS failure, immediate connection close before any response head). On a second consecutive failure when initiating that same new turn, the widget SHALL transition into the `degraded` state, displaying an explicit error to the user. In `degraded` state the widget SHALL NOT issue further requests automatically; the next user-initiated turn SHALL re-attempt the streaming path with a reset retry counter. **Mid-turn disconnects** (transport drops after the response head was received) SHALL NEVER trigger a retry — they SHALL transition the widget into the `truncated` state with no replay attempt.
+`POST /api/chatbot/message` is non-idempotent (it appends a turn and triggers an LLM run), so the widget SHALL NOT auto-retry a turn — a `fetch` rejection does not prove the request never reached the server, and a retry could double-submit. Each turn is a single attempt, guarded by a per-turn `AbortController` (an idle timeout, an overall wall-clock timeout, a user-facing **Stop** control, and abort-on-unmount).
 
-#### Scenario: First-attempt transport failure retries once
+Failures escalate via a consecutive-failure counter:
 
-- **WHEN** the initial `fetch` for a new turn fails at the transport level
-- **THEN** the widget SHALL retry the same request once after a short backoff, before considering the turn failed
+- A single failed turn — a transport-level failure, a non-OK HTTP response, or a terminal SSE `error` event — SHALL transition the widget to `error`. `error` is recoverable: the input stays enabled so the user can resend.
+- Two **consecutive** failures that are transport-level **or** HTTP `5xx` SHALL transition the widget to `degraded` — an honest "assistant unavailable, try again later" escalation. `degraded` also keeps the input enabled (retry in place, non-destructive), and the widget SHALL NOT poll or issue any automatic/background request.
+- A `4xx` response (e.g. `413`) is a per-turn `error` and SHALL reset the counter (the backend answered, so it is reachable).
+- A successful turn SHALL reset the counter.
 
-#### Scenario: Second consecutive transport failure enters degraded state
+A user cancel (Stop), unmount, or a client timeout that aborts a turn before any response is a deliberate cancel, not a failure, and SHALL NOT increment the counter. **Mid-turn disconnects** (transport drops after the stream began) SHALL transition the widget to `truncated` with no replay — never a retry.
 
-- **WHEN** both the initial `fetch` and its single retry fail at the transport level for the same new turn
-- **THEN** the widget SHALL transition to the `degraded` state, display an explicit error to the user, and SHALL NOT issue any further requests until the user starts a new turn
+#### Scenario: A single failed turn is recoverable `error`
 
-#### Scenario: New user-initiated turn after degraded state resets the counter
+- **WHEN** a turn fails once (transport failure, non-OK response, or terminal SSE `error` event)
+- **THEN** the widget SHALL transition to `error`, keep the input enabled, and SHALL NOT auto-retry
 
-- **WHEN** the widget is in `degraded` state and the user types and sends a new message
-- **THEN** the retry counter SHALL reset to zero and the widget SHALL re-attempt the streaming path
+#### Scenario: Two consecutive transport/5xx failures enter `degraded`
 
-#### Scenario: Mid-turn disconnect never retries
+- **WHEN** two consecutive turns fail at the transport level or with HTTP `5xx`
+- **THEN** the widget SHALL transition to `degraded`, show the escalated message, keep the input enabled, and issue no automatic or background requests
+
+#### Scenario: A 4xx failure does not escalate
+
+- **WHEN** a turn fails with a `4xx` response (e.g. `413`)
+- **THEN** the widget SHALL transition to `error` and reset the consecutive-failure counter, so it does not count toward `degraded`
+
+#### Scenario: Mid-turn disconnect truncates, never retries
 
 - **WHEN** the SSE stream is interrupted after the response head was received and at least one chunk had a chance to be processed
 - **THEN** the widget SHALL transition to `truncated` and SHALL NOT issue an automatic retry, regardless of how many bytes had been received
 
-### Requirement: Widget sends `Last-Event-ID` on reconnection but expects no replay
+#### Scenario: Stop / unmount / timeout is a cancel, not a failure
 
-When the widget initiates a retry after a transport failure, it SHALL include the `Last-Event-ID` HTTP header carrying the ID of the last SSE event observed (or omit the header if none was observed). The widget SHALL NOT assume the server replays prior events — `chatbot-message-streaming` defines that the server treats reconnection as a fresh request. This requirement preserves forward compatibility for V1+ if a server-side replay buffer is later introduced.
+- **WHEN** the user presses Stop, the widget unmounts, or a client timeout aborts the in-flight turn
+- **THEN** the request SHALL be aborted and the cancel SHALL NOT increment the consecutive-failure counter
 
-In foundation, this header is forward-compatible plumbing only — the typical retry path (transport failure during the initial `fetch` before any event has been received) will omit the header, and the typical mid-turn disconnect explicitly does not retry (see the reconnection requirement below). This requirement preserves the contract for V1+ if server-side replay is added; it is acknowledged that the practical exercise of `Last-Event-ID` in foundation is near-zero.
+### Requirement: Widget sends `Last-Event-ID` when available but expects no replay
 
-#### Scenario: Last-Event-ID sent on retry
+The widget tracks the `id:` of the last SSE event observed during a turn and SHALL include it as a `Last-Event-ID` HTTP header on a request when one is available (omitting the header otherwise). The widget SHALL NOT assume the server replays prior events — `chatbot-message-streaming` defines that the server treats every request as fresh. This is forward-compatible plumbing for V1+ if a server-side replay buffer is later added.
 
-- **WHEN** the widget retries the initial `fetch` after a transport failure where at least one event with an `id:` field was observed
-- **THEN** the retry request SHALL include a `Last-Event-ID` header carrying that ID
+In foundation this header is effectively never sent: the tracked ID is reset at the start of each turn and only populated while a stream is being consumed, and there is no retry within a turn — so a fresh turn's single request carries no prior ID. The requirement preserves the contract for V1+; its practical exercise in foundation is near-zero.
+
+#### Scenario: Last-Event-ID included when a prior event ID is available
+
+- **WHEN** the widget issues a request and a prior SSE event with an `id:` field is available in scope
+- **THEN** the request SHALL include a `Last-Event-ID` header carrying that ID; otherwise the header SHALL be omitted
 
 #### Scenario: Widget does not assume replay
 

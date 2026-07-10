@@ -269,8 +269,8 @@ The migration SHALL create the following indexes on the chatbot tables:
 The signed session cookie used to identify anonymous chatbot callers SHALL be set with all of the following properties:
 
 - `httpOnly` SHALL be `true`
-- `sameSite` SHALL be `lax`
-- `secure` SHALL be `true` when `NODE_ENV=production`, and `false` otherwise (to permit local development over HTTP)
+- `sameSite` SHALL be `none` when `NODE_ENV=production` (the web app and API are served cross-site, so `Lax` would drop the cookie on `credentials: "include"` requests), and `lax` otherwise (local dev, where the Vite proxy keeps requests same-origin)
+- `secure` SHALL be `true` when `NODE_ENV=production` (required by `SameSite=None`), and `false` otherwise (to permit local development over HTTP)
 - the value SHALL be signed using `COOKIE_SECRET` via `@fastify/cookie`'s signing API
 - the cookie name SHALL be `chatbot_session_id`
 - `path` SHALL be `/api/chatbot`
@@ -281,10 +281,10 @@ The signed session cookie used to identify anonymous chatbot callers SHALL be se
 - **WHEN** an anonymous client posts a chat message without an existing `chatbot_session_id` cookie and `NODE_ENV` is `development`
 - **THEN** the response SHALL include a `Set-Cookie` header for `chatbot_session_id` with attributes `HttpOnly`, `SameSite=Lax`, `Path=/api/chatbot`, `Max-Age=2592000`, and a signed value, and the header SHALL NOT include `Secure`
 
-#### Scenario: Cookie marked Secure in production
+#### Scenario: Cookie marked SameSite=None; Secure in production
 
 - **WHEN** the cookie is set with `NODE_ENV=production`
-- **THEN** the `Set-Cookie` header SHALL include the `Secure` attribute in addition to all other attributes above
+- **THEN** the `Set-Cookie` header SHALL include `SameSite=None` and `Secure` (for the cross-site deployment), in addition to all other attributes above
 
 #### Scenario: Tampered cookie rejected and replaced
 

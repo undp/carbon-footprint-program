@@ -51,12 +51,12 @@ If neither `currentUser` nor a valid signed `chatbot_session_id` cookie is prese
 
 ### Requirement: Anonymous deletion clears the session cookie
 
-When the caller is anonymous and carried a valid signed `chatbot_session_id` cookie on the request (whether or not any conversation rows actually matched), the response SHALL clear the cookie via a `Set-Cookie: chatbot_session_id=; Max-Age=0; Path=/api/chatbot; HttpOnly; SameSite=Lax` header (with `Secure` appended when `NODE_ENV=production`). This aligns with the 30-day retention and right-to-be-forgotten policy (see `design.md` §Background Context, D11) — after a deletion, no chatbot trace SHALL remain in the user's browser. The no-identity and tampered-cookie cases are covered by the `Caller without identity returns 204 (no-op)` requirement above; the scenarios below cover only the valid-signed-cookie path. The authenticated-caller anti-scenario stays here because it scopes the cookie-clearing behavior to anonymous callers exclusively.
+When the caller is anonymous and carried a valid signed `chatbot_session_id` cookie on the request (whether or not any conversation rows actually matched), the response SHALL clear the cookie with a `Set-Cookie` header carrying **the same attributes the cookie was set with** — `Max-Age=0`, `Path=/api/chatbot`, `HttpOnly`, plus the environment-appropriate `SameSite`/`Secure` (`SameSite=None; Secure` in production, `SameSite=Lax` in local dev). Mirroring the set attributes is what lets the browser reliably delete the cookie. This aligns with the 30-day retention and right-to-be-forgotten policy (see `design.md` §Background Context, D11) — after a deletion, no chatbot trace SHALL remain in the user's browser. The no-identity and tampered-cookie cases are covered by the `Caller without identity returns 204 (no-op)` requirement above; the scenarios below cover only the valid-signed-cookie path. The authenticated-caller anti-scenario stays here because it scopes the cookie-clearing behavior to anonymous callers exclusively.
 
 #### Scenario: Anonymous caller with valid cookie has cookie cleared on success
 
 - **WHEN** an anonymous caller posts the deletion endpoint with a valid signed `chatbot_session_id` cookie matching one or more conversations
-- **THEN** the response SHALL be HTTP 204 AND SHALL include a `Set-Cookie` header that clears `chatbot_session_id` with `Max-Age=0`, `Path=/api/chatbot`, `HttpOnly`, and `SameSite=Lax`
+- **THEN** the response SHALL be HTTP 204 AND SHALL include a `Set-Cookie` header that clears `chatbot_session_id` with `Max-Age=0`, `Path=/api/chatbot`, `HttpOnly`, and the same `SameSite`/`Secure` attributes the cookie was set with for the environment
 
 #### Scenario: Anonymous caller with valid cookie but no matching rows still has cookie cleared
 
