@@ -107,7 +107,7 @@ The system SHALL persist chat messages in the `chatbot_chat_message` table. Each
 
 ### Requirement: Assistant message finalization is idempotent via conditional UPDATE
 
-The system SHALL guarantee that the success-path finalization of the assistant message and the mid-stream disconnect finalization are mutually exclusive at the database level via the invariant: `latency_ms IS NOT NULL` ⟺ the row was finalized successfully. The success path SHALL always set `latency_ms` to a non-negative integer in the same UPDATE that writes the final content and `tokens_used`. The disconnect handler SHALL emit a conditional UPDATE whose WHERE clause filters on `latency_ms IS NULL`, so it becomes a no-op if the success path has already finalized the row. No other code path SHALL set `latency_ms`.
+The system SHALL guarantee that every finalization path for the assistant message is governed by the invariant `latency_ms IS NOT NULL` ⟺ the row was finalized successfully. Three code paths may finalize the row: (1) the **success path**, which SHALL always set `latency_ms` to a non-negative integer in the same UPDATE that writes the final content and `tokens_used`; (2) the **client-disconnect handler** (`reply.raw.on('close')`), which SHALL emit a conditional UPDATE whose WHERE clause filters on `latency_ms IS NULL`, marking the row `truncated = true` with the partial content; and (3) the **mid-stream provider-error handler**, which SHALL likewise UPDATE the row `truncated = true` with the partial content under the same `latency_ms IS NULL` guard. Only the success path SHALL ever set `latency_ms`; because paths (2) and (3) are conditional on `latency_ms IS NULL`, they become no-ops once the success path has finalized the row. At most one of the three runs to effect per turn: the error handler ends the response synchronously (`reply.raw.end()` sets `writableEnded`), which trips the disconnect handler's `writableEnded` short-circuit, so the disconnect and error paths never both write.
 
 #### Scenario: Success-path finalization sets latency_ms
 
@@ -118,6 +118,11 @@ The system SHALL guarantee that the success-path finalization of the assistant m
 
 - **WHEN** the `reply.raw.on('close')` handler fires
 - **THEN** it SHALL emit `UPDATE chatbot_chat_message SET truncated = true, content = $partial WHERE id = $assistantRowId AND latency_ms IS NULL`, which is a no-op if the success path already finalized the row
+
+#### Scenario: Mid-stream provider-error finalization is conditional
+
+- **WHEN** the LLM provider errors after the response head was sent while the client is still connected
+- **THEN** the handler SHALL UPDATE the assistant row `SET truncated = true, content = $partial WHERE id = $assistantRowId AND latency_ms IS NULL` before emitting the terminal SSE error event, leaving `latency_ms` NULL so `loadConversationHistory` excludes the failed turn from future prompts
 
 #### Scenario: No race condition produces inconsistent state
 

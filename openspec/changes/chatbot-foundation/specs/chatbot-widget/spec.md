@@ -62,17 +62,17 @@ Final visual treatment, copy, and animation are NOT defined here — that is the
 
 ### Requirement: Widget surfaces server-side error responses with state-appropriate messaging
 
-When `POST /api/chatbot/message` responds with a non-streaming HTTP error (4xx or 5xx, where the response head is an error status rather than a `text/event-stream` 200), the widget SHALL transition to the `error` state and display a user-facing Spanish message whose tone matches the underlying cause. The widget SHALL distinguish at least the two error codes explicitly defined in `chatbot-message-streaming`: `REQUEST_TOO_LARGE` (413) and `EXTERNAL_SERVICE_ERROR` (503). Any other 4xx or 5xx SHALL surface a generic error message.
+When `POST /api/chatbot/message` responds with a non-streaming HTTP error (4xx or 5xx, where the response head is an error status rather than a `text/event-stream` 200), the widget SHALL surface a user-facing Spanish message whose tone matches the underlying cause and SHALL feed the failure into the escalation state machine defined in _Failure handling — no auto-retry; consecutive failures escalate `error` → `degraded`_ below. A `413` (`REQUEST_TOO_LARGE`) SHALL surface an input-too-large message and reset the failure counter. For a `503` the widget SHALL opportunistically display a `message` field parsed from the response body when present, falling back to a generic message otherwise; all other `4xx`/`5xx` and unexpected statuses SHALL surface a generic message. Note: the chatbot handler itself never returns an HTTP `503` — provider failures arrive as a terminal SSE `error` event on an already-open `200` stream (see `chatbot-message-streaming`), so a `5xx` reaching this path originates from the framework or fronting infrastructure (e.g. `@fastify/under-pressure` load-shedding).
 
 #### Scenario: HTTP 413 surfaces an input-too-large message
 
 - **WHEN** the API responds with HTTP 413 and body `{ code: "REQUEST_TOO_LARGE", ... }`
 - **THEN** the widget SHALL transition to the `error` state and display a user-facing Spanish message indicating that the input was too large (e.g., "Tu mensaje es demasiado largo")
 
-#### Scenario: HTTP 503 surfaces the message returned by the API
+#### Scenario: A 503 opportunistically surfaces a body `message`
 
-- **WHEN** the API responds with HTTP 503 and body `{ code: "EXTERNAL_SERVICE_ERROR", message: <string> }`
-- **THEN** the widget SHALL transition to the `error` state and display the `message` field from the response body as the user-facing text, rather than hardcoding a parallel string. The API populates `message` from the `CHATBOT_GENERIC_ERROR_MESSAGE` constant defined in `chatbot-message-streaming`, so the user-facing copy stays in sync with the server-side source of truth without the widget needing to know the literal Spanish phrase
+- **WHEN** the API or fronting infrastructure responds with HTTP 503 carrying a JSON body with a `message` field (e.g. `@fastify/under-pressure` load-shedding)
+- **THEN** the widget SHALL display that `message` field as the user-facing text rather than hardcoding a parallel string, and SHALL fall back to a generic Spanish message when the body carries no `message` field; escalation to `degraded` after two consecutive `5xx`/transport failures is governed by the failure-handling requirement below
 
 #### Scenario: Other 4xx/5xx surface a generic error message
 

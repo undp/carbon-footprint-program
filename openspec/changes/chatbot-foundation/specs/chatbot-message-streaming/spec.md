@@ -158,7 +158,7 @@ data: {"inputTokens":N,"outputTokens":M}
 
 ### Requirement: LLM provider failures surface as `EXTERNAL_SERVICE_ERROR`
 
-When the configured `LLMProvider` raises an error (timeout, upstream 5xx, abort) before the response head has been sent, the handler SHALL respond with HTTP 503 and code `EXTERNAL_SERVICE_ERROR` (via the `ExternalServiceError` factory). The handler SHALL NOT leak the underlying provider's error message to the client; the message SHALL be the value of the constant `CHATBOT_GENERIC_ERROR_MESSAGE` exported from `apps/api/src/features/chatbot/constants.ts`. The current value of that constant is `"El asistente no está disponible en este momento. Por favor intenta nuevamente."`. The handler and the integration tests SHALL import the constant by name; no module SHALL transcribe the literal Spanish string. When the failure happens after the response head has been sent (mid-stream), the handler SHALL emit a terminal SSE error event with the exact wire format defined below and rely on the disconnect handler to mark the assistant row `truncated = true`.
+The configured `LLMProvider.streamCompletion` is a lazy async generator: invoking it only builds the iterator and cannot throw synchronously — the provider body (the network call included) runs inside the consuming `for await`, which the handler enters only after `reply.hijack()` and the SSE headers have been written. A pre-stream failure is therefore impossible; every provider error (timeout, upstream 5xx, abort) surfaces mid-stream as a terminal SSE `error` event, never as a pre-stream HTTP status. The handler SHALL NOT leak the underlying provider's error message to the client; the message SHALL be the value of the constant `CHATBOT_GENERIC_ERROR_MESSAGE` exported from `apps/api/src/features/chatbot/constants.ts`. The current value of that constant is `"El asistente no está disponible en este momento. Por favor intenta nuevamente."`. The handler and the integration tests SHALL import the constant by name; no module SHALL transcribe the literal Spanish string. On a provider error while the client is still connected the handler SHALL (a) finalize the in-flight assistant row as `truncated = true` with the partial content accumulated so far, via a conditional UPDATE guarded on `latency_ms IS NULL` (see `chatbot-conversation-persistence`), then (b) emit the terminal SSE error event with the exact wire format defined below and end the response.
 
 The terminal SSE error event SHALL have the following exact wire shape:
 
@@ -170,10 +170,10 @@ data: {"code":"EXTERNAL_SERVICE_ERROR","message":"<value of CHATBOT_GENERIC_ERRO
 
 (That is, an `event: error` field, a `data:` field whose value is the JSON object literal with keys `code` and `message`, where `message` is the value of `CHATBOT_GENERIC_ERROR_MESSAGE`, and the trailing blank line that terminates an SSE event.) The shape of this event is part of the API contract — both the widget hook and the integration tests consume it.
 
-#### Scenario: Provider failure before stream starts
+#### Scenario: Provider error before the first chunk still surfaces as a terminal SSE error event
 
-- **WHEN** the configured `LLMProvider.streamCompletion` rejects before yielding the first chunk
-- **THEN** the response SHALL be HTTP 503 with body `{ code: "EXTERNAL_SERVICE_ERROR", message: <value of CHATBOT_GENERIC_ERROR_MESSAGE> }` and SHALL NOT contain provider-specific details
+- **WHEN** the configured `LLMProvider.streamCompletion` errors on its first iteration, before yielding any `delta` chunk
+- **THEN** the response SHALL already be an SSE stream (headers written on `reply.hijack()`), the handler SHALL mark the assistant row `truncated = true` (with empty partial content), emit exactly one terminal SSE `event: error` with `data: {"code":"EXTERNAL_SERVICE_ERROR","message":<value of CHATBOT_GENERIC_ERROR_MESSAGE>}`, and close the connection — there SHALL be no pre-stream HTTP 503 response
 
 #### Scenario: Provider failure mid-stream emits the documented error event
 
@@ -183,18 +183,18 @@ data: {"code":"EXTERNAL_SERVICE_ERROR","message":"<value of CHATBOT_GENERIC_ERRO
 #### Scenario: Mid-stream error event omits provider-specific details
 
 - **WHEN** the underlying provider error contains stack traces, upstream IDs, or vendor-specific fields
-- **THEN** the SSE error event's `data.message` SHALL be the value of `CHATBOT_GENERIC_ERROR_MESSAGE` — identical to the one used for pre-stream 503 responses — and SHALL NOT include any of those provider-specific details
+- **THEN** the SSE error event's `data.message` SHALL be the value of `CHATBOT_GENERIC_ERROR_MESSAGE` — the same generic message surfaced on any provider failure — and SHALL NOT include any of those provider-specific details
 
 ### Requirement: Route schema declares response shapes for all relevant HTTP status codes
 
-The route schema in `apps/api/src/features/chatbot/sendMessage/route.ts` SHALL declare Zod schemas for every HTTP status code the endpoint can return: 200 (streaming success), 400 (malformed request body), 413 (`REQUEST_TOO_LARGE`), 500 (unexpected server error), and 503 (`EXTERNAL_SERVICE_ERROR`). Schemas SHALL live in `packages/types/src/chatbot/sendMessage/` and be reused.
+The route schema in `apps/api/src/features/chatbot/sendMessage/route.ts` SHALL declare Zod schemas for every HTTP status code the endpoint can return: 200 (streaming success), 400 (malformed request body), 413 (`REQUEST_TOO_LARGE`), and 500 (unexpected server error). There is no 503 status: provider failures surface as a mid-stream terminal SSE `error` event over the already-open 200 stream (see the requirement above), not as an HTTP error response. Schemas SHALL live in `packages/types/src/chatbot/sendMessage/` and be reused.
 
 The 200 response schema documents the SSE event payload shapes (`delta`, `done`, `error`) for OpenAPI/Swagger generation but is NOT applied as Fastify validation or serialization, because the handler hijacks the response via `reply.hijack()` and writes the SSE wire format directly. This means Fastify's Zod type provider does not serialize a JSON body for 200 responses — the schema's role for this status code is purely documentation.
 
 #### Scenario: Schemas exist for each status code
 
 - **WHEN** the route definition is inspected
-- **THEN** the `schema.response` map SHALL include keys `200`, `400`, `413`, `500`, and `503`, each pointing at a Zod schema
+- **THEN** the `schema.response` map SHALL include keys `200`, `400`, `413`, and `500`, each pointing at a Zod schema, and SHALL NOT include a `503` key
 
 #### Scenario: Malformed request body rejected with 400
 
