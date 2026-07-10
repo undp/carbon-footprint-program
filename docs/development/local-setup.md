@@ -326,6 +326,36 @@ use their own Testcontainers Postgres).
 - **When you delete a worktree:** `pnpm db:drop:worktree` removes its database;
   its port is reclaimed automatically on the next assignment.
 
+### Automating worktree setup/teardown (ADEs)
+
+If you use an Agentic Development Environment (Emdash, Superset, …) with lifecycle
+hooks, point them at the versioned scripts so a new worktree comes up ready and a
+removed one cleans up after itself:
+
+- **On create** → `bash scripts/dev/worktree-setup.sh` — seeds the gitignored env
+  files (`.envrc`, `infra/.envrc`) from the primary clone, `direnv allow`s them,
+  then runs `pnpm install`, `pnpm build`, and `pnpm db:provision`.
+- **On destroy** → `bash scripts/dev/worktree-teardown.sh` — drops this worktree's
+  database via `pnpm db:drop:worktree`; the API port is released automatically.
+
+Because setup copies `.envrc` from the primary clone, **enable isolation once in
+your primary clone's `.envrc`** (uncomment the `eval "$(node scripts/dev/worktree-env.mjs)"`
+line) and every worktree seeded from it inherits it — the setup script never edits
+`.envrc` itself.
+
+Example — Superset `.superset/config.json` (this file stays local / gitignored):
+
+```json
+{
+  "setup": ["bash scripts/dev/worktree-setup.sh"],
+  "teardown": ["bash scripts/dev/worktree-teardown.sh"]
+}
+```
+
+For Emdash, set the same two commands as its worktree setup/teardown hooks. The ADE
+config is tool- and machine-specific — keep it local (gitignored); only the scripts
+it calls are versioned here.
+
 ### Creating a New Migration
 
 After modifying `packages/database/src/prisma/schema.prisma`:
