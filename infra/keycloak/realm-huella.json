@@ -174,16 +174,11 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "fullScopeAllowed": false,
-      "redirectUris": [
-        "http://localhost:5173/auth/callback",
-        "http://localhost:5173/*",
-        "http://localhost:3000/auth/callback",
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": ["http://localhost:5173", "http://localhost:3000"],
+      "redirectUris": ["http://localhost:*"],
+      "webOrigins": ["*"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:3000/*"
+        "post.logout.redirect.uris": "http://localhost:*"
       },
       "defaultClientScopes": ["basic", "profile", "email", "access_as_user"],
       "optionalClientScopes": ["offline_access"],
