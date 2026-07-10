@@ -107,7 +107,7 @@ services:
         VITE_OIDC_ISSUER: ${VITE_OIDC_ISSUER:?VITE_OIDC_ISSUER is required (the OIDC issuer / authority URL)}
         VITE_OIDC_CLIENT_ID: ${VITE_OIDC_CLIENT_ID:?VITE_OIDC_CLIENT_ID is required (public SPA client id)}
         VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:?VITE_OIDC_REDIRECT_URI is required (browser-reachable /auth/callback URL)}
-        VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:?VITE_OIDC_SCOPES is required (e.g. "openid profile email offline_access"; the app fails loud at boot if empty)}
+        VITE_OIDC_SCOPES: ${VITE_OIDC_SCOPES:?VITE_OIDC_SCOPES is required (e.g. "openid profile email"; the app fails loud at boot if empty)}
         VITE_OIDC_POST_LOGOUT_REDIRECT_URI: ${VITE_OIDC_POST_LOGOUT_REDIRECT_URI:-}
         # Browser-facing object-storage origin baked into the nginx CSP
         # (connect-src/img-src) — e.g. https://storage.example.com (MinIO) or
