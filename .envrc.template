@@ -83,3 +83,17 @@ export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL}/auth/callback"
 export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
 export VITE_CHATBOT_ENABLED="true"   # show the chatbot widget (mirror of CHATBOT_ENABLED)
 # export VITE_LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation in the web app for local testing
+
+# ============================================================================
+# Optional: git-worktree isolation (advanced)
+# ============================================================================
+# Uncomment the line below ONLY if you run several git worktrees of this repo at
+# the same time and need them side by side. It gives THIS worktree its own API
+# port, its own local database, and OIDC redirects that follow the actual web
+# port — all derived from the worktree path, so parallel worktrees never collide.
+# A single checkout does NOT need this: leave it commented and `pnpm dev` uses the
+# defaults (API 8080, web 5173). Keep it as the LAST line so it sees the values
+# above. Provision this worktree's database once with `pnpm db:provision`
+# (non-destructive); drop it with `pnpm db:drop:worktree`. See
+# docs/development/worktree-isolation.md.
+# eval "$(node scripts/dev/worktree-env.mjs)"
