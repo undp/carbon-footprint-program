@@ -9,7 +9,19 @@ description: How to finish and ship a change in this repo. Use when committing, 
 
 ## PR titles
 
-Use the `[AREA] Type: description` format (e.g. `[API] Feat: ...`, `[FRONT] Fix: ...`, `[Fullstack] Refactor: ...`), not the commit-style `type(scope):`.
+Use a plain, descriptive phrase of the change — no prefixes (e.g. `Add carbon inventory export`, `Fix duplicate emissions on re-import`). Don't use the commit-style `type(scope):` or a `[AREA] Type:` prefix; the area and type of the change are expressed through labels (see below), not the title.
+
+## PR labels
+
+Apply the repo's **namespaced** labels when opening a PR — never bare/legacy ones. These carry the area and type of the change that used to live in the title. The source of truth is `.github/labels.yml` (managed as code and synced to the repo; a label removed there is removed from the repo).
+
+- `type:` — the kind of change (replaces the old `Type:` title prefix): `bug` / `feature` / `refactor` / `tech-debt` / `performance` / `chore` / `security` / `docs` / `dpg` (align it with the PR's "Type of change" checkbox).
+- `area:` — the part of the monorepo touched (replaces the old `[AREA]` title prefix): `web` / `api` / `database` / `packages` / `infra` / `ci` / `docs`. Add more than one for cross-cutting PRs.
+- `priority:` — `critical` / `high` / `medium` / `low`. Always **ask the user** which priority level applies before opening the PR, and apply the matching label; never guess it.
+- Leave `status:` labels (`triage` / `blocked` / `needs-repro` / `duplicate` / `wontfix`) to triage; only add one if it genuinely applies (e.g. `blocked`).
+- Don't hand-apply the Dependabot-managed labels (`dependencies`, `github_actions`, `docker`, `javascript`) — those are auto-applied to dependency PRs.
+
+Apply labels at creation time: `gh pr create ... --label "type: feature" --label "area: api"`. This mirrors the namespaced taxonomy the issue-form templates auto-apply, keeping triage and filtering consistent.
 
 ## Reviewer interaction
 
