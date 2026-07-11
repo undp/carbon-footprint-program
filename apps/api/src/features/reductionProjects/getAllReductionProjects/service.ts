@@ -12,6 +12,7 @@ import { ReductionProjectStatus } from "@repo/types";
 import { mapReductionProjectToListItem } from "../mappers.js";
 import {
   calculateReductionProjectDisplayStatus,
+  reductionProjectCompletenessSelect,
   reductionProjectSubmissionFilter,
   reductionProjectWithSubmissionsMinimalSelect,
 } from "../helpers.js";
@@ -57,16 +58,16 @@ export const getAllReductionProjectsService = async (
     },
     select: {
       ...reductionProjectWithSubmissionsMinimalSelect,
+      ...reductionProjectCompletenessSelect,
       name: true,
-      year: true,
       createdAt: true,
-      baselineScenario: true,
-      projectScenario: true,
+      organizationId: true,
       organization: {
         select: {
           summary: {
             select: {
               name: true,
+              displayStatus: true,
             },
           },
         },

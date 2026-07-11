@@ -12,3 +12,7 @@ export * from "./getReductionProjectAccess/schemas.js";
 export * from "./getReductionProjectAccess/types.js";
 export * from "./updateReductionProject/schemas.js";
 export * from "./updateReductionProject/types.js";
+export * from "./requestVerification/schemas.js";
+export * from "./requestVerification/types.js";
+export * from "./deleteReductionProject/schemas.js";
+export * from "./deleteReductionProject/types.js";

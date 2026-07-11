@@ -31,9 +31,9 @@ export const BlockedOrganizationDialog: FC<BlockedOrganizationDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="blocked-organization-dialog-description">
-          No es posible enviar este inventario porque la{" "}
-          {VOCAB.organization.noun.singular} asociada se encuentra bloqueada.
-          Por favor, contacte al administrador para más información.
+          No es posible continuar porque la {VOCAB.organization.noun.singular}{" "}
+          asociada se encuentra bloqueada. Por favor, contacte al administrador
+          para más información.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
