@@ -41,20 +41,25 @@ export const OnboardingStep: FC<Props> = ({
 }) => {
   const theme = useTheme();
 
-  const circleSx =
-    state === "active"
-      ? { bgcolor: "primary.main", color: "common.white" }
-      : state === "done"
-        ? {
-            bgcolor: alpha(theme.palette.success.main, 0.15),
-            color: "success.main",
-          }
-        : state === "pending"
-          ? {
-              bgcolor: alpha(theme.palette.warning.main, 0.15),
-              color: "warning.main",
-            }
-          : { bgcolor: "grey.100", color: "text.disabled" };
+  const circleSx: Record<OnboardingStepState, SxProps<Theme>> = {
+    active: { bgcolor: "primary.main", color: "common.white" },
+    done: {
+      bgcolor: alpha(theme.palette.success.main, 0.15),
+      color: "success.main",
+    },
+    pending: {
+      bgcolor: alpha(theme.palette.warning.main, 0.15),
+      color: "warning.main",
+    },
+    locked: { bgcolor: "grey.100", color: "text.disabled" },
+  };
+
+  const stepIcon: Record<OnboardingStepState, ReactNode> = {
+    done: <CheckRounded fontSize="small" />,
+    pending: <ScheduleRounded fontSize="small" />,
+    locked: <LockRounded fontSize="small" />,
+    active: index,
+  };
 
   const tagSx: Record<StepTag["variant"], SxProps<Theme>> = {
     next: {
@@ -81,17 +86,9 @@ export const OnboardingStep: FC<Props> = ({
     >
       <Box
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
-        sx={circleSx}
+        sx={circleSx[state]}
       >
-        {state === "done" ? (
-          <CheckRounded fontSize="small" />
-        ) : state === "pending" ? (
-          <ScheduleRounded fontSize="small" />
-        ) : state === "locked" ? (
-          <LockRounded fontSize="small" />
-        ) : (
-          index
-        )}
+        {stepIcon[state]}
       </Box>
 
       <Box className="min-w-0 flex-1">
