@@ -189,6 +189,7 @@ export const WelcomeHome: FC<Props> = ({
 
         {ONBOARDING_STEPS.map((step, index) => {
           const view = step.view(ctx);
+          const { secondaryCta } = view;
           const action =
             view.state === "active" && view.activeCta ? (
               <Button
@@ -206,13 +207,13 @@ export const WelcomeHome: FC<Props> = ({
               >
                 {view.activeCta}
               </Button>
-            ) : view.secondaryCta ? (
+            ) : secondaryCta ? (
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => void navigate({ to: view.secondaryCta!.to })}
+                onClick={() => void navigate({ to: secondaryCta.to })}
               >
-                {view.secondaryCta.label}
+                {secondaryCta.label}
               </Button>
             ) : undefined;
 
