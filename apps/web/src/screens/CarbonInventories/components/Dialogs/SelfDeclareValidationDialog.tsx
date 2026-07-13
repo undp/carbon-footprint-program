@@ -8,16 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import { VOCAB } from "@/config/vocab";
-
-export type SelfDeclareValidationReason =
-  | "missing-organization"
-  | "missing-year"
-  | "missing-name"
-  | "missing-lines"
-  | "missing-completed-lines"
-  | "inventory-year-already-declared"
-  | "organization-not-accredited"
-  | null;
+import type { SelfDeclareValidationReason } from "../../utils/selfDeclareValidation";
 
 interface SelfDeclareValidationDialogProps {
   open: boolean;

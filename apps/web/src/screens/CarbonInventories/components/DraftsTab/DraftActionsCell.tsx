@@ -17,10 +17,7 @@ import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import { AssociateOrganizationDialog } from "../Dialogs/AssociateOrganizationDialog";
-import {
-  SelfDeclareValidationDialog,
-  type SelfDeclareValidationReason,
-} from "../Dialogs/SelfDeclareValidationDialog";
+import { SelfDeclareValidationDialog } from "../Dialogs/SelfDeclareValidationDialog";
 import { enqueueSnackbar } from "notistack";
 import {
   useDeleteCarbonInventory,
@@ -37,7 +34,10 @@ import {
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useDownloadCarbonInventory } from "@/hooks";
-import { getSelfDeclareValidationReason } from "../../utils/selfDeclareValidation";
+import {
+  getSelfDeclareValidationReason,
+  type SelfDeclareValidationReason,
+} from "../../utils/selfDeclareValidation";
 import { VOCAB } from "@/config/vocab";
 import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 

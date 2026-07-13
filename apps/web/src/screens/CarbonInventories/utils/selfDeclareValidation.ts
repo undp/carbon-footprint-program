@@ -2,9 +2,23 @@ import {
   GetAllCarbonInventoriesResponse,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
-import type { SelfDeclareValidationReason } from "../components/Dialogs/SelfDeclareValidationDialog";
 
 type DraftInventory = GetAllCarbonInventoriesResponse[number];
+
+/**
+ * The first failing self-declaration check, or `null` when the huella passes
+ * every check. Shared contract between the validation logic here and the dialog
+ * that renders the reason copy.
+ */
+export type SelfDeclareValidationReason =
+  | "missing-organization"
+  | "missing-year"
+  | "missing-name"
+  | "missing-lines"
+  | "missing-completed-lines"
+  | "inventory-year-already-declared"
+  | "organization-not-accredited"
+  | null;
 
 /**
  * The ordered self-declaration checks, as a single source of truth shared by
