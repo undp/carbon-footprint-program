@@ -11,6 +11,7 @@ import {
 } from "@repo/types";
 import { DraftActionsCell } from "./DraftActionsCell";
 import { DraftNameCell } from "./DraftNameCell";
+import { isCarbonInventorySelfDeclarable } from "../../utils/selfDeclareValidation";
 
 interface DraftsTabProps {
   darftInventories: GetAllCarbonInventoriesResponse;
@@ -25,11 +26,25 @@ export const DraftsTab: FC<DraftsTabProps> = ({
 }) => {
   const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
 
-  // The home onboarding spotlights the Autodeclarar action of a single draft.
-  // Tag the first row's action (the most-recent draft, matching the previous
-  // row-0 target) so the highlight resolves it by a stable attribute instead of
-  // DataGrid-internal selectors.
-  const onboardingTargetId = darftInventories[0]?.id;
+  // The home onboarding spotlights one draft per step. Self-declare targets the
+  // first draft that would actually pass validation (a user waiting on
+  // inscription may have made several loose drafts in the meantime; the target
+  // must be a self-declarable one, not just the most recent). If none is fully
+  // valid yet, fall back to the first draft *with an organization* (consistent
+  // with the onboarding path, so the spotlight isn't the loose draft the user
+  // was just playing with), and only then to the first draft. Associate-org
+  // targets the first draft that still has no organization (the one whose
+  // "Asociar organización" button is actionable). Tagging by a stable attribute
+  // avoids DataGrid-internal selectors.
+  const selfDeclareTargetId =
+    darftInventories.find((draft) =>
+      isCarbonInventorySelfDeclarable(draft, allInventories)
+    )?.id ??
+    darftInventories.find((draft) => draft.organizationId !== null)?.id ??
+    darftInventories[0]?.id;
+  const associateTargetId = darftInventories.find(
+    (draft) => draft.organizationId === null
+  )?.id;
 
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
@@ -144,12 +159,15 @@ export const DraftsTab: FC<DraftsTabProps> = ({
             <DraftActionsCell
               carbonInventory={params.row}
               inventories={allInventories}
-              isOnboardingTarget={params.row.id === onboardingTargetId}
+              isSelfDeclareOnboardingTarget={
+                params.row.id === selfDeclareTargetId
+              }
+              isAssociateOnboardingTarget={params.row.id === associateTargetId}
             />
           ),
         },
       ],
-      [allInventories, isWiderScreen, onboardingTargetId]
+      [allInventories, isWiderScreen, selfDeclareTargetId, associateTargetId]
     );
 
   return (

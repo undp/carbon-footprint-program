@@ -12,7 +12,6 @@ import {
   GetAllCarbonInventoriesResponse,
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
-  OrganizationDisplayStatusValues,
 } from "@repo/types";
 import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
@@ -38,6 +37,7 @@ import {
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useDownloadCarbonInventory } from "@/hooks";
+import { getSelfDeclareValidationReason } from "../../utils/selfDeclareValidation";
 import { VOCAB } from "@/config/vocab";
 import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 
@@ -45,13 +45,16 @@ interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
   inventories: GetAllCarbonInventoriesResponse;
   /** Tags this row's Autodeclarar action for the home onboarding highlight. */
-  isOnboardingTarget?: boolean;
+  isSelfDeclareOnboardingTarget?: boolean;
+  /** Tags this row's "Asociar organización" action for the home onboarding highlight. */
+  isAssociateOnboardingTarget?: boolean;
 }
 
 export const DraftActionsCell: FC<Props> = ({
   carbonInventory,
   inventories,
-  isOnboardingTarget = false,
+  isSelfDeclareOnboardingTarget = false,
+  isAssociateOnboardingTarget = false,
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -67,23 +70,6 @@ export const DraftActionsCell: FC<Props> = ({
   const hasNoOrganizationsToAssociate =
     myOrganizations !== undefined && myOrganizations.length === 0;
   const associateDisabled = hasOrganization || hasNoOrganizationsToAssociate;
-
-  const isYearAlreadySelfDeclared = useMemo(
-    () =>
-      inventories.some(
-        (inv) =>
-          inv.id !== carbonInventory.id &&
-          inv.organizationId === carbonInventory.organizationId &&
-          inv.year === carbonInventory.year &&
-          inv.isSelfDeclared
-      ),
-    [
-      inventories,
-      carbonInventory.id,
-      carbonInventory.organizationId,
-      carbonInventory.year,
-    ]
-  );
 
   const { data: systemParameters } = useSystemParameters([
     SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
@@ -137,47 +123,13 @@ export const DraftActionsCell: FC<Props> = ({
   }, [carbonInventory.id, duplicateInventory]);
 
   const onSelfDeclareClick = useCallback(() => {
-    if (carbonInventory.organizationId === null) {
-      setSelfDeclareValidationReason("missing-organization");
-      return;
-    }
-    if (!carbonInventory.name) {
-      setSelfDeclareValidationReason("missing-name");
-      return;
-    }
-    if (carbonInventory.year == null) {
-      setSelfDeclareValidationReason("missing-year");
-      return;
-    }
-    if (!carbonInventory.hasActiveLines) {
-      setSelfDeclareValidationReason("missing-lines");
-      return;
-    }
-    if (!carbonInventory.areAllActiveLinesCompleted) {
-      setSelfDeclareValidationReason("missing-completed-lines");
-      return;
-    }
-    if (
-      carbonInventory.organizationDisplayStatus !==
-      OrganizationDisplayStatusValues.ACCREDITED
-    ) {
-      setSelfDeclareValidationReason("organization-not-accredited");
-      return;
-    }
-    if (isYearAlreadySelfDeclared) {
-      setSelfDeclareValidationReason("inventory-year-already-declared");
+    const reason = getSelfDeclareValidationReason(carbonInventory, inventories);
+    if (reason) {
+      setSelfDeclareValidationReason(reason);
       return;
     }
     setSelfDeclareDialogOpen(true);
-  }, [
-    carbonInventory.organizationId,
-    carbonInventory.name,
-    carbonInventory.year,
-    carbonInventory.hasActiveLines,
-    carbonInventory.areAllActiveLinesCompleted,
-    carbonInventory.organizationDisplayStatus,
-    isYearAlreadySelfDeclared,
-  ]);
+  }, [carbonInventory, inventories]);
 
   const onSelfDeclareConfirm = useCallback(async () => {
     try {
@@ -252,6 +204,9 @@ export const DraftActionsCell: FC<Props> = ({
           onClick={() => setAssociateOrgDialogOpen(true)}
           disabled={associateDisabled}
           aria-label={`Asociar ${VOCAB.organization.noun.singular}`}
+          {...(isAssociateOnboardingTarget
+            ? onboardingTargetProps("associate-org")
+            : {})}
         >
           <BusinessOutlined fontSize="small" />
         </AppActionButton>
@@ -261,7 +216,9 @@ export const DraftActionsCell: FC<Props> = ({
           tooltip="Autodeclarar"
           onClick={onSelfDeclareClick}
           sx={primaryActionButtonSx}
-          {...(isOnboardingTarget ? onboardingTargetProps("self-declare") : {})}
+          {...(isSelfDeclareOnboardingTarget
+            ? onboardingTargetProps("self-declare")
+            : {})}
         >
           <TaskAltRounded fontSize="small" />
         </AppActionButton>
