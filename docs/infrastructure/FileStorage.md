@@ -215,12 +215,14 @@ STORAGE_PROVIDER=azure_blob_storage pnpm test --filter=api -- files/ --coverage=
 STORAGE_PROVIDER=minio              pnpm test --filter=api -- files/ --coverage=false
 ```
 
-The setup is in `apps/api/test/setup/testcontainers.ts`:
+The setup is in `apps/api/test/setup/testStorage.ts` (storage container) and `testDatabase.ts` (Postgres container), wired together by `globalSetup.ts`:
 
 - Azure path uses `AzuriteContainer` (`@testcontainers/azurite`).
-- MinIO path uses `GenericContainer("minio/minio")` and bootstraps the bucket with `CreateBucketCommand`.
+- MinIO path uses `GenericContainer("minio/minio")`.
 
-CI runs the API test suite once per provider via `strategy.matrix.storage_provider`. Both must pass for a PR to merge.
+Neither path creates the bucket/container up front — `createAzureBlobTestAdapter`/`createMinioTestAdapter` (`@repo/storage/testing`) create it lazily and idempotently the first time a test app is built against the descriptor.
+
+CI partitions this into three legs instead of running the full suite twice: `Test (base)` (`pnpm test:base`) runs everything **except** the storage manifest, while `Test (storage-azure)` (`pnpm test:storage-azure`) and `Test (storage-minio)` (`pnpm test:storage-minio`) run **only** the manifest against each provider. All three must pass for a PR to merge. See [Storage test manifest](../development/ci-cd.md#storage-test-manifest) for how that manifest is kept honest.
 
 ## Operational notes
 

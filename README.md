@@ -33,7 +33,7 @@ cp .envrc.template .envrc     # fill in, then: direnv allow   (or: source .envrc
 
 # Start supporting services (Postgres + Keycloak IdP + MinIO object storage)
 cd packages/database && docker compose up -d && cd ../..
-docker compose -f docker-compose.yml -f compose/keycloak.yaml --env-file .env.dockercompose up -d keycloak keycloak-db
+docker compose -f docker-compose.yml -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml --env-file .env.dockercompose up -d keycloak keycloak-db keycloak-init
 docker compose -f docker-compose.minio.yml up -d
 
 pnpm db:restore               # reset + migrate + seed

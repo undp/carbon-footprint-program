@@ -1,0 +1,61 @@
+name: DPG compliance report
+description: Report a gap against the Digital Public Goods Alliance Standard v1.1.6.
+labels: ["type: dpg", "governance", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to report a compliance gap against the
+        [DPGA Standard v1.1.6](https://digitalpublicgoods.net/standard/).
+
+        The project's public self-assessment lives in `dpg-assessment.json`
+        and `docs/openssf/`. Indicator-specific evidence lives in
+        `GOVERNANCE.md`, `PRIVACY.md`, `SECURITY.md`,
+        `CONTENT_MODERATION.md` and the SDG section of `README.md`.
+
+  - type: dropdown
+    id: indicator
+    attributes:
+      label: DPGA indicator
+      options:
+        - "1 — SDG Relevance"
+        - "2 — Open Licensing"
+        - "3 — Clear Ownership"
+        - "4 — Platform Independence"
+        - "5 — Documentation"
+        - "6 — Data Extraction"
+        - "7 — Privacy and Applicable Laws"
+        - "8 — Standards and Best Practices"
+        - "9A — Privacy and Security of PII"
+        - "9B — Inappropriate and Illegal Content"
+        - "9C — Anti-Harassment"
+    validations:
+      required: true
+
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap description
+      description: Describe the gap and why the current state of the codebase or documentation does not satisfy this indicator.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence in the repository
+      description: File paths, line numbers, links to docs or commits that show the current state.
+    validations:
+      required: true
+
+  - type: textarea
+    id: remediation
+    attributes:
+      label: Suggested remediation
+      description: What change would close the gap? If you can scope it into a list of small, modular changes, please do so.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: External references
+      description: Links to the DPGA Standard, Principles for Digital Development, SDG targets, or any other authoritative reference that informs this report.

@@ -1,56 +1,55 @@
+import { type PrismaClient, OrganizationStatus } from "@repo/database";
+import { MembershipStatus } from "@repo/database/enums";
 import {
-  OrganizationRole,
-  Prisma,
-  SubmissionType,
-  type PrismaClient,
-} from "@repo/database";
-import type {
-  UpdateReductionProjectRequest,
-  UpdateReductionProjectResponse,
-  User,
+  InventoryStatus,
+  type UpdateReductionProjectRequest,
+  type UpdateReductionProjectResponse,
+  type User,
 } from "@repo/types";
-import type { StorageAdapter } from "@repo/storage";
-import {
-  linkFilesToSubmission,
-  cleanupSourceObjects,
-} from "@/features/files/helpers/linkFilesToSubmission.js";
+import { isReductionProjectEditable } from "@repo/utils";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
+  ReductionProjectInvalidDataError,
   ReductionProjectNotFoundError,
   ReductionProjectNotUpdatableError,
+  ReductionProjectOrganizationForbiddenError,
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
-  createReductionProjectSubmission,
   reductionProjectWithSubmissionsMinimalSelect,
-  validateReductionProjectPrerequisites,
+  REDUCTION_PROJECT_EDIT_ROLES,
 } from "../helpers.js";
-import {
-  ReductionProjectDisplayStatusEnum,
-  ReductionProjectStatus,
-} from "@repo/types";
 
+/**
+ * Field-only update for DRAFT and REVIEWED projects. Never creates a
+ * submission or attaches files — those go through `request-verification`.
+ *
+ * Authorization is two-sided: the route resolves the current (source) org from
+ * `:id`; when the edit re-parents the project, the service additionally
+ * requires CONTRIBUTOR/ADMIN membership in an ACTIVE destination org. When the
+ * org or the linked inventory changes, the new inventory must be an ACTIVE
+ * inventory of the effective org (ownership guard) — prevents attaching another
+ * org's inventory.
+ *
+ * The read, the checks, and the write run in one transaction so a concurrent
+ * submission or delete can't slip between the editability check and the write.
+ */
 export const updateReductionProjectService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateReductionProjectRequest,
-  user: User | null,
-  storage: StorageAdapter
+  user: User | null
 ): Promise<UpdateReductionProjectResponse> => {
-  const userId = user?.id ? BigInt(user.id) : null;
+  const userId = user ? BigInt(user.id) : null;
 
-  const sourceCleanup = await prismaClient.$transaction(async (tx) => {
-    await validateReductionProjectPrerequisites(
-      tx,
-      data.organizationId,
-      data.carbonInventoryId,
-      userId,
-      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN]
-    );
-
+  await prismaClient.$transaction(async (tx) => {
     const existing = await tx.reductionProject.findUnique({
-      where: { id: BigInt(id), status: ReductionProjectStatus.ACTIVE },
-      select: { ...reductionProjectWithSubmissionsMinimalSelect },
+      where: { id: BigInt(id) },
+      select: {
+        ...reductionProjectWithSubmissionsMinimalSelect,
+        organizationId: true,
+        carbonInventoryId: true,
+      },
     });
 
     if (!existing) {
@@ -58,64 +57,79 @@ export const updateReductionProjectService = async (
     }
 
     const displayStatus = calculateReductionProjectDisplayStatus(existing);
-
-    if (displayStatus !== ReductionProjectDisplayStatusEnum.REVIEWED) {
+    if (!isReductionProjectEditable(displayStatus)) {
       throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
-    // Only REVIEWED reaches here
-    const updateData: Prisma.ReductionProjectUncheckedUpdateInput = {
-      updatedById: userId,
-      name: data.name,
-      organizationId: mapBigIntField(data.organizationId),
-      carbonInventoryId: mapBigIntField(data.carbonInventoryId),
-      subcategoryId: mapBigIntField(data.subcategoryId),
-    };
+    const newOrganizationId = mapBigIntField(data.organizationId);
+    const newCarbonInventoryId = mapBigIntField(data.carbonInventoryId);
+    const orgChanged = newOrganizationId !== existing.organizationId;
+    const carbonInventoryChanged =
+      newCarbonInventoryId !== existing.carbonInventoryId;
 
-    if (data.implementationDate !== undefined) {
-      updateData.implementationDate = data.implementationDate;
+    // Re-parenting: the caller must be a CONTRIBUTOR/ADMIN of an ACTIVE
+    // destination org.
+    if (orgChanged) {
+      const membership = userId
+        ? await tx.userOrganizationMembership.findFirst({
+            where: {
+              userId,
+              organizationId: newOrganizationId,
+              status: MembershipStatus.ACTIVE,
+              role: { in: REDUCTION_PROJECT_EDIT_ROLES },
+              organization: { status: OrganizationStatus.ACTIVE },
+            },
+            select: { id: true },
+          })
+        : null;
+
+      if (!membership) {
+        throw new ReductionProjectOrganizationForbiddenError(
+          data.organizationId
+        );
+      }
     }
-    if (data.description !== undefined)
-      updateData.description = data.description;
-    if (data.gwpUsed !== undefined) updateData.gwpUsed = data.gwpUsed;
-    if (data.consideredGei !== undefined)
-      updateData.consideredGei = data.consideredGei;
-    if (data.reportedElsewhere !== undefined)
-      updateData.reportedElsewhere = data.reportedElsewhere;
-    if (data.reportedElsewhereDescription !== undefined) {
-      updateData.reportedElsewhereDescription =
-        data.reportedElsewhereDescription;
+
+    // Ownership guard only when the org/inventory pairing actually changes —
+    // re-validating an unchanged pair is redundant (it was validated at create)
+    // and would needlessly block edits to a draft whose inventory later became
+    // non-ACTIVE. The linked inventory must be an ACTIVE inventory of the
+    // effective org (prevents attaching another org's inventory).
+    if (orgChanged || carbonInventoryChanged) {
+      const inventory = await tx.carbonInventory.findFirst({
+        where: {
+          id: newCarbonInventoryId,
+          status: InventoryStatus.ACTIVE,
+          organizationId: newOrganizationId,
+        },
+        select: { id: true },
+      });
+
+      if (!inventory) {
+        throw new ReductionProjectInvalidDataError();
+      }
     }
-    if (data.year !== undefined) updateData.year = data.year;
-    if (data.baselineScenario !== undefined)
-      updateData.baselineScenario = data.baselineScenario;
-    if (data.projectScenario !== undefined)
-      updateData.projectScenario = data.projectScenario;
 
     await tx.reductionProject.update({
       where: { id: BigInt(id) },
-      data: updateData,
+      data: {
+        updatedById: userId,
+        name: data.name,
+        organizationId: newOrganizationId,
+        carbonInventoryId: newCarbonInventoryId,
+        implementationDate: data.implementationDate,
+        description: data.description,
+        subcategoryId: mapBigIntField(data.subcategoryId),
+        gwpUsed: data.gwpUsed,
+        consideredGei: data.consideredGei,
+        reportedElsewhere: data.reportedElsewhere,
+        reportedElsewhereDescription: data.reportedElsewhereDescription,
+        year: data.year,
+        baselineScenario: data.baselineScenario,
+        projectScenario: data.projectScenario,
+      },
     });
-
-    const submissionId = await createReductionProjectSubmission(
-      tx,
-      BigInt(id),
-      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-      userId
-    );
-
-    const { sourceCleanup: cleanup } = await linkFilesToSubmission(
-      tx,
-      submissionId,
-      data.fileUuids,
-      storage
-    );
-
-    return cleanup;
   });
 
-  // Cleanup source objects after the transaction commits
-  await cleanupSourceObjects(sourceCleanup);
-
-  return {};
+  return null;
 };

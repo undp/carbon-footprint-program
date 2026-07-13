@@ -30,7 +30,8 @@
     "prod:deploy": "prisma migrate deploy",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
     "validate:version": "tsx scripts/validate-postgres-version.ts",
-    "promote-superadmin": "tsx src/scripts/promote-superadmin.ts"
+    "promote-superadmin": "tsx src/scripts/promote-superadmin.ts",
+    "db:drop:worktree": "tsx src/scripts/drop-worktree-database.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

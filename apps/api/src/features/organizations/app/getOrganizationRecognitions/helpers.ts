@@ -227,7 +227,9 @@ export const fetchReductionProjectRecognitions = async (
   const recognitionsByProject = await Promise.all(
     reductionProjects.map(async (project) => {
       const submissions = project.submission?.subject.submissions ?? [];
-      if (submissions.length === 0) return [];
+      // A recognized project always has a year (enforced at submit). A null year
+      // means an incomplete draft that can carry no recognition.
+      if (submissions.length === 0 || project.year == null) return [];
 
       return mapApprovedSubmissionsToRecognitions({
         submissions,

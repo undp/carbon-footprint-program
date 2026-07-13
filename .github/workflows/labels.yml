@@ -1,0 +1,49 @@
+name: Labels
+
+# Labels as code. The taxonomy lives in .github/labels.yml (source of truth);
+# this workflow reconciles the repository's labels to match it.
+#   - pull_request touching the manifest -> dry-run (planned changes in the log)
+#   - push to main touching the manifest -> applied
+#   - workflow_dispatch -> applied on demand
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+  pull_request:
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+  workflow_dispatch:
+
+# Least privilege by default; the job elevates only what it needs.
+permissions:
+  contents: read
+
+# Never let two syncs race; don't cancel an in-flight apply.
+concurrency:
+  group: labels-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync labels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # read the checked-out manifest
+      issues: write # create/update/delete repository labels
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Sync labels from .github/labels.yml
+        uses: crazy-max/ghaction-github-labeler@548a7c3603594ec17c819e1239f281a3b801ab4d # v6.0.0
+        with:
+          yaml-file: .github/labels.yml
+          # Authoritative sync: labels absent from the manifest are removed.
+          skip-delete: false
+          # Only preview on PRs; apply on push to main / manual dispatch.
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          github-token: ${{ github.token }}

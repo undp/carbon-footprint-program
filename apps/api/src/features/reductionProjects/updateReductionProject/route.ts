@@ -9,7 +9,6 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { defineRoute } from "@/routing/defineRoute.js";
 import { OrganizationRole } from "@repo/database/enums";
-import { reductionProjectOrganizationIdExtractor } from "../helpers.js";
 
 export const updateReductionProjectRoute = defineRoute<{
   Params: UpdateReductionProjectParams;
@@ -35,9 +34,10 @@ export const updateReductionProjectRoute = defineRoute<{
   access: {
     mode: "private",
     domain: {
-      kind: "organization",
+      // Resolve the org from the project `:id` (source), not the request body.
+      // The destination org (on re-parenting) is checked in the service.
+      kind: "reductionProject",
       options: {
-        extractor: reductionProjectOrganizationIdExtractor,
         requiredOrganizationRoles: [
           OrganizationRole.CONTRIBUTOR,
           OrganizationRole.ADMIN,

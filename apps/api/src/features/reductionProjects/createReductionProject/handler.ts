@@ -12,8 +12,7 @@ export const createReductionProjectHandler = async (
   const data = await createReductionProjectService(
     request.server.prisma,
     request.body,
-    request.currentUser ?? null,
-    request.server.storage
+    request.currentUser ?? null
   );
 
   log.info("Reduction project created successfully");

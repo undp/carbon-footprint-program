@@ -37,10 +37,12 @@ function mapPersistenceFields(
     },
     implementationDate: row.implementationDate,
     description: row.description,
-    subcategory: {
-      id: row.subcategory.id.toString(),
-      name: row.subcategory.name,
-    },
+    subcategory: row.subcategory
+      ? {
+          id: row.subcategory.id.toString(),
+          name: row.subcategory.name,
+        }
+      : null,
     gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,
     consideredGei: row.consideredGei.map((gei) =>
       ConsideredGeiSchema.parse(gei)
@@ -48,8 +50,8 @@ function mapPersistenceFields(
     reportedElsewhere: row.reportedElsewhere,
     reportedElsewhereDescription: row.reportedElsewhereDescription,
     year: row.year,
-    baselineScenario: row.baselineScenario.toNumber(),
-    projectScenario: row.projectScenario.toNumber(),
+    baselineScenario: row.baselineScenario?.toNumber() ?? null,
+    projectScenario: row.projectScenario?.toNumber() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt?.toISOString() ?? null,
     createdById: row.createdById?.toString() ?? null,
@@ -73,8 +75,16 @@ type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
     name: true;
     year: true;
     createdAt: true;
+    organizationId: true;
+    implementationDate: true;
+    description: true;
+    subcategoryId: true;
+    consideredGei: true;
     baselineScenario: true;
     projectScenario: true;
+    gwpUsed: true;
+    reportedElsewhere: true;
+    reportedElsewhereDescription: true;
     status: true;
     submission: {
       select: {
@@ -90,7 +100,7 @@ type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
     organization: {
       select: {
         summary: {
-          select: { name: true };
+          select: { name: true; displayStatus: true };
         };
       };
     };
@@ -101,17 +111,36 @@ export function mapReductionProjectToListItem(
   row: ReductionProjectListRow,
   displayStatus: ReductionProjectDisplayStatus
 ): GetAllReductionProjectsResponse[number] {
+  const baselineScenario = row.baselineScenario?.toNumber() ?? null;
+  const projectScenario = row.projectScenario?.toNumber() ?? null;
   const totalReduction =
-    row.baselineScenario.toNumber() - row.projectScenario.toNumber();
+    baselineScenario != null && projectScenario != null
+      ? baselineScenario - projectScenario
+      : null;
 
   return {
     id: row.id.toString(),
     name: row.name,
+    organizationId: row.organizationId.toString(),
     year: row.year,
+    // Raw completeness fields — the list actions cell computes the "why can't
+    // submit" state client-side via getReductionProjectMissingFields.
+    implementationDate: row.implementationDate,
+    description: row.description,
+    subcategoryId: row.subcategoryId?.toString() ?? null,
+    consideredGei: row.consideredGei.map((gei) =>
+      ConsideredGeiSchema.parse(gei)
+    ),
+    baselineScenario,
+    projectScenario,
+    gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,
+    reportedElsewhere: row.reportedElsewhere,
+    reportedElsewhereDescription: row.reportedElsewhereDescription,
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     status: displayStatus,
-    organizationName: row.organization?.summary?.name ?? "",
+    organizationName: row.organization?.summary?.name ?? null,
+    organizationDisplayStatus: row.organization?.summary?.displayStatus ?? null,
   };
 }
 

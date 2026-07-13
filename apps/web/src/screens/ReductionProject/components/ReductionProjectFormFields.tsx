@@ -148,7 +148,6 @@ export const ReductionProjectFormFields: FC<Props> = ({
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
                 loading={isLoadingSubcategories}
-                required
               />
             </span>
           </Tooltip>
@@ -177,7 +176,6 @@ export const ReductionProjectFormFields: FC<Props> = ({
                     ? min([new Date(selectedInventoryYear, 11, 31), new Date()])
                     : undefined
                 }
-                required
               />
             </span>
           </Tooltip>
@@ -212,7 +210,6 @@ export const ReductionProjectFormFields: FC<Props> = ({
             multiline
             rows={4}
             disabled={disabled}
-            required
             slotProps={{
               htmlInput: {
                 maxLength: REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,

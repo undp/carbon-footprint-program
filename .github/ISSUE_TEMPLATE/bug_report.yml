@@ -1,0 +1,109 @@
+name: Bug report
+description: Report a reproducible bug in the Huella Latam upstream codebase.
+labels: ["type: bug", "status: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        **Before you continue:**
+        - If this is a security vulnerability, please **do not** open
+          a public issue. Use the private process described in
+          [SECURITY.md](../SECURITY.md).
+        - If this only affects a specific country deployment, please
+          contact that deployment's operator first. Open an issue
+          here only if the bug is reproducible against the upstream
+          codebase.
+
+  - type: checkboxes
+    id: not-a-vulnerability
+    attributes:
+      label: Confirmation
+      options:
+        - label: This is not a security vulnerability. (Use SECURITY.md if it is.)
+          required: true
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+      placeholder: When I do X, the platform does Y instead of the expected Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that another developer can follow to reproduce the bug.
+      placeholder: |
+        1. Go to "..."
+        2. Click on "..."
+        3. Observe "..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include error messages, stack traces or relevant log lines if any.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      options:
+        - Web application (apps/web)
+        - API (apps/api)
+        - Database / Prisma schema (packages/database)
+        - Infrastructure (infra/)
+        - Documentation (docs/)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / runtime
+      description: Browser + version, Node version, OS, etc.
+      placeholder: Chrome 124 on macOS 14, Node 24.x
+
+  - type: input
+    id: deployment
+    attributes:
+      label: Deployment
+      description: Country deployment URL, sandbox, or "local" for a developer machine.
+      placeholder: local / sandbox / country deployment
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (data loss, broken authentication, persistent platform outage)
+        - High (key flow broken for many users, no workaround)
+        - Medium (workaround available, affects a subset of users)
+        - Low (cosmetic, minor inconvenience)
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Screenshots, request/response samples, related issues, etc.

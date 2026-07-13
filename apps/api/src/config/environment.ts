@@ -103,6 +103,103 @@ export const LOCAL_BYPASS_REQUIRED_FIELDS =
 export const APP_VERSION = process.env.APP_VERSION || "unknown";
 
 // ============================================================================
+// Chatbot Configuration
+// ============================================================================
+
+/**
+ * Master switch for the optional AI chatbot feature. The chatbot depends on a
+ * cloud LLM (Azure OpenAI), so per the DPG optionality principle it must be
+ * fully disableable: a deployment can run the whole platform with no AI and no
+ * cloud dependency. Default OFF (opt-in) — a do-nothing deployment ships
+ * without AI and needs none of the LLM/Azure/cookie config below.
+ *
+ * When false: the chatbot routes are not registered (endpoints 404), the
+ * frontend widget is hidden (VITE_CHATBOT_ENABLED), and the provider/Azure/
+ * cookie boot guards below are skipped.
+ */
+export const CHATBOT_ENABLED: boolean =
+  (process.env.CHATBOT_ENABLED ?? "false").toLowerCase() === "true";
+
+// LLM_PROVIDER: "mock" | "azure-openai"
+// - mock: Deterministic eco template provider for local dev and tests.
+// - azure-openai: Production Azure OpenAI client (managed identity).
+// `mock` is rejected at boot when the chatbot is enabled in production, to
+// prevent the mock from leaking into user traffic.
+export type LlmProviderType = "mock" | "azure-openai";
+
+export const LLM_PROVIDER: LlmProviderType = (() => {
+  const raw = process.env.LLM_PROVIDER ?? "mock";
+  const valid: LlmProviderType[] = ["mock", "azure-openai"];
+  if (!valid.includes(raw as LlmProviderType)) {
+    throw new Error(
+      `Invalid LLM_PROVIDER value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+    );
+  }
+  if (raw === "mock" && IS_PROD && CHATBOT_ENABLED) {
+    throw new Error(
+      'LLM_PROVIDER="mock" is not allowed when NODE_ENV=production and ' +
+        'CHATBOT_ENABLED=true. Set LLM_PROVIDER="azure-openai" and provision ' +
+        "the Azure OpenAI infra, or set CHATBOT_ENABLED=false to disable the " +
+        "chatbot."
+    );
+  }
+  return raw as LlmProviderType;
+})();
+
+/**
+ * Trim env input and treat empty / whitespace-only strings as unset. Used by
+ * the chatbot config block so a value like `"   "` cannot bypass the
+ * required-field guards below.
+ */
+const trimEnv = (value: string | undefined): string | undefined => {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+};
+
+/**
+ * Secret used by @fastify/cookie to sign the `chatbot_session_id` cookie.
+ * Required in production. Local fallback is a documented dev literal.
+ */
+export const COOKIE_SECRET: string = (() => {
+  const raw = trimEnv(process.env.COOKIE_SECRET);
+  if (raw) return raw;
+  if (IS_PROD && CHATBOT_ENABLED) {
+    throw new Error(
+      "COOKIE_SECRET is required when NODE_ENV=production and " +
+        "CHATBOT_ENABLED=true. Set it to a sufficiently long random string."
+    );
+  }
+  return "dev-only-cookie-secret-change-me";
+})();
+
+/** Azure OpenAI endpoint URL — required when LLM_PROVIDER=azure-openai. */
+export const AZURE_OPENAI_ENDPOINT = trimEnv(process.env.AZURE_OPENAI_ENDPOINT);
+
+/** Azure OpenAI deployment name — required when LLM_PROVIDER=azure-openai. */
+export const AZURE_OPENAI_DEPLOYMENT_NAME = trimEnv(
+  process.env.AZURE_OPENAI_DEPLOYMENT_NAME
+);
+
+// Boot-time validation: if the operator selected the Azure provider, both
+// endpoint and deployment name MUST be set. Failing fast at boot surfaces
+// misconfiguration in CI / health checks instead of in user traffic.
+(() => {
+  if (!CHATBOT_ENABLED) return;
+  if (LLM_PROVIDER !== "azure-openai") return;
+  const missing: string[] = [];
+  if (!AZURE_OPENAI_ENDPOINT) missing.push("AZURE_OPENAI_ENDPOINT");
+  if (!AZURE_OPENAI_DEPLOYMENT_NAME)
+    missing.push("AZURE_OPENAI_DEPLOYMENT_NAME");
+  if (missing.length > 0) {
+    throw new Error(
+      `LLM_PROVIDER="azure-openai" requires: ${missing.join(", ")}. ` +
+        "Set the missing variables or change LLM_PROVIDER."
+    );
+  }
+})();
+
+// ============================================================================
 // Object Storage Configuration
 // ============================================================================
 // STORAGE_PROVIDER selects which object storage backend the API uses, and the

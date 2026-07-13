@@ -9,9 +9,18 @@ const {
   VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
   VITE_IS_DEMO_APP,
   VITE_APP_VERSION,
+  VITE_CHATBOT_ENABLED,
 } = import.meta.env;
 
 export const IS_DEVELOPMENT = import.meta.env.DEV;
+
+/**
+ * Whether the optional AI chatbot widget is mounted. Mirrors the API's
+ * `CHATBOT_ENABLED` per the DPG optionality principle — a deployment that does
+ * not connect the AI cloud services leaves this unset and the widget never
+ * renders. Build-time flag (Vite); default off (opt-in).
+ */
+export const IS_CHATBOT_ENABLED = VITE_CHATBOT_ENABLED === "true";
 
 export const LOCAL_BYPASS_REQUIRED_FIELDS =
   import.meta.env.VITE_LOCAL_BYPASS_REQUIRED_FIELDS === "true";

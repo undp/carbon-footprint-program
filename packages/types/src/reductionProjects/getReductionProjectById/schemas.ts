@@ -26,7 +26,9 @@ export const GetReductionProjectByIdResponseSchema =
         name: CarbonInventoryBaseSchema.shape.name,
         year: CarbonInventoryBaseSchema.shape.year,
       }),
-      subcategory: SubcategoryBaseSchema.pick({ id: true, name: true }),
+      subcategory: SubcategoryBaseSchema.pick({ id: true, name: true })
+        .nullable()
+        .describe("Linked subcategory, null when the draft has none"),
       status: ReductionProjectDisplayStatusSchema.describe(
         "Workflow display status derived from submissions"
       ),

@@ -15,9 +15,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { IS_DEVELOPMENT } from "../config/environment";
+import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
+import { ChatbotWidget } from "@/components/Chatbot/ChatbotWidget";
 
 // Strip the ?code&state params once react-oidc-context completes the redirect
 // callback; the /auth/callback route then navigates to HOME.
@@ -36,10 +37,19 @@ function RootComponent() {
             onSigninCallback={onSigninCallback}
           >
             <QueryClientProvider client={queryClient}>
-              {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
+              {IS_DEVELOPMENT && (
+                <ReactQueryDevtools
+                  initialIsOpen={false}
+                  buttonPosition="bottom-left"
+                />
+              )}
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
+                  {/* Optional AI feature (DPG optionality) — only mounted when
+                      the deployment enables it. Minimum-viable placement;
+                      design review may relocate. */}
+                  {IS_CHATBOT_ENABLED && <ChatbotWidget />}
                 </ExplanationProvider>
               </AuthProvider>
             </QueryClientProvider>

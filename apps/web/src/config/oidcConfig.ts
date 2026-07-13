@@ -12,7 +12,10 @@ import {
  * Generic OIDC client settings (Authorization Code + PKCE). Provider-agnostic:
  * `authority` is the configured issuer, so the same build works against any
  * compliant IdP. Tokens are persisted in localStorage and silently renewed via
- * the refresh token (`offline_access`).
+ * the refresh token (`automaticSilentRenew`); the refresh-token lifetime is
+ * governed by the requested scopes — Keycloak omits `offline_access` (renew
+ * rides the SSO-session-bound refresh token), Entra requests it. See the
+ * VITE_OIDC_SCOPES notes in the OIDC env docs.
  */
 export const oidcSettings: UserManagerSettings = {
   authority: OIDC_ISSUER,

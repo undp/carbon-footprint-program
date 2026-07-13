@@ -343,3 +343,25 @@ Use this checklist when deploying a new country instance:
 - [ ] Azure Monitor alerts configured
 - [ ] Uptime monitoring configured
 - [ ] Incident escalation contacts defined
+
+---
+
+## Chatbot Conversation Purge
+
+The chatbot stores conversations in `chatbot_chat_conversation` with a 30-day `expires_at` column populated at row creation. **Foundation does not include the daily purge job** — the pg_cron extension and the scheduled purge are a separate infra change that must enable `azure.extensions = pg_cron` on the Postgres server parameter and schedule the daily job.
+
+**Future job (not yet active):**
+
+```sql
+DELETE FROM chatbot_chat_conversation WHERE expires_at < NOW();
+```
+
+The cascade on `chatbot_chat_message.conversation_id` removes message rows automatically.
+
+**Manual purge (interim):**
+
+Until the infra change lands, run the SQL above manually as needed (for example, prior to a country deployment cut-off, or to honor an ad-hoc retention request that the right-to-be-forgotten endpoint cannot satisfy because the user has no active session).
+
+**Cookie rotation:**
+
+Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. Any anonymous conversations whose session cookie was issued under the previous secret become unrecoverable from the user's perspective. Schedule rotations during low-traffic windows and document them in the deployment log.
