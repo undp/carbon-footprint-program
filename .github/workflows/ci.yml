@@ -228,6 +228,42 @@ jobs:
           path: apps/api/coverage/
           retention-days: 7
 
+  # Enforces the apps/api coverage gate. Unlike the other heavy jobs, this one
+  # `needs: test` because it consumes the three legs' coverage artifacts — the
+  # legs partition the suite, so coverage must be merged across them before any
+  # threshold means anything (a single leg never sees the whole codebase). When
+  # a test leg fails there is nothing to gate and the PR is already blocked, so
+  # this job is simply skipped. On docs-only PRs every step is gated off (like
+  # the other jobs) and the required "Coverage" check still reports success.
+  coverage:
+    needs: [check-draft, changes, test]
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: needs.changes.outputs.code == 'true'
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        if: needs.changes.outputs.code == 'true'
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: needs.changes.outputs.code == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: needs.changes.outputs.code == 'true'
+      # Pull every leg's coverage artifact (coverage-report-base,
+      # coverage-report-storage-azure, coverage-report-storage-minio) into a
+      # dir each, so check-coverage.mjs can merge them.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: needs.changes.outputs.code == 'true'
+        with:
+          pattern: coverage-report-*
+          path: coverage-artifacts
+      - run: node scripts/check-coverage.mjs coverage-artifacts
+        if: needs.changes.outputs.code == 'true'
+
   build:
     needs: [check-draft, changes]
     name: Build

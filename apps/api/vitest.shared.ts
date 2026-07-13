@@ -7,12 +7,19 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const coverageThresholds =
-  // TODO: review these thresholds in the future and adjust as needed.
-  // eslint-disable-next-line no-constant-condition
-  process.env.CI || true
-    ? { lines: 0, functions: 0, branches: 0, statements: 0 }
-    : { lines: 80, functions: 80, branches: 80, statements: 80 };
+// Coverage thresholds are enforced in CI, not per Vitest run. The suite is split
+// into three disjoint legs (base + one per storage provider; see the `test` job
+// in .github/workflows/ci.yml), so no single run sees the whole codebase and a
+// per-run threshold would fail on the files that run never touches. The real
+// ≥80% gate is the `coverage` CI job, which merges all three legs' coverage and
+// checks the union (scripts/check-coverage.mjs). These zeros keep each run's
+// numbers visible in its own report without gating on a partial view.
+const coverageThresholds = {
+  lines: 0,
+  functions: 0,
+  branches: 0,
+  statements: 0,
+};
 
 /** Default test glob — the full apps/api suite. */
 const DEFAULT_TEST_INCLUDE = ["test/**/*.{test,spec}.{js,ts}"];
