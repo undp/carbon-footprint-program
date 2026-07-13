@@ -187,16 +187,22 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
           state: "pending",
           description:
             "Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “Mi organización”.",
-          tag: { label: "En revisión", variant: "next" },
+          tag: { label: "En revisión", variant: "wait" },
           secondaryCta: { label: "Ver estado", to: Routes.MY_ORGANIZATION },
         };
       }
+      // A previously submitted accreditation can come back rejected or with
+      // observations (REVIEWED); in both cases the org already applied and needs
+      // to revise, not start from scratch.
+      const activeDescription =
+        ctx.inscriptionStatus === SubmissionStatus.REJECTED
+          ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
+          : ctx.inscriptionStatus === SubmissionStatus.REVIEWED
+            ? "Tu inscripción tiene observaciones; revísala y vuelve a enviarla."
+            : "Solicita la inscripción de tu organización para validarla oficialmente.";
       return {
         state: "active",
-        description:
-          ctx.inscriptionStatus === SubmissionStatus.REJECTED
-            ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
-            : "Solicita la inscripción de tu organización para validarla oficialmente.",
+        description: activeDescription,
         tag: { label: "Cuando quieras", variant: "next" },
         activeCta: "Inscribir organización",
       };
@@ -232,7 +238,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
         description:
           ctx.orgAccredited && !ctx.hasAssociatedDraft
             ? "Necesitas una huella en borrador asociada a tu organización para autodeclarar."
-            : "Se habilita cuando tu organización esté inscrita (paso 4) y tengas una huella en borrador asociada.",
+            : "Se habilita cuando tu organización esté inscrita y tengas una huella en borrador asociada.",
         tag: { label: "Después", variant: "wait" },
       };
     },
