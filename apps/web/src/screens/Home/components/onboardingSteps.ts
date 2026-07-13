@@ -51,7 +51,7 @@ export interface OnboardingStepDef {
   id: OnboardingFocus;
   title: string;
   /** Sidebar route the active CTA guides the user to. */
-  route: string;
+  route: OnboardingNavTarget;
   /** Popover copy shown on the spotlighted sidebar link. */
   guide: { title: string; description: string };
   view: (ctx: OnboardingContext) => OnboardingStepView;

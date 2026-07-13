@@ -17,7 +17,11 @@ import {
 } from "@/utils/onboardingHighlight";
 import { OnboardingStep } from "./OnboardingStep";
 import { WelcomeHero } from "./WelcomeHero";
-import { ONBOARDING_STEPS, OnboardingContext } from "./onboardingSteps";
+import {
+  ONBOARDING_STEPS,
+  type OnboardingContext,
+  type OnboardingNavTarget,
+} from "./onboardingSteps";
 
 interface Props {
   hasOrganization: boolean;
@@ -69,7 +73,7 @@ export const WelcomeHome: FC<Props> = ({
   const activeHighlight = useRef<(() => void) | null>(null);
   const guideToSidebar = (
     focus: (typeof ONBOARDING_STEPS)[number]["id"],
-    route: string,
+    route: OnboardingNavTarget,
     title: string,
     description: string
   ) => {
