@@ -125,6 +125,8 @@ docker save huella-latam-api:prod huella-latam-web:prod | gzip > huella-images-<
 
 Transfer **three artifacts** to the deploy server: `huella-images-<tag>.tar.gz`, `docker-compose.prod.yml`, and the filled `.env.prod.dockercompose`.
 
+> Deploying Keycloak too? Ship its compose/env/realm files and build its image on the server (two-step build+up); see [Keycloak Setup → Bring Up — Production](../infrastructure/KeycloakSetup.md#bring-up--production).
+
 **On the deploy server:**
 
 ```bash
@@ -168,5 +170,6 @@ curl http://localhost:8080/health   # → {"status":"ok", ...} with database con
 ## Related docs
 
 - [Docker Compose — Full Stack (local dev)](./docker-compose.md) — the dev stack, storage SP walkthrough, shared troubleshooting.
+- [Keycloak Setup](../infrastructure/KeycloakSetup.md) — running Keycloak as the production IdP alongside this stack (`compose/keycloak.prod.yaml` + `compose/keycloak-db.yaml`).
 - `.env.prod.dockercompose.example` — committed template; source of truth for every production var.
 - [Operations Runbook](./runbook.md) — backup, restore, rollback, incident response.

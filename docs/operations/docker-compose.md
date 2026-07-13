@@ -78,7 +78,7 @@ dc down            # stop
 | `forced-user` | `FORCED_USER_EMAIL`, `FORCED_USER_IDP_ID`                                     | Local dev with a fake user     |
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
-The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure Entra, derive these from your tenant — see [Azure OIDC auth setup](../infrastructure/AzureAuthenticationSetup.md) or the `.envrc.azure.example` helper; for Keycloak see the compose overlay. The storage tenant below is separate.
+The API reads `JWKS_*` directly; derive Azure values from the [Azure setup](../infrastructure/AzureAuthenticationSetup.md) / `.envrc.azure.example` and Keycloak values from [Keycloak Setup](../infrastructure/KeycloakSetup.md). The storage tenant below is separate.
 
 ### Web build args
 
@@ -86,19 +86,19 @@ The API reads `JWKS_*` directly (there are no `AZURE_*` auth vars). For Azure En
 
 > ⚠️ `API_PORT` and `VITE_API_BASE_URL` are independent. If you change the API's host port, update `VITE_API_BASE_URL` to match and rebuild `web` — otherwise the browser keeps calling the old port. See [Web serves a stale or wrong API URL](docker-compose.md#web-serves-a-stale-or-wrong-api-url).
 
-| Var                                  | Default                                                                     |
-| ------------------------------------ | --------------------------------------------------------------------------- |
-| `WEB_PORT`                           | `3000` (host; container listens on 8080)                                    |
-| `VITE_API_BASE_URL`                  | `http://localhost:8080`                                                     |
-| `VITE_FRONT_BASE_URL`                | `http://localhost:3000`                                                     |
-| `VITE_OIDC_ISSUER`                   | _(empty; set per IdP, e.g. Keycloak `http://localhost:8081/realms/huella`)_ |
-| `VITE_OIDC_CLIENT_ID`                | `huella-web`                                                                |
-| `VITE_OIDC_SCOPES`                   | `openid profile email offline_access`                                       |
-| `VITE_OIDC_REDIRECT_URI`             | _(empty; defaults to `<origin>/auth/callback`)_                             |
-| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | _(empty; defaults to the serving origin)_                                   |
-| `VITE_APP_VERSION`                   | `local`                                                                     |
-| `VITE_IS_DEMO_APP`                   | `false`                                                                     |
-| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS`  | `false`                                                                     |
+| Var                                  | Default                                                                                                                                                                                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WEB_PORT`                           | `3000` (host; container listens on 8080)                                                                                                                                                                                                                            |
+| `VITE_API_BASE_URL`                  | `http://localhost:8080`                                                                                                                                                                                                                                             |
+| `VITE_FRONT_BASE_URL`                | `http://localhost:3000`                                                                                                                                                                                                                                             |
+| `VITE_OIDC_ISSUER`                   | _(empty; set per IdP, e.g. Keycloak `http://localhost:18080/realms/huella`)_                                                                                                                                                                                        |
+| `VITE_OIDC_CLIENT_ID`                | `huella-web`                                                                                                                                                                                                                                                        |
+| `VITE_OIDC_SCOPES`                   | `openid profile email` _(Keycloak default — the SPA's silent renew uses the SSO-session-bound refresh token, so `offline_access` is intentionally omitted; Azure/Entra still requires it, see [KeycloakSetup.md](../infrastructure/KeycloakSetup.md#frontend-web))_ |
+| `VITE_OIDC_REDIRECT_URI`             | _(empty; defaults to `<origin>/auth/callback`)_                                                                                                                                                                                                                     |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | _(empty; defaults to the serving origin)_                                                                                                                                                                                                                           |
+| `VITE_APP_VERSION`                   | `local`                                                                                                                                                                                                                                                             |
+| `VITE_IS_DEMO_APP`                   | `false`                                                                                                                                                                                                                                                             |
+| `VITE_LOCAL_BYPASS_REQUIRED_FIELDS`  | `false`                                                                                                                                                                                                                                                             |
 
 See [web-docker.md](./web-docker.md) for the image internals.
 
@@ -248,6 +248,7 @@ The rule applies to **every** interpolated var (`JWT_SECRET`, `AZURE_STORAGE_*`,
 ## Related docs
 
 - [Production Deployment (on-premise)](./production-deployment.md) — `docker-compose.prod.yml` against an external PostgreSQL.
+- [Keycloak Setup](../infrastructure/KeycloakSetup.md) — the local Keycloak IdP overlays (`compose/keycloak-db.yaml` + `compose/keycloak.dev.yaml`) and the production Keycloak stack.
 - [Web App Docker Guide](./web-docker.md) — web image internals (nginx config, build args, hardening notes).
 - `apps/api/Dockerfile` — API multi-stage build (also the `migrate` base).
 - `apps/web/Dockerfile` — web SPA build + nginx runtime.

@@ -154,3 +154,38 @@ All of these frameworks share core principles with GDPR: lawful basis for proces
 | No data subject request workflow  | Compliance gap for all target countries                             | Build an admin tool or runbook for fulfilling access/deletion requests                                                    |
 | No privacy notice UI              | Required by all target country laws                                 | Add a privacy policy page and acceptance flow to the frontend                                                             |
 | Logs may reference PII            | Error logs may contain email or idpUserId                           | Ensure log retention and access is restricted; consider masking in future                                                 |
+
+---
+
+## Chatbot Conversation Persistence and Retention
+
+The Huella Latam chatbot persists conversations to power per-user history and right-to-be-forgotten flows.
+
+**Tables (all under `public` schema, prefixed `chatbot_`):**
+
+- `chatbot_chat_conversation` — one row per conversation, scoped to `user_id` (authenticated) or `session_id` (anonymous). Both columns are nullable; the database CHECK constraint allows the `(NULL, NULL)` post-deletion state produced by `ON DELETE SET NULL` on `user_id`. Application code guarantees the exactly-one-of invariant on INSERT.
+- `chatbot_chat_message` — one row per message, cascaded from `chatbot_chat_conversation`.
+- `chatbot_corpus_*` — RAG corpus tables, dormant in foundation.
+
+**Identity scoping:**
+
+- Authenticated callers: `user_id` is set to the resolved `currentUser.id`.
+- Anonymous callers: `session_id` is the value of a signed `chatbot_session_id` cookie, minted on first `POST /api/chatbot/message`.
+
+**Retention:**
+
+- Each conversation row carries `expires_at = created_at + 30 days` (`CHATBOT_CONVERSATION_TTL_DAYS`). The value is set once at creation and is **not** refreshed on subsequent messages.
+- The pg_cron job that purges expired rows is **deferred** to a separate infra change. Until it lands, expired rows accumulate and are removed manually or via the right-to-be-forgotten endpoint.
+
+**Cookie security:**
+
+- Name: `chatbot_session_id`. Signed with `COOKIE_SECRET` via `@fastify/cookie`.
+- `HttpOnly`, `Path=/api/chatbot`, `Max-Age=2592000` (sliding 30 days, refreshed on each interaction).
+- `SameSite=None; Secure` in production — the web app and API are served from different registrable domains (cross-site), so the cookie must be `SameSite=None` (which requires `Secure`) to ride the frontend's `credentials: "include"` requests. In local dev it is `SameSite=Lax` without `Secure` (plain HTTP; the Vite proxy keeps the widget same-origin). The clearing cookie emitted on delete mirrors these attributes.
+- A tampered cookie (signature invalid) is treated as no session and a fresh one is minted.
+
+**Right to be forgotten:**
+
+- `DELETE /api/chatbot/conversations/me` deletes every conversation row scoped to the caller identity, idempotently. The cascade removes all message rows.
+- For anonymous callers, the response also clears the `chatbot_session_id` cookie via `Set-Cookie: chatbot_session_id=; Max-Age=0; …`.
+- For authenticated callers, only `user_id`-scoped conversations are removed — earlier conversations created under an anonymous `session_id` are not touched by the user-id path.

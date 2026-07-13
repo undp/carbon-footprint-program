@@ -4,7 +4,7 @@
   "description": "Huella Latam monorepo",
   "private": true,
   "packageManager": "pnpm@11.10.0",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -16,15 +16,21 @@
     "start": "turbo run start",
     "start:api": "turbo run start --filter=api",
     "start:web": "turbo run start --filter=web",
-    "test": "turbo run test",
+    "test": "pnpm test:base && pnpm test:storage-azure && pnpm test:storage-minio",
+    "test:base": "turbo run test:base --filter=api",
+    "test:storage-azure": "turbo run test:storage-azure --filter=api",
+    "test:storage-minio": "turbo run test:storage-minio --filter=api",
+    "test:verify-storage-manifest": "turbo run test:verify-storage-manifest --filter=api",
     "lint": "turbo run lint -- --max-warnings=0",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
     "db:restore": "turbo run db:restore --filter=@repo/database && turbo run seed --filter=@repo/seed",
+    "db:provision": "pnpm --filter=@repo/database prod:deploy && pnpm db:seed",
     "db:seed": "turbo run seed --filter=@repo/seed",
-    "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
+    "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin",
+    "db:drop:worktree": "pnpm --filter=@repo/database db:drop:worktree"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",

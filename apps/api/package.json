@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "main": "dist/server.js",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -14,13 +14,19 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/server.js",
     "test": "vitest run",
+    "test:base": "STORAGE_PROVIDER=azure_blob_storage vitest run --config vitest.base.config.ts",
+    "test:storage-azure": "STORAGE_PROVIDER=azure_blob_storage vitest run --config vitest.storage.config.ts",
+    "test:storage-minio": "STORAGE_PROVIDER=minio vitest run --config vitest.storage.config.ts",
+    "test:verify-storage-manifest": "tsx test/setup/assertStorageTestManifest.ts",
     "test:ui": "vitest --ui",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo tsconfig.build.tsbuildinfo"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.1",
     "@fastify/autoload": "^6.3.1",
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/error": "^4.2.0",
     "@fastify/helmet": "^13.0.2",
@@ -40,6 +46,7 @@
     "fastify-type-provider-zod": "^7.0.0",
     "jwks-rsa": "^4.1.0",
     "lodash-es": "^4.18.1",
+    "openai": "^6.35.0",
     "pino": "catalog:shared",
     "zod": "catalog:shared"
   },

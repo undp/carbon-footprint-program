@@ -5,7 +5,6 @@ import {
   useCreateReductionProject,
   useUpdateReductionProject,
 } from "@/api/query/reductionProjects";
-import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
 import type { ReductionProjectFormValues } from "../formSchema";
 import { Routes } from "@/interfaces";
@@ -19,22 +18,11 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
   const navigate = useNavigate();
   const createMutation = useCreateReductionProject();
   const updateMutation = useUpdateReductionProject(projectId ?? "");
-  const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
     async (data: ReductionProjectFormValues) => {
       try {
-        const { files, ...formData } = data;
-
-        const fileUuids = await preUploadFiles(files);
-        if (!fileUuids.length) {
-          enqueueSnackbar("No se pudieron subir los archivos", {
-            variant: "error",
-          });
-          return;
-        }
-
-        const mutationData = mapFormValuesToMutationData(formData, fileUuids);
+        const mutationData = mapFormValuesToMutationData(data);
 
         if (projectId) {
           await updateMutation.mutateAsync(mutationData);
@@ -43,35 +31,30 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
           });
         } else {
           await createMutation.mutateAsync(mutationData);
-          enqueueSnackbar("Proyecto creado exitosamente", {
+          enqueueSnackbar("Borrador guardado exitosamente", {
             variant: "success",
           });
         }
 
         void navigate({ to: Routes.REDUCTION_PROJECTS });
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
         enqueueSnackbar(
           projectId
             ? "No se pudo guardar el proyecto"
-            : "No se pudo crear el proyecto",
+            : "No se pudo guardar el borrador",
           { variant: "error" }
         );
       }
     },
-    [
-      projectId,
-      createMutation,
-      updateMutation,
-      preUploadFiles,
-      enqueueSnackbar,
-      navigate,
-    ]
+    [projectId, createMutation, updateMutation, enqueueSnackbar, navigate]
   );
 
   return {
     submit,
-    isSubmitting:
-      (projectId ? updateMutation.isPending : createMutation.isPending) ||
-      isUploading,
+    isSubmitting: projectId
+      ? updateMutation.isPending
+      : createMutation.isPending,
   };
 };

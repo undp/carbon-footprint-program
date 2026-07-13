@@ -4,7 +4,7 @@ import { OverflowTooltipText } from "@/components";
 
 interface ReductionProjectNameCellProps {
   name: string;
-  organizationName: string;
+  organizationName: string | null;
 }
 
 export const ReductionProjectNameCell: FC<ReductionProjectNameCellProps> = ({

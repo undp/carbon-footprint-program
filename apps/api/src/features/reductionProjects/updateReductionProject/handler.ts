@@ -20,8 +20,7 @@ export const updateReductionProjectHandler = async (
     request.server.prisma,
     id,
     request.body,
-    request.currentUser ?? null,
-    request.server.storage
+    request.currentUser ?? null
   );
 
   log.info(`Reduction project ${id} updated successfully`);

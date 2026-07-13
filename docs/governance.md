@@ -19,30 +19,35 @@ Practical consequences of this status:
 
 ## License
 
-The root `README.md` currently declares the project as **MIT**. A formal `LICENSE` file at the repository root should be added to make the license unambiguous for adopters and contributors.
+The project is licensed under the **GNU Affero General Public License v3.0** (SPDX: `AGPL-3.0-only`). The full license text lives in the root [`LICENSE`](../LICENSE) file, and the copyright holder is the **United Nations Development Programme (UNDP)**.
 
-**Recommended action:**
+AGPL-3.0 is a strong (network) copyleft license. In addition to the usual GPL obligations, it requires that anyone who **runs a modified version of the software to provide a service over a network** make the corresponding source code of that modified version available to its users under the same license.
 
-1. Add a `LICENSE` file at the repository root with the full MIT license text, naming the copyright holder (e.g., "United Nations Development Programme" or the delivery organization).
-2. Confirm that all current contributors have licensed their contributions compatibly.
-3. If any country-level adopter produces local extensions, the license of those extensions should be compatible (MIT, Apache-2.0, BSD).
+**Notes for adopters and contributors:**
 
-If the project's licensing intent differs from MIT (e.g., Apache-2.0 for patent grant, or a more restrictive license), this should be clarified by the project owners before the first official release.
+1. All contributions are accepted under AGPL-3.0; by submitting a pull request, contributors license their work under the same terms.
+2. Country-level extensions and derivative works must remain licensed under AGPL-3.0 (or a compatible license) and must honor the network-copyleft source-availability obligation.
+3. Third-party dependencies retain their own licenses; only the project's own code is AGPL-3.0.
 
 ---
 
 ## Country-Level Deployment Rights
 
-Under MIT (or any OSI-approved permissive license), countries and delivery partners may:
+Under AGPL-3.0, countries and delivery partners may:
 
 - Fork the repository and run their own deployment.
 - Modify the code to meet local regulatory requirements.
-- Keep their modifications private (MIT does not require disclosure of derivative works).
-- Rebrand or rename the platform for local distribution.
+- Rebrand or rename the platform for local distribution (subject to the notice requirements below).
+
+They **must**:
+
+- Keep derivative works licensed under AGPL-3.0.
+- Make the complete corresponding source code of any modified version **available to the users of their network service**, as required by AGPL-3.0 §13. (This is a change from the project's earlier MIT license, which did not require publishing modifications.)
+- Preserve the original license and copyright notices in derivative works.
 
 They **must not**:
 
-- Remove the original license notice from derivative works.
+- Distribute or operate a modified version over a network without offering its source to users.
 - Claim official endorsement by the original project team without explicit agreement.
 
 ---
@@ -81,11 +86,11 @@ See [Contributing Guide](./development/contributing.md) for the technical workfl
 
 ## Code Ownership and Security Contacts
 
-Sensitive areas of the codebase (authentication, data encryption, key management) should have **designated maintainers** whose review is required before merging changes. A `CODEOWNERS` file at the repository root is recommended to enforce this automatically via GitHub PR review rules.
+Sensitive areas of the codebase (authentication, data encryption, key management) should have **designated maintainers** whose review is required before merging changes. The repository's [`CODEOWNERS`](../.github/CODEOWNERS) file defines these review assignments and enforces them automatically via GitHub PR review rules.
 
-Security vulnerabilities should be reported **privately** to the maintainer team — not via public GitHub issues. A `SECURITY.md` file at the repository root is recommended, describing:
+Security vulnerabilities should be reported **privately** to the maintainer team — not via public GitHub issues. The root [`SECURITY.md`](../SECURITY.md) documents the reporting process, covering:
 
-- Where to report vulnerabilities (a dedicated email address).
+- Where to report vulnerabilities (private channels).
 - Expected response time.
 - Coordinated disclosure policy.
 
@@ -105,11 +110,12 @@ For a mature open-source digital public good, the repository root should contain
 
 | File                            | Purpose                                                            | Currently present?                     |
 | ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
-| `LICENSE`                       | License text                                                       | ❌ Missing (README declares MIT)       |
-| `CODE_OF_CONDUCT.md`            | Community standards                                                | ❌ Missing                             |
-| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ❌ Missing at root                     |
-| `SECURITY.md`                   | Security reporting process                                         | ❌ Missing                             |
-| `CODEOWNERS`                    | PR review assignments                                              | ❌ Missing                             |
+| `LICENSE`                       | License text                                                       | ✅ Present (AGPL-3.0-only)             |
+| `GOVERNANCE.md`                 | Ownership & decision-making                                        | ✅ Present at root                     |
+| `CODE_OF_CONDUCT.md`            | Community standards                                                | ✅ Present at root                     |
+| `CONTRIBUTING.md`               | How to contribute (can link to `docs/development/contributing.md`) | ✅ Present at root                     |
+| `SECURITY.md`                   | Security reporting process                                         | ✅ Present at root                     |
+| `CODEOWNERS`                    | PR review assignments                                              | ✅ Present (`.github/CODEOWNERS`)      |
 | `CHANGELOG.md` or release notes | Version history                                                    | ❌ Missing (releases in Git tags only) |
 
 Adding these files is a prerequisite for acceptance into the [Digital Public Goods Alliance](https://digitalpublicgoods.net/) registry, if that is a goal for the project.
@@ -118,6 +124,6 @@ Adding these files is a prerequisite for acceptance into the [Digital Public Goo
 
 ## Project Steering
 
-The project's long-term direction — roadmap priorities, acceptance of new country deployments, major architectural decisions — should be steered by a documented governance body (e.g., a steering committee of UNDP representatives plus country implementation leads). This governance should be reflected in a `GOVERNANCE.md` file at the repository root when the project reaches that maturity level.
+The project's long-term direction — roadmap priorities, acceptance of new country deployments, major architectural decisions — should be steered by a documented governance body (e.g., a steering committee of UNDP representatives plus country implementation leads). The root [`GOVERNANCE.md`](../GOVERNANCE.md) records the current ownership and decision-making model; the formal steering body described here should be documented there once it is established.
 
-Current state: informal governance led by the delivery team. Formalization is a post-launch concern.
+Current state: informal governance led by the delivery team. Formalizing the steering body is a post-launch concern.

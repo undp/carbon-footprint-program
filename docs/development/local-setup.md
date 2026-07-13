@@ -120,19 +120,18 @@ docker ps
 
 ### Keycloak — local OIDC IdP (recommended for a full login flow)
 
-With `AUTH_PROVIDER=forced-user` (Step 3) you don't need an IdP — the API auto-authenticates every request. To exercise a real browser login locally without an Azure tenant, run the bundled Keycloak overlay:
-
-The overlay reads its config from `.env.dockercompose` — create it once from the committed example (it's gitignored):
+With `AUTH_PROVIDER=forced-user` (Step 3) you don't need an IdP — the API auto-authenticates every request. To exercise a real browser login locally without an Azure tenant, run the bundled Keycloak overlay. It needs **no configuration** (admin/admin and its DB defaults are baked into the compose files) — bring it up straight from the repo root:
 
 ```bash
-cp .env.dockercompose.example .env.dockercompose
-docker compose -f docker-compose.yml -f compose/keycloak.yaml --env-file .env.dockercompose up -d keycloak keycloak-db
+docker compose --project-directory . -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml up -d
 ```
 
-- **Admin console:** http://localhost:8081 — bootstrap admin `admin` / `admin`.
+(Running the api/web in Docker too, instead of `pnpm dev`? Combine the overlay with the base stack in one invocation — see [Keycloak Setup → Quick Setup](../infrastructure/KeycloakSetup.md#quick-setup) for that variant.)
+
+- **Admin console:** http://localhost:18080 — bootstrap admin `admin` / `admin`.
 - On first boot the realm `huella` and client `huella-web` are imported automatically, so the OIDC login works out of the box.
 
-Then switch the API to `AUTH_PROVIDER=jwks` and set the `JWKS_*` variables (see [Authentication](#authentication-local-development) below). Full walkthrough: [Keycloak authentication setup](../infrastructure/KeycloakAuthenticationSetup.md).
+Then switch the API to `AUTH_PROVIDER=jwks` and set the `JWKS_*` variables (see [Authentication](#authentication-local-development) below). Full walkthrough: [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
 ### MinIO — object storage (required when `STORAGE_PROVIDER=minio`)
 
@@ -275,15 +274,29 @@ pnpm clean
 
 ## Database Management
 
-> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed` and `pnpm db:restore` are root-level scripts.
+> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exceptions: `pnpm db:seed`, `pnpm db:provision`, `pnpm db:restore`, and `pnpm db:drop:worktree` are root-level scripts.
 
-| Command             | Description                                                     |
-| ------------------- | --------------------------------------------------------------- |
-| `pnpm dev:migrate`  | Apply pending migrations                                        |
-| `pnpm dev:generate` | Regenerate Prisma client after schema changes                   |
-| `pnpm dev:studio`   | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
-| `pnpm db:seed`      | Run database seed scripts (from root, via `@repo/seed`)         |
-| `pnpm db:restore`   | Reset + re-seed (from root, ⚠️ destructive)                     |
+| Command                 | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `pnpm dev:migrate`      | Apply pending migrations                                        |
+| `pnpm dev:generate`     | Regenerate Prisma client after schema changes                   |
+| `pnpm dev:studio`       | Open Prisma Studio (visual DB browser) at http://localhost:5555 |
+| `pnpm db:seed`          | Run database seed scripts (from root, via `@repo/seed`)         |
+| `pnpm db:provision`     | Create + migrate + seed a database (from root; non-destructive) |
+| `pnpm db:restore`       | Reset + re-seed (from root, ⚠️ destructive)                     |
+| `pnpm db:drop:worktree` | Drop THIS worktree's private database (from root; see below)    |
+
+### Running several git worktrees at once (optional)
+
+Need to keep multiple git worktrees of this repo running at the same time? By
+default they'd all fight over API port 8080 and the same database. Opt-in
+per-worktree isolation gives each its own API port and database (and lets OIDC
+redirects follow the actual web port). A single checkout needs none of this and
+keeps the defaults (API 8080, web 5173).
+
+See **[Running several git worktrees at once](./worktree-isolation.md)** for the
+full guide — turning it on, first-time provisioning, ADE automation, login/OIDC
+behavior, and common pitfalls.
 
 ### Creating a New Migration
 
@@ -343,9 +356,9 @@ export FORCED_USER_IDP_ID="local-dev-user-001"
 
 To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the `JWKS_*` variables (derived from your IdP/tenant). See [Environment Variables](./environment-variables.md) and [Azure Entra authentication setup](../infrastructure/AzureAuthenticationSetup.md).
 
-To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakAuthenticationSetup.md).
+To run a full OIDC login locally **without** an Azure tenant, use the bundled Keycloak IdP (compose overlay from [Step 4](#step-4--start-supporting-services)) — see [Keycloak authentication setup](../infrastructure/KeycloakSetup.md).
 
-> ⚠️ **Running the API on the host with `pnpm dev`?** `JWKS_URI` must use a host that resolves _from where the API runs_. With Keycloak, the host process **can't** resolve the in-compose `http://keycloak:8080/...` host — use `http://localhost:8081/realms/huella/protocol/openid-connect/certs` instead. Getting this wrong means a 401 on every API call and a JWKS fetch failure. `JWKS_ISSUER` still uses the browser-facing host (`http://localhost:8081/realms/huella`). See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
+> ⚠️ If the API runs on the host (`pnpm dev`), use `localhost:18080` for `JWKS_URI`; `keycloak:8080` only resolves inside compose. See [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 > ⚠️ **Switching auth providers locally is unsupported against an existing DB.** User identity is keyed on the IdP subject (`idpUserId`), and `email` is unique. If you change `AUTH_PROVIDER`/IdP (e.g. Keycloak → Azure Entra) and then sign in with an email that already exists in the DB from the previous provider, the new IdP subject won't match the stored one and login fails for that account. Either reset the DB (`pnpm db:restore`) or sign in with a fresh email.
 
@@ -372,7 +385,7 @@ cd packages/database && pnpm dev:generate
 
 **Port already in use:**
 
-- API default port is `8080`. Override with `API_PORT=8081` in `.envrc`
+- API default port is `8080`. Override with `API_PORT=8081` in `.envrc` (pick a port outside the [stack's default ports](./troubleshooting.md#a-supporting-service-port-is-already-in-use))
 - Web default port is `5173`. Vite will auto-increment if taken
 
 **Tests fail with "Docker not available":**
@@ -383,8 +396,8 @@ cd packages/database && pnpm dev:generate
 
 **401 on every API call / JWKS fetch failure (host `pnpm dev` with Keycloak):**
 
-- When the API runs on the **host** (not in compose), it can't resolve the in-compose `http://keycloak:8080/...` host. Set `JWKS_URI=http://localhost:8081/realms/huella/protocol/openid-connect/certs`.
-- Keep `JWKS_ISSUER=http://localhost:8081/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
+- When the API runs on the **host** (not in compose), it can't resolve the in-compose `http://keycloak:8080/...` host. Set `JWKS_URI=http://localhost:18080/realms/huella/protocol/openid-connect/certs`.
+- Keep `JWKS_ISSUER=http://localhost:18080/realms/huella` (the browser-facing host). Detail: [Keycloak authentication setup → The Issuer vs JWKS Host Split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
 
 **Database looks empty but migrations/seed do nothing (reused machine):**
 

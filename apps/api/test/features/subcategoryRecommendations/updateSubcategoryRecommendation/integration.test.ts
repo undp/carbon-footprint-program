@@ -113,9 +113,7 @@ describe("PUT /api/subcategory-recommendations - Integration", () => {
   let testUser: User;
 
   beforeAll(async () => {
-    app = await createTestApp(inject("databaseUrl"), {
-      storageDescriptor: inject("storageDescriptor"),
-    });
+    app = await createTestApp(inject("databaseUrl"));
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
   });

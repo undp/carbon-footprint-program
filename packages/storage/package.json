@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Object storage package for the Huella Latam project",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "exports": {
     ".": {

@@ -7,7 +7,7 @@ import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(
   project: GetReductionProjectByIdResponse,
-  organizationName: string
+  organizationName: string | null
 ) {
   const sanitizedName = sanitizeFilenamePart(project.name);
   const filename = `${sanitizedName}-proyecto-de-reduccion.xlsx`;
@@ -20,19 +20,27 @@ export async function exportReductionProjectToExcel(
   ];
   worksheet.getRow(1).font = { bold: true, size: 14 };
 
+  // Deferred draft fields may be null; render a dash rather than crashing.
+  const totalReduction =
+    project.baselineScenario != null && project.projectScenario != null
+      ? project.baselineScenario - project.projectScenario
+      : "—";
+
   const rows = [
     ["Nombre", project.name],
-    [`Nombre ${VOCAB.organization.noun.singular}`, organizationName],
-    ["Descripción", project.description],
-    ["Año de Reducción", project.year.toString()],
+    [`Nombre ${VOCAB.organization.noun.singular}`, organizationName ?? "—"],
+    ["Descripción", project.description ?? "—"],
+    ["Año de Reducción", project.year?.toString() ?? "—"],
     ["Subcategoría", project.subcategory?.name ?? "—"],
     [
       "Fecha de Implementación",
-      formatter.dateDDMMYYYY(project.implementationDate),
+      project.implementationDate
+        ? formatter.dateDDMMYYYY(project.implementationDate)
+        : "—",
     ],
-    ["Escenario Base (tCO₂e)", project.baselineScenario],
-    ["Escenario Proyecto (tCO₂e)", project.projectScenario],
-    ["Reducción (tCO₂e)", project.baselineScenario - project.projectScenario],
+    ["Escenario Base (tCO₂e)", project.baselineScenario ?? "—"],
+    ["Escenario Proyecto (tCO₂e)", project.projectScenario ?? "—"],
+    ["Reducción (tCO₂e)", totalReduction],
     ["PCG Utilizado", project.gwpUsed ?? "—"],
     ["GEI Considerados", project.consideredGei.join(", ") || "—"],
     ["Reportado en Otra Iniciativa", project.reportedElsewhere ? "Sí" : "No"],
