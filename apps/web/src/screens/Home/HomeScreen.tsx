@@ -11,6 +11,7 @@ import { EmissionResultsContent } from "@/components";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { useUserStore } from "@/stores/userStore";
+import { enqueueSnackbar } from "notistack";
 import { isDashboardReady } from "./components/welcomeHome.config";
 
 export const HomeScreen: FC = () => {
@@ -34,6 +35,22 @@ export const HomeScreen: FC = () => {
   );
   const { mutate: completeOnboarding, isPending: isFinishing } =
     useUpdateMyProfile();
+
+  // "Terminar Onboarding" is the only way past the completion screen, so a
+  // silent failure would trap the user — surface the error explicitly.
+  const handleFinishOnboarding = () =>
+    completeOnboarding(
+      { onboardingCompleted: true },
+      {
+        onError: (error) => {
+          // eslint-disable-next-line no-console
+          console.error("Failed to complete onboarding", error);
+          enqueueSnackbar("No se pudo terminar el onboarding", {
+            variant: "error",
+          });
+        },
+      }
+    );
 
   const approvedInventories = useMemo(
     () => inventories.filter(isDashboardReady),
@@ -97,7 +114,7 @@ export const HomeScreen: FC = () => {
             inv.organizationId !== null
         )}
         isComplete={allStepsDone}
-        onFinish={() => completeOnboarding({ onboardingCompleted: true })}
+        onFinish={handleFinishOnboarding}
         isFinishing={isFinishing}
       />
     );
