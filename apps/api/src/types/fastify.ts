@@ -11,7 +11,7 @@ import type {
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { StorageAdapter } from "@repo/storage";
-import type { GetMeResponse } from "@repo/types";
+import type { User } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type {
   OrganizationIdExtractorFn,
@@ -159,7 +159,7 @@ declare module "fastify" {
      * User from the database (available after authentication and user resolution).
      * This is the full user object from the database.
      */
-    currentUser?: GetMeResponse | null;
+    currentUser?: User | null;
   }
   interface FastifyContextConfig {
     /** Marks a route as truly public — no authentication or credentials required. */

@@ -117,6 +117,7 @@ describe("GET /api/users/me - Integration Tests", () => {
         expect(body).toHaveProperty("idpName");
         expect(body).toHaveProperty("createdAt");
         expect(body).toHaveProperty("updatedAt");
+        expect(Array.isArray(body.onboardingsCompleted)).toBe(true);
       }
     });
   });
