@@ -10,7 +10,7 @@ This is the **first-stop hub**. Deep, domain-specific troubleshooting lives next
 | ------------------------------------------ | ---------------------------------------------------------------------------------------- |
 | Local setup (step-by-step + its own FAQ)   | [Local Setup](./local-setup.md)                                                          |
 | Docker Compose (full stack, env, services) | [docker-compose reference](../operations/docker-compose.md)                              |
-| Keycloak (local OIDC IdP)                  | [Keycloak Authentication Setup](../infrastructure/KeycloakAuthenticationSetup.md)        |
+| Keycloak (OIDC IdP, dev & prod)            | [Keycloak Setup](../infrastructure/KeycloakSetup.md)                                     |
 | Azure Entra ID auth                        | [Azure Authentication Setup](../infrastructure/AzureAuthenticationSetup.md)              |
 | Generic OIDC contract                      | [Generic OIDC Authentication Setup](../infrastructure/GenericOidcAuthenticationSetup.md) |
 | Object storage (MinIO / Azure Blob)        | [File Storage](../infrastructure/FileStorage.md)                                         |
@@ -120,7 +120,7 @@ Azure Blob uses `DefaultAzureCredential`, which **falls back to your `az login` 
 1. On the IdP, open the client/app registration and register the exact callback URL the app uses, e.g. `http://localhost:5173/auth/callback` (dev) or `https://<your-domain>/auth/callback` (prod).
 2. If you override the default, make sure `VITE_OIDC_REDIRECT_URI` matches the registered URI exactly. When unset, the app uses `<serving-origin>/auth/callback`.
 
-See [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) for the full configuration (and the [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) / [Keycloak](../infrastructure/KeycloakAuthenticationSetup.md) guides for a specific IdP).
+See [OIDC authentication setup](../infrastructure/GenericOidcAuthenticationSetup.md) for the full configuration (and the [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) / [Keycloak](../infrastructure/KeycloakSetup.md) guides for a specific IdP).
 
 ---
 
@@ -182,8 +182,11 @@ Default host ports for the local stack:
 | Postgres (app)        | `5432`          |
 | API                   | `8080`          |
 | Web (Vite)            | `5173`          |
-| Keycloak              | `8081`          |
+| Keycloak              | `18080`         |
+| Keycloak DB           | `15432`         |
 | MinIO (API + console) | `9000` / `9001` |
+
+Secondary services prefix a taken port with `1`: Keycloak 8080→18080, DB 5432→15432.
 
 Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or stop the container: `docker ps` → `docker stop <name>`.
 
@@ -221,19 +224,19 @@ Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or s
 
 ### Keycloak admin console: "We are sorry… HTTPS required"
 
-**Symptom:** Opening http://localhost:8081 (admin console) shows Keycloak's "HTTPS required" page.
+**Symptom:** Opening http://localhost:18080 (admin console) shows Keycloak's "HTTPS required" page.
 
-**Cause:** The admin console is served by the **`master`** realm, whose default `sslRequired=external`; the imported realm export only sets the **`huella`** realm to `none`.
+**Cause:** The admin console is served by the **`master`** realm, whose default `sslRequired=external`; the imported realm export only sets the **`huella`** realm to `none`. The dev overlay ships a one-shot **`keycloak-init`** service that relaxes `master` automatically — seeing this error means it didn't run (e.g. `up` was limited to `keycloak keycloak-db` only).
 
-**Fix (local dev):** set the master realm's `sslRequired` to `NONE` — see [Keycloak → Troubleshooting](../infrastructure/KeycloakAuthenticationSetup.md#troubleshooting).
+**Fix (local dev):** run the one-shot: `docker compose … up -d keycloak-init` — see ["HTTPS required" on the admin console](../infrastructure/KeycloakSetup.md#https-required-on-the-admin-console) for the manual `kcadm` fallback.
 
 ### Keycloak realm or client missing after `up`
 
 **Symptom:** Login fails; the `huella` realm or the `huella-web` client isn't present in Keycloak.
 
-**Cause:** The realm import (`infra/keycloak/realm-huella.json`) runs **only on first boot**.
+**Cause:** The realm import (`infra/keycloak/dev/realm-huella.dev.json`) runs **only on first boot**.
 
-**Fix:** `docker compose … down -v` to drop the `keycloak-db` volume, then `up` to re-import. See [Keycloak Authentication Setup](../infrastructure/KeycloakAuthenticationSetup.md).
+**Fix:** `docker compose … down -v` to drop the `keycloak-db` volume, then `up` to re-import. See [Keycloak Setup](../infrastructure/KeycloakSetup.md).
 
 ### Web console logs "OIDC login is not configured"
 
@@ -241,7 +244,7 @@ Find and free a port: `lsof -i :<port> | grep LISTEN` then `kill -9 <PID>`, or s
 
 **Cause:** One of `VITE_OIDC_ISSUER` / `VITE_OIDC_CLIENT_ID` / `VITE_OIDC_SCOPES` is empty. The app still boots and renders public pages, but login is disabled until all three are set.
 
-**Fix:** Set the three `VITE_OIDC_*` vars, then **restart the web dev server** (Vite reads `VITE_*` at startup). For a specific IdP, see the [Keycloak](../infrastructure/KeycloakAuthenticationSetup.md) / [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) guides.
+**Fix:** Set the three `VITE_OIDC_*` vars, then **restart the web dev server** (Vite reads `VITE_*` at startup). For a specific IdP, see the [Keycloak](../infrastructure/KeycloakSetup.md) / [Azure Entra](../infrastructure/AzureAuthenticationSetup.md) guides.
 
 ### Chatbot widget shows but every message fails (404)
 
@@ -391,8 +394,8 @@ After fixing, restart the App Service — environment variables are resolved at 
 
 **Checklist:**
 
-1. Is `JWKS_URI` reachable **from where the API runs**? On host `pnpm dev` against local Keycloak it must be `http://localhost:8081/realms/huella/protocol/openid-connect/certs` — **not** the in-compose `http://keycloak:8080/...` host (the host process can't resolve the `keycloak` service name). See the [issuer-vs-JWKS host split](../infrastructure/KeycloakAuthenticationSetup.md#the-issuer-vs-jwks-host-split).
-2. Is `JWKS_ISSUER` exactly the token's `iss`? Entra: `https://login.microsoftonline.com/<tenant-id>/v2.0` (or the CIAM host for External ID); Keycloak: `http://localhost:8081/realms/huella`.
+1. Is `JWKS_URI` reachable **from where the API runs**? On host `pnpm dev` against local Keycloak it must be `http://localhost:18080/realms/huella/protocol/openid-connect/certs` — **not** the in-compose `http://keycloak:8080/...` host (the host process can't resolve the `keycloak` service name). See the [issuer-vs-JWKS host split](../infrastructure/KeycloakSetup.md#the-issuer-vs-jwks-host-split).
+2. Is `JWKS_ISSUER` exactly the token's `iss`? Entra: `https://login.microsoftonline.com/<tenant-id>/v2.0` (or the CIAM host for External ID); Keycloak: `http://localhost:18080/realms/huella`.
 3. Is `JWKS_AUDIENCE` the API's expected audience? Entra: the API app-registration client ID; Keycloak: `huella-api`.
 4. Has the signing key rotated recently? The JWKS cache refreshes every ~10 minutes — wait and retry.
 

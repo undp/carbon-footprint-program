@@ -1,8 +1,9 @@
 {
   "realm": "huella",
   "enabled": true,
-  "displayName": "Huella Latam (dev)",
-  "sslRequired": "none",
+  "displayName": "Huella Latam",
+  "sslRequired": "external",
+
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "loginWithEmailAllowed": true,
@@ -10,9 +11,37 @@
   "verifyEmail": false,
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
+  "rememberMe": false,
+
+  "internationalizationEnabled": true,
+  "supportedLocales": ["es"],
+  "defaultLocale": "es",
+
   "accessTokenLifespan": 300,
-  "ssoSessionIdleTimeout": 1800,
-  "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeout": 900,
+  "ssoSessionMaxLifespan": 28800,
+  "offlineSessionIdleTimeout": 86400,
+  "offlineSessionMaxLifespanEnabled": true,
+  "offlineSessionMaxLifespan": 172800,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 1,
+
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxTemporaryLockouts": 0,
+  "bruteForceStrategy": "LINEAR",
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+
+  "passwordPolicy": "length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername() and notEmail() and passwordHistory(5)",
+
   "clientScopes": [
     {
       "name": "basic",
@@ -174,11 +203,11 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "fullScopeAllowed": false,
-      "redirectUris": ["http://localhost:*"],
-      "webOrigins": ["*"],
+      "redirectUris": ["${HUELLA_WEB_ORIGIN}/auth/callback"],
+      "webOrigins": ["${HUELLA_WEB_ORIGIN}"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:*"
+        "post.logout.redirect.uris": "${HUELLA_WEB_ORIGIN}##${HUELLA_WEB_ORIGIN}/"
       },
       "defaultClientScopes": ["basic", "profile", "email", "access_as_user"],
       "optionalClientScopes": ["offline_access"],

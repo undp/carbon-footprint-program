@@ -2,7 +2,7 @@
 
 How to configure **Azure Entra** as the OIDC Identity Provider for Huella Latam. The platform supports two Azure Entra tenant types, each suited to different deployment scenarios.
 
-Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcAuthenticationSetup.md) — read that first for the provider-agnostic picture. For a local Keycloak IdP, see [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md).
+Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcAuthenticationSetup.md) — read that first for the provider-agnostic picture. For a Keycloak IdP (local dev or production), see [Keycloak Setup](./KeycloakSetup.md).
 
 > **How auth works here:** the frontend is a generic OIDC client (`oidc-client-ts`) and the API validates access tokens directly via **JWKS** (`AUTH_PROVIDER=jwks`). There is no MSAL and no Azure App Service Easy Auth gateway — on Azure App Service, keep platform Authentication **disabled** so the `Authorization: Bearer` token reaches the app.
 
