@@ -149,11 +149,9 @@ export const WelcomeHome: FC<Props> = ({
 
       <Box className="flex flex-col gap-4">
         <Typography variant="h6" fontWeight={700}>
-          {isComplete
-            ? "Tu camino en Huella Latam"
-            : hasOrganization
-              ? "Continúa donde quedaste"
-              : "Tu camino en Huella Latam"}
+          {hasOrganization && !isComplete
+            ? "Continúa donde quedaste"
+            : "Tu camino en Huella Latam"}
         </Typography>
 
         {/* Escape hatch — always available while onboarding; navigates directly
