@@ -14,13 +14,13 @@ import { DraftNameCell } from "./DraftNameCell";
 import { isCarbonInventorySelfDeclarable } from "../../utils/selfDeclareValidation";
 
 interface DraftsTabProps {
-  darftInventories: GetAllCarbonInventoriesResponse;
+  draftInventories: GetAllCarbonInventoriesResponse;
   allInventories: GetAllCarbonInventoriesResponse;
   isLoading: boolean;
 }
 
 export const DraftsTab: FC<DraftsTabProps> = ({
-  darftInventories,
+  draftInventories,
   allInventories,
   isLoading,
 }) => {
@@ -37,12 +37,12 @@ export const DraftsTab: FC<DraftsTabProps> = ({
   // "Asociar organización" button is actionable). Tagging by a stable attribute
   // avoids DataGrid-internal selectors.
   const selfDeclareTargetId =
-    darftInventories.find((draft) =>
+    draftInventories.find((draft) =>
       isCarbonInventorySelfDeclarable(draft, allInventories)
     )?.id ??
-    darftInventories.find((draft) => draft.organizationId !== null)?.id ??
-    darftInventories[0]?.id;
-  const associateTargetId = darftInventories.find(
+    draftInventories.find((draft) => draft.organizationId !== null)?.id ??
+    draftInventories[0]?.id;
+  const associateTargetId = draftInventories.find(
     (draft) => draft.organizationId === null
   )?.id;
 
@@ -176,7 +176,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         <StylizedDataGrid
           autoHeight
           columnHeaderHeight={40}
-          rows={darftInventories}
+          rows={draftInventories}
           columns={columns}
           localeText={{
             noRowsLabel: "No hay borradores disponibles",
