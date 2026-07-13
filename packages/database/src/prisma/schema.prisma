@@ -279,8 +279,6 @@ model User {
   updatedById                          BigInt?                        @map("updated_by_id")
   termsAccepted                        Boolean                        @default(false) @map("terms_accepted")
   termsAcceptedAt                      DateTime?                      @map("terms_accepted_at")
-  onboardingCompleted                  Boolean                        @default(false) @map("onboarding_completed")
-  onboardingCompletedAt                DateTime?                      @map("onboarding_completed_at")
   lastAccessAt                         DateTime?                      @map("last_access_at")
   countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
   countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
@@ -346,6 +344,7 @@ model User {
   roleAuditAsTarget                    UserRoleAudit[]                @relation("user_role_audit_target")
   roleAuditAsActor                     UserRoleAudit[]                @relation("user_role_audit_actor")
   accessLogs                           UserAccessLog[]
+  onboardingCompletions                UserOnboardingCompletion[]
   chatbotConversations                 ChatbotChatConversation[]      @relation("chatbot_conversation_user")
 
   @@map("user")
@@ -376,6 +375,22 @@ model UserAccessLog {
   @@index([userId, createdAt])
   @@index([createdAt])
   @@map("user_access_log")
+}
+
+// A user finished or dismissed ("don't show me again") a guided onboarding.
+// `onboardingKey` is an app-owned identifier (see @repo/types OnboardingKeySchema),
+// kept as a plain string so a new onboarding needs no migration. The row's
+// existence means "resolved"; it is immutable (no updatedAt/soft-delete) and
+// disposable preference data (cascades on user delete).
+model UserOnboardingCompletion {
+  userId        BigInt   @map("user_id")
+  onboardingKey String   @map("onboarding_key")
+  completedAt   DateTime @default(now()) @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, onboardingKey])
+  @@map("user_onboarding_completion")
 }
 
 enum MagnitudeStatus {
