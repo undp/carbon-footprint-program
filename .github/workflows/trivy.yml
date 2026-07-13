@@ -1,0 +1,93 @@
+name: Trivy
+
+# Container-image vulnerability scanning. Builds the API and web images the same
+# way production does and scans them with Trivy for OS-package and language
+# (node_modules) CVEs — the class of issue `pnpm audit` (npm deps only) and
+# Dependabot (base-image digest bumps only) do not catch on the *assembled*
+# image. Runs on push to main and weekly (to catch newly-disclosed CVEs in
+# already-merged images) and on PRs that can change image contents.
+#
+# ADVISORY — do NOT add these checks to branch protection as required. This
+# workflow uses `on.paths` to skip PRs that cannot change the images, and Trivy
+# occasionally fails transiently on vuln-DB download; a required check that is
+# path-skipped would leave docs-only PRs pending forever under branch protection
+# (see ci.yml's `changes`-filter pattern for the required-check-safe approach).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "tools/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "**/package.json"
+      - ".github/workflows/trivy.yml"
+  schedule:
+    - cron: "43 5 * * 1" # weekly, Monday 05:43 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Trivy Image Scan (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    # Skip on draft PRs (matches ci.yml / codeql.yml). Still runs on push and the
+    # weekly schedule, where there is no pull_request context.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: api
+            dockerfile: apps/api/Dockerfile
+            # The API image needs no build args.
+            build_args: ""
+          - app: web
+            dockerfile: apps/web/Dockerfile
+            # Vite inlines VITE_* at build time; a placeholder is enough to build
+            # (the value does not affect the OS/package CVE scan). Mirrors the
+            # `build` job in ci.yml.
+            build_args: "VITE_API_BASE_URL=https://example.invalid"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        # Matrix values are passed via env, never interpolated into `run:`
+        # (that would be a zizmor template-injection finding).
+        env:
+          APP: ${{ matrix.app }}
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          BUILD_ARGS: ${{ matrix.build_args }}
+        run: |
+          set -euo pipefail
+          extra=""
+          if [ -n "$BUILD_ARGS" ]; then
+            extra="--build-arg $BUILD_ARGS"
+          fi
+          docker build -f "$DOCKERFILE" $extra -t "trivy-scan:$APP" .
+          echo "IMAGE_REF=trivy-scan:$APP" >> "$GITHUB_ENV"
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_REF }}
+          format: table
+          # Fail only on actionable findings: HIGH/CRITICAL with a fix available.
+          # `ignore-unfixed` keeps the gate from flapping on distro CVEs that have
+          # no upstream patch yet.
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          # Vulnerabilities only — secret detection is already covered by the
+          # `secret-scan` job in ci.yml.
+          scanners: vuln
