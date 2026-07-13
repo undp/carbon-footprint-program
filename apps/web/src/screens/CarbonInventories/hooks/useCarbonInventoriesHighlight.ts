@@ -11,17 +11,22 @@ import {
 
 /**
  * Spotlights the control the user came here to click from the home onboarding:
- * "Nueva Huella" for the create-huella step, or the Autodeclarar button of the
- * most-recent draft for the self-declare step (switching to the Borradores tab
- * first). Targets are resolved by their stable `data-onboarding-id` attribute.
- * No-ops when no matching onboarding focus is pending — a focus for another
- * screen is left untouched so it can resolve where it belongs.
+ * "Nueva Huella" for the create-huella step, the organization button of a draft
+ * for the associate-org step, or the Autodeclarar button of the most-recent
+ * draft for the self-declare step (switching to the Borradores tab first for the
+ * draft-scoped ones). Targets are resolved by their stable `data-onboarding-id`
+ * attribute. No-ops when no matching onboarding focus is pending — a focus for
+ * another screen is left untouched so it can resolve where it belongs.
  */
 export const useCarbonInventoriesHighlight = () => {
   const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
 
   useEffect(() => {
-    const focus = consumeOnboardingFocus(["new-huella", "self-declare"]);
+    const focus = consumeOnboardingFocus([
+      "new-huella",
+      "associate-org",
+      "self-declare",
+    ]);
 
     if (focus === "new-huella") {
       return runOnboardingHighlight({
@@ -30,6 +35,17 @@ export const useCarbonInventoriesHighlight = () => {
         description:
           "Haz clic en “Nueva Huella” para calcular o subir tus emisiones.",
         debugLabel: "new-huella",
+      });
+    }
+
+    if (focus === "associate-org") {
+      setActiveTab(CarbonInventoriesTab.DRAFTS);
+      return runOnboardingHighlight({
+        find: findOnboardingTarget("associate-org"),
+        title: "Asocia tu huella a la organización",
+        description:
+          "Haz clic aquí para asociar esta huella a tu organización y poder autodeclararla.",
+        debugLabel: "associate-org",
       });
     }
 

@@ -15,7 +15,7 @@ import {
 
 export type OnboardingStepState = "done" | "active" | "pending" | "locked";
 
-interface StepTag {
+export interface StepTag {
   label: string;
   variant: "next" | "ok" | "wait";
 }

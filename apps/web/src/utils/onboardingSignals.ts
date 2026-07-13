@@ -5,7 +5,11 @@
  * state) so the destination screen can spotlight the exact control to click.
  */
 export type OnboardingFocus =
-  "create-org" | "solicit-inscription" | "new-huella" | "self-declare";
+  | "create-org"
+  | "solicit-inscription"
+  | "new-huella"
+  | "associate-org"
+  | "self-declare";
 
 const FOCUS_KEY = "onboarding:focus";
 

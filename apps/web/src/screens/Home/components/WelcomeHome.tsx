@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import { ArrowForwardRounded } from "@mui/icons-material";
+import { ArrowForwardRounded, CelebrationRounded } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
 import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -10,7 +10,6 @@ import { useSidebarStore } from "@/stores/sidebarStore";
 import {
   clearOnboardingFocus,
   markOnboardingFocus,
-  OnboardingFocus,
 } from "@/utils/onboardingSignals";
 import {
   runOnboardingHighlight,
@@ -18,16 +17,24 @@ import {
 } from "@/utils/onboardingHighlight";
 import { OnboardingStep } from "./OnboardingStep";
 import { WelcomeHero } from "./WelcomeHero";
+import { ONBOARDING_STEPS, OnboardingContext } from "./onboardingSteps";
 
 interface Props {
   hasOrganization: boolean;
   orgAccredited: boolean;
   /** lastSubmissionStatus of the primary org — drives the inscribe step copy. */
   inscriptionStatus: SubmissionStatus | null;
-  /** Has at least one huella that is not yet dashboard-ready. */
+  /** Has at least one huella (any status). */
   hasHuella: boolean;
-  /** Has at least one draft huella (the one that can be self-declared). */
-  hasDraftHuella: boolean;
+  /** Has at least one huella already linked to an organization. */
+  hasHuellaWithOrg: boolean;
+  /** Has a draft huella linked to an organization (the one that can be self-declared). */
+  hasAssociatedDraft: boolean;
+  /** A huella already fills the dashboard — the flow is 100% complete. */
+  isComplete: boolean;
+  /** Persist onboarding completion and reveal the dashboard. */
+  onFinish: () => void;
+  isFinishing?: boolean;
 }
 
 export const WelcomeHome: FC<Props> = ({
@@ -35,24 +42,33 @@ export const WelcomeHome: FC<Props> = ({
   orgAccredited,
   inscriptionStatus,
   hasHuella,
-  hasDraftHuella,
+  hasHuellaWithOrg,
+  hasAssociatedDraft,
+  isComplete,
+  onFinish,
+  isFinishing = false,
 }) => {
   const navigate = useNavigate();
   const firstName = useUserStore((state) => state.user?.firstName ?? null);
   const setSidebarForcedOpen = useSidebarStore((state) => state.setForcedOpen);
   const namePart = firstName ? `, ${firstName}` : "";
 
-  // Secondary links (already-done / in-review steps) still navigate directly —
-  // the guided flow below only applies to the active step's primary CTA.
-  const goToOrg = () => void navigate({ to: Routes.MY_ORGANIZATION });
-  const goToHuellas = () => void navigate({ to: Routes.CARBON_INVENTORIES });
+  const ctx: OnboardingContext = {
+    hasHuella,
+    hasOrganization,
+    hasHuellaWithOrg,
+    hasAssociatedDraft,
+    orgAccredited,
+    inscriptionStatus,
+    isComplete,
+  };
 
   // Rather than redirecting, the active step spotlights the matching sidebar
   // link so the user navigates themselves; the destination screen then
   // highlights the exact control to click (via the one-shot focus signal).
   const activeHighlight = useRef<(() => void) | null>(null);
   const guideToSidebar = (
-    focus: OnboardingFocus,
+    focus: (typeof ONBOARDING_STEPS)[number]["id"],
     route: string,
     title: string,
     description: string
@@ -76,243 +92,140 @@ export const WelcomeHome: FC<Props> = ({
   };
   useEffect(() => () => activeHighlight.current?.(), []);
 
-  const hero = hasOrganization
+  const hero = isComplete
     ? {
-        eyebrow: "Qué bueno verte de nuevo",
-        title: `Hola de nuevo${namePart}`,
+        eyebrow: "¡Lo lograste!",
+        title: `¡Felicitaciones${namePart}! 🎉`,
         subtitle:
-          "Estos son tus próximos pasos para avanzar con tu huella de carbono.",
+          "Completaste todos los pasos para medir la huella de carbono de tu organización.",
       }
-    : {
-        eyebrow: "Te damos la bienvenida",
-        title: `¡Hola${namePart}! 👋`,
-        subtitle:
-          "En Huella Latam mides, reportas y reduces la huella de carbono de tu organización. Completa estos pasos para empezar.",
-      };
-
-  // --- Step 3 (inscribe organization) has several sub-states -----------------
-  const step3Pending =
-    !orgAccredited && inscriptionStatus === SubmissionStatus.PENDING;
+    : hasOrganization
+      ? {
+          eyebrow: "Qué bueno verte de nuevo",
+          title: `Hola de nuevo${namePart}`,
+          subtitle:
+            "Estos son tus próximos pasos para avanzar con tu huella de carbono.",
+        }
+      : {
+          eyebrow: "Te damos la bienvenida",
+          title: `¡Hola${namePart}! 👋`,
+          subtitle:
+            "En Huella Latam mides, reportas y reduces la huella de carbono de tu organización. Completa estos pasos para empezar.",
+        };
 
   return (
     <Box className="flex flex-1 flex-col gap-6">
       <WelcomeHero {...hero} />
 
-      <Box className="flex flex-col gap-4">
-        <Typography variant="h6" fontWeight={700}>
-          {hasOrganization
-            ? "Continúa donde quedaste"
-            : "Tu camino en Huella Latam"}
-        </Typography>
-
-        {/* Escape hatch — always available; navigates directly to the calculator. */}
+      {/* Completion — the flow no longer disappears on its own; the user closes
+          it explicitly and we persist that so it doesn't reappear elsewhere. */}
+      {isComplete && (
         <Box
-          className="flex items-center gap-4 rounded-xl border border-dashed p-4"
-          sx={{ borderColor: "divider", bgcolor: "background.paper" }}
+          className="flex items-center gap-4 rounded-xl border p-5"
+          sx={{ borderColor: "success.main", bgcolor: "background.paper" }}
         >
-          <CalculatorIcon sx={{ color: "primary.main" }} />
+          <CelebrationRounded sx={{ color: "success.main" }} />
           <Typography variant="body2" color="text.secondary" className="flex-1">
             <Box component="span" fontWeight={600} color="text.primary">
-              ¿Solo quieres explorar?
+              Completaste tu onboarding.
             </Box>{" "}
-            Prueba la calculadora y estima las emisiones de tu rubro en minutos.
+            Termínalo para ir a tu inicio y ver el dashboard de emisiones.
           </Typography>
           <Button
-            variant="outlined"
-            color="primary"
+            variant="contained"
+            color="success"
             endIcon={<ArrowForwardRounded />}
-            onClick={() => {
-              markOnboardingFocus("new-huella");
-              goToHuellas();
-            }}
+            onClick={onFinish}
+            disabled={isFinishing}
           >
-            Usar calculadora
+            Terminar Onboarding
           </Button>
         </Box>
+      )}
 
-        {/* Step 1 — organization */}
-        <OnboardingStep
-          index={1}
-          state={hasOrganization ? "done" : "active"}
-          title="Crea tu organización"
-          description={
-            hasOrganization
-              ? step3Pending
-                ? "Ya registraste tu organización. Mientras tu inscripción está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe."
-                : "Ya registraste tu organización. Puedes ver más información en la página “Mi organización”."
-              : "Crea el perfil de tu organización."
-          }
-          tag={
-            hasOrganization
-              ? { label: "Completado", variant: "ok" }
-              : { label: "Empieza aquí", variant: "next" }
-          }
-          action={
-            hasOrganization ? (
-              <Button variant="outlined" color="primary" onClick={goToOrg}>
-                Ir a Mi Organización
-              </Button>
-            ) : (
+      <Box className="flex flex-col gap-4">
+        <Typography variant="h6" fontWeight={700}>
+          {isComplete
+            ? "Tu camino en Huella Latam"
+            : hasOrganization
+              ? "Continúa donde quedaste"
+              : "Tu camino en Huella Latam"}
+        </Typography>
+
+        {/* Escape hatch — always available while onboarding; navigates directly
+            to the calculator. Hidden once the flow is complete. */}
+        {!isComplete && (
+          <Box
+            className="flex items-center gap-4 rounded-xl border border-dashed p-4"
+            sx={{ borderColor: "divider", bgcolor: "background.paper" }}
+          >
+            <CalculatorIcon sx={{ color: "primary.main" }} />
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              className="flex-1"
+            >
+              <Box component="span" fontWeight={600} color="text.primary">
+                ¿Solo quieres explorar?
+              </Box>{" "}
+              Prueba la calculadora y estima las emisiones de tu rubro en
+              minutos.
+            </Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              endIcon={<ArrowForwardRounded />}
+              onClick={() => {
+                markOnboardingFocus("new-huella");
+                void navigate({ to: Routes.CARBON_INVENTORIES });
+              }}
+            >
+              Usar calculadora
+            </Button>
+          </Box>
+        )}
+
+        {ONBOARDING_STEPS.map((step, index) => {
+          const view = step.view(ctx);
+          const action =
+            view.state === "active" && view.activeCta ? (
               <Button
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRounded />}
                 onClick={() =>
                   guideToSidebar(
-                    "create-org",
-                    Routes.MY_ORGANIZATION,
-                    "Ve a Mi Organización",
-                    "Haz clic aquí en el menú para registrar tu organización."
+                    step.id,
+                    step.route,
+                    step.guide.title,
+                    step.guide.description
                   )
                 }
               >
-                Crear organización
+                {view.activeCta}
               </Button>
-            )
-          }
-        />
-
-        {/* Step 2 — huella (unlocked by step 1) */}
-        <OnboardingStep
-          index={2}
-          state={!hasOrganization ? "locked" : hasHuella ? "done" : "active"}
-          title="Crea tu huella"
-          description={
-            hasHuella
-              ? "Ya tienes una huella creada. Revísala o crea una nueva cuando quieras."
-              : "Calcula con nuestra guía o sube tus datos. Es la base para medir tu impacto."
-          }
-          tag={
-            !hasOrganization
-              ? { label: "Después", variant: "wait" }
-              : hasHuella
-                ? { label: "Completado", variant: "ok" }
-                : { label: "Continúa aquí", variant: "next" }
-          }
-          action={
-            !hasOrganization ? undefined : hasHuella ? (
-              <Button variant="outlined" color="primary" onClick={goToHuellas}>
-                Ir a Huella Organizacional
-              </Button>
-            ) : (
+            ) : view.secondaryCta ? (
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
-                endIcon={<ArrowForwardRounded />}
-                onClick={() =>
-                  guideToSidebar(
-                    "new-huella",
-                    Routes.CARBON_INVENTORIES,
-                    "Ve a Huella Organizacional",
-                    "Haz clic aquí en el menú para crear tu huella."
-                  )
-                }
+                onClick={() => void navigate({ to: view.secondaryCta!.to })}
               >
-                Crear huella
+                {view.secondaryCta.label}
               </Button>
-            )
-          }
-        />
+            ) : undefined;
 
-        {/* Step 3 — inscribe organization (unlocked by step 1) */}
-        <OnboardingStep
-          index={3}
-          state={
-            !hasOrganization
-              ? "locked"
-              : orgAccredited
-                ? "done"
-                : step3Pending
-                  ? "pending"
-                  : "active"
-          }
-          title="Inscribe tu organización"
-          description={
-            !hasOrganization
-              ? "Inscribe tu organización para validarla oficialmente."
-              : orgAccredited
-                ? "Tu organización está inscrita."
-                : step3Pending
-                  ? "Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “Mi organización”."
-                  : inscriptionStatus === SubmissionStatus.REJECTED
-                    ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
-                    : "Solicita la inscripción de tu organización para validarla oficialmente."
-          }
-          tag={
-            !hasOrganization
-              ? { label: "Después", variant: "wait" }
-              : orgAccredited
-                ? { label: "Inscrita", variant: "ok" }
-                : step3Pending
-                  ? { label: "En revisión", variant: "next" }
-                  : { label: "Cuando quieras", variant: "next" }
-          }
-          action={
-            !hasOrganization ? undefined : orgAccredited ? (
-              <Button variant="outlined" color="primary" onClick={goToOrg}>
-                Ir a Mi Organización
-              </Button>
-            ) : step3Pending ? (
-              <Button variant="outlined" color="primary" onClick={goToOrg}>
-                Ver estado
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                endIcon={<ArrowForwardRounded />}
-                onClick={() =>
-                  guideToSidebar(
-                    "solicit-inscription",
-                    Routes.MY_ORGANIZATION,
-                    "Ve a Mi Organización",
-                    "Haz clic aquí en el menú para solicitar la inscripción."
-                  )
-                }
-              >
-                Inscribir organización
-              </Button>
-            )
-          }
-        />
-
-        {/* Step 4 — self-declare (unlocked by an inscribed org + a draft huella) */}
-        <OnboardingStep
-          index={4}
-          state={orgAccredited && hasDraftHuella ? "active" : "locked"}
-          title="Autodeclara tu huella"
-          description={
-            orgAccredited
-              ? hasDraftHuella
-                ? "Autodeclárala para publicarla en tu inicio y ver tu dashboard de emisiones."
-                : "Necesitas una huella en borrador para autodeclarar."
-              : "Se habilita cuando tengas una huella creada (paso 2) y tu organización esté inscrita (paso 3)."
-          }
-          tag={
-            orgAccredited && hasDraftHuella
-              ? { label: "Último paso", variant: "next" }
-              : { label: "Después", variant: "wait" }
-          }
-          action={
-            orgAccredited && hasDraftHuella ? (
-              <Button
-                variant="contained"
-                color="primary"
-                endIcon={<ArrowForwardRounded />}
-                onClick={() =>
-                  guideToSidebar(
-                    "self-declare",
-                    Routes.CARBON_INVENTORIES,
-                    "Ve a Huella Organizacional",
-                    "Haz clic aquí en el menú para autodeclarar tu huella."
-                  )
-                }
-              >
-                Autodeclarar
-              </Button>
-            ) : undefined
-          }
-        />
+          return (
+            <OnboardingStep
+              key={step.id}
+              index={index + 1}
+              state={view.state}
+              title={step.title}
+              description={view.description}
+              tag={view.tag}
+              action={action}
+            />
+          );
+        })}
       </Box>
     </Box>
   );

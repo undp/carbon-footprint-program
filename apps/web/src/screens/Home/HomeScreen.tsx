@@ -3,12 +3,14 @@ import { Box } from "@mui/material";
 import {
   useCarbonInventoriesMinimalData,
   useMyOrganizations,
+  useUpdateMyProfile,
 } from "@/api/query";
 import { Header, WelcomeHome } from "./components";
 import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent } from "@/components";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { useUserStore } from "@/stores/userStore";
 import { isDashboardReady } from "./components/welcomeHome.config";
 
 export const HomeScreen: FC = () => {
@@ -24,6 +26,14 @@ export const HomeScreen: FC = () => {
     useCarbonInventoriesMinimalData();
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
+
+  // Whether the user has explicitly finished the onboarding (persisted on their
+  // profile). Populated by useInitializeUser → useMe into the store.
+  const onboardingCompleted = useUserStore(
+    (state) => state.user?.onboardingCompleted ?? false
+  );
+  const { mutate: completeOnboarding, isPending: isFinishing } =
+    useUpdateMyProfile();
 
   const approvedInventories = useMemo(
     () => inventories.filter(isDashboardReady),
@@ -61,10 +71,13 @@ export const HomeScreen: FC = () => {
     return <HomeScreenSkeleton />;
   }
 
-  // No huella fills the dashboard yet: welcome the user and guide them forward.
-  // Shown on every login until a measurement/verification recognition is
-  // approved.
-  if (approvedInventories.length === 0) {
+  // A dashboard-ready huella exists ⇒ the guided flow is 100% complete.
+  const allStepsDone = approvedInventories.length > 0;
+
+  // Show the guided welcome home until the flow is complete AND the user has
+  // explicitly finished it (persisted on their profile so it doesn't reappear
+  // on another device). Only then reveal the emissions dashboard.
+  if (!(allStepsDone && onboardingCompleted)) {
     // Prefer an accredited organization: with several memberships the steps
     // should reflect the one furthest along, not an arbitrary first row.
     const primaryOrg =
@@ -75,9 +88,17 @@ export const HomeScreen: FC = () => {
         orgAccredited={primaryOrg?.isAccredited ?? false}
         inscriptionStatus={primaryOrg?.lastSubmissionStatus ?? null}
         hasHuella={inventories.length > 0}
-        hasDraftHuella={inventories.some(
-          (inv) => inv.status === CarbonInventoryDisplayStatusEnum.DRAFT
+        hasHuellaWithOrg={inventories.some(
+          (inv) => inv.organizationId !== null
         )}
+        hasAssociatedDraft={inventories.some(
+          (inv) =>
+            inv.status === CarbonInventoryDisplayStatusEnum.DRAFT &&
+            inv.organizationId !== null
+        )}
+        isComplete={allStepsDone}
+        onFinish={() => completeOnboarding({ onboardingCompleted: true })}
+        isFinishing={isFinishing}
       />
     );
   }
