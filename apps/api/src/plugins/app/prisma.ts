@@ -72,6 +72,10 @@ export default fp<PrismaPluginOptions>(
     fastify.addHook("onReady", async () => {
       try {
         await prismaClient.$connect();
+        // $connect() alone is not a reliable liveness check: the pg driver
+        // adapter opens physical connections lazily on first query, so a
+        // dead/missing DB can go undetected here. Force a real round-trip.
+        await prismaClient.$queryRaw`SELECT 1`;
         fastify.log.info("Prisma client connected to DB");
       } catch (error) {
         fastify.log.error({ error }, "Failed to connect Prisma client to DB");
