@@ -15,6 +15,7 @@ export * from "./file.js";
 export * from "./magnitude.js";
 export * from "./measurementUnit.js";
 export * from "./methodologyVersion.js";
+export * from "./onboarding.js";
 export * from "./organization.js";
 export * from "./organizationData.js";
 export * from "./organizationMainActivity.js";

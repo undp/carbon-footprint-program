@@ -12,5 +12,7 @@ export * from "./deleteUser/schemas.js";
 export * from "./deleteUser/types.js";
 export * from "./getMe/schemas.js";
 export * from "./getMe/types.js";
+export * from "./completeOnboarding/schemas.js";
+export * from "./completeOnboarding/types.js";
 export * from "./getUserRoleHistory/schemas.js";
 export * from "./getUserRoleHistory/types.js";
