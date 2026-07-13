@@ -6,7 +6,19 @@ This document describes the continuous integration pipeline for Huella Latam: wh
 
 ## Overview
 
-The project has a single workflow file at `.github/workflows/ci.yml`. It runs **only on pull requests targeting `main`** — there is no deployment pipeline in source control; deployments are performed manually via the scripts described in the [Infrastructure](../infrastructure/) docs.
+CI is split across a few workflow files in `.github/workflows/`:
+
+| Workflow        | What it does                                                                                    | Triggers                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `ci.yml`        | The main PR gate: lint, type-check, format, test, coverage, build, and security/quality checks. | Pull requests targeting `main`.                               |
+| `codeql.yml`    | CodeQL SAST (static analysis for security & quality).                                           | Push to `main`, PRs, and weekly.                              |
+| `scorecard.yml` | OpenSSF Scorecard supply-chain posture analysis.                                                | Push to `main`, weekly, and on branch-protection-rule change. |
+| `trivy.yml`     | Trivy vulnerability scan of the built API and web container images.                             | Push to `main`, PRs that touch the images, and weekly.        |
+| `labels.yml`    | Syncs the repository labels from `.github/labels.yml`.                                          | Changes to the label definitions.                             |
+
+There is no deployment pipeline in source control; deployments are performed manually via the scripts described in the [Infrastructure](../infrastructure/) docs.
+
+The rest of this document describes `ci.yml` (the PR gate) in detail; the security workflows are covered in [Security](../security/).
 
 ---
 
@@ -40,20 +52,43 @@ concurrency:
 
 ## Jobs
 
-All five jobs use `ubuntu-latest`, Node 24, and pnpm with a shared pnpm cache. Dependencies are installed via `pnpm install --frozen-lockfile`.
+Every job runs on `ubuntu-latest`. Jobs that install dependencies use Node (pinned via `.nvmrc`) and pnpm with a shared pnpm cache, installing via `pnpm install --frozen-lockfile`. Every action is pinned by commit SHA — the `zizmor` job fails the build on an unpinned action.
 
-### Dependency graph
+### Job graph
+
+`check-draft` is the entry gate — every other job `needs` it (directly or transitively), so a draft PR skips the whole pipeline. `changes` classifies the PR as code vs docs-only; the heavy jobs gate their **steps** (not the job) on its output, so they still report their required status check on docs-only PRs (see [Docs-only optimization](#docs-only-optimization)).
 
 ```
 check-draft
-    ├── lint
-    ├── type-check
-    ├── format
-    ├── test
-    └── build
+├── changes ──┬── lint
+│             ├── type-check
+│             ├── test ── coverage
+│             └── build
+├── verify-changes-filter
+├── format
+├── audit
+├── zizmor
+├── docs-links
+└── secret-scan
 ```
 
-`lint`, `type-check`, `format`, `test`, and `build` all declare `needs: check-draft`. They run in **parallel** once `check-draft` passes.
+| Job                     | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `check-draft`           | Entry gate; skips everything on draft PRs.                                         |
+| `changes`               | Classifies the PR as code vs docs-only.                                            |
+| `verify-changes-filter` | Guards the `changes` filter against drift (`scripts/check-ci-changes-filter.mjs`). |
+| `lint`                  | ESLint across the monorepo (`--max-warnings=0`).                                   |
+| `type-check`            | `tsc --noEmit` across all projects.                                                |
+| `format`                | Prettier `--check`.                                                                |
+| `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                 |
+| `coverage`              | Merges the three test legs' coverage and enforces the ≥80% `apps/api` gate.        |
+| `build`                 | Turborepo build of all apps and packages.                                          |
+| `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).           |
+| `zizmor`                | Static analysis of the GitHub Actions workflows.                                   |
+| `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                       |
+| `secret-scan`           | Full-history secret scan (betterleaks).                                            |
+
+The code-gated jobs (`lint`, `type-check`, `test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
 
 ---
 
@@ -64,6 +99,14 @@ if: github.event.pull_request.draft == false
 ```
 
 Acts as a gate. If the PR is a draft, this job is skipped, which causes all downstream jobs to be skipped too. No code is checked out — the job simply prints a message.
+
+---
+
+### Docs-only optimization
+
+The heavy jobs (`lint`, `type-check`, `test`, `coverage`, `build`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
+
+The `changes` job (using `dorny/paths-filter`) sets a `code` output that is `true` when anything build-affecting changed. Each gated step carries `if: needs.changes.outputs.code == 'true'`. The filter's pattern list is a second source of truth for "what affects the build", so `verify-changes-filter` (`scripts/check-ci-changes-filter.mjs`) guards it against drift.
 
 ---
 
@@ -139,6 +182,21 @@ When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANI
 
 ---
 
+### `coverage`
+
+Enforces a **≥80% coverage gate** (lines, statements, functions, branches) for `apps/api`.
+
+Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so a per-run Vitest threshold cannot be used (a leg would fail on the files it never runs). Vitest's own thresholds are therefore kept at `0` (informational; the numbers still print in each leg's report — see `apps/api/vitest.shared.ts`), and the real gate lives here:
+
+1. Each `test` leg uploads its raw Istanbul coverage (`coverage-final.json`) as an artifact.
+2. This job (`needs: test`) downloads all three, and `scripts/check-coverage.mjs` **merges** them — a line covered by _any_ leg counts as covered — then fails if the merged percentage of any metric is below 80%.
+
+The threshold is a constant in `scripts/check-coverage.mjs` (override locally with the `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
+
+> **Scope:** this gate covers `apps/api` only. Frontend (`apps/web`) test coverage is tracked separately in issue #477.
+
+---
+
 ### `build`
 
 ```bash
@@ -205,25 +263,33 @@ To add a check (e.g., a security scanner, a new test command):
 
 1. Open `.github/workflows/ci.yml`.
 2. Add a new job (or add a step to an existing job) that `needs: check-draft`.
-3. Follow the same setup pattern as the other jobs (checkout → pnpm/action-setup → setup-node v24 with cache → frozen install → your command).
-4. If the check should not block merging (advisory only), set `continue-on-error: true` on the step.
+3. Follow the same setup pattern as the other jobs (checkout → pnpm/action-setup → setup-node with `node-version-file: .nvmrc` and cache → frozen install → your command). **Pin every action by commit SHA** (append `# vX.Y.Z`) — the `zizmor` job fails on an unpinned action.
+4. If the check depends on source code, gate each step on `if: needs.changes.outputs.code == 'true'` and add `changes` to `needs`, so it no-ops on docs-only PRs while still reporting its check (see [Docs-only optimization](#docs-only-optimization)).
+5. If the check should not block merging (advisory only), set `continue-on-error: true` on the step.
 
-Example new job skeleton:
+Example new job skeleton (copy the pinned SHAs from an existing job so they stay consistent):
 
 ```yaml
 my-check:
-  needs: check-draft
+  needs: [check-draft, changes]
   name: My Check
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - uses: pnpm/action-setup@v4
-    - uses: actions/setup-node@v4
+    - uses: actions/checkout@<sha> # v7.0.0
+      if: needs.changes.outputs.code == 'true'
       with:
-        node-version: 24
+        persist-credentials: false
+    - uses: pnpm/action-setup@<sha> # v6.0.9
+      if: needs.changes.outputs.code == 'true'
+    - uses: actions/setup-node@<sha> # v6.4.0
+      if: needs.changes.outputs.code == 'true'
+      with:
+        node-version-file: .nvmrc
         cache: pnpm
     - run: pnpm install --frozen-lockfile
+      if: needs.changes.outputs.code == 'true'
     - run: pnpm my-check-command
+      if: needs.changes.outputs.code == 'true'
 ```
 
 ---
@@ -234,6 +300,19 @@ GitHub Actions honours `[skip ci]` in the commit message. Alternatively, keep th
 
 ---
 
+## Security & supply-chain scanning
+
+These run in CI today — most as jobs in `ci.yml`, the rest as dedicated workflows (see [Overview](#overview)):
+
+| Capability                        | Where                                                              |
+| --------------------------------- | ------------------------------------------------------------------ |
+| SAST (static analysis)            | CodeQL (`codeql.yml`)                                              |
+| Secret scanning                   | `secret-scan` job (betterleaks, full history)                      |
+| Dependency vulnerability scanning | `audit` job (`pnpm audit`) + Dependabot (`.github/dependabot.yml`) |
+| GitHub Actions workflow security  | `zizmor` job + SHA-pinned actions                                  |
+| Container image scanning          | Trivy (`trivy.yml`)                                                |
+| Supply-chain posture              | OpenSSF Scorecard (`scorecard.yml`)                                |
+
 ## What CI Does Not Cover
 
 | Capability                              | Status                                                                                                                                       |
@@ -241,7 +320,7 @@ GitHub Actions honours `[skip ci]` in the commit message. Alternatively, keep th
 | Deployment to Azure                     | **Manual** — see [API Deployment](../infrastructure/ApiDeployment.md) and [Frontend Deployment](../infrastructure/StaticWebAppDeployment.md) |
 | Infrastructure provisioning             | **Manual** — see [Deployment Guide](../infrastructure/Deployment.md)                                                                         |
 | Database migrations                     | **Manual** — see [Database Migrations](../infrastructure/Migrations.md)                                                                      |
+| Frontend (`apps/web`) unit tests        | **Not implemented** — tracked in issue #477                                                                                                  |
 | End-to-end (browser) tests              | **Not implemented**                                                                                                                          |
-| Security scanning / SAST                | **Not implemented**                                                                                                                          |
-| Dependency vulnerability scanning       | **Not implemented**                                                                                                                          |
+| Dynamic analysis (DAST / fuzzing)       | **Not implemented**                                                                                                                          |
 | Release tagging or changelog generation | **Not implemented**                                                                                                                          |
