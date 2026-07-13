@@ -373,7 +373,7 @@ export FORCED_USER_IDP_ID="local-dev"
 
 For end-to-end setup, see:
 
-- [`../../docs/infrastructure/KeycloakAuthenticationSetup.md`](../../docs/infrastructure/KeycloakAuthenticationSetup.md)
+- [`../../docs/infrastructure/KeycloakSetup.md`](../../docs/infrastructure/KeycloakSetup.md)
 - [`../../docs/infrastructure/GenericOidcAuthenticationSetup.md`](../../docs/infrastructure/GenericOidcAuthenticationSetup.md)
 - [`../../docs/development/environment-variables.md`](../../docs/development/environment-variables.md)
 

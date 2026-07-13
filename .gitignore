@@ -27,6 +27,12 @@ packages/database/generated/**
 # docker-compose env
 .env.dockercompose
 .env.prod.dockercompose
+.env.keycloak
+.env.prod.keycloak
+
+# TLS material mounted into containers (compose/keycloak.prod.yaml direct-TLS
+# mode; anchored to the repo root — the KC_TLS_CERT_DIR default ./certs/keycloak)
+/certs/
 
 # Logs
 logs
@@ -88,3 +94,4 @@ public/dist
 
 # Superset
 .superset/
+.claude/settings.local.json

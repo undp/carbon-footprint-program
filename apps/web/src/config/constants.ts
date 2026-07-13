@@ -29,6 +29,39 @@ export const DASHBOARD_YEARS_RANGE_FROM_CURRENT = 10;
 export const SIDEBAR_WIDTH = 280;
 export const SIDEBAR_MINI_WIDTH = 72;
 
+/**
+ * Default and minimum dimensions of the floating chatbot panel.
+ *
+ * The widget is anchored to the bottom-right corner and resized from the
+ * top-left handle. Persisted user sizes are clamped to the min bounds below
+ * on read and to the live viewport on render — see `useChatbotSize`.
+ */
+export const CHATBOT_WIDGET_DEFAULT_WIDTH = 360;
+export const CHATBOT_WIDGET_DEFAULT_HEIGHT = 480;
+export const CHATBOT_WIDGET_MIN_WIDTH = 320;
+export const CHATBOT_WIDGET_MIN_HEIGHT = 400;
+export const CHATBOT_SIZE_KEY = "huella-latam:chatbot-size";
+
+/**
+ * Flips to `"true"` the first time the user acknowledges the chatbot
+ * (minimizing it, sending a message, or starting a new conversation). The
+ * landing page auto-opens the assistant on first ever visit; once this flag
+ * is set, the auto-open is suppressed on subsequent visits.
+ */
+export const CHATBOT_INTRODUCED_KEY = "huella-latam:chatbot-introduced";
+
+/**
+ * Client-side safety nets for a streaming chat turn so a stalled connection
+ * can't pin the widget in `loading`/`streaming` forever (both states disable
+ * send + new-conversation, leaving a full page reload as the only escape).
+ * Both abort the per-turn `AbortController` in `useChatStream`.
+ *
+ * `CHATBOT_STREAM_IDLE_TIMEOUT_MS` fires when no frame arrives within the
+ * window; `CHATBOT_STREAM_OVERALL_TIMEOUT_MS` bounds total turn duration.
+ */
+export const CHATBOT_STREAM_IDLE_TIMEOUT_MS = 30_000;
+export const CHATBOT_STREAM_OVERALL_TIMEOUT_MS = 120_000;
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 

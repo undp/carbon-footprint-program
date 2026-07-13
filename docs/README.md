@@ -54,6 +54,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | Document                                                          | Description                                                                                                        |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [Local Setup](./development/local-setup.md)                       | Step-by-step local development setup                                                                               |
+| [Worktree Isolation](./development/worktree-isolation.md)         | Running several git worktrees at once: opt-in per-worktree API port + database, ADE hooks, and common pitfalls     |
 | [Environment Variables](./development/environment-variables.md)   | Complete reference for all environment variables                                                                   |
 | [Contributing Guide](./development/contributing.md)               | Branch workflow, code review, adding a new API feature                                                             |
 | [Frontend Architecture](./development/frontend-architecture.md)   | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen                       |

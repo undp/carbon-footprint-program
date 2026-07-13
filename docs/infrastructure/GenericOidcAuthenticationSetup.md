@@ -5,7 +5,7 @@ This is the **provider-agnostic contract** for authentication in Huella Latam. T
 Read this guide to understand _what the platform requires from an IdP_. For step-by-step portal/realm setup of a specific IdP, see:
 
 - [Azure Entra Authentication Setup](./AzureAuthenticationSetup.md) — Azure Entra External ID (CIAM) or organizational Azure AD.
-- [Keycloak Authentication Setup](./KeycloakAuthenticationSetup.md) — local-dev Keycloak via the compose overlay.
+- [Keycloak Setup](./KeycloakSetup.md) — Keycloak IdP for local dev (compose overlay) and production.
 
 There is **no MSAL** and **no Azure App Service Easy Auth gateway**. On Azure App Service, keep platform Authentication **disabled** so the `Authorization: Bearer` token reaches the app.
 
@@ -57,17 +57,17 @@ There is **no MSAL** and **no Azure App Service Easy Auth gateway**. On Azure Ap
 
 ## What the IdP Must Provide
 
-| Requirement                   | Detail                                                                                                                  |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **OIDC discovery**            | A standard `https://<issuer>/.well-known/openid-configuration` document (the frontend `authority` relies on it).        |
-| **JWKS endpoint**             | A public JWKS URL the API can reach to fetch signing keys.                                                              |
-| **Authorization Code + PKCE** | A **public** SPA client with PKCE (`S256`), no client secret. Implicit flow is not used.                                |
-| **Redirect URI**              | `<web-origin>/auth/callback` registered exactly (login redirect), plus `<web-origin>` for post-logout.                  |
-| **Refresh tokens**            | The `offline_access` scope, so `oidc-client-ts` can silently renew without re-prompting.                                |
-| **Email claim**               | `email` or `preferred_username` in the access token — the API rejects tokens without one.                               |
-| **Subject claim**             | `sub` (or `oid`) — used as the stable IdP user id.                                                                      |
-| **API scope**                 | A scope (default name `access_as_user`) emitted in the token's `scope`/`scp` claim, used to authorize calls to the API. |
-| **Audience**                  | The access token's `aud` must equal the value the API expects (`JWKS_AUDIENCE`).                                        |
+| Requirement                   | Detail                                                                                                                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OIDC discovery**            | A standard `https://<issuer>/.well-known/openid-configuration` document (the frontend `authority` relies on it).                                                                  |
+| **JWKS endpoint**             | A public JWKS URL the API can reach to fetch signing keys.                                                                                                                        |
+| **Authorization Code + PKCE** | A **public** SPA client with PKCE (`S256`), no client secret. Implicit flow is not used.                                                                                          |
+| **Redirect URI**              | `<web-origin>/auth/callback` registered exactly (login redirect), plus `<web-origin>` for post-logout.                                                                            |
+| **Refresh tokens**            | Silent renewal via `oidc-client-ts` (`automaticSilentRenew`). Keycloak uses the SSO-session-bound refresh token (no `offline_access`); Entra requires the `offline_access` scope. |
+| **Email claim**               | `email` or `preferred_username` in the access token — the API rejects tokens without one.                                                                                         |
+| **Subject claim**             | `sub` (or `oid`) — used as the stable IdP user id.                                                                                                                                |
+| **API scope**                 | A scope (default name `access_as_user`) emitted in the token's `scope`/`scp` claim, used to authorize calls to the API.                                                           |
+| **Audience**                  | The access token's `aud` must equal the value the API expects (`JWKS_AUDIENCE`).                                                                                                  |
 
 ---
 
@@ -135,17 +135,17 @@ JWKS_REQUIRED_SCOPE=access_as_user   # optional; this is the default
 
 The web app always uses OIDC. Config is **build-time** (inlined by Vite) — rebuild the web image when these change. These vars are read and defaulted in `apps/web/src/config/environment.ts`; `apps/web/src/config/oidcConfig.ts` assembles the `UserManagerSettings` from them.
 
-| Variable                             | Required | Description                                                                                                                     |
-| ------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_OIDC_ISSUER`                   | Yes      | OIDC issuer / authority URL (serves `/.well-known/openid-configuration`).                                                       |
-| `VITE_OIDC_CLIENT_ID`                | Yes      | Public SPA client id.                                                                                                           |
-| `VITE_OIDC_SCOPES`                   | Yes      | Space-separated. Baseline: `openid profile email offline_access` (+ the API scope on IdPs that need it explicitly, e.g. Entra). |
-| `VITE_OIDC_REDIRECT_URI`             | No       | Login redirect. Defaults to `<serving-origin>/auth/callback`.                                                                   |
-| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No       | Post-logout redirect. Defaults to `<serving-origin>/`.                                                                          |
+| Variable                             | Required | Description                                                                                                                                                                                    |
+| ------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_OIDC_ISSUER`                   | Yes      | OIDC issuer / authority URL (serves `/.well-known/openid-configuration`).                                                                                                                      |
+| `VITE_OIDC_CLIENT_ID`                | Yes      | Public SPA client id.                                                                                                                                                                          |
+| `VITE_OIDC_SCOPES`                   | Yes      | Space-separated. Baseline: `openid profile email`; add `offline_access` only on IdPs that gate refresh tokens on it (Entra), plus the API scope where it must be requested explicitly (Entra). |
+| `VITE_OIDC_REDIRECT_URI`             | No       | Login redirect. Defaults to `<serving-origin>/auth/callback`.                                                                                                                                  |
+| `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` | No       | Post-logout redirect. Defaults to `<serving-origin>/`.                                                                                                                                         |
 
 The client uses `response_type=code` (Auth Code + PKCE), persists tokens in `localStorage`, and silently renews via the refresh token (`automaticSilentRenew`) — see `apps/web/src/config/oidcConfig.ts`. The app fails loud at boot (`apps/web/src/config/environment.ts`) if `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, or `VITE_OIDC_SCOPES` is empty.
 
-> **Scope baseline:** `openid` (id_token) + `email` (the backend rejects tokens without an email claim) + `offline_access` (refresh → silent renew) + `profile` (display name). Whether the API scope (`access_as_user`) must be requested explicitly depends on the IdP: Entra requires `api://<API_CLIENT_ID>/access_as_user`; Keycloak grants `access_as_user` as a default client scope, so it is not requested.
+> **Scope baseline:** `openid` (id_token) + `email` (the backend rejects tokens without an email claim) + `profile` (display name). `offline_access` (refresh → silent renew) is IdP-conditional: Entra needs it to issue a refresh token at all, whereas Keycloak issues an SSO-session-bound refresh token for the auth-code flow without it, so the Keycloak templates omit it. Likewise, whether the API scope (`access_as_user`) must be requested explicitly depends on the IdP: Entra requires `api://<API_CLIENT_ID>/access_as_user`; Keycloak grants `access_as_user` as a default client scope, so it is not requested.
 
 ---
 
@@ -156,7 +156,7 @@ The client uses `response_type=code` (Auth Code + PKCE), persists tokens in `loc
 3. Ensure the access token carries `email` (or `preferred_username`) and `sub`.
 4. Expose/define the API scope (default `access_as_user`) and make sure it lands in the token's `scope`/`scp` claim.
 5. Set the token `aud` to a value you'll mirror in `JWKS_AUDIENCE`.
-6. Enable refresh tokens (`offline_access`).
+6. Enable refresh tokens — via the `offline_access` scope on IdPs that gate refresh on it (e.g. Entra); Keycloak issues them for the auth-code flow without it.
 7. **Backend:** `AUTH_PROVIDER=jwks`, `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`, `JWKS_REQUIRED_SCOPE` (default ok). Leave `AZURE_*` empty.
 8. **Frontend:** `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_SCOPES`, `VITE_OIDC_REDIRECT_URI`.
 9. Log in end-to-end and confirm an authenticated API call returns 200.

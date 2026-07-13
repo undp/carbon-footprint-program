@@ -1,0 +1,120 @@
+# Label taxonomy — source of truth (labels as code).
+#
+# Synced to the repository by .github/workflows/labels.yml:
+#   - pull_request touching this file -> dry-run (planned changes printed in the job log)
+#   - push to main touching this file -> applied
+#   - workflow_dispatch -> applied on demand
+#
+# skip-delete is false, so this file is authoritative: a label removed here is
+# removed from the repo on the next sync. Add every label you want to keep.
+# Colours are grouped by namespace; priority keeps its original per-tier colours.
+
+# Priority — how urgent (shared by issues and PRs)
+- name: "priority: critical"
+  color: "5319e7"
+  description: "Critical priority"
+- name: "priority: high"
+  color: "b60205"
+  description: "High priority"
+- name: "priority: medium"
+  color: "d93f0b"
+  description: "Medium priority"
+- name: "priority: low"
+  color: "fbca04"
+  description: "Low priority"
+
+# Type — what kind of work (one per issue; maps to the issue templates)
+- name: "type: bug"
+  color: "1d76db"
+  description: "reproducible defect with observable wrong behaviour"
+- name: "type: feature"
+  color: "1d76db"
+  description: "new user-facing capability or enhancement"
+- name: "type: refactor"
+  color: "1d76db"
+  description: "internal restructure, no behaviour change"
+- name: "type: tech-debt"
+  color: "1d76db"
+  description: "consistency / paying down deferred work"
+- name: "type: performance"
+  color: "1d76db"
+  description: "latency, throughput or resource-usage improvement"
+- name: "type: chore"
+  color: "1d76db"
+  description: "naming, tooling or dependency housekeeping"
+- name: "type: security"
+  color: "1d76db"
+  description: "security fix or hardening"
+- name: "type: docs"
+  color: "1d76db"
+  description: "documentation only"
+- name: "type: dpg"
+  color: "1d76db"
+  description: "Digital Public Goods Alliance standard / compliance"
+
+# Area — which part of the monorepo
+- name: "area: web"
+  color: "0e8a16"
+  description: "apps/web (React frontend)"
+- name: "area: api"
+  color: "0e8a16"
+  description: "apps/api (Fastify backend)"
+- name: "area: database"
+  color: "0e8a16"
+  description: "packages/database (Prisma schema / migrations)"
+- name: "area: packages"
+  color: "0e8a16"
+  description: "shared packages/*"
+- name: "area: infra"
+  color: "0e8a16"
+  description: "infra/ (deployment, IaC)"
+- name: "area: ci"
+  color: "0e8a16"
+  description: "CI / GitHub Actions / tooling"
+- name: "area: docs"
+  color: "0e8a16"
+  description: "docs/ and root docs"
+
+# Status — workflow state
+- name: "status: triage"
+  color: "d4c5f9"
+  description: "awaiting triage"
+- name: "status: blocked"
+  color: "d4c5f9"
+  description: "blocked on another issue/PR/decision"
+- name: "status: needs-repro"
+  color: "d4c5f9"
+  description: "needs reproduction steps or confirmation"
+- name: "status: wontfix"
+  color: "d4c5f9"
+  description: "will not be worked on"
+- name: "status: duplicate"
+  color: "d4c5f9"
+  description: "duplicate of another issue"
+
+# Cross-cutting
+- name: "governance"
+  color: "0052cc"
+  description: "Project governance / ownership / policy"
+
+# Community
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is wanted"
+
+# Dependabot-managed (auto-applied to dependency PRs — keep in sync with .github/dependabot.yml)
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+- name: "github_actions"
+  color: "000000"
+  description: "Pull requests that update GitHub Actions code"
+- name: "docker"
+  color: "21ceff"
+  description: "Pull requests that update docker code"
+- name: "javascript"
+  color: "168700"
+  description: "Pull requests that update javascript code"

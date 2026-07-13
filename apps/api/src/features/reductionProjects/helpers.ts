@@ -17,7 +17,7 @@ import {
 import { isReductionProjectEditable } from "@repo/utils";
 import { ReductionProjectInvalidDataError } from "./errors.js";
 
-const REDUCTION_PROJECT_EDIT_ROLES: OrganizationRole[] = [
+export const REDUCTION_PROJECT_EDIT_ROLES: OrganizationRole[] = [
   OrganizationRole.CONTRIBUTOR,
   OrganizationRole.ADMIN,
 ];
@@ -78,6 +78,24 @@ export type ReductionProjectWithSubmissionsMinimal =
   Prisma.ReductionProjectGetPayload<{
     select: typeof reductionProjectWithSubmissionsMinimalSelect;
   }>;
+
+/**
+ * Scalar fields the shared `getReductionProjectMissingFields` completeness gate
+ * reads. Shared by the submit gate (`requestVerification`) and the list mapper
+ * so the two projections can't drift out of sync.
+ */
+export const reductionProjectCompletenessSelect = {
+  implementationDate: true,
+  description: true,
+  subcategoryId: true,
+  year: true,
+  baselineScenario: true,
+  projectScenario: true,
+  consideredGei: true,
+  gwpUsed: true,
+  reportedElsewhere: true,
+  reportedElsewhereDescription: true,
+} satisfies Prisma.ReductionProjectSelect;
 
 export function calculateReductionProjectDisplayStatus(
   project: ReductionProjectWithSubmissionsMinimal

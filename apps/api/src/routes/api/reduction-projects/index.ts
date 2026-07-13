@@ -6,6 +6,8 @@ import { getReductionProjectsMinimalRoute } from "@/features/reductionProjects/g
 import { getReductionProjectByIdRoute } from "@/features/reductionProjects/getReductionProjectById/route.js";
 import { getReductionProjectAccessRoute } from "@/features/reductionProjects/getReductionProjectAccess/route.js";
 import { updateReductionProjectRoute } from "@/features/reductionProjects/updateReductionProject/route.js";
+import { requestReductionProjectVerificationRoute } from "@/features/reductionProjects/requestVerification/route.js";
+import { deleteReductionProjectRoute } from "@/features/reductionProjects/deleteReductionProject/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function reductionProjectsRoutes(fastify: FastifyZodInstance) {
@@ -18,6 +20,8 @@ export default function reductionProjectsRoutes(fastify: FastifyZodInstance) {
       getReductionProjectByIdRoute,
       getReductionProjectAccessRoute,
       updateReductionProjectRoute,
+      requestReductionProjectVerificationRoute,
+      deleteReductionProjectRoute,
     ],
     {
       defaultSystemRoles: [

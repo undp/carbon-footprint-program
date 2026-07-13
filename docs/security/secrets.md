@@ -68,12 +68,13 @@ This fallback exists purely for local convenience. It must never be relied upon 
 
 ### JWKS / Entra ID Credentials
 
-No application secret is required for JWKS-based token validation. The JWKS endpoint serves public key material. The only configuration needed is:
+No application secret is required for JWKS-based token validation. The JWKS endpoint serves public key material. The API reads only the generic `JWKS_*` values (it has no awareness of `AZURE_*` auth vars); the only configuration needed is:
 
-- `JWKS_URI` or `AZURE_TENANT_ID` — to locate the JWKS endpoint
-- `AZURE_CLIENT_ID` — the API's app registration client ID (this is a public identifier, not a secret)
+- `JWKS_URI` — to locate the JWKS endpoint
+- `JWKS_ISSUER` — the expected token issuer (`iss`), validated against the token
+- `JWKS_AUDIENCE` — the expected token audience (`aud`); for Entra this is the API's app registration client ID (a public identifier, not a secret)
 
-The app registration's **client secret is never used by the API**. Token validation uses only the public signing key from the JWKS endpoint.
+The `AZURE_*` tenant values are deploy-time inputs (`.envrc.azure.example`, `appService.bicep`) that derive the `JWKS_*` above — they are not read by the API. The app registration's **client secret is never used by the API**. Token validation uses only the public signing key from the JWKS endpoint.
 
 ### GitHub Actions → Azure (OIDC Federation)
 

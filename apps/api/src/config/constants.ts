@@ -23,6 +23,41 @@ export const BADGE_ALLOWED_MIME_TYPES = [
 /** Maximum badge file size in bytes (5 MB) */
 export const BADGE_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 
+// Must match the value used in the organization_summary_view SQL migration
+export const MEASURING_ORGANIZATIONS_YEAR_RANGE = 2;
+
+/** Max tokens accepted on a single user chat message before HTTP 413. */
+export const CHATBOT_MAX_USER_INPUT_TOKENS = 4000;
+
+/** Max combined token count of prior conversation history before HTTP 413. */
+export const CHATBOT_MAX_HISTORY_TOKENS = 8000;
+
+/** Max tokens reserved for RAG context per turn (declared now, unused until V1). */
+export const CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000;
+
+/** Max tokens the LLM may produce in a single turn. */
+export const CHATBOT_MAX_OUTPUT_TOKENS = 1500;
+
+/** Max user turns persisted per conversation before HTTP 413. */
+export const CHATBOT_MAX_TURNS_PER_CONVERSATION = 50;
+
+/** Days a chatbot conversation persists before it expires (pg_cron purge deferred). */
+export const CHATBOT_CONVERSATION_TTL_DAYS = 30;
+
+/**
+ * Overall wall-clock budget (ms) for a single LLM streaming completion. Bounds
+ * total stream duration so a stuck upstream cannot hold the request open until
+ * the SDK's ~600s default.
+ */
+export const CHATBOT_LLM_STREAM_TIMEOUT_MS = 120_000;
+
+/**
+ * Idle budget (ms) between stream frames. Fires when the provider accepts the
+ * request but stops emitting tokens, so a stalled stream fails fast instead of
+ * waiting out the overall budget.
+ */
+export const CHATBOT_LLM_STREAM_IDLE_TIMEOUT_MS = 30_000;
+
 /**
  * Per-address budget (ms) for Node's Happy Eyeballs connection attempts
  * (`autoSelectFamilyAttemptTimeout`). Node 20–24 default it to 250ms, which

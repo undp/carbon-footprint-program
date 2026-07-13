@@ -50,8 +50,9 @@ export JWKS_AUDIENCE="$AZURE_API_CLIENT_ID"   # Entra v2.0 `aud` is the bare API
 export VITE_OIDC_ISSUER="$_FRONT_ISSUER"
 export VITE_OIDC_CLIENT_ID="$AZURE_FRONT_CLIENT_ID"
 export VITE_OIDC_SCOPES="openid profile email offline_access api://${AZURE_API_CLIENT_ID}/access_as_user"
-export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL}/auth/callback"
-export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
+# VITE_OIDC_REDIRECT_URI / VITE_OIDC_POST_LOGOUT_REDIRECT_URI are derived from
+# VITE_FRONT_BASE_URL in the Web section below (bash evaluates top to bottom,
+# so the derivation must come after that variable is defined).
 
 # ── Storage (Azure Blob) ─────────────────────────────────────────────────────
 # Run `az login` so DefaultAzureCredential can authenticate. Leave the account
@@ -69,8 +70,24 @@ export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 # export SUPERADMIN_EMAIL=""   # Email promoted via `pnpm db:promote-superadmin`
 
+# ── Chatbot (optional AI feature — DPG optionality) ──────────────────────────
+# Off by default platform-wide. This Azure example enables it end-to-end. To
+# run without AI, set CHATBOT_ENABLED="false" and leave the rest blank.
+export CHATBOT_ENABLED="true"
+export LLM_PROVIDER="azure-openai"        # "mock" (no cloud) is rejected in production when enabled
+export AZURE_OPENAI_ENDPOINT=""           # e.g. https://<resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT_NAME=""    # your chat model deployment name
+export COOKIE_SECRET=""                   # long random string — signs the anonymous session cookie
+
 # ── Web ──────────────────────────────────────────────────────────────────────
 export VITE_APP_VERSION=""
+export VITE_CHATBOT_ENABLED="true"   # show the chatbot widget (mirror of CHATBOT_ENABLED)
 export VITE_API_BASE_URL=""    # URL for the API (e.g. http://localhost:8080/api)
-export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the OIDC redirect URIs above)
+export VITE_FRONT_BASE_URL=""  # browser-reachable web URL (used to derive the OIDC redirect URIs below)
+# Both OPTIONAL — empty and undeclared behave the same: the app falls back to
+# the serving origin. The ${VAR:+...} guard keeps VITE_OIDC_REDIRECT_URI empty
+# when VITE_FRONT_BASE_URL is empty (otherwise the literal "/auth/callback"
+# would skip the fallback and fail the IdP's match).
+export VITE_OIDC_REDIRECT_URI="${VITE_FRONT_BASE_URL:+${VITE_FRONT_BASE_URL}/auth/callback}"
+export VITE_OIDC_POST_LOGOUT_REDIRECT_URI="${VITE_FRONT_BASE_URL}"
 export VITE_IS_DEMO_APP="false"

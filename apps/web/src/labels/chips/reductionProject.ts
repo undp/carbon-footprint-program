@@ -16,22 +16,22 @@ export const REDUCTION_PROJECT_STATUS_CONFIG: Record<
   [ReductionProjectDisplayStatusEnum.SUBMITTED]: {
     family: StatusFamily.IN_REVIEW,
     label: "En revisión",
-    tooltip: "En revisión - Sello de reducción",
+    tooltip: "En revisión - Reconocimiento de reducción",
   },
   [ReductionProjectDisplayStatusEnum.REVIEWED]: {
     family: StatusFamily.ACTION_REQUIRED,
     label: "Con observaciones",
-    tooltip: "Con observaciones - Sello de reducción",
+    tooltip: "Con observaciones - Reconocimiento de reducción",
   },
   [ReductionProjectDisplayStatusEnum.REJECTED]: {
     family: StatusFamily.NEGATIVE,
     label: "Rechazado",
-    tooltip: "Rechazado - Sello de reducción",
+    tooltip: "Rechazado - Reconocimiento de reducción",
   },
   [ReductionProjectDisplayStatusEnum.APPROVED]: {
     family: StatusFamily.POSITIVE,
     label: "Aprobado",
-    tooltip: "Aprobado - Sello de reducción",
+    tooltip: "Aprobado - Reconocimiento de reducción",
   },
   [ReductionProjectDisplayStatusEnum.DELETED]: {
     family: StatusFamily.NEUTRAL,
