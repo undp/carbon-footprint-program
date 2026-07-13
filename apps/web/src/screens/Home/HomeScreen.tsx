@@ -3,13 +3,13 @@ import { Box } from "@mui/material";
 import {
   useCarbonInventoriesMinimalData,
   useMyOrganizations,
-  useUpdateMyProfile,
+  useCompleteOnboarding,
 } from "@/api/query";
 import { Header, WelcomeHome } from "./components";
 import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent } from "@/components";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
-import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { CarbonInventoryDisplayStatusEnum, OnboardingKeys } from "@repo/types";
 import { useUserStore } from "@/stores/userStore";
 import { enqueueSnackbar } from "notistack";
 import { isDashboardReady } from "./components/welcomeHome.config";
@@ -28,29 +28,28 @@ export const HomeScreen: FC = () => {
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
 
-  // Whether the user has explicitly finished the onboarding (persisted on their
-  // profile). Populated by useInitializeUser → useMe into the store.
+  // Whether the user has explicitly finished the welcome-home onboarding
+  // (persisted per-user). Populated by useInitializeUser → useMe into the store.
   const onboardingCompleted = useUserStore(
-    (state) => state.user?.onboardingCompleted ?? false
+    (state) =>
+      state.user?.onboardingsCompleted?.includes(OnboardingKeys.WELCOME_HOME) ??
+      false
   );
   const { mutate: completeOnboarding, isPending: isFinishing } =
-    useUpdateMyProfile();
+    useCompleteOnboarding();
 
   // "Terminar Onboarding" is the only way past the completion screen, so a
   // silent failure would trap the user — surface the error explicitly.
   const handleFinishOnboarding = () =>
-    completeOnboarding(
-      { onboardingCompleted: true },
-      {
-        onError: (error) => {
-          // eslint-disable-next-line no-console
-          console.error("Failed to complete onboarding", error);
-          enqueueSnackbar("No se pudo terminar el onboarding", {
-            variant: "error",
-          });
-        },
-      }
-    );
+    completeOnboarding(OnboardingKeys.WELCOME_HOME, {
+      onError: (error) => {
+        // eslint-disable-next-line no-console
+        console.error("Failed to complete onboarding", error);
+        enqueueSnackbar("No se pudo terminar el onboarding", {
+          variant: "error",
+        });
+      },
+    });
 
   const approvedInventories = useMemo(
     () => inventories.filter(isDashboardReady),
