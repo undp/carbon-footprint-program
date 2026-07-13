@@ -48,6 +48,8 @@ describe("PATCH /api/users/me - Integration Tests", () => {
         idpUserId: loggedUser.idpUserId,
         idpName: loggedUser.idpName,
         termsAccepted: loggedUser.termsAccepted,
+        onboardingCompleted: loggedUser.onboardingCompleted,
+        onboardingCompletedAt: loggedUser.onboardingCompletedAt,
       },
     });
     await prisma.user.deleteMany({
@@ -91,6 +93,25 @@ describe("PATCH /api/users/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateMyProfileResponse;
       expect(body.countryJobPositionId).toBe(testJobPositionId.toString());
+    });
+
+    it("marks the onboarding as completed and stamps the timestamp server-side", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { onboardingCompleted: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.onboardingCompleted).toBe(true);
+      expect(body.onboardingCompletedAt).not.toBeNull();
+
+      const updated = await prisma.user.findUniqueOrThrow({
+        where: { id: loggedUser.id },
+      });
+      expect(updated.onboardingCompleted).toBe(true);
+      expect(updated.onboardingCompletedAt).not.toBeNull();
     });
 
     it("sets updatedById to the current user when fields change", async () => {

@@ -8,6 +8,7 @@ export const UpdateMyProfileBodySchema = UserBaseSchema.pick({
   idpUserId: true,
   idpName: true,
   termsAccepted: true,
+  onboardingCompleted: true,
 })
   .partial()
   .strict()

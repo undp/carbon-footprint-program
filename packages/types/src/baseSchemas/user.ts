@@ -37,6 +37,13 @@ export const UserBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The date the user accepted the terms"),
+  onboardingCompleted: z
+    .boolean()
+    .describe("Whether the user has finished the welcome home onboarding"),
+  onboardingCompletedAt: z.iso
+    .datetime()
+    .nullable()
+    .describe("The date the user finished the onboarding"),
   lastAccessAt: z.iso
     .datetime()
     .nullable()

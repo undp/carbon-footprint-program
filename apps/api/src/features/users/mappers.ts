@@ -20,6 +20,10 @@ export function mapUserToResponse(user: PrismaUser): UserAtResponse {
     termsAcceptedAt: user.termsAcceptedAt
       ? user.termsAcceptedAt.toISOString()
       : null,
+    onboardingCompleted: user.onboardingCompleted ?? false,
+    onboardingCompletedAt: user.onboardingCompletedAt
+      ? user.onboardingCompletedAt.toISOString()
+      : null,
     lastAccessAt: user.lastAccessAt ? user.lastAccessAt.toISOString() : null,
   };
 }

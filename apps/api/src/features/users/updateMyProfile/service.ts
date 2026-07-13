@@ -43,6 +43,14 @@ export const updateMyProfileService = async (
   if (data.termsAccepted !== undefined) {
     updateData.termsAccepted = data.termsAccepted;
   }
+  if (data.onboardingCompleted !== undefined) {
+    updateData.onboardingCompleted = data.onboardingCompleted;
+    // Stamp the completion time server-side (never trust a client clock); clear
+    // it if the flag is ever unset.
+    updateData.onboardingCompletedAt = data.onboardingCompleted
+      ? new Date()
+      : null;
+  }
 
   if (Object.keys(updateData).length > 0) {
     updateData.updatedById = BigInt(userId);

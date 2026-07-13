@@ -279,6 +279,8 @@ model User {
   updatedById                          BigInt?                        @map("updated_by_id")
   termsAccepted                        Boolean                        @default(false) @map("terms_accepted")
   termsAcceptedAt                      DateTime?                      @map("terms_accepted_at")
+  onboardingCompleted                  Boolean                        @default(false) @map("onboarding_completed")
+  onboardingCompletedAt                DateTime?                      @map("onboarding_completed_at")
   lastAccessAt                         DateTime?                      @map("last_access_at")
   countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
   countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
