@@ -13,6 +13,7 @@ export const config: Linter.Config[] = [
       "dist/**",
       "build/**",
       "coverage/**",
+      "coverage-artifacts/**",
       "vitest-report/**",
       "node_modules/**",
     ],

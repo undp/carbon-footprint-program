@@ -11,9 +11,10 @@ const __dirname = path.dirname(__filename);
 // into three disjoint legs (base + one per storage provider; see the `test` job
 // in .github/workflows/ci.yml), so no single run sees the whole codebase and a
 // per-run threshold would fail on the files that run never touches. The real
-// ≥80% gate is the `coverage` CI job, which merges all three legs' coverage and
-// checks the union (scripts/check-coverage.mjs). These zeros keep each run's
-// numbers visible in its own report without gating on a partial view.
+// gate is the `coverage` CI job, which merges all three legs' coverage and
+// checks the union against per-metric thresholds (80% lines/statements/
+// functions, 60% branches; see scripts/check-coverage.mjs). These zeros keep
+// each run's numbers visible in its own report without gating on a partial view.
 const coverageThresholds = {
   lines: 0,
   functions: 0,
@@ -133,8 +134,10 @@ export function defineApiVitestConfig(
         ],
         // Coverage thresholds - will show in UI
         thresholds: coverageThresholds,
-        // More detailed reporting
-        reportsDirectory: "./coverage",
+        // More detailed reporting. Defaults to ./coverage; overridable via
+        // COVERAGE_DIR so the `test:coverage` script can point each leg at its
+        // own directory and merge them (mirrors the CI `coverage` job).
+        reportsDirectory: process.env.COVERAGE_DIR ?? "./coverage",
         clean: true,
         cleanOnRerun: true,
       },
