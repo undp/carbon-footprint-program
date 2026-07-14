@@ -74,8 +74,16 @@ ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Enable pnpm (Node 26 no longer bundles Corepack — install it first)
-RUN npm install -g corepack@latest && corepack enable
+# Enable pnpm (Node 26 no longer bundles Corepack — install it via npm first),
+# then drop npm. The runtime only runs `node dist/server.js` and never invokes
+# npm (per docs/operations/production-deployment.md the deploy host needs no
+# package manager; migrations run from a dev machine). But the base image's
+# bundled npm ships a vulnerable `undici` (CVE-2026-12151) that Trivy flags on
+# the assembled image. Removing npm after it has done its one build-time job
+# (installing corepack) clears the finding and trims the runtime attack surface;
+# corepack and its pnpm shim remain, independent of npm.
+RUN npm install -g corepack@latest && corepack enable \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Install curl for health checks and debugging
 RUN apk add --no-cache curl
