@@ -17,6 +17,7 @@ import {
   useMyOrganizationState,
   useMyOrganizationUsers,
 } from "./hooks";
+import { useMyOrganizationHighlight } from "./hooks/useMyOrganizationHighlight";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationDisplayStatusValues, OrganizationRole } from "@repo/types";
 import { DialogMode } from "./types";
@@ -25,6 +26,8 @@ import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
 
 export const MyOrganizationScreen: FC = () => {
+  useMyOrganizationHighlight();
+
   // Fetch user's organizations list
   const {
     data: organizations,
@@ -139,6 +142,7 @@ export const MyOrganizationScreen: FC = () => {
           action={{
             label: `Crear ${capitalize(VOCAB.organization.noun.singular)}`,
             onClick: onEditOrganizationProfile,
+            onboardingId: "create-org",
           }}
         />
         <OrganizationFormDialog

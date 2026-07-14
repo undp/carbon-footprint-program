@@ -148,6 +148,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         name:
           project.organization.name ??
           capitalize(VOCAB.organization.noun.singular),
+        // View-only selector (uses just id + name); a reduction project's
+        // organization is accredited by prerequisite.
+        isAccredited: true,
+        lastSubmissionStatus: null,
       },
     ];
   }, [isViewMode, project, organizations]);
@@ -161,7 +165,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         organizationName: project.organization.name,
         name: project.carbonInventory.name,
         year: project.carbonInventory.year,
+        // View-only selector (uses just id + name); a reduction project's
+        // huella is verification-approved by prerequisite.
         status: CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+        isSelfDeclared: false,
       },
     ];
   }, [isViewMode, project, verifiedInventories]);

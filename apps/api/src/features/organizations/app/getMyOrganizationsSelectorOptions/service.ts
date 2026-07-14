@@ -30,5 +30,7 @@ export const getMyOrganizationsSelectorOptionsService = async (
   return organizations.map((org) => ({
     id: org.organizationId.toString(),
     name: org.name,
+    isAccredited: org.isAccredited,
+    lastSubmissionStatus: org.lastSubmissionStatus,
   }));
 };

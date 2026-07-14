@@ -10,6 +10,10 @@ const readPinned = (): boolean => {
 interface SidebarState {
   isPinned: boolean;
   togglePin: () => void;
+  /** Forces the sidebar open regardless of hover/pin (e.g. while an onboarding
+   *  highlight is spotlighting a menu item so its label is readable). */
+  isForcedOpen: boolean;
+  setForcedOpen: (open: boolean) => void;
 }
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
@@ -19,4 +23,6 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
     window.localStorage.setItem(SIDEBAR_PINNED_KEY, String(next));
     set({ isPinned: next });
   },
+  isForcedOpen: false,
+  setForcedOpen: (open) => set({ isForcedOpen: open }),
 }));

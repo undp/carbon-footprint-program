@@ -25,6 +25,7 @@ import { InventoryTabs } from "./components/InventoryTabs";
 import { DraftsTab } from "./components/DraftsTab";
 import { InventoriesTab } from "./components/InventoriesTab";
 import { VOCAB } from "@/config/vocab";
+import { useCarbonInventoriesHighlight } from "./hooks/useCarbonInventoriesHighlight";
 import capitalize from "lodash-es/capitalize";
 
 const CARBON_INVENTORIES_EXPLANATION_SLUGS = {
@@ -34,6 +35,7 @@ const CARBON_INVENTORIES_EXPLANATION_SLUGS = {
 export const CarbonInventoriesScreen: FC = () => {
   const { openExplanationBySlug } = useExplanationDialog();
   const { activeTab, setActiveTab } = useCarbonInventoriesStore();
+  useCarbonInventoriesHighlight();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("all");
@@ -157,7 +159,7 @@ export const CarbonInventoriesScreen: FC = () => {
           {/* Tab Content */}
           {activeTab === CarbonInventoriesTab.DRAFTS && (
             <DraftsTab
-              darftInventories={draftInventories}
+              draftInventories={draftInventories}
               allInventories={filteredInventories}
               isLoading={isLoadingInventories}
             />

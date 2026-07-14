@@ -4,6 +4,8 @@ type GrammaticalForm = Record<GrammaticalNumber, string>;
 
 type VocabEntry = {
   noun?: GrammaticalForm;
+  /** Everyday clipped form of the noun (e.g. "huella" for "huella de carbono"). */
+  shortNoun?: GrammaticalForm;
   adjective?: GrammaticalForm;
   article?: GrammaticalForm;
   relationalAdjective?: string;
@@ -26,6 +28,10 @@ export const VOCAB = {
     noun: {
       singular: "huella de carbono",
       plural: "huellas de carbono",
+    },
+    shortNoun: {
+      singular: "huella",
+      plural: "huellas",
     },
     article: {
       singular: "la huella de carbono",

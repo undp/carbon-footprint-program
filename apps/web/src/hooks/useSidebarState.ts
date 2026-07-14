@@ -15,9 +15,10 @@ interface UseSidebarStateResult {
 export const useSidebarState = (): UseSidebarStateResult => {
   const isPinned = useSidebarStore((state) => state.isPinned);
   const togglePin = useSidebarStore((state) => state.togglePin);
+  const isForcedOpen = useSidebarStore((state) => state.isForcedOpen);
 
   const [isHovered, setIsHovered] = useState(false);
-  const isExpanded = isPinned || isHovered;
+  const isExpanded = isPinned || isHovered || isForcedOpen;
 
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

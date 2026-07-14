@@ -4,6 +4,7 @@ import {
   EditNoteOutlined,
   WorkspacePremiumOutlined,
 } from "@mui/icons-material";
+import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 
 interface InventoryTabsProps {
   activeTab: number;
@@ -63,6 +64,7 @@ export const InventoryTabs: FC<InventoryTabsProps> = ({
         color="primary"
         size="small"
         onClick={onNewInventory}
+        {...onboardingTargetProps("new-huella")}
       >
         Nueva Huella
       </Button>

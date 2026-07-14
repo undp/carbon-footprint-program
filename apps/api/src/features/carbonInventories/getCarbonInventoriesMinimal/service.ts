@@ -72,6 +72,7 @@ export const getCarbonInventoriesMinimalService = async (
       name: inv.name,
       year: inv.year,
       status: calculateDisplayStatus(inv),
+      isSelfDeclared: inv.isSelfDeclared,
     }))
     .filter(
       ({ status }) =>

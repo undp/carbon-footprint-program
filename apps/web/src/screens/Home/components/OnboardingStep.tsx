@@ -1,0 +1,117 @@
+import { FC, ReactNode } from "react";
+import {
+  Box,
+  Typography,
+  alpha,
+  useTheme,
+  type SxProps,
+  type Theme,
+} from "@mui/material";
+import {
+  CheckRounded,
+  LockRounded,
+  ScheduleRounded,
+} from "@mui/icons-material";
+
+export type OnboardingStepState = "done" | "active" | "pending" | "locked";
+
+export interface StepTag {
+  label: string;
+  variant: "next" | "ok" | "wait";
+}
+
+interface Props {
+  index: number;
+  state: OnboardingStepState;
+  title: string;
+  description: string;
+  tag?: StepTag;
+  action?: ReactNode;
+  children?: ReactNode;
+}
+
+export const OnboardingStep: FC<Props> = ({
+  index,
+  state,
+  title,
+  description,
+  tag,
+  action,
+  children,
+}) => {
+  const theme = useTheme();
+
+  const circleSx: Record<OnboardingStepState, SxProps<Theme>> = {
+    active: { bgcolor: "primary.main", color: "common.white" },
+    done: {
+      bgcolor: alpha(theme.palette.success.main, 0.15),
+      color: "success.main",
+    },
+    pending: {
+      bgcolor: alpha(theme.palette.warning.main, 0.15),
+      color: "warning.main",
+    },
+    locked: { bgcolor: "grey.100", color: "text.disabled" },
+  };
+
+  const stepIcon: Record<OnboardingStepState, ReactNode> = {
+    done: <CheckRounded fontSize="small" />,
+    pending: <ScheduleRounded fontSize="small" />,
+    locked: <LockRounded fontSize="small" />,
+    active: index,
+  };
+
+  const tagSx: Record<StepTag["variant"], SxProps<Theme>> = {
+    next: {
+      color: "primary.main",
+      bgcolor: alpha(theme.palette.primary.main, 0.12),
+    },
+    ok: {
+      color: "success.main",
+      bgcolor: alpha(theme.palette.success.main, 0.14),
+    },
+    wait: { color: "text.disabled", bgcolor: "grey.100" },
+  };
+
+  return (
+    <Box
+      className="flex items-start gap-4 rounded-xl p-5"
+      sx={{
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: state === "active" ? "primary.main" : "divider",
+        boxShadow: state === "active" ? 3 : 0,
+        opacity: state === "locked" ? 0.6 : 1,
+      }}
+    >
+      <Box
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+        sx={circleSx[state]}
+      >
+        {stepIcon[state]}
+      </Box>
+
+      <Box className="min-w-0 flex-1">
+        <Box className="flex flex-wrap items-center gap-2">
+          <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+            {title}
+          </Typography>
+          {tag && (
+            <Box
+              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase"
+              sx={tagSx[tag.variant]}
+            >
+              {tag.label}
+            </Box>
+          )}
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {description}
+        </Typography>
+        {children}
+      </Box>
+
+      {action && <Box className="self-center">{action}</Box>}
+    </Box>
+  );
+};

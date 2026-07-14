@@ -7,6 +7,7 @@ import { updateMyProfileRoute } from "@/features/users/updateMyProfile/route.js"
 import { updateUserRoleRoute } from "@/features/users/updateUserRole/route.js";
 import { deleteUserRoute } from "@/features/users/deleteUser/route.js";
 import { getMeRoute } from "@/features/users/getMe/route.js";
+import { completeOnboardingRoute } from "@/features/users/completeOnboarding/route.js";
 import { getUserRoleHistoryRoute } from "@/features/users/getUserRoleHistory/route.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
@@ -18,6 +19,7 @@ export default function usersRoutes(fastify: FastifyZodInstance) {
     updateUserRoleRoute,
     deleteUserRoute,
     getMeRoute,
+    completeOnboardingRoute,
     getUserRoleHistoryRoute,
   ]);
 }

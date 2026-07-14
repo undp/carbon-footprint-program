@@ -1,0 +1,68 @@
+import { useEffect } from "react";
+import {
+  CarbonInventoriesTab,
+  useCarbonInventoriesStore,
+} from "./useCarbonInventoriesStore";
+import { consumeOnboardingFocus } from "@/utils/onboardingSignals";
+import {
+  runOnboardingHighlight,
+  findOnboardingTarget,
+} from "@/utils/onboardingHighlight";
+import { VOCAB } from "@/config/vocab";
+
+/**
+ * Spotlights the control the user came here to click from the home onboarding:
+ * "Nueva Huella" for the create-huella step, the organization button of a draft
+ * for the associate-org step, or the Autodeclarar button of the most-recent
+ * draft for the self-declare step (switching to the Borradores tab first for the
+ * draft-scoped ones). Targets are resolved by their stable `data-onboarding-id`
+ * attribute. No-ops when no matching onboarding focus is pending — a focus for
+ * another screen is left untouched so it can resolve where it belongs.
+ */
+const huellaNoun = VOCAB.carbonInventory.shortNoun.singular;
+const orgNoun = VOCAB.organization.noun.singular;
+const orgArticle = VOCAB.organization.article.singular;
+
+export const useCarbonInventoriesHighlight = () => {
+  const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
+
+  useEffect(() => {
+    const focus = consumeOnboardingFocus([
+      "new-huella",
+      "associate-org",
+      "self-declare",
+    ]);
+
+    if (focus === "new-huella") {
+      return runOnboardingHighlight({
+        find: findOnboardingTarget("new-huella"),
+        title: `Crea tu ${huellaNoun}`,
+        description:
+          "Haz clic en “Nueva Huella” para calcular o subir tus emisiones.",
+        debugLabel: "new-huella",
+      });
+    }
+
+    if (focus === "associate-org") {
+      setActiveTab(CarbonInventoriesTab.DRAFTS);
+      return runOnboardingHighlight({
+        find: findOnboardingTarget("associate-org"),
+        title: `Asocia tu ${huellaNoun} a ${orgArticle}`,
+        description: `Haz clic aquí para asociar esta ${huellaNoun} a tu ${orgNoun} y poder autodeclararla.`,
+        debugLabel: "associate-org",
+      });
+    }
+
+    if (focus === "self-declare") {
+      setActiveTab(CarbonInventoriesTab.DRAFTS);
+      return runOnboardingHighlight({
+        find: findOnboardingTarget("self-declare"),
+        title: `Autodeclara tu ${huellaNoun}`,
+        description: `Haz clic aquí para autodeclarar tu ${huellaNoun} y publicarla en tu inicio.`,
+        debugLabel: "self-declare",
+      });
+    }
+
+    return undefined;
+  }, [setActiveTab]);
+};

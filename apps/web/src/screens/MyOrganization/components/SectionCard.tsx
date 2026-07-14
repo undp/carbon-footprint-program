@@ -1,12 +1,19 @@
 import { FC, ReactNode } from "react";
 import { Box, Button, Tooltip, Typography } from "@mui/material";
+import {
+  onboardingTargetProps,
+  OnboardingFocus,
+} from "@/utils/onboardingHighlight";
 
-type ActionConfig = {
+export type ActionConfig = {
   label: string;
   icon?: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   title?: string;
+  variant?: "text" | "outlined" | "contained";
+  /** Tags this action for the home onboarding highlight (optional). */
+  onboardingId?: OnboardingFocus;
 };
 
 type SectionCardProps = {
@@ -37,13 +44,16 @@ export const SectionCard: FC<SectionCardProps> = ({
                 <span>
                   <Button
                     key={index}
-                    variant="outlined"
+                    variant={actionItem.variant ?? "outlined"}
                     color="primary"
                     startIcon={actionItem.icon}
                     onClick={actionItem.onClick}
                     sx={{ minWidth: 100, height: 40 }}
                     disabled={actionItem.disabled}
                     title={actionItem.title}
+                    {...(actionItem.onboardingId
+                      ? onboardingTargetProps(actionItem.onboardingId)
+                      : {})}
                   >
                     {actionItem.label}
                   </Button>

@@ -1,6 +1,6 @@
 import { FC, memo } from "react";
 import { Edit, StarOutline } from "@mui/icons-material";
-import { SectionCard } from "./SectionCard";
+import { SectionCard, type ActionConfig } from "./SectionCard";
 import { OrganizationProfileView } from "./OrganizationProfileView";
 import { AccreditationConfirmDialog } from "./AccreditationConfirmDialog";
 import {
@@ -23,7 +23,7 @@ const OrganizationProfileSectionComponent: FC<
 > = ({ profile, onEdit, canManageOrganization }) => {
   const accreditationDialog = useAccreditationDialog(profile.id);
 
-  const actions = canManageOrganization
+  const actions: ActionConfig[] = canManageOrganization
     ? [
         {
           label: "EDITAR",
@@ -49,6 +49,8 @@ const OrganizationProfileSectionComponent: FC<
       onClick: accreditationDialog.openDialog,
       disabled: false,
       title: `Solicitar ${VOCAB.inscription.noun.singular} de ${VOCAB.organization.article.singular}`,
+      variant: "contained",
+      onboardingId: "solicit-inscription",
     });
   }
 

@@ -11,19 +11,40 @@ import {
 } from "@repo/types";
 import { DraftActionsCell } from "./DraftActionsCell";
 import { DraftNameCell } from "./DraftNameCell";
+import { isCarbonInventorySelfDeclarable } from "../../utils/selfDeclareValidation";
 
 interface DraftsTabProps {
-  darftInventories: GetAllCarbonInventoriesResponse;
+  draftInventories: GetAllCarbonInventoriesResponse;
   allInventories: GetAllCarbonInventoriesResponse;
   isLoading: boolean;
 }
 
 export const DraftsTab: FC<DraftsTabProps> = ({
-  darftInventories,
+  draftInventories,
   allInventories,
   isLoading,
 }) => {
   const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
+
+  // The home onboarding spotlights one draft per step. Self-declare targets the
+  // first draft that would actually pass validation (a user waiting on
+  // inscription may have made several loose drafts in the meantime; the target
+  // must be a self-declarable one, not just the most recent). If none is fully
+  // valid yet, fall back to the first draft *with an organization* (consistent
+  // with the onboarding path, so the spotlight isn't the loose draft the user
+  // was just playing with), and only then to the first draft. Associate-org
+  // targets the first draft that still has no organization (the one whose
+  // "Asociar organización" button is actionable). Tagging by a stable attribute
+  // avoids DataGrid-internal selectors.
+  const selfDeclareTargetId =
+    draftInventories.find((draft) =>
+      isCarbonInventorySelfDeclarable(draft, allInventories)
+    )?.id ??
+    draftInventories.find((draft) => draft.organizationId !== null)?.id ??
+    draftInventories[0]?.id;
+  const associateTargetId = draftInventories.find(
+    (draft) => draft.organizationId === null
+  )?.id;
 
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
@@ -138,11 +159,15 @@ export const DraftsTab: FC<DraftsTabProps> = ({
             <DraftActionsCell
               carbonInventory={params.row}
               inventories={allInventories}
+              isSelfDeclareOnboardingTarget={
+                params.row.id === selfDeclareTargetId
+              }
+              isAssociateOnboardingTarget={params.row.id === associateTargetId}
             />
           ),
         },
       ],
-      [allInventories, isWiderScreen]
+      [allInventories, isWiderScreen, selfDeclareTargetId, associateTargetId]
     );
 
   return (
@@ -151,7 +176,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         <StylizedDataGrid
           autoHeight
           columnHeaderHeight={40}
-          rows={darftInventories}
+          rows={draftInventories}
           columns={columns}
           localeText={{
             noRowsLabel: "No hay borradores disponibles",

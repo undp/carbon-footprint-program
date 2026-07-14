@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetMeResponse } from "@repo/types";
-import { mapUserToResponse } from "../mappers.js";
+import { mapOnboardingsCompleted, mapUserToResponse } from "../mappers.js";
 
 export const getMeService = async (
   prismaClient: PrismaClient,
@@ -27,11 +27,17 @@ export const getMeService = async (
     prismaClient.user.update({
       where: { id: user.id },
       data: { lastAccessAt: now },
+      include: { onboardingCompletions: { select: { onboardingKey: true } } },
     }),
     prismaClient.userAccessLog.create({
       data: { userId: user.id, createdAt: now },
     }),
   ]);
 
-  return mapUserToResponse(updatedUser);
+  return {
+    ...mapUserToResponse(updatedUser),
+    onboardingsCompleted: mapOnboardingsCompleted(
+      updatedUser.onboardingCompletions
+    ),
+  };
 };
