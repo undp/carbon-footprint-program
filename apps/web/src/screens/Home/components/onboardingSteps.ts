@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@repo/types";
-import { Routes } from "@/interfaces";
+import { Routes, SidebarRoutesTranslations } from "@/interfaces";
 import type { OnboardingFocus } from "@/utils/onboardingSignals";
 import type { OnboardingStepState, StepTag } from "./OnboardingStep";
 
@@ -60,13 +60,24 @@ export interface OnboardingStepDef {
 const isInscriptionPending = (ctx: OnboardingContext) =>
   !ctx.orgAccredited && ctx.inscriptionStatus === SubmissionStatus.PENDING;
 
+/** Guide/CTA labels reuse the sidebar's own label so the copy can't drift. */
+const goToSidebarLabel = (route: OnboardingNavTarget) =>
+  `Ir a ${SidebarRoutesTranslations[route]}`;
+
+const goToSidebarCta = (to: OnboardingNavTarget) => ({
+  label: goToSidebarLabel(to),
+  to,
+});
+
+const MY_ORGANIZATION_LABEL = SidebarRoutesTranslations[Routes.MY_ORGANIZATION];
+
 export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
   {
     id: "new-huella",
     title: "Crea tu huella",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ir a Huella organizacional",
+      title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
       description: "Haz clic aquí en el menú para crear tu huella.",
     },
     view: (ctx) =>
@@ -76,10 +87,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
             description:
               "Ya tienes una huella creada. Revísala o crea una nueva cuando quieras.",
             tag: { label: "Completado", variant: "ok" },
-            secondaryCta: {
-              label: "Ir a Huella organizacional",
-              to: Routes.CARBON_INVENTORIES,
-            },
+            secondaryCta: goToSidebarCta(Routes.CARBON_INVENTORIES),
           }
         : {
             state: "active",
@@ -94,7 +102,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Crea tu organización",
     route: Routes.MY_ORGANIZATION,
     guide: {
-      title: "Ir a Mi organización",
+      title: goToSidebarLabel(Routes.MY_ORGANIZATION),
       description: "Haz clic aquí en el menú para registrar tu organización.",
     },
     view: (ctx) =>
@@ -103,12 +111,9 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
             state: "done",
             description: isInscriptionPending(ctx)
               ? "Ya registraste tu organización. Mientras tu inscripción está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe."
-              : "Ya registraste tu organización. Puedes ver más información en la página “Mi organización”.",
+              : `Ya registraste tu organización. Puedes ver más información en la página “${MY_ORGANIZATION_LABEL}”.`,
             tag: { label: "Completado", variant: "ok" },
-            secondaryCta: {
-              label: "Ir a Mi organización",
-              to: Routes.MY_ORGANIZATION,
-            },
+            secondaryCta: goToSidebarCta(Routes.MY_ORGANIZATION),
           }
         : {
             state: "active",
@@ -122,7 +127,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Asocia tu huella a la organización",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ir a Huella organizacional",
+      title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
       description:
         "Haz clic aquí en el menú para asociar tu huella a tu organización.",
     },
@@ -132,10 +137,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
           state: "done",
           description: "Tu huella está asociada a tu organización.",
           tag: { label: "Completado", variant: "ok" },
-          secondaryCta: {
-            label: "Ir a Huella organizacional",
-            to: Routes.CARBON_INVENTORIES,
-          },
+          secondaryCta: goToSidebarCta(Routes.CARBON_INVENTORIES),
         };
       }
       if (ctx.hasHuella && ctx.hasOrganization) {
@@ -160,7 +162,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Inscribe tu organización",
     route: Routes.MY_ORGANIZATION,
     guide: {
-      title: "Ir a Mi organización",
+      title: goToSidebarLabel(Routes.MY_ORGANIZATION),
       description: "Haz clic aquí en el menú para solicitar la inscripción.",
     },
     view: (ctx) => {
@@ -176,17 +178,13 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
           state: "done",
           description: "Tu organización está inscrita.",
           tag: { label: "Inscrita", variant: "ok" },
-          secondaryCta: {
-            label: "Ir a Mi organización",
-            to: Routes.MY_ORGANIZATION,
-          },
+          secondaryCta: goToSidebarCta(Routes.MY_ORGANIZATION),
         };
       }
       if (isInscriptionPending(ctx)) {
         return {
           state: "pending",
-          description:
-            "Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “Mi organización”.",
+          description: `Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “${MY_ORGANIZATION_LABEL}”.`,
           tag: { label: "En revisión", variant: "wait" },
           secondaryCta: { label: "Ver estado", to: Routes.MY_ORGANIZATION },
         };
@@ -213,7 +211,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Autodeclara tu huella",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ir a Huella organizacional",
+      title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
       description: "Haz clic aquí en el menú para autodeclarar tu huella.",
     },
     view: (ctx) => {
