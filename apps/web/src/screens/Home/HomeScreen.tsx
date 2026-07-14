@@ -38,14 +38,14 @@ export const HomeScreen: FC = () => {
   const { mutate: completeOnboarding, isPending: isFinishing } =
     useCompleteOnboarding();
 
-  // "Terminar Onboarding" is the only way past the completion screen, so a
+  // "Ir a mi dashboard" is the only way past the completion screen, so a
   // silent failure would trap the user — surface the error explicitly.
   const handleFinishOnboarding = () =>
     completeOnboarding(OnboardingKeys.WELCOME_HOME, {
       onError: (error) => {
         // eslint-disable-next-line no-console
         console.error("Failed to complete onboarding", error);
-        enqueueSnackbar("No se pudo terminar el onboarding", {
+        enqueueSnackbar("No se pudo abrir tu dashboard. Inténtalo de nuevo.", {
           variant: "error",
         });
       },

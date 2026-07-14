@@ -66,7 +66,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Crea tu huella",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ve a Huella Organizacional",
+      title: "Ir a Huella organizacional",
       description: "Haz clic aquí en el menú para crear tu huella.",
     },
     view: (ctx) =>
@@ -77,7 +77,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
               "Ya tienes una huella creada. Revísala o crea una nueva cuando quieras.",
             tag: { label: "Completado", variant: "ok" },
             secondaryCta: {
-              label: "Ir a Huella Organizacional",
+              label: "Ir a Huella organizacional",
               to: Routes.CARBON_INVENTORIES,
             },
           }
@@ -94,7 +94,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Crea tu organización",
     route: Routes.MY_ORGANIZATION,
     guide: {
-      title: "Ve a Mi Organización",
+      title: "Ir a Mi organización",
       description: "Haz clic aquí en el menú para registrar tu organización.",
     },
     view: (ctx) =>
@@ -106,7 +106,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
               : "Ya registraste tu organización. Puedes ver más información en la página “Mi organización”.",
             tag: { label: "Completado", variant: "ok" },
             secondaryCta: {
-              label: "Ir a Mi Organización",
+              label: "Ir a Mi organización",
               to: Routes.MY_ORGANIZATION,
             },
           }
@@ -122,7 +122,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Asocia tu huella a la organización",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ve a Huella Organizacional",
+      title: "Ir a Huella organizacional",
       description:
         "Haz clic aquí en el menú para asociar tu huella a tu organización.",
     },
@@ -133,7 +133,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
           description: "Tu huella está asociada a tu organización.",
           tag: { label: "Completado", variant: "ok" },
           secondaryCta: {
-            label: "Ir a Huella Organizacional",
+            label: "Ir a Huella organizacional",
             to: Routes.CARBON_INVENTORIES,
           },
         };
@@ -160,7 +160,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Inscribe tu organización",
     route: Routes.MY_ORGANIZATION,
     guide: {
-      title: "Ve a Mi Organización",
+      title: "Ir a Mi organización",
       description: "Haz clic aquí en el menú para solicitar la inscripción.",
     },
     view: (ctx) => {
@@ -177,7 +177,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
           description: "Tu organización está inscrita.",
           tag: { label: "Inscrita", variant: "ok" },
           secondaryCta: {
-            label: "Ir a Mi Organización",
+            label: "Ir a Mi organización",
             to: Routes.MY_ORGANIZATION,
           },
         };
@@ -213,7 +213,7 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
     title: "Autodeclara tu huella",
     route: Routes.CARBON_INVENTORIES,
     guide: {
-      title: "Ve a Huella Organizacional",
+      title: "Ir a Huella organizacional",
       description: "Haz clic aquí en el menú para autodeclarar tu huella.",
     },
     view: (ctx) => {

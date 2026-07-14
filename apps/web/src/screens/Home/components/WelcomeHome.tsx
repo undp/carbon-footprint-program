@@ -101,7 +101,7 @@ export const WelcomeHome: FC<Props> = ({
         eyebrow: "¡Lo lograste!",
         title: `¡Felicitaciones${namePart}! 🎉`,
         subtitle:
-          "Completaste todos los pasos para medir la huella de carbono de tu organización.",
+          "Mediste y autodeclaraste la huella de carbono de tu organización.",
       }
     : hasOrganization
       ? {
@@ -131,9 +131,10 @@ export const WelcomeHome: FC<Props> = ({
           <CelebrationRounded sx={{ color: "success.main" }} />
           <Typography variant="body2" color="text.secondary" className="flex-1">
             <Box component="span" fontWeight={600} color="text.primary">
-              Completaste tu onboarding.
+              Tu huella ya está autodeclarada.
             </Box>{" "}
-            Termínalo para ir a tu inicio y ver el dashboard de emisiones.
+            Con esto completaste el proceso: desde ahora tu inicio mostrará el
+            dashboard de emisiones de tu organización.
           </Typography>
           <Button
             variant="contained"
@@ -142,7 +143,7 @@ export const WelcomeHome: FC<Props> = ({
             onClick={onFinish}
             disabled={isFinishing}
           >
-            Terminar Onboarding
+            Ir a mi dashboard
           </Button>
         </Box>
       )}
