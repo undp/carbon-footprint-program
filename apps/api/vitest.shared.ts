@@ -7,12 +7,20 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const coverageThresholds =
-  // TODO: review these thresholds in the future and adjust as needed.
-  // eslint-disable-next-line no-constant-condition
-  process.env.CI || true
-    ? { lines: 0, functions: 0, branches: 0, statements: 0 }
-    : { lines: 80, functions: 80, branches: 80, statements: 80 };
+// Coverage thresholds are enforced in CI, not per Vitest run. The suite is split
+// into three disjoint legs (base + one per storage provider; see the `test` job
+// in .github/workflows/ci.yml), so no single run sees the whole codebase and a
+// per-run threshold would fail on the files that run never touches. The real
+// gate is the `coverage` CI job, which merges all three legs' coverage and
+// checks the union against per-metric thresholds (80% lines/statements/
+// functions, 60% branches; see scripts/check-coverage.mjs). These zeros keep
+// each run's numbers visible in its own report without gating on a partial view.
+const coverageThresholds = {
+  lines: 0,
+  functions: 0,
+  branches: 0,
+  statements: 0,
+};
 
 /** Default test glob — the full apps/api suite. */
 const DEFAULT_TEST_INCLUDE = ["test/**/*.{test,spec}.{js,ts}"];
@@ -126,8 +134,10 @@ export function defineApiVitestConfig(
         ],
         // Coverage thresholds - will show in UI
         thresholds: coverageThresholds,
-        // More detailed reporting
-        reportsDirectory: "./coverage",
+        // More detailed reporting. Defaults to ./coverage; overridable via
+        // COVERAGE_DIR so the `test:coverage` script can point each leg at its
+        // own directory and merge them (mirrors the CI `coverage` job).
+        reportsDirectory: process.env.COVERAGE_DIR ?? "./coverage",
         clean: true,
         cleanOnRerun: true,
       },
