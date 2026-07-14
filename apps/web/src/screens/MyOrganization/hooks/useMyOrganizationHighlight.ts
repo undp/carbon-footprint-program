@@ -4,6 +4,7 @@ import {
   runOnboardingHighlight,
   findOnboardingTarget,
 } from "@/utils/onboardingHighlight";
+import { VOCAB } from "@/config/vocab";
 
 /**
  * Spotlights the control the user came here to click from the home onboarding:
@@ -14,6 +15,8 @@ import {
  * isn't available in the current state — a focus for another screen is left
  * untouched so it can resolve where it belongs.
  */
+const orgNoun = VOCAB.organization.noun.singular;
+
 export const useMyOrganizationHighlight = () => {
   useEffect(() => {
     const focus = consumeOnboardingFocus(["create-org", "solicit-inscription"]);
@@ -21,9 +24,8 @@ export const useMyOrganizationHighlight = () => {
     if (focus === "create-org") {
       return runOnboardingHighlight({
         find: findOnboardingTarget("create-org"),
-        title: "Crea tu organización",
-        description:
-          "Haz clic para registrar tu organización y comenzar a medir.",
+        title: `Crea tu ${orgNoun}`,
+        description: `Haz clic para registrar tu ${orgNoun} y comenzar a medir.`,
         debugLabel: "create-org",
       });
     }
@@ -31,8 +33,8 @@ export const useMyOrganizationHighlight = () => {
     if (focus === "solicit-inscription") {
       return runOnboardingHighlight({
         find: findOnboardingTarget("solicit-inscription"),
-        title: "Inscribe tu organización",
-        description: "Haz clic aquí para postular tu organización.",
+        title: `Inscribe tu ${orgNoun}`,
+        description: `Haz clic aquí para postular tu ${orgNoun}.`,
         debugLabel: "solicit-inscription",
       });
     }

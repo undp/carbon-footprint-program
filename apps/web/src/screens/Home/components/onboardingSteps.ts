@@ -1,4 +1,6 @@
+import { capitalize } from "lodash-es";
 import { SubmissionStatus } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
 import { Routes, SidebarRoutesTranslations } from "@/interfaces";
 import type { OnboardingFocus } from "@/utils/onboardingSignals";
 import type { OnboardingStepState, StepTag } from "./OnboardingStep";
@@ -71,21 +73,28 @@ const goToSidebarCta = (to: OnboardingNavTarget) => ({
 
 const MY_ORGANIZATION_LABEL = SidebarRoutesTranslations[Routes.MY_ORGANIZATION];
 
+const huellaNoun = VOCAB.carbonInventory.shortNoun.singular;
+const orgNoun = VOCAB.organization.noun.singular;
+const orgArticle = VOCAB.organization.article.singular;
+const inscriptionNoun = VOCAB.inscription.noun.singular;
+const inscriptionArticle = VOCAB.inscription.article.singular;
+const inscriptionAdjective = VOCAB.inscription.adjective.singular;
+const inscriptionVerb = VOCAB.inscription.verb.singular;
+
 export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
   {
     id: "new-huella",
-    title: "Crea tu huella",
+    title: `Crea tu ${huellaNoun}`,
     route: Routes.CARBON_INVENTORIES,
     guide: {
       title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
-      description: "Haz clic aquí en el menú para crear tu huella.",
+      description: `Haz clic aquí en el menú para crear tu ${huellaNoun}.`,
     },
     view: (ctx) =>
       ctx.hasHuella
         ? {
             state: "done",
-            description:
-              "Ya tienes una huella creada. Revísala o crea una nueva cuando quieras.",
+            description: `Ya tienes una ${huellaNoun} creada. Revísala o crea una nueva cuando quieras.`,
             tag: { label: "Completado", variant: "ok" },
             secondaryCta: goToSidebarCta(Routes.CARBON_INVENTORIES),
           }
@@ -94,48 +103,47 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
             description:
               "Calcula con nuestra guía o sube tus datos. Es la base para medir tu impacto.",
             tag: { label: "Empieza aquí", variant: "next" },
-            activeCta: "Crear huella",
+            activeCta: `Crear ${huellaNoun}`,
           },
   },
   {
     id: "create-org",
-    title: "Crea tu organización",
+    title: `Crea tu ${orgNoun}`,
     route: Routes.MY_ORGANIZATION,
     guide: {
       title: goToSidebarLabel(Routes.MY_ORGANIZATION),
-      description: "Haz clic aquí en el menú para registrar tu organización.",
+      description: `Haz clic aquí en el menú para registrar tu ${orgNoun}.`,
     },
     view: (ctx) =>
       ctx.hasOrganization
         ? {
             state: "done",
             description: isInscriptionPending(ctx)
-              ? "Ya registraste tu organización. Mientras tu inscripción está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe."
-              : `Ya registraste tu organización. Puedes ver más información en la página “${MY_ORGANIZATION_LABEL}”.`,
+              ? `Ya registraste tu ${orgNoun}. Mientras tu ${inscriptionNoun} está en revisión, el perfil queda bloqueado; podrás editarlo cuando se apruebe.`
+              : `Ya registraste tu ${orgNoun}. Puedes ver más información en la página “${MY_ORGANIZATION_LABEL}”.`,
             tag: { label: "Completado", variant: "ok" },
             secondaryCta: goToSidebarCta(Routes.MY_ORGANIZATION),
           }
         : {
             state: "active",
-            description: "Crea el perfil de tu organización.",
+            description: `Crea el perfil de tu ${orgNoun}.`,
             tag: { label: "Continúa aquí", variant: "next" },
-            activeCta: "Crear organización",
+            activeCta: `Crear ${orgNoun}`,
           },
   },
   {
     id: "associate-org",
-    title: "Asocia tu huella a la organización",
+    title: `Asocia tu ${huellaNoun} a ${orgArticle}`,
     route: Routes.CARBON_INVENTORIES,
     guide: {
       title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
-      description:
-        "Haz clic aquí en el menú para asociar tu huella a tu organización.",
+      description: `Haz clic aquí en el menú para asociar tu ${huellaNoun} a tu ${orgNoun}.`,
     },
     view: (ctx) => {
       if (ctx.hasHuellaWithOrg) {
         return {
           state: "done",
-          description: "Tu huella está asociada a tu organización.",
+          description: `Tu ${huellaNoun} está asociada a tu ${orgNoun}.`,
           tag: { label: "Completado", variant: "ok" },
           secondaryCta: goToSidebarCta(Routes.CARBON_INVENTORIES),
         };
@@ -143,48 +151,46 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
       if (ctx.hasHuella && ctx.hasOrganization) {
         return {
           state: "active",
-          description:
-            "Vincula tu huella con tu organización desde el botón de organización en tus borradores.",
+          description: `Vincula tu ${huellaNoun} con tu ${orgNoun} desde el botón de ${orgNoun} en tus borradores.`,
           tag: { label: "Continúa aquí", variant: "next" },
-          activeCta: "Asociar organización",
+          activeCta: `Asociar ${orgNoun}`,
         };
       }
       return {
         state: "locked",
-        description:
-          "Asocia tu huella a tu organización para poder inscribirla y autodeclararla.",
+        description: `Asocia tu ${huellaNoun} a tu ${orgNoun} para poder ${inscriptionVerb}la y autodeclararla.`,
         tag: { label: "Después", variant: "wait" },
       };
     },
   },
   {
     id: "solicit-inscription",
-    title: "Inscribe tu organización",
+    title: `Inscribe tu ${orgNoun}`,
     route: Routes.MY_ORGANIZATION,
     guide: {
       title: goToSidebarLabel(Routes.MY_ORGANIZATION),
-      description: "Haz clic aquí en el menú para solicitar la inscripción.",
+      description: `Haz clic aquí en el menú para solicitar ${inscriptionArticle}.`,
     },
     view: (ctx) => {
       if (!ctx.hasOrganization) {
         return {
           state: "locked",
-          description: "Inscribe tu organización para validarla oficialmente.",
+          description: `Inscribe tu ${orgNoun} para validarla oficialmente.`,
           tag: { label: "Después", variant: "wait" },
         };
       }
       if (ctx.orgAccredited) {
         return {
           state: "done",
-          description: "Tu organización está inscrita.",
-          tag: { label: "Inscrita", variant: "ok" },
+          description: `Tu ${orgNoun} está ${inscriptionAdjective}.`,
+          tag: { label: capitalize(inscriptionAdjective), variant: "ok" },
           secondaryCta: goToSidebarCta(Routes.MY_ORGANIZATION),
         };
       }
       if (isInscriptionPending(ctx)) {
         return {
           state: "pending",
-          description: `Tu inscripción está en revisión. Puedes revisar el estado de tu postulación en “${MY_ORGANIZATION_LABEL}”.`,
+          description: `Tu ${inscriptionNoun} está en revisión. Puedes revisar el estado de tu postulación en “${MY_ORGANIZATION_LABEL}”.`,
           tag: { label: "En revisión", variant: "wait" },
           secondaryCta: { label: "Ver estado", to: Routes.MY_ORGANIZATION },
         };
@@ -194,31 +200,31 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
       // to revise, not start from scratch.
       const activeDescription =
         ctx.inscriptionStatus === SubmissionStatus.REJECTED
-          ? "Tu inscripción fue rechazada; revísala y vuelve a intentarla."
+          ? `Tu ${inscriptionNoun} fue rechazada; revísala y vuelve a intentarla.`
           : ctx.inscriptionStatus === SubmissionStatus.REVIEWED
-            ? "Tu inscripción tiene observaciones; revísala y vuelve a enviarla."
-            : "Solicita la inscripción de tu organización para validarla oficialmente.";
+            ? `Tu ${inscriptionNoun} tiene observaciones; revísala y vuelve a enviarla.`
+            : `Solicita ${inscriptionArticle} de tu ${orgNoun} para validarla oficialmente.`;
       return {
         state: "active",
         description: activeDescription,
         tag: { label: "Cuando quieras", variant: "next" },
-        activeCta: "Inscribir organización",
+        activeCta: `${capitalize(inscriptionVerb)} ${orgNoun}`,
       };
     },
   },
   {
     id: "self-declare",
-    title: "Autodeclara tu huella",
+    title: `Autodeclara tu ${huellaNoun}`,
     route: Routes.CARBON_INVENTORIES,
     guide: {
       title: goToSidebarLabel(Routes.CARBON_INVENTORIES),
-      description: "Haz clic aquí en el menú para autodeclarar tu huella.",
+      description: `Haz clic aquí en el menú para autodeclarar tu ${huellaNoun}.`,
     },
     view: (ctx) => {
       if (ctx.isComplete) {
         return {
           state: "done",
-          description: "Autodeclaraste tu huella. ¡Ya aparece en tu inicio!",
+          description: `Autodeclaraste tu ${huellaNoun}. ¡Ya aparece en tu inicio!`,
           tag: { label: "Completado", variant: "ok" },
         };
       }
@@ -235,8 +241,8 @@ export const ONBOARDING_STEPS: readonly OnboardingStepDef[] = [
         state: "locked",
         description:
           ctx.orgAccredited && !ctx.hasAssociatedDraft
-            ? "Necesitas una huella en borrador asociada a tu organización para autodeclarar."
-            : "Se habilita cuando tu organización esté inscrita y tengas una huella en borrador asociada.",
+            ? `Necesitas una ${huellaNoun} en borrador asociada a tu ${orgNoun} para autodeclarar.`
+            : `Se habilita cuando tu ${orgNoun} esté ${inscriptionAdjective} y tengas una ${huellaNoun} en borrador asociada.`,
         tag: { label: "Después", variant: "wait" },
       };
     },

@@ -4,6 +4,7 @@ import { ArrowForwardRounded, CelebrationRounded } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
 import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
+import { VOCAB } from "@/config/vocab";
 import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
@@ -22,6 +23,11 @@ import {
   type OnboardingContext,
   type OnboardingNavTarget,
 } from "./onboardingSteps";
+
+const huellaNoun = VOCAB.carbonInventory.shortNoun.singular;
+const huellaFullNoun = VOCAB.carbonInventory.noun.singular;
+const huellaFullArticle = VOCAB.carbonInventory.article.singular;
+const orgNoun = VOCAB.organization.noun.singular;
 
 interface Props {
   hasOrganization: boolean;
@@ -100,21 +106,18 @@ export const WelcomeHome: FC<Props> = ({
     ? {
         eyebrow: "¡Lo lograste!",
         title: `¡Felicitaciones${namePart}! 🎉`,
-        subtitle:
-          "Mediste y autodeclaraste la huella de carbono de tu organización.",
+        subtitle: `Mediste y autodeclaraste ${huellaFullArticle} de tu ${orgNoun}.`,
       }
     : hasOrganization
       ? {
           eyebrow: "Qué bueno verte de nuevo",
           title: `Hola de nuevo${namePart}`,
-          subtitle:
-            "Estos son tus próximos pasos para avanzar con tu huella de carbono.",
+          subtitle: `Estos son tus próximos pasos para avanzar con tu ${huellaFullNoun}.`,
         }
       : {
           eyebrow: "Te damos la bienvenida",
           title: `¡Hola${namePart}! 👋`,
-          subtitle:
-            "En Huella Latam mides, reportas y reduces la huella de carbono de tu organización. Completa estos pasos para empezar.",
+          subtitle: `En Huella Latam mides, reportas y reduces ${huellaFullArticle} de tu ${orgNoun}. Completa estos pasos para empezar.`,
         };
 
   return (
@@ -131,10 +134,10 @@ export const WelcomeHome: FC<Props> = ({
           <CelebrationRounded sx={{ color: "success.main" }} />
           <Typography variant="body2" color="text.secondary" className="flex-1">
             <Box component="span" fontWeight={600} color="text.primary">
-              Tu huella ya está autodeclarada.
+              Tu {huellaNoun} ya está autodeclarada.
             </Box>{" "}
             Con esto completaste el proceso: desde ahora tu inicio mostrará el
-            dashboard de emisiones de tu organización.
+            dashboard de emisiones de tu {orgNoun}.
           </Typography>
           <Button
             variant="contained"
