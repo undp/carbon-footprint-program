@@ -15,7 +15,7 @@ The system SHALL upgrade dependencies one library at a time. For each individual
 5. Run `pnpm lint` (must pass with zero warnings — `--max-warnings=0`).
 6. Run `pnpm type-check` (must pass with zero errors).
 7. Run `pnpm test` (must pass with the existing coverage threshold of 80%).
-8. Only if steps 2–7 all succeed: create a single Conventional Commit dedicated to that library (e.g., `chore(deps): bump @mui/material 7.3.6 to 9.0.1`). The commit MUST NOT include changes unrelated to that library's upgrade.
+8. Only if steps 2–7 all succeed: create a single Conventional Commit dedicated to that library (e.g., `chore(deps): bump @mui/x-data-grid 8.29.1 to 9.8.0`). The commit MUST NOT include changes unrelated to that library's upgrade.
 
 If any step from 2 through 7 fails, the workflow MUST attempt to fix the failure within the same commit (e.g., applying a migration fix). The workflow MUST NOT skip steps, MUST NOT use `--no-verify`, and MUST NOT commit broken state. If a fix is not reachable within a reasonable bounded effort (~30 minutes or ~15 files of meaningful changes), the workflow MUST halt and request human input.
 
@@ -75,7 +75,7 @@ A subsequent PR (medium or high) MUST NOT be opened or worked on until the prece
 #### Scenario: High-risk PR is internally phased
 
 - **WHEN** working on the high-risk PR
-- **THEN** the agent applies major upgrades in this deterministic order: (1) TypeScript + `@types/node`, (2) ESLint, (3) MSAL, (4) MUI core, (5) MUI X
+- **THEN** the agent applies major upgrades in this deterministic order: (1) TypeScript + `@types/node`, (2) ESLint, (3) the auth provider (`oidc-client-ts` / `react-oidc-context`), (4) MUI core, (5) MUI X
 - **AND** each phase is one or more commits per the atomic commit protocol
 - **AND** the agent does NOT start phase N+1 until phase N's quality gates all pass
 
@@ -83,12 +83,11 @@ A subsequent PR (medium or high) MUST NOT be opened or worked on until the prece
 
 Libraries that publish official codemods (e.g., `@mui/codemod`, `@mui/x-codemod`) SHALL have their codemods executed before any manual edits. The codemod output MUST be committed as a separate commit prior to manual fixes, so reviewers can distinguish mechanical changes from intentional edits.
 
-#### Scenario: MUI codemod runs before manual edits
+#### Scenario: MUI X codemod runs before manual edits
 
-- **WHEN** upgrading `@mui/material` from v7 to v9
-- **THEN** the agent first runs `npx @mui/codemod@latest v8.0.0/preset-safe apps/web/src`
-- **AND** then runs `npx @mui/codemod@latest v9.0.0/preset-safe apps/web/src`
-- **AND** commits the codemod output as `chore(deps): apply mui v8 and v9 codemods` before any manual editing
+- **WHEN** upgrading the `@mui/x-*` packages from v8 to v9
+- **THEN** the agent first runs `npx @mui/x-codemod@latest v9.0.0/preset-safe apps/web/src`
+- **AND** commits the codemod output as `chore(deps): apply mui-x v9 codemods` before any manual editing
 - **AND** any subsequent manual fixes land in a separate follow-up commit on the same branch
 
 #### Scenario: A library without an official codemod uses manual edits
@@ -110,13 +109,13 @@ Versions for dependencies declared in `pnpm-workspace.yaml > catalogs.shared` (c
 
 #### Scenario: Non-catalog dependency is bumped in its package.json
 
-- **WHEN** bumping `@mui/material` from 7.3.6 to 9.0.1
+- **WHEN** bumping `@mui/x-data-grid` from 8.29.1 to 9.8.0
 - **THEN** the agent edits `apps/web/package.json` only
 - **AND** does NOT add the dependency to the catalog
 
 ### Requirement: Manual smoke test gating on auth and UI bumps
 
-Pull requests that touch authentication libraries (`jwks-rsa`, `@azure/msal-browser`, `@azure/msal-react`) or UI framework majors (`@mui/material`, `@mui/icons-material`, `@mui/x-*`) MUST include an explicit smoke-test checklist in the PR body, and the agent MUST NOT mark the PR ready to merge until a human has confirmed the checklist items.
+Pull requests that touch authentication libraries (`jwks-rsa`, `oidc-client-ts`, `react-oidc-context`) or UI framework majors (`@mui/material`, `@mui/icons-material`, `@mui/x-*`) MUST include an explicit smoke-test checklist in the PR body, and the agent MUST NOT mark the PR ready to merge until a human has confirmed the checklist items.
 
 #### Scenario: PR 2 medium-risk includes auth smoke test checklist
 
@@ -127,7 +126,7 @@ Pull requests that touch authentication libraries (`jwks-rsa`, `@azure/msal-brow
 #### Scenario: PR 3 high-risk includes extensive UI smoke test checklist
 
 - **WHEN** the high-risk PR is opened
-- **THEN** its body includes checkboxes covering MSAL login + logout + token refresh, sidebar/layout, CRUD across organizations/inventories/projects, dashboard charts (`@mui/x-charts`), DataGrid filters/sort/pagination, date pickers, modals, snackbars, Excel export
+- **THEN** its body includes checkboxes covering OIDC login + logout + token refresh, sidebar/layout, CRUD across organizations/inventories/projects, dashboard charts (`@mui/x-charts`), DataGrid filters/sort/pagination, date pickers, modals, snackbars, Excel export
 - **AND** the agent does NOT request merge approval until those items are checked
 
 ### Requirement: Rollback strategy is per-commit and per-PR
@@ -194,6 +193,6 @@ Tabulated target versions in implementation tasks are treated as guidance, not a
 
 #### Scenario: A brand-new major appears mid-execution
 
-- **WHEN** the table lists `@mui/material 9.0.1` as the target and at execution time `@mui/material 10.0.0` has been published
+- **WHEN** the table lists `@mui/x-data-grid 9.8.0` as the target and at execution time `@mui/x-data-grid 10.0.0` has been published
 - **THEN** the agent does NOT adopt v10; the agent stays at the latest v9.x available
 - **AND** if needed, opens a follow-up change to handle the new major separately

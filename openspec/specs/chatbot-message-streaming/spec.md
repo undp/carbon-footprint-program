@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the `POST /api/chatbot/message` Server-Sent Events contract: the request shape, the streaming-friendly response headers, and the SSE event framing (per-chunk `data:` events carrying the assistant row id, a terminal `event: done` with token usage, and a terminal `event: error` carrying `EXTERNAL_SERVICE_ERROR` on provider failure). It specifies token-cap and turn-cap enforcement before the provider is invoked (413 `REQUEST_TOO_LARGE`), persistence of the user and assistant messages within an existing conversation, and `truncated = true` finalization on mid-stream disconnect. Identity resolution, cookie semantics, and conversation lifecycle are inherited from `chatbot-conversation-persistence`.
 
 ## Requirements
 

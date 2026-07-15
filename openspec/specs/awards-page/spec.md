@@ -1,96 +1,103 @@
+# awards-page Specification
+
+## Purpose
+
+This capability provides the organization-facing Recognitions screen (originally conceived as an "awards page") at `/app/recognitions`, giving organizations a consolidated, cross-year view of the recognition seals they have earned through approved submissions. It renders an organization and year selector, summary cards counting earned recognitions per type with the corresponding seal image, and a sortable table of every earned recognition with access to its recognition file. All data comes from the `getOrganizationRecognitions` endpoint and the badge-previews endpoint; the screen is read-only.
+
 ## Requirements
 
-### Requirement: Awards page route and layout
+### Requirement: Recognitions page route and layout
 
-The system SHALL provide a screen at `/app/awards` that displays earned recognition seals for organizations.
+The system SHALL provide a screen at `/app/recognitions`, rendered by the `RecognitionsScreen` component, that displays the recognition seals earned by an organization.
 
 The screen SHALL include:
 
-- A header with an "Año" (year) selector and an "Organizaciones" selector
-- A summary section with one card per badge type showing the count of earned seals
-- A data table listing each earned seal
+- A header with an organization selector and a year selector
+- A summary section with one card per surfaced recognition type showing the count of earned recognitions and the seal image
+- A data table listing each earned recognition
 
-#### Scenario: User navigates to /app/awards
+#### Scenario: User navigates to /app/recognitions
 
-- **WHEN** a user navigates to `/app/awards`
-- **THEN** the awards page is rendered with the header, summary cards, and table
+- **WHEN** a user navigates to `/app/recognitions`
+- **THEN** the Recognitions screen is rendered with the header, summary cards, and table
+
+#### Scenario: User has no organizations
+
+- **WHEN** the authenticated user has no organizations
+- **THEN** the screen shows an empty state prompting the user to create their first organization instead of the table
+
+#### Scenario: Organization has no recognized footprints
+
+- **WHEN** the selected organization has no approved footprints that carry recognitions
+- **THEN** the screen shows an empty state prompting the user to manage their footprints
 
 ### Requirement: Organization and year selectors
 
-The page SHALL display a year selector and an organization selector in the header. Selecting an organization SHALL trigger a new API fetch for that organization's badges. Selecting a year SHALL filter the already-fetched list client-side.
+The page SHALL display an organization selector and a year selector in the header. The organization selector SHALL default to the user's first organization. The year selector SHALL default to all years. Changing either selector SHALL trigger a new fetch from `getOrganizationRecognitions` for the selected organization and year, updating both the table and the summary cards.
 
-The organization selector SHALL default to the user's primary organization. The year selector SHALL default to "Todos" (all years).
+The available years SHALL be derived from the organization's approved carbon inventories.
 
 #### Scenario: Changing organization
 
 - **WHEN** the user selects a different organization
-- **THEN** the page fetches and displays badges for the new organization
+- **THEN** the page fetches and displays recognitions for the new organization
 
 #### Scenario: Filtering by year
 
 - **WHEN** the user selects a specific year
-- **THEN** only badges with `measurementYear` matching the selection are shown in the table and summary cards
+- **THEN** the page refetches recognitions filtered by that measurement year and updates the table and summary cards
 
-### Requirement: Badge summary cards
+### Requirement: Recognition summary cards
 
-The page SHALL display four summary cards, one per badge type: Reconocimiento de Medición, Reconocimiento de Verificación, Reconocimiento de Reducción, Reconocimiento de Neutralización. Each card SHALL show the count of earned seals of that type matching the current filters.
+The page SHALL display one summary card per surfaced recognition submission type. The currently surfaced types are `CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, and `REDUCTION_PROJECT_VERIFICATION`; the neutralization type is not currently surfaced. Each card SHALL show, in Spanish, the recognition-type label, the count of earned recognitions of that type matching the current filters, and the seal image for that type fetched from `GET /badges/previews`.
 
-Badge type to display label mapping:
+Recognition type to card label mapping:
 
-- `CARBON_INVENTORY_CALCULATION` → "Diploma Medición"
-- `CARBON_INVENTORY_VERIFICATION` → "Sello Verificación"
-- `REDUCTION_PROJECT_VERIFICATION` → "Sello Reducción"
-- `NEUTRALIZATION_PLAN_VERIFICATION` → "Sello Neutralización"
+- `CARBON_INVENTORY_CALCULATION` → "Reconocimientos de Medición"
+- `CARBON_INVENTORY_VERIFICATION` → "Reconocimientos de Verificación"
+- `REDUCTION_PROJECT_VERIFICATION` → "Reconocimientos de Reducción"
 
-#### Scenario: All badge types represented
+#### Scenario: Cards show counts and seal images
 
-- **WHEN** the page loads with an organization that has badges of all types
-- **THEN** each summary card shows the correct count for its type
+- **WHEN** the page loads for an organization with earned recognitions
+- **THEN** each card shows the correct count for its type and the seal image from the badge-previews endpoint
 
-#### Scenario: No badges for a type
+#### Scenario: No recognitions for a type
 
-- **WHEN** the organization has no badges of a given type
-- **THEN** the corresponding card shows "–" or 0
+- **WHEN** the organization has no recognitions of a given type under the current filters
+- **THEN** the corresponding card shows "-" as its count
+
+#### Scenario: Seal image unavailable
+
+- **WHEN** no seal preview image is available for a card's type
+- **THEN** the card renders a letter avatar fallback instead of the image
 
 ### Requirement: Recognitions table
 
-The page SHALL display a sortable table using `StylizedDatagrid` listing each earned seal with the following columns: Fecha otorgado, Año medición, Reconocimiento, Huella tCO₂e, Estado, Acciones.
+The page SHALL display a sortable table using `StylizedDataGrid` listing each earned recognition with the following columns: "Fecha otorgado" (earning date), "Año medición" (measurement year), "Reconocimiento" (recognition type label), "Emisiones (tCO₂e)" (total emissions), and "Acciones".
 
-The table SHALL be sorted by default by Año medición descending, then by badge type ascending.
-
-Column sorting SHALL be enabled for all columns.
-
-The table SHALL only show badges from approved submissions.
+Column sorting SHALL be enabled. The rows SHALL be ordered by measurement year descending, then by recognition type. The table SHALL only show recognitions from approved submissions.
 
 #### Scenario: Table displays correct data
 
-- **WHEN** the table is rendered with badge data
-- **THEN** each row shows earningDate, measurementYear, badgeType label, totalEmissions, status chip, and action button
+- **WHEN** the table is rendered with recognition data
+- **THEN** each row shows the earning date, measurement year, recognition-type label, total emissions, and an action button
 
 #### Scenario: Default sort order
 
 - **WHEN** the table first loads
-- **THEN** rows are ordered by measurementYear descending, then badge type ascending
+- **THEN** rows are ordered by measurement year descending, then by recognition type
 
-### Requirement: Status chip display
+### Requirement: Recognition file action
 
-The `status` column SHALL render a styled chip. An APPROVED submission's status SHALL be displayed as "OTORGADO" with a green background chip.
+Each table row SHALL have an action button in the "Acciones" column that opens the recognition file for that row using its `recognitionFileUrl` (a signed SAS URL) in a new browser tab. When the row has no recognition file (`recognitionFileUrl` is null), the button SHALL be disabled and show the tooltip "No hay un archivo disponible".
 
-#### Scenario: APPROVED status chip
+#### Scenario: Row has a recognition file
 
-- **WHEN** a badge row has status APPROVED
-- **THEN** the chip shows "OTORGADO" with green background
+- **WHEN** the user clicks the action button on a row whose `recognitionFileUrl` is present
+- **THEN** the recognition file opens in a new browser tab
 
-### Requirement: Seal preview action
+#### Scenario: Row has no recognition file
 
-Each table row SHALL have an action button that opens a modal displaying a preview of the badge file using the `previewUrl` (signed SAS URL). The modal SHALL display the image and a close button.
-
-#### Scenario: User clicks action button
-
-- **WHEN** the user clicks the action button on a row
-- **THEN** a modal opens showing a preview image of the badge
-
-#### Scenario: Modal close
-
-- **WHEN** the user clicks close or outside the modal
-- **THEN** the modal dismisses
+- **WHEN** a row's `recognitionFileUrl` is null
+- **THEN** the action button is disabled and shows the tooltip "No hay un archivo disponible"

@@ -46,7 +46,7 @@ Today, `AuthContext.handleLoginFailure` and the `requireRole` catch call MSAL `c
 
 ### D5 — Keycloak hostname split (browser `iss` vs internal JWKS)
 
-The token `iss` is consumed by the browser and must be browser-resolvable (`http://localhost:8081/realms/huella`); the API fetches JWKS from inside the docker network and must use the service name (`http://keycloak:8080/realms/huella/protocol/openid-connect/certs`). `KC_HOSTNAME=http://localhost:8081` (the Keycloak 26 name, set in the compose env) fixes the host so the issuer is derived as `http://localhost:8081/realms/huella`; host port `8081` maps to container `8080` to avoid colliding with the api on 8080. Mismatching these is the primary failure mode, so it is encoded in both the compose env and the env templates.
+The token `iss` is consumed by the browser and must be browser-resolvable (`http://localhost:18080/realms/huella`); the API fetches JWKS from inside the docker network and must use the service name (`http://keycloak:8080/realms/huella/protocol/openid-connect/certs`). `KC_HOSTNAME=http://localhost:18080` (the Keycloak 26 name, set in the compose env) fixes the host so the issuer is derived as `http://localhost:18080/realms/huella`; host port `18080` maps to container `8080` to avoid colliding with the api on 8080. Mismatching these is the primary failure mode, so it is encoded in both the compose env and the env templates.
 
 ### D6 — Audience mapper + scope hardening (DECIDED: harden, not skip)
 
@@ -90,7 +90,7 @@ The `jwks` provider requires `sub`/`oid` and `email`/`preferred_username` (`Jwks
 
 1. **Phase -1 (spike, throwaway)** — validate `oidc-client-ts` × Entra External ID × unchanged backend; decision gate. Not merged.
 2. **Phase 0** — `oidcUserManager.ts` singleton + auth callback routes + recovery mapping + `requireRole` rewrite; produces the exact redirect-URI list.
-3. **Phase 1** — Keycloak dev service + `realm-huella.json` import (depends on Phase 0's redirect URIs).
+3. **Phase 1** — Keycloak dev service + `infra/keycloak/dev/realm-huella.dev.json` import (depends on Phase 0's redirect URIs).
 4. **Phase 2** — backend env templates + the (mandatory) scope-hardening commit (`scp ?? scope` + `scope?: string` type).
 5. **Phase 3** — frontend MSAL→OIDC swap, including `__root.tsx`/`useInitializeUser.ts` excision and the Dockerfile / `docker-compose.yml` + `docker-compose.prod.yml` / vite-env / `.env*` build wiring (rebuild required).
 6. **Phase 4** — build-time env-driven CSP in nginx (SWA out of scope).

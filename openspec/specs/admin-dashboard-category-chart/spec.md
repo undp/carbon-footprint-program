@@ -1,3 +1,9 @@
+# admin-dashboard-category-chart Specification
+
+## Purpose
+
+Defines the `GET /api/admin/dashboard/category-chart` endpoint that powers the admin dashboard's "Distribución por Alcance" pie chart. It aggregates carbon-inventory emissions per category, grouped by methodology version, across all ACTIVE self-declared inventories — optionally filtered to a single year. The response lets the frontend render a methodology selector when more than one methodology is present, and the endpoint is restricted to admin users.
+
 ## Requirements
 
 ### Requirement: Category chart endpoint returns emissions per category grouped by methodology

@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This capability defines a build-time, environment-driven Content-Security-Policy in the nginx runtime image whose `connect-src`, `form-action`, and `frame-src` directives permit the configured identity provider's domain. The IdP origin is derived from the OIDC issuer via a build ARG and baked into the image at build time, so no manual per-deployment CSP edit is needed when the issuer changes. It is scoped to the on-prem nginx deploy path; Azure Static Web Apps is explicitly out of scope and remains Azure-only, documented as a follow-up.
+This capability defines a build-time, environment-driven Content-Security-Policy in the nginx runtime image whose `connect-src`, `form-action`, and `frame-src` directives permit the configured identity provider's domain. The policy is defined in the `apps/web/security-headers.conf` snippet, which `apps/web/nginx.conf` `include`s so the headers apply on every served response. The IdP origin is derived from the OIDC issuer via a build ARG and baked into the image at build time, so no manual per-deployment CSP edit is needed when the issuer changes. It is scoped to the on-prem nginx deploy path; Azure Static Web Apps is explicitly out of scope and remains Azure-only, documented as a follow-up.
 
 ## Requirements
 
 ### Requirement: Build-time env-driven CSP in nginx
 
-The web app SHALL serve a Content-Security-Policy from `apps/web/nginx.conf` whose `connect-src`, `form-action`, and `frame-src` directives permit the configured IdP domain, and that domain SHALL be derived from the OIDC issuer (`VITE_OIDC_ISSUER`) rather than hardcoded per country/deployment. The policy SHALL be produced at **build time** from a build ARG (the runner stage has no runtime environment and `VITE_*` are build-time only); a runtime `envsubst`/entrypoint mechanism SHALL NOT be used, since changing the issuer already requires a web rebuild.
+The web app SHALL serve a Content-Security-Policy defined in the `apps/web/security-headers.conf` snippet (which `apps/web/nginx.conf` `include`s) whose `connect-src`, `form-action`, and `frame-src` directives permit the configured IdP domain, and that domain SHALL be derived from the OIDC issuer (`VITE_OIDC_ISSUER`) rather than hardcoded per country/deployment. The policy SHALL be produced at **build time** from a build ARG (the runner stage has no runtime environment and `VITE_*` are build-time only); a runtime `envsubst`/entrypoint mechanism SHALL NOT be used, since changing the issuer already requires a web rebuild.
 
 #### Scenario: CSP permits the configured IdP
 
@@ -22,7 +22,7 @@ The web app SHALL serve a Content-Security-Policy from `apps/web/nginx.conf` who
 
 #### Scenario: No per-country hardcode
 
-- **WHEN** the nginx CSP source is inspected
+- **WHEN** the CSP source in `apps/web/security-headers.conf` is inspected
 - **THEN** the IdP domain is injected from the issuer build ARG, not written as a literal per-country value
 
 ### Requirement: Azure Static Web Apps CSP out of scope
