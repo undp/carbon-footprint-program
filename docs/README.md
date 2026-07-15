@@ -19,6 +19,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 | Document                                                                           | Description                                                                                                        |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Codebase Map](./architecture/codebase-map.md)                                     | One-screen orientation: monorepo layout, where things live, request flow (start here)                              |
 | [System Architecture](./architecture/system-architecture.md)                       | Components, services, data flow, and integrations                                                                  |
 | [Tech Stack](./architecture/tech-stack.md)                                         | Validated technology decisions with rationale                                                                      |
 | [Emission Calculation Logic](./architecture/emission-calculation.md)               | Core formulas, data model, input types, aggregation, and end-to-end example                                        |

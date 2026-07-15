@@ -73,11 +73,11 @@ A Single-Page Application (SPA) built with React 19 and Vite. It communicates wi
 - Manage client-side routing (TanStack Router)
 - Handle global UI state (Zustand)
 - Manage form input and validation (React Hook Form + Zod)
-- Upload files directly to Azure Blob Storage via SAS URLs
+- Upload files directly to object storage (Azure Blob Storage or MinIO/S3) via presigned URLs
 
 **Key libraries:**
 
-- React 19, Vite 7
+- React 19, Vite 8
 - TanStack Router v1 (type-safe routing)
 - TanStack Query v5 (data fetching, caching, mutations)
 - Material UI v7 (@mui/material, @mui/x-data-grid, @mui/x-charts, @mui/x-date-pickers)
@@ -105,7 +105,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - Expose REST endpoints for all application domains
 - Perform business logic and data validation
 - Interact with PostgreSQL via Prisma
-- Interact with Azure Blob Storage (generate SAS URLs, verify uploads)
+- Interact with object storage — Azure Blob Storage or MinIO/S3 — via the provider-agnostic `@repo/storage` adapter (generate presigned URLs, verify uploads)
 - Auto-generate OpenAPI (Swagger) documentation
 
 **Key libraries:**
@@ -121,31 +121,37 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - fastify-type-provider-zod (Zod schema integration)
 - Pino (structured JSON logging)
 - Zod (request/response schema validation)
-- Azure Blob Storage via Managed Identity — the `@azure/identity` + `@azure/storage-blob` SDKs live in the `@repo/storage` package; `apps/api` depends on `@repo/storage` rather than on the SDKs directly
+- Object storage via the `@repo/storage` package — a provider-agnostic adapter with **Azure Blob Storage** (Managed Identity, `@azure/identity` + `@azure/storage-blob`) and **MinIO/S3** implementations selected by `STORAGE_PROVIDER`; `apps/api` depends on `@repo/storage` rather than on the SDKs directly
+- `openai` SDK (Azure OpenAI) — powers the optional chatbot feature (gated by `CHATBOT_ENABLED`)
 - Prisma client (via `@repo/database`)
 
 **API domains / feature modules:**
 
-| Module                                                                       | Description                                                |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `users`                                                                      | User registration, profile, role management                |
-| `organizations`                                                              | Organization CRUD, accreditation lifecycle                 |
-| `carbonInventories`                                                          | Inventory creation, calculation, verification, recognition |
-| `methodologies`                                                              | Methodology versions and metadata                          |
-| `categories` / `subcategories`                                               | Emission category hierarchy                                |
-| `emissionFactors` / `emissionFactorDimensions`                               | Factor data per subcategory                                |
-| `submissions`                                                                | Submission creation and review workflow                    |
-| `badges`                                                                     | Badge previews and recognition                             |
-| `files`                                                                      | File upload (SAS flow), download, delete                   |
-| `reductionProjects`                                                          | Reduction project management                               |
-| `transparency`                                                               | Public emissions rankings and views                        |
-| `forms`                                                                      | Dynamic form configuration                                 |
-| `requests`                                                                   | Pending requests and admin actions                         |
-| `systemParameters`                                                           | Country/system-level configuration values                  |
-| `countryOrganizationSizes` / `countrySectors` / `organizationMainActivities` | Country taxonomy data                                      |
-| `measurementUnits`                                                           | Units of measurement catalog                               |
-| `explanations`                                                               | Content blocks for UI guidance                             |
-| `jobPositions`                                                               | Job position catalog                                       |
+| Module                                                                                             | Description                                                                    |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `users`                                                                                            | User registration, profile, role management                                    |
+| `organizations`                                                                                    | Organization CRUD, accreditation lifecycle                                     |
+| `carbonInventories`                                                                                | Inventory creation, calculation, verification, recognition                     |
+| `methodologies`                                                                                    | Methodology versions and metadata                                              |
+| `categories` / `subcategories`                                                                     | Emission category hierarchy                                                    |
+| `emissionFactors` / `emissionFactorDimensions`                                                     | Factor data per subcategory                                                    |
+| `submissions`                                                                                      | Submission creation and review workflow                                        |
+| `badges`                                                                                           | Badge previews and recognition                                                 |
+| `files`                                                                                            | File upload (SAS flow), download, delete                                       |
+| `reductionProjects`                                                                                | Reduction project management                                                   |
+| `transparency`                                                                                     | Public emissions rankings and views                                            |
+| `forms`                                                                                            | Dynamic form configuration                                                     |
+| `requests`                                                                                         | Pending requests and admin actions                                             |
+| `systemParameters`                                                                                 | Country/system-level configuration values                                      |
+| `countryOrganizationSizes` / `countrySectors` / `countrySubsectors` / `organizationMainActivities` | Country taxonomy data                                                          |
+| `measurementUnits` / `magnitudes`                                                                  | Units of measurement + magnitude catalog                                       |
+| `explanations`                                                                                     | Content blocks for UI guidance                                                 |
+| `jobPositions`                                                                                     | Job position catalog                                                           |
+| `subcategoryRecommendations`                                                                       | Admin-curated reduction recommendations per subcategory                        |
+| `reductionPlanInitiatives`                                                                         | Per-subcategory reduction-plan actions                                         |
+| `dashboard`                                                                                        | Admin dashboard KPIs and charts                                                |
+| `termsConditions`                                                                                  | Terms & conditions (current version + PDF stream)                              |
+| `chatbot`                                                                                          | Optional AI assistant — RAG corpus + SSE streaming, gated by `CHATBOT_ENABLED` |
 
 **Authentication providers (configurable via `AUTH_PROVIDER` env var):**
 
@@ -157,9 +163,11 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 
 **Plugin loading order:**
 
-1. External plugins (CORS, Helmet, JWT, Swagger, Rate Limit, Under Pressure)
-2. App plugins (Prisma client, Auth provider, Blob Storage)
-3. Route autoload (`src/routes/`)
+1. External plugins — `@fastify/cors`, `@fastify/jwt`, `@fastify/cookie`, `@fastify/multipart`, `@fastify/rate-limit`, `@fastify/swagger` + `@fastify/swagger-ui`, `@fastify/under-pressure`. (Transport and response security-header configuration is documented in [`docs/security/hardening.md`](../security/hardening.md).)
+2. App plugins — Prisma client, authentication (`AUTH_PROVIDER`), user resolution, RBAC authorization + per-domain access hooks, storage, error handler, and the route-security validator.
+3. Route autoload (`src/routes/`).
+
+**Route authorization model:** Routes are declared with a typed `defineRoute` helper carrying a declarative `access` spec — `public` / `anonymous` / `private`, plus optional system-role and per-domain (organization / carbon-inventory / reduction-project) checks. A boot-time `routeSecurityValidator` plugin inspects every registered route and **fails the process at startup** if a route's security configuration is invalid, so misconfiguration cannot reach production. See [`docs/security/route-access-modes.md`](../security/route-access-modes.md) and [`docs/security/rbac.md`](../security/rbac.md).
 
 ---
 
@@ -174,15 +182,19 @@ A shared package exposing the Prisma ORM client and schema. Both the API and mig
 - Manage migrations
 - Provide the database connection adapter (supports Azure AD token authentication via `@prisma/adapter-pg`)
 
-**Schema domains:**
+**Schema domains** (~40 models + 4 SQL views):
 
-- Country & configuration (country, country_parameter, system_parameter, status_catalog)
-- Methodology & emission factors (methodology, category, subcategory, dimension, factor)
-- Organizations & users (organization, organization_data, user, role)
-- Carbon inventory & calculation (carbon_inventory, inventory_line, input, factor_used, result)
-- Submissions & recognition (submission, submission_subject, award, badge)
-- Files (file, badge link table, submission_file link table)
-- Reduction & neutralization (reduction_project, neutralization_plan)
+- Country & configuration (`Country`, `CountryParameter`, `SystemParameter`)
+- Country taxonomy (`CountryOrganizationSize`, `CountrySector`, `CountrySubsector`, `OrganizationMainActivity`, `CountryJobPosition`)
+- Users & access (`User`, `UserOrganizationMembership`, `UserRoleAudit`, `UserAccessLog`, `UserOnboardingCompletion`)
+- Methodology & emission factors (`MethodologyVersion`, `Category`, `Subcategory`, `SubcategoryMeasurementUnit`, `SubcategoryRecommendation`, `EmissionFactorDimension`, `EmissionFactorDimensionValue`, `EmissionFactor`, `Explanation`)
+- Units & magnitudes (`Magnitude`, `MeasurementUnit`, `RateMeasurementUnit`)
+- Carbon inventory & calculation (`CarbonInventory`, `CarbonInventoryLine`, `CarbonInventoryLineFile`, `CarbonInventoryLineInput`, `CarbonInventoryLineFactor`, `CarbonInventoryLineResult`) + views `CarbonInventorySubtotalsView`, `CarbonInventorySectorSubtotalsView`
+- Organizations (`Organization`, `OrganizationData`) + view `OrganizationSummaryView`
+- Submissions & files (`Submission`, `SubmissionSubject` + subject link tables, `File`, `SubmissionFile`) + view `SubmissionSummaryView`
+- Recognition (`Badge`)
+- Reduction (`ReductionProject`, `ReductionPlanInitiative`) — note: neutralization plans are a **planned** feature, not yet modeled
+- Chatbot (`ChatbotChatConversation`, `ChatbotChatMessage`, `ChatbotCorpusSource`, `ChatbotCorpusChunk`, `ChatbotCorpusIngestRun`)
 
 ---
 
