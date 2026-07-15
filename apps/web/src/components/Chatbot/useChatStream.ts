@@ -55,10 +55,12 @@ export const useChatStream = () => {
   const [messages, setMessages] = useState<ChatbotMessage[]>([]);
   const consecutiveFailuresRef = useRef(0);
   const lastEventIdRef = useRef<string | undefined>(undefined);
-  // Tracks the index of the in-flight assistant message inside `messages` so
-  // updateLastAssistant can target it directly instead of scanning backward
-  // on every delta. Reset to -1 between turns and after deleteHistory.
-  const inFlightAssistantIndexRef = useRef<number>(-1);
+  // Tracks the id of the in-flight assistant message so updateLastAssistant can
+  // target that exact bubble. Set synchronously in sendMessage (before React
+  // flushes the append) and matched against `prev` inside updateLastAssistant's
+  // own updater, so delta writes stay correct regardless of when the append
+  // commits. Reset to null between turns and after deleteHistory.
+  const inFlightAssistantIdRef = useRef<string | null>(null);
   // Monotonic counter used to mint locally unique React keys for each
   // message bubble. `Date.now()` collisions (mocked timers, two turns
   // started in the same millisecond) would otherwise let React reconcile
@@ -87,10 +89,21 @@ export const useChatStream = () => {
 
   const updateLastAssistant = useCallback(
     (mutator: (msg: ChatbotMessage) => ChatbotMessage) => {
-      const idx = inFlightAssistantIndexRef.current;
-      if (idx < 0) return;
+      const id = inFlightAssistantIdRef.current;
+      if (id === null) return;
       setMessages((prev) => {
-        if (idx >= prev.length || prev[idx]?.role !== "assistant") return prev;
+        // The in-flight assistant bubble is the last message during a turn;
+        // the id guard confirms identity before mutating. Reading `prev` here
+        // (not a pre-captured index) keeps this correct even if the append
+        // that created the bubble committed after this call was queued.
+        const idx = prev.length - 1;
+        if (
+          idx < 0 ||
+          prev[idx]?.id !== id ||
+          prev[idx]?.role !== "assistant"
+        ) {
+          return prev;
+        }
         const next = [...prev];
         next[idx] = mutator(next[idx]);
         return next;
@@ -226,14 +239,11 @@ export const useChatStream = () => {
         role: "assistant",
         content: "",
       };
-      setMessages((prev) => {
-        const next = [...prev, userMessage, assistantMessage];
-        // The assistant message is the last element of `next`. Capture its
-        // index in the ref so subsequent delta dispatches can target it
-        // directly without iterating.
-        inFlightAssistantIndexRef.current = next.length - 1;
-        return next;
-      });
+      // Record the in-flight assistant id synchronously — targeting by identity
+      // (not by an index captured inside the deferred append updater) keeps
+      // delta writes correct no matter when React flushes this append.
+      inFlightAssistantIdRef.current = assistantMessage.id;
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
       setState("loading");
 
       // Per-turn AbortController: cancellable by the user (Stop), the overall
@@ -399,14 +409,16 @@ export const useChatStream = () => {
             setState("degraded");
             break;
         }
-        // Turn finished — clear the in-flight pointer so the next turn starts
-        // clean and stale indices can't leak across turns.
-        inFlightAssistantIndexRef.current = -1;
       } finally {
         clearTimeout(overallTimer);
-        // Only clear the shared ref if it still points at THIS turn's
-        // controller — a newer turn may already have replaced it.
+        // Only clear the shared refs if they still point at THIS turn — a newer
+        // turn may already have replaced them. Clearing here (not just on the
+        // success path) means every exit — completed, truncated, error,
+        // transport failure, early return — leaves the in-flight pointer clean.
         if (abortRef.current === controller) abortRef.current = null;
+        if (inFlightAssistantIdRef.current === assistantMessage.id) {
+          inFlightAssistantIdRef.current = null;
+        }
       }
     },
     [consumeStream, nextMessageId, updateLastAssistant]
@@ -423,7 +435,7 @@ export const useChatStream = () => {
         setState("empty");
         lastEventIdRef.current = undefined;
         consecutiveFailuresRef.current = 0;
-        inFlightAssistantIndexRef.current = -1;
+        inFlightAssistantIdRef.current = null;
       } else {
         setState("error");
       }
