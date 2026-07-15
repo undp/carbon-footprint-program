@@ -144,32 +144,35 @@ Verifies Prettier formatting without modifying files. If any file is not formatt
 
 Runs the Vitest + Testcontainers integration tests. Docker is available on the GitHub-hosted runner, so Testcontainers can spin up PostgreSQL, Azurite, and MinIO containers.
 
-This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once:
+This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once. Each leg is a **Vitest project** (`test.projects` in `apps/api/vitest.config.ts`); the leg name is both the `--project` filter and the branch-protection check name:
 
-| Leg (check name)       | `STORAGE_PROVIDER`    | Command                   | Scope                                                                                         |
-| ---------------------- | --------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `Test (base)`          | `azure_blob_storage`¹ | `pnpm test:base`          | The full suite **except** the storage manifest — the bulk, run once.                          |
-| `Test (storage-azure)` | `azure_blob_storage`  | `pnpm test:storage-azure` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
-| `Test (storage-minio)` | `minio`               | `pnpm test:storage-minio` | **Only** the storage manifest against MinIO.                                                  |
+| Leg (check name)       | Provider             | Scope                                                                                         |
+| ---------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `Test (base)`          | none¹                | The full suite **except** the storage manifest — the bulk, run once.                          |
+| `Test (storage-azure)` | `azure_blob_storage` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
+| `Test (storage-minio)` | `minio`              | **Only** the storage manifest against MinIO.                                                  |
 
-`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base leg's `exclude` and the storage legs' `include`; each test script sets `STORAGE_PROVIDER` itself, which selects the testcontainer in `globalSetup.ts`.
+`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base project's `exclude` and the storage projects' `include`. Each project selects its provider — and boots the matching testcontainer — from its **name** in `globalSetup.ts` (never from a shared `process.env`, which would be last-writer-wins across projects); each project also declares the matching `STORAGE_PROVIDER` in its `test.env` so `buildStorageConfig()` validation passes at `app.ready()`.
 
-¹ The `base` leg sets `STORAGE_PROVIDER=azure_blob_storage` only so `buildStorageConfig()` passes at `app.ready()` without depending on the storage container starting — it never touches real storage (its `app.storage` is the throwing adapter). It runs against Azurite like `storage-azure` at the container level, but exercises zero storage-manifest files.
+Each leg runs `pnpm test:ci` (with `LEG` set to the matrix leg), which is `vitest run --project=$LEG --coverage --reporter=blob`. The `--reporter=blob` output carries the coverage data and is merged natively in the `coverage` job below (no external merge script).
+
+¹ The `base` project boots **no** storage container — it never touches real storage (its `app.storage` is the throwing adapter). Its `test.env` still sets `STORAGE_PROVIDER=azure_blob_storage` (+ a dummy account name) purely so `buildStorageConfig()` passes at `app.ready()`.
 
 Before running the tests, all three legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
 
-**Coverage artifact:** After each leg (even on failure), its coverage report is uploaded — `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio`:
+**Blob report artifact:** After each leg (even on failure), its Vitest blob report is uploaded — `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio`:
 
 ```yaml
 - uses: actions/upload-artifact@v7
   if: always()
   with:
-    name: ${{ matrix.coverage_artifact }}
-    path: apps/api/coverage/
+    name: blob-report-${{ matrix.leg }}
+    path: apps/api/.vitest-reports/
+    include-hidden-files: true # .vitest-reports is a dotfile dir
     retention-days: 7
 ```
 
-Download the artifact from the GitHub Actions run UI to inspect line-by-line coverage.
+The `coverage` job downloads all three and merges them (see below).
 
 #### Storage test manifest
 
@@ -186,12 +189,12 @@ When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANI
 
 Enforces a **per-metric coverage gate** for `apps/api`: **90%** for all four metrics — lines, statements, functions, and branches. (Branches were the last to reach the bar; #512 closed the gap with new integration suites plus targeted `v8 ignore`s of genuinely-unreachable guards, retiring the earlier intermediate 85% branch ratchet.)
 
-Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so a per-run Vitest threshold cannot be used (a leg would fail on the files it never runs). Vitest's own thresholds are therefore kept at `0` (informational; the numbers still print in each leg's report — see `apps/api/vitest.shared.ts`), and the real gate lives here:
+Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so a per-project Vitest threshold cannot be used (a leg would fail on the files it never runs). The thresholds in `apps/api/vitest.shared.ts` are therefore kept at `0` (informational; each leg's numbers still print in its own report), and the gate is applied only after the legs are merged:
 
-1. Each `test` leg uploads its raw Istanbul coverage (`coverage-final.json`) as an artifact.
-2. This job (`needs: test`) downloads all three, and `scripts/check-coverage.mjs` **merges** them — a line covered by _any_ leg counts as covered — then fails if any metric's merged percentage falls below its threshold (90% for all four metrics).
+1. Each `test` leg emits a Vitest **blob** report (`--reporter=blob`, coverage embedded) as an artifact.
+2. This job (`needs: test`) downloads all three into one flat dir (`merge-multiple: true` — `vitest --merge-reports` reads the dir non-recursively and rejects subfolders; each blob is uniquely named `blob-<leg>.json`) and runs `pnpm test:coverage:merge`, which is `vitest run --merge-reports --coverage` with the per-metric thresholds passed as flags. Vitest merges the coverage natively — a line covered by _any_ leg counts as covered (v8 merges hit-counts) — then fails if any metric falls below its threshold (90% for all four).
 
-The thresholds are per-metric constants in `scripts/check-coverage.mjs` (override locally per-metric with `COVERAGE_THRESHOLD_LINES` / `_STATEMENTS` / `_FUNCTIONS` / `_BRANCHES`, or all at once with the bare `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
+The gate is passed by flag (in `apps/api`'s `test:coverage` / `test:coverage:merge` scripts), so local and CI use the exact same thresholds. If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
 > **Scope:** this merged gate covers `apps/api`. Frontend (`apps/web`) has its own coverage gate — a low **global floor** enforced by the `Test (web)` job (thresholds in `apps/web/vitest.config.ts`, run with `--coverage`), ratcheted up as its logic layers gain tests. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).
 
@@ -212,7 +215,7 @@ Builds all apps and packages via Turborepo. The frontend build requires `VITE_AP
 The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner, so no external Azure or MinIO credentials are required.
 
 - `build` sets `VITE_API_BASE_URL` to a placeholder.
-- `test` provides dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. `STORAGE_PROVIDER` itself is set by each test script (`azure_blob_storage` for `test:base` and `test:storage-azure`, `minio` for `test:storage-minio`); the `base` leg sets it purely so boot validation passes without the storage container. None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
+- `test` needs no storage env in the workflow: each Vitest project declares its own dummy connection vars in `test.env` (`STORAGE_PROVIDER` plus `AZURE_STORAGE_ACCOUNT_NAME` / `AZURE_STORAGE_CONTAINER_NAME` for the Azure projects, or `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_REGION` for the MinIO project). These only satisfy the config validation in `apps/api/src/config/environment.ts`; none are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`, and the dynamic MinIO endpoint is applied from the injected descriptor in `createTestApp` before `app.ready()`.
 
 ---
 
@@ -224,21 +227,21 @@ In the GitHub Actions run UI, expand the failing job and step to see the full ou
 
 ### Download the coverage report
 
-The `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio` artifacts are uploaded after every test run. Download them from the "Artifacts" section of the run summary to see which lines are not covered. (Each leg reports coverage for only the files it ran, so no single artifact is the whole picture.)
+The `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio` artifacts are uploaded after every test run. They are Vitest blob reports (not human-readable on their own); to inspect coverage, download all three into `apps/api/.vitest-reports/` and run `pnpm --filter=api exec vitest run --merge-reports --coverage` locally, which produces the merged HTML/text report under `apps/api/coverage/`.
 
 ### Reproduce locally
 
 Every CI job runs the same command you can run locally:
 
-| CI job               | Local command                                                  |
-| -------------------- | -------------------------------------------------------------- |
-| lint                 | `pnpm lint`                                                    |
-| type-check           | `pnpm type-check`                                              |
-| format               | `pnpm format:check` (or `pnpm format` to fix)                  |
-| test (base)          | `pnpm test:verify-storage-manifest && pnpm test:base`          |
-| test (storage-azure) | `pnpm test:verify-storage-manifest && pnpm test:storage-azure` |
-| test (storage-minio) | `pnpm test:verify-storage-manifest && pnpm test:storage-minio` |
-| build                | `VITE_API_BASE_URL=https://example.invalid pnpm build`         |
+| CI job          | Local command                                          |
+| --------------- | ------------------------------------------------------ |
+| lint            | `pnpm lint`                                            |
+| type-check      | `pnpm type-check`                                      |
+| format          | `pnpm format:check` (or `pnpm format` to fix)          |
+| test + coverage | `pnpm test:verify-storage-manifest && pnpm test:api`   |
+| build           | `VITE_API_BASE_URL=https://example.invalid pnpm build` |
+
+`pnpm test:api` runs the whole suite (all three Vitest projects) in one command, merges coverage, and applies the gate — the local equivalent of the `test` matrix + `coverage` job combined. (CI splits it across three runners for wall-clock, then merges the blobs; the config and gate are identical.)
 
 ### Common failures
 
