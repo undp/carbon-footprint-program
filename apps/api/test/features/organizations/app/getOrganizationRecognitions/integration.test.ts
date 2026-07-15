@@ -194,6 +194,8 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
     });
 
     it("returns 404 when the organization is BLOCKED (not ACTIVE)", async () => {
@@ -208,7 +210,7 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBeTruthy();
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
     });
   });
 
