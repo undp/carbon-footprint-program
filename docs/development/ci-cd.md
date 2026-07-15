@@ -72,21 +72,21 @@ check-draft
 └── secret-scan
 ```
 
-| Job                     | Purpose                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `check-draft`           | Entry gate; skips everything on draft PRs.                                         |
-| `changes`               | Classifies the PR as code vs docs-only.                                            |
-| `verify-changes-filter` | Guards the `changes` filter against drift (`scripts/check-ci-changes-filter.mjs`). |
-| `lint`                  | ESLint across the monorepo (`--max-warnings=0`).                                   |
-| `type-check`            | `tsc --noEmit` across all projects.                                                |
-| `format`                | Prettier `--check`.                                                                |
-| `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                 |
-| `coverage`              | Merges the three test legs' coverage and enforces the ≥80% `apps/api` gate.        |
-| `build`                 | Turborepo build of all apps and packages.                                          |
-| `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).           |
-| `zizmor`                | Static analysis of the GitHub Actions workflows.                                   |
-| `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                       |
-| `secret-scan`           | Full-history secret scan (betterleaks).                                            |
+| Job                     | Purpose                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `check-draft`           | Entry gate; skips everything on draft PRs.                                                                            |
+| `changes`               | Classifies the PR as code vs docs-only.                                                                               |
+| `verify-changes-filter` | Guards the `changes` filter against drift (`scripts/check-ci-changes-filter.mjs`).                                    |
+| `lint`                  | ESLint across the monorepo (`--max-warnings=0`).                                                                      |
+| `type-check`            | `tsc --noEmit` across all projects.                                                                                   |
+| `format`                | Prettier `--check`.                                                                                                   |
+| `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                                                    |
+| `coverage`              | Merges the three test legs' coverage and enforces the `apps/api` gate (90% lines/statements/functions, 85% branches). |
+| `build`                 | Turborepo build of all apps and packages.                                                                             |
+| `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).                                              |
+| `zizmor`                | Static analysis of the GitHub Actions workflows.                                                                      |
+| `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                                                          |
+| `secret-scan`           | Full-history secret scan (betterleaks).                                                                               |
 
 The code-gated jobs (`lint`, `type-check`, `test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
 
@@ -184,14 +184,14 @@ When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANI
 
 ### `coverage`
 
-Enforces a **≥80% coverage gate** (lines, statements, functions, branches) for `apps/api`.
+Enforces a **per-metric coverage gate** for `apps/api`: **90%** lines, statements, and functions; **85%** branches. (Branch coverage is held to an intermediate 85% — most of the remaining uncovered branches are error/edge paths behind integration-test setup plus defensive guards — and is ratcheting toward 90%.)
 
 Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so a per-run Vitest threshold cannot be used (a leg would fail on the files it never runs). Vitest's own thresholds are therefore kept at `0` (informational; the numbers still print in each leg's report — see `apps/api/vitest.shared.ts`), and the real gate lives here:
 
 1. Each `test` leg uploads its raw Istanbul coverage (`coverage-final.json`) as an artifact.
-2. This job (`needs: test`) downloads all three, and `scripts/check-coverage.mjs` **merges** them — a line covered by _any_ leg counts as covered — then fails if the merged percentage of any metric is below 80%.
+2. This job (`needs: test`) downloads all three, and `scripts/check-coverage.mjs` **merges** them — a line covered by _any_ leg counts as covered — then fails if any metric's merged percentage falls below its threshold (90% lines/statements/functions, 85% branches).
 
-The threshold is a constant in `scripts/check-coverage.mjs` (override locally with the `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
+The thresholds are per-metric constants in `scripts/check-coverage.mjs` (override locally per-metric with `COVERAGE_THRESHOLD_LINES` / `_STATEMENTS` / `_FUNCTIONS` / `_BRANCHES`, or all at once with the bare `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
 > **Scope:** this gate covers `apps/api` only. Frontend (`apps/web`) test coverage is tracked separately in issue #477.
 

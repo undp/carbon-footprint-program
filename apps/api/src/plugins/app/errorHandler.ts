@@ -14,7 +14,7 @@ import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
  * Derives a fallback error code from the HTTP status code so that
  * status and code stay aligned (e.g. a 404 never reports "INTERNAL_SERVER_ERROR").
  */
-function getDefaultCodeForStatus(statusCode: number): string {
+export function getDefaultCodeForStatus(statusCode: number): string {
   const statusCodeMap: Record<number, string> = {
     400: "BAD_REQUEST",
     401: "UNAUTHORIZED",
@@ -34,7 +34,7 @@ function getDefaultCodeForStatus(statusCode: number): string {
  * Safety net for Prisma errors that bubble up without being caught in service code.
  * Returns a normalized result or null if the error is not a Prisma error.
  */
-function handlePrismaError(error: unknown): {
+export function handlePrismaError(error: unknown): {
   statusCode: number;
   code: string;
   message: string;
@@ -103,43 +103,69 @@ const extractErrorDetails = (
   return undefined;
 };
 
-const errorHandler = (
+/**
+ * A structured logging directive: the level, the merged log object, and the
+ * message. Kept as data (instead of logging inline) so the response-shaping
+ * logic can be exercised in a pure unit test without a live request logger.
+ */
+interface ErrorLogDirective {
+  level: "error" | "warn" | "info";
+  obj: Record<string, unknown>;
+  msg: string;
+}
+
+/**
+ * The finished error response plus the log line the handler should emit.
+ */
+export interface BuiltErrorResponse {
+  statusCode: number;
+  body: ApiErrorResponse;
+  log: ErrorLogDirective;
+}
+
+/**
+ * Pure error-response shaper. Takes `isProd` as a parameter (rather than reading
+ * the module-level {@link IS_PROD}) so the production info-leak suppression — a
+ * security property — can be unit-tested for both environments. The Fastify
+ * plugin below calls this with the real `IS_PROD` and performs the reply/log
+ * side effects, so runtime behavior is unchanged.
+ */
+export function buildErrorResponse(
   error: FastifyError,
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "errorHandler" });
+  { isProd }: { isProd: boolean }
+): BuiltErrorResponse {
+  const details = extractErrorDetails(error);
 
   // --- Prisma errors (safety net for uncaught DB errors) ---
   const prismaResult = handlePrismaError(error);
   if (prismaResult) {
-    if (prismaResult.statusCode >= 500) {
-      log.error(
-        { err: error, statusCode: prismaResult.statusCode },
-        "Unhandled Prisma error"
-      );
-    } else {
-      log.warn(
-        {
-          code: prismaResult.code,
-          statusCode: prismaResult.statusCode,
-          duplicatedFields: prismaResult.duplicatedFields,
-        },
-        "Unhandled Prisma error"
-      );
-    }
+    const log: ErrorLogDirective =
+      prismaResult.statusCode >= 500
+        ? {
+            level: "error",
+            obj: { err: error, statusCode: prismaResult.statusCode },
+            msg: "Unhandled Prisma error",
+          }
+        : {
+            level: "warn",
+            obj: {
+              code: prismaResult.code,
+              statusCode: prismaResult.statusCode,
+              duplicatedFields: prismaResult.duplicatedFields,
+            },
+            msg: "Unhandled Prisma error",
+          };
 
-    const response: ApiErrorResponse = {
+    const body: ApiErrorResponse = {
       code: prismaResult.code,
-      message: IS_PROD ? prismaResult.message : error.message,
+      message: isProd ? prismaResult.message : error.message,
     };
-    const details = extractErrorDetails(error);
     // Suppress structured `details` on production 5xx responses to avoid leaking
     // internal diagnostics (e.g., raw Prisma metadata) to API consumers.
-    if (details && (!IS_PROD || prismaResult.statusCode < 500)) {
-      response.details = details;
+    if (details && (!isProd || prismaResult.statusCode < 500)) {
+      body.details = details;
     }
-    return reply.status(prismaResult.statusCode).send(response);
+    return { statusCode: prismaResult.statusCode, body, log };
   }
 
   // --- All other errors ---
@@ -151,36 +177,74 @@ const errorHandler = (
   const statusCode = error.statusCode ?? 500;
 
   // Log the error with appropriate level
+  let log: ErrorLogDirective;
   if (statusCode >= 500) {
-    log.error({ err: error, statusCode }, "Internal server error");
+    log = {
+      level: "error",
+      obj: { err: error, statusCode },
+      msg: "Internal server error",
+    };
   } else if (isKnownError) {
-    log.info(
-      { code: error.code, statusCode, message: error.message },
-      "Request error"
-    );
+    log = {
+      level: "info",
+      obj: { code: error.code, statusCode, message: error.message },
+      msg: "Request error",
+    };
   } else {
-    log.warn({ err: error, statusCode }, "Client error");
+    log = {
+      level: "warn",
+      obj: { err: error, statusCode },
+      msg: "Client error",
+    };
   }
 
   // Derive error code: use the error's own code if present,
   // otherwise derive a status-aligned fallback
   const code = error.code ?? getDefaultCodeForStatus(statusCode);
 
-  const response: ApiErrorResponse = {
+  const body: ApiErrorResponse = {
     code,
     message:
-      statusCode >= 500 && IS_PROD
+      statusCode >= 500 && isProd
         ? "An unexpected error occurred"
         : error.message,
   };
-  const details = extractErrorDetails(error);
   // Suppress structured `details` on production 5xx responses to avoid leaking
   // internal diagnostics to API consumers.
-  if (details && (!IS_PROD || statusCode < 500)) {
-    response.details = details;
+  if (details && (!isProd || statusCode < 500)) {
+    body.details = details;
   }
 
-  return reply.status(statusCode).send(response);
+  return { statusCode, body, log };
+}
+
+const errorHandler = (
+  error: FastifyError,
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  const {
+    statusCode,
+    body,
+    log: directive,
+  } = buildErrorResponse(error, {
+    isProd: IS_PROD,
+  });
+
+  const log = request.log.child({ module: "errorHandler" });
+  switch (directive.level) {
+    case "error":
+      log.error(directive.obj, directive.msg);
+      break;
+    case "warn":
+      log.warn(directive.obj, directive.msg);
+      break;
+    case "info":
+      log.info(directive.obj, directive.msg);
+      break;
+  }
+
+  return reply.status(statusCode).send(body);
 };
 
 const errorHandlerPlugin = (

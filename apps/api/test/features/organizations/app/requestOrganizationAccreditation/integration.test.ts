@@ -738,5 +738,61 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FILE_ATTACHMENTS_REQUIRED");
     });
+
+    it("should return 404 MISSING_FILES when a file UUID has no File record", async () => {
+      const organization = await createTestOrganization(prismaWithStorage, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prismaWithStorage, organization.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestMembership(
+        prismaWithStorage,
+        userIdWithStorage,
+        organization.id,
+        { status: MembershipStatus.ACTIVE }
+      );
+
+      const response = await appWithStorage.inject({
+        method: "POST",
+        url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: ["550e8400-e29b-41d4-a716-4466554400f0"] },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "MISSING_FILES"
+      );
+    });
+
+    it("should return 500 OBJECT_MOVE_ERROR when a linked file's blob is missing from storage", async () => {
+      // A File row whose blob was never uploaded: linkFilesToSubmission finds
+      // the DB record but copyObject fails, exercising the failed-copy cleanup
+      // and ObjectMoveError branch.
+      const orphan = await createTestFile(prismaWithStorage, userIdWithStorage);
+      const organization = await createTestOrganization(prismaWithStorage, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prismaWithStorage, organization.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestMembership(
+        prismaWithStorage,
+        userIdWithStorage,
+        organization.id,
+        { status: MembershipStatus.ACTIVE }
+      );
+
+      const response = await appWithStorage.inject({
+        method: "POST",
+        url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [orphan.uuid] },
+      });
+
+      expect(response.statusCode).toBe(500);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "OBJECT_MOVE_ERROR"
+      );
+    });
   });
 });

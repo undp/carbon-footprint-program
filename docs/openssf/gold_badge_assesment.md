@@ -45,13 +45,13 @@
 
 ## Quality — Build & Tests
 
-| Criterion                     | Level | Status | Evidence / Gap                                                                                                   |
-| ----------------------------- | ----- | ------ | ---------------------------------------------------------------------------------------------------------------- |
-| `build_reproducible`          | MUST  | ⚠️     | Lockfile + pinned Docker digests help; demonstrate/verify reproducible build output (the web bundle _is_ built). |
-| `test_invocation`             | MUST  | ✅     | `pnpm test` (standard).                                                                                          |
-| `test_continuous_integration` | MUST  | ✅     | CI runs tests on every PR (required checks).                                                                     |
-| `test_statement_coverage90`   | MUST  | ❌     | Requires **90%** statement coverage; CI currently forces thresholds to 0 and `apps/web` is untested.             |
-| `test_branch_coverage80`      | MUST  | ❌     | Requires **80%** branch coverage; not enforced.                                                                  |
+| Criterion                     | Level | Status | Evidence / Gap                                                                                                                                                                                     |
+| ----------------------------- | ----- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build_reproducible`          | MUST  | ⚠️     | Lockfile + pinned Docker digests help; demonstrate/verify reproducible build output (the web bundle _is_ built).                                                                                   |
+| `test_invocation`             | MUST  | ✅     | `pnpm test` (standard).                                                                                                                                                                            |
+| `test_continuous_integration` | MUST  | ✅     | CI runs tests on every PR (required checks).                                                                                                                                                       |
+| `test_statement_coverage90`   | MUST  | ❌     | `apps/api` now enforces **90%** statement coverage in CI (the `coverage` job merges the test legs via `scripts/check-coverage.mjs`), but `apps/web` is untested, so the project-wide bar is unmet. |
+| `test_branch_coverage80`      | MUST  | ❌     | `apps/api` now enforces **85%** branch coverage in CI (exceeds the 80% bar); `apps/web` is untested, so the project-wide bar is unmet.                                                             |
 
 ## Security
 

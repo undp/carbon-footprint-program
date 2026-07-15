@@ -54,21 +54,21 @@
 
 ## Quality
 
-| Criterion                     | Level     | Status | Evidence / Gap                                                                                                                           |
-| ----------------------------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `build`                       | MUST      | ✅     | `pnpm build` via Turborepo rebuilds from source.                                                                                         |
-| `build_common_tools`          | SUGGESTED | ✅     | pnpm, Turbo, tsc, Vite.                                                                                                                  |
-| `build_floss_tools`           | SHOULD    | ✅     | Buildable with FLOSS tools (Node, pnpm, …).                                                                                              |
-| `test`                        | MUST      | ✅     | Vitest + Testcontainers suite (**151** API test files, 145 integration), documented in `docs/development/testing.md`.                    |
-| `test_invocation`             | SHOULD    | ✅     | `pnpm test` (standard).                                                                                                                  |
-| `test_most`                   | SUGGESTED | ⚠️     | API has broad integration coverage, but **CI coverage thresholds are forced to 0** (`vitest.config.ts`) and **`apps/web` has no tests**. |
-| `test_continuous_integration` | SUGGESTED | ✅     | CI runs the suite on every PR (`.github/workflows/ci.yml`); the `Test` jobs are **required** status checks.                              |
-| `test_policy`                 | MUST      | ✅     | "Definition of done" in `CONTRIBUTING.md` requires tests for new functionality.                                                          |
-| `tests_are_added`             | MUST      | ✅     | Test files accompany feature work throughout history.                                                                                    |
-| `tests_documented_added`      | SUGGESTED | ✅     | Policy documented in the contributing guide.                                                                                             |
-| `warnings`                    | MUST      | ✅     | ESLint + TypeScript `strict` enabled.                                                                                                    |
-| `warnings_fixed`              | MUST      | ✅     | CI enforces `--max-warnings=0` (required "Lint" check).                                                                                  |
-| `warnings_strict`             | SUGGESTED | ✅     | TS `strict: true`, typed-lint (`recommendedTypeChecked`).                                                                                |
+| Criterion                     | Level     | Status | Evidence / Gap                                                                                                                                                                                                               |
+| ----------------------------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build`                       | MUST      | ✅     | `pnpm build` via Turborepo rebuilds from source.                                                                                                                                                                             |
+| `build_common_tools`          | SUGGESTED | ✅     | pnpm, Turbo, tsc, Vite.                                                                                                                                                                                                      |
+| `build_floss_tools`           | SHOULD    | ✅     | Buildable with FLOSS tools (Node, pnpm, …).                                                                                                                                                                                  |
+| `test`                        | MUST      | ✅     | Vitest + Testcontainers suite (**151** API test files, 145 integration), documented in `docs/development/testing.md`.                                                                                                        |
+| `test_invocation`             | SHOULD    | ✅     | `pnpm test` (standard).                                                                                                                                                                                                      |
+| `test_most`                   | SUGGESTED | ⚠️     | `apps/api` coverage is now enforced in CI (90% lines/statements/functions, 85% branches, merged across legs by `scripts/check-coverage.mjs`; Vitest's per-run thresholds stay 0 by design), but **`apps/web` has no tests**. |
+| `test_continuous_integration` | SUGGESTED | ✅     | CI runs the suite on every PR (`.github/workflows/ci.yml`); the `Test` jobs are **required** status checks.                                                                                                                  |
+| `test_policy`                 | MUST      | ✅     | "Definition of done" in `CONTRIBUTING.md` requires tests for new functionality.                                                                                                                                              |
+| `tests_are_added`             | MUST      | ✅     | Test files accompany feature work throughout history.                                                                                                                                                                        |
+| `tests_documented_added`      | SUGGESTED | ✅     | Policy documented in the contributing guide.                                                                                                                                                                                 |
+| `warnings`                    | MUST      | ✅     | ESLint + TypeScript `strict` enabled.                                                                                                                                                                                        |
+| `warnings_fixed`              | MUST      | ✅     | CI enforces `--max-warnings=0` (required "Lint" check).                                                                                                                                                                      |
+| `warnings_strict`             | SUGGESTED | ✅     | TS `strict: true`, typed-lint (`recommendedTypeChecked`).                                                                                                                                                                    |
 
 ## Security
 

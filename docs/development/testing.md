@@ -8,15 +8,15 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All tests live under `apps/api/test/`.
 
-| Aspect         | Detail                                                                                  |
-| -------------- | --------------------------------------------------------------------------------------- |
-| Framework      | Vitest 4.x                                                                              |
-| Test type      | Integration (HTTP layer + real DB)                                                      |
-| Database       | Testcontainers — `postgres:18-alpine`                                                   |
-| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`                     |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                   |
-| Execution      | Parallel — files run across workers, each file gets its own database                    |
-| Coverage       | v8 provider; thresholds disabled (0%) in all environments (see the coverage note below) |
+| Aspect         | Detail                                                                                                                                              |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                                                                                                          |
+| Test type      | Integration (HTTP layer + real DB)                                                                                                                  |
+| Database       | Testcontainers — `postgres:18-alpine`                                                                                                               |
+| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`                                                                                 |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                                                                               |
+| Execution      | Parallel — files run across workers, each file gets its own database                                                                                |
+| Coverage       | v8 provider; Vitest per-run thresholds held at 0 (informational). The real gate is enforced in CI by merging the legs — see the coverage note below |
 
 ---
 
@@ -318,11 +318,14 @@ Key settings in `apps/api/vitest.shared.ts`, shared by `vitest.config.ts` (full 
 | `setupFiles`          | `./test/setup/perFileDatabase.ts`                               | Clones a private database per test file                                                                |
 | `coverage.thresholds` | 0% in all environments (branches, functions, lines, statements) | Forced to 0 everywhere (`process.env.CI \|\| true` in `vitest.shared.ts`); see the coverage note below |
 
-> **Note on coverage:** the 80% thresholds are currently **disabled in every
-> environment**. `vitest.shared.ts` forces them to 0 (`process.env.CI || true`
-> always evaluates truthy), so coverage is reported but never enforced — not even
-> locally. On top of that, coverage is now **per-leg and partial**: the three legs
-> (`base`, `storage-azure`, `storage-minio`) each emit their own coverage artifact
-> and these are **not merged**, so no single report reflects the whole suite.
-> Re-enabling the 80% gate is therefore incompatible with the current setup until
-> per-leg coverage is merged into one report.
+> **Note on coverage:** Vitest's own per-run thresholds are held at **0**
+> (informational only) — `vitest.shared.ts` forces them to 0 (`process.env.CI ||
+true` always evaluates truthy). This is deliberate: the suite is partitioned
+> into three legs (`base`, `storage-azure`, `storage-minio`) that each emit a
+> **partial** coverage artifact, so no single leg exercises the whole codebase and
+> a per-run Vitest threshold can't be used (a leg would fail on the files it never
+> runs). The **real gate is not disabled** — it runs in CI's `coverage` job, where
+> [`scripts/check-coverage.mjs`](../../scripts/check-coverage.mjs) **merges** the
+> three legs' Istanbul reports (a line covered by _any_ leg counts) and fails if
+> any metric falls below its threshold: **90%** lines/statements/functions, **85%**
+> branches. See the [`coverage` job](./ci-cd.md#coverage) in the CI/CD guide.

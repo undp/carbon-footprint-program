@@ -26,6 +26,7 @@ export const STORAGE_TEST_MANIFEST = [
   "test/features/files/badges/requestBadgeUpload/integration.test.ts",
   "test/features/files/confirmUpload/integration.test.ts",
   "test/features/files/downloadFile/integration.test.ts",
+  "test/features/files/legal/confirmLegalUpload/integration.test.ts",
   "test/features/files/previewFile/integration.test.ts",
   "test/features/files/requestUpload/integration.test.ts",
   "test/features/organizations/app/requestOrganizationAccreditation/integration.test.ts",
