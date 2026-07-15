@@ -115,7 +115,9 @@ describe("JwksAuthProvider — rejected by the provider's own checks", () => {
     );
 
     expect(result.user).toBeNull();
-    expect(result.error).toContain(`missing required scope "${REQUIRED_SCOPE}"`);
+    expect(result.error).toContain(
+      `missing required scope "${REQUIRED_SCOPE}"`
+    );
     // The offending scopes are echoed to aid debugging.
     expect(result.error).toContain("openid profile");
   });
@@ -126,7 +128,9 @@ describe("JwksAuthProvider — rejected by the provider's own checks", () => {
     );
 
     expect(result.user).toBeNull();
-    expect(result.error).toContain(`missing required scope "${REQUIRED_SCOPE}"`);
+    expect(result.error).toContain(
+      `missing required scope "${REQUIRED_SCOPE}"`
+    );
     expect(result.error).toContain("(none)");
   });
 
@@ -192,9 +196,8 @@ describe("JwksAuthProvider — scope enforcement disabled", () => {
 
     // Re-import so the provider binds to a freshly-parsed environment where
     // JWKS_REQUIRED_SCOPE is undefined.
-    const { JwksAuthProvider: FreshProvider } = await import(
-      "@/auth/providers/JwksAuthProvider.js"
-    );
+    const { JwksAuthProvider: FreshProvider } =
+      await import("@/auth/providers/JwksAuthProvider.js");
     const provider = new FreshProvider();
 
     // No scope claim at all — accepted because enforcement is off.

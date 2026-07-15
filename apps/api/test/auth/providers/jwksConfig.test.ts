@@ -34,8 +34,11 @@ describe("getSigningKey", () => {
   });
 
   it("fetches the specific key by kid when a kid is provided", async () => {
-    const { source, getSigningKey: getKey, getSigningKeys: getKeys } =
-      makeSource("PUBLIC-KEY-A");
+    const {
+      source,
+      getSigningKey: getKey,
+      getSigningKeys: getKeys,
+    } = makeSource("PUBLIC-KEY-A");
     const key = await getSigningKey(source, "kid-1");
 
     expect(key).toBe("PUBLIC-KEY-A");
