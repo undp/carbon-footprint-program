@@ -109,7 +109,8 @@ pnpm test
 # Run all API tests (the three storage legs)
 pnpm test:api
 
-# Run the apps/web suite (Vitest + jsdom; builds @repo/* deps first)
+# Run the apps/web suite (Vitest + jsdom; builds @repo/* deps first).
+# Runs with coverage and enforces a global coverage floor (see the note below).
 pnpm test:web
 
 # Run the tools/seed unit tests
@@ -124,6 +125,18 @@ pnpm test --filter=api -- /organizations --coverage=false
 # Open the Vitest UI dashboard
 pnpm --filter=api test:ui
 ```
+
+> **Web coverage floor.** `pnpm test:web` runs with `--coverage` and enforces a
+> **low global coverage floor** (thresholds in `apps/web/vitest.config.ts`).
+> Unlike the API — where the 80% gate is currently disabled — the web floor is
+> deliberately low: `coverage.all` counts every file under `src/**`, and the app
+> is ~98% render-heavy, untested `screens/`/`components/`, so a high global gate
+> is impractical. The floor is a **regression guard** set just below the current
+> level to prevent backsliding, and is meant to be **ratcheted up over time** as
+> the logic layers (`utils/`, `hooks/`, `stores/`, `components/Chatbot/`) gain
+> tests — raise it by adding coverage, not by bumping the number, since adding
+> untested UI lowers the global percentage. The coverage-free fast dev loop is
+> `pnpm --filter=web test:watch` (no threshold checks).
 
 ---
 

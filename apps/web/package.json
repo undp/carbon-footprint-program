@@ -12,9 +12,8 @@
     "dev": "vite",
     "build": "tsc -b tsconfig.build.json && vite build",
     "start": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist coverage tsconfig.build.tsbuildinfo .turbo"
