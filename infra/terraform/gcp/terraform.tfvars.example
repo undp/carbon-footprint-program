@@ -1,0 +1,81 @@
+# =============================================================================
+# terraform.tfvars.example — copy to terraform.tfvars and fill in.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# Azure-Bicep counterpart: infra/params/main.<env>.bicepparam. Only project_id
+# has no default and MUST be set; everything else has a sensible default and is
+# shown here so you can see the full surface at a glance.
+# =============================================================================
+
+# --------- Core (REQUIRED) ---------
+# The GCP project to deploy into. Billing must be enabled.
+project_id = "my-huella-project"
+
+# Region for Cloud Run, Cloud SQL, Artifact Registry, and the buckets.
+region = "us-central1"
+
+# Resource naming: names become "${name_prefix}-${environment}-<role>",
+# e.g. "huella-prod-api".
+name_prefix = "huella"
+environment = "prod"
+
+# --------- API container image ---------
+# Placeholder default will NOT deploy. After you build & push the image (see
+# README) set this to the real ref. The repo path is also a Terraform output:
+#   <region>-docker.pkg.dev/<project_id>/<name_prefix>-<environment>-api/api:<tag>
+api_image = "us-central1-docker.pkg.dev/my-huella-project/huella-prod-api/api:v1"
+
+# --------- Cloud Run sizing ---------
+api_cpu                   = "1"
+api_memory                = "512Mi"
+api_min_instances         = 1 # keep 1 warm to avoid cold starts
+api_max_instances         = 4
+api_allow_unauthenticated = true # public API, like the Azure App Service
+
+# --------- API environment / CORS ---------
+# The web app's browser origin. Used for API CORS and the files-bucket CORS.
+# If you use a custom web domain, set it to https://<that-domain>.
+allowed_origin = "https://app.example.com"
+
+# Public origin of THIS API. Leave empty on the first apply, then set it to the
+# printed Cloud Run URL (or your custom API domain) and re-apply.
+api_origin = ""
+
+# --------- OIDC / JWKS (BYO identity provider) ---------
+# Populate from your IdP's discovery document. May stay empty until you wire auth.
+# See docs/infrastructure/GenericOidcAuthenticationSetup.md.
+jwks_issuer   = "" # e.g. https://login.example.com/realms/huella
+jwks_uri      = "" # e.g. https://login.example.com/realms/huella/protocol/openid-connect/certs
+jwks_audience = "" # e.g. huella-api
+
+# Optional scope enforcement.
+jwks_required_scope   = ""
+jwks_skip_scope_check = ""
+
+# Optional bootstrap super-admin.
+superadmin_email = ""
+
+app_version = "prod"
+
+# --------- Database (Cloud SQL for PostgreSQL) ---------
+postgres_version       = "POSTGRES_17"      # Azure reference uses PG18; bump when Cloud SQL offers it
+db_tier                = "db-custom-2-8192" # ~2 vCPU / 8 GB
+db_disk_size           = 32
+db_name                = "huella_latam"
+db_username            = "pgadmin"
+db_backup_enabled      = true
+db_deletion_protection = false # set true for real environments
+db_availability_type   = "ZONAL"
+
+# --------- Frontend / edge ---------
+# Custom domain for the SPA. Empty => HTTP-only LB on the reserved IP (no managed
+# cert). Set a domain to get a Google-managed SSL cert + HTTPS (point DNS first).
+custom_domain_web = ""
+
+# Attach a Cloud Armor EDGE policy to the web backend bucket (see frontend.tf caveat).
+enable_cloud_armor = false
+
+# Optional hardening: private VPC + Serverless VPC Access + Cloud SQL private IP.
+# Default false uses the simpler public-IP + Cloud SQL Auth Proxy path.
+enable_private_networking = false
