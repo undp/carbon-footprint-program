@@ -310,7 +310,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: needs.changes.outputs.code == 'true'
-      - run: pnpm --filter=web test
+      # `pnpm test:web` = `turbo run test --filter=web`; the turbo `test` task's
+      # `dependsOn: ["^build"]` builds the workspace deps (@repo/*) to dist first
+      # so Vitest resolves them the same way the app does (their `exports` point
+      # at ./dist). A bare `pnpm --filter=web test` would skip that and fail to
+      # resolve @repo/* on a clean checkout.
+      - run: pnpm test:web
         if: needs.changes.outputs.code == 'true'
 
   audit:
