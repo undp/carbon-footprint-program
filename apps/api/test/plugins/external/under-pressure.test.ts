@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import Fastify from "fastify";
 import { autoConfig } from "@/plugins/external/under-pressure.js";
 
 // `autoConfig` is computed at module load from the env-derived thresholds in
@@ -33,5 +34,44 @@ describe("under-pressure autoConfig wiring", () => {
 
     expect(overridden.maxEventLoopDelay).toBe(500);
     expect(overridden.maxEventLoopUtilization).toBe(0.75);
+  });
+});
+
+// The plugin function gates on NODE_ENV: it registers @fastify/under-pressure
+// everywhere EXCEPT the test environment, where it early-returns (the serialized
+// suite would otherwise trip its 503 guard — the reason #276 opted out). The
+// full suite always runs with NODE_ENV=test and createApp skips the plugin, so
+// neither leg of that guard runs during integration — drive both here.
+describe("under-pressure plugin - environment guard", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("early-returns without registering the library under NODE_ENV=test", async () => {
+    const { default: underPressurePlugin } =
+      await import("@/plugins/external/under-pressure.js");
+    const app = Fastify();
+    try {
+      await app.register(underPressurePlugin);
+      await app.ready();
+      // @fastify/under-pressure decorates `memoryUsage` when it registers.
+      expect(app.hasDecorator("memoryUsage")).toBe(false);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("registers @fastify/under-pressure outside the test environment", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const { default: underPressurePlugin } =
+      await import("@/plugins/external/under-pressure.js");
+    const app = Fastify();
+    try {
+      await app.register(underPressurePlugin);
+      await app.ready();
+      expect(app.hasDecorator("memoryUsage")).toBe(true);
+    } finally {
+      await app.close();
+    }
   });
 });
