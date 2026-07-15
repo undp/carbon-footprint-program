@@ -49,9 +49,6 @@ importers:
       cpy-cli:
         specifier: ^7.0.0
         version: 7.0.0
-      istanbul-lib-coverage:
-        specifier: ^3.2.2
-        version: 3.2.2
       prettier:
         specifier: ^3.9.4
         version: 3.9.4

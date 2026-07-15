@@ -186,37 +186,17 @@ jobs:
         # Three legs that partition the suite into disjoint sets (check names
         # `Test (base)`, `Test (storage-azure)`, `Test (storage-minio)` are
         # required under branch protection):
-        #   - base:          the full suite EXCEPT the storage manifest
-        #                     (vitest.base.config.ts) — the bulk, run once.
+        #   - base:          the full suite EXCEPT the storage manifest — the
+        #                     bulk, run once.
         #   - storage-azure: the storage manifest against Azurite.
         #   - storage-minio: the storage manifest against MinIO.
-        # base ∪ storage-* == full suite; the storage manifest is the single
-        # source of truth for both the base `exclude` and the storage `include`.
-        # Each `test:storage-*` script sets STORAGE_PROVIDER itself, which picks
-        # the testcontainer in globalSetup.ts.
-        include:
-          - leg: base
-            test_script: test:base
-            coverage_artifact: coverage-report-base
-          - leg: storage-azure
-            test_script: test:storage-azure
-            coverage_artifact: coverage-report-storage-azure
-          - leg: storage-minio
-            test_script: test:storage-minio
-            coverage_artifact: coverage-report-storage-minio
-    env:
-      # Provider-specific vars below satisfy the conditional validation in
-      # apps/api/src/config/environment.ts. STORAGE_PROVIDER itself is set by
-      # each test script (azure_blob_storage for test:base and
-      # test:storage-azure, minio for test:storage-minio); base sets it so its
-      # app.ready() boot never depends on the storage container starting.
-      # Real connection details come from the testcontainer.
-      AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1
-      AZURE_STORAGE_CONTAINER_NAME: test-files
-      MINIO_ENDPOINT: http://localhost:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
-      MINIO_BUCKET: test-files
+        # `leg` is the Vitest project name in apps/api/vitest.config.ts
+        # (test.projects); base ∪ storage-* == full suite. The storage manifest
+        # is the single source of truth for both the base `exclude` and the
+        # storage `include`. Each project selects its provider (and the
+        # matching STORAGE_PROVIDER in its test.env) from its name in
+        # globalSetup.ts — no env is needed here.
+        leg: [base, storage-azure, storage-minio]
     # The storage legs are quick (18 files each); the base leg is the long pole.
     # Gating every step is where docs-only PRs save the most. All three legs
     # still report their required "Test (...)" checks.
@@ -242,25 +222,35 @@ jobs:
         if: needs.changes.outputs.code == 'true'
       - name: Run tests
         if: needs.changes.outputs.code == 'true'
-        # Indirection via env (never interpolate matrix values into `run:`
-        # directly — that is a template-injection finding for zizmor).
+        # Runs one Vitest project and emits a blob report (coverage embedded).
+        # LEG is passed via env (never interpolate matrix values into `run:`
+        # directly — that is a template-injection finding for zizmor); the blob
+        # filename embeds LEG so the three legs never collide in the coverage job.
         env:
-          TEST_SCRIPT: ${{ matrix.test_script }}
-        run: pnpm "$TEST_SCRIPT"
+          LEG: ${{ matrix.leg }}
+        run: pnpm test:ci
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always() && needs.changes.outputs.code == 'true'
         with:
-          name: ${{ matrix.coverage_artifact }}
-          path: apps/api/coverage/
+          name: blob-report-${{ matrix.leg }}
+          path: apps/api/.vitest-reports/
+          # `.vitest-reports` is a dotfile dir; without this, upload-artifact
+          # (default include-hidden-files: false) skips its contents and the
+          # coverage job's download finds nothing.
+          include-hidden-files: true
           retention-days: 7
 
   # Enforces the apps/api coverage gate. Unlike the other heavy jobs, this one
-  # `needs: test` because it consumes the three legs' coverage artifacts — the
-  # legs partition the suite, so coverage must be merged across them before any
-  # threshold means anything (a single leg never sees the whole codebase). When
-  # a test leg fails there is nothing to gate and the PR is already blocked, so
-  # this job is simply skipped. On docs-only PRs every step is gated off (like
-  # the other jobs) and the required "Coverage" check still reports success.
+  # `needs: test` because it consumes the three legs' blob reports — the legs
+  # partition the suite, so coverage must be merged across them before any
+  # threshold means anything (a single leg never sees the whole codebase). Vitest
+  # merges the blobs natively (`--merge-reports`) and applies the gate
+  # (90% for lines, statements, functions, and branches, passed by flag in the
+  # test:coverage:merge script); there is no external merge script. When a test
+  # leg fails there is nothing to gate
+  # and the PR is already blocked, so this job is simply skipped. On docs-only PRs
+  # every step is gated off (like the other jobs) and the required "Coverage"
+  # check still reports success.
   coverage:
     needs: [check-draft, changes, test]
     name: Coverage
@@ -279,15 +269,18 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: needs.changes.outputs.code == 'true'
-      # Pull every leg's coverage artifact (coverage-report-base,
-      # coverage-report-storage-azure, coverage-report-storage-minio) into a
-      # dir each, so check-coverage.mjs can merge them.
+      # Pull every leg's blob report into ONE flat dir. `merge-multiple: true` is
+      # required: `vitest --merge-reports` reads the dir non-recursively and
+      # rejects subfolders. Each leg's blob is uniquely named (blob-<leg>.json)
+      # so they never collide.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: needs.changes.outputs.code == 'true'
         with:
-          pattern: coverage-report-*
-          path: coverage-artifacts
-      - run: node scripts/check-coverage.mjs coverage-artifacts
+          pattern: blob-report-*
+          path: apps/api/.vitest-reports
+          merge-multiple: true
+      # Native Vitest merge + coverage + gate (90% all metrics, replaces check-coverage.mjs).
+      - run: pnpm test:coverage:merge
         if: needs.changes.outputs.code == 'true'
 
   build:
