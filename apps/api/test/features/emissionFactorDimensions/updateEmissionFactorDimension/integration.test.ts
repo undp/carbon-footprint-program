@@ -24,6 +24,8 @@ import {
 import type { UpdateEmissionFactorDimensionResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { updateEmissionFactorDimensionService } from "@/features/emissionFactorDimensions/updateEmissionFactorDimension/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -439,6 +441,112 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
         response.body
       ) as UpdateEmissionFactorDimensionResponse;
       expect(body.name).toBe("Renamed With Empty Rename Array");
+    });
+
+    it("should successfully rename a value when the new name has no conflict", async () => {
+      const { dimension, value } = await buildTestDimension();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: {
+            rename: [{ id: value.id.toString(), newValue: "Renamed Value" }],
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
+      expect(body.values.map((v) => v.value)).toContain("Renamed Value");
+
+      const updatedValue = await prisma.emissionFactorDimensionValue.findUnique(
+        { where: { id: value.id } }
+      );
+      expect(updatedValue!.value).toBe("Renamed Value");
+    });
+  });
+
+  describe("Direct service invocation (bypassing HTTP-level authentication)", () => {
+    // The route requires authentication (`requireAuth`), so `user` is always
+    // set on every real HTTP request; the service's own `!user` guard can
+    // only be reached by calling the service directly with `null`.
+    it("should throw USER_NOT_FOUND when no user is provided", async () => {
+      const { dimension } = await buildTestDimension();
+
+      await expect(
+        updateEmissionFactorDimensionService(
+          prisma,
+          dimension.id.toString(),
+          { name: "No User Update" },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
+    });
+
+    it("should rethrow a non-duplicate database error unchanged (foreign key violation)", async () => {
+      const { dimension } = await buildTestDimension();
+      const testUser = await prisma.user.findFirstOrThrow();
+      const bogusUser = { ...mapUserToResponse(testUser), id: "999999999999" };
+
+      await expect(
+        updateEmissionFactorDimensionService(
+          prisma,
+          dimension.id.toString(),
+          { values: { add: ["FK Violation Value"] } },
+          bogusUser
+        )
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("Real database-level P2002 conflicts (bypassing the in-app pre-check)", () => {
+    // The in-app duplicate check for `values.add` reads existing ACTIVE
+    // values inside the same transaction, so a *sequential* (already
+    // committed) conflicting value is always caught there, never by the
+    // service's own `catch` block. Hold a conflicting value open
+    // (uncommitted) in a separate transaction so the service's own read
+    // (under READ COMMITTED) can't see it, forcing its own INSERT to
+    // collide with the real unique index once the holder transaction
+    // commits.
+    it("should surface a real Prisma P2002 as DUPLICATE_DIMENSION_VALUE when a concurrent transaction holds the same value", async () => {
+      const { dimension } = await buildTestDimension();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      const holderPromise = prisma.$transaction(async (tx) => {
+        await tx.emissionFactorDimensionValue.create({
+          data: {
+            dimensionId: dimension.id,
+            value: "Held Concurrent Value",
+            status: EmissionFactorDimensionValueStatus.ACTIVE,
+            createdById: BigInt(dbUser.id),
+            updatedAt: null,
+          },
+        });
+        // Hold the row open (uncommitted) long enough for the concurrent
+        // service call below to run its own duplicate check (which can't
+        // see this uncommitted row) and reach its own INSERT, which then
+        // blocks on the real unique index until this transaction commits.
+        // `pg_sleep` returns `void`, which the driver adapter can't
+        // deserialize via `$queryRaw`, so `$executeRaw` is used instead.
+        await tx.$executeRaw`SELECT pg_sleep(0.3)`;
+      });
+
+      // Give the holder's INSERT time to land before starting the service call.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      await expect(
+        updateEmissionFactorDimensionService(
+          prisma,
+          dimension.id.toString(),
+          { values: { add: ["Held Concurrent Value"] } },
+          mapUserToResponse(dbUser)
+        )
+      ).rejects.toMatchObject({ code: "DUPLICATE_DIMENSION_VALUE" });
+
+      await holderPromise;
     });
   });
 

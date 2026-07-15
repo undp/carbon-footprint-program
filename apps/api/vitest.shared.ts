@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 // in .github/workflows/ci.yml), so no single run sees the whole codebase and a
 // per-run threshold would fail on the files that run never touches. The real
 // gate is the `coverage` CI job, which merges all three legs' coverage and
-// checks the union against per-metric thresholds (80% for lines, statements,
+// checks the union against per-metric thresholds (90% for lines, statements,
 // functions, and branches; see scripts/check-coverage.mjs). These zeros keep
 // each run's numbers visible in its own report without gating on a partial view.
 const coverageThresholds = {

@@ -23,6 +23,7 @@ export const getBadgePreviewsService = async (
     badges.map(async (badge) => {
       const { url: previewUrl } = await storage.generateReadUrl(
         badge.file.blobPath,
+        /* v8 ignore next -- File.mimeType is NOT NULL in the DB schema, so the ?? undefined fallback is unreachable */
         { contentType: badge.file.mimeType ?? undefined }
       );
 

@@ -120,6 +120,7 @@ export const createEmissionFactorDimensionService = async (
         values: data.values.map((value) => {
           const createdValue = createdValuesByValue.get(value);
 
+          /* v8 ignore next -- unreachable: values are deduplicated before createManyAndReturn, so every value resolves to a created row */
           if (!createdValue) {
             throw new DuplicateDimensionValueError(value);
           }

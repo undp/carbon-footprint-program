@@ -11,6 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import { updateReductionPlanInitiativeService } from "@/features/reductionPlanInitiatives/admin/updateReductionPlanInitiative/service.js";
 import type { FastifyInstance } from "fastify";
 import {
   MethodologyVersionStatus,
@@ -150,6 +151,67 @@ describe("PATCH /api/admin/reduction-plan/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("REDUCTION_PLAN_INITIATIVE_NOT_FOUND");
+    });
+
+    it("should return 404 when the target subcategory does not exist", async () => {
+      const subcategory = await createSubcategory("Move Bad Target");
+      const initiative = await createInitiative(subcategory.id, "Original");
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/reduction-plan/${initiative.id.toString()}`,
+        payload: { subcategoryId: "999999999" },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe(
+        "SUBCATEGORY_NOT_FOUND_FOR_REDUCTION_PLAN_INITIATIVE"
+      );
+    });
+  });
+
+  describe("Additional field updates", () => {
+    it("should update the description only", async () => {
+      const subcategory = await createSubcategory("Update Description");
+      const initiative = await createInitiative(subcategory.id, "Original");
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/reduction-plan/${initiative.id.toString()}`,
+        payload: { description: "Nueva descripción" },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const dbRecord = await prisma.reductionPlanInitiative.findUnique({
+        where: { id: initiative.id },
+      });
+      expect(dbRecord!.description).toBe("Nueva descripción");
+    });
+  });
+
+  describe("Direct service invocation (bypassing schema-level validation)", () => {
+    // This route always runs behind auth (`access: { mode: "private" }`), so
+    // `request.currentUser` is never null over HTTP. Call the service
+    // directly with `user = null` to exercise the
+    // `user ? BigInt(user.id) : null` false branch.
+    it("should set updatedById to null when no user is provided", async () => {
+      const subcategory = await createSubcategory("Direct No User");
+      const initiative = await createInitiative(subcategory.id, "Original");
+
+      await updateReductionPlanInitiativeService(
+        prisma,
+        initiative.id.toString(),
+        { title: "Actualizado sin usuario" },
+        null
+      );
+
+      const dbRecord = await prisma.reductionPlanInitiative.findUnique({
+        where: { id: initiative.id },
+      });
+      expect(dbRecord!.title).toBe("Actualizado sin usuario");
+      expect(dbRecord!.updatedById).toBeNull();
     });
   });
 });

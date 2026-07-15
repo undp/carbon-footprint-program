@@ -19,8 +19,12 @@
 export const STORAGE_TEST_MANIFEST = [
   "test/features/badges/activateBadge/integration.test.ts",
   "test/features/badges/deactivateBadge/integration.test.ts",
+  "test/features/badges/getBadgePreviews/integration.test.ts",
   "test/features/badges/listBadges/integration.test.ts",
+  "test/features/carbonInventories/confirmLineFileUpload/integration.test.ts",
+  "test/features/carbonInventories/getCarbonInventoryBadges/integration.test.ts",
   "test/features/carbonInventories/getCarbonInventoryFilesManifest/integration.test.ts",
+  "test/features/carbonInventories/previewLineFile/integration.test.ts",
   "test/features/files/badges/confirmBadgeUpload/integration.test.ts",
   "test/features/files/badges/flow.test.ts",
   "test/features/files/badges/requestBadgeUpload/integration.test.ts",

@@ -285,5 +285,32 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
         )
       ).rejects.toThrow();
     });
+
+    it("should perform a no-op update (skip setting updatedById) when called directly with no fields provided", async () => {
+      // `UpdateMethodologyRequestSchema` has a zod `.refine` requiring at
+      // least one defined field, so an empty payload is rejected with 400 at
+      // the HTTP layer before it ever reaches the service. Calling the
+      // service directly with `{}` is the only way to exercise the
+      // `Object.keys(updateData).length > 0` false branch.
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Empty Update Direct Call",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const testUser = await getTestLoggedUser(prisma);
+
+      const response = await updateMethodologyService(
+        prisma,
+        methodology.id.toString(),
+        {},
+        mapUserToResponse(testUser)
+      );
+
+      expect(response.name).toBe(methodology.name);
+
+      const dbRecord = await prisma.methodologyVersion.findUnique({
+        where: { id: methodology.id },
+      });
+      expect(dbRecord!.updatedById).toBeNull();
+    });
   });
 });

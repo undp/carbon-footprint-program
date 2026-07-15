@@ -14,11 +14,12 @@
 // real gate; Vitest's own thresholds stay at 0 (informational only — see
 // apps/api/vitest.shared.ts for why).
 //
-// Thresholds are per-metric: lines/statements/functions are held to 90% and
-// branches to 85%. Branch coverage is inherently harder to drive to the same
-// bar (most of the remaining uncovered branches are error/edge paths behind
-// integration-test setup, plus defensive guards); 85% is an intermediate
-// ratchet toward 90%, tracked separately. Each is overridable via env:
+// Thresholds are per-metric and all four are now held to 90%. Branch coverage
+// was the last to reach the bar (most remaining uncovered branches were
+// error/edge paths behind integration-test setup, plus defensive guards); #512
+// closed that gap with new integration suites plus targeted `v8 ignore`s of
+// genuinely-unreachable guards, retiring the earlier intermediate 85% branch
+// ratchet. Each is overridable via env:
 // COVERAGE_THRESHOLD_LINES / _STATEMENTS / _FUNCTIONS / _BRANCHES. A bare
 // COVERAGE_THRESHOLD (no suffix) overrides the default for every metric that
 // lacks its own per-metric override.
@@ -32,12 +33,12 @@ import libCoverage from "istanbul-lib-coverage";
 
 const { createCoverageMap, createCoverageSummary } = libCoverage;
 
-// Per-metric defaults. Lines/statements/functions sit at 90%; branches at 85%.
+// Per-metric defaults. All four metrics sit at 90%.
 const DEFAULT_THRESHOLDS = {
   lines: 90,
   statements: 90,
   functions: 90,
-  branches: 85,
+  branches: 90,
 };
 
 // Resolve a metric's threshold: its own env override wins, then a bare

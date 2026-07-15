@@ -28,9 +28,11 @@ import {
   OrganizationStatus,
   InventoryStatus,
 } from "@repo/database";
+import { mapApprovedSubmissionsToRecognitions } from "@/features/organizations/app/getOrganizationRecognitions/helpers.js";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import type { StorageAdapter } from "@repo/storage";
 
 describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () => {
   let app: FastifyInstance;
@@ -247,6 +249,104 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
       expect(response.statusCode).toBe(500);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("DATA_INTEGRITY_ERROR");
+    });
+  });
+
+  describe("mapApprovedSubmissionsToRecognitions (direct helper invocation)", () => {
+    // This feature isn't in test/setup/storageTestManifest.ts, so under the
+    // base (no-storage) Vitest leg `app.storage` is swapped for an adapter
+    // whose every method throws (see appFactory.ts) — a real HTTP round-trip
+    // through a RECOGNITION file can't exercise the signed-URL branch here.
+    // Call the exported helper directly with a lightweight storage stub
+    // (still real submission-shaped data, no DB/HTTP involved) instead.
+    const generateReadUrl: StorageAdapter["generateReadUrl"] = (path, opts) =>
+      Promise.resolve({
+        url: `https://example.test/${path}?contentType=${opts?.contentType ?? "none"}`,
+        expiresAt: new Date(),
+      });
+    const fakeStorage = { generateReadUrl } as unknown as StorageAdapter;
+
+    it("signs a read URL (with contentType) when the recognition file has a mimeType", async () => {
+      const [result] = await mapApprovedSubmissionsToRecognitions({
+        submissions: [
+          {
+            id: 1n,
+            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
+            updatedAt: new Date("2024-05-01T00:00:00.000Z"),
+            files: [
+              {
+                file: {
+                  blobPath: "some/blob/path.pdf",
+                  mimeType: "application/pdf",
+                },
+              },
+            ],
+          },
+        ],
+        measurementYear: 2024,
+        totalEmissions: 10,
+        storage: fakeStorage,
+      });
+
+      expect(result.recognitionFileUrl).toBe(
+        "https://example.test/some/blob/path.pdf?contentType=application/pdf"
+      );
+    });
+
+    it("signs a read URL with an undefined contentType when the recognition file has no mimeType", async () => {
+      const [result] = await mapApprovedSubmissionsToRecognitions({
+        submissions: [
+          {
+            id: 2n,
+            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
+            updatedAt: new Date("2024-05-01T00:00:00.000Z"),
+            files: [
+              {
+                file: {
+                  blobPath: "some/blob/path-2.pdf",
+                  mimeType: null,
+                },
+              },
+            ],
+          },
+        ],
+        measurementYear: 2024,
+        totalEmissions: 10,
+        storage: fakeStorage,
+      });
+
+      expect(result.recognitionFileUrl).toBe(
+        "https://example.test/some/blob/path-2.pdf?contentType=none"
+      );
+    });
+  });
+
+  describe("Reduction project recognitions with a null year", () => {
+    it("excludes a reduction project's recognitions when project.year is null, even with an approved submission", async () => {
+      const { organization, project } = await seedApprovedReductionProject(
+        // year is overridden to null below; this initial value is irrelevant.
+        2024
+      );
+      await prisma.reductionProject.update({
+        where: { id: project.id },
+        data: { year: null },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetOrganizationRecognitionsResponse;
+      expect(
+        body.some(
+          (r) =>
+            r.submissionType === SubmissionType.REDUCTION_PROJECT_VERIFICATION
+        )
+      ).toBe(false);
     });
   });
 });

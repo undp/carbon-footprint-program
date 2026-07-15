@@ -17,9 +17,15 @@ import {
   createTestEmissionFactorDimensionValue,
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
+import { updateEmissionFactorService } from "@/features/emissionFactors/updateEmissionFactor/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 import type { UpdateEmissionFactorResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  Prisma,
+  EmissionFactorStatus,
+  type PrismaClient,
+} from "@repo/database";
 
 describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -626,6 +632,163 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("RATE_MEASUREMENT_UNIT_NOT_FOUND");
+    });
+  });
+
+  describe("Concurrency", () => {
+    // The application-level pre-check (`checkDuplicateEmissionFactor`) only
+    // sees committed rows (standard READ COMMITTED semantics), so it cannot
+    // detect a conflicting row inserted by another transaction that hasn't
+    // committed yet. To deterministically exercise the real Prisma P2002
+    // branch in the service's catch block (rather than relying on a
+    // genuine, non-deterministic race), a separate transaction manually
+    // holds an uncommitted row with the exact target uniqueness key open
+    // while the service's own update runs: its pre-check passes (the
+    // blocking row isn't visible yet), so it proceeds to UPDATE, which then
+    // blocks on the DB's real partial unique index (both dimension value
+    // columns must be non-null for the index to actually reject a
+    // duplicate -- Postgres treats NULL <> NULL under standard
+    // unique-index semantics). Once the blocking transaction commits, the
+    // service's blocked UPDATE resumes and fails with a genuine
+    // unique-constraint violation.
+    it("should return 409 when a concurrent transaction commits a conflicting row while the update is in flight", async () => {
+      const { subcategory, rateUnitId } = await buildBaseSubcategory(
+        "Concurrent Update Same Key"
+      );
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const initialDim1Value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim1.id,
+        { value: "Transactional Race Dim1 Initial" }
+      );
+      const targetDim1Value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim1.id,
+        { value: "Transactional Race Dim1 Target" }
+      );
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: false }
+      );
+      const targetDim2Value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim2.id,
+        { value: "Transactional Race Dim2 Target" }
+      );
+
+      const victim = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        {
+          source: "Test Transactional Race Source",
+          dimensionValue1Id: initialDim1Value.id,
+          dimensionValue2Id: null,
+        }
+      );
+
+      let resolveInsertDone!: () => void;
+      const insertDone = new Promise<void>((resolve) => {
+        resolveInsertDone = resolve;
+      });
+      let resolveCommit!: () => void;
+      const commitSignal = new Promise<void>((resolve) => {
+        resolveCommit = resolve;
+      });
+
+      const blockerTxPromise = prisma.$transaction(async (tx) => {
+        await tx.emissionFactor.create({
+          data: {
+            subcategoryId: subcategory.id,
+            dimensionValue1Id: targetDim1Value.id,
+            dimensionValue2Id: targetDim2Value.id,
+            rateMeasurementUnitId: rateUnitId,
+            source: "Test Transactional Race Source",
+            gasDetails: {
+              CO2_FOSSIL: 0,
+              CH4: 0,
+              N2O: 0,
+              HFC: 0,
+              PFC: 0,
+              SF6: 0,
+              NF3: 0,
+            },
+            value: new Prisma.Decimal("1.5"),
+            status: EmissionFactorStatus.ACTIVE,
+            createdById: null,
+            updatedAt: null,
+          },
+        });
+        resolveInsertDone();
+        await commitSignal;
+      });
+
+      await insertDone;
+
+      const servicePromise = updateEmissionFactorService(
+        prisma,
+        victim.id.toString(),
+        {
+          dimensionValue1Name: "Transactional Race Dim1 Target",
+          dimensionValue2Name: "Transactional Race Dim2 Target",
+        },
+        mapUserToResponse(dbUser)
+      );
+
+      // Give the service's own transaction enough time to pass its
+      // pre-check and reach (and block on) the real UPDATE before we
+      // release the blocking transaction's lock.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      resolveCommit();
+
+      const [, serviceResult] = await Promise.all([
+        blockerTxPromise,
+        servicePromise.then(
+          (value) => ({ status: "fulfilled" as const, value }),
+          (error: unknown) => ({ status: "rejected" as const, error })
+        ),
+      ]);
+
+      expect(serviceResult.status).toBe("rejected");
+      if (serviceResult.status === "rejected") {
+        expect(serviceResult.error).toMatchObject({
+          code: "EMISSION_FACTOR_DUPLICATE",
+        });
+      }
+    });
+  });
+
+  describe("Direct service invocation (bypassing schema-level validation)", () => {
+    // This route always runs behind auth (`access: { mode: "private" }`), so
+    // `request.currentUser` is never null over HTTP. Call the service
+    // directly with `user = null` to exercise the defensive
+    // `if (!user) throw new UserNotFoundError()` guard.
+    it("should return USER_NOT_FOUND when called without a user", async () => {
+      const { subcategory, rateUnitId } = await buildBaseSubcategory(
+        "Direct No User Update"
+      );
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "Test Direct No User Source" }
+      );
+
+      await expect(
+        updateEmissionFactorService(
+          prisma,
+          ef.id.toString(),
+          { value: 2.0 },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
     });
   });
 });

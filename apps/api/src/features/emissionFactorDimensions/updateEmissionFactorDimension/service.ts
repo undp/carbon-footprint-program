@@ -260,6 +260,7 @@ export const updateEmissionFactorDimensionService = async (
         },
       });
 
+      /* v8 ignore next -- unreachable: `updated` was fetched and confirmed ACTIVE earlier in this same transaction, and its status is not changed here */
       if (!updated) {
         throw new EmissionFactorDimensionNotFoundError();
       }

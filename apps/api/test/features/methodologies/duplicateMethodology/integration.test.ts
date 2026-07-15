@@ -40,6 +40,8 @@ import {
   cloneReductionPlanInitiatives,
   cloneSubcategoryRecommendations,
 } from "@/features/methodologies/duplicateMethodology/helpers.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
   let app: FastifyInstance;
@@ -1284,6 +1286,80 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
       expect(dupInitiatives).toHaveLength(1);
       expect(dupInitiatives[0].dimensionValue1Id).toBeNull();
+    });
+  });
+
+  describe("Real database-level P2002 conflicts (bypassing the in-app copy-name generator)", () => {
+    // `generateUniqueCopyName` reads existing (non-DELETED) names for the
+    // country inside the same transaction as the eventual INSERT, so a
+    // *sequential* (already-committed) conflicting name is always avoided by
+    // that generator, never reaching the service's own `catch` block. Hold a
+    // conflicting row open (uncommitted) with the exact name the generator
+    // will produce in a separate transaction, so the service's own read
+    // (under READ COMMITTED) can't see it, forcing its own INSERT to
+    // collide with the real (country_id, name, version) unique index once
+    // the holder transaction commits.
+    it("should surface a real Prisma P2002 as METHODOLOGY_NAME_VERSION_ALREADY_EXISTS when a concurrent transaction holds the generated copy name", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Race Duplicate Name",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const originalFull = await prisma.methodologyVersion.findUniqueOrThrow({
+        where: { id: original.id },
+      });
+
+      // No other duplicate exists yet, so the service will generate
+      // "<name> (1)" as the copy name.
+      const predictedName = `${original.name} (1)`;
+
+      const holderPromise = prisma.$transaction(async (tx) => {
+        await tx.methodologyVersion.create({
+          data: {
+            countryId: originalFull.countryId,
+            name: predictedName,
+            description: "Holder",
+            regulation: "Holder",
+            version: originalFull.version,
+            status: MethodologyVersionStatus.UNPUBLISHED,
+            updatedAt: null,
+          },
+        });
+        // Hold the row open (uncommitted) long enough for the concurrent
+        // duplicate call below to run its own `existingNames` read (which
+        // can't see this uncommitted row) and reach its own INSERT, which
+        // then blocks on the real unique index until this transaction
+        // commits. `pg_sleep` returns `void`, which the driver adapter
+        // can't deserialize via `$queryRaw`, so `$executeRaw` is used
+        // instead.
+        await tx.$executeRaw`SELECT pg_sleep(0.3)`;
+      });
+
+      // Give the holder's INSERT time to land before starting the duplicate call.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      await expect(
+        duplicateMethodologyService(prisma, original.id.toString(), null)
+      ).rejects.toMatchObject({
+        code: "METHODOLOGY_NAME_VERSION_ALREADY_EXISTS",
+      });
+
+      await holderPromise;
+    });
+
+    it("should rethrow a non-duplicate database error unchanged (foreign key violation)", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - FK Violation Duplicate",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const testUser = await getTestLoggedUser(prisma);
+      const bogusUser = {
+        ...mapUserToResponse(testUser),
+        id: "999999999999",
+      };
+
+      await expect(
+        duplicateMethodologyService(prisma, original.id.toString(), bogusUser)
+      ).rejects.toThrow();
     });
   });
 

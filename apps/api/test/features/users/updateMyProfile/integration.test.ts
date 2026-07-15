@@ -273,4 +273,58 @@ describe("PATCH /api/users/me - Integration Tests", () => {
       });
     });
   });
+
+  describe("Direct service invocation (edge cases not reachable through the HTTP schema)", () => {
+    // The route schema (`.refine((data) => Object.keys(data).length >= 1)`)
+    // already rejects an empty body via zod, so the service's own "no fields
+    // changed" branch (skip stamping `updatedById`) can never be reached
+    // through HTTP. Call the service directly to exercise it.
+    it("performs a no-op update (does not stamp updatedById) when no fields are provided", async () => {
+      const before = await prisma.user.findUniqueOrThrow({
+        where: { id: loggedUser.id },
+      });
+
+      const result = await updateMyProfileService(
+        prisma,
+        loggedUser.id.toString(),
+        {}
+      );
+
+      expect(result.firstName).toBe(before.firstName);
+
+      const after = await prisma.user.findUniqueOrThrow({
+        where: { id: loggedUser.id },
+      });
+      expect(after.updatedById).toBe(before.updatedById);
+    });
+
+    // `userId` always comes from `request.currentUser!.id` over HTTP, a value
+    // that's always a valid numeric string, so `BigInt(userId)` can never
+    // throw a non-Prisma error there. Call the service directly with a
+    // malformed id to reach the catch block's non-PrismaClientKnownRequestError
+    // fallback (the outer `if` evaluates false, so `error` is rethrown as-is).
+    it("rethrows a non-Prisma error unchanged when userId isn't a valid BigInt", async () => {
+      await expect(
+        updateMyProfileService(prisma, "not-a-valid-id", {
+          firstName: "Whoever",
+        })
+      ).rejects.toThrow(SyntaxError);
+    });
+
+    // Triggering a Prisma error code other than P2025/P2002/P2003 (so the
+    // service's specific-error branches all evaluate false and the raw Prisma
+    // error is rethrown at the end of the catch block) isn't reachable with a
+    // well-formed payload over HTTP. An out-of-range bigint for
+    // countryJobPositionId makes Postgres reject the value (P2020) instead.
+    it("rethrows the raw Prisma error when its code doesn't match a handled case", async () => {
+      await expect(
+        updateMyProfileService(prisma, loggedUser.id.toString(), {
+          countryJobPositionId: "99999999999999999999999999",
+        })
+      ).rejects.toMatchObject({
+        name: "PrismaClientKnownRequestError",
+        code: "P2020",
+      });
+    });
+  });
 });

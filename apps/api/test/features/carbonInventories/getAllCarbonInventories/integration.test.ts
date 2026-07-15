@@ -33,6 +33,7 @@ import {
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { getAllCarbonInventoriesService } from "@/features/carbonInventories/getAllCarbonInventories/service.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -559,6 +560,69 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(body).toHaveLength(1);
       expect(body[0].hasActiveLines).toBe(true);
       expect(body[0].areAllActiveLinesCompleted).toBe(true);
+    });
+  });
+
+  describe("organizationId and withoutOrganization filters", () => {
+    it("filters by organizationId when provided", async () => {
+      const organization = await createTestOrganization(prisma);
+      const withOrg = await createInventoryFromPattern(prisma, () => ({
+        ...carbonInventoryPatterns.simplifiedDraft(),
+        organizationId: organization.id,
+      }));
+      await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories?organizationId=${organization.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].id).toBe(withOrg.id.toString());
+    });
+
+    it("returns only inventories without an organization when withoutOrganization=true", async () => {
+      const organization = await createTestOrganization(prisma);
+      await createInventoryFromPattern(prisma, () => ({
+        ...carbonInventoryPatterns.simplifiedDraft(),
+        organizationId: organization.id,
+      }));
+      const withoutOrg = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories?withoutOrganization=true",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].id).toBe(withoutOrg.id.toString());
+    });
+  });
+
+  describe("Direct service invocation (no access-control filter)", () => {
+    // Every route wired to this service requires authentication (`access: {
+    // mode: "private" }`), so `request.currentUser` — and therefore `user` — is
+    // always set over HTTP. Call the service directly with `user: null` to
+    // exercise the "no access-control filter" ternary branch.
+    it("returns all matching inventories when called with a null user", async () => {
+      await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const result = await getAllCarbonInventoriesService(prisma, null, null);
+
+      expect(result).toHaveLength(1);
     });
   });
 });
