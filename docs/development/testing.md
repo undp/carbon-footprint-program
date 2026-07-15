@@ -1,12 +1,12 @@
 # Testing Guide
 
-This document describes the test infrastructure, conventions, and patterns used in the Huella Latam API.
+This document describes the test infrastructure, conventions, and patterns used across the Huella Latam monorepo: the `apps/api` integration suite (Vitest + Testcontainers) and the `apps/web` unit suite (Vitest + jsdom + React Testing Library — see [Web unit tests](#web-unit-tests-appsweb)).
 
 ---
 
 ## Overview
 
-The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All tests live under `apps/api/test/`.
+The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All **API** tests live under `apps/api/test/`; the web app's unit tests are **co-located** under `apps/web/src/` (see [Web unit tests](#web-unit-tests-appsweb)).
 
 | Aspect         | Detail                                                                                                                                              |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -137,6 +137,45 @@ pnpm --filter=api test:ui
 > tests — raise it by adding coverage, not by bumping the number, since adding
 > untested UI lowers the global percentage. The coverage-free fast dev loop is
 > `pnpm --filter=web test:watch` (no threshold checks).
+
+---
+
+## Web unit tests (`apps/web`)
+
+The web app is tested with **Vitest** + **jsdom** + **React Testing Library**. Tests are **co-located** next to the source as `*.test.ts(x)` (unlike the API's separate `test/` tree) and picked up by `include: ["src/**/*.{test,spec}.{ts,tsx}"]` in `apps/web/vitest.config.ts`.
+
+Run them with `pnpm test:web` (Turbo builds the `@repo/*` deps first, then runs Vitest **with coverage**). Use `pnpm --filter=web test:watch` for the coverage-free fast loop. Config: `apps/web/vitest.config.ts` + `vitest.setup.ts`.
+
+### What's covered
+
+Coverage targets the **logic layers**, each at ~100%:
+
+| Layer                 | Examples                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| `utils/`              | `getApiErrorMessage`, `formatting`, the Excel exporters, `files`, `validateLineFileOriginalName` |
+| `hooks/`              | `useCarbonInventoryAccess`, `useReductionProjectAccess`, `useFuzzySearch`, `useChatbotSize`      |
+| `stores/`             | `userStore`, `sidebarStore` (Zustand)                                                            |
+| `labels/chips/`       | the enum → label/color chip mappers                                                              |
+| `components/Chatbot/` | `useChatStream`, `MessageBubble`, `ChatbotIcon`                                                  |
+| route guards          | `requireRole`                                                                                    |
+
+Render-heavy `screens/`/`components/` and the `api/**` query hooks are **deliberately deferred** — they need render/MSW scaffolding and a dedicated effort; browser E2E (Playwright) is not set up. As a result the _global_ coverage figure is low (~8% lines) even though the covered files are near-100%.
+
+### Coverage floor (ratchet)
+
+`pnpm test:web` enforces a **low global coverage floor** (thresholds in `vitest.config.ts`). Because Vitest's `coverage.all` counts every file under `src/**` (~9,900 lines) and the app is ~98% untested UI, the floor is a **regression guard, not a target**. It is set just under the current level and **ratcheted up as tests are added** — raise it by adding coverage, never by just bumping the number. Adding untested UI lowers the global percentage, so the floor keeps a little headroom below current.
+
+### Conventions & patterns
+
+- **Assert exact Spanish strings** — mirror private/user-facing copy as local constants so a copy change trips a test deliberately.
+- **Determinism** — no `Date.now()` / argless `new Date()`; use `vi.useFakeTimers()` for debounce/timeout logic and pass explicit dates to formatters.
+- **Query-backed hooks** (`useCarbonInventoryAccess`, …) — `vi.mock` the underlying TanStack Query hook (via `vi.hoisted`) and `renderHook`; no `QueryClientProvider` needed because the real `useQuery` never runs.
+- **Zustand stores** — drive via `store.getState()` / `store.setState()`; no render.
+- **Components** — React Testing Library `render` + `screen`; MUI's `useTheme()` falls back to the default theme, so no `ThemeProvider` wrapper is needed for content/role assertions.
+- **Excel exporters** — round-trip the written buffer back through a fresh `ExcelJS.Workbook().xlsx.load(...)` and assert on cells.
+- **jsdom gaps handled in `vitest.setup.ts`** — an in-memory `localStorage` polyfill (jsdom here provides `sessionStorage` but not `localStorage`); jest-dom matchers are registered there, with an ambient `src/vitest.d.ts` (`import "@testing-library/jest-dom/vitest"`) so `tsc` sees `toBeInTheDocument` etc.
+
+> **CI resolution gotcha:** always run via `pnpm test:web` (`turbo run test --filter=web`), which builds the `@repo/*` deps to `dist` first. A bare `pnpm --filter=web test` skips that build and fails to resolve `@repo/*` on a clean checkout.
 
 ---
 

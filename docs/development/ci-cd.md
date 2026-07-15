@@ -193,7 +193,7 @@ Because the `test` matrix **partitions** the suite into three disjoint legs, no 
 
 The thresholds are per-metric constants in `scripts/check-coverage.mjs` (override locally per-metric with `COVERAGE_THRESHOLD_LINES` / `_STATEMENTS` / `_FUNCTIONS` / `_BRANCHES`, or all at once with the bare `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
-> **Scope:** this gate covers `apps/api` only. Frontend (`apps/web`) test coverage is tracked separately in issue #477.
+> **Scope:** this merged gate covers `apps/api`. Frontend (`apps/web`) has its own coverage gate — a low **global floor** enforced by the `Test (web)` job (thresholds in `apps/web/vitest.config.ts`, run with `--coverage`), ratcheted up as its logic layers gain tests. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).
 
 ---
 
@@ -320,7 +320,7 @@ These run in CI today — most as jobs in `ci.yml`, the rest as dedicated workfl
 | Deployment to Azure                     | **Manual** — see [API Deployment](../infrastructure/ApiDeployment.md) and [Frontend Deployment](../infrastructure/StaticWebAppDeployment.md) |
 | Infrastructure provisioning             | **Manual** — see [Deployment Guide](../infrastructure/Deployment.md)                                                                         |
 | Database migrations                     | **Manual** — see [Database Migrations](../infrastructure/Migrations.md)                                                                      |
-| Frontend (`apps/web`) unit tests        | **Not implemented** — tracked in issue #477                                                                                                  |
+| Frontend (`apps/web`) unit tests        | **Implemented** — Vitest + jsdom + React Testing Library over the logic layers; global coverage floor enforced in CI                         |
 | End-to-end (browser) tests              | **Not implemented**                                                                                                                          |
 | Dynamic analysis (DAST / fuzzing)       | **Not implemented**                                                                                                                          |
 | Release tagging or changelog generation | **Not implemented**                                                                                                                          |

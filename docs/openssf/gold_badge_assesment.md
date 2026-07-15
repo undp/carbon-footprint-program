@@ -45,13 +45,13 @@
 
 ## Quality — Build & Tests
 
-| Criterion                     | Level | Status | Evidence / Gap                                                                                                                                                                                     |
-| ----------------------------- | ----- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `build_reproducible`          | MUST  | ⚠️     | Lockfile + pinned Docker digests help; demonstrate/verify reproducible build output (the web bundle _is_ built).                                                                                   |
-| `test_invocation`             | MUST  | ✅     | `pnpm test` (standard).                                                                                                                                                                            |
-| `test_continuous_integration` | MUST  | ✅     | CI runs tests on every PR (required checks).                                                                                                                                                       |
-| `test_statement_coverage90`   | MUST  | ❌     | `apps/api` now enforces **90%** statement coverage in CI (the `coverage` job merges the test legs via `scripts/check-coverage.mjs`), but `apps/web` is untested, so the project-wide bar is unmet. |
-| `test_branch_coverage80`      | MUST  | ❌     | `apps/api` now enforces **85%** branch coverage in CI (exceeds the 80% bar); `apps/web` is untested, so the project-wide bar is unmet.                                                             |
+| Criterion                     | Level | Status | Evidence / Gap                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build_reproducible`          | MUST  | ⚠️     | Lockfile + pinned Docker digests help; demonstrate/verify reproducible build output (the web bundle _is_ built).                                                                                                                                                                                                                                                    |
+| `test_invocation`             | MUST  | ✅     | `pnpm test` (standard).                                                                                                                                                                                                                                                                                                                                             |
+| `test_continuous_integration` | MUST  | ✅     | CI runs tests on every PR (required checks).                                                                                                                                                                                                                                                                                                                        |
+| `test_statement_coverage90`   | MUST  | ❌     | `apps/api` now enforces **90%** statement coverage in CI (the `coverage` job merges the test legs via `scripts/check-coverage.mjs`); `apps/web` is now unit-tested across its logic layers behind an enforced floor but sits at only ~8% overall statement coverage (its render-heavy `screens/`/`components/` are untested), so the project-wide 90% bar is unmet. |
+| `test_branch_coverage80`      | MUST  | ❌     | `apps/api` now enforces **85%** branch coverage in CI (exceeds the 80% bar); `apps/web` has tests (logic layers ~100%, ~7% branches overall), so the project-wide 80% bar is unmet until its UI is covered.                                                                                                                                                         |
 
 ## Security
 
@@ -76,7 +76,7 @@
 2. **Contributor maturity:** ≥2 **unaffiliated** significant contributors (`contributors_unassociated`) and a demonstrated bus factor ≥2 (`bus_factor`).
 3. **Per-file headers:** add copyright + `SPDX-License-Identifier` to every source file (`copyright_per_file`, `license_per_file`).
 4. **Review & 2FA:** make two-person review **unconditional** (enable "Include administrators" in branch protection) (`two_person_review`), document explicit review standards (`code_review_standards`), and confirm **org-wide 2FA** (`require_2FA`).
-5. **Coverage:** reach **90% statement / 80% branch** coverage, enforced in CI, including `apps/web` (`test_statement_coverage90`, `test_branch_coverage80`).
+5. **Coverage:** reach **90% statement / 80% branch** coverage, enforced in CI, including `apps/web`'s render-heavy UI (its logic layers are already covered) (`test_statement_coverage90`, `test_branch_coverage80`).
 6. **Reproducible builds:** demonstrate/verify (`build_reproducible`).
 7. **Security engineering:** ship API hardening headers (`hardened_site`, `hardening`), a documented **security review / threat model** (`security_review`), and a **dynamic-analysis** step (`dynamic_analysis`).
 8. **Onboarding:** label beginner-friendly tasks (`small_tasks`).
@@ -86,7 +86,7 @@
 Given the incremental model and the current state:
 
 1. **Passing** — effectively met; **register the badge** at bestpractices.dev, record the secure-development self-assertions, note security fixes in release notes.
-2. **Silver** — roadmap, register helmet, enforce ≥80% coverage + `apps/web` tests, assurance case/threat model, signed releases, refresh stale README.
+2. **Silver** — roadmap, register helmet, enforce ≥80% coverage (extend `apps/web` past its logic-layer tests to its UI), assurance case/threat model, signed releases, refresh stale README.
 3. **Gold** — process maturity: unconditional two-person review + org 2FA, per-file SPDX/copyright, 90/80 coverage, reproducible builds, DAST, a dated security review, and contributor diversity.
 
 Much of the supply-chain and CI-hardening groundwork is already in place (public repo, branch protection, Dependabot + `pnpm audit` gate, `minimumReleaseAge`, SHA-pinned Actions, least-privilege tokens, pinned Docker digests, CodeQL SAST, secret scanning + push protection, betterleaks secret-scan gate, zizmor). The Gold-specific work is concentrated in **coverage**, **per-file licensing**, **contributor/process maturity**, and **runtime security analysis**.
