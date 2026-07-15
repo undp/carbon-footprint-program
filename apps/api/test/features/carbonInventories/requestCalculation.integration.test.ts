@@ -30,6 +30,8 @@ import {
 } from "@repo/database";
 import { ApiErrorResponse } from "../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../src/features/carbonInventories/helpers.js";
+import { requestCalculationService } from "../../../src/features/carbonInventories/requestCalculation/service.js";
+import { CarbonInventoryNotFoundError } from "../../../src/features/carbonInventories/errors.js";
 
 describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tests", () => {
   let app: FastifyInstance;
@@ -206,6 +208,35 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_CANNOT_REQUEST_CALCULATION");
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        requestCalculationService(prisma, "999999999", null)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("treats a null user as an anonymous actor (createdById = null) when submitting", async () => {
+      const { inventory } = await createAccreditedInventory();
+
+      await requestCalculationService(prisma, inventory.id.toString(), null);
+
+      const submissionSubjectCI =
+        await prisma.submissionSubjectCarbonInventory.findUnique({
+          where: { carbonInventoryId: inventory.id },
+          include: { subject: { include: { submissions: true } } },
+        });
+
+      expect(submissionSubjectCI).not.toBeNull();
+      expect(
+        submissionSubjectCI!.subject.submissions[0].createdById
+      ).toBeNull();
     });
   });
 });

@@ -9,10 +9,14 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { CreateMethodologyResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
+import { createMethodologyService } from "@/features/methodologies/createMethodology/service.js";
+import { NoCountryFoundError } from "@/features/methodologies/errors.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 describe("POST /api/methodologies - Integration Tests", () => {
   let app: FastifyInstance;
@@ -257,6 +261,77 @@ describe("POST /api/methodologies - Integration Tests", () => {
         message: string;
       };
       expect(body.code).toBe("METHODOLOGY_NAME_VERSION_ALREADY_EXISTS");
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should set createdById to null when creating without an authenticated user", async () => {
+      const response = await createMethodologyService(
+        prisma,
+        {
+          name: "Test - No User Create",
+          description: "Created with no user",
+          regulation: "Regulation",
+          version: "1.0",
+        },
+        null
+      );
+
+      const dbRecord = await prisma.methodologyVersion.findUnique({
+        where: { id: BigInt(response.id) },
+      });
+      expect(dbRecord!.createdById).toBeNull();
+    });
+
+    it("should throw NoCountryFoundError when the database has no country", async () => {
+      // The `country` table is always seeded in every real deployment; this
+      // guard is a defensive check that cannot be reached through the seeded
+      // test database without deleting all countries (which would cascade
+      // through unrelated seeded data). A minimal stub standing in for the one
+      // call the service makes before any mutation exercises the guard in
+      // isolation, without touching the real DB.
+      const stubPrisma = {
+        country: { findFirst: () => Promise.resolve(null) },
+      } as unknown as PrismaClient;
+
+      await expect(
+        createMethodologyService(
+          stubPrisma,
+          {
+            name: "Test - No Country",
+            description: "desc",
+            regulation: "reg",
+            version: "1.0",
+          },
+          null
+        )
+      ).rejects.toThrow(NoCountryFoundError);
+    });
+
+    it("should rethrow a non-duplicate database error unchanged (foreign key violation)", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const bogusUser = {
+        ...mapUserToResponse(testUser),
+        id: "999999999999",
+      };
+
+      await expect(
+        createMethodologyService(
+          prisma,
+          {
+            name: "Test - FK Violation Create",
+            description: "desc",
+            regulation: "reg",
+            version: "1.0",
+          },
+          bogusUser
+        )
+      ).rejects.toThrow();
+
+      // Cleanup in case the row was somehow created (it should not be).
+      await prisma.methodologyVersion.deleteMany({
+        where: { name: "Test - FK Violation Create" },
+      });
     });
   });
 });

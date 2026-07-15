@@ -10,10 +10,13 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { UpdateMethodologyResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
+import { updateMethodologyService } from "@/features/methodologies/updateMethodology/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 describe("PATCH /api/methodologies/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -238,6 +241,49 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
         message: string;
       };
       expect(body.code).toBe("METHODOLOGY_NAME_VERSION_ALREADY_EXISTS");
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should set updatedById to null when updating without an authenticated user", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - No User Update",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const response = await updateMethodologyService(
+        prisma,
+        methodology.id.toString(),
+        { name: "Test - No User Update Renamed" },
+        null
+      );
+      expect(response.name).toBe("Test - No User Update Renamed");
+
+      const dbRecord = await prisma.methodologyVersion.findUnique({
+        where: { id: methodology.id },
+      });
+      expect(dbRecord!.updatedById).toBeNull();
+    });
+
+    it("should rethrow a non-duplicate database error unchanged (foreign key violation)", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - FK Violation Update",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const testUser = await getTestLoggedUser(prisma);
+      const bogusUser = {
+        ...mapUserToResponse(testUser),
+        id: "999999999999",
+      };
+
+      await expect(
+        updateMethodologyService(
+          prisma,
+          methodology.id.toString(),
+          { name: "Test - FK Violation Update Renamed" },
+          bogusUser
+        )
+      ).rejects.toThrow();
     });
   });
 });

@@ -23,6 +23,7 @@ import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
   CountrySectorStatus,
+  CountrySubsectorStatus,
   OrganizationMainActivityStatus,
 } from "@repo/database";
 import type { UpdateOrganizationMainActivityResponse } from "@repo/types";
@@ -505,6 +506,190 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
         payload: { name: uniqueName("New") },
       });
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("Disconnecting parents explicitly (null)", () => {
+    it("disconnects the sector when countrySectorId is explicitly null", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Sec"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Parented"),
+        countrySectorId: sector.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: null },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.countrySectorId).toBeNull();
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySectorId).toBeNull();
+    });
+
+    it("disconnects the subsector when countrySubsectorId is explicitly null", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Sec"),
+      });
+      const subsector = await createTestCountrySubsector(prisma, sector.id, {
+        name: uniqueName("Sub"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("SubParented"),
+        countrySectorId: sector.id,
+        countrySubsectorId: subsector.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySubsectorId: null },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.countrySubsectorId).toBeNull();
+      // The sector, untouched by the patch, stays as-is.
+      expect(body.countrySectorId).toBe(sector.id.toString());
+    });
+  });
+
+  describe("Subsector not found", () => {
+    it("returns 404 when reparenting to a missing subsector", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("MA"),
+      });
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySubsectorId: "9999999999" },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it("returns 404 when reparenting to a DELETED subsector", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Sec"),
+      });
+      const deadSub = await createTestCountrySubsector(prisma, sector.id, {
+        name: uniqueName("DeadSub"),
+        status: CountrySubsectorStatus.DELETED,
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("MA"),
+      });
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySubsectorId: deadSub.id.toString() },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("Description field", () => {
+    it("updates the description", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("WithDesc"),
+        description: "Old description",
+      });
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { description: "New description" },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.description).toBe("New description");
+    });
+
+    it("clears the description when set to null", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("WithDesc"),
+        description: "Old description",
+      });
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { description: null },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.description).toBeNull();
+    });
+  });
+
+  describe("Duplicate name (DB-level, no pre-check)", () => {
+    it("returns 409 when renaming to a name already used by another ACTIVE activity in the same (sector, subsector) scope", async () => {
+      const name = uniqueName("Taken");
+      await createTestOrganizationMainActivity(prisma, { name });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("Mine"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { name },
+      });
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DATABASE_UNIQUE_CONSTRAINT_VIOLATION");
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.name).not.toBe(name);
+    });
+  });
+
+  describe("Concurrent update racing a concurrent delete", () => {
+    it("returns 404 when the row is soft-deleted by a concurrent request mid-update", async () => {
+      // The rename-only PATCH runs several extra queries (reference guard) before
+      // its own final, ACTIVE-scoped UPDATE, while DELETE is a single statement —
+      // giving the concurrent DELETE a strong chance to commit first, so PATCH's
+      // final UPDATE (scoped to status=ACTIVE) matches zero rows and its P2025
+      // catch branch fires instead of succeeding.
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("RaceVictim"),
+      });
+
+      const [patchResponse, deleteResponse] = await Promise.all([
+        app.inject({
+          method: "PATCH",
+          url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+          payload: { name: uniqueName("RenamedTooLate") },
+        }),
+        app.inject({
+          method: "DELETE",
+          url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        }),
+      ]);
+
+      expect(deleteResponse.statusCode).toBe(200);
+      // Whichever request actually wrote last, the row can only end up in one of
+      // two consistent states — confirm the PATCH response matches reality
+      // instead of asserting a single fixed status code (this specific race
+      // favors DELETE winning, but never both succeeding as if unguarded).
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.status).toBe(OrganizationMainActivityStatus.DELETED);
+      expect([200, 404]).toContain(patchResponse.statusCode);
     });
   });
 });

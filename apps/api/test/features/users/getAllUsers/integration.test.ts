@@ -8,9 +8,19 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
+import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { createTestMembership } from "@test/factories/membershipFactory.js";
 import type { GetAllUsersResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  type PrismaClient,
+  OrganizationStatus,
+  OrganizationDataStatus,
+  SubmissionStatus,
+} from "@repo/database";
+import { OrganizationRole, MembershipStatus } from "@repo/database/enums";
 
 describe("GET /api/users - Integration Tests", () => {
   let app: FastifyInstance;
@@ -36,6 +46,14 @@ describe("GET /api/users - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Clean up org-membership fixtures before the users/orgs they reference
+    await prisma.userOrganizationMembership.deleteMany();
+    await prisma.submission.deleteMany();
+    await prisma.submissionSubjectOrganizationData.deleteMany();
+    await prisma.submissionSubject.deleteMany();
+    await prisma.organizationData.deleteMany();
+    await prisma.organization.deleteMany();
+
     // Clean up test users after each test
     await prisma.user.deleteMany({
       where: {
@@ -208,6 +226,181 @@ describe("GET /api/users - Integration Tests", () => {
       expect(user!.lastName).toBeNull();
       expect(user!.idpUserId).toBeNull();
       expect(user!.idpName).toBeNull();
+    });
+  });
+
+  describe("Job position derivation", () => {
+    it("should return jobPositionName null when the user has no country job position", async () => {
+      await prisma.user.create({
+        data: {
+          email: "nojobposition@test.example.com",
+          countryJobPositionId: null,
+          firstName: "No",
+          lastName: "Job",
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({ method: "GET", url: "/api/users" });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllUsersResponse;
+      const user = body.find(
+        (u) => u.email === "nojobposition@test.example.com"
+      );
+      expect(user).toBeDefined();
+      expect(user!.countryJobPositionId).toBeNull();
+      expect(user!.jobPositionName).toBeNull();
+    });
+  });
+
+  describe("Organization membership derivation", () => {
+    it("should include the organization name from an accredited org's summary", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const user = await prisma.user.create({
+        data: {
+          email: "orgmember@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Org",
+          lastName: "Member",
+          updatedAt: null,
+        },
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: OrganizationDataStatus.ACTIVE,
+        tradeName: "Acme Trading Co",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        user.id
+      );
+      await createTestMembership(prisma, user.id, org.id, {
+        role: OrganizationRole.ADMIN,
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({ method: "GET", url: "/api/users" });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllUsersResponse;
+      const found = body.find((u) => u.email === "orgmember@test.example.com");
+      expect(found).toBeDefined();
+      expect(found!.organizations).toHaveLength(1);
+      expect(found!.organizations[0].organizationId).toBe(org.id.toString());
+      expect(found!.organizations[0].organizationName).toBe("Acme Trading Co");
+      expect(found!.organizations[0].role).toBe(OrganizationRole.ADMIN);
+    });
+
+    it("should fall back to an empty organizationName when the org has no summary", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const user = await prisma.user.create({
+        data: {
+          email: "nosummary@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "No",
+          lastName: "Summary",
+          updatedAt: null,
+        },
+      });
+      // No organizationData/accreditation submission is created for this org,
+      // so organization_summary_view has no row for it (summary is null).
+      await createTestMembership(prisma, user.id, org.id, {
+        role: OrganizationRole.VIEWER,
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({ method: "GET", url: "/api/users" });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllUsersResponse;
+      const found = body.find((u) => u.email === "nosummary@test.example.com");
+      expect(found).toBeDefined();
+      expect(found!.organizations).toHaveLength(1);
+      expect(found!.organizations[0].organizationName).toBe("");
+    });
+  });
+
+  describe("Active/inactive derivation", () => {
+    it("should mark the user as active when lastAccessAt is within the threshold", async () => {
+      await prisma.user.create({
+        data: {
+          email: "recentaccess@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Recent",
+          lastName: "Access",
+          lastAccessAt: new Date(),
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({ method: "GET", url: "/api/users" });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllUsersResponse;
+      const found = body.find(
+        (u) => u.email === "recentaccess@test.example.com"
+      );
+      expect(found).toBeDefined();
+      expect(found!.active).toBe(true);
+    });
+
+    it("should mark the user as inactive when lastAccessAt is older than the threshold", async () => {
+      const staleDate = new Date();
+      staleDate.setDate(staleDate.getDate() - 9999);
+
+      await prisma.user.create({
+        data: {
+          email: "staleaccess@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Stale",
+          lastName: "Access",
+          lastAccessAt: staleDate,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({ method: "GET", url: "/api/users" });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllUsersResponse;
+      const found = body.find(
+        (u) => u.email === "staleaccess@test.example.com"
+      );
+      expect(found).toBeDefined();
+      expect(found!.active).toBe(false);
+    });
+  });
+
+  describe("Application configuration errors", () => {
+    it("should return 500 when USER_INACTIVE_THRESHOLD_DAYS is misconfigured", async () => {
+      const original = await prisma.systemParameter.findUniqueOrThrow({
+        where: { key: "USER_INACTIVE_THRESHOLD_DAYS" },
+      });
+
+      try {
+        await prisma.systemParameter.update({
+          where: { key: "USER_INACTIVE_THRESHOLD_DAYS" },
+          data: { value: "not-a-number" },
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/users",
+        });
+
+        expect(response.statusCode).toBe(500);
+      } finally {
+        await prisma.systemParameter.update({
+          where: { key: "USER_INACTIVE_THRESHOLD_DAYS" },
+          data: { value: original.value },
+        });
+      }
     });
   });
 });

@@ -17,6 +17,7 @@ import { cleanupTestSubmissions } from "@test/factories/submissionFactory.js";
 import type { FastifyInstance } from "fastify";
 import { type PrismaClient, InventoryStatus } from "@repo/database";
 import type { GetCarbonInventoriesMinimalResponse } from "@repo/types";
+import { getCarbonInventoriesMinimalService } from "@/features/carbonInventories/getCarbonInventoriesMinimal/service.js";
 
 describe("GET /api/carbon-inventories/minimal - Integration Tests", () => {
   let app: FastifyInstance;
@@ -146,6 +147,53 @@ describe("GET /api/carbon-inventories/minimal - Integration Tests", () => {
 
       expect(body).toHaveLength(1);
       expect(body[0].id).toBe(activeInventory.id.toString());
+    });
+  });
+
+  describe("statuses query filter", () => {
+    it("filters results down to the requested display statuses", async () => {
+      const draftInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: 2024 }
+      );
+      const selfDeclaredInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: 2024, isSelfDeclared: true }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories/minimal?statuses=DRAFT",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoriesMinimalResponse;
+
+      const ids = body.map((inv) => inv.id);
+      expect(ids).toContain(draftInventory.id.toString());
+      expect(ids).not.toContain(selfDeclaredInventory.id.toString());
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    it("returns inventories regardless of creator/membership when user is null (anonymous)", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: 2024 }
+      );
+
+      const result = await getCarbonInventoriesMinimalService(
+        prisma,
+        null,
+        null
+      );
+
+      expect(result.map((inv) => inv.id)).toContain(inventory.id.toString());
     });
   });
 });

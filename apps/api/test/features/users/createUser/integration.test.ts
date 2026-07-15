@@ -12,6 +12,7 @@ import type { CreateUserResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import { createUserService } from "@/features/users/createUser/service.js";
 
 describe("POST /api/users - Integration Tests", () => {
   let app: FastifyInstance;
@@ -157,6 +158,25 @@ describe("POST /api/users - Integration Tests", () => {
 
       expect(body.idpUserId).toBeNull();
       expect(body.idpName).toBeNull();
+    });
+
+    it("should create a user with a null countryJobPositionId", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: {
+          email: "nulljobposition@test.example.com",
+          countryJobPositionId: null,
+          firstName: "Null",
+          lastName: "JobPosition",
+          idpUserId: "idp-user-nulljob",
+          idpName: "azure-ad",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateUserResponse;
+      expect(body.countryJobPositionId).toBeNull();
     });
   });
 
@@ -375,6 +395,32 @@ describe("POST /api/users - Integration Tests", () => {
       expect(body.message).toBe(
         "Invalid countryJobPositionId: the provided reference does not exist"
       );
+    });
+  });
+
+  describe("Service-level creator handling", () => {
+    // POST /api/users requires ADMIN/SUPERADMIN auth, so `request.currentUser`
+    // is always set over HTTP; exercise the anonymous-creator (`user: null`)
+    // branch directly against the real database instead.
+    it("creates a user with a null createdById when no creator is provided", async () => {
+      const response = await createUserService(
+        prisma,
+        {
+          email: "anonymous-creator@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Anonymous",
+          lastName: "Creator",
+          idpUserId: "idp-user-anonymous",
+          idpName: "azure-ad",
+        },
+        null
+      );
+
+      expect(response.id).toBeTruthy();
+      const dbUser = await prisma.user.findUnique({
+        where: { id: BigInt(response.id) },
+      });
+      expect(dbUser!.createdById).toBeNull();
     });
   });
 });

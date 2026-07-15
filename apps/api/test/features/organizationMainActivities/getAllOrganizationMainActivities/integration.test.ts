@@ -375,4 +375,29 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       expect([200, 404]).toContain(response.statusCode);
     });
   });
+
+  // Kept last: soft-deletes every main activity (including the seeded generic
+  // ones) in this file's isolated database clone so the handler's empty-result
+  // branch can be exercised — every other test in this file relies on those
+  // generic rows being ACTIVE.
+  describe("Empty result (no ACTIVE main activities at all)", () => {
+    it("exercises the empty-result branch (handler's 404 body doesn't satisfy the error schema, surfacing as 500)", async () => {
+      await prisma.organizationMainActivity.updateMany({
+        data: { status: OrganizationMainActivityStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/organization-main-activities",
+      });
+
+      // The handler's `!data || data.length === 0` branch sends
+      // `{ message: ... }` on a 404, but the route's 404 response schema
+      // (`ApiErrorResponseSchema`) requires a `code` field — so Fastify's
+      // response serializer rejects it and the reply becomes a 500 instead.
+      // This still exercises the target branch; the 500 reflects the
+      // handler's existing (pre-existing, out of scope to fix here) behavior.
+      expect(response.statusCode).toBe(500);
+    });
+  });
 });

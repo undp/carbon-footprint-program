@@ -94,6 +94,34 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
       expect(body!.rate).toBeGreaterThanOrEqual(0);
       expect(typeof body!.activityName).toBe("string");
     });
+
+    it("falls back to the default activity name when mainActivityId does not resolve to a row", async () => {
+      const inventory = await createInventoryWithEmissions(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+        organizationData: {
+          name: "Test Org",
+          sectorId: null,
+          subsectorId: null,
+          sizeId: null,
+          mainActivityId: "999999999",
+          mainActivityQuantity: 100,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/main-activity-equivalence`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMainActivityEquivalenceResponse;
+
+      expect(body).not.toBeNull();
+      expect(body!.activityName).toBe("actividad principal");
+    });
   });
 
   describe("Error handling", () => {

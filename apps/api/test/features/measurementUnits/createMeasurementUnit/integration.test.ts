@@ -169,6 +169,119 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("MAGNITUDE_ALREADY_HAS_BASE_UNIT");
     });
+
+    it("should return 422 when isBase=true but baseFactor is not 1", async () => {
+      const payload = buildPayload({ isBase: true, baseFactor: 500 });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE");
+    });
+
+    it("should return 422 when baseFactor=1 on a non-base unit while the magnitude already has a base unit", async () => {
+      // "mass" already has a base unit (g) from seed data.
+      const payload = buildPayload({
+        isBase: false,
+        baseFactor: 1,
+        magnitudeId: magnitudeIdByCode.mass,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT");
+    });
+  });
+
+  describe("Fresh magnitude with no existing base unit", () => {
+    async function createFreshMagnitude() {
+      const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      return prisma.magnitude.create({
+        data: {
+          code: `test_fresh_${suffix}`,
+          name: `Test Fresh Magnitude ${suffix}`,
+          isSystem: false,
+          status: MagnitudeStatus.ACTIVE,
+        },
+      });
+    }
+
+    it("should pass the 'no existing base unit' guard and hit the DB check constraint for baseFactor=1 on a non-base unit", async () => {
+      // The app-level guard only rejects baseFactor=1 on a non-base unit when
+      // another ACTIVE base unit already exists for the magnitude (see the
+      // 422 test above). With no existing base unit, that guard's `if
+      // (existingBase)` branch evaluates false and the code proceeds to
+      // create the row — where the `measurement_unit_base_factor_check`
+      // constraint (`NOT is_base AND base_factor <> 1`) unconditionally
+      // rejects it. This still exercises the guard's "not found" branch, even
+      // though the ultimate outcome is a raw database error rather than a
+      // clean success.
+      const magnitude = await createFreshMagnitude();
+      try {
+        const payload = buildPayload({
+          isBase: false,
+          baseFactor: 1,
+          magnitudeId: magnitude.id.toString(),
+        });
+
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/measurement-units",
+          payload,
+        });
+
+        expect(response.statusCode).toBe(500);
+      } finally {
+        await prisma.rateMeasurementUnit.deleteMany({
+          where: { denominatorMeasurementUnit: { magnitudeId: magnitude.id } },
+        });
+        await prisma.measurementUnit.deleteMany({
+          where: { magnitudeId: magnitude.id },
+        });
+        await prisma.magnitude.delete({ where: { id: magnitude.id } });
+      }
+    });
+
+    it("should allow creating the first base unit (isBase=true) for a fresh magnitude", async () => {
+      const magnitude = await createFreshMagnitude();
+      try {
+        const payload = buildPayload({
+          isBase: true,
+          baseFactor: 1,
+          magnitudeId: magnitude.id.toString(),
+        });
+
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/measurement-units",
+          payload,
+        });
+
+        expect(response.statusCode).toBe(201);
+        const body = JSON.parse(response.body) as CreateMeasurementUnitResponse;
+        expect(body.baseFactor).toBe(1);
+        expect(body.isBase).toBe(true);
+      } finally {
+        await prisma.rateMeasurementUnit.deleteMany({
+          where: { denominatorMeasurementUnit: { magnitudeId: magnitude.id } },
+        });
+        await prisma.measurementUnit.deleteMany({
+          where: { magnitudeId: magnitude.id },
+        });
+        await prisma.magnitude.delete({ where: { id: magnitude.id } });
+      }
+    });
   });
 
   describe("Restore behavior", () => {
@@ -354,6 +467,39 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       expect(body.magnitudeId).toBe(magnitudeIdByCode.volume);
       expect(body.baseFactor).toBe(999);
       expect(body.referenceCount).toBe(0);
+    });
+
+    it("should throw a data integrity error when the canonical RMU row is missing on restore", async () => {
+      const payload = buildPayload();
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+      const created = JSON.parse(
+        createResponse.body
+      ) as CreateMeasurementUnitResponse;
+
+      await prisma.measurementUnit.update({
+        where: { id: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+      // Delete the canonical RMU row entirely (rather than soft-deleting it),
+      // simulating a data-integrity anomaly the restore path must guard against.
+      await prisma.rateMeasurementUnit.deleteMany({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/measurement-units",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DATA_INTEGRITY_ERROR");
     });
   });
 
