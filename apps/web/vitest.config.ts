@@ -51,21 +51,22 @@ export default defineConfig({
         "src/main.tsx",
         "src/routeTree.gen.ts",
       ],
-      // Low global floor set just below the current level (lines ~5.09%,
-      // statements ~5.18%, functions ~2.94%, branches ~5.34% — the Wave 1 util
-      // tests, the Wave 2 access-hook + store tests, and the getApiErrorMessage
-      // tests already on main via #508). This is a regression guard, not a
-      // coverage target: `coverage.all` counts every file under `include`, so
-      // the percentages are global and the app is ~98% untested UI. The floor
-      // prevents backsliding and should keep being ratcheted UP as the logic
-      // layers (utils/, hooks/, stores/, components/Chatbot/) gain tests —
-      // raise coverage, don't just bump the number. The headroom below current
-      // absorbs an unrelated untested feature landing without tripping the gate.
+      // Low global floor set just below the current level (lines ~6.19%,
+      // statements ~6.29%, functions ~3.63%, branches ~5.93% — Wave 1 utils,
+      // Wave 2 access-hooks + stores, Wave 3 label/chip mappers, Wave 4 Chatbot
+      // module, and the getApiErrorMessage tests already on main via #508).
+      // This is a regression guard, not a coverage target: `coverage.all`
+      // counts every file under `include`, so the percentages are global and
+      // the app is ~98% untested UI. The floor prevents backsliding and should
+      // keep being ratcheted UP as the logic layers (utils/, hooks/, stores/,
+      // components/Chatbot/) gain tests — raise coverage, don't just bump the
+      // number. The headroom below current absorbs an unrelated untested
+      // feature landing without tripping the gate.
       thresholds: {
-        lines: 4.7,
-        statements: 4.7,
-        functions: 2.6,
-        branches: 4.7,
+        lines: 5.7,
+        statements: 5.7,
+        functions: 3.3,
+        branches: 5.5,
       },
     },
   },
