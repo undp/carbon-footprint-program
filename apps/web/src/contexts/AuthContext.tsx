@@ -11,6 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
+import { useMergeOnboardingCompletionsOnLogin } from "../hooks/useMergeOnboardingCompletionsOnLogin";
 import { enqueueSnackbar } from "notistack";
 import { queryClient } from "@/api/query/client";
 import { userKeys } from "@/api/query/users/keys";
@@ -57,6 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, refetchUser, isUserError, userError } = useInitializeUser({
     isAuthenticated,
   });
+
+  // Merge any onboarding completions recorded while anonymous into the DB once
+  // the user logs in (AuthProvider owns the auth + /me lifecycle).
+  useMergeOnboardingCompletionsOnLogin();
 
   // Ref guard: ensures cleanup runs once per login failure even if the effect
   // re-runs while React Query is still in its error state.
