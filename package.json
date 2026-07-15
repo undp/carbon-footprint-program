@@ -17,6 +17,7 @@
     "start:api": "turbo run start --filter=api",
     "start:web": "turbo run start --filter=web",
     "test": "pnpm test:base && pnpm test:storage-azure && pnpm test:storage-minio",
+    "test:seed": "turbo run test --filter=@repo/seed",
     "test:base": "turbo run test:base --filter=api",
     "test:storage-azure": "turbo run test:storage-azure --filter=api",
     "test:storage-minio": "turbo run test:storage-minio --filter=api",
