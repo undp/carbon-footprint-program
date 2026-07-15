@@ -189,7 +189,7 @@ The Landing route now:
 
 ## Manual verification
 
-There is no automated coverage for these paths today (the web app's test setup is light). To verify the behavior manually:
+The `requireRole` guard's logic is unit-tested (`apps/web/src/utils/requireRole.test.ts` — the redirect, the `/users/me`-failure cleanup, and the `authError` forwarding). The end-to-end runtime behavior below — the `AuthContext` effect and Landing param handling in the live app — is not yet covered, so verify it manually:
 
 1. **Regular login failure**: log in, then block `/users/me` in devtools (request blocking → return 500) and trigger a refetch. Expect: redirect to `/`, error snackbar, OIDC session cleared.
 2. **Deep-link failure**: with the same `/users/me` block in place, navigate directly to a protected route (e.g. `/app/...`). Expect: redirect to `/?authError=login_failed`, error snackbar, URL cleaned to `/` after the param is read.
@@ -200,7 +200,7 @@ There is no automated coverage for these paths today (the web app's test setup i
 
 ## Known gaps and follow-ups
 
-- **No automated tests**. The two paths and the Landing param handling should be covered when the web test setup grows.
+- **Partial automated coverage**. The `requireRole` guard is unit-tested; the `AuthContext` effect and the Landing param handling are not yet covered — worth adding component/E2E tests.
 - **Possible duplicate snackbar**: if both paths run for the same failure (e.g. `AuthContext` effect races with a guarded navigation), the user may see the snackbar twice. The `hasHandledLoginFailureRef` only deduplicates within `AuthContext`; it does not coordinate with the Landing param effect. Worth verifying.
 - **No retry/backoff for transient `/users/me` failures**. Current behavior is "fail closed, redirect to Landing". This is intentional — a real transient failure becomes a re-login by the user — but should be revisited if the API proves unreliable in deployment.
 

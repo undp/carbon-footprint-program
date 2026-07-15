@@ -272,4 +272,4 @@ Deployment target: Azure Static Web Apps. See [Frontend Deployment](../infrastru
 
 ## Testing
 
-The frontend currently has a placeholder `test` script but no frontend tests. Adding component tests (Vitest + React Testing Library) is tracked in [Refactoring Opportunities](../REFACTORING_OPPORTUNITIES.md).
+The frontend is tested with **Vitest + jsdom + React Testing Library**, co-located `*.test.ts(x)` next to the source. Coverage focuses on the logic layers — `utils/`, `hooks/`, `stores/`, the `labels/chips/` mappers, and the Chatbot module — each near-100%, behind a global coverage floor enforced in CI (`apps/web/vitest.config.ts`). Render-heavy `screens/`/`components/` and browser E2E are not yet covered. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).
