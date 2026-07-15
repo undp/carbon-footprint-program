@@ -366,5 +366,6 @@ true` always evaluates truthy). This is deliberate: the suite is partitioned
 > runs). The **real gate is not disabled** — it runs in CI's `coverage` job, where
 > [`scripts/check-coverage.mjs`](../../scripts/check-coverage.mjs) **merges** the
 > three legs' Istanbul reports (a line covered by _any_ leg counts) and fails if
-> any metric falls below its threshold: **90%** lines/statements/functions, **85%**
-> branches. See the [`coverage` job](./ci-cd.md#coverage) in the CI/CD guide.
+> any metric falls below its threshold: **90%** for all four metrics — lines,
+> statements, functions, and branches. See the [`coverage` job](./ci-cd.md#coverage)
+> in the CI/CD guide.

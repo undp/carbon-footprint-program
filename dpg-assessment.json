@@ -92,7 +92,7 @@
       },
       "testing_cicd": {
         "rating": "adequate",
-        "evidence": "apps/api Vitest+Testcontainers integration suite (90% statement / 85% branch coverage gate merged across CI legs) plus an apps/web Vitest+jsdom+React Testing Library unit suite over the logic layers (utils, hooks, stores, label mappers, Chatbot module) behind an enforced coverage floor; hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
+        "evidence": "apps/api Vitest+Testcontainers integration suite (90% statement / 90% branch coverage gate merged across CI legs) plus an apps/web Vitest+jsdom+React Testing Library unit suite over the logic layers (utils, hooks, stores, label mappers, Chatbot module) behind an enforced coverage floor; hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
       },
       "observability": {
         "rating": "adequate",
