@@ -28,6 +28,7 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
         const reductionProjectId = (request.params as Record<string, string>)
           .id;
 
+        /* v8 ignore next -- unreachable: every route wiring this hook supplies :id */
         if (!reductionProjectId) {
           log.warn(
             "Reduction project authorization check failed: reduction project ID not found"
