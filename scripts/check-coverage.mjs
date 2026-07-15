@@ -14,10 +14,11 @@
 // real gate; Vitest's own thresholds stay at 0 (informational only — see
 // apps/api/vitest.shared.ts for why).
 //
-// Thresholds are per-metric; all four (lines/statements/functions/branches) are
-// held to 80%. Each is overridable via env: COVERAGE_THRESHOLD_LINES /
-// _STATEMENTS / _FUNCTIONS / _BRANCHES. A bare COVERAGE_THRESHOLD (no suffix)
-// overrides the default for every metric that lacks its own per-metric override.
+// Thresholds are per-metric: lines/statements/functions are held to 90% and
+// branches to 80% (branch coverage is inherently harder to drive to the same
+// bar). Each is overridable via env: COVERAGE_THRESHOLD_LINES / _STATEMENTS /
+// _FUNCTIONS / _BRANCHES. A bare COVERAGE_THRESHOLD (no suffix) overrides the
+// default for every metric that lacks its own per-metric override.
 //
 // Usage: node scripts/check-coverage.mjs [dir]
 //   [dir] defaults to "coverage-artifacts" and is searched recursively for
@@ -28,11 +29,11 @@ import libCoverage from "istanbul-lib-coverage";
 
 const { createCoverageMap, createCoverageSummary } = libCoverage;
 
-// Per-metric defaults. All four metrics are held to the same 80% bar.
+// Per-metric defaults. Lines/statements/functions sit at 90%; branches at 80%.
 const DEFAULT_THRESHOLDS = {
-  lines: 80,
-  statements: 80,
-  functions: 80,
+  lines: 90,
+  statements: 90,
+  functions: 90,
   branches: 80,
 };
 
