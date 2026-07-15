@@ -90,8 +90,15 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
     type: 'SystemAssigned'
   }
   properties: {
+    // Enforce HTTPS: the platform 301-redirects any plain HTTP to HTTPS and stops
+    // serving the HTTP listener. Required by UNDP Defender for Cloud policy. Safe here
+    // because the API is only ever reached over HTTPS (ALLOWED_ORIGIN + front are https,
+    // and *.azurewebsites.net ships a managed cert by default).
+    httpsOnly: true
     serverFarmId: appServicePlan.id
     siteConfig: {
+      // Reject TLS below 1.2 (companion hardening to httpsOnly).
+      minTlsVersion: '1.2'
       linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: useAcrManagedIdentity
       cors: {
