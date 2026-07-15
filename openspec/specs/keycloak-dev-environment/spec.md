@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change generic-oidc-auth-provider. Update Purpose after archive.
+This capability provides a local Keycloak identity provider and a reproducible realm import in docker-compose, so developers can exercise the generic OIDC flow without depending on an external IdP. It exposes an issuer that stays consistent between the browser and the API despite the container/host hostname split, a public PKCE client, an audience mapper for the API, and self-registration with email as username — giving a fully self-contained, reproducible auth environment for development.
 
 ## Requirements
 

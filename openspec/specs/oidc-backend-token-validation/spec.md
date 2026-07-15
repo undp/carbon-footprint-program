@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change generic-oidc-auth-provider. Update Purpose after archive.
+This capability lets the API accept bearer tokens from any environment-configured OIDC issuer that emits the required claims, via the generic `jwks` provider with no vendor-specific validation path. It defines the issuer / JWKS-URI / audience contract, the browser-vs-API hostname split, and generic scope handling that reads `payload.scp ?? payload.scope` while keeping `JWKS_REQUIRED_SCOPE` enforced — so tokens from different IdP dialects (e.g. Entra External ID and Keycloak) validate under one code path.
 
 ## Requirements
 

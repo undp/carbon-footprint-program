@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change add-storage-adapter-minio. Update Purpose after archive.
+This capability provides backend-agnostic object storage for the platform: presigned read/write URL issuance plus head, stream, put, delete, and copy primitives and a health check, all exposed through a single `StorageAdapter` contract. The concrete backend — Azure Blob Storage or MinIO — is selected per deployment at startup via the `STORAGE_PROVIDER` environment variable, so a country deployment chooses its object store through configuration rather than a code fork. It also defines the `HttpUploadMethod` enum and the upload-response shape (`uploadMethod` + `uploadHeaders`) returned by `requestUpload`-style endpoints, so clients upload without hard-coding provider-specific behaviour.
 
 ## Requirements
 

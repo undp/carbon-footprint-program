@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change generic-oidc-auth-provider. Update Purpose after archive.
+This capability lets the web application obtain and renew tokens from any OIDC issuer chosen by environment variable, so the identity provider is swappable per deployment instead of being hard-coupled to a single vendor. A singleton `UserManager` is the source of truth for the session outside React and is shared by the `requireRole` route guard and the `ky` HTTP client. It covers Authorization Code + PKCE redirect login, federated logout, automatic silent renew via refresh token, a public `/auth/callback` route resolved before the `/app` and `/admin` guards, `returnTo`-based post-login navigation carried in the OIDC `state`, session-recovery mapping, and the redirect-based save-draft flow.
 
 ## Requirements
 

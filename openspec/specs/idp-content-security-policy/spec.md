@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change generic-oidc-auth-provider. Update Purpose after archive.
+This capability defines a build-time, environment-driven Content-Security-Policy in the nginx runtime image whose `connect-src`, `form-action`, and `frame-src` directives permit the configured identity provider's domain. The IdP origin is derived from the OIDC issuer via a build ARG and baked into the image at build time, so no manual per-deployment CSP edit is needed when the issuer changes. It is scoped to the on-prem nginx deploy path; Azure Static Web Apps is explicitly out of scope and remains Azure-only, documented as a follow-up.
 
 ## Requirements
 

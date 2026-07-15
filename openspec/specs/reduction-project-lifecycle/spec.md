@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change reduction-project-draft-status. Update Purpose after archive.
+This capability defines the DRAFT → SUBMITTED → APPROVED/REJECTED/REVIEWED lifecycle of a reduction project, mirroring the carbon-inventory verification flow. It covers the derived display status, savable partial drafts (create persists a draft with no submission), the explicit request-verification submit path used for both first submission and post-review re-submission, draft-only soft-delete, and the authorization rules governing edit, submit, and delete — including the destination-org membership check that closes the cross-tenant re-parenting gap.
 
 ## Requirements
 
