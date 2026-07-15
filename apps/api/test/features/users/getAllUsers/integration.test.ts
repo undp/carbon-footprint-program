@@ -395,6 +395,12 @@ describe("GET /api/users - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(500);
+        // The handler catches the underlying ApplicationConfigError and maps it
+        // to a generic 500 body, so assert that stable shape to confirm the
+        // misconfiguration surfaced through this handler's catch path rather
+        // than as an incidental, unrelated 500.
+        const body = JSON.parse(response.body) as { error: string };
+        expect(body.error).toBe("Failed to retrieve users");
       } finally {
         await prisma.systemParameter.update({
           where: { key: "USER_INACTIVE_THRESHOLD_DAYS" },
