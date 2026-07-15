@@ -39,10 +39,7 @@ const DEFAULT_MAX_EVENT_LOOP_UTILIZATION = 0.9;
  * a malformed override must never silently disable load shedding by producing
  * `NaN` thresholds.
  */
-export const parseNumericEnv = (
-  raw: string | undefined,
-  fallback: number
-): number => {
+const parseNumericEnv = (raw: string | undefined, fallback: number): number => {
   if (raw === undefined) return fallback;
   const trimmed = raw.trim();
   if (trimmed.length === 0) return fallback;
