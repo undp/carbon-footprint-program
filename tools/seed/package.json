@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "seed": "tsx src/seed.ts",
+    "test": "vitest run",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rimraf .turbo"
@@ -25,6 +26,7 @@
     "eslint": "catalog:shared",
     "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
-    "typescript": "catalog:shared"
+    "typescript": "catalog:shared",
+    "vitest": "catalog:shared"
   }
 }

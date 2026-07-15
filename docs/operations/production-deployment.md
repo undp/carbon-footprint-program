@@ -110,7 +110,7 @@ dcp --profile migrate run --rm migrate
 dcp --profile seed run --rm seed
 ```
 
-> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows, and the badge/terms seeds individually skip (with a warning) when storage is not configured for the selected `STORAGE_PROVIDER` (i.e. `STORAGE_PROVIDER` unset, or the provider's `AZURE_STORAGE_*` / `MINIO_*` vars unset or incomplete). Combined: if the first `seed` run happens **without** working storage vars, badges and terms & conditions are never seeded and **re-running is a permanent no-op**. Recovering afterwards requires DBA-level cleanup. Set `STORAGE_PROVIDER` and its storage vars in the env file before the first seed run.
+> ⚠️ **Seed one-shot warning** — the seed skips entirely once the `country` table has rows. Object storage is **required** for this seed (it uploads the badge SVGs and the terms & conditions PDF): before writing anything, the seed preflights storage and **fails fast (exit 1) with nothing written** if `STORAGE_PROVIDER` is unset, its `AZURE_STORAGE_*` / `MINIO_*` vars are incomplete, or the configured backend is unreachable (wrong endpoint/credentials, bucket/container missing). A failed preflight leaves the database untouched, so once you fix the storage config the seed re-runs cleanly. Set `STORAGE_PROVIDER` and its storage block in the env file **before** the first seed run.
 
 ### Manual alternative (pnpm, from a dev machine)
 
