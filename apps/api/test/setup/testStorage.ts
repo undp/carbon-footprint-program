@@ -109,17 +109,15 @@ async function setupMinioTestStorage(): Promise<{
 }
 
 /**
- * Starts the storage testcontainer matching `STORAGE_PROVIDER`.
- * Defaults to Azure Blob (Azurite) when the env var is unset, to preserve the
- * existing developer workflow.
+ * Starts the storage testcontainer for the given provider. The provider is
+ * chosen by the caller (globalSetup, from the Vitest project name) rather than
+ * read from `process.env`, so the three projects can boot different providers in
+ * a single run without contending on a shared env var.
  */
-export async function setupTestStorage(): Promise<{
+export async function setupTestStorage(provider: StorageProvider): Promise<{
   descriptor: TestStorageDescriptor;
   container: TestStorageContainer;
 }> {
-  const provider = (process.env.STORAGE_PROVIDER ??
-    StorageProvider.AZURE_BLOB_STORAGE) as StorageProvider;
-
   if (provider === StorageProvider.MINIO) {
     return setupMinioTestStorage();
   }
@@ -127,6 +125,6 @@ export async function setupTestStorage(): Promise<{
     return setupAzureTestStorage();
   }
   throw new Error(
-    `Invalid STORAGE_PROVIDER for tests: "${String(provider)}". Expected ${Object.values(StorageProvider).join(" or ")}.`
+    `Invalid storage provider for tests: "${String(provider)}". Expected ${Object.values(StorageProvider).join(" or ")}.`
   );
 }
