@@ -32,6 +32,9 @@ import {
 } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import { getCarbonInventoryAccessService } from "@/features/carbonInventories/getCarbonInventoryAccess/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
   let app: FastifyInstance;
@@ -239,5 +242,49 @@ describe("GET /api/carbon-inventories/:id/access - Integration Tests", () => {
     const body = JSON.parse(response.body) as GetCarbonInventoryAccessResponse;
     expect(body.canEdit).toBe(false);
     expect(body.membership).toEqual({ role: OrganizationRole.CONTRIBUTOR });
+  });
+
+  describe("Error handling", () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 for a non-existent inventory", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories/999999999/access",
+      });
+
+      expect(response.statusCode).toBe(403);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getCarbonInventoryAccessService(prisma, "999999999", null)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("resolves access for an anonymous caller (userId = null)", async () => {
+      const testUser = await getTestLoggedUser(prisma);
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { createdById: testUser.id }
+      );
+
+      const result = await getCarbonInventoryAccessService(
+        prisma,
+        inventory.id.toString(),
+        null
+      );
+
+      expect(result.membership).toBeNull();
+    });
   });
 });

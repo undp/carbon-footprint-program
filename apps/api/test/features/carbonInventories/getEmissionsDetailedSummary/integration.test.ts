@@ -19,10 +19,23 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
+import { IconNameSchema } from "@repo/types";
+import type {
+  GetEmissionsDetailedSummaryResponse,
+  OrganizationDataField,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import type {
+  InventoryBase,
+  CategoryData,
+} from "@/features/carbonInventories/helpers.js";
+import {
+  resolveInventoryAttributes,
+  calculateEquivalence,
+  buildGHGBreakdown,
+} from "@/features/carbonInventories/getEmissionsDetailedSummary/helper.js";
 
 type SummarySubcategory =
   GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
@@ -312,6 +325,454 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
+    });
+
+    it("should return 500 DATA_INTEGRITY_ERROR when organizationData fails schema validation", async () => {
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+      // `.strict()` schema rejects unknown keys — write a value that bypasses
+      // app-level validation directly through Prisma to simulate corrupted data.
+      await prisma.carbonInventory.update({
+        where: { id: inventory.id },
+        data: { organizationData: { unexpectedField: "oops" } },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emissions-summary`,
+      });
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DATA_INTEGRITY_ERROR");
+    });
+  });
+
+  describe("Lines without an active input", () => {
+    it("excludes a line that has no active input from the response's lines list", async () => {
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+      const [subId] = await getSubcategoryIds(prisma, methodologyVersionId);
+      const completeLine = await createCompleteLine(inventory.id, subId, 1000);
+      // A raw line with zero inputs (e.g. created via "add subcategory") still
+      // counts as an ACTIVE line for the subtotals view, but has no input row.
+      const emptyLine = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subId
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emissions-summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionsDetailedSummaryResponse;
+
+      const subcategory = flattenSubcategories(body).find(
+        (s) => s.id === subId.toString()
+      );
+      expect(subcategory).toBeDefined();
+      const lineIds = subcategory!.lines.map((l) => l.lineId);
+      expect(lineIds).toContain(completeLine.id.toString());
+      expect(lineIds).not.toContain(emptyLine.id.toString());
+    });
+  });
+
+  describe("resolveInventoryAttributes (unit)", () => {
+    it("resolves sector, subsector, size, and main activity names, preferring the organization summary name for companyName", async () => {
+      const sector = await prisma.countrySector.findFirst();
+      const subsector = await prisma.countrySubsector.findFirst();
+      const size = await prisma.countryOrganizationSize.findFirst();
+      const mainActivity = await prisma.organizationMainActivity.findFirst();
+      if (!sector || !subsector || !size || !mainActivity) {
+        throw new Error("Expected seeded catalog rows for testing");
+      }
+
+      const inventory: InventoryBase = {
+        id: 1n,
+        name: "Test Inventory",
+        organizationData: null,
+        methodologyVersionId,
+        organization: { summary: { name: "Org Summary Name" } },
+      };
+      const orgData: OrganizationDataField = {
+        name: "OrgData Name (should be ignored)",
+        sectorId: sector.id.toString(),
+        subsectorId: subsector.id.toString(),
+        sizeId: size.id.toString(),
+        mainActivityId: mainActivity.id.toString(),
+        mainActivityQuantity: 100,
+      };
+
+      const attrs = await resolveInventoryAttributes(
+        prisma,
+        inventory,
+        orgData
+      );
+
+      expect(attrs.companyName).toBe("Org Summary Name");
+      expect(attrs.sectorName).toBe(sector.name);
+      expect(attrs.subsectorName).toBe(subsector.name);
+      expect(attrs.sizeName).toBe(size.name);
+      expect(attrs.mainActivityName).toBe(mainActivity.name);
+      expect(attrs.mainActivityQuantity).toBe(100);
+    });
+
+    it("falls back to organizationData.name for companyName when there is no organization", async () => {
+      const inventory: InventoryBase = {
+        id: 1n,
+        name: "Test Inventory",
+        organizationData: null,
+        methodologyVersionId,
+        organization: null,
+      };
+      const orgData: OrganizationDataField = {
+        name: "OrgData Only Name",
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: null,
+        mainActivityQuantity: null,
+      };
+
+      const attrs = await resolveInventoryAttributes(
+        prisma,
+        inventory,
+        orgData
+      );
+
+      expect(attrs.companyName).toBe("OrgData Only Name");
+      expect(attrs.sectorName).toBeNull();
+      expect(attrs.subsectorName).toBeNull();
+      expect(attrs.sizeName).toBeNull();
+      expect(attrs.mainActivityName).toBeNull();
+    });
+  });
+
+  describe("calculateEquivalence (unit)", () => {
+    it("returns null when mainActivityQuantity is negative", async () => {
+      const orgData: OrganizationDataField = {
+        name: null,
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: "1",
+        mainActivityQuantity: -5,
+      };
+
+      const result = await calculateEquivalence(prisma, orgData, 100);
+      expect(result).toBeNull();
+    });
+
+    it("returns null when mainActivityId is missing even if quantity is positive", async () => {
+      const orgData: OrganizationDataField = {
+        name: null,
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: null,
+        mainActivityQuantity: 10,
+      };
+
+      const result = await calculateEquivalence(prisma, orgData, 100);
+      expect(result).toBeNull();
+    });
+
+    it("computes the rate and resolves the activity name when mainActivityId is valid", async () => {
+      const mainActivity = await prisma.organizationMainActivity.findFirst();
+      if (!mainActivity) {
+        throw new Error("Expected a seeded OrganizationMainActivity row");
+      }
+      const orgData: OrganizationDataField = {
+        name: null,
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: mainActivity.id.toString(),
+        mainActivityQuantity: 50,
+      };
+
+      const result = await calculateEquivalence(prisma, orgData, 200);
+      expect(result).not.toBeNull();
+      expect(result!.rate).toBe(4);
+      expect(result!.activityName).toBe(mainActivity.name);
+    });
+
+    it("falls back to the default activity name when mainActivityId does not resolve to a row", async () => {
+      const orgData: OrganizationDataField = {
+        name: null,
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: "999999999",
+        mainActivityQuantity: 50,
+      };
+
+      const result = await calculateEquivalence(prisma, orgData, 100);
+      expect(result).not.toBeNull();
+      expect(result!.activityName).toBe("actividad principal");
+    });
+  });
+
+  describe("buildGHGBreakdown (unit)", () => {
+    const makeCategory = (
+      subcategories: CategoryData["subcategories"]
+    ): CategoryData => ({
+      id: "1",
+      name: "Test Category",
+      synonyms: "test",
+      position: 1,
+      icon: IconNameSchema.parse("FACTORY"),
+      color: "#000000",
+      subtotal: 0,
+      subcategories,
+    });
+
+    it("returns zeroed gas totals when no lines are mapped for a subcategory", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0,
+          hasIncompleteLines: false,
+        },
+      ]);
+
+      const [row] = buildGHGBreakdown(category, new Map());
+
+      expect(row).toMatchObject({
+        subcategoryName: "Sub A",
+        co2Fossil: 0,
+        ch4: 0,
+        n2o: 0,
+        hfc: 0,
+        pfc: 0,
+        sf6: 0,
+        nf3: 0,
+      });
+    });
+
+    it("skips lines with no factor, emission factor, or gas details", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0,
+          hasIncompleteLines: false,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [{ inputType: "SIMPLIFIED", factor: null, result: null }],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.co2Fossil).toBe(0);
+    });
+
+    it("accumulates gas details and computes emissions when a result is present", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 1,
+          hasIncompleteLines: false,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [
+                {
+                  inputType: "SIMPLIFIED",
+                  factor: {
+                    emissionFactor: {
+                      gasDetails: {
+                        co2Fossil: 5,
+                        ch4: 2,
+                        n2o: 1,
+                        hfc: 0.5,
+                        pfc: 0.3,
+                        sf6: 0.2,
+                        nf3: 0.1,
+                      },
+                    },
+                  },
+                  result: { totalEmissions: 1000 },
+                },
+              ],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.co2Fossil).toBe(5);
+      expect(row.ch4).toBe(2);
+      expect(row.n2o).toBe(1);
+      expect(row.hfc).toBe(0.5);
+      expect(row.pfc).toBe(0.3);
+      expect(row.sf6).toBe(0.2);
+      expect(row.nf3).toBe(0.1);
+    });
+
+    it("falls back to co2 when co2Fossil is absent, defaults missing gases to 0, and zeroes emissions with no result", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0,
+          hasIncompleteLines: true,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [
+                {
+                  inputType: "SIMPLIFIED",
+                  factor: {
+                    emissionFactor: { gasDetails: { co2: 3 } },
+                  },
+                  result: null,
+                },
+              ],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.co2Fossil).toBe(3);
+      expect(row.ch4).toBe(0);
+      expect(row.n2o).toBe(0);
+      expect(row.hfc).toBe(0);
+      expect(row.pfc).toBe(0);
+      expect(row.sf6).toBe(0);
+      expect(row.nf3).toBe(0);
+    });
+
+    it("adds line emissions to co2Fossil when gasDetails is empty and emissions are present", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0.5,
+          hasIncompleteLines: false,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [
+                {
+                  inputType: "SIMPLIFIED",
+                  factor: { emissionFactor: { gasDetails: {} } },
+                  result: { totalEmissions: 500 },
+                },
+              ],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.co2Fossil).toBe(0.5);
+    });
+
+    it("does not add to co2Fossil when gasDetails is empty but there are no emissions yet", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0,
+          hasIncompleteLines: true,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [
+                {
+                  inputType: "SIMPLIFIED",
+                  factor: { emissionFactor: { gasDetails: {} } },
+                  result: null,
+                },
+              ],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.co2Fossil).toBe(0);
+    });
+
+    it("treats non-finite gas detail values as 0", () => {
+      const category = makeCategory([
+        {
+          id: "sub-1",
+          name: "Sub A",
+          icon: IconNameSchema.parse("FACTORY"),
+          subtotal: 0,
+          hasIncompleteLines: false,
+        },
+      ]);
+      const linesBySubcategory = new Map([
+        [
+          "sub-1",
+          [
+            {
+              inputs: [
+                {
+                  inputType: "SIMPLIFIED",
+                  factor: {
+                    emissionFactor: { gasDetails: { ch4: "not-a-number" } },
+                  },
+                  result: null,
+                },
+              ],
+              subcategory: { name: "Sub A" },
+            },
+          ],
+        ],
+      ]);
+
+      const [row] = buildGHGBreakdown(category, linesBySubcategory);
+      expect(row.ch4).toBe(0);
     });
   });
 });

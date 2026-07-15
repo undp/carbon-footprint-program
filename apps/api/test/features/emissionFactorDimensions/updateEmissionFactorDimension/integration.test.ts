@@ -268,5 +268,209 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
 
       expect(response.statusCode).toBe(404);
     });
+
+    it("should return 409 when changing isRequired while active emission factors exist for the subcategory", async () => {
+      const { dimension, subcategory } = await buildTestDimension({
+        isRequired: false,
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {});
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { isRequired: true },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_IS_REQUIRED_CHANGE_BLOCKED");
+    });
+
+    it("should return 404 when removing a value that does not belong to the dimension", async () => {
+      const { dimension } = await buildTestDimension();
+      // A value that belongs to a *different* dimension.
+      const otherDimension = await createTestEmissionFactorDimension(
+        prisma,
+        dimension.subcategoryId,
+        { position: 2 }
+      );
+      const foreignValue = await createTestEmissionFactorDimensionValue(
+        prisma,
+        otherDimension.id,
+        { value: "Foreign Value" }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: { remove: [foreignValue.id.toString()] },
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL");
+    });
+
+    it("should return 404 when renaming a nonexistent value", async () => {
+      const { dimension } = await buildTestDimension();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: { rename: [{ id: "999999", newValue: "New Name" }] },
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_NOT_FOUND_FOR_RENAME");
+    });
+
+    it("should return 409 when renaming a value to a name that already exists", async () => {
+      const { dimension, value } = await buildTestDimension();
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Already Exists",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: {
+            rename: [{ id: value.id.toString(), newValue: "Already Exists" }],
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DUPLICATE_DIMENSION_VALUE");
+    });
+  });
+
+  describe("Position 2 removal branches", () => {
+    it("should remove a value and soft-delete EFs for a required position-2 dimension", async () => {
+      const { dimension, value, subcategory } = await buildTestDimension({
+        position: 2,
+        isRequired: true,
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { dimensionValue2Id: value.id }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Backup Dim2 Value",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: { remove: [value.id.toString()] },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedEf = await prisma.emissionFactor.findUnique({
+        where: { id: ef.id },
+      });
+      expect(updatedEf!.status).toBe(EmissionFactorStatus.DELETED);
+    });
+
+    it("should remove a value and nullify the FK for a non-required position-2 dimension", async () => {
+      const { dimension, value, subcategory } = await buildTestDimension({
+        position: 2,
+        isRequired: false,
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { dimensionValue2Id: value.id }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Backup Dim2 Value",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: { remove: [value.id.toString()] },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedEf = await prisma.emissionFactor.findUnique({
+        where: { id: ef.id },
+      });
+      expect(updatedEf!.dimensionValue2Id).toBeNull();
+      expect(updatedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
+    });
+  });
+
+  describe("Rename edge cases", () => {
+    it("should accept an explicit empty rename array alongside another field change", async () => {
+      const { dimension } = await buildTestDimension();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          name: "Renamed With Empty Rename Array",
+          values: { rename: [] },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
+      expect(body.name).toBe("Renamed With Empty Rename Array");
+    });
+  });
+
+  describe("Concurrency", () => {
+    // Both concurrent requests read the existing active values before either
+    // commits its new row, so the second `create` collides with the real
+    // partial unique index on (dimension_id, value) and is caught as a
+    // genuine Prisma P2002 -- not just the earlier in-request duplicate check.
+    it("should return 409 for exactly one of two concurrent additions of the same value name", async () => {
+      const { dimension } = await buildTestDimension();
+
+      const payload = { values: { add: ["Race Value"] } };
+
+      const [first, second] = await Promise.all([
+        app.inject({
+          method: "PATCH",
+          url: `/api/emission-factor-dimensions/${dimension.id}`,
+          payload,
+        }),
+        app.inject({
+          method: "PATCH",
+          url: `/api/emission-factor-dimensions/${dimension.id}`,
+          payload,
+        }),
+      ]);
+
+      const statusCodes = [first.statusCode, second.statusCode].sort();
+      expect(statusCodes).toEqual([200, 409]);
+
+      const conflictResponse = first.statusCode === 409 ? first : second;
+      const body = JSON.parse(conflictResponse.body) as { code: string };
+      expect(body.code).toBe("DUPLICATE_DIMENSION_VALUE");
+    });
   });
 });

@@ -11,6 +11,14 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import {
+  createTestOrganizationData,
+  cleanupTestOrganizationData,
+} from "@test/factories/organizationDataFactory.js";
+import {
   type CreateCarbonInventoryResponse,
   MethodologyVersionStatus,
 } from "@repo/types";
@@ -21,6 +29,7 @@ import {
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { createCarbonInventoryService } from "@/features/carbonInventories/createCarbonInventory/service.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -39,6 +48,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestOrganizationData(prisma);
+    await cleanupTestOrganization(prisma);
   });
 
   describe("Successful creation", () => {
@@ -377,6 +388,121 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
           });
         }
       }
+    });
+  });
+
+  describe("Organization data snapshot", () => {
+    it("should leave organizationData null when the linked organization has no summary (no OrganizationData row)", async () => {
+      const organization = await createTestOrganization(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
+          organizationId: organization.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+      expect(body.organizationId).toBe(organization.id.toString());
+      expect(body.organizationData).toBeNull();
+    });
+
+    it("should snapshot organizationData with null catalog fields when the organization's data has none set", async () => {
+      const organization = await createTestOrganization(prisma);
+      const organizationData = await createTestOrganizationData(
+        prisma,
+        organization.id
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
+          organizationId: organization.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+      expect(body.organizationData).toEqual({
+        name: organizationData.tradeName,
+        sectorId: null,
+        subsectorId: null,
+        sizeId: null,
+        mainActivityId: null,
+        mainActivityQuantity: null,
+        sector: null,
+        subsector: null,
+        size: null,
+        mainActivity: null,
+      });
+    });
+
+    it("should snapshot organizationData's catalog *Id fields when the organization's data has them set", async () => {
+      const sector = await prisma.countrySector.findFirstOrThrow({
+        select: { id: true },
+      });
+      const subsector = await prisma.countrySubsector.findFirstOrThrow({
+        select: { id: true },
+      });
+      const size = await prisma.countryOrganizationSize.findFirstOrThrow({
+        select: { id: true },
+      });
+      const mainActivity =
+        await prisma.organizationMainActivity.findFirstOrThrow({
+          select: { id: true },
+        });
+
+      const organization = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, organization.id, {
+        sectorId: sector.id,
+        subsectorId: subsector.id,
+        countryOrganizationSizeId: size.id,
+        mainActivityId: mainActivity.id,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
+          organizationId: organization.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+      expect(body.organizationData?.sectorId).toBe(sector.id.toString());
+      expect(body.organizationData?.subsectorId).toBe(subsector.id.toString());
+      expect(body.organizationData?.sizeId).toBe(size.id.toString());
+      expect(body.organizationData?.mainActivityId).toBe(
+        mainActivity.id.toString()
+      );
+    });
+  });
+
+  describe("Anonymous creation (no authenticated user)", () => {
+    it("should create an inventory with a null createdById when no user is provided", async () => {
+      // The public route always resolves a forced user via HTTP in this test
+      // environment, so an anonymous request is exercised by calling the
+      // service directly (bypassing the handler) with a null user — the same
+      // real database the HTTP-level tests use.
+      const result = await createCarbonInventoryService(
+        prisma,
+        { usageMode: "SIMPLIFIED", organizationId: null },
+        null
+      );
+
+      expect(result.createdById).toBeNull();
+
+      const dbInventory = await prisma.carbonInventory.findUniqueOrThrow({
+        where: { id: BigInt(result.id) },
+      });
+      expect(dbInventory.createdById).toBeNull();
     });
   });
 });

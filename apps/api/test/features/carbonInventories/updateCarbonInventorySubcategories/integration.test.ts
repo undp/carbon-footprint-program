@@ -30,6 +30,8 @@ import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
 } from "@test/factories/methodologyFactory.js";
+import { updateCarbonInventorySubcategoriesService } from "@/features/carbonInventories/updateCarbonInventorySubcategories/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -836,6 +838,44 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        updateCarbonInventorySubcategoriesService(prisma, 999999999n, [], null)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("treats a null user as an anonymous actor (createdById = null) when adding a subcategory", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+
+      const result = await updateCarbonInventorySubcategoriesService(
+        prisma,
+        carbonInventory.id,
+        [{ id: subcategoryIds[0].toString(), selected: true }],
+        null
+      );
+
+      expect(result.added).toBe(1);
+      const line = await prisma.carbonInventoryLine.findFirst({
+        where: {
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategoryIds[0],
+        },
+      });
+      expect(line?.createdById).toBeNull();
     });
   });
 });

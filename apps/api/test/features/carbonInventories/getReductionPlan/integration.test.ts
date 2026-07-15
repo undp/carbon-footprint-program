@@ -20,6 +20,8 @@ import { CarbonInventoryLineStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import { getReductionPlanService } from "@/features/carbonInventories/getReductionPlan/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("GET /api/carbon-inventories/:id/reduction-plan - Integration Tests", () => {
   let app: FastifyInstance;
@@ -144,6 +146,18 @@ describe("GET /api/carbon-inventories/:id/reduction-plan - Integration Tests", (
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getReductionPlanService(prisma, "999999999")
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
     });
   });
 });

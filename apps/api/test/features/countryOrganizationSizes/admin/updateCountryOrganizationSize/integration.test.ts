@@ -23,6 +23,7 @@ import {
   CountryOrganizationSizeStatus,
 } from "@repo/database";
 import type { UpdateCountryOrganizationSizeResponse } from "@repo/types";
+import { updateCountryOrganizationSizeService } from "@/features/countryOrganizationSizes/admin/updateCountryOrganizationSize/service.js";
 
 const TEST_PREFIX = "Test - AdminSizeUpd ";
 
@@ -113,6 +114,36 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
       payload: { name: uniqueName("X") },
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  it("returns 404 when id does not exist and the payload has no name (P2025 update path)", async () => {
+    // Omitting `name` skips the explicit existence pre-check, so the only
+    // place that can detect a missing row is the `update()` call itself,
+    // whose P2025 is caught and re-mapped to ResourceNotFoundError.
+    const response = await app.inject({
+      method: "PATCH",
+      url: "/api/admin/country-organization-sizes/9999999999",
+      payload: { description: "Does not matter" },
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
+  it("is a no-op when renaming to the exact same name", async () => {
+    const size = await createTestCountryOrganizationSize(prisma, {
+      name: uniqueName("SameName"),
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/admin/country-organization-sizes/${size.id.toString()}`,
+      payload: { name: size.name },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as UpdateCountryOrganizationSizeResponse;
+    expect(body.name).toBe(size.name);
   });
 
   it("returns 409 when renaming into an existing ACTIVE name", async () => {
@@ -289,6 +320,23 @@ describe("PATCH /api/admin/country-organization-sizes/:id - Integration Tests", 
         payload: { name: uniqueName("New") },
       });
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should throw UserNotFoundError when there is no authenticated user", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("NoUser"),
+      });
+
+      await expect(
+        updateCountryOrganizationSizeService(
+          prisma,
+          size.id.toString(),
+          { name: uniqueName("NoUserRenamed") },
+          null
+        )
+      ).rejects.toThrow();
     });
   });
 });

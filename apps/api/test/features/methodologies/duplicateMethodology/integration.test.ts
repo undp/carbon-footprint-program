@@ -32,7 +32,14 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { MethodologyVersionStatus } from "@repo/database";
+import { MethodologyVersionStatus, Prisma } from "@repo/database";
+import { duplicateMethodologyService } from "@/features/methodologies/duplicateMethodology/service.js";
+import {
+  cloneEmissionFactorDimensions,
+  cloneEmissionFactors,
+  cloneReductionPlanInitiatives,
+  cloneSubcategoryRecommendations,
+} from "@/features/methodologies/duplicateMethodology/helpers.js";
 
 describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
   let app: FastifyInstance;
@@ -1000,6 +1007,341 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
         message: string;
       };
       expect(body.code).toBe("METHODOLOGY_NOT_FOUND");
+    });
+  });
+
+  describe("Dimension value parent remapping edge cases", () => {
+    it("should drop parentValueId (leave it null) when the parent value's own status is not ACTIVE", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Broken Parent Link",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Broken Parent Cat",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Broken Parent Sub",
+      });
+      const dim = await createTestEmissionFactorDimension(prisma, sub.id, {
+        code: "broken_parent",
+        name: "Broken parent dimension",
+        position: 1,
+      });
+
+      // Parent is soft-deleted, so it is excluded from the active-values query
+      // and never receives a remapped id — the child's parentValueId reference
+      // is orphaned and must not be backfilled.
+      const parentVal = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim.id,
+        { value: "Orphan Parent", status: "DELETED" }
+      );
+      const childVal = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim.id,
+        { value: "Orphan Child", parentValueId: parentVal.id }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupDims = await prisma.emissionFactorDimension.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+      const dupValues = await prisma.emissionFactorDimensionValue.findMany({
+        where: { dimensionId: dupDims[0].id },
+      });
+
+      // Only the active child is cloned — the DELETED parent is not.
+      expect(dupValues).toHaveLength(1);
+      expect(dupValues[0].value).toBe("Orphan Child");
+      expect(dupValues[0].parentValueId).toBeNull();
+      expect(dupValues[0].id).not.toBe(childVal.id);
+    });
+
+    it("should link multiple sibling values to the same duplicated parent", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Shared Parent Siblings",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Shared Parent Cat",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Shared Parent Sub",
+      });
+      const dim = await createTestEmissionFactorDimension(prisma, sub.id, {
+        code: "shared_parent",
+        name: "Shared parent dimension",
+        position: 1,
+      });
+
+      const parentVal = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim.id,
+        { value: "Shared Parent" }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim.id, {
+        value: "Sibling A",
+        parentValueId: parentVal.id,
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim.id, {
+        value: "Sibling B",
+        parentValueId: parentVal.id,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupDims = await prisma.emissionFactorDimension.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+      const dupValues = await prisma.emissionFactorDimensionValue.findMany({
+        where: { dimensionId: dupDims[0].id },
+      });
+
+      expect(dupValues).toHaveLength(3);
+      const dupParent = dupValues.find((v) => v.value === "Shared Parent")!;
+      const dupSiblingA = dupValues.find((v) => v.value === "Sibling A")!;
+      const dupSiblingB = dupValues.find((v) => v.value === "Sibling B")!;
+
+      expect(dupSiblingA.parentValueId).toBe(dupParent.id);
+      expect(dupSiblingB.parentValueId).toBe(dupParent.id);
+    });
+  });
+
+  describe("Emission factor gasDetails handling", () => {
+    it("should preserve a null gasDetails value (JsonNull fallback) instead of dropping the row", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Null Gas Details",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Null Gas Cat",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Null Gas Sub",
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      await prisma.emissionFactor.create({
+        data: {
+          subcategoryId: sub.id,
+          rateMeasurementUnitId: rateUnitId,
+          source: "Test - Null Gas Source",
+          gasDetails: Prisma.JsonNull,
+          value: new Prisma.Decimal("1"),
+          status: EmissionFactorStatus.ACTIVE,
+          createdById: null,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupFactors = await prisma.emissionFactor.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+
+      expect(dupFactors).toHaveLength(1);
+      expect(dupFactors[0].gasDetails).toBeNull();
+    });
+  });
+
+  describe("Cross-subtree dimension value references (dangling remap)", () => {
+    it("should null out dimension value references that point outside the duplicated subtree", async () => {
+      // A "foreign" methodology holds a dimension/value that is NOT part of the
+      // methodology being duplicated. Both the factor and the initiative below
+      // reference it directly (an unusual but not FK-prevented state) so we can
+      // exercise the `?? null` fallback when the id lookup misses.
+      const foreignMethodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Foreign Source Methodology",
+      });
+      const foreignCategory = await createTestCategory(
+        prisma,
+        foreignMethodology.id,
+        { name: "Test - Foreign Cat", position: 1 }
+      );
+      const foreignSub = await createTestSubcategory(
+        prisma,
+        foreignCategory.id,
+        { name: "Test - Foreign Sub" }
+      );
+      const foreignDim1 = await createTestEmissionFactorDimension(
+        prisma,
+        foreignSub.id,
+        { code: "foreign_dim_1", name: "Foreign Dimension 1", position: 1 }
+      );
+      const foreignDim2 = await createTestEmissionFactorDimension(
+        prisma,
+        foreignSub.id,
+        { code: "foreign_dim_2", name: "Foreign Dimension 2", position: 2 }
+      );
+      const foreignVal1 = await createTestEmissionFactorDimensionValue(
+        prisma,
+        foreignDim1.id,
+        { value: "Foreign Value 1" }
+      );
+      const foreignVal2 = await createTestEmissionFactorDimensionValue(
+        prisma,
+        foreignDim2.id,
+        { value: "Foreign Value 2" }
+      );
+
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Dangling Ref Source",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Dangling Ref Cat",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Dangling Ref Sub",
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+        dimensionValue1Id: foreignVal1.id,
+        dimensionValue2Id: foreignVal2.id,
+        source: "Test - Dangling Ref Factor",
+      });
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: sub.id,
+          dimensionValue1Id: foreignVal1.id,
+          dimensionValue2Id: null,
+          title: "Test - Dangling Ref Initiative",
+          description: "References a value outside the duplicated subtree",
+          status: ReductionPlanInitiativeStatus.ACTIVE,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const dupCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const dupSubs = await prisma.subcategory.findMany({
+        where: { categoryId: dupCategories[0].id },
+      });
+      const dupFactors = await prisma.emissionFactor.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+      const dupInitiatives = await prisma.reductionPlanInitiative.findMany({
+        where: { subcategoryId: dupSubs[0].id },
+      });
+
+      expect(dupFactors).toHaveLength(1);
+      expect(dupFactors[0].dimensionValue1Id).toBeNull();
+      expect(dupFactors[0].dimensionValue2Id).toBeNull();
+
+      expect(dupInitiatives).toHaveLength(1);
+      expect(dupInitiatives[0].dimensionValue1Id).toBeNull();
+    });
+  });
+
+  describe("Duplicating without an authenticated user", () => {
+    it("should set createdById to null when there is no current user", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - No User Duplicate",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const result = await duplicateMethodologyService(
+        prisma,
+        original.id.toString(),
+        null
+      );
+
+      const dbRecord = await prisma.methodologyVersion.findUnique({
+        where: { id: BigInt(result.id) },
+      });
+      expect(dbRecord!.createdById).toBeNull();
+    });
+  });
+
+  describe("Helper functions — empty-input guards (direct unit tests)", () => {
+    // `duplicateMethodologyService` short-circuits to the plain methodology
+    // (no children cloned) as soon as `subcategoryIdMap` is empty, so these
+    // guard clauses inside the individual clone helpers are never reached
+    // through the HTTP endpoint. Calling them directly with an empty map is
+    // the only way to exercise the "nothing to clone" branch.
+    it("cloneEmissionFactorDimensions returns an empty map for an empty subcategory map", async () => {
+      const result = await prisma.$transaction((tx) =>
+        cloneEmissionFactorDimensions(tx, new Map(), null)
+      );
+      expect(result.size).toBe(0);
+    });
+
+    it("cloneEmissionFactors resolves without error for an empty subcategory map", async () => {
+      await expect(
+        prisma.$transaction((tx) =>
+          cloneEmissionFactors(tx, new Map(), new Map(), null)
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    it("cloneReductionPlanInitiatives resolves without error for an empty subcategory map", async () => {
+      await expect(
+        prisma.$transaction((tx) =>
+          cloneReductionPlanInitiatives(tx, new Map(), new Map(), null)
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    it("cloneSubcategoryRecommendations resolves without error for an empty subcategory map", async () => {
+      await expect(
+        prisma.$transaction((tx) =>
+          cloneSubcategoryRecommendations(tx, new Map(), null)
+        )
+      ).resolves.toBeUndefined();
     });
   });
 });

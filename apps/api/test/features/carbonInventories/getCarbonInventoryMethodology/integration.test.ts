@@ -11,11 +11,17 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import {
+  convertEmissionFactorValue,
+  generateConvertedEmissionFactors,
+} from "@/features/carbonInventories/getCarbonInventoryMethodology/helper.js";
+import { getCarbonInventoryMethodologyService } from "@/features/carbonInventories/getCarbonInventoryMethodology/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 import {
   createInventoryFromPattern,
   carbonInventoryPatterns,
@@ -662,6 +668,214 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Service-level not-found handling", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getCarbonInventoryMethodologyService(prisma, 999999999n)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+  });
+
+  describe("convertEmissionFactorValue (unit)", () => {
+    it("throws when originalValue is not a parseable number", () => {
+      expect(() =>
+        convertEmissionFactorValue("not-a-number", 1, 1, 1, 1)
+      ).toThrow(/cannot be parsed as a number/);
+    });
+
+    it("throws when originalValue is not finite", () => {
+      expect(() => convertEmissionFactorValue("Infinity", 1, 1, 1, 1)).toThrow(
+        /is not a finite number/
+      );
+    });
+
+    it("throws when originalNumBaseFactor is not finite", () => {
+      expect(() => convertEmissionFactorValue("5", Infinity, 1, 1, 1)).toThrow(
+        /Invalid originalNumBaseFactor/
+      );
+    });
+
+    it("throws when originalDenBaseFactor is not finite", () => {
+      expect(() => convertEmissionFactorValue("5", 1, Infinity, 1, 1)).toThrow(
+        /Invalid originalDenBaseFactor/
+      );
+    });
+
+    it("throws when originalDenBaseFactor is zero", () => {
+      expect(() => convertEmissionFactorValue("5", 1, 0, 1, 1)).toThrow(
+        /cannot be zero/
+      );
+    });
+
+    it("throws when newNumBaseFactor is not finite", () => {
+      expect(() => convertEmissionFactorValue("5", 1, 1, Infinity, 1)).toThrow(
+        /Invalid newNumBaseFactor/
+      );
+    });
+
+    it("throws when newNumBaseFactor is zero", () => {
+      expect(() => convertEmissionFactorValue("5", 1, 1, 0, 1)).toThrow(
+        /cannot be zero/
+      );
+    });
+
+    it("throws when newDenBaseFactor is not finite", () => {
+      expect(() => convertEmissionFactorValue("5", 1, 1, 1, Infinity)).toThrow(
+        /Invalid newDenBaseFactor/
+      );
+    });
+
+    it("throws when the converted result overflows to a non-finite number", () => {
+      expect(() =>
+        convertEmissionFactorValue("1e300", 1e300, 1, 1, 1e300)
+      ).toThrow(/Conversion result is not finite/);
+    });
+
+    it("computes a converted value for valid finite inputs", () => {
+      // 10 * (2 * 3) / (1 * 1) = 60
+      expect(convertEmissionFactorValue("10", 2, 1, 1, 3)).toBe("60");
+    });
+  });
+
+  describe("generateConvertedEmissionFactors (unit)", () => {
+    it("throws when the emission factor value is not a valid finite number", () => {
+      // `rateMeasurementUnit: null` exercises the defensive no-rate-unit branch
+      // (line 183); the param type declares it non-null, so cast past it.
+      const badFactor = {
+        id: 1n,
+        dimensionValue1Id: null,
+        dimensionValue2Id: null,
+        rateMeasurementUnitId: 1n,
+        source: "TEST",
+        gasDetails: {},
+        value: { toString: () => "not-a-number" } as unknown as Prisma.Decimal,
+        rateMeasurementUnit: null,
+      } as unknown as Parameters<typeof generateConvertedEmissionFactors>[0];
+
+      expect(() =>
+        generateConvertedEmissionFactors(badFactor, new Map())
+      ).toThrow(/is not a valid finite number/);
+    });
+
+    it("returns only the original factor when there is no rate unit info", () => {
+      const factor = {
+        id: 2n,
+        dimensionValue1Id: null,
+        dimensionValue2Id: null,
+        rateMeasurementUnitId: 5n,
+        source: "TEST",
+        gasDetails: {},
+        value: new Prisma.Decimal("2.5"),
+        rateMeasurementUnit: null,
+      } as unknown as Parameters<typeof generateConvertedEmissionFactors>[0];
+
+      const result = generateConvertedEmissionFactors(factor, new Map());
+      expect(result).toHaveLength(1);
+      expect(result[0].originalEmissionFactorId).toBeNull();
+    });
+
+    it("returns only the original factor when no compatible rate units exist for its magnitude pair", () => {
+      const factor = {
+        id: 3n,
+        dimensionValue1Id: 10n,
+        dimensionValue2Id: null,
+        rateMeasurementUnitId: 5n,
+        source: "TEST",
+        gasDetails: {},
+        value: new Prisma.Decimal("2.5"),
+        rateMeasurementUnit: {
+          id: 5n,
+          numeratorMeasurementUnit: {
+            id: 1n,
+            magnitudeId: 100n,
+            baseFactor: 1,
+          },
+          denominatorMeasurementUnit: {
+            id: 2n,
+            magnitudeId: 200n,
+            baseFactor: 1,
+          },
+        },
+      };
+
+      // Empty map: the "100-200" magnitude-pair key has no bucket at all.
+      const result = generateConvertedEmissionFactors(factor, new Map());
+      expect(result).toHaveLength(1);
+      expect(result[0].dimensionValue1Id).toBe("10");
+    });
+
+    it("generates converted factors for each compatible rate unit, skipping the original", () => {
+      const factor = {
+        id: 4n,
+        dimensionValue1Id: null,
+        dimensionValue2Id: null,
+        rateMeasurementUnitId: 5n,
+        source: "TEST",
+        gasDetails: { co2: 1 },
+        value: new Prisma.Decimal("2"),
+        rateMeasurementUnit: {
+          id: 5n,
+          numeratorMeasurementUnit: {
+            id: 1n,
+            magnitudeId: 100n,
+            baseFactor: 1,
+          },
+          denominatorMeasurementUnit: {
+            id: 2n,
+            magnitudeId: 200n,
+            baseFactor: 1,
+          },
+        },
+      };
+      const rateUnitsByMagnitude = new Map([
+        [
+          "100-200",
+          [
+            {
+              id: 5n,
+              numeratorMeasurementUnit: {
+                id: 1n,
+                magnitudeId: 100n,
+                baseFactor: 1,
+              },
+              denominatorMeasurementUnit: {
+                id: 2n,
+                magnitudeId: 200n,
+                baseFactor: 1,
+              },
+            },
+            {
+              id: 6n,
+              numeratorMeasurementUnit: {
+                id: 1n,
+                magnitudeId: 100n,
+                baseFactor: 1,
+              },
+              denominatorMeasurementUnit: {
+                id: 3n,
+                magnitudeId: 200n,
+                baseFactor: 2,
+              },
+            },
+          ],
+        ],
+      ]);
+
+      const result = generateConvertedEmissionFactors(
+        factor,
+        rateUnitsByMagnitude
+      );
+      // Original + 1 converted factor (rate unit 5 is the original itself, skipped).
+      expect(result).toHaveLength(2);
+      expect(result[1].originalEmissionFactorId).toBe("4");
+      expect(result[1].id).toBe("4-6");
     });
   });
 });

@@ -153,6 +153,35 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(dbRecord).toBeDefined();
       expect(dbRecord!.source).toBe("IPCC persist");
     });
+
+    it("should create with a pre-configured dimensionValue2Name", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        dimensionValue2Name: "Vacuno",
+        source: "IPCC dim2",
+      });
+
+      // Pre-configure a dimension at position 2
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: false }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Vacuno",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateEmissionFactorResponse;
+
+      expect(body.dimensionValue2Name).toBe("Vacuno");
+      expect(body.dimensionValue2Id).toBeTruthy();
+    });
   });
 
   describe("Dimension validation", () => {
@@ -171,6 +200,156 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("DIMENSION_NOT_CONFIGURED");
+    });
+
+    it("should return 404 when the dimension is configured but the value name does not exist", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        dimensionValue1Name: "GhostValue",
+        source: "IPCC dim value not found",
+      });
+
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "RealValue",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_NOT_FOUND");
+    });
+  });
+
+  describe("Gas details validation", () => {
+    it("should return 400 when gasDetails sum does not match the declared value", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC gas mismatch",
+        value: 10,
+        gasDetails: {
+          CO2_FOSSIL: 1,
+          CH4: 0,
+          N2O: 0,
+          HFC: 0,
+          PFC: 0,
+          SF6: 0,
+          NF3: 0,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_GAS_DETAILS_MISMATCH");
+    });
+  });
+
+  describe("Duplicate detection", () => {
+    it("should return 409 when a required-dimension combination already has an active factor", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC dup required",
+        dimensionValue1Name: "A",
+        dimensionValue2Name: "X",
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "B",
+      });
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "X",
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "Y",
+      });
+
+      // First creation succeeds (dim1=A, dim2=X)
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      // Second creation with the exact same dim1/dim2 combination should conflict
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(second.statusCode).toBe(409);
+      const body = JSON.parse(second.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_DUPLICATE");
+    });
+
+    it("should return 409 when both required dimensions are left null on two active factors", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC dup null dims",
+        dimensionValue1Name: null,
+        dimensionValue2Name: null,
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "X",
+      });
+
+      // First creation succeeds with both dims left null
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      // Second creation, also leaving both dims null, should conflict
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(second.statusCode).toBe(409);
+      const body = JSON.parse(second.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_DUPLICATE");
     });
   });
 
@@ -227,6 +406,23 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR");
+    });
+
+    it("should return 404 when rateMeasurementUnitId does not exist (FK violation)", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC bad rate unit",
+        rateMeasurementUnitId: "999999999",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("RATE_MEASUREMENT_UNIT_NOT_FOUND");
     });
   });
 });
