@@ -16,8 +16,9 @@ Monorepo (pnpm + Turborepo): `apps/api` (Fastify + Prisma), `apps/web` (React + 
 - `pnpm format` — Prettier; **mandatory before every commit**.
 - `pnpm test --filter=api -- /{feature}/integration.test.ts --coverage=false` — single test file.
 - `pnpm test --filter=api -- /{domain} --coverage=false` — all tests in a domain.
+- `pnpm --filter=web test` — apps/web Vitest suite (jsdom + React Testing Library). Filter goes **before** `test`; `pnpm test --filter=web` would run the api-matrix root `test` script instead. Config: `apps/web/vitest.config.ts` + `vitest.setup.ts`; tests are co-located `*.test.ts(x)` under `src/`.
 
-CI runs lint, type-check, format:check, test, and build in parallel on PRs to `main`; all must pass.
+CI runs lint, type-check, format:check, test (api matrix + `Test (web)`), and build in parallel on PRs to `main`; all must pass.
 
 ## Committing
 
