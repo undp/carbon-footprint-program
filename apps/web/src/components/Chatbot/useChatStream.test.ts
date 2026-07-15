@@ -141,31 +141,16 @@ const lastMessage = (messages: ChatbotMessage[]): ChatbotMessage =>
 
 type HookResult = { current: ReturnType<typeof useChatStream> };
 
-// Drive one full turn the way the app really does: a synchronous commit that
-// paints the pending assistant bubble (which is what settles the in-flight
-// index the hook writes to), THEN await the response. Collapsing both into a
-// single act() would let the terminal-state write capture a stale index, since
-// the bubble-commit updater has not flushed yet — a test-only race the real
-// network's latency hides. Pair with resolveLater/rejectLater so the response
-// lands after that first commit.
+// Drive one full turn inside a single act(): send, then await the promise the
+// hook returns. The hook targets the in-flight assistant bubble by identity
+// (recorded synchronously in sendMessage) and resolves it inside its own state
+// updater, so a turn no longer depends on the pending-bubble commit flushing
+// before the response settles — no two-phase staging needed.
 const sendTurn = async (result: HookResult, content: string): Promise<void> => {
-  let pending!: Promise<void>;
-  act(() => {
-    pending = result.current.sendMessage(content);
-  });
   await act(async () => {
-    await pending;
+    await result.current.sendMessage(content);
   });
 };
-
-// Resolve/reject on a macrotask, the way real `fetch` (network I/O) always does.
-// A synchronous `Promise.resolve` can beat React's flush of the state updater
-// that records the in-flight assistant index, which would make multi-turn
-// assertions read a stale index — a test artifact the real network never hits.
-const resolveLater = (response: Response): Promise<Response> =>
-  new Promise((resolve) => setTimeout(() => resolve(response), 0));
-const rejectLater = (error: Error): Promise<Response> =>
-  new Promise((_resolve, reject) => setTimeout(() => reject(error), 0));
 
 let fetchMock: Mock<FetchImpl>;
 
@@ -558,7 +543,9 @@ describe("useChatStream — abort, timeout & unmount", () => {
 
 describe("useChatStream — degraded escalation & reset", () => {
   it("does not auto-retry after a transport error (send is non-idempotent)", async () => {
-    fetchMock.mockImplementationOnce(() => rejectLater(new TypeError("down")));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.reject(new TypeError("down"))
+    );
 
     const { result } = renderHook(() => useChatStream());
     await sendTurn(result, "hola");
@@ -573,11 +560,15 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("escalates to degraded after two consecutive transport failures", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => rejectLater(new TypeError("down")));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.reject(new TypeError("down"))
+    );
     await sendTurn(result, "uno");
     expect(result.current.state).toBe("error");
 
-    fetchMock.mockImplementationOnce(() => rejectLater(new TypeError("down")));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.reject(new TypeError("down"))
+    );
     await sendTurn(result, "dos");
 
     expect(result.current.state).toBe("degraded");
@@ -589,11 +580,15 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("escalates to degraded after two consecutive 5xx responses", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(500)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(500))
+    );
     await sendTurn(result, "uno");
     expect(result.current.state).toBe("error");
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(502)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(502))
+    );
     await sendTurn(result, "dos");
 
     expect(result.current.state).toBe("degraded");
@@ -603,12 +598,14 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("escalates on a mix of transport and 5xx failures (either counts)", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => rejectLater(new TypeError("down")));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.reject(new TypeError("down"))
+    );
     await sendTurn(result, "uno");
     expect(result.current.state).toBe("error");
 
     fetchMock.mockImplementationOnce(() =>
-      resolveLater(makeHttpResponse(503, { message: "Sobrecargado" }))
+      Promise.resolve(makeHttpResponse(503, { message: "Sobrecargado" }))
     );
     await sendTurn(result, "dos");
 
@@ -619,17 +616,23 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("resets the failure counter on a 4xx so it never escalates", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(500)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(500))
+    );
     await sendTurn(result, "uno");
     expect(result.current.state).toBe("error");
 
     // A 4xx (client error) resets the unavailability counter.
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(400)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(400))
+    );
     await sendTurn(result, "dos");
     expect(result.current.state).toBe("error");
 
     // Next 5xx is therefore only the FIRST in a row → error, not degraded.
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(500)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(500))
+    );
     await sendTurn(result, "tres");
     expect(result.current.state).toBe("error");
   });
@@ -637,12 +640,14 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("resets the failure counter after a successful turn", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(500)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(500))
+    );
     await sendTurn(result, "uno");
     expect(result.current.state).toBe("error");
 
     fetchMock.mockImplementationOnce((_input, init) =>
-      resolveLater(
+      Promise.resolve(
         makeStreamResponse({
           chunks: [
             'id: 1\ndata: {"content":"ok"}\n\n',
@@ -655,7 +660,9 @@ describe("useChatStream — degraded escalation & reset", () => {
     await sendTurn(result, "dos");
     expect(result.current.state).toBe("empty");
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(500)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(500))
+    );
     await sendTurn(result, "tres");
     expect(result.current.state).toBe("error");
   });
@@ -663,7 +670,9 @@ describe("useChatStream — degraded escalation & reset", () => {
   it("maps 413 to the too-large message and resets the counter", async () => {
     const { result } = renderHook(() => useChatStream());
 
-    fetchMock.mockImplementationOnce(() => resolveLater(makeHttpResponse(413)));
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(413))
+    );
     await sendTurn(result, "hola");
 
     expect(result.current.state).toBe("error");
@@ -676,7 +685,7 @@ describe("useChatStream — degraded escalation & reset", () => {
     const { result } = renderHook(() => useChatStream());
 
     fetchMock.mockImplementationOnce(() =>
-      resolveLater(makeHttpResponse(503, { message: "Vuelve más tarde" }))
+      Promise.resolve(makeHttpResponse(503, { message: "Vuelve más tarde" }))
     );
     await sendTurn(result, "hola");
 
