@@ -6,19 +6,32 @@ const orgSingular = VOCAB.organization.noun.singular;
 type ErrorDetails = Record<string, unknown> | undefined;
 type DetailsAwareMessage = (details: ErrorDetails) => string;
 
+// `activeAdjective` carries the gender of the noun so any "…activo/activa"
+// agreement stays correct: "actividad" is feminine, the other three subjects
+// are masculine.
 const RESOURCE_LABELS: Record<
   string,
-  { article: string; sentenceArticle: string }
+  { article: string; sentenceArticle: string; activeAdjective: string }
 > = {
-  CountrySector: { article: "el rubro", sentenceArticle: "El rubro" },
-  CountrySubsector: { article: "el subrubro", sentenceArticle: "El subrubro" },
+  CountrySector: {
+    article: "el rubro",
+    sentenceArticle: "El rubro",
+    activeAdjective: "activo",
+  },
+  CountrySubsector: {
+    article: "el subrubro",
+    sentenceArticle: "El subrubro",
+    activeAdjective: "activo",
+  },
   OrganizationMainActivity: {
     article: "la actividad principal",
     sentenceArticle: "La actividad principal",
+    activeAdjective: "activa",
   },
   CountryOrganizationSize: {
     article: "el tamaño de organización",
     sentenceArticle: "El tamaño de organización",
+    activeAdjective: "activo",
   },
 };
 
@@ -182,9 +195,9 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     return `No se puede cambiar ${changeWhat} ${ofSubject} porque ${because}. ${suffix}`;
   },
   RESTORE_ON_ACTIVE: (details) => {
-    const label =
-      RESOURCE_LABELS[details?.resourceType as string]?.sentenceArticle;
-    if (label) return `${label} ya se encuentra activo.`;
+    const resource = RESOURCE_LABELS[details?.resourceType as string];
+    if (resource)
+      return `${resource.sentenceArticle} ya se encuentra ${resource.activeAdjective}.`;
     return "El registro ya se encuentra activo.";
   },
   PARENT_NOT_ACTIVE: (details) => {
