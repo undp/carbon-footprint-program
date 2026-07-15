@@ -118,6 +118,15 @@ from the tenant inputs above by `.envrc.azure.example` (local) and `appService.b
 | `JWKS_REQUIRED_SCOPE`   | No               | Required scope claim (default: `access_as_user`)                          |
 | `JWKS_SKIP_SCOPE_CHECK` | No               | Set `true` to disable scope enforcement entirely                          |
 
+### Load Shedding (`@fastify/under-pressure`)
+
+The API registers [`@fastify/under-pressure`](https://github.com/fastify/under-pressure), which returns `503 Service Unavailable` when the process is overloaded. The two event-loop thresholds are env-configurable so an environment or CI runner under unusual load can tune them without a code change; the defaults preserve the platform's production behaviour. A malformed value (non-numeric or empty) falls back to the default. The heap and RSS limits remain hardcoded in `apps/api/src/plugins/external/under-pressure.ts`, and the plugin is not loaded when `NODE_ENV=test`.
+
+| Variable                     | Required | Default | Description                                                                                                             |
+| ---------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `MAX_EVENT_LOOP_DELAY_MS`    | No       | `300`   | Event-loop delay ceiling in milliseconds. When exceeded, the API sheds load with `503`. Invalid values use the default. |
+| `MAX_EVENT_LOOP_UTILIZATION` | No       | `0.9`   | Event-loop utilization ceiling (`0`–`1`). When exceeded, the API sheds load with `503`. Invalid values use the default. |
+
 ### Frontend (Vite)
 
 Variables prefixed with `VITE_` are exposed to the browser bundle at build time.
