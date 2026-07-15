@@ -18,6 +18,51 @@ export const PORT = parseInt(process.env.API_PORT ?? "8080", 10);
 export const DATABASE_URL = process.env.DATABASE_URL;
 
 // ============================================================================
+// Load Shedding (@fastify/under-pressure)
+// ============================================================================
+// @fastify/under-pressure returns 503 when the process is overloaded. The two
+// event-loop thresholds are env-configurable so an environment or CI runner
+// under unusual load can tune them without a code change (surfaced during #276,
+// where serialized test load tripped the defaults). The defaults preserve the
+// platform's production behaviour; the heap/RSS limits stay hardcoded in
+// plugins/external/under-pressure.ts.
+
+/** Default event-loop delay ceiling (ms) before load shedding kicks in. */
+const DEFAULT_MAX_EVENT_LOOP_DELAY_MS = 300;
+
+/** Default event-loop utilization ceiling (0–1) before load shedding kicks in. */
+const DEFAULT_MAX_EVENT_LOOP_UTILIZATION = 0.9;
+
+/**
+ * Parse a numeric env var, falling back to `fallback` when the value is unset,
+ * empty/whitespace, or not a finite number. Guarding against NaN matters here:
+ * a malformed override must never silently disable load shedding by producing
+ * `NaN` thresholds.
+ */
+export const parseNumericEnv = (
+  raw: string | undefined,
+  fallback: number
+): number => {
+  if (raw === undefined) return fallback;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return fallback;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+/** Event-loop delay (ms) above which the API sheds load with a 503. */
+export const MAX_EVENT_LOOP_DELAY_MS = parseNumericEnv(
+  process.env.MAX_EVENT_LOOP_DELAY_MS,
+  DEFAULT_MAX_EVENT_LOOP_DELAY_MS
+);
+
+/** Event-loop utilization (0–1) above which the API sheds load with a 503. */
+export const MAX_EVENT_LOOP_UTILIZATION = parseNumericEnv(
+  process.env.MAX_EVENT_LOOP_UTILIZATION,
+  DEFAULT_MAX_EVENT_LOOP_UTILIZATION
+);
+
+// ============================================================================
 // JWKS Configuration (generic OIDC)
 // ============================================================================
 // The API is a generic OIDC access-token validator: it reads these values
