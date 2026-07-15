@@ -290,7 +290,14 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
 
       const conflictResponse = first.statusCode === 409 ? first : second;
       const body = JSON.parse(conflictResponse.body) as { code: string };
-      expect(body.code).toBe("DIMENSION_POSITION_ALREADY_TAKEN");
+      // Under concurrency the losing INSERT can collide on either the
+      // position partial unique index or the value uniqueness constraint
+      // depending on interleaving, so assert the 409 carries one of the
+      // known conflict codes rather than a single non-deterministic one.
+      expect([
+        "DIMENSION_POSITION_ALREADY_TAKEN",
+        "DUPLICATE_DIMENSION_VALUE",
+      ]).toContain(body.code);
     });
   });
 });
