@@ -279,24 +279,16 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
   });
 
   describe("Real database-level P2002 conflicts (bypassing the in-app pre-check)", () => {
-    // With this Prisma version + driver adapter (`@prisma/adapter-pg`), a
-    // real P2002's `error.meta.target` is always `undefined` -- the
-    // constraint's column names are only available under
-    // `error.meta.driverAdapterError.cause.constraint.fields` (confirmed by
-    // triggering a real unique-constraint violation directly and inspecting
-    // the raw error). Since this service's catch block only ever reads
-    // `error.meta?.target` (never the driver-adapter-specific fallback that
-    // `getDuplicatedFieldsFromP2002Error` uses elsewhere in this codebase),
-    // `target` always resolves to `[]` for a genuine P2002 here, so
-    // `target.some(item => item.includes("position"))` is always `false` and
-    // every real P2002 -- position conflicts included -- falls through to
-    // the `DuplicateDimensionValueError("unknown")` fallback. This makes
-    // `DimensionPositionAlreadyTakenError` unreachable from the catch block
-    // (see "unreachable" note in the test report); this test instead
-    // documents and exercises the branch that *is* reachable: the
-    // `Array.isArray(...)`-false path collapsing to `[]` and the resulting
-    // "unknown" duplicate.
-    it("should surface a real Prisma P2002 as an 'unknown' duplicate (DimensionPositionAlreadyTakenError is unreachable here -- see notes)", async () => {
+    // With this Prisma version + driver adapter (`@prisma/adapter-pg`), a real
+    // P2002's `error.meta.target` is `undefined` -- the constraint's column
+    // names live under `error.meta.driverAdapterError.cause.constraint.fields`.
+    // The catch block now reads them via `getDuplicatedFieldsFromP2002Error`
+    // (the shared helper used elsewhere in the codebase), so it distinguishes a
+    // (subcategory_id, code) collision from a (subcategory_id, position) one.
+    // This scenario forces a *code*-index collision, so the correct outcome is
+    // the "unknown" value duplicate; the position arm is exercised separately
+    // in "Real database-level position conflicts" below.
+    it("surfaces a real code-index P2002 as an 'unknown' DuplicateDimensionValueError", async () => {
       const { subcategory } = await buildTestSubcategory();
       const dbUser = await prisma.user.findFirstOrThrow();
 
@@ -388,6 +380,62 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
         "DIMENSION_POSITION_ALREADY_TAKEN",
         "DUPLICATE_DIMENSION_VALUE",
       ]).toContain(body.code);
+    });
+  });
+
+  describe("Real database-level position conflicts (bypassing the in-app pre-check)", () => {
+    // The in-app `existingPosition` pre-check reads ACTIVE rows inside the same
+    // transaction, so an already-committed row at the same position is caught
+    // there, never by the service's own `catch`. Hold a conflicting dimension
+    // open (uncommitted) in a separate transaction — with a distinct `code` so
+    // ONLY the (subcategory_id, position) partial unique index collides — so the
+    // service's own pre-check (under READ COMMITTED) can't see it and its INSERT
+    // reaches the real index, surfacing a genuine Prisma P2002. This is the only
+    // path to the catch's position arm, which regressed silently to
+    // DuplicateDimensionValueError once `error.meta.target` went undefined under
+    // @prisma/adapter-pg.
+    it("maps a concurrent same-position P2002 to DimensionPositionAlreadyTakenError", async () => {
+      const { subcategory } = await buildTestSubcategory();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      const holderPromise = prisma.$transaction(async (tx) => {
+        await tx.emissionFactorDimension.create({
+          data: {
+            subcategoryId: subcategory.id,
+            code: `holder_${subcategory.id.toString()}_pos1`,
+            name: "Held position holder",
+            position: 1,
+            isRequired: false,
+            status: EmissionFactorDimensionStatus.ACTIVE,
+            createdById: BigInt(dbUser.id),
+            updatedAt: null,
+          },
+        });
+        // Hold the row open (uncommitted) long enough for the concurrent service
+        // call below to pass its own position pre-check and reach its INSERT,
+        // which then blocks on the partial unique index until this commits.
+        // `pg_sleep` returns void, so `$executeRaw` is used (not `$queryRaw`).
+        await tx.$executeRaw`SELECT pg_sleep(0.3)`;
+      });
+
+      // Give the holder's INSERT time to land before starting the service call.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      await expect(
+        createEmissionFactorDimensionService(
+          prisma,
+          {
+            subcategoryId: subcategory.id.toString(),
+            name: "Blocked By Position Collision",
+            position: 1,
+            isRequired: false,
+            values: ["V"],
+          },
+          mapUserToResponse(dbUser)
+        )
+      ).rejects.toMatchObject({ code: "DIMENSION_POSITION_ALREADY_TAKEN" });
+
+      await holderPromise;
     });
   });
 });
