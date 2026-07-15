@@ -230,9 +230,9 @@ describe("POST /api/admin/country-organization-sizes/swap-positions - Integratio
         mapUserToResponse(testUser)
       );
 
-      const reloadedA = await prisma.countryOrganizationSize.findUniqueOrThrow(
-        { where: { id: sizeA.id } }
-      );
+      const reloadedA = await prisma.countryOrganizationSize.findUniqueOrThrow({
+        where: { id: sizeA.id },
+      });
       expect(reloadedA.updatedById).toBe(testUser.id);
     });
   });

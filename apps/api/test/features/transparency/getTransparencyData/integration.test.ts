@@ -208,9 +208,9 @@ describe("GET /api/transparency - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetTransparencyDataResponse;
-      expect(
-        body.some((r) => r.organizationId === org.id.toString())
-      ).toBe(false);
+      expect(body.some((r) => r.organizationId === org.id.toString())).toBe(
+        false
+      );
     });
 
     it("should exclude an organization whose carbon inventory has no recognition submissions", async () => {
@@ -234,9 +234,9 @@ describe("GET /api/transparency - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetTransparencyDataResponse;
-      expect(
-        body.some((r) => r.organizationId === org.id.toString())
-      ).toBe(false);
+      expect(body.some((r) => r.organizationId === org.id.toString())).toBe(
+        false
+      );
     });
 
     it("should count only reduction-project recognitions whose year matches the inventory's year", async () => {

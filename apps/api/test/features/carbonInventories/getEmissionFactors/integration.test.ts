@@ -58,7 +58,10 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
     rateUnitId = rateUnits[0].id;
     secondRateUnitId = rateUnits[1].id;
 
-    const subcategoryIds = await getSubcategoryIds(prisma, methodologyVersionId);
+    const subcategoryIds = await getSubcategoryIds(
+      prisma,
+      methodologyVersionId
+    );
 
     // Find subcategories (among this methodology's) that currently have no
     // EmissionFactorDimension rows, so we can attach our own without
@@ -111,10 +114,18 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
     });
 
     const value1 = await prisma.emissionFactorDimensionValue.create({
-      data: { dimensionId: dimension1.id, value: "TestValue1", updatedAt: null },
+      data: {
+        dimensionId: dimension1.id,
+        value: "TestValue1",
+        updatedAt: null,
+      },
     });
     const value2 = await prisma.emissionFactorDimensionValue.create({
-      data: { dimensionId: dimension2.id, value: "TestValue2", updatedAt: null },
+      data: {
+        dimensionId: dimension2.id,
+        value: "TestValue2",
+        updatedAt: null,
+      },
     });
     const valueOnly = await prisma.emissionFactorDimensionValue.create({
       data: {

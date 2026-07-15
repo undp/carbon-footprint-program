@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  inject,
-} from "vitest";
+import { describe, it, expect, beforeAll, afterAll, inject } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { createTestApp } from "@test/factories/appFactory.js";
 

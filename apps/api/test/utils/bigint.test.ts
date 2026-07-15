@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { mapBigIntField, bigIntEquals, toNullableBigInt } from "@/utils/bigint.js";
+import {
+  mapBigIntField,
+  bigIntEquals,
+  toNullableBigInt,
+} from "@/utils/bigint.js";
 
 describe("mapBigIntField", () => {
   it("returns undefined when the value is undefined", () => {

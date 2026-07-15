@@ -53,9 +53,7 @@ describe("GET /api/terms-conditions/current - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(
-      response.body
-    ) as GetCurrentTermsConditionsResponse;
+    const body = JSON.parse(response.body) as GetCurrentTermsConditionsResponse;
     expect(body.fileName).toBeNull();
   });
 
@@ -71,9 +69,7 @@ describe("GET /api/terms-conditions/current - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(
-      response.body
-    ) as GetCurrentTermsConditionsResponse;
+    const body = JSON.parse(response.body) as GetCurrentTermsConditionsResponse;
     expect(body.fileName).toBeNull();
   });
 
@@ -93,9 +89,7 @@ describe("GET /api/terms-conditions/current - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(
-      response.body
-    ) as GetCurrentTermsConditionsResponse;
+    const body = JSON.parse(response.body) as GetCurrentTermsConditionsResponse;
     expect(body.fileName).toBeNull();
   });
 
@@ -115,9 +109,7 @@ describe("GET /api/terms-conditions/current - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(
-      response.body
-    ) as GetCurrentTermsConditionsResponse;
+    const body = JSON.parse(response.body) as GetCurrentTermsConditionsResponse;
     expect(body.fileName).toBe("terms-and-conditions-v2.pdf");
   });
 });
