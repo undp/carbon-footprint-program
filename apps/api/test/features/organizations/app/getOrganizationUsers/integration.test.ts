@@ -27,6 +27,7 @@ import {
   createTestMembership,
   cleanupTestMemberships,
 } from "@test/factories/membershipFactory.js";
+import { getOrganizationUsersService } from "@/features/organizations/app/getOrganizationUsers/service.js";
 
 describe("GET /api/app/organizations/:organizationId/users - Integration Tests", () => {
   let app: FastifyInstance;
@@ -256,6 +257,88 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Direct service invocation (bypassing organization-role authorization)", () => {
+    // requireOrganizationRole guarantees the organization exists (membership
+    // rows FK-reference it), so the service's own `!organization` guard can
+    // never be reached over HTTP. Call the service directly (still against
+    // the real test database) to exercise it.
+    it("throws OrganizationNotFoundError when the organization does not exist (service-level guard)", async () => {
+      await expect(
+        getOrganizationUsersService(prisma, "999999999", testUser.id.toString())
+      ).rejects.toMatchObject({ code: "ORGANIZATION_NOT_FOUND" });
+    });
+  });
+
+  describe("Name construction and sorting edge cases", () => {
+    it("falls back to an empty name when the member has no firstName or lastName", async () => {
+      const organization = await createTestOrganization(prisma);
+
+      await createTestMembership(prisma, testUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+
+      const nameless = await createTestUser(prisma, {
+        email: "nameless@example.com",
+        firstName: null,
+        lastName: null,
+      });
+      await createTestMembership(prisma, nameless.id, organization.id, {
+        role: OrganizationRole.VIEWER,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id}/users`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
+      const namelessUser = body.find(
+        (u) => u.userId === nameless.id.toString()
+      );
+      expect(namelessUser?.name).toBe("");
+    });
+
+    it("sorts users with the same organization role alphabetically by name", async () => {
+      const organization = await createTestOrganization(prisma);
+
+      await createTestMembership(prisma, testUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+
+      const zed = await createTestUser(prisma, {
+        email: "zed@example.com",
+        firstName: "Zed",
+        lastName: "Zephyr",
+      });
+      await createTestMembership(prisma, zed.id, organization.id, {
+        role: OrganizationRole.VIEWER,
+      });
+
+      const alice = await createTestUser(prisma, {
+        email: "alice@example.com",
+        firstName: "Alice",
+        lastName: "Anderson",
+      });
+      await createTestMembership(prisma, alice.id, organization.id, {
+        role: OrganizationRole.VIEWER,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id}/users`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
+      const viewerIds = body
+        .filter((u) => u.organizationRole === OrganizationRole.VIEWER)
+        .map((u) => u.userId);
+
+      expect(viewerIds).toEqual([alice.id.toString(), zed.id.toString()]);
     });
   });
 });

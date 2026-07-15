@@ -6,6 +6,7 @@ import {
   afterAll,
   beforeEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
@@ -14,6 +15,7 @@ import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import { createTestEmissionFactorDimension } from "@test/factories/emissionFactorFactory.js";
 import { createEmissionFactorDimensionService } from "@/features/emissionFactorDimensions/createEmissionFactorDimension/service.js";
 import { mapUserToResponse } from "@/features/users/mappers.js";
+import { EmissionFactorDimensionStatus } from "@repo/types";
 import type { CreateEmissionFactorDimensionResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -252,6 +254,94 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
           mapUserToResponse(dbUser)
         )
       ).rejects.toMatchObject({ code: "DUPLICATE_DIMENSION_VALUE" });
+    });
+
+    // The route requires authentication (`requireAuth`), so `user` is always
+    // set on every real HTTP request; the service's own `!user` guard can
+    // only be reached by calling the service directly with `null`.
+    it("should throw USER_NOT_FOUND when no user is provided", async () => {
+      const { subcategory } = await buildTestSubcategory();
+
+      await expect(
+        createEmissionFactorDimensionService(
+          prisma,
+          {
+            subcategoryId: subcategory.id.toString(),
+            name: "No User Dimension",
+            position: 1,
+            isRequired: false,
+            values: ["V"],
+          },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
+    });
+  });
+
+  describe("Real database-level P2002 conflicts (bypassing the in-app pre-check)", () => {
+    // With this Prisma version + driver adapter (`@prisma/adapter-pg`), a
+    // real P2002's `error.meta.target` is always `undefined` -- the
+    // constraint's column names are only available under
+    // `error.meta.driverAdapterError.cause.constraint.fields` (confirmed by
+    // triggering a real unique-constraint violation directly and inspecting
+    // the raw error). Since this service's catch block only ever reads
+    // `error.meta?.target` (never the driver-adapter-specific fallback that
+    // `getDuplicatedFieldsFromP2002Error` uses elsewhere in this codebase),
+    // `target` always resolves to `[]` for a genuine P2002 here, so
+    // `target.some(item => item.includes("position"))` is always `false` and
+    // every real P2002 -- position conflicts included -- falls through to
+    // the `DuplicateDimensionValueError("unknown")` fallback. This makes
+    // `DimensionPositionAlreadyTakenError` unreachable from the catch block
+    // (see "unreachable" note in the test report); this test instead
+    // documents and exercises the branch that *is* reachable: the
+    // `Array.isArray(...)`-false path collapsing to `[]` and the resulting
+    // "unknown" duplicate.
+    it("should surface a real Prisma P2002 as an 'unknown' duplicate (DimensionPositionAlreadyTakenError is unreachable here -- see notes)", async () => {
+      const { subcategory } = await buildTestSubcategory();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      // There is no app-level pre-check for `code` duplicates (only for
+      // position/count), so a plain, already-committed conflicting row is
+      // enough to force a real Prisma P2002 straight from the service's own
+      // INSERT -- no concurrency needed. The clock is frozen so we can
+      // pre-compute exactly the code the service will generate for
+      // position 1, and hold that code at a *different* position (2) so
+      // only the (subcategory_id, code) index collides, never the
+      // (subcategory_id, position) one.
+      vi.useFakeTimers({ toFake: ["Date"] });
+      try {
+        const frozenNow = Date.now();
+        const collidingCode = `dim_${subcategory.id.toString()}_1_${frozenNow}`;
+
+        await prisma.emissionFactorDimension.create({
+          data: {
+            subcategoryId: subcategory.id,
+            code: collidingCode,
+            name: "Pre-existing code collision",
+            position: 2,
+            isRequired: false,
+            status: EmissionFactorDimensionStatus.ACTIVE,
+            createdById: BigInt(dbUser.id),
+            updatedAt: null,
+          },
+        });
+
+        await expect(
+          createEmissionFactorDimensionService(
+            prisma,
+            {
+              subcategoryId: subcategory.id.toString(),
+              name: "Blocked By Code Collision",
+              position: 1,
+              isRequired: false,
+              values: ["V"],
+            },
+            mapUserToResponse(dbUser)
+          )
+        ).rejects.toMatchObject({ code: "DUPLICATE_DIMENSION_VALUE" });
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

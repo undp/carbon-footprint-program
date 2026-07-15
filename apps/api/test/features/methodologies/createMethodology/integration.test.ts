@@ -333,5 +333,31 @@ describe("POST /api/methodologies - Integration Tests", () => {
         where: { name: "Test - FK Violation Create" },
       });
     });
+
+    it("should rethrow a non-Prisma error unchanged when the user id cannot be converted to BigInt", async () => {
+      // `BigInt(user.id)` is the very first statement inside the try block,
+      // before any Prisma call is made. An invalid numeric string makes it
+      // throw a native `SyntaxError`, which is not a
+      // `Prisma.PrismaClientKnownRequestError`, so the catch block's
+      // `instanceof` check is false and the raw error is rethrown unchanged.
+      const testUser = await getTestLoggedUser(prisma);
+      const bogusUser = {
+        ...mapUserToResponse(testUser),
+        id: "not-a-number",
+      };
+
+      await expect(
+        createMethodologyService(
+          prisma,
+          {
+            name: "Test - Bad User Id Create",
+            description: "desc",
+            regulation: "reg",
+            version: "1.0",
+          },
+          bogusUser
+        )
+      ).rejects.toThrow(SyntaxError);
+    });
   });
 });

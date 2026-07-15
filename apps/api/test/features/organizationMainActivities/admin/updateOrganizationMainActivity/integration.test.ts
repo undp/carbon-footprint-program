@@ -22,11 +22,15 @@ import {
 import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
+  Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
   OrganizationMainActivityStatus,
 } from "@repo/database";
 import type { UpdateOrganizationMainActivityResponse } from "@repo/types";
+import { updateOrganizationMainActivityService } from "@/features/organizationMainActivities/admin/updateOrganizationMainActivity/service.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 const TEST_PREFIX = "Test - AdminMAUpd ";
 
@@ -690,6 +694,217 @@ describe("PATCH /api/admin/organization-main-activities/:id - Integration Tests"
       });
       expect(after!.status).toBe(OrganizationMainActivityStatus.DELETED);
       expect([200, 404]).toContain(patchResponse.statusCode);
+    });
+  });
+
+  describe("Connecting a subsector explicitly (non-null)", () => {
+    it("connects a real subsector id when no sector is set on the activity or in the patch", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Sec"),
+      });
+      const subsector = await createTestCountrySubsector(prisma, sector.id, {
+        name: uniqueName("Sub"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("NoParents"),
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySubsectorId: subsector.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.countrySubsectorId).toBe(subsector.id.toString());
+      expect(body.countrySectorId).toBeNull();
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.countrySubsectorId).toBe(subsector.id);
+    });
+  });
+
+  describe("Subsector pairing invariant re-check (persisted subsector, sector-only patch)", () => {
+    it("keeps a persisted (sector, subsector) pair valid when the patch touches only the matching sector id", async () => {
+      // Re-fetches the persisted subsector (since the patch doesn't touch
+      // countrySubsectorId, `validatedSubsector` stays null) and confirms it still
+      // matches the patched sector -- the "no mismatch" fall-through at the end of
+      // that consistency check, as opposed to the already-covered throw path.
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("Sec"),
+      });
+      const subsector = await createTestCountrySubsector(prisma, sector.id, {
+        name: uniqueName("Sub"),
+      });
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("ConsistentPair"),
+        countrySectorId: sector.id,
+        countrySubsectorId: subsector.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { countrySectorId: sector.id.toString() },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationMainActivityResponse;
+      expect(body.countrySectorId).toBe(sector.id.toString());
+      expect(body.countrySubsectorId).toBe(subsector.id.toString());
+    });
+  });
+
+  describe("Concurrent delete committing mid-write (deterministic P2025)", () => {
+    it("returns 404 when the row is soft-deleted by another transaction between the pre-check and the final write", async () => {
+      // Unlike the racy Promise.all test above, this deterministically forces the
+      // interleaving: a held-open transaction soft-deletes the row (uncommitted) and
+      // blocks; the PATCH's own pre-check still sees the last-committed ACTIVE row
+      // (MVCC), passes, and then blocks on its own final UPDATE (row lock contention
+      // with the held transaction). Only once we release/commit the hold does the
+      // PATCH's UPDATE re-evaluate its WHERE clause and match zero rows, surfacing
+      // P2025 -> ResourceNotFoundError from the catch block (not the early pre-check).
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("BlockedRace"),
+      });
+
+      let releaseHold: () => void = () => {};
+      const holdGate = new Promise<void>((resolve) => {
+        releaseHold = resolve;
+      });
+      let signalLockTaken: () => void = () => {};
+      const lockTaken = new Promise<void>((resolve) => {
+        signalLockTaken = resolve;
+      });
+
+      const holdingTx = prisma.$transaction(async (tx) => {
+        await tx.organizationMainActivity.update({
+          where: { id: ma.id },
+          data: { status: OrganizationMainActivityStatus.DELETED },
+        });
+        signalLockTaken();
+        await holdGate;
+      });
+
+      await lockTaken;
+
+      const patchPromise = app.inject({
+        method: "PATCH",
+        url: `/api/admin/organization-main-activities/${ma.id.toString()}`,
+        payload: { description: "Will never apply" },
+      });
+
+      // Give the PATCH request time to run its pre-check read and reach the final
+      // write, where it blocks on the row lock held by `holdingTx`.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      releaseHold();
+      await holdingTx;
+
+      const response = await patchPromise;
+      expect(response.statusCode).toBe(404);
+
+      const after = await prisma.organizationMainActivity.findUnique({
+        where: { id: ma.id },
+      });
+      expect(after!.status).toBe(OrganizationMainActivityStatus.DELETED);
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should throw UserNotFoundError when there is no authenticated user", async () => {
+      const ma = await createTestOrganizationMainActivity(prisma, {
+        name: uniqueName("NoUser"),
+      });
+      await expect(
+        updateOrganizationMainActivityService(
+          prisma,
+          ma.id.toString(),
+          { description: "x" },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
+    });
+
+    // The only unique constraint on `organization_main_activity` is the partial
+    // (name, countrySectorId, countrySubsectorId) index, so a real P2002 from this
+    // table's update() always carries "name" in its duplicated fields, and the only
+    // relation `connect` performed here (updater) surfaces as P2025 -- never another
+    // code. Both the "not a P2002" and the "P2002 without name" branches in the catch
+    // block are therefore defensive-only; a minimal stub standing in for the single
+    // write call exercises them in isolation, without touching the real DB.
+    it("rethrows a non-P2025/non-P2002 database error unchanged", async () => {
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({
+            organizationMainActivity: {
+              findFirst: () =>
+                Promise.resolve({
+                  id: 1n,
+                  name: "Stub Activity",
+                  countrySectorId: null,
+                  countrySubsectorId: null,
+                }),
+              update: () => {
+                throw new Prisma.PrismaClientKnownRequestError(
+                  "Simulated foreign key violation",
+                  { code: "P2003", clientVersion: "test" }
+                );
+              },
+            },
+          }),
+      } as unknown as PrismaClient;
+      const testUser = await getTestLoggedUser(prisma);
+
+      await expect(
+        updateOrganizationMainActivityService(
+          stubPrisma,
+          "1",
+          { description: "x" },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toMatchObject({ code: "P2003" });
+    });
+
+    it("rethrows a P2002 unchanged when the duplicated fields do not include name", async () => {
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({
+            organizationMainActivity: {
+              findFirst: () =>
+                Promise.resolve({
+                  id: 1n,
+                  name: "Stub Activity",
+                  countrySectorId: null,
+                  countrySubsectorId: null,
+                }),
+              update: () => {
+                throw new Prisma.PrismaClientKnownRequestError(
+                  "Unique constraint failed on the fields: (`other_field`)",
+                  {
+                    code: "P2002",
+                    clientVersion: "test",
+                    meta: { target: ["other_field"] },
+                  }
+                );
+              },
+            },
+          }),
+      } as unknown as PrismaClient;
+      const testUser = await getTestLoggedUser(prisma);
+
+      await expect(
+        updateOrganizationMainActivityService(
+          stubPrisma,
+          "1",
+          { description: "x" },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toMatchObject({ code: "P2002" });
     });
   });
 });

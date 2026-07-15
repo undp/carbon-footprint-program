@@ -26,6 +26,7 @@ import {
   createTestMembership,
   cleanupTestMemberships,
 } from "@test/factories/membershipFactory.js";
+import { removeOrganizationUserService } from "@/features/organizations/app/removeOrganizationUser/service.js";
 
 describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integration Tests", () => {
   let app: FastifyInstance;
@@ -380,6 +381,93 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 404 when the target user has no active membership in the organization", async () => {
+      const organization = await createTestOrganization(prisma);
+
+      await createTestMembership(prisma, testUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+
+      const nonMember = await createTestUser(prisma, {
+        email: "non-member@example.com",
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/app/organizations/${organization.id}/users/${nonMember.id}`,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("MEMBERSHIP_NOT_FOUND");
+    });
+  });
+
+  describe("Direct service invocation (bypassing organization-role authorization)", () => {
+    // requireOrganizationRole (requiredOrganizationRoles: [ADMIN]) guarantees the
+    // organization exists (membership rows FK-reference it) whenever an actor
+    // reaches the handler, so the service's own `!organization` guard can never
+    // be reached over HTTP. Call the service directly (still against the real
+    // test database) to exercise it.
+    it("throws OrganizationNotFoundError when the organization does not exist (service-level guard)", async () => {
+      await expect(
+        removeOrganizationUserService(
+          prisma,
+          "999999999",
+          adminUser.id.toString(),
+          null
+        )
+      ).rejects.toMatchObject({ code: "ORGANIZATION_NOT_FOUND" });
+    });
+
+    // Removing the sole ADMIN as someone else requires the actor to also be an
+    // ADMIN (per requireOrganizationRole), which would make the target no
+    // longer the *sole* admin; removing yourself as the sole admin instead hits
+    // CannotModifySelfError first. So "the target is the last admin" can only
+    // be produced by calling the service directly.
+    it("throws CannotRemoveLastAdminError when removing the organization's sole ADMIN (service-level guard)", async () => {
+      const organization = await createTestOrganization(prisma);
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+
+      await expect(
+        removeOrganizationUserService(
+          prisma,
+          organization.id.toString(),
+          adminUser.id.toString(),
+          null
+        )
+      ).rejects.toMatchObject({ code: "CANNOT_REMOVE_LAST_ADMIN" });
+    });
+
+    it("leaves updatedById unset when currentUser is null", async () => {
+      const organization = await createTestOrganization(prisma);
+      await createTestMembership(prisma, testUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.VIEWER,
+      });
+
+      await removeOrganizationUserService(
+        prisma,
+        organization.id.toString(),
+        adminUser.id.toString(),
+        null
+      );
+
+      const membership = await prisma.userOrganizationMembership.findFirst({
+        where: {
+          userId: adminUser.id,
+          organizationId: organization.id,
+          status: MembershipStatus.DELETED,
+        },
+      });
+      expect(membership).toBeDefined();
+      expect(membership!.updatedById).toBeNull();
     });
   });
 });

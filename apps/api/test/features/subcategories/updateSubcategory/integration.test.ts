@@ -15,6 +15,7 @@ import {
   createTestSubcategoryUnits,
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
+import { updateSubcategoryService } from "@/features/subcategories/updateSubcategory/service.js";
 import type { UpdateSubcategoryResponse } from "@repo/types";
 import { SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -329,6 +330,101 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Additional field updates", () => {
+    it("should move the subcategory to a new category within the same methodology", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Move Category",
+      });
+
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const newCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - New Target Category",
+          position: 2,
+        }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: newCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateSubcategoryResponse;
+      expect(body.category.id).toBe(newCategory.id.toString());
+    });
+
+    it("should update explanation only", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Explanation Update",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          explanation: "Updated explanation",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateSubcategoryResponse;
+      expect(body.explanation).toBe("Updated explanation");
+    });
+
+    // The service's own catch block only maps P2002 (name conflicts) to a
+    // domain error; a foreign-key violation from an invalid
+    // measurementUnitId falls through its `if (error.code === "P2002")`
+    // check (the false branch of that condition) and is re-thrown raw, to
+    // be handled by the global Prisma-error safety net in errorHandler.ts.
+    it("should surface a database error when measurementUnitIds references a non-existent unit", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Invalid Measurement Unit",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          measurementUnitIds: ["999999999"],
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DATABASE_FOREIGN_KEY_CONSTRAINT");
+    });
+  });
+
+  describe("Direct service invocation (bypassing schema-level validation)", () => {
+    // This route always runs behind auth (`access: { mode: "private" }`), so
+    // `request.currentUser` is never null over HTTP. Call the service
+    // directly with `user = null` to exercise the defensive
+    // `if (!user) throw new UserNotFoundError()` guard.
+    it("should return USER_NOT_FOUND when called without a user", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Direct No User",
+      });
+
+      await expect(
+        updateSubcategoryService(
+          prisma,
+          subcategory.id.toString(),
+          { name: "Should Not Apply" },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
     });
   });
 });
