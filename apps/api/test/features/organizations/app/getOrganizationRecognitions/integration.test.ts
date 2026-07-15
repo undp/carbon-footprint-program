@@ -16,11 +16,19 @@ import {
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
 import { createTestCarbonInventorySubmission } from "@test/factories/submissionFactory.js";
+import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createCarbonInventory } from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   GetOrganizationRecognitionsResponse,
   SubmissionType,
 } from "@repo/types";
-import { SubmissionStatus } from "@repo/database";
+import {
+  SubmissionStatus,
+  OrganizationStatus,
+  InventoryStatus,
+} from "@repo/database";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -176,5 +184,69 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
           r.submissionType === SubmissionType.REDUCTION_PROJECT_VERIFICATION
       )
     ).toBe(true);
+  });
+
+  describe("Organization not found", () => {
+    it("returns 404 when the organization id does not exist", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/9999999999/recognitions",
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
+    });
+
+    it("returns 404 when the organization is BLOCKED (not ACTIVE)", async () => {
+      const organization = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
+    });
+  });
+
+  describe("Data integrity guard", () => {
+    it("surfaces a 500 data-integrity error when an ACTIVE inventory with approved submissions has no year", async () => {
+      // `year` is only filtered by the query when a `year` param is supplied, so
+      // an inventory whose `year` is null still matches the (unfiltered) query
+      // as long as it carries an approved submission — a state that should
+      // never occur in practice but the service defends against it explicitly.
+      const organization = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const inventory = await createCarbonInventory(prisma, {
+        organizationId: organization.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.ACTIVE,
+        methodologyVersionId,
+        year: null,
+      });
+      await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        SubmissionStatus.APPROVED,
+        testUserId
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DATA_INTEGRITY_ERROR");
+    });
   });
 });

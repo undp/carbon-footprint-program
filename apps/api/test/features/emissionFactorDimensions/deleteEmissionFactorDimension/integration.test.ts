@@ -198,6 +198,49 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
       });
       expect(deletedDim!.status).toBe(EmissionFactorDimensionStatus.DELETED);
     });
+
+    it("should nullify the FK on emission factors referencing a non-required position-2 dimension's values", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Delete Dim2 Non-Required",
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Delete Dim2 Non-Required Category",
+        position: 1,
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Delete Dim2 Non-Required Subcategory",
+      });
+      const dimension2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension2.id,
+        { value: "Dim2 Value" }
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { dimensionValue2Id: value.id }
+      );
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension2.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedEf = await prisma.emissionFactor.findUnique({
+        where: { id: ef.id },
+      });
+      expect(updatedEf!.dimensionValue2Id).toBeNull();
+      expect(updatedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
+    });
   });
 
   describe("Error cases", () => {

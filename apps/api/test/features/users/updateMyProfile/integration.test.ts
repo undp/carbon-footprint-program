@@ -8,10 +8,14 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import {
+  getTestLoggedUser,
+  createTestUser,
+} from "@test/factories/userFactory.js";
 import type { UpdateMyProfileResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { updateMyProfileService } from "@/features/users/updateMyProfile/service.js";
 
 describe("PATCH /api/users/me - Integration Tests", () => {
   let app: FastifyInstance;
@@ -105,6 +109,73 @@ describe("PATCH /api/users/me - Integration Tests", () => {
       });
       expect(updated.updatedById?.toString()).toBe(loggedUser.id.toString());
     });
+
+    it("updates the lastName", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { lastName: "UpdatedLastName" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.lastName).toBe("UpdatedLastName");
+    });
+
+    it("clears the countryJobPositionId when set to null", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { countryJobPositionId: null },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.countryJobPositionId).toBeNull();
+    });
+
+    it("updates idpName to a non-null value", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { idpName: "google" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.idpName).toBe("google");
+    });
+
+    it("clears idpName when set to null", async () => {
+      // First set a non-null value so the null update is a meaningful change.
+      await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { idpName: "google" },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { idpName: null },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.idpName).toBeNull();
+    });
+
+    it("updates termsAccepted", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/api/users/me",
+        payload: { termsAccepted: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateMyProfileResponse;
+      expect(body.termsAccepted).toBe(true);
+    });
   });
 
   describe("Error handling", () => {
@@ -180,6 +251,26 @@ describe("PATCH /api/users/me - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Service-level not-found handling", () => {
+    // The HTTP layer auto-provisions the forced-user on every request (see
+    // user-resolve-plugin), so a deleted "current user" can never reach this
+    // service via app.inject(). Exercise the P2025 branch directly against the
+    // real database instead.
+    it("throws USER_NOT_FOUND when the target user row no longer exists", async () => {
+      const ghost = await createTestUser(prisma);
+      await prisma.user.delete({ where: { id: ghost.id } });
+
+      await expect(
+        updateMyProfileService(prisma, ghost.id.toString(), {
+          firstName: "Ghost",
+        })
+      ).rejects.toMatchObject({
+        statusCode: 404,
+        code: "USER_NOT_FOUND",
+      });
     });
   });
 });

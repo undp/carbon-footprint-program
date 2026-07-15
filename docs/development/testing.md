@@ -103,7 +103,7 @@ CREATE DATABASE "t_<sha256(testFilePath)[:16]>" TEMPLATE "testdb"
 ## Running Tests
 
 ```bash
-# Run every test suite (API storage legs + web)
+# Run every test suite (API storage legs + web + seed)
 pnpm test
 
 # Run all API tests (the three storage legs)
@@ -111,6 +111,9 @@ pnpm test:api
 
 # Run the apps/web suite (Vitest + jsdom; builds @repo/* deps first)
 pnpm test:web
+
+# Run the tools/seed unit tests
+pnpm test:seed
 
 # Run a single API test file
 pnpm test --filter=api -- /createUser/integration.test.ts --coverage=false

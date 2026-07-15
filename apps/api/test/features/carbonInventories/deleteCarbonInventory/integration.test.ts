@@ -27,6 +27,8 @@ import {
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "@/features/carbonInventories/helpers.js";
+import { deleteCarbonInventoryService } from "@/features/carbonInventories/deleteCarbonInventory/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -298,6 +300,33 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        deleteCarbonInventoryService(prisma, "999999999", null)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("treats a null user as an anonymous actor (updatedById = null)", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      await deleteCarbonInventoryService(prisma, inventory.id.toString(), null);
+
+      const dbInventory = await prisma.carbonInventory.findUnique({
+        where: { id: inventory.id },
+      });
+      expect(dbInventory?.status).toBe(InventoryStatus.DELETED);
+      expect(dbInventory?.updatedById).toBeNull();
     });
   });
 });

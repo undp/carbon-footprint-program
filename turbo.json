@@ -3,6 +3,8 @@
   "globalEnv": [
     "API_HOST",
     "API_PORT",
+    "MAX_EVENT_LOOP_DELAY_MS",
+    "MAX_EVENT_LOOP_UTILIZATION",
     "NODE_ENV",
     "DATABASE_URL",
     "JWT_SECRET",

@@ -260,6 +260,59 @@ describe("POST /api/app/organizations - Integration Tests", () => {
     });
   });
 
+  describe("Nullable optional fields", () => {
+    it("should store null for every nullable optional field when explicitly sent as null", async () => {
+      // Every field below is `.nullable()` in OrganizationMutationDataSchema
+      // (not `.optional()`), so the key must be present but `null` is a valid
+      // value — this exercises the `|| null` fallback's falsy branch for each
+      // of them in `mapOrganizationMutationData` (the "all truthy" branch is
+      // already covered by the happy-path tests above).
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/app/organizations",
+        payload: {
+          legalName: "Nulls Test Org",
+          tradeName: null,
+          taxId: null,
+          countryOrganizationSizeId: null,
+          sectorId: null,
+          subsectorId: null,
+          employeesCount: null,
+          address: null,
+          mainActivityId: null,
+          representativeFullName: null,
+          representativeTaxId: null,
+          representativePositionId: null,
+          representativePhone: null,
+          representativeEmail: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateOrganizationResponse;
+
+      const organizationData = await prisma.organizationData.findFirst({
+        where: { organizationId: BigInt(body.id) },
+      });
+
+      expect(organizationData).toBeDefined();
+      expect(organizationData?.legalName).toBe("Nulls Test Org");
+      expect(organizationData?.tradeName).toBeNull();
+      expect(organizationData?.taxId).toBeNull();
+      expect(organizationData?.address).toBeNull();
+      expect(organizationData?.employeesCount).toBeNull();
+      expect(organizationData?.representativeFullName).toBeNull();
+      expect(organizationData?.representativeTaxId).toBeNull();
+      expect(organizationData?.representativePhone).toBeNull();
+      expect(organizationData?.representativeEmail).toBeNull();
+      expect(organizationData?.countryOrganizationSizeId).toBeNull();
+      expect(organizationData?.sectorId).toBeNull();
+      expect(organizationData?.subsectorId).toBeNull();
+      expect(organizationData?.mainActivityId).toBeNull();
+      expect(organizationData?.representativeCountryJobPositionId).toBeNull();
+    });
+  });
+
   describe("Validation - Missing required fields", () => {
     it("should return 400 when legalName is missing", async () => {
       const response = await app.inject({

@@ -15,8 +15,18 @@ import {
   createTestReductionProjectSubmission,
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
+import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createTestMembership } from "@test/factories/membershipFactory.js";
+import { createCarbonInventory } from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { GetAllReductionProjectsResponse } from "@repo/types";
 import { SubmissionStatus } from "@repo/database";
+import { InventoryStatus, GwpSourceEnum } from "@repo/types";
+import {
+  OrganizationRole,
+  MembershipStatus,
+  OrganizationStatus,
+} from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -219,6 +229,132 @@ describe("GET /api/reduction-projects - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAllReductionProjectsResponse;
       expect(body).toHaveLength(1);
       expect(body[0].totalReduction).toBe(400); // 1000 - 600
+    });
+
+    it("should return a null totalReduction when baseline/project scenario are unset", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      await createTestReductionProject(
+        prisma,
+        {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        },
+        {
+          baselineScenario: null,
+          projectScenario: null,
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/reduction-projects",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllReductionProjectsResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].baselineScenario).toBeNull();
+      expect(body[0].projectScenario).toBeNull();
+      expect(body[0].totalReduction).toBeNull();
+    });
+
+    it("should return null subcategoryId and gwpUsed when unset", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      await createTestReductionProject(
+        prisma,
+        {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        },
+        {
+          subcategoryId: null,
+          gwpUsed: null,
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/reduction-projects",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllReductionProjectsResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].subcategoryId).toBeNull();
+      expect(body[0].gwpUsed).toBeNull();
+    });
+
+    it("should return non-null gwpUsed when set", async () => {
+      const { organization, carbonInventory, subcategory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      await createTestReductionProject(
+        prisma,
+        {
+          organizationId: organization.id,
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: subcategory.id,
+          createdById: testUserId,
+        },
+        { gwpUsed: GwpSourceEnum.IPCC_AR6 }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/reduction-projects",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllReductionProjectsResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].gwpUsed).toBe(GwpSourceEnum.IPCC_AR6);
+    });
+
+    it("should return null organizationName/organizationDisplayStatus when the org has no summary", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createCarbonInventory(prisma, {
+        organizationId: org.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.ACTIVE,
+        methodologyVersionId,
+        year: 2024,
+      });
+      await createTestMembership(prisma, testUserId, org.id, {
+        role: OrganizationRole.ADMIN,
+        status: MembershipStatus.ACTIVE,
+      });
+      const subcategory = await prisma.subcategory.findFirstOrThrow({
+        select: { id: true },
+      });
+
+      await createTestReductionProject(prisma, {
+        organizationId: org.id,
+        carbonInventoryId: carbonInventory.id,
+        subcategoryId: subcategory.id,
+        createdById: testUserId,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/reduction-projects",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllReductionProjectsResponse;
+      expect(body).toHaveLength(1);
+      expect(body[0].organizationName).toBeNull();
+      expect(body[0].organizationDisplayStatus).toBeNull();
     });
   });
 

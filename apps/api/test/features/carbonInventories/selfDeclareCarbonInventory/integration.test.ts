@@ -292,6 +292,45 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
       expect(body.code).toBe("CARBON_INVENTORY_ALREADY_SELF_DECLARED");
     });
 
+    it("should return 422 when a different inventory for the same organization+year is already self-declared", async () => {
+      const user = await getTestLoggedUser(prisma);
+      const org = await createTestOrganization(prisma);
+      await createTestMembership(prisma, user.id, org.id);
+
+      const firstInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { organizationId: org.id, year: 2024 }
+      );
+      const secondInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { organizationId: org.id, year: 2024 }
+      );
+
+      const firstResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${firstInventory.id}/self-declare`,
+      });
+      expect(firstResponse.statusCode).toBe(200);
+
+      const secondResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${secondInventory.id}/self-declare`,
+      });
+
+      expect(secondResponse.statusCode).toBe(422);
+      const body = JSON.parse(secondResponse.body) as ApiErrorResponse;
+      expect(body.code).toBe("CARBON_INVENTORY_YEAR_ALREADY_SELF_DECLARED");
+
+      // The transaction must have rolled back the tentative claim on the
+      // second inventory.
+      const dbSecondInventory = await prisma.carbonInventory.findUnique({
+        where: { id: secondInventory.id },
+      });
+      expect(dbSecondInventory?.isSelfDeclared).toBe(false);
+    });
+
     it("should return 422 when inventory has a pending submission (not DRAFT display status)", async () => {
       const { inventory, user } = await createSelfDeclarableInventory();
 

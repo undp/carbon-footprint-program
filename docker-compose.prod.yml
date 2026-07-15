@@ -1,13 +1,16 @@
 # =============================================================================
 # Huella Latam — PRODUCTION docker-compose (on-premise, external PostgreSQL)
 # =============================================================================
-# Runs only `api` and `web`. PostgreSQL is NOT part of this stack — it is an
-# external server reached through DATABASE_URL. Migrations and seeds are not
-# automated here either; they are applied manually before starting the stack.
+# Runs `api` and `web`. PostgreSQL is NOT part of this stack — it is an external
+# server reached through DATABASE_URL. Migrations and seeds are not part of `up`:
+# they run as the operator-invoked `migrate` and `seed` one-shot services below,
+# each gated behind a Compose profile so `up` never starts them.
 #
 # Usage:
 #   cp .env.prod.dockercompose.example .env.prod.dockercompose   # then fill it in
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose up -d --build
+#   # migrations (every deploy) and seed (first deploy only) are separate one-shots:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose --profile migrate run --rm migrate
 #
 # Full guide: docs/operations/production-deployment.md
 # =============================================================================
@@ -135,6 +138,110 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # migrate — operator-invoked ONE-SHOT (never started by `up`)
+  # ---------------------------------------------------------------------------
+  # Preflight (validate:version = connectivity + PostgreSQL >= 15), then apply
+  # pending Prisma migrations against the EXTERNAL database, then exit. Gated
+  # behind the `migrate` profile so `docker compose ... up` never starts it, and
+  # deliberately NOT an `api` dependency (unlike the dev stack): prod migrations
+  # run at a controlled moment, never implicitly on stack start. Invoke it:
+  #
+  #   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+  #     --profile migrate run --rm migrate
+  #
+  # `container_name` is intentionally omitted — `docker compose run` ignores it
+  # (and warns), and these services are only ever invoked via `run`.
+  #
+  # Uses the API Dockerfile's `builder` stage (full source + tsx + prisma +
+  # node_modules) — the slim runtime `runner` image ships none of those. Distinct
+  # image name from `api` so the shared base/deps/builder layers reuse cache
+  # without a tag collision.
+  #
+  # ⚠️  Least privilege: connects as the MIGRATION user (MIGRATION_DATABASE_URL),
+  #     a DIFFERENT credential than the API's application user (DATABASE_URL).
+  #     prisma.config.ts and validate:version read DATABASE_URL, so we map
+  #     MIGRATION_DATABASE_URL onto DATABASE_URL inside THIS container only.
+  #
+  # ⚠️  Table-ownership GRANTs are NOT re-applied here. Tables end up owned by the
+  #     migration user; if it differs from the app user, re-apply the grants from
+  #     the DBA contract after EVERY migrate run (see production-deployment.md).
+  migrate:
+    profiles: [migrate]
+    image: huella-latam-migrate:prod
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - "pnpm --filter @repo/database validate:version && pnpm --filter @repo/database prod:deploy"
+    environment:
+      - NODE_ENV=production
+      # Map the MIGRATION credential onto DATABASE_URL (what the tooling reads).
+      # Soft default (`:-`) is deliberate: Compose interpolates EVERY service on
+      # every command, so a required (`:?`) form here would break the deploy
+      # person's `up` even though they never run migrate. Empty still fails fast —
+      # validate:version reports "DATABASE_URL environment variable is not set".
+      - DATABASE_URL=${MIGRATION_DATABASE_URL:-}
+    # External DB (like `api`) → no depends_on. restart:"no" → true one-shot.
+    restart: "no"
+    networks:
+      - huella-network
+
+  # ---------------------------------------------------------------------------
+  # seed — operator-invoked ONE-SHOT, FIRST DEPLOY ONLY (never started by `up`)
+  # ---------------------------------------------------------------------------
+  # Seeds reference data (countries, badges, terms & conditions). Reuses the
+  # migrate image. Gated behind the `seed` profile; run ONCE, on the first
+  # deploy, AFTER migrate:
+  #
+  #   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+  #     --profile seed run --rm seed
+  #
+  # Runs as the MIGRATION user too (same DATABASE_URL mapping): it inserts rows
+  # the migration user owns, sidestepping the grant-timing gap.
+  #
+  # ⚠️  SEED ONE-SHOT WARNING — the seed skips entirely once `country` has rows,
+  #     and the badge/terms seeds skip PERMANENTLY if STORAGE_PROVIDER and its
+  #     storage block are not set on THIS run (they build the storage adapter via
+  #     storageConfigFromEnv(process.env)). A first run without working storage
+  #     vars means badges & terms are never seeded and re-running is a no-op.
+  #     Fill the storage block before seeding — see production-deployment.md.
+  seed:
+    profiles: [seed]
+    image: huella-latam-migrate:prod
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - "pnpm --filter @repo/seed seed"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${MIGRATION_DATABASE_URL:-}
+      # Storage — REQUIRED before the first seed (see warning above).
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-}
+      - AZURE_STORAGE_ACCOUNT_NAME=${AZURE_STORAGE_ACCOUNT_NAME:-}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-}
+      - AZURE_STORAGE_TENANT_ID=${AZURE_STORAGE_TENANT_ID:-}
+      - AZURE_STORAGE_CLIENT_ID=${AZURE_STORAGE_CLIENT_ID:-}
+      - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
+      - MINIO_BUCKET=${MINIO_BUCKET:-files}
+      - MINIO_REGION=${MINIO_REGION:-us-east-1}
+      - MINIO_FORCE_PATH_STYLE=${MINIO_FORCE_PATH_STYLE:-true}
+    restart: "no"
+    networks:
+      - huella-network
 
 networks:
   huella-network:
