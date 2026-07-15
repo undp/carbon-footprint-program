@@ -199,6 +199,8 @@ Another Postgres owns the host port. Either set `POSTGRES_PORT_HOST_MAPPING=5433
 
 ### `migrate` fails: `Object storage is required for the base seed …`
 
+Locally the `migrate` service applies migrations **and** runs the base seed in one step (`prisma migrate deploy && … @repo/seed seed`), so a seed-storage failure surfaces here as a `migrate` failure. (In the production compose these are separate `migrate` / `seed` profiles, and this error comes from `seed` — see [Production Deployment](./production-deployment.md).)
+
 The base seed preflights object storage and refuses to write anything when it is unconfigured or unreachable. Two variants:
 
 - **`… is not configured`** — `STORAGE_PROVIDER` is unset or its `AZURE_STORAGE_*` / `MINIO_*` block is incomplete. Fill the storage block in `.env.dockercompose`.
