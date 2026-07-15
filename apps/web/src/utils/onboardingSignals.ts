@@ -1,15 +1,19 @@
 /**
- * One-shot, cross-screen hint for the home onboarding flow. Each step button on
- * the home navigates to the relevant page and leaves a "focus" target here
- * (via sessionStorage, not the URL — it is a transient hint, not bookmarkable
- * state) so the destination screen can spotlight the exact control to click.
+ * Stable ids for onboarding spotlight targets. Most double as the one-shot,
+ * cross-screen focus for the home flow: each step button on the home navigates
+ * to the relevant page and leaves a "focus" target here (via sessionStorage,
+ * not the URL — a transient hint, not bookmarkable state) so the destination
+ * screen can spotlight the exact control to click. Some (e.g. the expert-mode
+ * editor hint) are not sessionStorage-driven — they only tag a control so an
+ * in-screen highlight can resolve it — but share this id union.
  */
 export type OnboardingFocus =
   | "create-org"
   | "solicit-inscription"
   | "new-huella"
   | "associate-org"
-  | "self-declare";
+  | "self-declare"
+  | "emission-capture-expert-mode";
 
 const FOCUS_KEY = "onboarding:focus";
 
