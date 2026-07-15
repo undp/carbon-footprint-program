@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SubmissionType } from "@repo/types";
 import { capitalize } from "lodash-es";
-import { VOCAB } from "../../config/vocab";
+import { VOCAB } from "@/config/vocab";
 import {
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_TYPE_SORT_ORDER,
