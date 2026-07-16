@@ -1,15 +1,16 @@
 // secrets.tf — generated DB password and Secrets Manager containers.
 //
 // Mirrors infra/modules/keyVault.bicep (Azure Key Vault): secrets are generated
-// and stored, never hardcoded. AWS Secrets Manager holds three values injected
-// into the ECS task at runtime:
+// and stored, never hardcoded. AWS Secrets Manager holds the one credential
+// value injected into the ECS task at runtime:
 //   - DATABASE_URL   (full connection string, built here)
-//   - MINIO_ACCESS_KEY / MINIO_SECRET_KEY (the app's S3 IAM key)
+//
+// Object storage needs no secret here: the API reaches S3 keyless via the ECS
+// task role (see storage.tf / api.tf), so there is no MINIO_ACCESS_KEY /
+// MINIO_SECRET_KEY to store or inject.
 //
 // The DATABASE_URL value is defined here (it depends on the RDS endpoint —
-// Terraform resolves the ordering). The MinIO secret *containers* are declared
-// here but their *versions* are set in storage.tf, where the IAM access key
-// actually exists.
+// Terraform resolves the ordering).
 //
 // recovery_window_in_days = 0 lets `terraform destroy` remove the secrets
 // immediately instead of scheduling them for deletion, so a re-apply with the
@@ -37,19 +38,4 @@ resource "aws_secretsmanager_secret" "database_url" {
 resource "aws_secretsmanager_secret_version" "database_url" {
   secret_id     = aws_secretsmanager_secret.database_url.id
   secret_string = "postgresql://${var.db_username}:${urlencode(random_password.db.result)}@${aws_db_instance.main.address}:5432/${var.db_name}?sslmode=require"
-}
-
-// ----- MinIO (S3) access key -----
-// Containers only; versions are populated in storage.tf from aws_iam_access_key.
-
-resource "aws_secretsmanager_secret" "minio_access_key" {
-  name                    = "${local.name_prefix}-minio-access-key"
-  description             = "S3 access key id used by the API storage adapter (MINIO_ACCESS_KEY)"
-  recovery_window_in_days = 0
-}
-
-resource "aws_secretsmanager_secret" "minio_secret_key" {
-  name                    = "${local.name_prefix}-minio-secret-key"
-  description             = "S3 secret access key used by the API storage adapter (MINIO_SECRET_KEY)"
-  recovery_window_in_days = 0
 }
