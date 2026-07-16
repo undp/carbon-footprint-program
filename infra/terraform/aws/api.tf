@@ -61,7 +61,9 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-// Allow the execution role to read exactly the three secrets injected into the task.
+// Allow the execution role to read exactly the secret injected into the task.
+// Only DATABASE_URL is a Secrets Manager secret now — object storage is keyless
+// (the app reaches S3 via the task role), so there is no MinIO key to read.
 resource "aws_iam_role_policy" "ecs_execution_secrets" {
   name = "${local.name_prefix}-ecs-execution-secrets"
   role = aws_iam_role.ecs_execution.id
@@ -70,21 +72,18 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue"]
-        Resource = [
-          aws_secretsmanager_secret.database_url.arn,
-          aws_secretsmanager_secret.minio_access_key.arn,
-          aws_secretsmanager_secret.minio_secret_key.arn
-        ]
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [aws_secretsmanager_secret.database_url.arn]
       }
     ]
   })
 }
 
-// Task role — assumed by the application process. The API talks to S3 with the
-// STATIC IAM key from storage.tf (see the note there), not the task role, so
-// this role needs no S3 permissions. Left minimal on purpose.
+// Task role — assumed by the application process. The API talks to S3 KEYLESS:
+// the storage adapter omits explicit credentials, so the AWS SDK default chain
+// picks up this role. Its least-privilege S3 policy (scoped to the files
+// bucket) is attached in storage.tf, next to the bucket it grants.
 resource "aws_iam_role" "ecs_task" {
   name               = "${local.name_prefix}-ecs-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
@@ -139,10 +138,10 @@ resource "aws_ecs_task_definition" "api" {
       ]
 
       // Credential-bearing values injected from Secrets Manager (never plaintext).
+      // Object storage is keyless (S3 via the task role), so no MINIO_* secret
+      // is injected — only DATABASE_URL.
       secrets = [
-        { name = "DATABASE_URL", valueFrom = aws_secretsmanager_secret.database_url.arn },
-        { name = "MINIO_ACCESS_KEY", valueFrom = aws_secretsmanager_secret.minio_access_key.arn },
-        { name = "MINIO_SECRET_KEY", valueFrom = aws_secretsmanager_secret.minio_secret_key.arn }
+        { name = "DATABASE_URL", valueFrom = aws_secretsmanager_secret.database_url.arn }
       ]
 
       // Same probe as apps/api/Dockerfile HEALTHCHECK (curl is present in the image).

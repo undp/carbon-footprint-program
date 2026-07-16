@@ -12,9 +12,9 @@ it, adjust the variables, and grow it into your production stack.
 - **ECS Fargate + ALB** — the `apps/api` container (port 8080, `GET /health`),
   behind an Application Load Balancer.
 - **S3 + CloudFront** — the static SPA bucket fronted by a CDN, plus a second S3
-  bucket for user file uploads (accessed by the API with an IAM access key).
+  bucket for user file uploads (accessed by the API keyless, via the ECS task role).
 - **ECR** — registry for the API image.
-- **Secrets Manager** — `DATABASE_URL` and the S3 access key/secret.
+- **Secrets Manager** — `DATABASE_URL` (object storage is keyless, so there is no S3 key to store).
 - **Optional WAFv2** — managed common rules + a rate limit on CloudFront.
 
 ## Azure → AWS mapping
@@ -23,13 +23,13 @@ it, adjust the variables, and grow it into your production stack.
 | -------------------- | ----------------------------------------------------- | --------------------------------------- |
 | API compute          | App Service (`appService.bicep`)                      | ECS Fargate service + ALB (`api.tf`)    |
 | Database             | PostgreSQL Flexible Server (`postgres.bicep`)         | RDS for PostgreSQL (`database.tf`)      |
-| File storage         | Storage Account + `files` container (`storage.bicep`) | S3 bucket + IAM user key (`storage.tf`) |
+| File storage         | Storage Account + `files` container (`storage.bicep`) | S3 bucket (`storage.tf`)                |
 | Web hosting          | Static Web App (`staticWebApp.bicep`)                 | S3 + CloudFront (`frontend.tf`)         |
 | CDN / WAF            | Front Door + WAF (`frontDoor.bicep`)                  | CloudFront + WAFv2 (`frontend.tf`)      |
 | Container registry   | ACR (`acr.bicep`)                                     | ECR (`registry.tf`)                     |
 | Secrets              | Key Vault (`keyVault.bicep`)                          | Secrets Manager (`secrets.tf`)          |
 | Network isolation    | Platform + PG firewall rules                          | VPC + security groups (`network.tf`)    |
-| Identity for storage | Managed Identity (RBAC)                               | Static IAM access key (see note below)  |
+| Identity for storage | Managed Identity (RBAC)                               | ECS task role (keyless, see note below) |
 
 ## Prerequisites
 
@@ -155,16 +155,22 @@ Full walkthrough:
      CloudFront distribution, then point `custom_domain_web` DNS at
      `cloudfront_domain_name`.
 
-## Storage: the static-key tradeoff
+## Storage: keyless (ECS task role)
 
 The API's S3 adapter
 ([`packages/storage/src/adapters/minioAdapter.ts`](../../../packages/storage/src/adapters/minioAdapter.ts))
-builds its S3 client from an explicit access key + secret — it does **not** use
-the AWS default credential chain, so it cannot use the ECS task role. This stack
-therefore creates a dedicated least-privilege IAM user + access key (scoped to
-the files bucket only) and injects it via Secrets Manager as `MINIO_ACCESS_KEY`
-/ `MINIO_SECRET_KEY`. Moving to keyless task-role auth would require an
-**app-code change** in the adapter and is out of scope for this reference.
+omits explicit credentials when `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` are
+unset, so the AWS SDK v3 **default credential chain** picks up the **ECS task
+role** automatically. This stack therefore grants a least-privilege S3 policy
+(scoped to the files bucket only) directly to the task role — **no IAM user, no
+long-lived access key, no Secrets Manager entry** for storage. There is nothing
+to rotate or leak, and the task carries no S3 credential in its config.
+
+> **AWS only.** This keyless path relies on the AWS default credential chain.
+> Google Cloud Storage's S3-interoperability API authenticates only with HMAC
+> keys, so the GCP stack still provisions and injects an HMAC key pair (see
+> `infra/terraform/gcp/`). Keyless there would need a native GCS adapter
+> (Workload Identity), which is out of scope.
 
 To keep the files bucket off the public internet, the app supports a **storage
 relay**: set `MINIO_RELAY_ENABLED=true` and `api_origin` so the API proxies

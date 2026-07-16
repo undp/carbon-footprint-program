@@ -70,8 +70,16 @@ services:
       - AZURE_STORAGE_CLIENT_SECRET=${AZURE_STORAGE_CLIENT_SECRET:-}
       # --- MinIO / S3-compatible (used when STORAGE_PROVIDER=minio) ---
       # The MinIO server is EXTERNAL to this stack (like PostgreSQL above). When
-      # STORAGE_PROVIDER=minio the API requires MINIO_ENDPOINT, MINIO_ACCESS_KEY,
-      # and MINIO_SECRET_KEY and refuses to boot if any is missing.
+      # STORAGE_PROVIDER=minio the API requires MINIO_ENDPOINT and refuses to
+      # boot without it. MINIO_ACCESS_KEY / MINIO_SECRET_KEY are optional but
+      # BOTH-OR-NEITHER (setting only one aborts boot):
+      #   - Both set → sign with those static keys. Required for MinIO, on-prem
+      #     S3, and Google Cloud Storage (its S3 interoperability only accepts
+      #     HMAC keys — there is no keyless GCS path over the S3 API).
+      #   - Both unset → keyless: the API omits explicit credentials so the AWS
+      #     SDK default chain (ECS/EKS task role, EC2 instance profile, …)
+      #     supplies them. This is the best-practice path on AWS; it does NOT
+      #     work for GCS.
       - MINIO_ENDPOINT=${MINIO_ENDPOINT:-}
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
