@@ -20,8 +20,18 @@ export interface AzureStorageConfig {
 /** Settings the MinIO / S3-compatible adapter needs to construct its client. */
 export interface MinioStorageConfig {
   endpoint: string;
-  accessKey: string;
-  secretKey: string;
+  /**
+   * Static S3 access key. Optional: when both `accessKey` and `secretKey` are
+   * set, the adapter signs with them (MinIO, on-prem S3, an explicit AWS IAM
+   * key, or Google Cloud Storage's HMAC interoperability keys). When both are
+   * absent, the adapter omits explicit credentials so the AWS SDK v3 default
+   * credential chain (ECS/EKS task role, EC2 instance profile, env vars, SSO,
+   * …) supplies them — the keyless best-practice path on AWS. Enforced
+   * both-or-neither by `storageConfigFromEnv`.
+   */
+  accessKey?: string | undefined;
+  /** Static S3 secret key. Optional, both-or-neither with `accessKey`. */
+  secretKey?: string | undefined;
   bucket: string;
   region: string;
   forcePathStyle: boolean;
@@ -99,11 +109,26 @@ export function storageConfigFromEnv(
   }
 
   const endpoint = env.MINIO_ENDPOINT;
-  const accessKey = env.MINIO_ACCESS_KEY;
-  const secretKey = env.MINIO_SECRET_KEY;
-  if (!endpoint || !accessKey || !secretKey) {
+  if (!endpoint) {
+    throw new Error("STORAGE_PROVIDER=minio but MINIO_ENDPOINT is missing");
+  }
+  // `|| undefined` so an empty-string placeholder (docker-compose passes
+  // `${MINIO_ACCESS_KEY:-}` → "" when the host var is unset) is treated as
+  // absent, not as a real (empty) credential.
+  const accessKey = env.MINIO_ACCESS_KEY || undefined;
+  const secretKey = env.MINIO_SECRET_KEY || undefined;
+  // Both-or-neither. The static keys are optional so AWS deployments can run
+  // keyless (an ECS/EKS task role or EC2 instance profile supplies credentials
+  // via the SDK default chain), but a half-configured pair is a
+  // misconfiguration we refuse rather than silently drop one credential.
+  // (Google Cloud Storage's S3 interoperability has no keyless mode — it only
+  // authenticates with HMAC keys, so GCS deployments must set both.)
+  if ((accessKey === undefined) !== (secretKey === undefined)) {
     throw new Error(
-      "STORAGE_PROVIDER=minio but MINIO_ENDPOINT, MINIO_ACCESS_KEY, or MINIO_SECRET_KEY is missing"
+      "STORAGE_PROVIDER=minio requires MINIO_ACCESS_KEY and MINIO_SECRET_KEY " +
+        "together, or neither. Set both for static credentials (MinIO, on-prem " +
+        "S3, or Google Cloud Storage HMAC keys), or leave both unset on AWS to " +
+        "use the default credential chain (ECS/EKS task role, instance profile, …)."
     );
   }
   return {
