@@ -344,7 +344,7 @@ Every new endpoint should have tests covering:
 
 ## Vitest Configuration Reference
 
-Key settings live in `apps/api/vitest.shared.ts` (`defineApiVitestProject` builds one project; `apiCoverageConfig` is the shared coverage block). `apps/api/vitest.config.ts` assembles them into a single config with three **projects** (`test.projects`): `base` (the full suite **minus** the storage manifest), `storage-azure`, and `storage-minio` (**only** the storage manifest, one per provider). One config drives both `vitest run --coverage` locally and the `--project=<leg>` legs in CI:
+Everything lives in `apps/api/vitest.config.ts`: a local `defineApiVitestProject` helper builds one project, and the config assembles three **projects** (`test.projects`) — `base` (the full suite **minus** the storage manifest), `storage-azure`, and `storage-minio` (**only** the storage manifest, one per provider). Coverage and the other root-only options sit once on the root `test`. One config drives both `vitest run --coverage` locally and the `--project=<leg>` legs in CI:
 
 | Setting               | Value                                                    | Reason                                                                                                                                                    |
 | --------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -357,7 +357,7 @@ Key settings live in `apps/api/vitest.shared.ts` (`defineApiVitestProject` build
 | `setupFiles`          | `./test/setup/perFileDatabase.ts`                        | Clones a private database per test file                                                                                                                   |
 | `coverage.thresholds` | 0 in the config (branches, functions, lines, statements) | Per-project thresholds would fail on the files a project never runs; the real gate is passed by flag at the merge/gate step — see the coverage note below |
 
-> **Note on coverage:** the per-project thresholds in `vitest.shared.ts` are held
+> **Note on coverage:** the coverage thresholds in `vitest.config.ts` are held
 > at **0** (informational only). This is deliberate: the suite is partitioned into
 > three projects (`base`, `storage-azure`, `storage-minio`), so no single project
 > exercises the whole codebase and a per-project threshold would fail on the files

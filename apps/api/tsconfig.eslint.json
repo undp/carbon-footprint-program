@@ -1,12 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "src",
-    "test",
-    "eslint.config.ts",
-    "vitest.config.ts",
-    "vitest.shared.ts"
-  ],
+  "include": ["src", "test", "eslint.config.ts", "vitest.config.ts"],
   "compilerOptions": {
     "noEmit": true
   }
