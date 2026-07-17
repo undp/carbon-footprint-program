@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useAuth as useOidcAuth } from "react-oidc-context";
-import { useQueryClient } from "@tanstack/react-query";
-import type { GetMeResponse, OnboardingKey } from "@repo/types";
+import type { OnboardingKey } from "@repo/types";
 import { useCompleteOnboarding, useMe } from "@/api/query";
-import { userKeys } from "@/api/query/users/keys";
 import {
   ANONYMOUS_REACHABLE_KEYS,
   markLocalCompleted,
@@ -35,7 +33,6 @@ export const useOnboardingCompletion = (): UseOnboardingCompletion => {
   const oidc = useOidcAuth();
   const isAuthenticated = oidc.isAuthenticated;
   const meQuery = useMe(isAuthenticated);
-  const queryClient = useQueryClient();
   const { mutate: completeOnboarding } = useCompleteOnboarding();
 
   // Never report "not completed" while auth/`/me` are still settling, so a hint
@@ -67,19 +64,13 @@ export const useOnboardingCompletion = (): UseOnboardingCompletion => {
         // write above already suppresses the hint; login merge syncs it later.
         return;
       }
-      // Optimistically add the key to the cached /me so any consumer is
-      // suppressed instantly, before the mutation's invalidation refetch lands.
-      queryClient.setQueryData<GetMeResponse>(userKeys.me, (prev) =>
-        prev && !prev.onboardingsCompleted.includes(key)
-          ? {
-              ...prev,
-              onboardingsCompleted: [...prev.onboardingsCompleted, key],
-            }
-          : prev
-      );
+      // Authenticated: the DB is the source of truth. useCompleteOnboarding
+      // invalidates /me on success, which refreshes the effective completion
+      // state — no optimistic cache write needed (by the time this runs the hint
+      // is already being dismissed, so there is no same-render flash to hide).
       completeOnboarding(key);
     },
-    [isAuthenticated, queryClient, completeOnboarding]
+    [isAuthenticated, completeOnboarding]
   );
 
   return { ready, isCompleted, complete };

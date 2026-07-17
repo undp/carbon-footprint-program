@@ -3,7 +3,7 @@ import { useAuth as useOidcAuth } from "react-oidc-context";
 import { useQueryClient } from "@tanstack/react-query";
 import type { OnboardingKey } from "@repo/types";
 import { apiClient } from "@/api/http";
-import { useMe } from "@/api/query";
+import { onboardingCompletePath, useMe } from "@/api/query";
 import { userKeys } from "@/api/query/users/keys";
 import {
   clearLocalKeys,
@@ -52,11 +52,10 @@ export const useMergeOnboardingCompletionsOnLogin = (): void => {
 
     void (async () => {
       // Idempotent singular POST per key (diff ≤ 2 today; no batch endpoint by
-      // design). Mirrors useCompleteOnboarding's request; one invalidation after.
+      // design), via the same path builder as useCompleteOnboarding so the two
+      // requests can't drift; one invalidation after.
       const results = await Promise.allSettled(
-        toPush.map((key) =>
-          apiClient.post(`users/me/onboardings/${key}/complete`)
-        )
+        toPush.map((key) => apiClient.post(onboardingCompletePath(key)))
       );
       await queryClient.invalidateQueries({ queryKey: userKeys.me });
       // Prune only keys now confirmed in the DB: those already there plus those
