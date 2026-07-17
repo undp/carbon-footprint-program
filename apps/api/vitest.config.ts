@@ -12,6 +12,15 @@ const __dirname = path.dirname(__filename);
 const DEFAULT_TEST_INCLUDE = ["test/**/*.{test,spec}.{js,ts}"];
 
 /**
+ * The apps/api coverage gate — 90% for every metric — declared here, where it is
+ * read, as the single source of truth. It applies to any full run (all three
+ * projects, or the merged blobs). The ONLY run that opts out is `test:ci`, which
+ * runs ONE project whose partial coverage would never clear 90; it overrides
+ * these to 0 on the CLI (see package.json).
+ */
+const COVERAGE_GATE = 90;
+
+/**
  * Environment shared by every project. The storage-provider vars are added per
  * project (see `storageEnv`), because each project targets a different provider.
  * `test.env` is applied inside each worker, so it isolates the three projects
@@ -140,15 +149,16 @@ function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
 // whole run. With a single reporter run, one HTML path can't clobber across
 // projects.
 //
-// The gate (90% lines/statements/functions/branches) is passed by flag in the
-// package.json scripts, never here — a per-project threshold would fail on the
-// files a project never runs, so the thresholds below stay 0 (each project's own
-// report ungated). Two run modes, same coverage by construction:
+// The coverage gate (COVERAGE_GATE below) lives in `test.coverage.thresholds`,
+// applied to any full run. A per-project run can't be gated on its partial view,
+// so `test:ci` (one `--project`) overrides the thresholds to 0 on the CLI — the
+// single opt-out, stated where it happens. Two run modes, same coverage by
+// construction:
 //   - Local: `vitest run --coverage` runs all three projects and merges their
 //     coverage (v8 hit-counts) in one pass, then applies the gate — one command.
-//   - CI:    each leg runs `--project=<leg> --coverage --reporter=blob`; the
-//     `coverage` job merges the blobs with `--merge-reports --coverage` and
-//     applies the same gate. Keeps the matrix's wall-clock; still no script.
+//   - CI:    each leg runs `--project=<leg> --coverage --reporter=blob` (gate
+//     off); the `coverage` job merges the blobs with `--merge-reports --coverage`
+//     and applies the gate. Keeps the matrix's wall-clock; still no script.
 export default defineConfig({
   test: {
     // Multiple reporters for better visibility. The CI legs override this with
@@ -201,9 +211,13 @@ export default defineConfig({
         "**/*.config.{js,ts}",
         "**/server.ts", // Entry point, often hard to test
       ],
-      // Informational only — the real 90% gate is passed by flag at the
-      // merge/gate step (see the package.json test:coverage* scripts).
-      thresholds: { lines: 0, functions: 0, branches: 0, statements: 0 },
+      // The gate. `test:ci` (single-project, partial view) overrides these to 0.
+      thresholds: {
+        lines: COVERAGE_GATE,
+        functions: COVERAGE_GATE,
+        branches: COVERAGE_GATE,
+        statements: COVERAGE_GATE,
+      },
       reportsDirectory: "./coverage",
       clean: true,
       cleanOnRerun: true,

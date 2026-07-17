@@ -103,15 +103,16 @@ export async function createTestApp(
   await app.ready();
 
   if (descriptor === null) {
-    // The test explicitly requested storage (`storageDescriptor:
-    // inject("storageDescriptor")`) but the storage testcontainer failed to
-    // start, so globalSetup provided `null`. Fail early with a clear reason
-    // instead of a confusing adapter error deeper in the test.
+    // globalSetup provides `null` only for the container-less `base` project, so
+    // reaching here means a `base` test requested storage (`storageDescriptor:
+    // inject("storageDescriptor")`). Such a test belongs in the storage manifest
+    // so it runs under a storage-* project. Fail early with a clear reason
+    // instead of a confusing adapter error deeper in the test. (A storage
+    // container that fails to start now fails its project fast at globalSetup.)
     throw new Error(
-      "createTestApp received `storageDescriptor: null` — the storage " +
-        "testcontainer failed to start (see the globalSetup warning above). " +
-        "This test requires real storage. Ensure Docker is available and the " +
-        "storage testcontainer starts successfully."
+      "createTestApp received `storageDescriptor: null`. Only the container-less " +
+        "`base` project provides null — a test that needs real storage must be " +
+        "listed in the storage manifest so it runs under a storage-* project."
     );
   }
 

@@ -49,9 +49,9 @@ export default async function setup(project: TestProject) {
   // Storage is per-project: only the storage projects boot a testcontainer, each
   // against its own provider (picked from the project name, so the three
   // projects never contend on a shared process.env). The `base` project skips it
-  // entirely. It stays best-effort: if the container fails to start we still
-  // provide `null` so the storage-independent tests run; a storage test then
-  // fails loudly in `createTestApp` with an actionable message.
+  // entirely and provides `null`. If the container fails to start in a storage
+  // project we fail fast — every file there needs it, so there is nothing to fall
+  // back to (unlike the old shared run, base is its own container-less project).
   const provider = storageProviderForProject(project.name);
   let storageDescriptor: TestStorageDescriptor | null = null;
   let storageContainer: TestStorageContainer | null = null;
@@ -62,11 +62,10 @@ export default async function setup(project: TestProject) {
       storageDescriptor = storage.descriptor;
       storageContainer = storage.container;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "\n⚠️  Storage testcontainer failed to start — storage-dependent tests will fail.\n",
-        error
-      );
+      // Stop the DB container already started above, but never let its shutdown
+      // failure mask the real storage error.
+      await dbContainer.stop().catch(() => {});
+      throw error;
     }
   }
 
@@ -94,8 +93,8 @@ declare module "vitest" {
   export interface ProvidedContext {
     databaseUrl: string;
     /**
-     * `null` for the `base` project (no storage) and when the storage
-     * testcontainer failed to start.
+     * `null` only for the `base` project, which boots no storage container. The
+     * storage projects either provide a descriptor or fail fast at setup.
      */
     storageDescriptor: TestStorageDescriptor | null;
   }

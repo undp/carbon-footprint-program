@@ -8,15 +8,15 @@ This document describes the test infrastructure, conventions, and patterns used 
 
 The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite for the `storage-azure` project, MinIO for `storage-minio`) — there are no mocks for the database layer. All **API** tests live under `apps/api/test/`; the web app's unit tests are **co-located** under `apps/web/src/` (see [Web unit tests](#web-unit-tests-appsweb)).
 
-| Aspect         | Detail                                                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Framework      | Vitest 4.x                                                                                                                                             |
-| Test type      | Integration (HTTP layer + real DB)                                                                                                                     |
-| Database       | Testcontainers — `postgres:18-alpine`                                                                                                                  |
-| Storage        | Testcontainers — Azurite (`storage-azure` project) or MinIO (`storage-minio` project)                                                                  |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                                                                                  |
-| Execution      | Parallel — files run across workers, each file gets its own database                                                                                   |
-| Coverage       | v8 provider; per-project thresholds held at 0 (informational). The real gate is applied after merging the three projects — see the coverage note below |
+| Aspect         | Detail                                                                                                                                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                                                                                                                                               |
+| Test type      | Integration (HTTP layer + real DB)                                                                                                                                                       |
+| Database       | Testcontainers — `postgres:18-alpine`                                                                                                                                                    |
+| Storage        | Testcontainers — Azurite (`storage-azure` project) or MinIO (`storage-minio` project)                                                                                                    |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                                                                                                                    |
+| Execution      | Parallel — files run across workers, each file gets its own database                                                                                                                     |
+| Coverage       | v8 provider; **90%** gate (all four metrics) declared in the config and applied to any full/merged run; the single-project `test:ci` leg overrides it to 0 — see the coverage note below |
 
 ---
 
@@ -62,7 +62,7 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 `test/setup/globalSetup.ts` runs once **per Vitest project** before that project's tests:
 
 1. **PostgreSQL container** — `postgres:18-alpine`, credentials `testuser:testpass`, database `testdb`. Startup timeout: 180 s (accounts for first image pull in CI).
-2. **Storage container** — chosen from the **project name** (not an env var): the `storage-azure` project boots Azurite (`mcr.microsoft.com/azure-storage/azurite`, in-memory), `storage-minio` boots MinIO (`minio/minio`), and `base` boots **none** (its tests never touch storage). See `test/setup/testStorage.ts`. The `test-files` container/bucket is not pre-created — the test adapters in `@repo/storage/testing` create it lazily and idempotently. Startup timeout: 120 s. If the storage container fails, database-only tests still run.
+2. **Storage container** — chosen from the **project name** (not an env var): the `storage-azure` project boots Azurite (`mcr.microsoft.com/azure-storage/azurite`, in-memory), `storage-minio` boots MinIO (`minio/minio`), and `base` boots **none** (its tests never touch storage). See `test/setup/testStorage.ts`. The `test-files` container/bucket is not pre-created — the test adapters in `@repo/storage/testing` create it lazily and idempotently. Startup timeout: 120 s. If a storage container fails to start, that project fails fast (every file in it needs the container); `base` is unaffected, as it boots none.
 3. **Migrations** — `prisma migrate deploy` is executed once against the **template** database (`testdb`).
 4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.) in the template.
 5. **Context injection** — the template database URL (`databaseUrl`) and a storage descriptor (`storageDescriptor`, provider + connection details, or `null` for `base`) are passed to that project's workers via Vitest's `project.provide()` interface. The dynamic MinIO endpoint is applied from that descriptor in `createTestApp` before `app.ready()`.
@@ -346,26 +346,26 @@ Every new endpoint should have tests covering:
 
 Everything lives in `apps/api/vitest.config.ts`: a local `defineApiVitestProject` helper builds one project, and the config assembles three **projects** (`test.projects`) — `base` (the full suite **minus** the storage manifest), `storage-azure`, and `storage-minio` (**only** the storage manifest, one per provider). Coverage and the other root-only options sit once on the root `test`. One config drives both `vitest run --coverage` locally and the `--project=<leg>` legs in CI:
 
-| Setting               | Value                                                    | Reason                                                                                                                                                    |
-| --------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `maxWorkers`          | 4                                                        | Run files in parallel; safe because each file has its own database                                                                                        |
-| `fileParallelism`     | true                                                     | Files run concurrently across workers                                                                                                                     |
-| `testTimeout`         | 30 000 ms                                                | Allows for slower container I/O                                                                                                                           |
-| `hookTimeout`         | 30 000 ms                                                | Allows beforeAll/afterAll to complete                                                                                                                     |
-| `teardownTimeout`     | 10 000 ms                                                | Container shutdown grace period                                                                                                                           |
-| `globalSetup`         | `./test/setup/globalSetup.ts`                            | Container lifecycle; migrate + seed the template DB                                                                                                       |
-| `setupFiles`          | `./test/setup/perFileDatabase.ts`                        | Clones a private database per test file                                                                                                                   |
-| `coverage.thresholds` | 0 in the config (branches, functions, lines, statements) | Per-project thresholds would fail on the files a project never runs; the real gate is passed by flag at the merge/gate step — see the coverage note below |
+| Setting               | Value                                                                                         | Reason                                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxWorkers`          | 4                                                                                             | Run files in parallel; safe because each file has its own database                                                                    |
+| `fileParallelism`     | true                                                                                          | Files run concurrently across workers                                                                                                 |
+| `testTimeout`         | 30 000 ms                                                                                     | Allows for slower container I/O                                                                                                       |
+| `hookTimeout`         | 30 000 ms                                                                                     | Allows beforeAll/afterAll to complete                                                                                                 |
+| `teardownTimeout`     | 10 000 ms                                                                                     | Container shutdown grace period                                                                                                       |
+| `globalSetup`         | `./test/setup/globalSetup.ts`                                                                 | Container lifecycle; migrate + seed the template DB                                                                                   |
+| `setupFiles`          | `./test/setup/perFileDatabase.ts`                                                             | Clones a private database per test file                                                                                               |
+| `coverage.thresholds` | **90%** for all four metrics (branches, functions, lines, statements), declared in the config | The gate lives where it is read; `test:ci` (a single-project, partial run) overrides it to 0 on the CLI — see the coverage note below |
 
-> **Note on coverage:** the coverage thresholds in `vitest.config.ts` are held
-> at **0** (informational only). This is deliberate: the suite is partitioned into
-> three projects (`base`, `storage-azure`, `storage-minio`), so no single project
-> exercises the whole codebase and a per-project threshold would fail on the files
-> it never runs. The **real gate is not disabled** — it is applied only after the
-> three projects' coverage is merged, and passed by flag (same thresholds locally
-> and in CI): **90%** for all four metrics — lines, statements, functions, and
-> branches. v8 merges hit-counts, so a line covered by _any_ project counts as
-> covered.
+> **Note on coverage:** the **90%** gate (all four metrics — lines, statements,
+> functions, and branches) is declared once in `vitest.config.ts`
+> (`test.coverage.thresholds`) and applies to any full run. The suite is
+> partitioned into three projects (`base`, `storage-azure`, `storage-minio`), so a
+> single project never exercises the whole codebase — a per-project threshold
+> would fail on the files it never runs. The one run that opts out is `test:ci`,
+> which runs a single `--project` and overrides the thresholds to **0** on the CLI;
+> the gate is then applied once the projects' coverage is merged. v8 merges
+> hit-counts, so a line covered by _any_ project counts as covered.
 >
 > - **Locally:** `pnpm test:api` runs all three projects in one `vitest run --coverage`, merges their coverage, and applies the gate.
 > - **In CI:** each leg emits a blob report (`--reporter=blob`); the `coverage` job merges them (`vitest run --merge-reports --coverage`) and applies the gate. No external merge script.
