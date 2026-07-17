@@ -77,7 +77,6 @@ Thumbs.db
 
 # Test coverage
 coverage/
-coverage-artifacts/
 .vitest-reports/
 *.lcov
 .nyc_output/
