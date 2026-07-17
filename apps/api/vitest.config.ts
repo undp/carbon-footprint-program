@@ -1,5 +1,9 @@
 import { defineConfig } from "vitest/config";
-import { apiCoverageConfig, defineApiVitestProject } from "./vitest.shared.js";
+import {
+  apiCoverageConfig,
+  apiRootTestConfig,
+  defineApiVitestProject,
+} from "./vitest.shared.js";
 import { STORAGE_TEST_MANIFEST } from "./test/setup/storageTestManifest.js";
 
 // Dummy storage env per project. These only need to satisfy `buildStorageConfig()`
@@ -44,6 +48,9 @@ const MINIO_TEST_ENV = {
 //     applies the gate. Keeps the matrix's wall-clock; still no script.
 export default defineConfig({
   test: {
+    // Root-only options (reporters/outputFile/teardownTimeout) — ignored inside a
+    // project, so they live here once for the whole run. See apiRootTestConfig.
+    ...apiRootTestConfig,
     projects: [
       defineApiVitestProject({
         name: "base",

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { configDefaults } from "vitest/config";
+import { configDefaults, defineProject } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 // Obtener __dirname en ESM
@@ -80,12 +80,16 @@ export interface ApiVitestProjectOverrides {
 /**
  * Single source of truth for one apps/api Vitest project. Every project shares
  * everything except its name, its `include`/`exclude`, and its storage-provider
- * env. Coverage is NOT configured here: in projects mode Vitest collects and
- * merges coverage from the ROOT config (`vitest.config.ts` → `test.coverage`),
- * and a per-project coverage block is ignored.
+ * env. `defineProject` types the returned object so a stray/root-only key fails
+ * HERE at the definition, not silently at runtime.
+ *
+ * Root-only options are NOT configured here: in projects mode Vitest reads
+ * coverage, reporters, outputFile, and teardownTimeout from the ROOT config only
+ * (`vitest.config.ts` → `test`), ignoring any per-project copy. Those live in
+ * `apiCoverageConfig` / `apiRootTestConfig` below.
  */
 export function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
-  return {
+  return defineProject({
     plugins: [
       tsconfigPaths({
         root: __dirname,
@@ -101,14 +105,10 @@ export function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
       name: overrides.name,
       globals: true,
       environment: "node",
-      // Multiple reporters for better visibility (the CI legs override this with
-      // `--reporter=blob` on the CLI so the coverage job can merge the results).
-      reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
       include: overrides.include ?? DEFAULT_TEST_INCLUDE,
       exclude: [...configDefaults.exclude, ...(overrides.exclude ?? [])],
       testTimeout: 30000,
       hookTimeout: 30000,
-      teardownTimeout: 10000,
       pool: "threads",
       // PROTOTYPE: per-file database isolation (test/setup/perFileDatabase.ts)
       // gives every file its own cloned DB, so files can now run in parallel
@@ -123,13 +123,6 @@ export function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
       setupFiles: ["./test/setup/perFileDatabase.ts"],
       // Better logging for UI
       logHeapUsage: true,
-      // Detailed output, namespaced per project so the three projects' HTML
-      // reports never clobber each other in a single `vitest run`. Kept outside
-      // ./coverage to avoid clobbering the coverage report directory under vitest
-      // 4.1+, which now refuses to copy the report into a subdirectory of itself.
-      outputFile: {
-        html: `./vitest-report/${overrides.name}/index.html`,
-      },
       server: {
         deps: {
           inline: [
@@ -150,8 +143,28 @@ export function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
         ...overrides.storageEnv,
       },
     },
-  };
+  });
 }
+
+/**
+ * Root-only `test` options for the apps/api suite, spread into the ROOT config's
+ * `test` (`vitest.config.ts`). These are all in Vitest's `NonProjectOptions`, so
+ * they are ignored inside a project config and MUST live at the root. There is a
+ * single reporter set for the whole run, so one (non-namespaced) HTML path can't
+ * clobber across projects.
+ */
+export const apiRootTestConfig = {
+  // Multiple reporters for better visibility. The CI legs override this with
+  // `--reporter=blob` on the CLI so the coverage job can merge the results.
+  reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
+  // Kept outside ./coverage to avoid clobbering the coverage report directory
+  // under vitest 4.1+, which now refuses to copy the report into a subdirectory
+  // of itself.
+  outputFile: {
+    html: "./vitest-report/index.html",
+  },
+  teardownTimeout: 10000,
+} as const;
 
 /**
  * Coverage config for the apps/api suite, applied at the ROOT config's
