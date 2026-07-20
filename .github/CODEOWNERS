@@ -2,9 +2,8 @@
 # Owners are requested for review automatically when matching files change.
 # Syntax: https://docs.github.com/articles/about-code-owners
 #
-# TODO: Replace the placeholder team below with the real GitHub team slug (or
-# individual @usernames) for the UNDP Huella Latam maintainers. An unresolved team
-# is ignored by GitHub, so review assignment will not work until this is set.
+# Owners are the @undp/huella-latam-maintainers org team; membership is managed
+# in the org's team settings.
 
 # Default owners for everything in the repo
 *                       @undp/huella-latam-maintainers
