@@ -196,6 +196,8 @@ Because the `test` matrix **partitions** the suite into three disjoint legs, no 
 
 The gate lives in the config, so local (`test:coverage`) and CI (`test:coverage:merge`) use the exact same thresholds — only `test:ci` (a partial single-project run) opts out. If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
+The merge step also produces a human-readable report (html + lcov + json) under `apps/api/coverage/`, which this job uploads as the `coverage-report-merged` artifact (`if: always()`, so it is available **even when the gate fails** — exactly when you need to see which lines are missing). Download it straight from the run instead of merging the per-leg blobs by hand.
+
 > **Scope:** this merged gate covers `apps/api`. Frontend (`apps/web`) has its own coverage gate — a low **global floor** enforced by the `Test (web)` job (thresholds in `apps/web/vitest.config.ts`, run with `--coverage`), ratcheted up as its logic layers gain tests. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).
 
 ---
@@ -227,7 +229,9 @@ In the GitHub Actions run UI, expand the failing job and step to see the full ou
 
 ### Download the coverage report
 
-The `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio` artifacts are uploaded after every test run. They are Vitest blob reports (not human-readable on their own); to inspect coverage, download all three into `apps/api/.vitest-reports/` and run `pnpm --filter=api exec vitest run --merge-reports --coverage` locally, which produces the merged HTML/text report under `apps/api/coverage/`.
+The `coverage` job uploads the merged, human-readable report as the `coverage-report-merged` artifact (html + lcov + json, `if: always()`) — download it from the run and open `index.html` to see exactly which lines are missing. This is the quickest path when the `Coverage` gate fails.
+
+The per-leg `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio` artifacts are also uploaded after every test run. They are Vitest blob reports (not human-readable on their own); to reproduce the merge locally, download all three into `apps/api/.vitest-reports/` and run `pnpm --filter=api exec vitest run --merge-reports --coverage`, which produces the same report under `apps/api/coverage/`.
 
 ### Reproduce locally
 
