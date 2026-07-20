@@ -9,7 +9,7 @@ packages:
 # releases time to be flagged before they can enter the tree.
 minimumReleaseAge: 1440
 # Refuse to install any package that declares incompatibility with the Node
-# engine required in package.json (engines.node >= 24).
+# engine required in package.json (engines.node >= 26).
 engineStrict: true
 
 # The settings below are pnpm v11 defaults, pinned explicitly for auditability
