@@ -74,7 +74,7 @@ describe("onboardingCompletionStorage", () => {
       setItem: () => {},
       removeItem: () => {},
       clear: () => {},
-    } as unknown as Storage);
+    });
 
     expect(() => readLocalCompletions()).not.toThrow();
     expect(readLocalCompletions()).toEqual(new Set());
@@ -92,7 +92,7 @@ describe("onboardingCompletionStorage", () => {
       get length(): number {
         return 0;
       },
-    } as unknown as Storage);
+    });
 
     expect(() => markLocalCompleted(KEY)).not.toThrow();
   });
