@@ -130,6 +130,12 @@
       "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
+    },
+    "@repo/database#type-check": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
+      "outputs": []
     }
   }
 }

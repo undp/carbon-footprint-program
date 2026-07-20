@@ -23,6 +23,7 @@
     "dev": "tsc -p tsconfig.build.json --watch",
     "build": "tsc -p tsconfig.build.json && cpy \"src/generated/prisma/**\" dist/generated/prisma",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit --project tsconfig.build.json",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:studio": "prisma studio",
