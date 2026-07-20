@@ -1,6 +1,8 @@
-## Visual Reference
+# admin-dashboard-page Specification
 
-The page layout SHALL match the design mockup at `openspec/files/admin-dashboard-page.png`. Key layout details from the mockup:
+## Purpose
+
+Defines the admin dashboard screen rendered at `/admin/dashboard` (replacing the former "Under Construction" placeholder). The page composes a year filter, three summary KPI cards, a sector bar chart, a category distribution pie chart, and submission/recognition status sections, driven by the dashboard KPI, sector-chart, category-chart, and requests-KPI endpoints. The layout follows the design mockup at `openspec/files/admin-dashboard-page.png`:
 
 - Header: "Dashboard General" title with year filter dropdown at the top right
 - Row 1: Three KPI summary cards (organizations, emissions, recognitions) with paired values separated by "|"

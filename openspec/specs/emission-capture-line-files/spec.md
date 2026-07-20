@@ -56,7 +56,7 @@ The system SHALL upload selected files immediately upon selection by calling the
 
 ### Requirement: Server-side mime and size validation
 
-The confirm-upload endpoint SHALL reject files whose real (blob-storage-reported) `mimeType` is not in `CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES` or whose `sizeBytes` exceeds `MAX_FILE_SIZE_BYTES`.
+The confirm-upload endpoint SHALL reject files whose real (blob-storage-reported) `mimeType` is not in `CARBON_INVENTORY_LINE_FILE_ALLOWED_MIME_TYPES` or whose `sizeBytes` exceeds `CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES`. Both constants live in `packages/constants/src/carbonInventory.ts`.
 
 #### Scenario: Disallowed mime type
 
@@ -66,7 +66,7 @@ The confirm-upload endpoint SHALL reject files whose real (blob-storage-reported
 
 #### Scenario: Oversized file
 
-- **WHEN** the client confirms an upload whose real size exceeds `MAX_FILE_SIZE_BYTES`
+- **WHEN** the client confirms an upload whose real size exceeds `CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES`
 - **THEN** the API responds with 422 and an `ApiErrorResponse` whose error code is `LINE_FILE_UPLOAD_VALIDATION_ERROR`
 - **AND** the `File` row is not created and the blob is deleted from storage
 
@@ -223,7 +223,7 @@ The line's actions cell SHALL render a colored badge dot on the folder icon base
 
 The system SHALL expose `GET /carbon-inventories/:id/files-manifest` returning the set of line-file attachments of an inventory together with a signed read SAS URL for each. The endpoint complements the existing single-file `previewLineFile` route by enabling bulk download in one request.
 
-The endpoint SHALL be gated by `requireCarbonInventoryAccess(idRequestExtractor)` and SHALL be registered `public: true`. It SHALL include only files attached to ACTIVE lines whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. Files attached to OUTDATED or DELETED lines SHALL be excluded. Each entry SHALL carry `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `sasUrl`, `expiresAt`, `sizeBytes`, and `mimeType`.
+The endpoint SHALL be gated by `requireCarbonInventoryAccess(idRequestExtractor)` and SHALL be registered `public: true`. It SHALL include only files attached to ACTIVE lines that have an active `CarbonInventoryLineInput` — both complete and incomplete lines, mirroring the rows emitted in `resumen-emisiones.xlsx` — whose `File.status = ACTIVE` and `File.deletedAt IS NULL`. Files attached to OUTDATED or DELETED lines, or to ACTIVE lines without any active input, SHALL be excluded. Each entry SHALL carry `fileUuid`, `lineId` (BigInt serialized to string), `categoryName`, `subcategoryName`, `originalName`, `readUrl`, `expiresAt`, `sizeBytes`, and `mimeType`.
 
 All SAS URLs in a single response SHALL be signed with a single user-delegation-key roundtrip to Azure. Files whose `blobPath` does not start with `CARBON_INVENTORY/{inventoryId}/LINES/` SHALL be logged and skipped (same cross-inventory leak guard as `previewLineFile`).
 

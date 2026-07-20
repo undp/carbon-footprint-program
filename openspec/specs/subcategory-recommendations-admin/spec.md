@@ -1,3 +1,9 @@
+# subcategory-recommendations-admin Specification
+
+## Purpose
+
+Admin management of subcategory recommendations — the `(sector, subsector) → subcategories` groupings that pre-select subcategories during carbon-inventory creation. This capability covers the `status`-based soft-delete model with an ACTIVE-only partial unique index, the grouped admin list, the create (POST) / replace (PUT) / soft-delete flow, the country-scoped read, and the maintainer screen with its transfer-list editor.
+
 ## Requirements
 
 ### Requirement: Soft-delete and audit trail on SubcategoryRecommendation

@@ -1,3 +1,9 @@
+# admin-dashboard-kpis Specification
+
+## Purpose
+
+Defines the `GET /api/admin/dashboard/kpis` endpoint that supplies the admin dashboard's three summary KPI cards. It returns organization counts (enrolled and measuring), emissions totals (total and verified), and recognition counts (earned and under review), each computed from ACTIVE carbon inventories and their submissions. An optional `year` query parameter filters the results, and the endpoint is restricted to admin users.
+
 ## Requirements
 
 ### Requirement: Dashboard KPIs endpoint returns organization counts

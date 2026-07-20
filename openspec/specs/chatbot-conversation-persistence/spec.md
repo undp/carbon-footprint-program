@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the persistence schema and identity model for chat conversations and messages. It covers the `chatbot_chat_conversation` and `chatbot_chat_message` tables (shipped in the `public` schema with a `chatbot_` prefix and without the Prisma `multiSchema` preview feature), how anonymous (`session_id`) and authenticated (`user_id`) callers map onto conversation rows, and the `ChatMessageRole` enum. It fixes the 30-day `expires_at` retention semantics, lazy conversation creation serialized by an identity-scoped Postgres advisory lock, the idempotent conditional-UPDATE finalization of the assistant row, the signed session-cookie security properties, the non-401 identity preHandler, and the index plan that pre-positions for retention sweeps and future rate limiting.
 
 ## Requirements
 

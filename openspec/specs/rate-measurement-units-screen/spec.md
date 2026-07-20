@@ -1,4 +1,10 @@
-## ADDED Requirements
+# rate-measurement-units-screen Specification
+
+## Purpose
+
+Defines the read-only admin screen at `/admin/rate-measurement-units`: a `StylizedDataGrid` listing the active rate measurement units returned by `GET /api/measurement-units/rates`, with no mutation affordances, a sortable per-row reference-count total whose hover tooltip breaks the total into its two categories, and a sidebar entry under the collapsible "Unidades" group. All UI text is Spanish.
+
+## Requirements
 
 ### Requirement: Rate measurement units screen at `/admin/rate-measurement-units`
 
@@ -25,7 +31,7 @@ The grid SHALL render with `disableRowSelectionOnClick`, no `processRowUpdate`, 
 
 ### Requirement: Reference count tooltip surfaces breakdown
 
-The `totalReferenceCount` column SHALL render the integer total. On hover, a tooltip SHALL show the breakdown across the two categories using Spanish labels (e.g., "Factores de emisión: 47 / Factores aplicados: 12").
+The `totalReferenceCount` column SHALL render the integer total. On hover, a tooltip SHALL show the breakdown across exactly two categories (`emissionFactors` and `lineFactorsAsApplied`) using Spanish labels (e.g., "En factores de emisión de metodologías: 47 / En fuentes de emisión de Huellas: 12").
 
 #### Scenario: Tooltip renders breakdown
 

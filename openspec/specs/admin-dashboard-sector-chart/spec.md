@@ -1,3 +1,9 @@
+# admin-dashboard-sector-chart Specification
+
+## Purpose
+
+Defines the `GET /api/admin/dashboard/sector-chart` endpoint that feeds the admin dashboard's "Empresas por Rubro" / "Emisiones por Rubro" bar chart. In a single response it returns both the top-N enrolled-organization count per sector (`sectorRanking`) and the top-N emissions per sector (`sectorEmissions`), sharing the same required `limit` and optional `year` filters. Sectors are resolved from `OrganizationData.sectorId`, with a null-sector group the frontend labels "Desconocido", and the endpoint is restricted to admin users.
+
 ## Requirements
 
 ### Requirement: Sector chart endpoint returns top-N organizations and emissions per sector

@@ -1,3 +1,9 @@
+# admin-requests-kpis Specification
+
+## Purpose
+
+Extends the existing `GET /api/admin/requests/kpis` endpoint with an optional `year` query parameter so the admin dashboard can filter submission KPIs by year. The response shape is unchanged; year filtering resolves through each submission's associated carbon-inventory year, falling back to `Submission.approvedAt` for submissions with no inventory link.
+
 ## Requirements
 
 ### Requirement: Requests KPIs endpoint supports optional year filtering

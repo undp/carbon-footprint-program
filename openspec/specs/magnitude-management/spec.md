@@ -1,4 +1,10 @@
-## ADDED Requirements
+# magnitude-management Specification
+
+## Purpose
+
+Defines the backend management of the `Magnitude` reference table: a stable lowercase `code`, an admin-editable Spanish `name`, an `isSystem` flag that protects seed-provided magnitudes, and soft-delete via the dedicated `MagnitudeStatus` enum (distinct from `MeasurementUnitStatus`). Covers the admin-only CRUD endpoints under `/api/magnitudes`, per-row reference counts, restore-on-recreate, and the picker-vs-display read rule.
+
+## Requirements
 
 ### Requirement: Magnitudes are a database model with a stable code and editable name
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the minimum-viable `<ChatbotWidget />` React component and its `useChatStream` hook. It covers consuming the `POST /api/chatbot/message` SSE stream via raw `fetch` + `ReadableStream` (bypassing the shared `ky` client), the six canonical UI states, the no-auto-retry failure model that escalates `error` → `degraded` on consecutive transport/5xx failures, `Last-Event-ID` plumbing without replay, Markdown rendering of assistant content, the history-deletion affordance, and Spanish-only UI strings. It also fixes where the widget mounts — at `apps/web/src/routes/__root.tsx`, gated by the `VITE_CHATBOT_ENABLED` / `IS_CHATBOT_ENABLED` build-time flag so a deployment that does not enable the chatbot never renders it — and scopes visual design, disclaimer, and accessibility polish out to a later design review.
 
 ## Requirements
 
@@ -19,6 +19,20 @@ The system SHALL render `<ChatbotWidget />` inside the root layout at `apps/web/
 
 - **WHEN** an authenticated user navigates to a route under `/app/**`
 - **THEN** the `<ChatbotWidget />` component SHALL be present in the rendered DOM
+
+### Requirement: Widget mounting is gated by the `VITE_CHATBOT_ENABLED` flag
+
+The web app SHALL gate the chatbot widget behind the build-time `VITE_CHATBOT_ENABLED` environment variable, exposed as the derived boolean `IS_CHATBOT_ENABLED` in `apps/web/src/config/environment.ts` (`IS_CHATBOT_ENABLED = VITE_CHATBOT_ENABLED === "true"`), default **off**. The `<ChatbotWidget />` mount in `apps/web/src/routes/__root.tsx` SHALL be conditional on `IS_CHATBOT_ENABLED`, so that when the flag is not set to `"true"` the widget is never rendered and no chatbot request path exists in the browser. This mirrors the API-side `CHATBOT_ENABLED` gate (see `chatbot-llm-provider`) and upholds the Digital Public Good optionality principle: a deployment that does not enable the chatbot ships the full web app with no AI surface. The mounting requirement below (`Widget is mounted at the web app's root layout`) describes the behavior of an enabled deployment.
+
+#### Scenario: Widget not rendered when the flag is disabled
+
+- **WHEN** the web app is built and served with `VITE_CHATBOT_ENABLED` unset or set to any value other than `"true"`, and a visitor navigates to any route
+- **THEN** `IS_CHATBOT_ENABLED` SHALL be `false` and the `<ChatbotWidget />` component SHALL NOT be present in the rendered DOM
+
+#### Scenario: Widget rendered when the flag is enabled
+
+- **WHEN** the web app is built and served with `VITE_CHATBOT_ENABLED="true"`
+- **THEN** `IS_CHATBOT_ENABLED` SHALL be `true` and the `<ChatbotWidget />` component SHALL be mounted at the root layout, reachable from both public and authenticated routes
 
 ### Requirement: Widget streams assistant responses via raw `fetch` plus `ReadableStream`
 

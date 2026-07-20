@@ -19,12 +19,12 @@
 
 ## 3. Phase 1 — Keycloak dev infra (`infra: keycloak dev service + realm-huella import`)
 
-- [x] 3.1 Added `compose/keycloak.yaml` overlay: `keycloak` (`start-dev --import-realm`, `KC_HTTP_ENABLED=true`) + `keycloak-db` (Postgres) on `huella-network`; healthcheck via bash `/dev/tcp` to `127.0.0.1:9000/health/ready`; documented `COMPOSE_FILE=docker-compose.yml:compose/keycloak.yaml` wiring. Verified `docker compose config` merges 6 services.
-- [x] 3.2 Set `KC_HOSTNAME=http://localhost:8081` (KC 26 name; issuer → `http://localhost:8081/realms/huella`); host `8081` → container `8080` (avoids api 8080). Backend reaches JWKS internally at `keycloak:8080` via explicit `JWKS_URI` (no discovery), so the split holds.
-- [x] 3.3 Added `infra/keycloak/realm-huella.json` (`--import-realm`): public `huella-web`, Auth Code + PKCE S256 (`pkce.code.challenge.method=S256`), redirect URIs + Web Origins for **both** `:5173` and `:3000` (incl. `/auth/callback` + wildcard), post-logout redirect. Valid JSON confirmed.
+- [x] 3.1 Added split overlays `compose/keycloak-db.yaml` (shared `keycloak-db` Postgres) + `compose/keycloak.dev.yaml` (`keycloak` via `start-dev --import-realm`, `KC_HTTP_ENABLED=true`) on `huella-network`; healthcheck via bash `/dev/tcp` to `127.0.0.1:9000/health/ready`; documented `COMPOSE_FILE=docker-compose.yml:compose/keycloak-db.yaml:compose/keycloak.dev.yaml` wiring. Verified `docker compose config` merges the expected services.
+- [x] 3.2 Set `KC_HOSTNAME=http://localhost:18080` (KC 26 name; issuer → `http://localhost:18080/realms/huella`); host `18080` → container `8080` (avoids api 8080). Backend reaches JWKS internally at `keycloak:8080` via explicit `JWKS_URI` (no discovery), so the split holds.
+- [x] 3.3 Added `infra/keycloak/dev/realm-huella.dev.json` (`--import-realm`): public `huella-web`, Auth Code + PKCE S256 (`pkce.code.challenge.method=S256`), redirect URIs + Web Origins for **both** `:5173` and `:3000` (incl. `/auth/callback` + wildcard), post-logout redirect. Valid JSON confirmed.
 - [x] 3.4 Audience mapper (`oidc-audience-mapper`, `access.token.claim=true`) adds `huella-api` to `aud`; default scopes incl. `profile email`; `access_as_user` client scope (`include.in.token.scope=true`) assigned as a **default** so the access token's `scope` carries it; email is in the access token (lightweight tokens not enabled). Validate live in Phase 5.
 - [x] 3.5 Realm `registrationAllowed=true`, `registrationEmailAsUsername=true` (username=email), `verifyEmail=false` (dev, no SMTP); `accessTokenLifespan=300` for observable silent renew.
-- [ ] 3.6 User: `docker compose -f docker-compose.yml -f compose/keycloak.yaml up` and confirm Keycloak healthy with the `huella` realm + consistent issuer.
+- [ ] 3.6 User: `docker compose -f docker-compose.yml -f compose/keycloak-db.yaml -f compose/keycloak.dev.yaml up` and confirm Keycloak healthy with the `huella` realm + consistent issuer.
 
 ## 4. Phase 2 — Backend env config + scope hardening (`feat(api): generic jwks scope handling + keycloak env`)
 
@@ -44,7 +44,7 @@
 - [x] 5.7 `api/http/client.ts`: unchanged — already abstracted through `getAuthToken()`; the new token source flows in transparently.
 - [x] 5.8 `SaveDraftAuthModal.tsx`: rewritten to call `signInRedirect(returnTo)` — it builds the claim route (`Routes.CARBON_INVENTORY_CLAIM`) via the router and passes it as `returnTo`, so after login `/auth/callback` lands on the claim route, which reclaims the draft. Full-page redirect, no popup; closing/cancelling the IdP page can never strand the modal.
 - [x] 5.9 Build/env wiring (all surfaces): `VITE_OIDC_*` in `vite-env.d.ts` + `config/environment.ts`; ARG/ENV in `apps/web/Dockerfile` (builder, Vite inline; runner, CSP); build args in `docker-compose.yml` + `docker-compose.prod.yml` (ISSUER/CLIENT*ID/REDIRECT_URI required in prod); `VITE_OIDC*_`block in`.envrc.template`/`.env.dockercompose.example`/`.env.prod.dockercompose.example`. Removed all `VITE*AZURE*_`/`VITE_FRONT_BASE_URL` frontend build args.
-- [x] 5.10 Scopes are fully env-driven — `VITE_OIDC_SCOPES` → `OIDC_SCOPES` (`config/environment.ts`) → `oidcConfig.ts`; the `"openid profile email offline_access"` literal lives only in the env templates, not as a code constant. Client id (`huella-web`) is likewise env-driven (`VITE_OIDC_CLIENT_ID`), no magic string in code.
+- [x] 5.10 Scopes are fully env-driven — `VITE_OIDC_SCOPES` → `OIDC_SCOPES` (`config/environment.ts`) → `oidcConfig.ts`; the baseline `"openid profile email"` literal lives only in the env templates, not as a code constant (`offline_access` is an optional realm scope and is not requested by the SPA). Client id (`huella-web`) is likewise env-driven (`VITE_OIDC_CLIENT_ID`), no magic string in code.
 - [ ] 5.11 User: rebuild the web image (Vite is build-time) — needed before Phase 5 browser validation.
 - [x] **Verified:** `pnpm --filter=web type-check` ✅, `lint` (eslint) ✅, Prettier ✅ on all changed files; TanStack route tree regenerated (`/auth/callback` present); base compose parses with `VITE_OIDC_*`.
 
@@ -56,12 +56,12 @@
 
 ## 7. Phase 5 — Validation (app-browser + manual) (`chore: app-browser validation notes / screenshots`)
 
-- [x] 7.1 Brought up the full stack + Keycloak myself on ports 3000/8080/8081 via the overlay + a dedicated env file (`/home/mrivas/Documents/Proyectos/Huella/.env.dockercompose.keycloak`) with the leaking direnv vars stripped (`env -u`). `migrate` failed only on the Azure-storage seed (badges/terms) — unrelated to auth; started `api`+`web` directly (DB migrations had applied).
+- [x] 7.1 Brought up the full stack + Keycloak myself on ports 3000/8080/18080 via the overlays + a dedicated env file (`/home/mrivas/Documents/Proyectos/Huella/.env.dockercompose.keycloak`) with the leaking direnv vars stripped (`env -u`). `migrate` failed only on the Azure-storage seed (badges/terms) — unrelated to auth; started `api`+`web` directly (DB migrations had applied).
 - [x] 7.2 Validated via Playwright (fully autonomous — Keycloak self-signup is password-based, `verifyEmail=false`, no OTP): registered `tester@huella.local` → landed authenticated on `/app/home` → user becomes SUPERADMIN (admin menu present).
 - [~] 7.3 Verified: public `/auth/callback` resolved before the guard; post-login lands on the `returnTo` from `user.state`, else `Routes.HOME` (no `returnTo` in this pass → HOME); **backend accepted the Keycloak token** (`/users/me` 200) with `aud=huella-api`, `scope` containing `access_as_user` (read via the `scp ?? scope` hardening — the exact Keycloak dialect), `email` + `sub` present; federated logout → `end_session` → landing, local session cleared. **Not exercised this pass:** `/users/me`-failure recovery, silent renew (spike already proved refresh-token renew; needs a 5-min expiry wait), save-draft redirect flow.
 - [~] 7.4 Captured screenshots (`spike-oidc/evidence/kc-01-authenticated-home.png`, `kc-02-after-logout.png`); SUPERADMIN confirmed via the admin menu. Full per-screen admin tour not done.
 - [x] 7.5 `pnpm --filter=web type-check`/`lint` + `pnpm --filter=api type-check`/`lint` + Prettier all green (run during implementation; code unchanged since).
-- [x] **Realm fix found during validation:** the partial realm import suppressed Keycloak's built-in `profile`/`email` scopes (→ `invalid_scope`). Fixed `realm-huella.json` to define `basic`/`email`/`profile` (+ `access_as_user`) explicitly; re-import verified `scopes_supported` complete and the token correct.
+- [x] **Realm fix found during validation:** the partial realm import suppressed Keycloak's built-in `profile`/`email` scopes (→ `invalid_scope`). Fixed `infra/keycloak/dev/realm-huella.dev.json` to define `basic`/`email`/`profile` (+ `access_as_user`) explicitly; re-import verified `scopes_supported` complete and the token correct.
 
 ## 8. Pre-merge guards
 

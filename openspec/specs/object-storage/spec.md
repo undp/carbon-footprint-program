@@ -151,5 +151,5 @@ The system SHALL allow the API test suite to run against either provider, select
 #### Scenario: CI validates both providers per pull request
 
 - **WHEN** a pull request triggers CI
-- **THEN** the `test` job runs once per value of the `storage_provider` matrix dimension (`azure_blob_storage`, `minio`)
-- **AND** both runs must pass for the PR to be mergeable
+- **THEN** the `test` job runs a `leg` matrix that partitions the suite into `base`, `storage-azure`, and `storage-minio` legs (the storage manifest runs against Azurite in `storage-azure` and against MinIO in `storage-minio`, each leg's script setting `STORAGE_PROVIDER` itself)
+- **AND** all three legs (`Test (base)`, `Test (storage-azure)`, `Test (storage-minio)`) must pass for the PR to be mergeable

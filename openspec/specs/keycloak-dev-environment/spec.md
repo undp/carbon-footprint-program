@@ -4,6 +4,8 @@
 
 This capability provides a local Keycloak identity provider and a reproducible realm import in docker-compose, so developers can exercise the generic OIDC flow without depending on an external IdP. It exposes an issuer that stays consistent between the browser and the API despite the container/host hostname split, a public PKCE client, an audience mapper for the API, and self-registration with email as username — giving a fully self-contained, reproducible auth environment for development.
 
+The dev overlay (`compose/keycloak.dev.yaml` + the shared `compose/keycloak-db.yaml`, importing `infra/keycloak/dev/realm-huella.dev.json`) has a parallel production counterpart on disk — `compose/keycloak.prod.yaml` importing `infra/keycloak/prod/realm-huella.prod.json` — which is out of scope for this dev-environment capability and hardened separately.
+
 ## Requirements
 
 ### Requirement: Keycloak dev service in docker-compose
