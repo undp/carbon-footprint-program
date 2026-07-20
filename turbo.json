@@ -20,7 +20,6 @@
     "DEV",
     "APP_VERSION",
     "CI",
-    "COVERAGE_DIR",
     "AZURE_STORAGE_ACCOUNT_NAME",
     "AZURE_STORAGE_CONTAINER_NAME",
     "AZURE_STORAGE_TENANT_ID",
@@ -78,21 +77,26 @@
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
-    "test:base": {
+    "test:coverage": {
       "cache": false,
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
-    "test:storage-azure": {
+    "test:ci": {
       "cache": false,
       "dependsOn": ["^build"],
+      "passThroughEnv": ["LEG"],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
-    "test:storage-minio": {
+    "test:coverage:merge": {
       "cache": false,
-      "dependsOn": ["^build"],
+      // No `^build`: `vitest run --merge-reports --coverage` runs no tests — it
+      // reads the blob JSON and maps coverage onto apps/api/src/** from the
+      // checkout. It never loads globalSetup/setupFiles and imports no @repo/*
+      // module, so building the workspace deps here is wasted CI time.
+      "dependsOn": [],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },

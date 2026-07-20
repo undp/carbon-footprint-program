@@ -52,10 +52,41 @@ async function buildTestAdapter(
   }
 }
 
+/**
+ * Points the app's storage config at the running testcontainer BEFORE it boots.
+ *
+ * The MinIO endpoint is a dynamic testcontainer port, only known at runtime, so
+ * it cannot live in the static per-project `test.env` (which carries a localhost
+ * placeholder just to satisfy validation). We set it here, before `app.ready()`,
+ * so `buildStorageConfig()` — read by both the storage plugin and the
+ * storage-relay plugin at registration — sees the real endpoint. Azure needs
+ * nothing: its adapter uses the injected `connectionString`, and
+ * `buildStorageConfig()` only requires `AZURE_STORAGE_ACCOUNT_NAME`, which
+ * `test.env` already provides.
+ */
+function applyStorageEnvFromDescriptor(
+  descriptor: TestStorageDescriptor
+): void {
+  if (descriptor.provider === StorageProvider.MINIO) {
+    process.env.MINIO_ENDPOINT = descriptor.endpoint;
+    process.env.MINIO_ACCESS_KEY = descriptor.accessKey;
+    process.env.MINIO_SECRET_KEY = descriptor.secretKey;
+    process.env.MINIO_BUCKET = descriptor.bucket;
+    process.env.MINIO_REGION = descriptor.region;
+  }
+}
+
 export async function createTestApp(
   databaseUrl: string,
   options?: CreateTestAppOptions
 ): Promise<FastifyInstance> {
+  const descriptor = options?.storageDescriptor;
+
+  // Set the real testcontainer storage endpoint before the app boots, so the
+  // storage + relay plugins read it at `app.ready()` (see the helper's note).
+  // `null`/`undefined` = storage-agnostic test; the dummy `test.env` suffices.
+  if (descriptor) applyStorageEnvFromDescriptor(descriptor);
+
   const app = await createApp(false, { skipUnderPressure: true });
   app.log.level = "debug";
 
@@ -71,18 +102,17 @@ export async function createTestApp(
   // storagePlugin runs during ready() and would overwrite any earlier assignment.
   await app.ready();
 
-  const descriptor = options?.storageDescriptor;
-
   if (descriptor === null) {
-    // The test explicitly requested storage (`storageDescriptor:
-    // inject("storageDescriptor")`) but the storage testcontainer failed to
-    // start, so globalSetup provided `null`. Fail early with a clear reason
-    // instead of a confusing adapter error deeper in the test.
+    // globalSetup provides `null` only for the container-less `base` project, so
+    // reaching here means a `base` test requested storage (`storageDescriptor:
+    // inject("storageDescriptor")`). Such a test belongs in the storage manifest
+    // so it runs under a storage-* project. Fail early with a clear reason
+    // instead of a confusing adapter error deeper in the test. (A storage
+    // container that fails to start now fails its project fast at globalSetup.)
     throw new Error(
-      "createTestApp received `storageDescriptor: null` — the storage " +
-        "testcontainer failed to start (see the globalSetup warning above). " +
-        "This test requires real storage. Ensure Docker is available and the " +
-        "storage testcontainer starts successfully."
+      "createTestApp received `storageDescriptor: null`. Only the container-less " +
+        "`base` project provides null — a test that needs real storage must be " +
+        "listed in the storage manifest so it runs under a storage-* project."
     );
   }
 
