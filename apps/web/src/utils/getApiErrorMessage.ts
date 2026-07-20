@@ -247,6 +247,9 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // Carbon inventory association
   CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION: `Esta huella ya tiene una ${orgSingular} asociada.`,
 
+  // Organization accreditation
+  LEGAL_NAME_ALREADY_ACCREDITED: `Ya existe una ${orgSingular} ${VOCAB.inscription.adjective.singular} con esa razón social.`,
+
   // User role management
   SELF_ROLE_CHANGE: "No puedes cambiar tu propio rol.",
   LAST_SUPERADMIN: "Debe existir al menos un Super Administrador.",

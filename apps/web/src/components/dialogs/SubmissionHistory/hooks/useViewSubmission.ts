@@ -11,6 +11,7 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/types";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { Routes } from "@/interfaces/routes/routes.const";
 
 type UseViewSubmissionParams = {
@@ -84,10 +85,11 @@ export const useViewSubmission = ({
           variant: "success",
         });
         onClose();
-      } catch {
-        enqueueSnackbar("Error al aprobar la postulación", {
-          variant: "error",
-        });
+      } catch (error) {
+        enqueueSnackbar(
+          getApiErrorMessage(error, "Error al aprobar la postulación"),
+          { variant: "error" }
+        );
       }
     },
     [submission, approveRequest, enqueueSnackbar, onClose]
