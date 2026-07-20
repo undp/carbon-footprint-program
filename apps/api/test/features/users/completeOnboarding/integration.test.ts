@@ -14,9 +14,10 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
 const COMPLETE_URL = `/api/users/me/onboardings/${OnboardingKeys.WELCOME_HOME}/complete`;
-// `emission-capture:expert-mode` is the first onboarding key with a colon, so it
-// exercises colon-in-path routing through the `:key` param (unencoded, as the
-// web client sends it) — previously only `welcome-home` (no colon) was tested.
+// A second onboarding key beyond `welcome-home`, exercised end-to-end so the
+// completion → GET /users/me surfacing is proven for more than one key and the
+// `:key` route param resolves through find-my-way. (This is server-side routing
+// only — it does not cover the ky/browser URL transport the web client uses.)
 const EXPERT_MODE_COMPLETE_URL = `/api/users/me/onboardings/${OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE}/complete`;
 
 describe("POST /api/users/me/onboardings/:key/complete - Integration Tests", () => {
@@ -87,7 +88,7 @@ describe("POST /api/users/me/onboardings/:key/complete - Integration Tests", () 
     expect(rows).toHaveLength(0);
   });
 
-  it("records a colon-containing key and surfaces it through GET /users/me", async () => {
+  it("records a second onboarding key and surfaces it through GET /users/me", async () => {
     const response = await app.inject({
       method: "POST",
       url: EXPERT_MODE_COMPLETE_URL,

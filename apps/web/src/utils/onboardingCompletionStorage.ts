@@ -18,9 +18,10 @@ import {
  * risk (an explanatory popover, not data) and inherent to anonymous storage.
  */
 
-// One localStorage item per key: `${PREFIX}${key}`. Onboarding keys themselves
-// contain colons (e.g. "emission-capture:expert-mode"), so the suffix is
-// recovered by slicing PREFIX.length — never by split(":").
+// One localStorage item per key: `${PREFIX}${key}`. The PREFIX itself contains
+// colons, so the suffix is recovered by slicing PREFIX.length — never by
+// split(":"), which would break on the prefix's colons (and on any future key
+// that happens to contain one).
 const PREFIX = "huella-latam:onboarding-complete:v1:";
 
 /**
@@ -46,7 +47,7 @@ export const readLocalCompletions = (): Set<OnboardingKey> => {
     for (let i = 0; i < localStorage.length; i += 1) {
       const storageKey = localStorage.key(i);
       if (!storageKey || !storageKey.startsWith(PREFIX)) continue;
-      // Recover the onboarding key by slicing off the prefix — keys contain ":".
+      // Recover the onboarding key by slicing off the prefix (which contains ":").
       const parsed = OnboardingKeySchema.safeParse(
         storageKey.slice(PREFIX.length)
       );
