@@ -8,11 +8,15 @@ import { z } from "zod";
  * `user_onboarding_completion.onboarding_key`, so values are permanent: add new
  * ones, never rename or recycle.
  */
-export const OnboardingKeySchema = z.enum(["welcome-home"]);
+export const OnboardingKeySchema = z.enum([
+  "welcome-home",
+  "emission-capture-expert-mode",
+]);
 
 export type OnboardingKey = z.infer<typeof OnboardingKeySchema>;
 
 /** Named accessors so consumers reference a key by name, not a bare string. */
 export const OnboardingKeys = {
   WELCOME_HOME: "welcome-home",
+  EMISSION_CAPTURE_EXPERT_MODE: "emission-capture-expert-mode",
 } as const satisfies Record<string, OnboardingKey>;

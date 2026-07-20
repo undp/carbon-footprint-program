@@ -38,6 +38,7 @@ import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
+import { useExpertModeOnboardingHighlight } from "./hooks/useExpertModeOnboardingHighlight";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
 
@@ -260,6 +261,22 @@ export const EmissionCaptureScreen: FC = () => {
     control: methods.control,
     name: "subcategories",
   });
+
+  // Whether any currently-visible subcategory of the selected category offers
+  // the "expert mode" checkbox — the trigger for its first-visit spotlight.
+  const isExpertModeAvailable = useMemo(
+    () =>
+      (selectedCategoryData?.subcategories ?? []).some(
+        (subcategory) =>
+          subcategory.isTotalManualEmissionsModeAvailable &&
+          shouldShowSubcategory(
+            subcategory,
+            watchedSubcategories?.[subcategory.id]
+          )
+      ),
+    [selectedCategoryData, watchedSubcategories]
+  );
+  useExpertModeOnboardingHighlight(isExpertModeAvailable);
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 

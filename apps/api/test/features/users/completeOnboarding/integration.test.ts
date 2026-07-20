@@ -14,6 +14,11 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
 const COMPLETE_URL = `/api/users/me/onboardings/${OnboardingKeys.WELCOME_HOME}/complete`;
+// A second onboarding key beyond `welcome-home`, exercised end-to-end so the
+// completion → GET /users/me surfacing is proven for more than one key and the
+// `:key` route param resolves through find-my-way. (This is server-side routing
+// only — it does not cover the ky/browser URL transport the web client uses.)
+const EXPERT_MODE_COMPLETE_URL = `/api/users/me/onboardings/${OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE}/complete`;
 
 describe("POST /api/users/me/onboardings/:key/complete - Integration Tests", () => {
   let app: FastifyInstance;
@@ -81,6 +86,33 @@ describe("POST /api/users/me/onboardings/:key/complete - Integration Tests", () 
       where: { userId: loggedUser.id },
     });
     expect(rows).toHaveLength(0);
+  });
+
+  it("records a second onboarding key and surfaces it through GET /users/me", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: EXPERT_MODE_COMPLETE_URL,
+    });
+
+    expect(response.statusCode).toBe(204);
+
+    const rows = await prisma.userOnboardingCompletion.findMany({
+      where: { userId: loggedUser.id },
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].onboardingKey).toBe(
+      OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE
+    );
+
+    const meResponse = await app.inject({
+      method: "GET",
+      url: "/api/users/me",
+    });
+    expect(meResponse.statusCode).toBe(200);
+    const body = JSON.parse(meResponse.body) as GetMeResponse;
+    expect(body?.onboardingsCompleted).toContain(
+      OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE
+    );
   });
 
   it("surfaces the completion through GET /users/me", async () => {
