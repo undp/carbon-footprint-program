@@ -124,3 +124,16 @@ Manual administrative action independent of accreditation.
 ---
 
 _Note: Accreditation is a derived state. An organization is considered accredited if there exists at least one `OrganizationData` version with `ACTIVE` status that has an `APPROVED` submission._
+
+---
+
+## Accreditation Legal-Name Uniqueness
+
+At most one **accredited** organization should exist per **(country, legal name / razón social)**. The rule is enforced when an admin approves an `ORGANIZATION_ACCREDITATION` submission (`approveRequestService`): if another organization in the same country is already accredited with the same legal name, the approval is rejected with `LEGAL_NAME_ALREADY_ACCREDITED` (409).
+
+- **Source of truth:** accreditation is derived state (`hasApprovedOrganizationData` — an organization is accredited when it has an `OrganizationData` whose submission is `APPROVED`/`APPROVED_AUTOMATICALLY`). `assertLegalNameAvailableForAccreditation` queries that live state directly, so there is **no denormalized column** to keep in sync.
+- **Comparison:** legal names are matched with `trim()` + case-insensitive equality (Prisma `mode: "insensitive"`), so `"  Acme SpA "` and `"acme spa"` collide. Stored legal names are already trimmed on write by `OrganizationMutationDataSchema`.
+- **Semantics:**
+  - Scoped per country — the same legal name may be accredited in different countries.
+  - Re-accreditation of the same organization is allowed (the check excludes the organization itself).
+- **Concurrency:** the check is an application-level guard inside the approval transaction. There is intentionally **no** database-level unique constraint: two concurrent approvals of the same legal name could in theory both pass the pre-check (TOCTOU). This is accepted as extremely unlikely for a manual, low-frequency admin action. If it ever needs hardening, add a functional / `citext` unique index and map its `P2002`.
