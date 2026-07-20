@@ -1,12 +1,12 @@
 {
   "schema": "dpg-assessment/v1",
-  "repo": "/home/nolski/code/undp/carbon-footprint-program",
+  "repo": "undp/carbon-footprint-program",
   "project_type": "software",
   "current_tier": 1,
   "target_tier": 2,
-  "audit_confidence": "full",
+  "audit_confidence": "partial",
   "tools_not_run": [],
-  "remediation_note": "Heavily remediated 2026-07-01. Indicator 8 is now the SOLE remaining blocker; because it is mandatory at Tier 2, the strict ladder holds at Tier 1, but every indicator mandatory at Tiers 3 AND 4 (4,6,7,9A,9B,9C) is already met. Closing Indicator 8 promotes the project directly toward Tier 4 / DPG nomination.",
+  "remediation_note": "Heavily remediated 2026-07-01, with further documentation fixes on the dpg-hardening branch. Indicator 8 is NOT the sole remaining blocker: indicators 5, 6, 7, 9A and 9B still have undeclared or only partially-addressed functional gaps and are represented as partial. Indicators 3 and 9C are treated as met now that their referenced docs (CODEOWNERS + GOVERNANCE maintainers team, CoC/enforcement contact) have been filled with real values, but code-owner review is documented rather than enforced and the maintainers team is still pending creation in the org. The strict ladder holds at Tier 1. Closing the remaining partial indicators -- not Indicator 8 alone -- is required before DPG nomination.",
   "indicators": {
     "1": {
       "status": "met",
@@ -18,44 +18,44 @@
     },
     "3": {
       "status": "met",
-      "evidence": "Root GOVERNANCE.md (UNDP ownership + decision-making) + README 'Ownership' section, 'Copyright (c) 2026 United Nations Development Programme (UNDP)'. .github/CODEOWNERS added (placeholder team, TODO to confirm slug)."
+      "evidence": "Root GOVERNANCE.md (UNDP ownership + decision-making) + README 'Ownership' section, 'Copyright (c) 2026 United Nations Development Programme (UNDP)'. .github/CODEOWNERS and GOVERNANCE.md reference the @undp/huella-latam-maintainers org team. NOTE: the team must still be created in the undp org and granted Write access before automatic reviewer assignment works, and require_code_owner_reviews is not enabled in branch protection, so code-owner review is documented but not yet enforced at merge."
     },
     "4": {
       "status": "met",
       "evidence": "REMEDIATED: README 'Platform Independence' section lists core tech + each closed dependency with a documented open alternative (MinIO for Blob, OIDC/Keycloak for Entra ID, any Postgres, container deploy for Bicep). All mandatory app deps open source. TODO: cloud-neutral IaC example."
     },
     "5": {
-      "status": "met",
-      "evidence": "Thorough README + rich docs/ tree + OpenAPI/Swagger."
+      "status": "partial",
+      "evidence": "Thorough README + rich docs/ tree + OpenAPI/Swagger. GAP (not previously declared): documentation completeness has not been independently verified against the DPGA documentation requirements (e.g. end-user / non-technical and full deployment/operations coverage); represented as in-progress rather than fully met."
     },
     "6": {
-      "status": "met",
-      "evidence": "docs/development/data-export.md + OpenAPI API + export endpoints; audit sections.data_export=true."
+      "status": "partial",
+      "evidence": "docs/development/data-export.md + OpenAPI API + export endpoints; audit sections.data_export=true. GAP (not previously declared): it has not been verified that all user-generated data is exportable in non-proprietary formats end-to-end; represented as in-progress rather than fully met."
     },
     "7": {
-      "status": "met",
-      "evidence": "REMEDIATED: root PRIVACY.md answers all 6 Enhanced Privacy Framework questions, synthesizing docs/security/sensitive-data.md; documents alignment with LATAM data-protection laws (LFPDPPP/1581/25.326/LGPD/19.628/29733) + GDPR. Operational gaps (consent flow, DSAR workflow, contacts) flagged as deployment responsibility with TODOs."
+      "status": "partial",
+      "evidence": "REMEDIATED: root PRIVACY.md answers all 6 Enhanced Privacy Framework questions, synthesizing docs/security/sensitive-data.md; documents alignment with LATAM data-protection laws (LFPDPPP/1581/25.326/LGPD/19.628/29733) + GDPR. Downgraded to partial: the operational gaps (consent flow, DSAR workflow, contacts) are documented as deployment responsibility with TODOs but not yet implemented, so privacy adherence is in-progress rather than fully met."
     },
     "8": {
       "status": "partial",
-      "evidence": "REMEDIATED substantially. At 2026-07-01 triage: OpenSSF Scorecard 2.8 -> 6.6 (Security-Policy 10, Dependency-Update-Tool 10, Token-Permissions 10, License 9, Pinned-Dependencies 3). Since then the two biggest gaps behind those sub-scores are closed: Docker base-image digests are pinned in the apps/api and apps/web Dockerfiles (#453), and the repo is now public with GitHub Advanced Security features active (CodeQL SAST workflow, secret scanning + push protection, Dependabot security updates), plus a betterleaks secret-scan gate in CI -- so a Scorecard re-run would score higher on Pinned-Dependencies and SAST. Also added SECURITY.md, .github/dependabot.yml, SHA-pinned GitHub Actions, least-privilege workflow tokens, and a README 'Standards & Best Practices' section citing Principles for Digital Development. REMAINING for 'full': register the OpenSSF Best Practices Badge; apply branch protection on main; work down the open dependency advisories (pnpm audit / Dependabot security PRs).",
+      "evidence": "REMEDIATED substantially. At 2026-07-01 triage: OpenSSF Scorecard 2.8 -> 6.6 (Security-Policy 10, Dependency-Update-Tool 10, Token-Permissions 10, License 9, Pinned-Dependencies 3). Since then the two biggest gaps behind those sub-scores are closed: Docker base-image digests are pinned in the apps/api and apps/web Dockerfiles (#453), and the repo is now public with GitHub Advanced Security features active (CodeQL SAST workflow, secret scanning + push protection, Dependabot security updates), plus a betterleaks secret-scan gate in CI -- so a Scorecard re-run would score higher on Pinned-Dependencies and SAST. Also added SECURITY.md, .github/dependabot.yml, SHA-pinned GitHub Actions, least-privilege workflow tokens, and a README 'Standards & Best Practices' section citing Principles for Digital Development. Branch protection on main is applied with required status checks -- Lint, Type Check, Format Check, Build, Audit, Docs Link Check, Secret Scan, Coverage and the Test (web/base/storage-azure/storage-minio) jobs are required at merge, and PRs require one approving review; the Seed Unit Tests and Zizmor jobs also run in CI but are not merge-blocking, and require_code_owner_reviews and enforce_admins remain disabled. REMAINING for 'full': register the OpenSSF Best Practices Badge; work down the open dependency advisories (pnpm audit / Dependabot security PRs).",
       "remediation": "standards-section"
     },
     "9A": {
-      "status": "met",
-      "evidence": "Secret scan clean (0 findings). A CI Secret Scan step runs betterleaks (the actively-maintained gitleaks successor; gitleaks is now feature-frozen) on every PR over full git history, honoring a .gitleaks.toml allowlist that covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. GitHub native secret scanning + push protection are also enabled. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging)."
+      "status": "partial",
+      "evidence": "Secret scan clean (0 findings). A CI Secret Scan step runs betterleaks (the actively-maintained gitleaks successor; gitleaks is now feature-frozen) on every PR over full git history, honoring a .gitleaks.toml allowlist that covers the 2 verified false positives by regex (public Azure role-definition GUID; Keycloak dev JDBC connection string in compose/keycloak*.yaml), so it survives commit/line churn instead of using per-commit fingerprints. GitHub native secret scanning + push protection are also enabled. PII security documented across docs/security/ + PRIVACY.md §6 (RBAC, OIDC, Key Vault, AES-256, TLS 1.2+, audit logging). GAP (not previously declared): some privacy-by-design operational controls (consent capture, DSAR handling) are documented as deployment responsibility rather than implemented (see Indicator 7), and there is no accessibility / inclusion ('do no harm') evidence (localization_accessibility is weak); represented as partial rather than fully met."
     },
     "9B": {
-      "status": "met",
-      "evidence": "REMEDIATED: root CONTENT_MODERATION.md documents scope (private evidence uploads, not public content), prohibited content incl. zero-tolerance CSAM, detection/reporting/removal/appeals, with per-deployment escalation TODOs. (Low-risk: not a public content platform.)"
+      "status": "partial",
+      "evidence": "REMEDIATED: root CONTENT_MODERATION.md documents scope (private evidence uploads, not public content), prohibited content incl. zero-tolerance CSAM, detection/reporting/removal/appeals, with per-deployment escalation TODOs. (Low-risk: not a public content platform.) GAP (not previously declared): this is a policy document with per-deployment escalation contacts still TODO rather than an implemented moderation mechanism; represented as partial rather than fully met."
     },
     "9C": {
       "status": "met",
-      "evidence": "REMEDIATED: root CODE_OF_CONDUCT.md = Contributor Covenant 2.1 + appended end-user harassment-protection and underage-safety subsections (platform not directed at minors; no minors' data; RBAC-scoped interaction). TODO: enforcement contact."
+      "evidence": "REMEDIATED: root CODE_OF_CONDUCT.md = Contributor Covenant 2.1 + appended end-user harassment-protection and underage-safety subsections (platform not directed at minors; no minors' data; RBAC-scoped interaction). Enforcement / CoC contact filled: michael.nolan@undp.org."
     }
   },
-  "blockers": ["8"],
-  "blockers_note": "Indicator 8 is mandatory at Tier 2 (entry) and Tier 4 (full). Since 9B and 9C (the other Tier-4 sub-indicators) and all Tier-3 indicators are now met, Indicator 8 is the only indicator standing between the project and DPG-nomination readiness.",
+  "blockers": ["5", "6", "7", "8", "9A", "9B"],
+  "blockers_note": "Indicator 8 is mandatory at Tier 2 (entry) and Tier 4 (full), but it is not the only outstanding item. Indicators 5, 6, 7, 9A and 9B are represented as partial pending real functional gaps (see each indicator's evidence), and Indicator 3 / 9C are met only because their referenced docs have now been filled with real values (code-owner review is documented, not enforced). Multiple indicators -- not Indicator 8 alone -- stand between the project and DPG-nomination readiness.",
   "architecture": {
     "dimensions": {
       "modularity": {
@@ -84,7 +84,7 @@
       },
       "security_architecture": {
         "rating": "strong",
-        "evidence": "Entra ID OIDC + RBAC + Key Vault + audit logging + hardening docs; secrets clean; SECURITY.md, Dependabot, SHA-pinned actions, least-privilege tokens, pinned Docker digests, CodeQL SAST + betterleaks secret-scan in CI, GitHub secret scanning enabled. Remaining: branch protection."
+        "evidence": "Entra ID OIDC + RBAC + Key Vault + audit logging + hardening docs; secrets clean; SECURITY.md, Dependabot, SHA-pinned actions, least-privilege tokens, pinned Docker digests, CodeQL SAST + betterleaks secret-scan in CI, GitHub secret scanning enabled. Branch protection on main is applied with required status checks (coverage and the Test-suite legs are required at merge; the Seed Unit Tests and Zizmor jobs run in CI but are not merge-blocking; one approving review required); require_code_owner_reviews and enforce_admins remain disabled. Remaining: register the OpenSSF Best Practices Badge and clear open dependency advisories."
       },
       "data_portability": {
         "rating": "strong",
@@ -92,7 +92,7 @@
       },
       "testing_cicd": {
         "rating": "adequate",
-        "evidence": "apps/api Vitest+Testcontainers integration suite (90% statement / 90% branch coverage gate merged across CI legs) plus an apps/web Vitest+jsdom+React Testing Library unit suite over the logic layers (utils, hooks, stores, label mappers, Chatbot module) behind an enforced coverage floor; hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
+        "evidence": "apps/api Vitest+Testcontainers integration suite (configured 90% statement / 90% branch coverage threshold) plus an apps/web Vitest+jsdom+React Testing Library unit suite over the logic layers (utils, hooks, stores, label mappers, Chatbot module) with a coverage floor. These test and coverage jobs run in CI on every PR and are required status checks on main (Coverage plus Test (web), Test (base), Test (storage-azure), Test (storage-minio)), so the coverage gate is enforced at merge. Hardened CI (pinned, least-priv) with CodeQL SAST and a betterleaks secret-scan gate."
       },
       "observability": {
         "rating": "adequate",
@@ -117,7 +117,7 @@
       {
         "dimension": "security_architecture",
         "endangers_indicator": "8",
-        "note": "Largely resolved: the repo is public, CodeQL SAST + secret scanning + push protection are active, and Docker base-image digests are pinned (#453). Indicator 8 stays 'partial' pending OpenSSF Best Practices Badge registration, branch protection on main, and clearing the open dependency advisories."
+        "note": "Largely resolved: the repo is public, CodeQL SAST + secret scanning + push protection are active, and Docker base-image digests are pinned (#453). Branch protection on main is applied with required status checks (coverage and the Test-suite legs are required merge checks; Seed Unit Tests and Zizmor are not). Indicator 8 stays 'partial' pending OpenSSF Best Practices Badge registration and clearing the open dependency advisories."
       },
       {
         "dimension": "platform_independence",
