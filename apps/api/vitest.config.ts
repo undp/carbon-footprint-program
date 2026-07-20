@@ -38,6 +38,10 @@ const SHARED_TEST_ENV = {
   // suite so its routes register and the chatbot integration tests run
   // (LLM_PROVIDER defaults to "mock").
   CHATBOT_ENABLED: "true",
+  // Neutralize ambient .envrc/direnv JWKS_* leakage so local runs match CI.
+  JWKS_ISSUER: "",
+  JWKS_URI: "",
+  JWKS_AUDIENCE: "",
 } as const;
 
 // Dummy storage env per project. These only satisfy `buildStorageConfig()`
