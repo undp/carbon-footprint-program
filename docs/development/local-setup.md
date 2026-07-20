@@ -39,8 +39,8 @@ corepack enable && corepack prepare pnpm@latest --activate
 ## Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/in-ventures/undp-huella-latam.git
-cd undp-huella-latam
+git clone https://github.com/undp/carbon-footprint-program.git
+cd carbon-footprint-program
 ```
 
 ---
