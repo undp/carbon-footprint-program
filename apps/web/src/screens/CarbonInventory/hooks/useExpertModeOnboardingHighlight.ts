@@ -26,12 +26,32 @@ import {
  * checkbox), so the "first-visit-only" promise holds however the user engages.
  * We deliberately do NOT persist on the effect cleanup/unmount path, so an
  * accidental navigation away doesn't silently burn the one-time hint.
+ *
+ * The effect depends ONLY on the real triggers `[ready, isExpertModeAvailable]`.
+ * `isCompleted`/`complete` are read through refs instead of the dep array: their
+ * identities change when `/me`'s completion list updates or `isAuthenticated`
+ * flips, and if that happened while the popover was open the effect cleanup would
+ * run `runOnboardingHighlight`'s teardown (`selfDestroy`, so no `onUserClose`),
+ * silently dismissing a live highlight WITHOUT persisting completion — it would
+ * then reappear next visit. `hasRunRef` guards re-firing, not re-teardown, so the
+ * fix is to keep those identities out of the deps.
  */
 export const useExpertModeOnboardingHighlight = (
   isExpertModeAvailable: boolean
 ) => {
   const { isCompleted, complete, ready } = useOnboardingCompletion();
   const hasRunRef = useRef(false);
+
+  // Latest-value refs so the highlight effect can call the current
+  // `isCompleted`/`complete` without listing them as deps (see the block comment
+  // above). Synced in an effect (not during render) and declared before the
+  // highlight effect, so the refs are current before that effect reads them.
+  const isCompletedRef = useRef(isCompleted);
+  const completeRef = useRef(complete);
+  useEffect(() => {
+    isCompletedRef.current = isCompleted;
+    completeRef.current = complete;
+  });
 
   useEffect(() => {
     // Never fire before `ready`: while OIDC rehydrates or /me loads the effective
@@ -40,7 +60,7 @@ export const useExpertModeOnboardingHighlight = (
     if (
       hasRunRef.current ||
       !ready ||
-      isCompleted(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE) ||
+      isCompletedRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE) ||
       !isExpertModeAvailable
     ) {
       return undefined;
@@ -53,8 +73,10 @@ export const useExpertModeOnboardingHighlight = (
         "Marca esta casilla para registrar un único total de emisiones (tCO₂e) sin cargar fuente por fuente. No es obligatoria: si tienes el detalle, déjala desmarcada y agrega cada fuente de emisión.",
       debugLabel: "emission-capture-expert-mode",
       confirmLabel: "Entendido",
-      onUserClose: () => complete(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
-      onFollow: () => complete(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
+      onUserClose: () =>
+        completeRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
+      onFollow: () =>
+        completeRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
     });
-  }, [ready, isCompleted, complete, isExpertModeAvailable]);
+  }, [ready, isExpertModeAvailable]);
 };
