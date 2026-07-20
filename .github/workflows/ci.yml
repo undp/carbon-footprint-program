@@ -218,7 +218,7 @@ jobs:
       # tests that actually touch storage. The manifest drives both the storage
       # legs' `include` and the base leg's `exclude`, so a stale manifest would
       # either skip a storage test or run it in the wrong (provider-less) leg.
-      - run: pnpm test:verify-storage-manifest
+      - run: pnpm test:api:verify-storage-manifest
         if: needs.changes.outputs.code == 'true'
       - name: Run tests
         if: needs.changes.outputs.code == 'true'
@@ -228,7 +228,7 @@ jobs:
         # filename embeds LEG so the three legs never collide in the coverage job.
         env:
           LEG: ${{ matrix.leg }}
-        run: pnpm test:ci
+        run: pnpm test:api:leg
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always() && needs.changes.outputs.code == 'true'
         with:
@@ -280,7 +280,7 @@ jobs:
           path: apps/api/.vitest-reports
           merge-multiple: true
       # Native Vitest merge + coverage + gate (90% all metrics, replaces check-coverage.mjs).
-      - run: pnpm test:coverage:merge
+      - run: pnpm test:api:coverage:merge
         if: needs.changes.outputs.code == 'true'
       # Upload the human-readable merged report (html + lcov + json) this step
       # already produces. `always()` so it is available precisely when the gate

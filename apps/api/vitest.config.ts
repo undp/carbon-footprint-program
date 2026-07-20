@@ -14,7 +14,7 @@ const DEFAULT_TEST_INCLUDE = ["test/**/*.{test,spec}.{js,ts}"];
 /**
  * The apps/api coverage gate — 90% for every metric — declared here, where it is
  * read, as the single source of truth. It applies to any full run (all three
- * projects, or the merged blobs). The ONLY run that opts out is `test:ci`, which
+ * projects, or the merged blobs). The ONLY run that opts out is `test:leg`, which
  * runs ONE project whose partial coverage would never clear 90; it overrides
  * these to 0 on the CLI (see package.json).
  */
@@ -151,7 +151,7 @@ function defineApiVitestProject(overrides: ApiVitestProjectOverrides) {
 //
 // The coverage gate (COVERAGE_GATE below) lives in `test.coverage.thresholds`,
 // applied to any full run. A per-project run can't be gated on its partial view,
-// so `test:ci` (one `--project`) overrides the thresholds to 0 on the CLI — the
+// so `test:leg` (one `--project`) overrides the thresholds to 0 on the CLI — the
 // single opt-out, stated where it happens. Two run modes, same coverage by
 // construction:
 //   - Local: `vitest run --coverage` runs all three projects and merges their
@@ -211,7 +211,7 @@ export default defineConfig({
         "**/*.config.{js,ts}",
         "**/server.ts", // Entry point, often hard to test
       ],
-      // The gate. `test:ci` (single-project, partial view) overrides these to 0.
+      // The gate. `test:leg` (single-project, partial view) overrides these to 0.
       thresholds: {
         lines: COVERAGE_GATE,
         functions: COVERAGE_GATE,

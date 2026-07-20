@@ -6,7 +6,7 @@ import { STORAGE_TEST_MANIFEST } from "./storageTestManifest.js";
 
 /**
  * Static anti-drift check for the storage test manifest
- * (test/setup/storageTestManifest.ts). Run via `pnpm test:verify-storage-manifest`
+ * (test/setup/storageTestManifest.ts). Run via `pnpm test:api:verify-storage-manifest`
  * before the tests in CI. It fails (exit 1) when:
  *   (a) a test file shows storage markers but is NOT in the manifest,
  *   (b) a manifest entry does not exist on disk,

@@ -15,7 +15,7 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:ci": ": \"${LEG:?LEG must be set (base|storage-azure|storage-minio)}\" && vitest run --project=\"$LEG\" --coverage --reporter=blob --outputFile.blob=.vitest-reports/blob-$LEG.json --coverage.thresholds.lines=0 --coverage.thresholds.statements=0 --coverage.thresholds.functions=0 --coverage.thresholds.branches=0",
+    "test:leg": ": \"${LEG:?LEG must be set (base|storage-azure|storage-minio)}\" && vitest run --project=\"$LEG\" --coverage --reporter=blob --outputFile.blob=.vitest-reports/blob-$LEG.json --coverage.thresholds.lines=0 --coverage.thresholds.statements=0 --coverage.thresholds.functions=0 --coverage.thresholds.branches=0",
     "test:coverage:merge": "vitest run --merge-reports=.vitest-reports --coverage",
     "test:verify-storage-manifest": "tsx test/setup/assertStorageTestManifest.ts",
     "test:ui": "vitest --ui",

@@ -154,11 +154,11 @@ This is a matrix job with three legs that **partition** the suite into disjoint 
 
 `base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base project's `exclude` and the storage projects' `include`. Each project selects its provider — and boots the matching testcontainer — from its **name** in `globalSetup.ts` (never from a shared `process.env`, which would be last-writer-wins across projects); each project also declares the matching `STORAGE_PROVIDER` in its `test.env` so `buildStorageConfig()` validation passes at `app.ready()`.
 
-Each leg runs `pnpm test:ci` (with `LEG` set to the matrix leg), which is `vitest run --project=$LEG --coverage --reporter=blob`. The `--reporter=blob` output carries the coverage data and is merged natively in the `coverage` job below (no external merge script).
+Each leg runs `pnpm test:api:leg` (with `LEG` set to the matrix leg), which is `vitest run --project=$LEG --coverage --reporter=blob`. The `--reporter=blob` output carries the coverage data and is merged natively in the `coverage` job below (no external merge script).
 
 ¹ The `base` project boots **no** storage container — it never touches real storage (its `app.storage` is the throwing adapter). Its `test.env` still sets `STORAGE_PROVIDER=azure_blob_storage` (+ a dummy account name) purely so `buildStorageConfig()` passes at `app.ready()`.
 
-Before running the tests, all three legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
+Before running the tests, all three legs run `pnpm test:api:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
 
 **Blob report artifact:** After each leg (even on failure), its Vitest blob report is uploaded — `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio`:
 
@@ -178,7 +178,7 @@ The `coverage` job downloads all three and merges them (see below).
 
 `apps/api/test/setup/storageTestManifest.ts` lists the tests that exercise real object storage. Two layers keep it from drifting:
 
-- **Static** — `pnpm test:verify-storage-manifest` scans the tests for storage markers (e.g. `inject("storageDescriptor")`, `uploadFixture(...)`, `app.storage.<method>`) and fails with an actionable message if a marked test is missing from the manifest, an entry no longer exists, or an entry has no markers.
+- **Static** — `pnpm test:api:verify-storage-manifest` scans the tests for storage markers (e.g. `inject("storageDescriptor")`, `uploadFixture(...)`, `app.storage.<method>`) and fails with an actionable message if a marked test is missing from the manifest, an entry no longer exists, or an entry has no markers.
 - **Runtime** — `createTestApp` installs a throwing storage adapter when no `storageDescriptor` is passed, so a test that quietly reaches for storage fails immediately instead of passing against a fake backend.
 
 When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANIFEST` (and pass `storageDescriptor: inject("storageDescriptor")` to `createTestApp`).
@@ -192,9 +192,9 @@ Enforces a **per-metric coverage gate** for `apps/api`: **90%** for all four met
 Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so no single leg can be gated on its own coverage (it would fail on the files it never runs). The **90%** gate is declared once in `apps/api/vitest.config.ts` (`test.coverage.thresholds`); each single-project `test` leg overrides it to `0` on the CLI (its numbers still print in its own report), and the gate is applied only after the legs are merged:
 
 1. Each `test` leg emits a Vitest **blob** report (`--reporter=blob`, coverage embedded) as an artifact.
-2. This job (`needs: test`) downloads all three into one flat dir (`merge-multiple: true` — `vitest --merge-reports` reads the dir non-recursively and rejects subfolders; each blob is uniquely named `blob-<leg>.json`) and runs `pnpm test:coverage:merge`, which is `vitest run --merge-reports --coverage`. That command doesn't override the thresholds, so the config's 90% gate applies. Vitest merges the coverage natively — a line covered by _any_ leg counts as covered (v8 merges hit-counts) — then fails if any metric falls below its threshold (90% for all four).
+2. This job (`needs: test`) downloads all three into one flat dir (`merge-multiple: true` — `vitest --merge-reports` reads the dir non-recursively and rejects subfolders; each blob is uniquely named `blob-<leg>.json`) and runs `pnpm test:api:coverage:merge`, which is `vitest run --merge-reports --coverage`. That command doesn't override the thresholds, so the config's 90% gate applies. Vitest merges the coverage natively — a line covered by _any_ leg counts as covered (v8 merges hit-counts) — then fails if any metric falls below its threshold (90% for all four).
 
-The gate lives in the config, so local (`test:coverage`) and CI (`test:coverage:merge`) use the exact same thresholds — only `test:ci` (a partial single-project run) opts out. If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
+The gate lives in the config, so local (`test:coverage`) and CI (`test:coverage:merge`) use the exact same thresholds — only `test:leg` (a partial single-project run) opts out. If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
 The merge step also produces a human-readable report (html + lcov + json) under `apps/api/coverage/`, which this job uploads as the `coverage-report-merged` artifact (`if: always()`, so it is available **even when the gate fails** — exactly when you need to see which lines are missing). Download it straight from the run instead of merging the per-leg blobs by hand.
 
@@ -237,13 +237,13 @@ The per-leg `blob-report-base`, `blob-report-storage-azure`, and `blob-report-st
 
 Every CI job runs the same command you can run locally:
 
-| CI job          | Local command                                          |
-| --------------- | ------------------------------------------------------ |
-| lint            | `pnpm lint`                                            |
-| type-check      | `pnpm type-check`                                      |
-| format          | `pnpm format:check` (or `pnpm format` to fix)          |
-| test + coverage | `pnpm test:verify-storage-manifest && pnpm test:api`   |
-| build           | `VITE_API_BASE_URL=https://example.invalid pnpm build` |
+| CI job          | Local command                                            |
+| --------------- | -------------------------------------------------------- |
+| lint            | `pnpm lint`                                              |
+| type-check      | `pnpm type-check`                                        |
+| format          | `pnpm format:check` (or `pnpm format` to fix)            |
+| test + coverage | `pnpm test:api:verify-storage-manifest && pnpm test:api` |
+| build           | `VITE_API_BASE_URL=https://example.invalid pnpm build`   |
 
 `pnpm test:api` runs the whole suite (all three Vitest projects) in one command, merges coverage, and applies the gate — the local equivalent of the `test` matrix + `coverage` job combined. (CI splits it across three runners for wall-clock, then merges the blobs; the config and gate are identical.)
 
