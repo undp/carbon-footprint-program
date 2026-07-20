@@ -69,6 +69,14 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 
 The teardown function stops the project's containers after its tests complete.
 
+> **Local Docker footprint.** Because `globalSetup` runs once **per project**, a
+> full local `pnpm test:api` (one `vitest run --coverage` over all three
+> projects) can stand up **three PostgreSQL containers plus Azurite and MinIO**
+> at peak — heavier than running the legs one at a time. On a constrained machine
+> or a tight Docker Desktop limit, run a single project for a lighter inner loop:
+> `pnpm --filter=api exec vitest run --project=base --coverage=false` (`base`
+> boots only PostgreSQL). CI is unaffected — each runner runs one `--project`.
+
 ### Per-file database isolation
 
 `test/setup/perFileDatabase.ts` (registered in `setupFiles`, so it runs once per
@@ -108,6 +116,10 @@ pnpm test
 
 # Run all API tests (all three Vitest projects), merge coverage, apply the gate
 pnpm test:api
+
+# Lighter inner loop: run a single project (base boots only PostgreSQL — no
+# storage container). Skip the gate, which a partial run can't clear.
+pnpm --filter=api exec vitest run --project=base --coverage=false
 
 # Run the apps/web suite (Vitest + jsdom; builds @repo/* deps first).
 # Runs with coverage and enforces a global coverage floor (see the note below).
