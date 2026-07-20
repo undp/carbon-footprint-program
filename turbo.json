@@ -92,7 +92,11 @@
     },
     "test:coverage:merge": {
       "cache": false,
-      "dependsOn": ["^build"],
+      // No `^build`: `vitest run --merge-reports --coverage` runs no tests — it
+      // reads the blob JSON and maps coverage onto apps/api/src/** from the
+      // checkout. It never loads globalSetup/setupFiles and imports no @repo/*
+      // module, so building the workspace deps here is wasted CI time.
+      "dependsOn": [],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
