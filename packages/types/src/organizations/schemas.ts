@@ -41,6 +41,7 @@ export const OrganizationMutationDataSchema = z
   .object({
     legalName: z
       .string()
+      .trim()
       .min(minLength)
       .describe("Legal name of the organization"),
     tradeName: z.string().nullable().describe("Trade name of the organization"),
