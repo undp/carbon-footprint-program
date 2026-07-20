@@ -7,6 +7,7 @@ import {
 import type { OrganizationMutationData } from "@repo/types";
 import { toNullableBigInt } from "@/utils/bigint.js";
 import { OrganizationIdExtractor } from "../../plugins/app/organizationAuthorizationPlugin.js";
+import { LegalNameAlreadyAccreditedError } from "./errors.js";
 
 export const organizationIdRequestExtractor: OrganizationIdExtractor = (
   request
@@ -71,6 +72,57 @@ export const hasApprovedOrganizationData = async (
       },
     })
   );
+
+/**
+ * Rejects accrediting an organization when another organization in the same
+ * country is already accredited (inscrita) with the same legal name (razón
+ * social). Comparison mirrors the length-check trim in
+ * `OrganizationMutationDataSchema` plus a case-insensitive match, so
+ * "  Acme SpA " and "acme spa" collide. Excludes the organization itself so its
+ * own re-accreditation does not conflict.
+ *
+ * "Accredited" is derived state (see `hasApprovedOrganizationData`): the check
+ * reads it live from the approved organization data, so there is no denormalized
+ * key to keep in sync. It runs inside the approval transaction as an
+ * application-level guard; there is intentionally no DB unique constraint, so a
+ * pair of concurrent approvals of the same legal name could in theory both pass
+ * (TOCTOU) — accepted as extremely unlikely for a manual admin action.
+ */
+export const assertLegalNameAvailableForAccreditation = async (
+  prisma: PrismaClient | Prisma.TransactionClient,
+  {
+    organizationId,
+    countryId,
+    legalName,
+  }: { organizationId: bigint; countryId: bigint; legalName: string }
+): Promise<void> => {
+  const conflict = await prisma.organizationData.findFirst({
+    where: {
+      organizationId: { not: organizationId },
+      legalName: { equals: legalName.trim(), mode: "insensitive" },
+      organization: { countryId },
+      submission: {
+        subject: {
+          submissions: {
+            some: {
+              status: {
+                in: [
+                  SubmissionStatus.APPROVED,
+                  SubmissionStatus.APPROVED_AUTOMATICALLY,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+    select: { id: true },
+  });
+
+  if (conflict) {
+    throw new LegalNameAlreadyAccreditedError(legalName);
+  }
+};
 
 export const getLastReviewedOrganizationData = async (
   prisma: PrismaClient | Prisma.TransactionClient,

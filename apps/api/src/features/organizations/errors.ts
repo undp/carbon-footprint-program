@@ -53,3 +53,15 @@ export const OrganizationAlreadyAccreditedError = createError(
   "Organization with ID %s is already accredited",
   409
 );
+
+export const LegalNameAlreadyAccreditedError = createError(
+  "LEGAL_NAME_ALREADY_ACCREDITED",
+  "Another organization is already accredited with legal name %s",
+  409
+);
+
+export const OrganizationAccreditationDataMissingError = createError(
+  "ORGANIZATION_ACCREDITATION_DATA_MISSING",
+  "Organization accreditation submission %s has no linked organization data",
+  409
+);

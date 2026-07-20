@@ -11,7 +11,11 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { ApproveRequestResponse, ApproveRequestBody } from "@repo/types";
-import { SubmissionFileType, SubmissionStatus } from "@repo/database";
+import {
+  SubmissionFileType,
+  SubmissionStatus,
+  SubmissionType,
+} from "@repo/database";
 import { randomUUID } from "crypto";
 import {
   createTestOrganization,
@@ -30,6 +34,9 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
   let testUser: User;
+  // Extra countries created by individual tests (the shared seed country is
+  // reused everywhere else); cleaned up after each test once its orgs are gone.
+  const extraCountryIds: bigint[] = [];
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
@@ -46,6 +53,12 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
   afterEach(async () => {
     await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
+    if (extraCountryIds.length > 0) {
+      await prisma.country.deleteMany({
+        where: { id: { in: extraCountryIds } },
+      });
+      extraCountryIds.length = 0;
+    }
   });
 
   describe("Happy path - Approve request successfully", () => {
@@ -490,6 +503,173 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
 
       expect(updatedSubmission1!.status).toBe(SubmissionStatus.APPROVED);
       expect(updatedSubmission2!.status).toBe(SubmissionStatus.APPROVED);
+    });
+  });
+
+  describe("Legal name uniqueness (accreditation)", () => {
+    const approveUrl = (submissionId: bigint) =>
+      `/api/admin/requests/${submissionId}/approve`;
+
+    it("blocks approving a second organization with the same legal name (case/space-insensitive) in the same country", async () => {
+      const org1 = await createTestOrganization(prisma);
+      const orgData1 = await createTestOrganizationData(prisma, org1.id, {
+        legalName: "Acme SpA",
+      });
+      const { submission: submission1 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData1.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+
+      const org2 = await createTestOrganization(prisma);
+      const orgData2 = await createTestOrganizationData(prisma, org2.id, {
+        legalName: "  acme spa ",
+      });
+      const { submission: submission2 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData2.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+
+      const first = await app.inject({
+        method: "POST",
+        url: approveUrl(submission1.id),
+        payload: {},
+      });
+      expect(first.statusCode).toBe(200);
+
+      const second = await app.inject({
+        method: "POST",
+        url: approveUrl(submission2.id),
+        payload: {},
+      });
+
+      expect(second.statusCode).toBe(409);
+      const body = JSON.parse(second.body) as ApiErrorResponse;
+      expect(body.code).toBe("LEGAL_NAME_ALREADY_ACCREDITED");
+
+      // The blocked submission stays PENDING (org2 is not accredited).
+      const blockedSubmission = await prisma.submission.findUnique({
+        where: { id: submission2.id },
+      });
+      expect(blockedSubmission!.status).toBe(SubmissionStatus.PENDING);
+    });
+
+    it("allows the same organization to re-accredit with its own legal name", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData1 = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Acme SpA",
+      });
+      const { submission: submission1 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData1.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+      const first = await app.inject({
+        method: "POST",
+        url: approveUrl(submission1.id),
+        payload: {},
+      });
+      expect(first.statusCode).toBe(200);
+
+      // Re-accreditation of the SAME organization with the same name.
+      const orgData2 = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Acme SpA",
+      });
+      const { submission: submission2 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData2.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+      const second = await app.inject({
+        method: "POST",
+        url: approveUrl(submission2.id),
+        payload: {},
+      });
+
+      expect(second.statusCode).toBe(200);
+    });
+
+    it("allows the same legal name in different countries", async () => {
+      const org1 = await createTestOrganization(prisma);
+      const orgData1 = await createTestOrganizationData(prisma, org1.id, {
+        legalName: "Acme SpA",
+      });
+      const { submission: submission1 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData1.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+
+      const otherCountry = await prisma.country.create({
+        data: {
+          name: `Test Country ${randomUUID()}`,
+          isoCode: randomUUID().slice(0, 8),
+        },
+      });
+      extraCountryIds.push(otherCountry.id);
+      const org2 = await createTestOrganization(prisma, {
+        countryId: otherCountry.id,
+      });
+      const orgData2 = await createTestOrganizationData(prisma, org2.id, {
+        legalName: "Acme SpA",
+      });
+      const { submission: submission2 } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData2.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+
+      const first = await app.inject({
+        method: "POST",
+        url: approveUrl(submission1.id),
+        payload: {},
+      });
+      const second = await app.inject({
+        method: "POST",
+        url: approveUrl(submission2.id),
+        payload: {},
+      });
+
+      expect(first.statusCode).toBe(200);
+      expect(second.statusCode).toBe(200);
+    });
+
+    it("rejects an accreditation submission with no linked organization data", async () => {
+      const subject = await prisma.submissionSubject.create({
+        data: { createdById: testUser.id },
+      });
+      const submission = await prisma.submission.create({
+        data: {
+          type: SubmissionType.ORGANIZATION_ACCREDITATION,
+          subjectId: subject.id,
+          status: SubmissionStatus.PENDING,
+          createdById: testUser.id,
+          updatedById: testUser.id,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: approveUrl(submission.id),
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_ACCREDITATION_DATA_MISSING");
     });
   });
 });
