@@ -61,10 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at:
 
-<!-- TODO: Add a monitored contact (email or GitHub team) for conduct reports,
-     e.g. the UNDP Huella Latam maintainers distribution list. -->
-
-`TODO: code-of-conduct contact`.
+michael.nolan@undp.org.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

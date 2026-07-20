@@ -18,10 +18,7 @@ Instead, use one of the following private channels:
 
 1. **GitHub private vulnerability reporting** — open a report via the repository's
    **Security → Report a vulnerability** tab (GitHub private advisories).
-   <!-- TODO: A maintainer must enable "Private vulnerability reporting" in
-        Settings → Code security and analysis for this to be available. -->
-2. **Email** — <!-- TODO: add a monitored security contact, e.g. security@… or the UNDP
-   Huella Latam team distribution list. --> `TODO: security contact email`.
+2. **Email** — michael.nolan@undp.org.
 
 Please include:
 

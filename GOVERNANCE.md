@@ -25,8 +25,7 @@ details, see [`docs/governance.md`](./docs/governance.md).
 - **Model:** The platform is centrally maintained by the UNDP Huella Latam team. Changes are
   proposed via pull requests to `main` and require review and passing CI (lint, type-check,
   format, tests, build) before merge.
-- **Merge / release authority:** UNDP Huella Latam maintainers.
-  <!-- TODO: List the specific maintainer handles or team, or point to a CODEOWNERS file. -->
+- **Merge / release authority:** the [@undp/huella-latam-maintainers](https://github.com/orgs/undp/teams/huella-latam-maintainers) team, whose membership is managed in the org team settings (see [`.github/CODEOWNERS`](./.github/CODEOWNERS)).
 - **Disagreements:** Resolved by maintainer consensus; the UNDP Huella Latam team lead has
   final say where consensus cannot be reached.
 
@@ -50,10 +49,8 @@ codebase may be invited to become maintainers by the existing maintainer team.
 
 - **Conduct / harassment concerns:** raise via the process in
   [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
-  <!-- TODO: Fill in the monitored conduct contact channel in CODE_OF_CONDUCT.md (closes DPG Indicator 9C). -->
 - **Security vulnerabilities:** report privately following the disclosure policy in
   [`SECURITY.md`](./SECURITY.md) (see also [`docs/security/`](./docs/security/)).
-  <!-- TODO: Fill in the monitored security disclosure contact in SECURITY.md (supports DPG Indicator 8). -->
 - **Privacy / data decisions:** the UNDP Huella Latam team is responsible for privacy and
   data-handling decisions. See [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md).
   _(Supports DPG Indicators 7 and 9A–9C.)_
