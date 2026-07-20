@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useAuth as useOidcAuth } from "react-oidc-context";
 import type { OnboardingKey } from "@repo/types";
 import { useCompleteOnboarding, useMe } from "@/api/query";
+import { IS_DEVELOPMENT } from "@/config/environment";
 import {
   ANONYMOUS_REACHABLE_KEYS,
   markLocalCompleted,
@@ -15,6 +16,14 @@ interface UseOnboardingCompletion {
    * decide "not completed" (e.g. fire a hint) before this is true.
    */
   ready: boolean;
+  /**
+   * True if `key` is completed in the effective (local ∪ DB) state. Reads
+   * localStorage fresh on each call, so it is NOT reactive to same-tab local
+   * writes: a caller must not expect a re-render after an anonymous `complete()`
+   * (today's only consumer dismisses, then relies on its own `hasRunRef` rather
+   * than a re-render). A consumer that renders *from* `isCompleted` after an
+   * anonymous `complete()` would need its own reactive trigger.
+   */
   isCompleted: (key: OnboardingKey) => boolean;
   complete: (key: OnboardingKey) => void;
 }
@@ -59,7 +68,19 @@ export const useOnboardingCompletion = (): UseOnboardingCompletion => {
       // a local entry would be redundant (and would linger until the next login
       // merge prunes it), so we skip it.
       if (!isAuthenticated) {
-        if (ANONYMOUS_REACHABLE_KEYS.has(key)) markLocalCompleted(key);
+        if (ANONYMOUS_REACHABLE_KEYS.has(key)) {
+          markLocalCompleted(key);
+        } else if (IS_DEVELOPMENT) {
+          // Misconfiguration guardrail: an anonymous `complete()` for a key that
+          // isn't allow-listed is silently dropped (no local write, no POST), so
+          // the hint re-fires on every anonymous load. Surface it in dev so a
+          // contributor adding an anonymous-reachable onboarding sees the missing
+          // ANONYMOUS_REACHABLE_KEYS entry instead of a silent no-op.
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[onboarding] complete("${key}") was called while anonymous, but the key is not in ANONYMOUS_REACHABLE_KEYS — the dismissal was dropped. If this onboarding is reachable without a session, add its key there.`
+          );
+        }
         // Never POST without a session — that was the silent-401 bug. The local
         // write above already suppresses the hint; login merge syncs it later.
         return;
