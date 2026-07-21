@@ -85,7 +85,7 @@ Huella Latam aims to follow the [Principles for Digital Development](https://dig
 and recognized software best practices:
 
 - **Open standards:** OpenID Connect for auth, OpenAPI/Swagger for the API
-  (`http://localhost:8080/docs`), and data export in Excel (XLSX) format (see
+  (`http://localhost:8080/api/docs`), and data export in XLSX (Office Open XML) format (see
   [`docs/development/data-export.md`](./docs/development/data-export.md)).
 - **Reuse & open source:** built on open-source components; provider-agnostic storage;
   AGPL-3.0 licensed for the public good.
@@ -100,9 +100,9 @@ and recognized software best practices:
   code on every push, PR, and weekly. Results upload to GitHub code scanning.
 - **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
 
-**Planned hardening:** code scanning (CodeQL) is active; secret scanning + push protection can
-be enabled in Settings → Code security. An OpenSSF Scorecard badge workflow can then be added.
-See [`SECURITY.md`](./SECURITY.md).
+**Standards in progress:** code scanning (CodeQL), secret scanning, and push protection are all
+active, and the OpenSSF Scorecard workflow publishes results (badge above). The OpenSSF Best
+Practices Badge is not yet registered. See [`SECURITY.md`](./SECURITY.md).
 
 ## 📄 License
 
