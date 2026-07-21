@@ -10,7 +10,7 @@ For deployment to Azure, see [Infrastructure Deployment](../infrastructure/Deplo
 
 | Tool          | Version    | Purpose                                           |
 | ------------- | ---------- | ------------------------------------------------- |
-| **Node.js**   | ≥ 24.0.0   | Runtime for API and build tools                   |
+| **Node.js**   | ≥ 26.0.0   | Runtime for API and build tools                   |
 | **pnpm**      | ≥ 10.23.0  | Package manager                                   |
 | **Docker**    | Any recent | Local PostgreSQL database                         |
 | **direnv**    | Any        | Automatic `.envrc` loading (recommended)          |
@@ -20,7 +20,7 @@ For deployment to Azure, see [Infrastructure Deployment](../infrastructure/Deplo
 **Verify your installation:**
 
 ```bash
-node --version    # Must be >= 24.0.0
+node --version    # Must be >= 26.0.0
 pnpm --version    # Must be >= 10.23.0
 docker --version
 az --version      # For Azure features
@@ -368,7 +368,7 @@ To run a full OIDC login locally **without** an Azure tenant, use the bundled Ke
 
 **`pnpm install` fails:**
 
-- Ensure Node.js ≥ 24.0.0: `node --version`
+- Ensure Node.js ≥ 26.0.0: `node --version`
 - Try clearing the pnpm store: `pnpm store prune`
 
 **Database connection refused:**

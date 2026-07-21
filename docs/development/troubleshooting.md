@@ -28,7 +28,7 @@ This is the **first-stop hub**. Deep, domain-specific troubleshooting lives next
 
 | Cause                             | Fix                                                                                                                      |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Node.js version < 24              | Upgrade: `nvm install 24 && nvm use 24`                                                                                  |
+| Node.js version < 26              | Upgrade: `nvm install 26 && nvm use 26`                                                                                  |
 | pnpm version < 10.23              | Upgrade: `npm install -g pnpm@latest`                                                                                    |
 | Corrupted pnpm store              | `pnpm store prune`, then retry                                                                                           |
 | Lockfile out of sync after rebase | `pnpm install --frozen-lockfile` will fail; run `pnpm install` without the flag, inspect the diff, commit if intentional |
@@ -346,7 +346,7 @@ Testcontainers maps containers to random ports by default, so persistent port co
 
 | Cause                             | Fix                                                                                                  |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Different Node.js version         | CI uses Node 24 exactly — match locally with `nvm use 24`                                            |
+| Different Node.js version         | CI uses Node 26 exactly — match locally with `nvm use 26`                                            |
 | Test depends on execution order   | Tests must be hermetic; each test should set up its own state                                        |
 | Environment variable missing      | Check whether the test reads an env variable that is set in `.envrc` but not in the test globalSetup |
 | Docker image pull throttled in CI | Rare; re-run the job — GitHub Actions runners share a Docker Hub pull limit                          |

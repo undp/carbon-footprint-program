@@ -9,7 +9,7 @@ deliberately stays short and points to the canonical docs rather than duplicatin
 
 ## The monorepo at a glance
 
-pnpm + Turborepo workspaces (Node ≥ 24, TypeScript strict/ESM, AGPL-3.0).
+pnpm + Turborepo workspaces (Node ≥ 26, TypeScript strict/ESM, AGPL-3.0).
 
 ```
 apps/
