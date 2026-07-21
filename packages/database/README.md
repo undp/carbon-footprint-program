@@ -14,7 +14,7 @@ Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con
 
 ## 🔧 Requisitos Previos
 
-- Node.js (versión 24 o superior)
+- Node.js (versión 26 o superior)
 - Docker y Docker Compose
 - pnpm
 

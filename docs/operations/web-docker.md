@@ -17,7 +17,7 @@ Security headers (CSP, X-Content-Type-Options, Referrer-Policy, …) and serving
 | Runtime image       | `nginxinc/nginx-unprivileged:alpine-slim`                           |
 | Listening port      | `8080` (non-privileged, default for nginx-unprivileged)             |
 | User                | `nginx` (uid 101, non-root by default)                              |
-| Builder image       | `node:24-alpine` (consistent with `apps/api/Dockerfile`)            |
+| Builder image       | `node:26-alpine` (consistent with `apps/api/Dockerfile`)            |
 | Build orchestration | `turbo prune --scope=web --docker` + `turbo build --filter=web`     |
 | SPA routing         | nginx `try_files $uri $uri/ /index.html` (TanStack Router fallback) |
 | Asset caching       | `/assets/*` → `Cache-Control: public, immutable`, 1y expiry         |

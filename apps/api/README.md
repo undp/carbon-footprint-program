@@ -108,7 +108,7 @@ Request → Fastify → Route → Handler → Service → Database
 
 ### Prerequisites
 
-- Node.js >= 24.0.0
+- Node.js >= 26.0.0
 - pnpm (workspace package manager)
 - PostgreSQL database (configured in `@repo/database`)
 
