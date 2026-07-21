@@ -25,7 +25,7 @@ details, see [`docs/governance.md`](./docs/governance.md).
 - **Model:** The platform is centrally maintained by the UNDP Huella Latam team. Changes are
   proposed via pull requests to `main` and require review and passing CI (lint, type-check,
   format, tests, build) before merge.
-- **Merge / release authority:** the [@undp/huella-latam-maintainers](https://github.com/orgs/undp/teams/huella-latam-maintainers) team, whose membership is managed in the org team settings (see [`.github/CODEOWNERS`](./.github/CODEOWNERS)).
+- **Merge / release authority:** the @undp/huella-latam-maintainers team, whose membership is managed in the org team settings (see [`.github/CODEOWNERS`](./.github/CODEOWNERS)).
 - **Disagreements:** Resolved by maintainer consensus; the UNDP Huella Latam team lead has
   final say where consensus cannot be reached.
 
