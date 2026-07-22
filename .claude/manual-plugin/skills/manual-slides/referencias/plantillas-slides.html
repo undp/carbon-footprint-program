@@ -1,0 +1,345 @@
+<!--
+  plantillas-slides.html — HTML canónico por tipo de slide.
+
+  Cada bloque es una plantilla lista para copiar. Reemplaza los placeholders
+  {{...}} por el contenido real del módulo. NO cambies los nombres de clase:
+  el CSS (manual.css, derivado del contrato) depende de ellos.
+
+  Placeholders comunes:
+    {{APP_NAME}}        Nombre de la aplicación
+    {{ORG_NAME}}        Nombre de la organización
+    {{MODULO_SLUG}}     Slug del módulo (carpeta de screenshots)
+    {{MODULO_NOMBRE}}   Nombre legible del módulo
+    {{ICONO_MODULO}}    Icono Material Symbols del módulo
+    {{VERSION}}         Versión del manual (ej: 1.0)
+    {{MES_ANIO}}        Mes y año (ej: julio 2026)
+    {{N}}               Número de página / referencia
+
+  El <body> del documento final debe llevar class="format-slide" (sin toggle
+  de formato). El footer se repite idéntico en TODAS las slides.
+-->
+
+<!-- =========================================================
+     ESQUELETO DEL DOCUMENTO
+     ========================================================= -->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual de Usuario — {{MODULO_NOMBRE}} | {{APP_NAME}}</title>
+    <link rel="stylesheet" href="assets/manual.css" />
+    <!-- Iconografía: Material Symbols Rounded, cargada desde el CDN de Google Fonts.
+         Para manuales/PDF offline (sin acceso a internet al generar o abrir el PDF),
+         el branding puede definir una fuente de íconos local como alternativa. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+  </head>
+  <body class="format-slide">
+    <!-- ... aquí van las slides en orden ... -->
+  </body>
+</html>
+
+<!-- =========================================================
+     SLIDE: COVER (Portada)
+     ========================================================= -->
+<section class="slide slide--cover">
+  <div class="module-icon-bg">
+    <span class="material-symbols-rounded">{{ICONO_MODULO}}</span>
+  </div>
+  <div class="cover-content">
+    <div class="cover-text">
+      <div class="cover-logo">{{ORG_NAME}}</div>
+      <div class="cover-subtitle">Manual de usuario</div>
+      <h1 class="cover-title">{{MODULO_NOMBRE}}</h1>
+      <div class="cover-app-name">{{APP_NAME}}</div>
+      <div class="cover-version">versión {{VERSION}} &nbsp;|&nbsp; {{MES_ANIO}}</div>
+    </div>
+    <div class="cover-mockup">
+      <div class="cover-mockup-frame">
+        <div class="cover-mockup-screen">
+          <img
+            src="screenshots/{{MODULO_SLUG}}/overview.png"
+            alt="{{MODULO_NOMBRE}} — vista desktop"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: OBJECTIVES (Objetivos) — SIEMPRE 3 objetivos
+     ========================================================= -->
+<section class="slide slide--objectives">
+  <h2 class="objectives-title">Objetivos del módulo de {{MODULO_NOMBRE}}</h2>
+  <div class="objectives-list">
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_1}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_1}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_1}}</p>
+      </div>
+    </div>
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_2}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_2}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_2}}</p>
+      </div>
+    </div>
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_3}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_3}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_3}}</p>
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: INDEX (Índice) — 2 columnas
+     Secciones -> .is-section (color primario, bold)
+     Subtemas  -> .index-bullet (indentado, texto secundario)
+     ========================================================= -->
+<section class="slide slide--index">
+  <h2 class="index-title">Índice de contenidos</h2>
+  <div class="index-columns">
+    <div class="index-item">
+      <span class="index-item-title is-section">{{NOMBRE_SECCION}}</span>
+      <span class="index-item-page">{{N}}</span>
+    </div>
+    <div class="index-item">
+      <span class="index-item-title index-bullet">{{SUBTEMA}}</span>
+      <span class="index-item-page">{{N}}</span>
+    </div>
+    <!-- ...repetir por cada sección y subtema... -->
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: DIVIDER (Separador de sección) — fondo color primario
+     ========================================================= -->
+<section class="slide slide--divider">
+  <div class="module-icon-bg">
+    <span class="material-symbols-rounded">{{ICONO_MODULO}}</span>
+  </div>
+  <div class="divider-icon-wrap">
+    <span class="material-symbols-rounded">{{ICONO_SECCION}}</span>
+  </div>
+  <h2 class="divider-title">{{NOMBRE_SECCION}}</h2>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con screenshot anotado
+     - callout-num: top/left en % relativos a la imagen (centro del punto)
+     - máx 6-7 callouts por screenshot; numerar izq->der, arriba->abajo
+     - >4 items en leyenda: usar class="annotation-legend cols-3"
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO_CONTENIDO}}</h2>
+  <p class="content-description">
+    {{DESCRIPCION}} Usa <strong>negritas</strong> para resaltar términos clave.
+    2-3 líneas máximo.
+  </p>
+
+  <div class="annotated-screenshot">
+    <img src="screenshots/{{MODULO_SLUG}}/{{NOMBRE}}.png" alt="{{ALT}}" />
+    <span class="callout-num" style="top: {{Y1}}%; left: {{X1}}%;">1</span>
+    <span class="callout-num" style="top: {{Y2}}%; left: {{X2}}%;">2</span>
+  </div>
+
+  <ul class="annotation-legend">
+    <li>
+      <span class="legend-num">1</span>
+      <strong>{{ETIQUETA_1}}:</strong> {{QUE_ES_1}}
+    </li>
+    <li>
+      <span class="legend-num">2</span>
+      <strong>{{ETIQUETA_2}}:</strong> {{QUE_ES_2}}
+    </li>
+  </ul>
+
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con split (texto 45% + screenshot 55%)
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO}}</h2>
+  <div class="content-split">
+    <div class="content-split__text">
+      <p class="content-description">{{DESCRIPCION_FEATURE}}</p>
+      <ul class="feature-list">
+        <li>
+          <span class="material-symbols-rounded">{{ICONO}}</span>
+          <span><strong>{{FEATURE}}:</strong> {{DESCRIPCION_FEATURE_1_LINEA}}</span>
+        </li>
+      </ul>
+
+      <div class="info-box">
+        <span class="material-symbols-rounded">info</span>
+        <span>{{INFO_IMPORTANTE}}</span>
+      </div>
+    </div>
+    <div class="content-split__visual">
+      <div class="screenshot-container">
+        <img src="screenshots/{{MODULO_SLUG}}/{{NOMBRE}}.png" alt="{{ALT}}" />
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con tabla de estados
+     status-dot: --error (rojo), --primary, --info (azul),
+                 --success (verde), --inactive (gris)
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO_ESTADOS}}</h2>
+  <p class="content-description">{{DESCRIPCION_CICLO_VIDA}}</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Etiqueta</th>
+        <th>Color</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="status-dot status-dot--error"></span>{{NOMBRE_ESTADO}}</td>
+        <td>{{ETIQUETA}}</td>
+        <td>{{COLOR}}</td>
+        <td>{{QUE_SIGNIFICA}}</td>
+      </tr>
+      <!-- ...repetir por cada estado... -->
+    </tbody>
+  </table>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con vista responsiva (desktop / tablet / móvil)
+     Suele ser la ÚLTIMA slide de contenido del capítulo.
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">Vista responsiva</h2>
+  <p class="content-description">{{DESCRIPCION_RESPONSIVA}}</p>
+
+  <div class="responsive-comparison">
+    <div class="responsive-comparison__item responsive-comparison__item--desktop">
+      <span class="responsive-comparison__label">
+        <span class="material-symbols-rounded">monitor</span> DESKTOP
+      </span>
+      <div class="responsive-comparison__frame">
+        <img src="screenshots/{{MODULO_SLUG}}/overview.png" alt="Desktop" />
+      </div>
+    </div>
+    <div class="responsive-comparison__item responsive-comparison__item--tablet">
+      <span class="responsive-comparison__label">
+        <span class="material-symbols-rounded">tablet_mac</span> TABLET
+      </span>
+      <div class="responsive-comparison__frame">
+        <img src="screenshots/{{MODULO_SLUG}}/tablet-overview.png" alt="Tablet" />
+      </div>
+    </div>
+    <div class="responsive-comparison__item responsive-comparison__item--mobile">
+      <span class="responsive-comparison__label">
+        <span class="material-symbols-rounded">phone_iphone</span> MÓVIL
+      </span>
+      <div class="responsive-comparison__frame">
+        <img src="screenshots/{{MODULO_SLUG}}/mobile-overview.png" alt="Móvil" />
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >{{APP_NAME}} &nbsp;|&nbsp; vista {{MODULO_NOMBRE}} &nbsp;|&nbsp; versión {{VERSION}}</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     ELEMENTOS COMPLEMENTARIOS (se insertan dentro de una slide de contenido)
+     ========================================================= -->
+
+<!-- Info box (máx 2 info/tip-box por slide) -->
+<div class="info-box">
+  <span class="material-symbols-rounded">info</span>
+  <span>{{TEXTO_INFORMATIVO}}</span>
+</div>
+
+<!-- Tip box -->
+<div class="tip-box">
+  <span class="material-symbols-rounded">lightbulb</span>
+  <span>{{CONSEJO}}</span>
+</div>
+
+<!-- Feature list -->
+<ul class="feature-list">
+  <li>
+    <span class="material-symbols-rounded">{{ICONO}}</span>
+    <span><strong>{{NOMBRE}}:</strong> {{DESCRIPCION_FEATURE}}</span>
+  </li>
+</ul>
+
+<!-- Screenshot placeholder (cuando NO hay captura disponible) -->
+<div class="screenshot-placeholder">
+  <span class="material-symbols-rounded">image</span>
+  <div class="screenshot-placeholder__label">{{QUE_MOSTRARA}}</div>
+  <div class="screenshot-placeholder__filename">{{nombre-archivo}}.png</div>
+</div>

@@ -1,0 +1,6 @@
+{
+  "name": "manual",
+  "version": "0.4.0",
+  "description": "Genera manuales de usuario HTML tipo slides adaptados al branding del proyecto.",
+  "author": { "name": "Inventures" }
+}
