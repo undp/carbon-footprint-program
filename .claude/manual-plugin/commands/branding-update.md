@@ -34,7 +34,7 @@ Ajusta el branding del manual ya existente según lo que pida el usuario. Sigue 
 5. **Regenera** `<DATA_DIR>/branding/branding.html` para reflejar los cambios y,
    si el MCP de Playwright está disponible, verifícalo visualmente a **1440×810**.
 
-6. **Advierte** al usuario: los manuales ya generados en `MANUAL USUARIO/` mantienen el CSS
+6. **Advierte** al usuario: los manuales ya generados en `user_manual/` mantienen el CSS
    antiguo (`assets/manual.css`) hasta que se vuelvan a ejecutar con `/manual:create`.
 
 7. **Resumen** de los cambios aplicados (tokens/clases tocados y valores nuevos).

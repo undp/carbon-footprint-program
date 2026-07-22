@@ -29,7 +29,7 @@ Seis comandos que se encadenan en un flujo:
 ```
 /manual:branding                 # una vez por proyecto
 /manual:explore                  # descubre los módulos
-/manual:create @inventario       # genera MANUAL USUARIO/inventario.html + .pdf
+/manual:create @inventario       # genera user_manual/inventario.html + .pdf
 ```
 
 ## Requisitos
@@ -79,10 +79,10 @@ claude --plugin-dir ./.claude/manual-plugin
 |-----------|-----------|
 | Branding (tokens, CSS, componentes, guía) | `<DATA_DIR>/branding/` (`manual-plugin/data/branding/` del proyecto si el plugin está copiado al repo) |
 | Fichas de módulos e índice | `<DATA_DIR>/modules/` (`manual-plugin/data/modules/` del proyecto si el plugin está copiado al repo) |
-| Manuales HTML generados | `MANUAL USUARIO/<slug>.html` **del proyecto** |
-| CSS del manual | `MANUAL USUARIO/assets/manual.css` **del proyecto** |
-| Screenshots | `MANUAL USUARIO/screenshots/<slug>/` **del proyecto** |
-| PDF final | `MANUAL USUARIO/<slug>.pdf` **del proyecto** |
+| Manuales HTML generados | `user_manual/<slug>.html` **del proyecto** |
+| CSS del manual | `user_manual/assets/manual.css` **del proyecto** |
+| Screenshots | `user_manual/screenshots/<slug>/` **del proyecto** |
+| PDF final | `user_manual/<slug>.pdf` **del proyecto** |
 
 ## Validación
 
