@@ -1,0 +1,740 @@
+/* ============================================================
+   manual.css — Huella Latam (PNUD)
+   Regenerado desde cero a partir del contrato-css.md.
+   Formato: slide landscape 16:9, verse completo a 1440×810,
+   exportable a PDF (una slide por página).
+   Todo color/tipografía = var(--brand-*) / var(--font-main).
+   Únicos literales permitidos: blanco (#fff) para texto/íconos
+   sobre fondos de marca, y overlays rgba(255,255,255,·).
+   ============================================================ */
+
+/* ---------------------------------------------------------
+   1. TOKENS
+   --------------------------------------------------------- */
+:root {
+  /* Colores de marca (primarios) */
+  --brand-primary: #006e4d;
+  --brand-primary-dark: #004d35;
+  --brand-primary-light: #338b70;
+
+  /* Colores base */
+  --brand-text: #414046;
+  --brand-text-secondary: #8d8c90; /* #414046 @ 60% sobre blanco */
+  --brand-text-tertiary: #afafb1; /* #414046 @ 42% sobre blanco */
+  --brand-bg: #f9f9f9;
+  --brand-surface: #ffffff;
+
+  /* Colores de anotación */
+  --brand-annotation-red: #d32f2f;
+  --brand-annotation-orange: #006e4d;
+
+  /* Escala de grises (100 claro → 900 oscuro) */
+  --brand-grey-100: #f5f5f5;
+  --brand-grey-200: #eeeeee;
+  --brand-grey-300: #e0e0e0;
+  --brand-grey-400: #bdbdbd;
+  --brand-grey-500: #9e9e9e;
+  --brand-grey-600: #757575;
+  --brand-grey-800: #424242;
+  --brand-grey-900: #212121;
+
+  /* Colores semánticos */
+  --brand-success: #2e7d32;
+  --brand-warning: #ed6c02;
+  --brand-error: #d32f2f;
+  --brand-info: #0288d1;
+
+  /* Tipografía y layout */
+  --font-main: "Roboto", "Helvetica", "Arial", sans-serif;
+  --slide-padding: 64px 80px;
+}
+
+/* ---------------------------------------------------------
+   2. RESET Y BASE
+   --------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-main);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--brand-grey-300);
+  color: var(--brand-text);
+  line-height: 1.6;
+  counter-reset: slide-counter;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---------------------------------------------------------
+   3. SLIDE BASE Y FOOTER
+   --------------------------------------------------------- */
+.slide {
+  position: relative;
+  background: var(--brand-surface);
+  overflow: hidden;
+  counter-increment: slide-counter;
+}
+
+.slide__footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--brand-text-secondary);
+  border-top: 1px solid var(--brand-grey-200);
+}
+
+.slide__footer-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slide__footer-right::after {
+  content: counter(slide-counter);
+}
+
+/* ---------------------------------------------------------
+   4. SLIDE COVER
+   --------------------------------------------------------- */
+.slide--cover {
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary-dark) 0%,
+    var(--brand-primary) 45%,
+    var(--brand-primary-light) 100%
+  );
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
+
+.slide--cover .slide__footer {
+  border-top-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cover-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 60px;
+}
+
+.cover-text {
+  flex: 0 0 45%;
+}
+
+.cover-mockup {
+  flex: 0 0 50%;
+}
+
+.cover-logo {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 48px;
+}
+
+.cover-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+
+.cover-title {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.cover-app-name {
+  font-size: 28px;
+  font-weight: 300;
+  opacity: 0.85;
+  margin-bottom: 32px;
+}
+
+.cover-version {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.cover-mockup-frame {
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.cover-mockup-screen {
+  border-radius: 6px;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cover-mockup-screen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------
+   5. MARCA DE AGUA DEL ÍCONO DEL MÓDULO
+   --------------------------------------------------------- */
+.module-icon-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 55%;
+  overflow: hidden;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.module-icon-bg .material-symbols-rounded {
+  font-size: 580px;
+  color: rgba(255, 255, 255, 0.05);
+  font-variation-settings: "FILL" 1;
+}
+
+.slide--divider .module-icon-bg {
+  display: none;
+}
+
+/* ---------------------------------------------------------
+   6. SLIDE DIVIDER
+   --------------------------------------------------------- */
+.slide--divider {
+  background: var(--brand-primary-light);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.slide--divider .slide__footer {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.divider-icon-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.divider-icon-wrap .material-symbols-rounded {
+  font-size: 44px;
+  color: #fff;
+}
+
+.divider-title {
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+/* ---------------------------------------------------------
+   7. SLIDE OBJECTIVES
+   --------------------------------------------------------- */
+.slide--objectives {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.objectives-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--brand-text);
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.objectives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.objective-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.objective-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+}
+
+.objective-icon .material-symbols-rounded {
+  font-size: 28px;
+  color: var(--brand-primary);
+}
+
+.objective-text h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand-text);
+  margin-bottom: 4px;
+}
+
+.objective-text p {
+  font-size: 16px;
+  color: var(--brand-text-secondary);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------
+   8. SLIDE INDEX
+   --------------------------------------------------------- */
+.slide--index {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.index-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--brand-text);
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.index-columns {
+  columns: 2;
+  column-gap: 80px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.index-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--brand-grey-400);
+  font-size: 16px;
+  break-inside: avoid;
+}
+
+.index-item-title {
+  color: var(--brand-text);
+}
+
+.index-item-title.is-section {
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+.index-item-page {
+  color: var(--brand-primary);
+  font-weight: 500;
+  min-width: 30px;
+  text-align: right;
+}
+
+.index-bullet {
+  color: var(--brand-text-secondary);
+  padding-left: 12px;
+}
+
+/* ---------------------------------------------------------
+   9. SLIDE CONTENT
+   --------------------------------------------------------- */
+.slide--content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.content-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--brand-text);
+  margin-bottom: 20px;
+}
+
+.content-description {
+  font-size: 17px;
+  color: var(--brand-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  max-width: none;
+}
+
+.content-description strong {
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+.content-split {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.content-split__text {
+  flex: 0 0 45%;
+  padding-top: 8px;
+}
+
+.content-split__visual {
+  flex: 1;
+}
+
+/* ---------------------------------------------------------
+   10. SCREENSHOTS
+   --------------------------------------------------------- */
+.screenshot-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.screenshot-container img {
+  width: 100%;
+  display: block;
+}
+
+.screenshot-placeholder {
+  background: var(--brand-grey-200);
+  border: 2px dashed var(--brand-grey-400);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  min-height: 280px;
+}
+
+.screenshot-placeholder .material-symbols-rounded {
+  font-size: 48px;
+  color: var(--brand-grey-500);
+  margin-bottom: 12px;
+}
+
+.screenshot-placeholder__label {
+  font-size: 14px;
+  color: var(--brand-grey-600);
+  margin-bottom: 4px;
+}
+
+.screenshot-placeholder__filename {
+  font-size: 12px;
+  color: var(--brand-grey-500);
+  font-family: monospace;
+}
+
+.annotated-screenshot {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 85%;
+  margin: 0 auto;
+}
+
+.annotated-screenshot img {
+  width: 100%;
+  display: block;
+}
+
+.callout-num {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-annotation-red);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.annotation-legend {
+  list-style: none;
+  columns: 2;
+  column-gap: 48px;
+  margin-top: 36px;
+  font-size: 13px;
+  color: var(--brand-text-secondary);
+}
+
+.annotation-legend.cols-3 {
+  columns: 3;
+}
+
+.annotation-legend li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.45;
+  padding: 4px 0;
+  break-inside: avoid;
+}
+
+.annotation-legend .legend-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-annotation-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  top: 2px;
+}
+
+/* ---------------------------------------------------------
+   11. INFO-BOX Y TIP-BOX
+   --------------------------------------------------------- */
+.info-box {
+  display: flex;
+  gap: 14px;
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--brand-info) 6%, #fff);
+  border-left: 4px solid var(--brand-info);
+  border-radius: 0 6px 6px 0;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--brand-text);
+}
+
+.info-box .material-symbols-rounded {
+  color: var(--brand-info);
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tip-box {
+  display: flex;
+  gap: 14px;
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--brand-primary) 6%, #fff);
+  border-left: 4px solid var(--brand-primary);
+  border-radius: 0 6px 6px 0;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--brand-text);
+}
+
+.tip-box .material-symbols-rounded {
+  color: var(--brand-primary);
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ---------------------------------------------------------
+   12. FEATURE LIST
+   --------------------------------------------------------- */
+.feature-list {
+  list-style: none;
+  margin: 16px 0;
+}
+
+.feature-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  font-size: 15px;
+  color: var(--brand-text);
+  line-height: 1.55;
+}
+
+.feature-list li .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--brand-primary);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------
+   13. DATA TABLE
+   --------------------------------------------------------- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  margin: 16px 0;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--brand-grey-200);
+  font-weight: 600;
+  color: var(--brand-text);
+  border-bottom: 2px solid var(--brand-grey-300);
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--brand-grey-200);
+  color: var(--brand-text-secondary);
+  line-height: 1.45;
+}
+
+.data-table td:first-child {
+  font-weight: 500;
+  color: var(--brand-text);
+}
+
+/* ---------------------------------------------------------
+   14. STATUS DOT
+   --------------------------------------------------------- */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.status-dot--error {
+  background: var(--brand-error);
+}
+
+.status-dot--primary {
+  background: var(--brand-primary);
+}
+
+.status-dot--info {
+  background: var(--brand-info);
+}
+
+.status-dot--success {
+  background: var(--brand-success);
+}
+
+.status-dot--inactive {
+  background: var(--brand-grey-500);
+}
+
+/* ---------------------------------------------------------
+   15. FORMATO SLIDE (landscape)
+   --------------------------------------------------------- */
+.format-slide .slide {
+  min-height: 100vh;
+  padding: var(--slide-padding);
+  padding-bottom: 52px;
+  margin-bottom: 4px;
+}
+
+.format-slide .slide--cover {
+  padding: 60px 80px 52px;
+}
+
+.format-slide .slide--divider {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------
+   16. IMPRESIÓN (@media print) Y @page
+   --------------------------------------------------------- */
+@media print {
+  body {
+    background: white;
+  }
+
+  .slide {
+    break-after: page;
+    break-inside: avoid;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .slide:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .format-slide .slide {
+    height: 100vh;
+  }
+
+  .screenshot-placeholder {
+    border: 1px solid #ccc;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+@page {
+  margin: 0;
+}
