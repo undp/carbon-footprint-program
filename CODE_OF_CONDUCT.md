@@ -63,6 +63,9 @@ reported to the community leaders responsible for enforcement at:
 
 michael.nolan@undp.org.
 
+If a report concerns this contact directly, or you do not receive a response, you
+may escalate to the maintainers listed in [`GOVERNANCE.md`](./GOVERNANCE.md).
+
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
