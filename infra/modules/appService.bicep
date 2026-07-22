@@ -17,8 +17,8 @@ param databaseName string
 @description('Database user')
 param databaseUser string
 
-@description('Node.js version (e.g., node|24-lts)')
-param linuxFxVersion string = 'node|24-lts'
+@description('Node.js version (e.g., node|26-lts)')
+param linuxFxVersion string = 'node|26-lts'
 
 @description('Allowed origin for API CORS (e.g., https://app.example.com)')
 param allowedOrigin string
