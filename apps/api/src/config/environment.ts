@@ -63,6 +63,7 @@ export interface ApiEnv {
   LOG_LEVEL: string;
   HOST: string;
   PORT: number;
+  ALLOWED_ORIGIN: string | undefined;
   DATABASE_URL: string | undefined;
   MAX_EVENT_LOOP_DELAY_MS: number;
   MAX_EVENT_LOOP_UTILIZATION: number;
@@ -257,12 +258,35 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     }
   }
 
+  // ==========================================================================
+  // CORS origin (plugins/external/cors.ts)
+  // ==========================================================================
+  // Fail closed in production. Without an explicit ALLOWED_ORIGIN the CORS
+  // fallback reflects ANY origin (`origin: true`) with credentials disabled —
+  // a cross-origin fail-open that must never happen in a deployed environment.
+  // Refuse to boot instead, so the misconfiguration surfaces at startup /
+  // health check rather than as silently open CORS. trimEnv treats a
+  // whitespace-only value as unset so it cannot bypass the guard. The
+  // permissive fallback is kept ONLY for local dev and tests (IS_PROD === false).
+  // Evaluated last to preserve the pre-refactor order — the guard previously
+  // lived at cors.ts module scope, which ran after this module fully loaded.
+  const ALLOWED_ORIGIN = trimEnv(source.ALLOWED_ORIGIN);
+  if (IS_PROD && !ALLOWED_ORIGIN) {
+    throw new Error(
+      "ALLOWED_ORIGIN is required when NODE_ENV=production. Refusing to start: " +
+        "without it CORS would reflect any origin (origin: true) and accept " +
+        "cross-origin requests from anywhere. Set ALLOWED_ORIGIN to the web " +
+        "app's exact browser origin (scheme + host + port, no trailing slash)."
+    );
+  }
+
   return {
     JWT_SECRET,
     IS_PROD,
     LOG_LEVEL,
     HOST,
     PORT,
+    ALLOWED_ORIGIN,
     DATABASE_URL,
     MAX_EVENT_LOOP_DELAY_MS,
     MAX_EVENT_LOOP_UTILIZATION,
@@ -294,6 +318,7 @@ export const IS_PROD = env.IS_PROD;
 export const LOG_LEVEL = env.LOG_LEVEL;
 export const HOST = env.HOST;
 export const PORT = env.PORT;
+export const ALLOWED_ORIGIN = env.ALLOWED_ORIGIN;
 export const DATABASE_URL = env.DATABASE_URL;
 export const MAX_EVENT_LOOP_DELAY_MS = env.MAX_EVENT_LOOP_DELAY_MS;
 export const MAX_EVENT_LOOP_UTILIZATION = env.MAX_EVENT_LOOP_UTILIZATION;
