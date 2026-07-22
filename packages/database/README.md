@@ -1,364 +1,65 @@
 # @repo/database
 
-Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con PostgreSQL.
+The monorepo's Prisma layer: the shared `schema.prisma` data model, the generated Prisma client, and a Postgres connection adapter, consumed by `apps/api` and `tools/seed`. The schema defines ~48 models spanning auth/organizations (`User`, `Organization`, `UserOrganizationMembership`, ...), the carbon-accounting domain (`CarbonInventory`, `CarbonInventoryLine`, `EmissionFactor`, `MethodologyVersion`, `Category`/`Subcategory`, ...), submissions/review (`Submission`, `SubmissionSubject`, ...), and the chatbot corpus (`ChatbotCorpusSource`, `ChatbotCorpusChunk`, ...). Rather than Prisma's default query engine, the package uses `@prisma/adapter-pg` (a `pg`-based driver adapter) for the database connection.
 
-## 📋 Tabla de Contenidos
+## Prerequisites
 
-- [Requisitos Previos](#requisitos-previos)
-- [Configuración Inicial](#configuración-inicial)
-- [Base de Datos para Pruebas](#base-de-datos-para-pruebas)
-- [Uso de Prisma](#uso-de-prisma)
-- [Scripts Disponibles](#scripts-disponibles)
-- [Ejemplos de Uso](#ejemplos-de-uso)
-- [Estructura del Proyecto](#estructura-del-proyecto)
+- Node.js 26+, pnpm, Docker Compose
+- PostgreSQL 15+ — migrations use `NULLS NOT DISTINCT`, introduced in Postgres 15. Local dev runs Postgres 18 (Alpine) via `docker-compose.yml`.
 
-## 🔧 Requisitos Previos
+## Setup
 
-- Node.js (versión 26 o superior)
-- Docker y Docker Compose
-- pnpm
+1. Set `DATABASE_URL` (shell env or `.envrc`). It's read as-is in `src/environment.ts` (`process.env.DATABASE_URL ?? ""`, no validation at import time) — `generatePrismaAdapter` throws if it ends up empty.
+2. `docker compose up -d` — starts a local Postgres container (`undp-postgres`) with `testuser`/`testpass`/`testdb` on port 5432.
+3. `pnpm dev:generate` — generate the Prisma client from the schema (doesn't need the database running).
 
-**Tecnologías Utilizadas:**
+## Scripts
 
-- Prisma ORM 7.0.1
-- PostgreSQL 18
-- @prisma/adapter-pg para conexiones optimizadas
+| Script               | What it does                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `dev:generate`       | `prisma generate` — regenerate the client from the schema.                                                        |
+| `dev:migrate`        | `prisma migrate dev` — create and apply a new migration, then regenerate the client.                              |
+| `dev:studio`         | `prisma studio` — visual data browser at `http://localhost:5555`.                                                 |
+| `db:restore`         | `prisma migrate reset --force` — drop, recreate, and re-migrate the local database.                               |
+| `prod:deploy`        | `prisma migrate deploy` — apply pending migrations without resetting.                                             |
+| `validate:version`   | Checks the connected Postgres is >= 15 (required for `NULLS NOT DISTINCT`).                                       |
+| `promote-superadmin` | Promotes a user to `SUPERADMIN` by email: `pnpm promote-superadmin <email>` (or `SUPERADMIN_EMAIL` env var).      |
+| `db:drop:worktree`   | Drops this git worktree's isolated local database; refuses anything that isn't a local, per-worktree-suffixed DB. |
 
-> ⚠️ **Requisito de PostgreSQL**: Este proyecto requiere **PostgreSQL 15 o superior** debido al uso de la sintaxis `NULLS NOT DISTINCT` en las migraciones de base de datos. La versión actual recomendada es PostgreSQL 18. Si intentas desplegar en PostgreSQL 14 o anterior, las migraciones fallarán.
+## Adapter
 
-## 🚀 Configuración Inicial
+`generatePrismaAdapter(connectionString?)` (`src/adapter.ts`) wraps `@prisma/adapter-pg`'s `PrismaPg`, defaulting to `DATABASE_URL` when no argument is given:
 
-### 1. Instalar Dependencias
+```ts
+import { PrismaClient, generatePrismaAdapter } from "@repo/database";
 
-```bash
-pnpm install
+const prisma = new PrismaClient({ adapter: generatePrismaAdapter() });
 ```
 
-### 2. Configurar Variables de Entorno
+## Exports
 
-Configura la variable de entorno `DATABASE_URL` en tu shell o en el archivo `.envrc` en la raíz del proyecto:
+- `@repo/database` (`src/index.ts`) — the generated Prisma client (`PrismaClient`, model/enum types) plus `generatePrismaAdapter`.
+- `@repo/database/enums` (`src/enums.ts`) — just the generated enums, with no `PrismaClient`/Node.js dependency, safe to import from browser code (e.g. `apps/web`).
 
-```env
-DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb?schema=public"
-```
-
-Esta URL de conexión corresponde a la base de datos para pruebas configurada en `docker-compose.yml`.
-
-> **Nota**: El paquete valida automáticamente que `DATABASE_URL` esté definida a través del archivo `environment.ts`.
-
-### 3. Iniciar la Base de Datos
-
-⚠️ **Importante**: Antes de ejecutar comandos de Prisma que interactúan con la base de datos (como migraciones), debes tener la base de datos corriendo.
-
-## 🐳 Base de Datos para Pruebas
-
-Este paquete incluye una configuración de Docker Compose para ejecutar una base de datos PostgreSQL 18 (Alpine) de desarrollo local para pruebas.
-
-### Iniciar la Base de Datos
-
-⚠️ **Requisito previo**: La base de datos debe estar corriendo antes de ejecutar comandos como `dev:migrate`, `dev:reset` o `dev:studio`.
-
-```bash
-docker compose up -d
-```
-
-Esto iniciará un contenedor PostgreSQL con las siguientes credenciales:
-
-- **Usuario**: `testuser`
-- **Contraseña**: `testpass`
-- **Base de datos**: `testdb`
-- **Puerto**: `5432`
-
-### Detener la Base de Datos
-
-```bash
-docker compose down
-```
-
-Para detener y eliminar los volúmenes (⚠️ esto eliminará todos los datos):
-
-```bash
-docker compose down -v
-```
-
-### Verificar que la Base de Datos Está Corriendo
-
-```bash
-docker ps
-```
-
-Deberías ver un contenedor llamado `undp-postgres` en ejecución.
-
-## 📦 Uso de Prisma
-
-⚠️ **Requisito previo**: Asegúrate de que la base de datos esté corriendo (`docker compose up -d`) antes de ejecutar comandos que interactúan con la base de datos.
-
-### 1. Generar el Cliente de Prisma
-
-Después de hacer cambios en el schema, genera el cliente de Prisma:
-
-```bash
-pnpm run dev:generate
-```
-
-Este comando lee el archivo `prisma/schema.prisma` y genera el cliente TypeScript tipado en `generated/client/`.
-
-> **Nota**: Este comando NO requiere que la base de datos esté corriendo, solo genera el cliente desde el schema.
-
-> **Configuración**: La URL de conexión a la base de datos se gestiona a través de `prisma.config.ts` usando la variable de entorno `DATABASE_URL` definida en `environment.ts`.
-
-### 2. Crear y Aplicar Migraciones
-
-⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
-
-Para crear una nueva migración basada en los cambios del schema:
-
-```bash
-pnpm run dev:migrate
-```
-
-Este comando:
-
-- Crea una nueva migración en `prisma/migrations/`
-- Aplica la migración a la base de datos
-- Regenera el cliente de Prisma
-
-### 3. Resetear la Base de Datos
-
-⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
-
-⚠️ **Cuidado**: Esto eliminará todos los datos y volverá a aplicar todas las migraciones.
-
-```bash
-pnpm run dev:reset
-```
-
-### 4. Abrir Prisma Studio
-
-⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
-
-Prisma Studio es una interfaz visual para explorar y editar datos:
-
-```bash
-pnpm run dev:studio
-```
-
-Esto abrirá una interfaz web en `http://localhost:5555` donde podrás ver y editar los datos de tu base de datos.
-
-### 5. Aplicar Migraciones en Producción
-
-⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
-
-Para aplicar migraciones en un entorno de producción sin reiniciar la base de datos:
-
-```bash
-pnpm run prod:deploy
-```
-
-Este comando aplica todas las migraciones pendientes sin crear nuevas migraciones ni resetear la base de datos.
-
-## 🔌 Adaptador PostgreSQL
-
-Este paquete utiliza `@prisma/adapter-pg` para proporcionar conexión optimizada a PostgreSQL. El adaptador está configurado en `adapter.ts` y se exporta para ser usado en tu aplicación:
-
-```typescript
-import { PrismaClient, adapter } from "@repo/database";
-
-const prisma = new PrismaClient({ adapter });
-```
-
-El adaptador se inicializa automáticamente con la variable de entorno `DATABASE_URL` y proporciona:
-
-- Connection pooling optimizado
-- Mejor rendimiento en entornos serverless
-- Gestión eficiente de conexiones
-
-## 📝 Scripts Disponibles
-
-| Script             | Descripción                                             | Requiere BD |
-| ------------------ | ------------------------------------------------------- | ----------- |
-| `dev:generate`     | Genera el cliente de Prisma desde el schema             | ❌ No       |
-| `dev:migrate`      | Crea y aplica una nueva migración                       | ✅ Sí       |
-| `dev:studio`       | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
-| `dev:reset`        | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
-| `prod:deploy`      | Aplica migraciones en producción sin reiniciar          | ✅ Sí       |
-| `validate:version` | Valida que PostgreSQL sea versión 15 o superior         | ✅ Sí       |
-
-### Validación de Versión de PostgreSQL
-
-Este paquete incluye un script de validación que verifica que la base de datos esté ejecutando PostgreSQL 15 o superior, requisito necesario para las migraciones que usan la sintaxis `NULLS NOT DISTINCT`.
-
-**Uso manual:**
-
-```bash
-pnpm run validate:version
-```
-
-El script:
-
-- ✅ Verifica la versión de PostgreSQL conectándose a la base de datos
-- ✅ Valida que sea versión 15 o superior
-- ✅ Proporciona mensajes de error detallados si la versión es incompatible
-- ✅ Se ejecuta automáticamente antes de aplicar migraciones en producción (vía `infra/run-migrations.sh`)
-
-**Variables de entorno requeridas:**
-
-- `DATABASE_URL`: URL de conexión a PostgreSQL
-
-**Ejemplo de salida exitosa:**
-
-```
-🔍 Validating PostgreSQL version...
-
-📊 Database Information:
-   Raw version: PostgreSQL 18.1 on x86_64-pc-linux-musl...
-   PostgreSQL version: 18.1
-   Major version: 18
-
-✅ PostgreSQL version check PASSED
-   PostgreSQL 18.1 is compatible (>= 15.0)
-```
-
-**Ejemplo de error:**
-
-```
-❌ INCOMPATIBLE PostgreSQL VERSION DETECTED!
-
-   Current version: PostgreSQL 14.5
-   Minimum required: PostgreSQL 15.0
-
-⚠️  REASON:
-   This project uses the NULLS NOT DISTINCT syntax in database migrations,
-   which was introduced in PostgreSQL 15.
-
-📋 SOLUTION:
-   - Upgrade your PostgreSQL server to version 15 or higher
-   - Recommended versions: 15, 16, 17, or 18
-```
-
-## 💻 Ejemplos de Uso
-
-### Importar el Cliente de Prisma
-
-```typescript
-import { PrismaClient, adapter } from "@repo/database";
-
-// Crear una instancia del cliente Prisma
-const prisma = new PrismaClient({ adapter });
-
-// O importar tipos específicos (los modelos en el schema usan lowercase)
-import type { user, book } from "@repo/database";
-```
-
-### Ejemplo: Crear un Usuario
-
-```typescript
-const newUser = await prisma.user.create({
-  data: {
-    email: "usuario@example.com",
-    name: "Juan Pérez",
-  },
-});
-```
-
-### Ejemplo: Buscar Usuarios
-
-```typescript
-// Buscar todos los usuarios
-const users = await prisma.user.findMany();
-
-// Buscar un usuario por email
-const user = await prisma.user.findUnique({
-  where: {
-    email: "usuario@example.com",
-  },
-});
-```
-
-### Ejemplo: Crear un Libro
-
-```typescript
-const newBook = await prisma.book.create({
-  data: {
-    title: "El Quijote",
-    author: "Miguel de Cervantes",
-  },
-});
-```
-
-### Ejemplo: Consultas Relacionadas
-
-```typescript
-// Buscar libros con filtros
-const books = await prisma.book.findMany({
-  where: {
-    author: {
-      contains: "Cervantes",
-    },
-  },
-  orderBy: {
-    createdAt: "desc",
-  },
-});
-```
-
-### Ejemplo: Actualizar Datos
-
-```typescript
-const updatedUser = await prisma.user.update({
-  where: {
-    id: 1,
-  },
-  data: {
-    name: "Juan Carlos Pérez",
-  },
-});
-```
-
-### Ejemplo: Eliminar Datos
-
-```typescript
-await prisma.user.delete({
-  where: {
-    id: 1,
-  },
-});
-```
-
-## 📁 Estructura del Proyecto
+## Project Structure
 
 ```
 packages/database/
-├── prisma/
-│   ├── migrations/            # Migraciones de la base de datos
-│   └── schema.prisma          # Schema de Prisma con los modelos
-├── generated/
-│   └── client/                # Cliente generado de Prisma
-├── adapter.ts                 # Configuración del adaptador PostgreSQL
-├── environment.ts             # Variables de entorno
-├── index.ts                   # Exportaciones del paquete
-├── prisma.config.ts           # Configuración de Prisma
-├── docker-compose.yml         # Configuración de PostgreSQL
-├── package.json
-└── README.md                  # Este archivo
+├── src/
+│   ├── adapter.ts             # generatePrismaAdapter()
+│   ├── environment.ts         # reads DATABASE_URL / NODE_ENV
+│   ├── enums.ts               # browser-safe re-export of generated enums
+│   ├── index.ts                # package entry: generated client + adapter
+│   ├── generated/prisma/       # Prisma client output (generated, not hand-edited)
+│   ├── prisma/
+│   │   ├── schema.prisma       # the monorepo's data model
+│   │   └── migrations/
+│   └── scripts/
+│       ├── promote-superadmin.ts
+│       └── drop-worktree-database.ts
+├── scripts/
+│   └── validate-postgres-version.ts
+├── prisma.config.ts
+├── docker-compose.yml
+└── package.json
 ```
-
-## 🔍 Modelos Actuales
-
-El schema actual incluye los siguientes modelos:
-
-### user
-
-- `id`: Int (auto-incremental, clave primaria)
-- `email`: String (único)
-- `name`: String (requerido)
-- `createdAt`: DateTime (automático)
-- `updatedAt`: DateTime (automático)
-
-### book
-
-- `id`: Int (auto-incremental, clave primaria)
-- `title`: String (único)
-- `author`: String
-- `createdAt`: DateTime (automático)
-- `updatedAt`: DateTime (automático)
