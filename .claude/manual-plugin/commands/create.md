@@ -41,9 +41,9 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 
 5. **Screenshots.** Usa AskUserQuestion:
    - **Capturar con Playwright** — en la pregunta siguiente pide la URL. Requiere datos
-     ficticios obligatorios (nunca datos reales de personas). Resoluciones **1920 / 768 / 375**.
-     Nombres: `overview.png`, `tabla.png`, `formulario.png`, `detalle.png`, `dialog-*.png`,
-     `tablet-*.png`, `mobile-*.png`. Guardar en `MANUAL USUARIO/screenshots/<slug>/`.
+     ficticios obligatorios (nunca datos reales de personas). Resolución **1920** (desktop; este
+     proyecto no documenta vistas responsivas). Nombres: `overview.png`, `tabla.png`,
+     `formulario.png`, `detalle.png`, `dialog-*.png`. Guardar en `MANUAL USUARIO/screenshots/<slug>/`.
    - **Sin capturas** — usar `.screenshot-placeholder`.
    Si el MCP de Playwright no está disponible, degrada a placeholders y avísalo.
 
@@ -52,14 +52,14 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 
 7. **Planifica y escribe el manual** según la skill, usando los templates exactos de
    `plantillas-slides.html`:
-   Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N →
-   Content responsivo final. Entre **10 y 20 slides** según la complejidad del módulo.
+   Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N.
+   Entre **10 y 20 slides** según la complejidad del módulo.
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
    Escribe el archivo en `MANUAL USUARIO/<slug>.html`.
 
 8. **Reglas duras**: máx 20 slides; estructura Cover → Objectives (3) → Index →
-   [Divider + Content] × N → responsivo; máx 2 info/tip-box por slide; máx 6-7 callouts por
+   [Divider + Content] × N; sin vistas responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
    screenshot; español neutro en segunda persona; sin jerga técnica (API, base de datos); sin
    datos reales de personas. Estas reglas priman siempre sobre las instrucciones adicionales:
    si algo pedido en ellas choca con una regla dura, aplica la regla dura y avisa al usuario.

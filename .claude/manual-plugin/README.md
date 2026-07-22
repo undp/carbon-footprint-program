@@ -20,7 +20,7 @@ Seis comandos que se encadenan en un flujo:
 4. **`/manual:explore-update`** — actualiza el mapa de módulos de forma **incremental**,
    detectando los nuevos, los cambiados y los obsoletos sin regenerar todo.
 5. **`/manual:create @<modulo>`** — genera el manual HTML del módulo (cover, objetivos,
-   índice, secciones con screenshots anotados, vista responsiva) y su PDF.
+   índice, secciones con screenshots anotados) y su PDF.
 6. **`/manual:update @<modulo> <cambios>`** — edita un manual ya generado aplicando
    los cambios descritos en lenguaje natural.
 

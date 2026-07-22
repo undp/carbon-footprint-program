@@ -50,15 +50,15 @@ lleva `class="format-slide"`. No hay formato carta ni toggle de formato.
 ### Paso 1 — Investigar el módulo
 Leer la ficha `<DATA_DIR>/modules/<slug>.md` y, si hace falta, el código del módulo. Documentar:
 vistas/pantallas, componentes interactivos (formularios, tablas, dialogs, drawers),
-estados y transiciones, comportamiento responsive, y métricas/KPIs si existen.
+estados y transiciones, y métricas/KPIs si existen.
 Si la ficha tiene **dudas abiertas** que afecten el manual, resolverlas con el usuario.
 
 ### Paso 2 — Obtener screenshots
 Capturar con Playwright desde la app en vivo (si está disponible) o usar placeholders.
-- Resoluciones: **1920** (desktop vista completa), **768** (tablet), **375** (móvil).
-  El detalle desktop puede ser 1440 o un crop del 1920.
+- Resolución: **1920** (desktop vista completa); el detalle puede ser 1440 o un crop del 1920.
+  Los manuales de este proyecto **no documentan vistas responsivas** (no se capturan tablet ni móvil).
 - Nombres: `overview.png`, `tabla.png`, `formulario.png`/`crear.png`/`editar.png`,
-  `detalle.png`, `dialog-*.png`, `tablet-*.png`, `mobile-*.png`.
+  `detalle.png`, `dialog-*.png`.
 - Guardar en `MANUAL USUARIO/screenshots/<slug>/`.
 - **Datos ficticios obligatorios**: nunca datos reales de personas. Usar nombres
   inventados (p. ej. "González Muñoz, Carlos") y códigos genéricos. Si la app trae datos
@@ -72,7 +72,6 @@ COVER        → Portada con screenshot del módulo
 OBJECTIVES   → 3 objetivos del módulo con íconos (siempre 3)
 INDEX        → Índice de contenidos en 2 columnas
 [DIVIDER + CONTENT] × N  → Separador de sección + contenido, por cada sección
-CONTENT      → Última slide: vista responsiva (desktop/tablet/móvil)
 ```
 Cantidad de slides según complejidad (**tope duro: 20**):
 - Simple (1 vista, pocos features): **10-14**.
@@ -91,7 +90,7 @@ Cantidad de slides según complejidad (**tope duro: 20**):
 ### Paso 5 — Escribir cada slide
 Usar los templates **exactos** de `plantillas-slides.html` (no inventar clases).
 Tipos disponibles: cover, objectives, index, divider, content con screenshot anotado,
-content split (texto 45% / visual 55%), content con tabla de estados, content responsivo.
+content split (texto 45% / visual 55%) y content con tabla de estados.
 Callouts: `top/left` en % relativos a la imagen (el CSS ya centra con `translate(-50%,-50%)`);
 máx 6-7 por screenshot; numerar de izquierda a derecha y de arriba a abajo. Con más de 4
 items en la leyenda, usar `class="annotation-legend cols-3"`.
@@ -123,15 +122,15 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 **Tabla + formulario**
 1. Información general (overview) · 2. Crear/Editar registros (formulario) ·
-3. Gestión de registros (tabla, estados) · 4. Métricas/KPIs (si aplica) · 5. Vista responsiva.
+3. Gestión de registros (tabla, estados) · 4. Métricas/KPIs (si aplica).
 
 **Mapa + datos**
 1. Mapa en vivo (capas, interacciones) · 2. Gestión asociada (si aplica) ·
-3. Solicitudes/Registros (tabla, formulario, ciclo de vida) · 4. Métricas KPI · 5. Vista responsiva.
+3. Solicitudes/Registros (tabla, formulario, ciclo de vida) · 4. Métricas KPI.
 
 **Dashboard / métricas**
 1. Vista general (dashboard) · 2. Filtros y controles · 3. Gráficos y tablas ·
-4. Exportación de datos · 5. Vista responsiva.
+4. Exportación de datos.
 
 ---
 
@@ -154,11 +153,12 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 - No duplicar información entre slides.
 - No incluir texto técnico de implementación (API, base de datos).
 - Solo formato slide (landscape); sin formato carta ni toggle.
+- **No documentar vistas responsivas**: este proyecto no las presenta en los manuales.
 - **Nunca datos reales de personas** en los screenshots — siempre datos ficticios.
 
 ## Checklist final
 
-- [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido, responsiva).
+- [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido).
 - [ ] `manual.css` copiado a `MANUAL USUARIO/assets/` y enlazado.
 - [ ] Screenshots (o placeholders) en `screenshots/<slug>/`; todos los `<img src>` resuelven.
 - [ ] Posiciones de callout verificadas visualmente.

@@ -82,7 +82,7 @@ Usos clave: `-200` fondos suaves (header de tabla, placeholder, borde superior d
 ### `.slide`
 Contenedor base de cada slide. `position:relative`; `background:var(--brand-surface)`;
 `overflow:hidden`; **`counter-increment: slide-counter;`** (numera cada slide).
-Las dimensiones reales las fija `.format-slide .slide` (§16).
+Las dimensiones reales las fija `.format-slide .slide` (§15).
 
 ### `.slide__footer`
 Barra inferior fija, presente en TODAS las slides.
@@ -229,20 +229,7 @@ Cajas con borde izquierdo de color. Máx 2 por slide (regla dura).
 
 ---
 
-## 12. Comparación responsiva (`.responsive-comparison`)
-
-Tres marcos de dispositivo lado a lado, escalados por ancho.
-- `.responsive-comparison`: `display:flex; gap:20px; align-items:flex-start; margin:16px 0;`
-- `.responsive-comparison__item`: `display:flex; flex-direction:column; align-items:center; gap:8px;`
-- Proporciones de ancho: `--desktop { flex:3; }`, `--tablet { flex:1.8; }`, `--mobile { flex:1; }`.
-- `.responsive-comparison__label`: `font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--brand-primary); display:flex; align-items:center; gap:4px;`
-- `.responsive-comparison__label .material-symbols-rounded`: `font-size:16px;`
-- `.responsive-comparison__frame`: `border-radius:6px; overflow:hidden; width:100%;`
-- `.responsive-comparison__frame img`: `width:100%; display:block;`
-
----
-
-## 13. Feature list (`.feature-list`)
+## 12. Feature list (`.feature-list`)
 
 - `.feature-list`: `list-style:none; margin:16px 0;`
 - `.feature-list li`: `display:flex; gap:12px; align-items:flex-start; padding:10px 0; font-size:15px; color:var(--brand-text); line-height:1.55;`
@@ -250,7 +237,7 @@ Tres marcos de dispositivo lado a lado, escalados por ancho.
 
 ---
 
-## 14. Data table (`.data-table`)
+## 13. Data table (`.data-table`)
 
 - `.data-table`: `width:100%; border-collapse:collapse; font-size:14.5px; margin:16px 0;`
 - `.data-table th`: `text-align:left; padding:12px 16px; background:var(--brand-grey-200); font-weight:600; color:var(--brand-text); border-bottom:2px solid var(--brand-grey-300);`
@@ -259,7 +246,7 @@ Tres marcos de dispositivo lado a lado, escalados por ancho.
 
 ---
 
-## 15. Status dot (`.status-dot`)
+## 14. Status dot (`.status-dot`)
 
 Punto de color inline para estados.
 - `.status-dot`: `display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle;`
@@ -272,7 +259,7 @@ Punto de color inline para estados.
 
 ---
 
-## 16. Formato slide (landscape)
+## 15. Formato slide (landscape)
 
 Fija las dimensiones reales de cada slide. El `<body>` lleva `class="format-slide"`.
 - `.format-slide .slide`: `min-height:100vh; padding:var(--slide-padding); padding-bottom:52px; margin-bottom:4px;`
@@ -281,7 +268,7 @@ Fija las dimensiones reales de cada slide. El `<body>` lleva `class="format-slid
 
 ---
 
-## 17. Estilos de impresión (`@media print`) y `@page`
+## 16. Estilos de impresión (`@media print`) y `@page`
 
 Clave para que el PDF salga una slide por página sin cortes.
 - `body`: `background:white;`
@@ -311,8 +298,6 @@ Clave para que el PDF salga una slide por página sin cortes.
 `.screenshot-placeholder__filename`,
 `.annotated-screenshot`, `.callout-num`, `.annotation-legend`, `.cols-3`, `.legend-num`,
 `.info-box`, `.tip-box`,
-`.responsive-comparison`, `.responsive-comparison__item` (`--desktop`/`--tablet`/`--mobile`),
-`.responsive-comparison__label`, `.responsive-comparison__frame`,
 `.feature-list`,
 `.data-table`,
 `.status-dot` (`--error`/`--primary`/`--info`/`--success`/`--inactive`),

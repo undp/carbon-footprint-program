@@ -33,7 +33,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
 3. **Interpreta el prompt y aplica los cambios al HTML**: editar textos, agregar / eliminar /
    reordenar slides, ajustar callouts, cambiar o insertar screenshots, etc. DEBE respetar:
    - el **contrato de clases** (no inventar clases ni variables fuera del contrato);
-   - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N → Content responsivo;
+   - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N;
    - las **reglas duras**: máx 20 slides; máx 2 info/tip-box por slide; máx 6-7 callouts por
      screenshot; español neutro en segunda persona; sin datos reales de personas; sin jerga técnica
      (API, base de datos).
@@ -41,8 +41,8 @@ con los cambios pedidos. Sigue estos pasos en orden.
 
 4. **Capturas nuevas.** Si algún cambio las requiere, usa AskUserQuestion:
    **Capturar con Playwright** (pide la URL en la pregunta siguiente) o **Usar placeholders**.
-   Mismas resoluciones **1920 / 768 / 375**, mismo naming (`overview.png`, `tabla.png`,
-   `formulario.png`, `detalle.png`, `dialog-*.png`, `tablet-*.png`, `mobile-*.png`) y **datos
+   Misma resolución **1920** (sin vistas responsivas), mismo naming (`overview.png`, `tabla.png`,
+   `formulario.png`, `detalle.png`, `dialog-*.png`) y **datos
    ficticios obligatorios** que `/manual:create`. Guarda en `MANUAL USUARIO/screenshots/<slug>/`.
    Sin MCP de Playwright, degrada a placeholders y avísalo.
 

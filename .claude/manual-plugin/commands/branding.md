@@ -50,7 +50,7 @@ Genera el branding del manual para este proyecto. Sigue estos pasos en orden.
    paleta con swatches y códigos hex, escala tipográfica, colores de estado, y CADA componente
    de slide renderizado como ejemplo: cover, objectives, index, divider, content con
    annotated-screenshot y callouts, info-box, tip-box, feature-list, data-table, status-dot,
-   content-split, screenshot-placeholder, responsive-comparison y footer. Enlaza `manual.css`.
+   content-split, screenshot-placeholder y footer. Enlaza `manual.css`.
 
 7. **Verificación visual** (si el MCP de Playwright está disponible): abre `branding.html` a
    **1440×810** y confirma que la guía y los componentes se ven correctos. Si Playwright no
