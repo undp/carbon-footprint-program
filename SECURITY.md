@@ -20,6 +20,9 @@ Instead, use one of the following private channels:
    **Security → Report a vulnerability** tab (GitHub private advisories).
 2. **Email** — michael.nolan@undp.org.
 
+If you do not receive an acknowledgement within 5 business days, escalate via the
+maintainers listed in [`GOVERNANCE.md`](./GOVERNANCE.md).
+
 Please include:
 
 - A description of the vulnerability and its impact.
