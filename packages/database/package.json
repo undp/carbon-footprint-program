@@ -23,6 +23,8 @@
     "dev": "tsc -p tsconfig.build.json --watch",
     "build": "tsc -p tsconfig.build.json && cpy \"src/generated/prisma/**\" dist/generated/prisma",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit --project tsconfig.build.json",
+    "test": "vitest run --passWithNoTests",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:studio": "prisma studio",
@@ -40,7 +42,8 @@
     "prisma": "^7.8.0",
     "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
-    "typescript": "catalog:shared"
+    "typescript": "catalog:shared",
+    "vitest": "catalog:shared"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

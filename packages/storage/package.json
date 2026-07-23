@@ -20,6 +20,7 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
+    "test": "vitest run --passWithNoTests",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
     "rimraf": "catalog:shared",
-    "typescript": "catalog:shared"
+    "typescript": "catalog:shared",
+    "vitest": "catalog:shared"
   }
 }
