@@ -63,6 +63,9 @@ describe("under-pressure plugin - environment guard", () => {
 
   it("registers @fastify/under-pressure outside the test environment", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    // Re-parsing the env under prod would otherwise trip the fail-closed CORS
+    // guard; set a valid origin so this test can focus on the NODE_ENV gate.
+    vi.stubEnv("ALLOWED_ORIGIN", "https://app.example.cl");
     const { default: underPressurePlugin } =
       await import("@/plugins/external/under-pressure.js");
     const app = Fastify();

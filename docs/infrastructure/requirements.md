@@ -85,7 +85,7 @@ The API is deployed as a Linux container (currently Docker, pulled from Azure Co
 | **vCPU per instance** | ~1                               | ~2                                                    |
 | **RAM per instance**  | 1.75–3.5 GB                      | S2: ~3.5 GB · P1v3: ~8 GB                             |
 | **OS**                | Linux                            | Linux                                                 |
-| **Runtime**           | Node.js ≥ 24                     | Node.js ≥ 24                                          |
+| **Runtime**           | Node.js ≥ 26                     | Node.js ≥ 26                                          |
 | **Billing model**     | Fixed monthly (App Service Plan) | Fixed monthly (App Service Plan)                      |
 
 **Pricing calculator inputs (Staging):** Linux, Standard S1, 1 instance × 730 hours.
@@ -100,7 +100,7 @@ The API is deployed as a Linux container (currently Docker, pulled from Azure Co
 | **Production S2 / P1v3 (2 cores, 3.5–8 GB)** | 200 DAU with ~20 peak RPS and 2s worst-case execution time requires ≥ 2 vCPU per instance to avoid queuing. P1v3 is preferred for the 8 GB RAM headroom supporting AI orchestration paths. |
 | **Production — 2 instances minimum**         | Required for the ≤ 0.5% error rate target and ≤ 4 hour RTO — a single instance restart would violate both.                                                                                 |
 | **Production — autoscale enabled**           | 6M requests/month concentrated in ~12 working hours creates predictable but non-flat traffic; CPU > 70% is the standard trigger.                                                           |
-| **Linux + Node.js 24**                       | Matches the API codebase (`engines.node ≥ 24.0.0`).                                                                                                                                        |
+| **Linux + Node.js 26**                       | Matches the API codebase (`engines.node ≥ 26.0.0`).                                                                                                                                        |
 
 > The API is **stateless** — horizontal scaling via App Service scale-out is supported. For Production, set auto-scale triggers at CPU > 70%.
 
@@ -387,7 +387,7 @@ Currently optional. Recommended for Production when the deployment requires:
 ### API Server (App Service)
 
 - **Container OS:** Linux (Debian-based Node.js Docker image)
-- **Node.js:** ≥ 24.0.0 (as specified in `engines` field of `package.json`)
+- **Node.js:** ≥ 26.0.0 (as specified in `engines` field of `package.json`)
 - **Docker:** Any recent version (used locally and in CI for image builds)
 
 ### Database Server
@@ -402,7 +402,7 @@ Currently optional. Recommended for Production when the deployment requires:
 ### Local Development
 
 - **OS:** Any (macOS, Linux, Windows with WSL2 recommended)
-- **Node.js:** ≥ 24.0.0
+- **Node.js:** ≥ 26.0.0
 - **pnpm:** ≥ 10.23.0
 - **Docker:** Any recent version (required for local PostgreSQL via Docker Compose)
 - **Azure CLI:** ≥ 2.59.0 (required for deployments)

@@ -18,6 +18,10 @@ import {
 const parse = (overrides: Record<string, string | undefined> = {}) =>
   parseEnv({ ...overrides });
 
+// A syntactically valid browser origin used to satisfy the production-only
+// ALLOWED_ORIGIN CORS guard in tests whose focus is some OTHER prod behaviour.
+const PROD_ORIGIN = "https://app.example.cl";
+
 describe("parseEnv — defaults (empty environment)", () => {
   const env = parse();
 
@@ -28,6 +32,7 @@ describe("parseEnv — defaults (empty environment)", () => {
       LOG_LEVEL: "debug",
       HOST: "localhost",
       PORT: 8080,
+      ALLOWED_ORIGIN: undefined,
       DATABASE_URL: undefined,
       MAX_EVENT_LOOP_DELAY_MS: 300,
       MAX_EVENT_LOOP_UTILIZATION: 0.9,
@@ -51,15 +56,19 @@ describe("parseEnv — defaults (empty environment)", () => {
 
 describe("parseEnv — production defaults", () => {
   it("shifts LOG_LEVEL and HOST defaults when NODE_ENV=production", () => {
-    const env = parse({ NODE_ENV: "production" });
+    const env = parse({ NODE_ENV: "production", ALLOWED_ORIGIN: PROD_ORIGIN });
     expect(env.IS_PROD).toBe(true);
     expect(env.LOG_LEVEL).toBe("info");
     expect(env.HOST).toBe("0.0.0.0");
   });
 
   it("detects production case-insensitively", () => {
-    expect(parse({ NODE_ENV: "Production" }).IS_PROD).toBe(true);
-    expect(parse({ NODE_ENV: "PRODUCTION" }).IS_PROD).toBe(true);
+    expect(
+      parse({ NODE_ENV: "Production", ALLOWED_ORIGIN: PROD_ORIGIN }).IS_PROD
+    ).toBe(true);
+    expect(
+      parse({ NODE_ENV: "PRODUCTION", ALLOWED_ORIGIN: PROD_ORIGIN }).IS_PROD
+    ).toBe(true);
     expect(parse({ NODE_ENV: "prod" }).IS_PROD).toBe(false);
   });
 });
@@ -189,6 +198,7 @@ describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", ()
   it("boots in prod when the full jwks binding is provided", () => {
     const env = parse({
       NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
       AUTH_PROVIDER: "jwks",
       JWKS_URI: "https://issuer/jwks",
       JWKS_ISSUER: "https://issuer/",
@@ -197,6 +207,34 @@ describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", ()
     expect(env.AUTH_PROVIDER).toBe("jwks");
     expect(env.JWKS_ISSUER).toBe("https://issuer/");
     expect(env.JWKS_AUDIENCE).toBe("api://app");
+  });
+});
+
+describe("parseEnv — fail-closed production CORS guard (ALLOWED_ORIGIN)", () => {
+  it("does NOT enforce the guard outside production", () => {
+    // Dev without ALLOWED_ORIGIN must parse cleanly, leaving the field unset.
+    const env = parse();
+    expect(env.ALLOWED_ORIGIN).toBeUndefined();
+  });
+
+  it("refuses to boot in prod when ALLOWED_ORIGIN is missing", () => {
+    expect(() => parse({ NODE_ENV: "production" })).toThrow(
+      /ALLOWED_ORIGIN is required when NODE_ENV=production/
+    );
+  });
+
+  it("treats a whitespace-only ALLOWED_ORIGIN as unset in prod", () => {
+    expect(() =>
+      parse({ NODE_ENV: "production", ALLOWED_ORIGIN: "   " })
+    ).toThrow(/ALLOWED_ORIGIN is required when NODE_ENV=production/);
+  });
+
+  it("boots in prod when a valid ALLOWED_ORIGIN is provided", () => {
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: "https://app.example.cl",
+    });
+    expect(env.ALLOWED_ORIGIN).toBe("https://app.example.cl");
   });
 });
 
@@ -212,7 +250,11 @@ describe("parseEnv — chatbot cross-field guards", () => {
   });
 
   it("allows the mock provider in production when the chatbot is disabled", () => {
-    const env = parse({ NODE_ENV: "production", LLM_PROVIDER: "mock" });
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
+      LLM_PROVIDER: "mock",
+    });
     expect(env.LLM_PROVIDER).toBe("mock");
     expect(env.CHATBOT_ENABLED).toBe(false);
   });
@@ -284,6 +326,7 @@ describe("parseEnv — chatbot cross-field guards", () => {
   it("accepts a fully-valid production chatbot configuration", () => {
     const env = parse({
       NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
       CHATBOT_ENABLED: "true",
       LLM_PROVIDER: "azure-openai",
       COOKIE_SECRET: "a-sufficiently-long-random-secret",
