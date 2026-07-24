@@ -111,6 +111,22 @@ describe("handlePrismaError", () => {
     });
   });
 
+  it("maps the generic P2039 database-error code to a 500, not a 409", () => {
+    // Since Prisma v7.9 the client wraps unmapped driver errors as a known
+    // request error with code P2039 (previously PrismaClientUnknownRequestError).
+    // It is a generic "Database error", not a constraint violation, so it must
+    // stay a 500 rather than falling into the default 409 bucket.
+    const error = new Prisma.PrismaClientKnownRequestError(
+      "Database error. Code: `23514`.",
+      { code: "P2039", clientVersion: "test" }
+    );
+    expect(handlePrismaError(error)).toEqual({
+      statusCode: 500,
+      code: "DATABASE_ERROR",
+      message: "A database error occurred",
+    });
+  });
+
   it.each([
     [
       "PrismaClientValidationError",
