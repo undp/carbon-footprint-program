@@ -63,6 +63,19 @@ export function handlePrismaError(error: unknown): {
           code: "DATABASE_FOREIGN_KEY_CONSTRAINT",
           message: "Related record not found",
         };
+      // P2039 is Prisma's generic "Database error" catch-all: since v7.9 the
+      // client wraps any driver error it can't map to a specific code as a
+      // (catchable) PrismaClientKnownRequestError with this code, where earlier
+      // versions surfaced it as PrismaClientUnknownRequestError. It is NOT
+      // specifically a constraint violation, so treat it as a server-side
+      // database error (500) — the same status those errors produced before
+      // v7.9 — rather than letting it fall into the 409 constraint bucket.
+      case "P2039":
+        return {
+          statusCode: 500,
+          code: "DATABASE_ERROR",
+          message: "A database error occurred",
+        };
       default:
         return {
           statusCode: 409,
