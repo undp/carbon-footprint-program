@@ -56,18 +56,13 @@ export const createMeasurementUnitService = async (
       if (existingBase) throw new MagnitudeAlreadyHasBaseUnitError();
     }
 
+    // baseFactor=1 is reserved for the base unit (see the CHECK constraint
+    // measurement_unit_base_factor_check), so a non-base unit with baseFactor=1
+    // is invalid regardless of whether the magnitude already has a base unit.
+    // Reject it unconditionally with a clean 422 instead of letting it reach
+    // the DB constraint.
     if (!body.isBase && body.baseFactor === 1) {
-      const existingBase = await tx.measurementUnit.findFirst({
-        where: {
-          magnitudeId: BigInt(body.magnitudeId),
-          isBase: true,
-          status: MeasurementUnitStatus.ACTIVE,
-        },
-        select: { id: true },
-      });
-      if (existingBase) {
-        throw new BaseFactorOneReservedForBaseUnitError();
-      }
+      throw new BaseFactorOneReservedForBaseUnitError();
     }
 
     const existing = await tx.measurementUnit.findUnique({

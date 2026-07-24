@@ -82,27 +82,17 @@ export const updateMeasurementUnitService = async (
         throw new MeasurementUnitFieldsLockedError();
       }
 
+      // baseFactor=1 is reserved for the base unit (see the CHECK constraint
+      // measurement_unit_base_factor_check). isBase cannot be toggled on update
+      // (guarded above), so a non-base target receiving baseFactor=1 is always
+      // invalid regardless of magnitude. Reject it unconditionally with a clean
+      // 422 instead of letting it reach the DB constraint.
       if (
         body.baseFactor !== undefined &&
         body.baseFactor === 1 &&
         !target.isBase
       ) {
-        const effectiveMagnitudeId =
-          body.magnitudeId !== undefined
-            ? BigInt(body.magnitudeId)
-            : target.magnitudeId;
-        const existingBase = await tx.measurementUnit.findFirst({
-          where: {
-            magnitudeId: effectiveMagnitudeId,
-            isBase: true,
-            status: MeasurementUnitStatus.ACTIVE,
-            id: { not: target.id },
-          },
-          select: { id: true },
-        });
-        if (existingBase) {
-          throw new BaseFactorOneReservedForBaseUnitError();
-        }
+        throw new BaseFactorOneReservedForBaseUnitError();
       }
 
       const updateData: Prisma.MeasurementUnitUncheckedUpdateInput = {};

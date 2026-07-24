@@ -185,12 +185,12 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
       });
     }
 
-    it("should pass the 'no existing base unit' guard and hit the DB check constraint when setting baseFactor=1 on a non-base unit", async () => {
-      // As in the analogous create-endpoint test: with no existing base unit
-      // for the magnitude, the `if (existingBase)` guard evaluates false and
-      // the update proceeds — where the `measurement_unit_base_factor_check`
-      // constraint unconditionally rejects baseFactor=1 for a non-base unit.
-      // This still exercises the guard's "not found" branch.
+    it("should return 422 when setting baseFactor=1 on a non-base unit even when the magnitude has no base unit yet", async () => {
+      // As in the analogous create-endpoint test: baseFactor=1 is reserved for
+      // the base unit, so setting it on a non-base unit is invalid regardless
+      // of whether the magnitude already has a base unit. The guard rejects it
+      // unconditionally with a clean 422, so it never reaches the raw
+      // `measurement_unit_base_factor_check` DB constraint.
       const magnitude = await createFreshMagnitude();
       try {
         const created = await createUnit({
@@ -204,7 +204,9 @@ describe("PATCH /api/measurement-units/:id - Integration Tests", () => {
           payload: { baseFactor: 1 },
         });
 
-        expect(response.statusCode).toBe(500);
+        expect(response.statusCode).toBe(422);
+        const body = JSON.parse(response.body) as { code: string };
+        expect(body.code).toBe("BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT");
       } finally {
         await prisma.rateMeasurementUnit.deleteMany({
           where: { denominatorMeasurementUnit: { magnitudeId: magnitude.id } },
