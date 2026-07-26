@@ -18,12 +18,12 @@ import {
   getMeasurementUnitReferenceCount,
   buildCanonicalRmuFields,
   assertNotKgMu,
+  assertBaseFactorOneIsReservedForBaseUnit,
 } from "../helpers.js";
 import {
   MeasurementUnitNotFoundError,
   BaseUnitToggleNotAllowedError,
   MeasurementUnitFieldsLockedError,
-  BaseFactorOneReservedForBaseUnitError,
   MagnitudeInactiveError,
   MeasurementUnitAbbreviationAlreadyExistsError,
 } from "../errors.js";
@@ -82,18 +82,9 @@ export const updateMeasurementUnitService = async (
         throw new MeasurementUnitFieldsLockedError();
       }
 
-      // baseFactor=1 is reserved for the base unit (see the CHECK constraint
-      // measurement_unit_base_factor_check). isBase cannot be toggled on update
-      // (guarded above), so a non-base target receiving baseFactor=1 is always
-      // invalid regardless of magnitude. Reject it unconditionally with a clean
-      // 422 instead of letting it reach the DB constraint.
-      if (
-        body.baseFactor !== undefined &&
-        body.baseFactor === 1 &&
-        !target.isBase
-      ) {
-        throw new BaseFactorOneReservedForBaseUnitError();
-      }
+      // isBase cannot be toggled on update (guarded above), so the target's
+      // current isBase is the one the new baseFactor has to be valid against.
+      assertBaseFactorOneIsReservedForBaseUnit(target.isBase, body.baseFactor);
 
       const updateData: Prisma.MeasurementUnitUncheckedUpdateInput = {};
       if (body.name !== undefined) updateData.name = body.name;

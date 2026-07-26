@@ -14,13 +14,13 @@ import {
   resolveKgMeasurementUnit,
   getMeasurementUnitReferenceCount,
   buildCanonicalRmuFields,
+  assertBaseFactorOneIsReservedForBaseUnit,
 } from "../helpers.js";
 import {
   MagnitudeAlreadyHasBaseUnitError,
   MagnitudeInactiveError,
   MeasurementUnitAbbreviationAlreadyExistsError,
   BaseUnitMustHaveBaseFactorOneError,
-  BaseFactorOneReservedForBaseUnitError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 
@@ -56,14 +56,7 @@ export const createMeasurementUnitService = async (
       if (existingBase) throw new MagnitudeAlreadyHasBaseUnitError();
     }
 
-    // baseFactor=1 is reserved for the base unit (see the CHECK constraint
-    // measurement_unit_base_factor_check), so a non-base unit with baseFactor=1
-    // is invalid regardless of whether the magnitude already has a base unit.
-    // Reject it unconditionally with a clean 422 instead of letting it reach
-    // the DB constraint.
-    if (!body.isBase && body.baseFactor === 1) {
-      throw new BaseFactorOneReservedForBaseUnitError();
-    }
+    assertBaseFactorOneIsReservedForBaseUnit(body.isBase, body.baseFactor);
 
     const existing = await tx.measurementUnit.findUnique({
       where: { abbreviation: body.abbreviation },
