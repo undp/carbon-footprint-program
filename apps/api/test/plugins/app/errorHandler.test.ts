@@ -99,26 +99,38 @@ describe("handlePrismaError", () => {
     });
   });
 
-  it("maps any other known Prisma code to a generic 409", () => {
-    const error = new Prisma.PrismaClientKnownRequestError("Some other error", {
-      code: "P2011",
-      clientVersion: "test",
-    });
-    expect(handlePrismaError(error)).toEqual({
-      statusCode: 409,
-      code: "DATABASE_CONSTRAINT_VIOLATION",
-      message: "Database constraint violation",
-    });
-  });
+  it.each([["P2004"], ["P2011"], ["P2012"], ["P2014"]])(
+    "maps the explicit constraint code %s to a generic 409",
+    (code) => {
+      const error = new Prisma.PrismaClientKnownRequestError(
+        "Some constraint error",
+        { code, clientVersion: "test" }
+      );
+      expect(handlePrismaError(error)).toEqual({
+        statusCode: 409,
+        code: "DATABASE_CONSTRAINT_VIOLATION",
+        message: "Database constraint violation",
+      });
+    }
+  );
 
-  it("maps the generic P2039 database-error code to a 500, not a 409", () => {
-    // Since Prisma v7.9 the client wraps unmapped driver errors as a known
-    // request error with code P2039 (previously PrismaClientUnknownRequestError).
-    // It is a generic "Database error", not a constraint violation, so it must
-    // stay a 500 rather than falling into the default 409 bucket.
+  // Since Prisma v7.9 the driver adapter wraps connection/transaction failures
+  // as PrismaClientKnownRequestError (P1001/P1008/P1017, P2034, P2037) and any
+  // error it can't map as the generic P2039 "Database error" — previously these
+  // surfaced as PrismaClientUnknownRequestError. None of them is a constraint
+  // violation, so they must be 500s rather than falling into the 409 bucket.
+  it.each([
+    ["P2039"],
+    ["P1001"],
+    ["P1008"],
+    ["P1017"],
+    ["P2034"],
+    ["P2037"],
+    ["P9999"],
+  ])("maps the unmapped / connection code %s to a 500, not a 409", (code) => {
     const error = new Prisma.PrismaClientKnownRequestError(
       "Database error. Code: `23514`.",
-      { code: "P2039", clientVersion: "test" }
+      { code, clientVersion: "test" }
     );
     expect(handlePrismaError(error)).toEqual({
       statusCode: 500,
