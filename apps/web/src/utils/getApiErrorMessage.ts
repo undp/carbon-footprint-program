@@ -242,7 +242,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   BASE_UNIT_MUST_HAVE_BASE_FACTOR_ONE:
     "Una unidad base debe tener un factor base igual a 1.",
   BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT:
-    "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
+    "El factor base 1 está reservado para la unidad base: una unidad no base no puede tener factor base 1.",
 
   // Carbon inventory association
   CARBON_INVENTORY_ALREADY_HAS_ORGANIZATION: `Esta huella ya tiene una ${orgSingular} asociada.`,
