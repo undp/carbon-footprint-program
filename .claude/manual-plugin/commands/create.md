@@ -28,6 +28,9 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    exacto → por prefijo → fuzzy. Si no hay objetivo, no hay match o es ambiguo, usa
    AskUserQuestion mostrando la lista de módulos disponibles; si venían instrucciones
    adicionales, consérvalas tras la elección del módulo.
+   El **slug de salida** (`<slug_snake>`) es el slug de la ficha con los `-` reemplazados por
+   `_` (`mantenedor-metodologia` → `mantenedor_metodologia`): todo lo que se escribe bajo
+   `user_manual/` usa snake_case.
 
 3. **Lee el contexto**: la ficha `<DATA_DIR>/modules/<slug>.md`,
    `<DATA_DIR>/branding/tokens.json`,
@@ -36,14 +39,14 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    y la skill `manual-slides`. Si la ficha tiene **dudas abiertas** o hay ambigüedad funcional
    que afecte el manual, resuélvelas con AskUserQuestion antes de continuar.
 
-4. **Si ya existe `user_manual/<slug>/<slug>.html`**, usa AskUserQuestion:
+4. **Si ya existe `user_manual/<slug_snake>/<slug_snake>.html`**, usa AskUserQuestion:
    **Regenerar desde cero** o **Actualizar secciones específicas**.
 
 5. **Screenshots.** Usa AskUserQuestion:
    - **Capturar con Playwright** — en la pregunta siguiente pide la URL. Requiere datos
      ficticios obligatorios (nunca datos reales de personas). Resolución **1920** (desktop; este
      proyecto no documenta vistas responsivas). Nombres: `overview.png`, `tabla.png`,
-     `formulario.png`, `detalle.png`, `dialog-*.png`. Guardar en `user_manual/screenshots/<slug>/`.
+     `formulario.png`, `detalle.png`, `dialog-*.png`. Guardar en `user_manual/screenshots/<slug_snake>/`.
    - **Sin capturas** — usar `.screenshot-placeholder`.
      Si el MCP de Playwright no está disponible, degrada a placeholders y avísalo.
 
@@ -57,7 +60,7 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    Entre **10 y 20 slides** según la complejidad del módulo.
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
-   Escribe el archivo en `user_manual/<slug>/<slug>.html`.
+   Escribe el archivo en `user_manual/<slug_snake>/<slug_snake>.html`.
 
 8. **Reglas duras**: máx 20 slides; estructura Cover → Objectives (3) → Index →
    [Divider + Content] × N; sin vistas responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
@@ -72,7 +75,7 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 10. **Genera el PDF**:
     ```bash
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-      "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
+      "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
     ```
     Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrece instalarlas como
     devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.

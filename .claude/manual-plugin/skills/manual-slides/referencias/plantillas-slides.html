@@ -8,7 +8,7 @@
   Placeholders comunes:
     {{APP_NAME}}        Nombre de la aplicación
     {{ORG_NAME}}        Nombre de la organización
-    {{MODULO_SLUG}}     Slug del módulo (carpeta de screenshots)
+    {{MODULO_SLUG_SNAKE}} Slug del módulo en snake_case (carpeta de screenshots)
     {{MODULO_NOMBRE}}   Nombre legible del módulo
     {{ICONO_MODULO}}    Icono Material Symbols del módulo
     {{VERSION}}         Versión del manual (ej: 1.0)
@@ -61,7 +61,7 @@
       <div class="cover-mockup-frame">
         <div class="cover-mockup-screen">
           <img
-            src="../screenshots/{{MODULO_SLUG}}/overview.png"
+            src="../screenshots/{{MODULO_SLUG_SNAKE}}/overview.png"
             alt="{{MODULO_NOMBRE}} — vista desktop"
           />
         </div>
@@ -177,7 +177,7 @@
   </p>
 
   <div class="annotated-screenshot">
-    <img src="../screenshots/{{MODULO_SLUG}}/{{NOMBRE}}.png" alt="{{ALT}}" />
+    <img src="../screenshots/{{MODULO_SLUG_SNAKE}}/{{NOMBRE}}.png" alt="{{ALT}}" />
     <span class="callout-num" style="top: {{Y1}}%; left: {{X1}}%;">1</span>
     <span class="callout-num" style="top: {{Y2}}%; left: {{X2}}%;">2</span>
   </div>
@@ -223,7 +223,7 @@
     </div>
     <div class="content-split__visual">
       <div class="screenshot-container">
-        <img src="../screenshots/{{MODULO_SLUG}}/{{NOMBRE}}.png" alt="{{ALT}}" />
+        <img src="../screenshots/{{MODULO_SLUG_SNAKE}}/{{NOMBRE}}.png" alt="{{ALT}}" />
       </div>
     </div>
   </div>

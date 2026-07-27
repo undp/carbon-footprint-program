@@ -80,10 +80,14 @@ claude --plugin-dir ./.claude/manual-plugin
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Branding (tokens, CSS, componentes, guía) | `<DATA_DIR>/branding/` (`manual-plugin/data/branding/` del proyecto si el plugin está copiado al repo) |
 | Fichas de módulos e índice                | `<DATA_DIR>/modules/` (`manual-plugin/data/modules/` del proyecto si el plugin está copiado al repo)   |
-| Manuales HTML generados                   | `user_manual/<slug>/<slug>.html` **del proyecto**                                                      |
+| Manuales HTML generados                   | `user_manual/<slug_snake>/<slug_snake>.html` **del proyecto**                                          |
 | CSS del manual                            | `user_manual/assets/manual.css` **del proyecto**                                                       |
-| Screenshots                               | `user_manual/screenshots/<slug>/` **del proyecto**                                                     |
-| PDF final                                 | `user_manual/<slug>/<slug>.pdf` **del proyecto**                                                       |
+| Screenshots                               | `user_manual/screenshots/<slug_snake>/` **del proyecto**                                               |
+| PDF final                                 | `user_manual/<slug_snake>/<slug_snake>.pdf` **del proyecto**                                           |
+
+Las fichas de módulo usan kebab-case; todo lo que se escribe bajo `user_manual/` usa
+**snake_case** (`<slug_snake>` = el slug con `-` → `_`). El HTML vive en su propia carpeta y
+enlaza los assets compartidos un nivel arriba (`../assets/`, `../screenshots/<slug_snake>/`).
 
 ## Validación
 

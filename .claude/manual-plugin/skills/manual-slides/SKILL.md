@@ -27,8 +27,13 @@ repo), usa `manual-plugin/data/` del proyecto; si no, usa `${CLAUDE_PLUGIN_ROOT}
 - **Referencias** (spec y herramientas): `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/`
   → `contrato-css.md`, `plantillas-slides.html`, `exportar-pdf.cjs`.
 - **Salida** (en el PROYECTO, cwd, no en el plugin):
-  `user_manual/<slug>/<slug>.html`, `user_manual/assets/manual.css`,
-  `user_manual/screenshots/<slug>/`, `user_manual/<slug>/<slug>.pdf`.
+  `user_manual/<slug_snake>/<slug_snake>.html`, `user_manual/assets/manual.css`,
+  `user_manual/screenshots/<slug_snake>/`, `user_manual/<slug_snake>/<slug_snake>.pdf`.
+
+**Slug de salida.** Las fichas de módulo usan kebab-case (`mantenedor-metodologia.md`), pero
+todo lo que se escribe bajo `user_manual/` usa **snake_case**: `<slug_snake>` es el slug con
+los `-` reemplazados por `_` (`mantenedor-metodologia` → `mantenedor_metodologia`), igual que
+`user_manual` mismo.
 
 ## Formato
 
@@ -45,7 +50,7 @@ lleva `class="format-slide"`. No hay formato carta ni toggle de formato.
   correr `/manual:branding` antes.
 - Confirmar que el módulo a documentar tiene **ficha** en `<DATA_DIR>/modules/`. Si no, correr
   `/manual:explore`.
-- Si el módulo ya tiene `user_manual/<slug>/<slug>.html`, decidir con el usuario:
+- Si el módulo ya tiene `user_manual/<slug_snake>/<slug_snake>.html`, decidir con el usuario:
   **regenerar desde cero** o **actualizar** secciones puntuales.
 
 ### Paso 1 — Investigar el módulo
@@ -63,7 +68,7 @@ Capturar con Playwright desde la app en vivo (si está disponible) o usar placeh
   Los manuales de este proyecto **no documentan vistas responsivas** (no se capturan tablet ni móvil).
 - Nombres: `overview.png`, `tabla.png`, `formulario.png`/`crear.png`/`editar.png`,
   `detalle.png`, `dialog-*.png`.
-- Guardar en `user_manual/screenshots/<slug>/`.
+- Guardar en `user_manual/screenshots/<slug_snake>/`.
 - **Datos ficticios obligatorios**: nunca datos reales de personas. Usar nombres
   inventados (p. ej. "González Muñoz, Carlos") y códigos genéricos. Si la app trae datos
   reales, interceptarlos/reemplazarlos antes de capturar (`page.route()`).
@@ -89,9 +94,9 @@ Cantidad de slides según complejidad (**tope duro: 20**):
 
 ### Paso 4 — Preparar el HTML
 
-- Crear `user_manual/<slug>/<slug>.html` a partir del esqueleto de `plantillas-slides.html`.
+- Crear `user_manual/<slug_snake>/<slug_snake>.html` a partir del esqueleto de `plantillas-slides.html`.
   El HTML vive en su propia carpeta, así que `assets/` y `screenshots/` se referencian
-  **un nivel arriba** (`../assets/…`, `../screenshots/<slug>/…`).
+  **un nivel arriba** (`../assets/…`, `../screenshots/<slug_snake>/…`).
 - Copiar `<DATA_DIR>/branding/manual.css` → `user_manual/assets/manual.css` (si no existe o cambió)
   y enlazarlo con `<link rel="stylesheet" href="../assets/manual.css">`.
 - Personalizar: `<title>` = "Manual de Usuario — <Nombre Módulo> | <APP_NAME>";
@@ -128,7 +133,7 @@ Ejecutar el script parametrizado:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-  "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
+  "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
 ```
 
 Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrecer instalarlas como
@@ -181,8 +186,8 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 - [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido).
 - [ ] `manual.css` copiado a `user_manual/assets/` y enlazado como `../assets/manual.css`.
-- [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug>/`; todos los `<img src>`
-      apuntan a `../screenshots/<slug>/` y resuelven.
+- [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug_snake>/`; todos los `<img src>`
+      apuntan a `../screenshots/<slug_snake>/` y resuelven.
 - [ ] Posiciones de callout verificadas visualmente.
 - [ ] Footer y número de página correctos en TODAS las slides.
 - [ ] Ícono del módulo correcto en cover y dividers.

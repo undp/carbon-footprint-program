@@ -16,7 +16,8 @@ con los cambios pedidos. Sigue estos pasos en orden.
 
 1. **Resuelve el target desde `$ARGUMENTS`.** El **primer token** es el objetivo; el **resto** es
    el prompt de cambios.
-   - Empieza con `@` → es un módulo; resuelve a `user_manual/<slug>/<slug>.html`.
+   - Empieza con `@` → es un módulo; resuelve a `user_manual/<slug_snake>/<slug_snake>.html`,
+     donde `<slug_snake>` es el slug de la ficha con los `-` reemplazados por `_`.
    - Termina en `.html` → es una ruta; úsala directo.
    - Si el HTML no existe, no se identifica o es ambiguo → usa AskUserQuestion listando los manuales
      existentes (glob `user_manual/*/*.html`).
@@ -43,7 +44,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
    **Capturar con Playwright** (pide la URL en la pregunta siguiente) o **Usar placeholders**.
    Misma resolución **1920** (sin vistas responsivas), mismo naming (`overview.png`, `tabla.png`,
    `formulario.png`, `detalle.png`, `dialog-*.png`) y **datos
-   ficticios obligatorios** que `/manual:create`. Guarda en `user_manual/screenshots/<slug>/`.
+   ficticios obligatorios** que `/manual:create`. Guarda en `user_manual/screenshots/<slug_snake>/`.
    Sin MCP de Playwright, degrada a placeholders y avísalo.
 
 5. **Verificación visual** a **1440×810** (Playwright si está disponible): las slides modificadas se
@@ -54,7 +55,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
 
    ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-     "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
+     "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
    ```
 
 7. **Resumen final**: qué slides y secciones se modificaron.
