@@ -8,8 +8,8 @@ Genera el branding del manual para este proyecto. Sigue estos pasos en orden.
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
@@ -20,7 +20,7 @@ Genera el branding del manual para este proyecto. Sigue estos pasos en orden.
 2. **Prechequeo.** Si ya existe `<DATA_DIR>/branding/tokens.json`,
    usa AskUserQuestion para preguntar cómo proceder:
    - **Sobrescribir todo** — regenerar el branding completo desde cero.
-   - **Hacer ajustes puntuales** — deriva a `/manual:branding-update` y termina.
+   - **Hacer ajustes puntuales** — deriva a `/user-manual:branding-update` y termina.
    - **Cancelar** — no hacer nada y terminar.
 
 3. **Explora el código del proyecto** para detectar la identidad visual:

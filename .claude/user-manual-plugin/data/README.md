@@ -6,7 +6,7 @@ con las carpetas vacías (solo `.gitkeep`).
 
 ## branding/
 
-La escribe `/manual:branding` (y la ajusta `/manual:branding-update`):
+La escribe `/user-manual:branding` (y la ajusta `/user-manual:branding-update`):
 
 | Archivo            | Contenido                                                                                          |
 | ------------------ | -------------------------------------------------------------------------------------------------- |
@@ -17,19 +17,19 @@ La escribe `/manual:branding` (y la ajusta `/manual:branding-update`):
 
 ## modules/
 
-La escribe `/manual:explore`:
+La escribe `/user-manual:explore`:
 
-| Archivo         | Contenido                                                                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index.json`    | Lista de módulos descubiertos: `[{slug, titulo, fuente, estado, fecha}]`.                                                                             |
-| `<slug>.md`     | Ficha de cada módulo: propósito, rutas, pantallas, acciones, entidades, estados, referencias de código, dudas abiertas y evidencia.                   |
-| `baseline.json` | Línea base git de la última exploración: `{commit, branch, fecha}`. La usa `/manual:explore-update` para re-explorar por `git diff` solo lo cambiado. |
+| Archivo         | Contenido                                                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.json`    | Lista de módulos descubiertos: `[{slug, titulo, fuente, estado, fecha}]`.                                                                                  |
+| `<slug>.md`     | Ficha de cada módulo: propósito, rutas, pantallas, acciones, entidades, estados, referencias de código, dudas abiertas y evidencia.                        |
+| `baseline.json` | Línea base git de la última exploración: `{commit, branch, fecha}`. La usa `/user-manual:explore-update` para re-explorar por `git diff` solo lo cambiado. |
 
 ## Nota de persistencia
 
 Estos datos se resuelven en `<DATA_DIR>`: si el plugin está **copiado dentro del
-proyecto** (existe `manual-plugin/.claude-plugin/plugin.json` en la raíz del repo), los
-comandos escriben y leen en `manual-plugin/data/` **del proyecto** — esta misma carpeta,
+proyecto** (existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz del repo), los
+comandos escriben y leen en `user-manual-plugin/data/` **del proyecto** — esta misma carpeta,
 versionable y persistente.
 
 Solo caen a `${CLAUDE_PLUGIN_ROOT}/data/` cuando el plugin **no** está copiado en el

@@ -3,8 +3,8 @@
   "owner": { "name": "Carbon Footprint Program" },
   "plugins": [
     {
-      "name": "manual",
-      "source": "./.claude/manual-plugin",
+      "name": "user-manual",
+      "source": "./.claude/user-manual-plugin",
       "description": "Genera manuales de usuario HTML tipo slides adaptados al branding del proyecto."
     }
   ]

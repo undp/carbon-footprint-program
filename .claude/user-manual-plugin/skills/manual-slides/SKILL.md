@@ -10,14 +10,14 @@ aplicación web: un archivo autocontenido con slides profesionales (landscape 16
 y screenshots anotados, listo para exportar a PDF.
 
 Esta skill acompaña a los comandos del plugin `manual`:
-`/manual:branding`, `/manual:branding-update`, `/manual:explore`, `/manual:explore-update`,
-`/manual:create`, `/manual:update`.
+`/user-manual:branding`, `/user-manual:branding-update`, `/user-manual:explore`, `/user-manual:explore-update`,
+`/user-manual:create`, `/user-manual:update`.
 
 ## Dónde vive cada cosa
 
 **Directorio de datos.** Resuelve `<DATA_DIR>` así: si existe
-`manual-plugin/.claude-plugin/plugin.json` en la raíz del proyecto (el plugin está copiado al
-repo), usa `manual-plugin/data/` del proyecto; si no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa
+`user-manual-plugin/.claude-plugin/plugin.json` en la raíz del proyecto (el plugin está copiado al
+repo), usa `user-manual-plugin/data/` del proyecto; si no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa
 `<DATA_DIR>` para TODO lo que se escribe o lee de branding y módulos.
 
 - **Branding** (tokens, CSS, componentes, guía): `<DATA_DIR>/branding/`
@@ -47,9 +47,9 @@ lleva `class="format-slide"`. No hay formato carta ni toggle de formato.
 ### Paso 0 — Prerrequisitos
 
 - Confirmar que existe **branding** (`<DATA_DIR>/branding/tokens.json` + `manual.css`). Si falta,
-  correr `/manual:branding` antes.
+  correr `/user-manual:branding` antes.
 - Confirmar que el módulo a documentar tiene **ficha** en `<DATA_DIR>/modules/`. Si no, correr
-  `/manual:explore`.
+  `/user-manual:explore`.
 - Si el módulo ya tiene `user_manual/<slug_snake>/<slug_snake>.html`, decidir con el usuario:
   **regenerar desde cero** o **actualizar** secciones puntuales.
 

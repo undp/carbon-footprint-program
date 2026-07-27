@@ -8,13 +8,13 @@ Ajusta el branding del manual ya existente según lo que pida el usuario. Sigue 
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
 1. **Prechequeo.** Si NO existe `<DATA_DIR>/branding/tokens.json`, indica al
-   usuario que primero debe correr `/manual:branding` y termina sin hacer cambios.
+   usuario que primero debe correr `/user-manual:branding` y termina sin hacer cambios.
 
 2. **Lee el estado actual** y el contrato:
    - `<DATA_DIR>/branding/tokens.json`
@@ -35,6 +35,6 @@ Ajusta el branding del manual ya existente según lo que pida el usuario. Sigue 
    si el MCP de Playwright está disponible, verifícalo visualmente a **1440×810**.
 
 6. **Advierte** al usuario: los manuales ya generados en `user_manual/` mantienen el CSS
-   antiguo (`assets/manual.css`) hasta que se vuelvan a ejecutar con `/manual:create`.
+   antiguo (`assets/manual.css`) hasta que se vuelvan a ejecutar con `/user-manual:create`.
 
 7. **Resumen** de los cambios aplicados (tokens/clases tocados y valores nuevos).

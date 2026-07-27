@@ -8,17 +8,17 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
 1. **Prerrequisitos.**
    - Si falta el branding (`<DATA_DIR>/branding/tokens.json` y
      `<DATA_DIR>/branding/manual.css`),
-     usa AskUserQuestion: **Ejecutar /manual:branding ahora** o **Cancelar**.
+     usa AskUserQuestion: **Ejecutar /user-manual:branding ahora** o **Cancelar**.
    - Si `<DATA_DIR>/modules/index.json` no existe o está vacío,
-     usa AskUserQuestion: **Ejecutar /manual:explore ahora** o **Cancelar**.
+     usa AskUserQuestion: **Ejecutar /user-manual:explore ahora** o **Cancelar**.
 
 2. **Resuelve el módulo y las instrucciones adicionales desde `$ARGUMENTS`.** El primer token
    es el objetivo del módulo; todo lo que siga (si lo hay) son instrucciones adicionales en

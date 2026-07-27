@@ -3,6 +3,6 @@
     "cfp-plugins": { "source": { "source": "directory", "path": "." } }
   },
   "enabledPlugins": {
-    "manual@cfp-plugins": true
+    "user-manual@cfp-plugins": true
   }
 }

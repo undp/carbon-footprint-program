@@ -9,8 +9,8 @@ con los cambios pedidos. Sigue estos pasos en orden.
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
@@ -47,7 +47,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
    **Capturar con Playwright** (pide la URL en la pregunta siguiente) o **Usar placeholders**.
    Misma resolución **1920** (sin vistas responsivas), mismo naming (`overview.png`, `tabla.png`,
    `formulario.png`, `detalle.png`, `dialog-*.png`) y **datos
-   ficticios obligatorios** que `/manual:create`. Guarda en `user_manual/screenshots/<slug_snake>/`.
+   ficticios obligatorios** que `/user-manual:create`. Guarda en `user_manual/screenshots/<slug_snake>/`.
    Sin MCP de Playwright, degrada a placeholders y avísalo.
 
 5. **Verificación visual** a **1440×810** (Playwright si está disponible): las slides modificadas se

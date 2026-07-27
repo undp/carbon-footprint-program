@@ -9,8 +9,8 @@ conclusiones. Sigue estos pasos.
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
@@ -56,10 +56,10 @@ existe), solo menciónalo; no bloquees la exploración.
 **Paso 7 — Línea base git.** Si el proyecto es un repo git (`git rev-parse --is-inside-work-tree`
 responde OK), escribe `<DATA_DIR>/modules/baseline.json` con exactamente
 `{ "commit": "<git rev-parse HEAD>", "branch": "<git rev-parse --abbrev-ref HEAD>", "fecha": "<ISO>" }`.
-Esto ancla esta exploración para que `/manual:explore-update` compare por `git diff` en vez de
+Esto ancla esta exploración para que `/user-manual:explore-update` compare por `git diff` en vez de
 re-barrer todo. Si **no** es repo git, **omite** este paso en silencio y menciónalo en el resumen.
 No toca `index.json` ni las fichas: es un archivo aparte.
 
 **Paso 8 — Resumen final.** Entrega una tabla de módulos (slug, título, fuente, dudas abiertas),
 indica si se grabó la línea base (commit/rama) o se omitió por no ser repo git, y el siguiente
-paso sugerido: `/manual:create @<slug>`.
+paso sugerido: `/user-manual:create @<slug>`.

@@ -9,13 +9,13 @@ orquestador**. Sigue estos pasos.
 
 **Directorio de datos**
 
-> Resuelve `<DATA_DIR>` así: si existe `manual-plugin/.claude-plugin/plugin.json` en la raíz
-> del proyecto (el plugin está copiado al repo), usa `manual-plugin/data/` del proyecto; si
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
 > no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
 > branding y módulos.
 
 **Paso 1 — Prechequeo.** Si `<DATA_DIR>/modules/index.json` no existe o está vacío, usa
-AskUserQuestion: **Ejecutar /manual:explore ahora** o **Cancelar**. Sin exploración previa no hay
+AskUserQuestion: **Ejecutar /user-manual:explore ahora** o **Cancelar**. Sin exploración previa no hay
 base contra la cual comparar.
 
 **Paso 2 — Carga el estado.** Lee `<DATA_DIR>/modules/index.json`, las fichas
@@ -31,7 +31,7 @@ datos de prueba (solo para la sesión). **Nunca** registres secretos ni datos re
 - Si **no** existe `baseline.json`, **o** el proyecto no es repo git (`git rev-parse
 --is-inside-work-tree` falla), **o** el commit guardado ya no existe (`git cat-file -e
 <commit>^{commit}` falla, p. ej. tras rebase/squash) → **exploración completa**: orquesta
-  subagentes sonnet (áreas a–d de `/manual:explore`) sobre TODO el código, aplica las reglas del
+  subagentes sonnet (áreas a–d de `/user-manual:explore`) sobre TODO el código, aplica las reglas del
   Paso 6, salta al Paso 7 y anota el motivo del fallback en el resumen.
 - Si existe y es válido → **incremental**: archivos cambiados = `git diff --name-only <commit>
 HEAD` unido a `git status --porcelain` (cambios sin commitear). Si el set queda **vacío**,
@@ -57,7 +57,7 @@ con evidencia `paths:líneas`), nunca volcados de código. Luego consolida y ded
 
 **Paso 8 — Escritura selectiva.** Sin clobber de módulos no afectados:
 
-- **NUEVO** → crea su ficha (mismo formato que `/manual:explore`: nombre, slug, propósito, rutas,
+- **NUEVO** → crea su ficha (mismo formato que `/user-manual:explore`: nombre, slug, propósito, rutas,
   pantallas, acciones, entidades, estados, referencias de código, dudas abiertas, evidencia).
 - **CAMBIADO** → actualiza su ficha; **preserva** notas y dudas manuales cuando sea posible.
 - **OBSOLETO** → marca `estado: obsoleto` en `index.json` y anótalo en la ficha; **NO la borres**.
@@ -74,5 +74,5 @@ código** y avísalo.
 **Paso 11 — Resumen final.** Indica si fue **update incremental** (rango `<commit_corto>..HEAD` y
 nº de archivos cambiados) o **exploración completa** (con el motivo del fallback), seguido de la
 tabla diff (slug | título | NUEVO/CAMBIADO/SIN CAMBIOS/OBSOLETO | nota) y el siguiente paso:
-`/manual:create @<slug>` para los nuevos y `/manual:update @<slug>` para los que ya tienen manual
+`/user-manual:create @<slug>` para los nuevos y `/user-manual:update @<slug>` para los que ya tienen manual
 y cambiaron.
