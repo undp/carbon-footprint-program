@@ -18,7 +18,7 @@
     },
     "3": {
       "status": "met",
-      "evidence": "Root GOVERNANCE.md (UNDP ownership + decision-making) + README 'Ownership' section, 'Copyright (c) 2026 United Nations Development Programme (UNDP)'. .github/CODEOWNERS and GOVERNANCE.md reference the @undp/huella-latam-maintainers org team. NOTE: the team must still be created in the undp org and granted Write access before automatic reviewer assignment works, and require_code_owner_reviews is not enabled in branch protection, so code-owner review is documented but not yet enforced at merge."
+      "evidence": "Root GOVERNANCE.md (UNDP ownership + decision-making) + README 'Ownership' section, 'Copyright (c) 2026 United Nations Development Programme (UNDP)'. .github/CODEOWNERS and GOVERNANCE.md reference the @undp/carbon-footprint-program-maintainers org team. NOTE: the team must still be created in the undp org and granted Write access before automatic reviewer assignment works, and require_code_owner_reviews is not enabled in branch protection, so code-owner review is documented but not yet enforced at merge."
     },
     "4": {
       "status": "met",
