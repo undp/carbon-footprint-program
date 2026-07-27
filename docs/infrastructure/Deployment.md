@@ -29,21 +29,21 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 
 ### Gestión de Recursos por Ambiente
 
-El comportamiento de eliminación de recursos varía según el ambiente:
+El comportamiento de eliminación lo decide la variable **obligatoria** `ACTION_ON_UNMANAGE`, no el nombre del ambiente. No tiene default: `deploy.sh` aborta si no está seteada, para que cada despliegue declare su propia respuesta en vez de heredar una destructiva.
 
-#### 🔒 **Production / Staging** (`ENVIRONMENT=production|staging`)
+#### 🔒 `ACTION_ON_UNMANAGE=detachAll`
 
-- **Modo**: `detachAll`
-- **Comportamiento**: Los recursos removidos del template **NO se eliminan automáticamente**
-- **Ventaja**: Máxima seguridad, previene eliminación accidental
-- **Limpieza**: Requiere eliminación manual de recursos no deseados
+- **Comportamiento**: los recursos que dejan de estar declarados en el template **NO se eliminan**; quedan en el Resource Group sin ser administrados por el stack
+- **Usar en**: cualquier despliegue de larga vida — compartido, staging, producción, o cualquiera con dominio público
+- **Costo**: recursos huérfanos que hay que limpiar a mano
 
-#### 🧹 **Development** (`ENVIRONMENT=development` o cualquier otro valor custom en minúsculas)
+#### 🧹 `ACTION_ON_UNMANAGE=deleteResources`
 
-- **Modo**: `deleteResources`
-- **Comportamiento**: Los recursos removidos del template **SE ELIMINAN AUTOMÁTICAMENTE**
-- **Ventaja**: Ambiente limpio, ideal para experimentación
-- **Precaución**: ⚠️ Destructivo - solo usar en entornos de desarrollo
+- **Comportamiento**: los recursos que dejan de estar declarados **SE ELIMINAN**
+- **Usar en**: solo ambientes desechables
+- **Precaución**: ⚠️ Un recurso sale del template por motivos fáciles de pasar por alto — una variable de `.envrc` que apaga un recurso condicional, o un operador sin permiso RBAC que hace caer los role assignments. Ejemplo real: `deploy.sh` pasa `dbPassword=""` cuando el secreto ya existe, y el secreto es condicional (`modules/keyVault.bicep:54`), así que **en cada redeploy el secreto de la contraseña admin de Postgres sale del template** — bajo `deleteResources` queda apuntado para borrado
+
+`deleteAll` no se acepta: en un stack con scope de Resource Group también elimina resource groups.
 
 **Ejemplo**:
 
@@ -153,9 +153,8 @@ infra/
 - Carga de variables de entorno desde `.envrc`
 - Generación automática de contraseñas seguras (primera ejecución)
 - Gestión de secretos en Key Vault
-- Configuración dinámica de `--action-on-unmanage` según ambiente:
-  - **Production/Staging**: `detachAll` (preserva recursos)
-  - **Development**: `deleteResources` (elimina automáticamente)
+- Validación de `--action-on-unmanage` desde la variable obligatoria `ACTION_ON_UNMANAGE`
+  (`detachAll` preserva, `deleteResources` elimina; sin default, aborta si falta)
 - Despliegue del Deployment Stack con parámetros
 - Manejo de errores y logging detallado
 
@@ -375,13 +374,51 @@ param dbPassword = ''                   // Sobrescrito por deploy.sh
 
 ### Permisos de Azure
 
-Tu cuenta de Azure necesita los siguientes permisos en la suscripción:
+Tu cuenta necesita **dos** cosas en el Resource Group:
 
-- **Contributor** o superior en el Resource Group
-- Permisos para crear recursos:
-  - Key Vault
-  - Storage Account
-  - PostgreSQL Flexible Server
+1. **Contributor** o superior — para crear Key Vault, Storage Account, PostgreSQL Flexible Server, Container Registry, Static Web App y App Service.
+2. **Role Based Access Control Administrator** (o _User Access Administrator_, o _Owner_) — para crear los role assignments que define el template: `AcrPull` para la identidad administrada del App Service, y `Storage Blob Data Contributor` + `Storage Blob Delegator` sobre el Storage Account.
+
+> ⚠️ **Contributor por sí solo no alcanza.** El rol `Contributor` excluye explícitamente la acción `Microsoft.Authorization/roleAssignments/write`. Y ARM autoriza **la operación, no el diff**: cada deploy hace `PUT` de todos los recursos declarados, así que aunque el role assignment ya exista con properties idénticas (los nombres son `guid()` deterministas ⇒ los redeploys son idempotentes), la escritura sigue requiriendo el permiso, y ese chequeo ocurre antes de comparar estado. Con una cuenta Contributor falla el stack **completo** con `InvalidTemplateDeployment` → `Authorization failed for template resource ... of type 'Microsoft.Authorization/roleAssignments'`, aunque el resto de la infraestructura esté perfectamente desplegada.
+
+#### Degradación automática cuando falta el permiso
+
+`deploy.sh` detecta el permiso antes de desplegar y, si falta, omite exactamente esos recursos en lugar de morir con el stack completo:
+
+```
+[...] Checking whether this account can write role assignments...
+[...] ⚠️  Role assignments SKIPPED — this account cannot write them in <resource-group>
+```
+
+**No es configurable, a propósito**: no hay variable de entorno ni flag. Un override manual solo serviría para omitir grants que la cuenta sí podía escribir, que es justo el caso donde se quiere el comportamiento declarativo completo (creación y corrección de drift).
+
+Cómo se detecta (`can_write_role_assignments` en `infra/lib/common.sh`):
+
+1. Obtiene el object id del caller desde el claim `oid` del token de ARM — no vía Graph (`az ad signed-in-user show`), que suele estar bloqueado en cuentas guest o restringidas.
+2. Consulta la API `Microsoft.Authorization/checkAccess` en el scope del Resource Group, que evalúa el acceso **efectivo**: incluye roles directos, heredados por grupo y activados vía PIM — algo que listar role assignments no captura.
+3. Solo un `NotAllowed` explícito omite los grants. Si el probe falla por cualquier motivo (sin token, claims ilegibles, error de API), asume que sí puede escribirlos: nunca se omiten grants en silencio, preferimos que ARM falle ruidosamente.
+
+Cuando se omiten, `main.bicep` deja fuera los seis grants que administra: los tres de la identidad del App Service, los dos opcionales del grupo de desarrollo sobre Storage, y el `Key Vault Secrets Officer` del grupo de desarrollo.
+
+Omitir un grant significa que deja de estar declarado, y **un recurso administrado por el stack que deja de estar declarado se elimina bajo `deleteResources`**. Por eso `deploy.sh` **aborta** si la cuenta no puede escribir role assignments y `ACTION_ON_UNMANAGE=deleteResources`: cambiar un error de permisos por la destrucción de los grants que se querían preservar no es una mejora. Aborta antes de tocar ningún recurso.
+
+Con `ACTION_ON_UNMANAGE=detachAll`, que es el requisito para poder omitir:
+
+| Situación                                                  | Consecuencia                                                                                      |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Los grants ya existen (redeploy de un RG en uso)           | **Inocuo** — quedan intactos, solo pasan a estar detachados (sin administrar por el stack)        |
+| Resource Group nuevo, o identidad del App Service recreada | **La API queda rota** — sin `AcrPull` falla el pull de la imagen, y sin acceso a blobs el storage |
+
+Verificar los grants de la identidad administrada de la API:
+
+```bash
+PRINCIPAL_ID=$(az webapp show -n <api-name> -g <resource-group> --query identity.principalId -o tsv)
+
+# Debe devolver: AcrPull, Storage Blob Data Contributor, Storage Blob Delegator
+az role assignment list --assignee-object-id "$PRINCIPAL_ID" --all --query "[].roleDefinitionName" -o tsv
+```
+
+La degradación es un puente, no la solución: lo correcto es que alguien con Owner otorgue _Role Based Access Control Administrator_ acotado al Resource Group (idealmente como asignación elegible vía PIM). El siguiente deploy lo detecta solo y vuelve a administrar los grants.
 
 ### Verificar Login
 
