@@ -67,6 +67,24 @@ Open a submission from the queue to see its full detail view, including:
 - Submitted organization data or inventory/project fields
 - Any documents uploaded by the organization (viewed via temporary SAS URLs)
 - Previous review history (if the submission was previously `REVIEWED` and re-submitted)
+- Identity conflict warnings, for organization accreditations (see below)
+
+### Identity Conflict Warnings
+
+**API:** `GET /admin/submissions/:id/warnings`
+
+For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Conflictos detectados"** section when the applicant's identity collides with another organization. Matching is field-to-same-field (`legalName`, `tradeName`, `taxId`), exact, case-insensitive and trimmed on both sides; null fields are skipped. There is no fuzzy matching and no country-specific tax-id normalization, so the same tax id written in two formats (`76.123.456-7` vs `761234567`) does not match.
+
+Each conflicting organization is one chip, grouped by collision state:
+
+| State      | Meaning                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| `APPROVED` | Collides with an already-inscribed organization, compared against its **approved** snapshot — not its displayed row |
+| `PENDING`  | Collides with another organization's pending submission                                                             |
+
+Expanding a chip shows a side-by-side comparison of the two identity tuples with the colliding fields highlighted. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
+
+Branches (_sedes_) of the same real company share identity values by nature, so they surface here as awareness signals rather than errors — the warning never blocks approval, it is context for the reviewer.
 
 ### Approving
 
@@ -165,14 +183,14 @@ The KPI summary breaks down organizations by:
 | ----------------- | ---------------------------------------------- |
 | Organization Name | Legal or registered name                       |
 | Sector            | Economic sector                                |
-| Sub-Sector        | Subsector classification                       |
+| Tax ID            | Tax identifier (RUT / RUC / ID Tributario)     |
 | Size              | Organization size category                     |
 | Status            | Derived from accreditation and inventory state |
 | Last Measurement  | Date of the most recent carbon inventory       |
 | Total Emissions   | Aggregate tCO₂e across all inventories         |
 | Actions           | View, Edit, Block, or Unblock                  |
 
-Sortable by: name, sector, subsector, size, status, whether inventories exist, last measurement date, and total emissions.
+Sorting and filtering are client-side over the full list. The search box matches organization name, tax ID, sector, size and status. The subsector is still returned by the API but is no longer displayed as a column.
 
 ---
 
@@ -211,6 +229,12 @@ All admin routes require `ADMIN` or `SUPERADMIN` system role. All responses foll
 | `POST` | `/admin/requests/:id/approve` | Approve a pending submission                   |
 | `POST` | `/admin/requests/:id/review`  | Return with observations                       |
 | `POST` | `/admin/requests/:id/reject`  | Reject a submission                            |
+
+### Submissions
+
+| Method | Path                              | Description                                                |
+| ------ | --------------------------------- | ---------------------------------------------------------- |
+| `GET`  | `/admin/submissions/:id/warnings` | Warnings computed for a submission, dispatched by its type |
 
 ### Organizations
 
