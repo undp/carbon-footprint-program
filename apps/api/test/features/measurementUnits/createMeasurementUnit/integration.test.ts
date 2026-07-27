@@ -217,16 +217,12 @@ describe("POST /api/measurement-units - Integration Tests", () => {
       });
     }
 
-    it("should pass the 'no existing base unit' guard and hit the DB check constraint for baseFactor=1 on a non-base unit", async () => {
-      // The app-level guard only rejects baseFactor=1 on a non-base unit when
-      // another ACTIVE base unit already exists for the magnitude (see the
-      // 422 test above). With no existing base unit, that guard's `if
-      // (existingBase)` branch evaluates false and the code proceeds to
-      // create the row — where the `measurement_unit_base_factor_check`
-      // constraint (`NOT is_base AND base_factor <> 1`) unconditionally
-      // rejects it. This still exercises the guard's "not found" branch, even
-      // though the ultimate outcome is a raw database error rather than a
-      // clean success.
+    it("should return 422 for baseFactor=1 on a non-base unit even when the magnitude has no base unit yet", async () => {
+      // baseFactor=1 is reserved for the base unit, so a non-base unit with
+      // baseFactor=1 is invalid regardless of whether the magnitude already has
+      // a base unit. The guard rejects it unconditionally with a clean 422
+      // (matching the sibling test above), so it never reaches the raw
+      // `measurement_unit_base_factor_check` DB constraint.
       const magnitude = await createFreshMagnitude();
       try {
         const payload = buildPayload({
@@ -241,7 +237,9 @@ describe("POST /api/measurement-units - Integration Tests", () => {
           payload,
         });
 
-        expect(response.statusCode).toBe(500);
+        expect(response.statusCode).toBe(422);
+        const body = JSON.parse(response.body) as { code: string };
+        expect(body.code).toBe("BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT");
       } finally {
         await prisma.rateMeasurementUnit.deleteMany({
           where: { denominatorMeasurementUnit: { magnitudeId: magnitude.id } },

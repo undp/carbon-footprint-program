@@ -39,15 +39,15 @@
     "@repo/eslint-config": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
-    "prisma": "^7.8.0",
+    "prisma": "^7.9.0",
     "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared",
     "vitest": "catalog:shared"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
-    "@prisma/client-runtime-utils": "^7.8.0"
+    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/client": "^7.9.0",
+    "@prisma/client-runtime-utils": "^7.9.0"
   }
 }

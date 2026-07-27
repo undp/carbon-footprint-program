@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,61 +49,55 @@ export type MeasurementUnitsFormValues = {
 export type MeasurementUnitsFormRow =
   MeasurementUnitsFormValues["measurementUnits"][number];
 
-export const useMeasurementUnitsForm = (
-  magnitudesWithBaseUnit: Set<string>
-) => {
-  const schema = useMemo(() => {
-    const rowSchema = measurementUnitFormRowSchema.superRefine((row, ctx) => {
-      if (row.isBase && row.baseFactor !== null && row.baseFactor !== 1) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Una unidad base debe tener factor base igual a 1.",
-          path: ["baseFactor"],
-        });
-      }
+const measurementUnitFormRowSchemaWithRules =
+  measurementUnitFormRowSchema.superRefine((row, ctx) => {
+    if (row.isBase && row.baseFactor !== null && row.baseFactor !== 1) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Una unidad base debe tener factor base igual a 1.",
+        path: ["baseFactor"],
+      });
+    }
 
-      if (
-        !row.isBase &&
-        row.baseFactor === 1 &&
-        magnitudesWithBaseUnit.has(row.magnitudeId)
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          message:
-            "No se puede asignar factor base 1 cuando ya existe una unidad base para esta magnitud.",
-          path: ["baseFactor"],
-        });
-      }
-    });
+    if (!row.isBase && row.baseFactor === 1) {
+      ctx.addIssue({
+        code: "custom",
+        message: "El factor base 1 está reservado para la unidad base.",
+        path: ["baseFactor"],
+      });
+    }
+  });
 
-    return z.object({
-      measurementUnits: z.array(rowSchema).superRefine((rows, ctx) => {
-        rows.forEach((row, index) => {
-          if (!row.isBase) return;
+const measurementUnitsFormSchema = z.object({
+  measurementUnits: z
+    .array(measurementUnitFormRowSchemaWithRules)
+    .superRefine((rows, ctx) => {
+      rows.forEach((row, index) => {
+        if (!row.isBase) return;
 
-          const conflictsWithAnotherRow = rows.some(
-            (other, otherIndex) =>
-              otherIndex !== index &&
-              other.isBase &&
-              other.magnitudeId === row.magnitudeId
-          );
+        const conflictsWithAnotherRow = rows.some(
+          (other, otherIndex) =>
+            otherIndex !== index &&
+            other.isBase &&
+            other.magnitudeId === row.magnitudeId
+        );
 
-          if (conflictsWithAnotherRow) {
-            ctx.addIssue({
-              code: "custom",
-              message: "Solo puede existir una unidad base por magnitud.",
-              path: [index, "isBase"],
-            });
-          }
-        });
-      }),
-    });
-  }, [magnitudesWithBaseUnit]);
+        if (conflictsWithAnotherRow) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Solo puede existir una unidad base por magnitud.",
+            path: [index, "isBase"],
+          });
+        }
+      });
+    }),
+});
 
+export const useMeasurementUnitsForm = () => {
   const form = useForm<MeasurementUnitsFormValues>({
     defaultValues: { measurementUnits: [] },
     mode: "onBlur",
-    resolver: zodResolver(schema),
+    resolver: zodResolver(measurementUnitsFormSchema),
   });
 
   const fieldArray = useFieldArray({

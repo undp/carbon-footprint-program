@@ -91,3 +91,8 @@ jobs:
           # Vulnerabilities only — secret detection is already covered by the
           # `secret-scan` job in ci.yml.
           scanners: vuln
+          # Advisories already reviewed and accepted for these images, mirroring
+          # `auditConfig.ignoreGhsas` in pnpm-workspace.yaml (the `pnpm audit`
+          # gate). Each entry carries its rationale and an `expired_at` review
+          # deadline; see .trivyignore.yaml.
+          trivyignores: .trivyignore.yaml

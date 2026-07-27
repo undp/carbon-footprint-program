@@ -14,13 +14,13 @@ import {
   resolveKgMeasurementUnit,
   getMeasurementUnitReferenceCount,
   buildCanonicalRmuFields,
+  assertBaseFactorOneIsReservedForBaseUnit,
 } from "../helpers.js";
 import {
   MagnitudeAlreadyHasBaseUnitError,
   MagnitudeInactiveError,
   MeasurementUnitAbbreviationAlreadyExistsError,
   BaseUnitMustHaveBaseFactorOneError,
-  BaseFactorOneReservedForBaseUnitError,
 } from "../errors.js";
 import { mapMeasurementUnitToResponse } from "../mappers.js";
 
@@ -56,19 +56,7 @@ export const createMeasurementUnitService = async (
       if (existingBase) throw new MagnitudeAlreadyHasBaseUnitError();
     }
 
-    if (!body.isBase && body.baseFactor === 1) {
-      const existingBase = await tx.measurementUnit.findFirst({
-        where: {
-          magnitudeId: BigInt(body.magnitudeId),
-          isBase: true,
-          status: MeasurementUnitStatus.ACTIVE,
-        },
-        select: { id: true },
-      });
-      if (existingBase) {
-        throw new BaseFactorOneReservedForBaseUnitError();
-      }
-    }
+    assertBaseFactorOneIsReservedForBaseUnit(body.isBase, body.baseFactor);
 
     const existing = await tx.measurementUnit.findUnique({
       where: { abbreviation: body.abbreviation },
