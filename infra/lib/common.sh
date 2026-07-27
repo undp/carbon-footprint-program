@@ -49,6 +49,55 @@ resolve_frontend_origin() {
   fi
 }
 
+# Can the signed-in principal create role assignments in $AZURE_RESOURCE_GROUP?
+#
+# The role assignments in main.bicep are the only resources needing
+# Microsoft.Authorization/roleAssignments/write, and Contributor does NOT include that action. ARM
+# authorizes the *operation*, not the diff, so a Contributor-only operator fails the ENTIRE stack
+# deploy even when every assignment already exists and the write would be an idempotent no-op (the
+# names are deterministic guids). Detecting the permission lets the deploy skip exactly those
+# resources instead of dying on them.
+#
+# Uses the Authorization checkAccess API, which evaluates *effective* access — direct,
+# group-inherited and PIM-activated roles all count, which listing role assignments would miss. It
+# is only served on the 2018-09-01-preview api-version. The caller's object ID comes from the `oid`
+# claim of the ARM access token rather than Graph (`az ad signed-in-user show`), which is commonly
+# blocked for guest and restricted accounts.
+#
+# Returns 1 only on an explicit NotAllowed. Everything else returns 0 — that covers both "can write"
+# and "could not determine" (no token, undecodable claims, API error, unrecognized decision), which
+# are deliberately conflated: never silently drop the grants, let ARM fail loudly instead.
+# Read-only, so it is also safe under DRY_RUN.
+# Requires AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP (read at call time).
+can_write_role_assignments() {
+  local token payload oid decision
+
+  token=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv 2>/dev/null || echo "")
+  if [ -z "$token" ]; then
+    return 0
+  fi
+
+  # JWT payload: base64url -> base64, re-padded to a multiple of 4. Decoded with openssl, already a
+  # hard dependency of deploy.sh, so no assumption is needed about which base64 flavour is installed.
+  payload=$(printf '%s' "$token" | cut -d. -f2 | tr '_-' '/+')
+  while [ $((${#payload} % 4)) -ne 0 ]; do
+    payload="${payload}="
+  done
+  oid=$(printf '%s' "$payload" | openssl base64 -d -A 2>/dev/null | jq -r '.oid // empty' 2>/dev/null || echo "")
+  if [ -z "$oid" ]; then
+    return 0
+  fi
+
+  decision=$(az rest \
+    --method post \
+    --url "https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Authorization/checkAccess?api-version=2018-09-01-preview" \
+    --body "{\"subject\":{\"attributes\":{\"ObjectId\":\"${oid}\"}},\"actions\":[{\"id\":\"Microsoft.Authorization/roleAssignments/write\",\"isDataAction\":false}]}" \
+    --query "[0].accessDecision" -o tsv 2>/dev/null || echo "")
+
+  # Only an explicit NotAllowed suppresses the grants; "Allowed" and anything unreadable attempt it.
+  [ "$decision" != "NotAllowed" ]
+}
+
 # Read a single deployment-stack output, normalizing a missing/null output to
 # an empty string (az may emit the literal "null" for an absent value).
 stack_output() {
