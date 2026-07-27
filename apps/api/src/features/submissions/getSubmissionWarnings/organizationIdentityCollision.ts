@@ -10,20 +10,37 @@ import {
 } from "@repo/types";
 
 /**
+ * Identity-collision detection for `ORGANIZATION_ACCREDITATION` submissions —
+ * the first (and currently only) warning kind of `GET /admin/submissions/:id/warnings`.
+ *
+ * Everything organization-specific lives here so `service.ts` keeps nothing but
+ * the generic dispatch by `submission.type`. A second warning kind (carbon
+ * inventories, reduction projects) gets its own sibling file; whatever turns out
+ * to be genuinely shared is promoted then, once the reuse is observed rather
+ * than guessed.
+ *
+ * Only the symbols that cross this file's boundary are prefixed — inside the
+ * module the filename already says "organization".
+ */
+
+/**
  * The three identity fields compared on both sides of a collision. Shared with
  * the service so the applicant snapshot and the candidate rows are read through
  * the same select — adding or removing a field here fails at the definition.
  */
-export const IDENTITY_SELECT = {
+export const ORGANIZATION_IDENTITY_SELECT = {
   organizationId: true,
   legalName: true,
   tradeName: true,
   taxId: true,
 } satisfies Prisma.OrganizationDataSelect;
 
-/** An organization-data identity tuple, derived from {@link IDENTITY_SELECT}. */
+/**
+ * An organization-data identity tuple, derived from
+ * {@link ORGANIZATION_IDENTITY_SELECT}.
+ */
 export type OrganizationIdentity = Prisma.OrganizationDataGetPayload<{
-  select: typeof IDENTITY_SELECT;
+  select: typeof ORGANIZATION_IDENTITY_SELECT;
 }>;
 
 /** Field order used for stable message/display output (design D9). */
@@ -45,6 +62,11 @@ const FIELD_LABELS: Record<CollisionField, string> = {
  * no verifier digit) — `taxId` is a generic string (RUT/RUC/ID Tributario).
  * Cross-format tax IDs ("76.123.456-7" vs "761234567") are a documented
  * deferred limitation. Empty/whitespace-only values normalize to null (skipped).
+ *
+ * Deliberately local and unexported: identity matching is the only caller today,
+ * and the "blank is not an identity" rule is a decision of this comparison, not
+ * of string handling in general. Promote it (next to
+ * `@/helpers/normalizeDescriptionInput`) when a second caller actually appears.
  */
 const normalize = (value: string | null): string | null => {
   if (value === null) return null;
@@ -241,7 +263,7 @@ export const getOrganizationIdentityCollisionWarnings = async (
           },
         },
       },
-      select: IDENTITY_SELECT,
+      select: ORGANIZATION_IDENTITY_SELECT,
       orderBy: { id: "desc" },
     }),
     prisma.organizationData.findMany({
@@ -253,7 +275,7 @@ export const getOrganizationIdentityCollisionWarnings = async (
           },
         },
       },
-      select: IDENTITY_SELECT,
+      select: ORGANIZATION_IDENTITY_SELECT,
       orderBy: { id: "desc" },
     }),
   ]);

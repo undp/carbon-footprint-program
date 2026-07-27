@@ -4,8 +4,8 @@ import type { GetSubmissionWarningsResponse } from "@repo/types";
 import { ResourceNotFoundError } from "@/errors/index.js";
 import {
   getOrganizationIdentityCollisionWarnings,
-  IDENTITY_SELECT,
-} from "./helpers.js";
+  ORGANIZATION_IDENTITY_SELECT,
+} from "./organizationIdentityCollision.js";
 
 export const getSubmissionWarningsService = async (
   prisma: PrismaClient,
@@ -18,7 +18,9 @@ export const getSubmissionWarningsService = async (
       subject: {
         select: {
           organizationData: {
-            select: { organizationData: { select: IDENTITY_SELECT } },
+            select: {
+              organizationData: { select: ORGANIZATION_IDENTITY_SELECT },
+            },
           },
         },
       },
