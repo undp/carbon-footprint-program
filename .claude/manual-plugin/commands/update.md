@@ -34,8 +34,11 @@ con los cambios pedidos. Sigue estos pasos en orden.
 3. **Interpreta el prompt y aplica los cambios al HTML**: editar textos, agregar / eliminar /
    reordenar slides, ajustar callouts, cambiar o insertar screenshots, etc. DEBE respetar:
    - el **contrato de clases** (no inventar clases ni variables fuera del contrato);
-   - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N;
-   - las **reglas duras**: máx 20 slides; máx 2 info/tip-box por slide; máx 6-7 callouts por
+   - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N → Back cover
+     (la portada repetida como cierre);
+   - las **reglas duras**: máx 20 slides sin contar la contraportada; ninguna lámina sobre 810 px
+     de alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); máx 2
+     info/tip-box por slide; máx 6-7 callouts por
      screenshot; español neutro en segunda persona; sin datos reales de personas; sin jerga técnica
      (API, base de datos).
      Si agregas o quitas slides, **mantén el slide Index sincronizado** (títulos y números de página).

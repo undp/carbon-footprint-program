@@ -83,9 +83,13 @@ COVER        → Portada con screenshot del módulo
 OBJECTIVES   → 3 objetivos del módulo con íconos (siempre 3)
 INDEX        → Índice de contenidos en 2 columnas
 [DIVIDER + CONTENT] × N  → Separador de sección + contenido, por cada sección
+BACK COVER   → Cierre: la misma lámina de portada, repetida
 ```
 
-Cantidad de slides según complejidad (**tope duro: 20**):
+El capítulo **cierra con la portada repetida** (mismo markup, `data-page` corriendo). No va en
+el índice y no cuenta para el tope de slides.
+
+Cantidad de slides según complejidad (**tope duro: 20**, sin contar la contraportada):
 
 - Simple (1 vista, pocos features): **10-14**.
 - Mediano (2-3 vistas): **14-18**.
@@ -173,9 +177,13 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 ## Reglas duras (no romper)
 
-- Máximo **20 slides** por capítulo.
+- Máximo **20 slides** por capítulo (la contraportada no cuenta).
+- El capítulo **cierra repitiendo la lámina de portada**.
 - Máximo **2 info-box o tip-box** por slide.
 - Máximo **6-7 callouts** por screenshot.
+- Ninguna lámina supera los **810 px** de alto. Si una se pasa (típicamente descripción +
+  leyenda larga + info/tip-box), reduce el screenshot con `annotated-screenshot--sm` (74%) o
+  `--xs` (62%): el escalado es proporcional y los callouts siguen calzando.
 - No duplicar información entre slides.
 - No incluir texto técnico de implementación (API, base de datos).
 - Solo formato slide (landscape); sin formato carta ni toggle.

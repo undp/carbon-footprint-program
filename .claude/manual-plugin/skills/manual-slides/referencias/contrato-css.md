@@ -223,6 +223,9 @@ Slide de contenido general.
 ### Screenshot anotado con callouts
 
 - `.annotated-screenshot`: `position:relative; border-radius:8px; overflow:hidden; max-width:85%; margin:0 auto;`
+- `.annotated-screenshot--sm` / `--xs`: modificadores para láminas densas —
+  `max-width:74%` y `62%` respectivamente. Escalan la imagen y los callouts en conjunto
+  (los `%` son relativos al contenedor), así que la anotación no se desalinea.
 - `.annotated-screenshot img`: `width:100%; display:block;`
 - `.callout-num`: punto numerado posicionado en `%` sobre la imagen. Círculo
   `width:28px; height:28px; border-radius:50%;` `background:var(--brand-annotation-red);`
@@ -321,7 +324,7 @@ Clave para que el PDF salga una slide por página sin cortes.
 `.content-split__text`, `.content-split__visual`,
 `.screenshot-container`, `.screenshot-placeholder`, `.screenshot-placeholder__label`,
 `.screenshot-placeholder__filename`,
-`.annotated-screenshot`, `.callout-num`, `.annotation-legend`, `.cols-3`, `.legend-num`,
+`.annotated-screenshot` (`--sm`/`--xs`), `.callout-num`, `.annotation-legend`, `.cols-3`, `.legend-num`,
 `.info-box`, `.tip-box`,
 `.feature-list`,
 `.data-table`,

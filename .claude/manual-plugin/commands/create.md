@@ -56,14 +56,17 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 
 7. **Planifica y escribe el manual** según la skill, usando los templates exactos de
    `plantillas-slides.html`:
-   Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N.
-   Entre **10 y 20 slides** según la complejidad del módulo.
+   Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N →
+   Back cover (la misma lámina de portada, repetida como cierre).
+   Entre **10 y 20 slides** según la complejidad del módulo (la contraportada no cuenta).
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
    Escribe el archivo en `user_manual/<slug_snake>/<slug_snake>.html`.
 
-8. **Reglas duras**: máx 20 slides; estructura Cover → Objectives (3) → Index →
-   [Divider + Content] × N; sin vistas responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
+8. **Reglas duras**: máx 20 slides (sin contar la contraportada); estructura Cover →
+   Objectives (3) → Index → [Divider + Content] × N → Back cover; ninguna lámina sobre 810 px de
+   alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); sin vistas
+   responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
    screenshot; español neutro en segunda persona; sin jerga técnica (API, base de datos); sin
    datos reales de personas. Estas reglas priman siempre sobre las instrucciones adicionales:
    si algo pedido en ellas choca con una regla dura, aplica la regla dura y avisa al usuario.
