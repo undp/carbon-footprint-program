@@ -131,8 +131,20 @@ preflight_swa_custom_domain() {
   local dry_run="${DRY_RUN:-false}"
 
   # 1) Is there a SWA to point a CNAME at yet?
+  #
+  # Prefer the stack output, but fall back to listing the resource group: a failed stack operation
+  # leaves the stack with NO outputs at all, which is not the same as "no SWA exists". Inferring
+  # absence from a missing output blocks the redeploy precisely when one is needed most — right
+  # after a failure.
+  #
+  # Caveat: the fallback takes the first SWA in the resource group, which is ambiguous if more than
+  # one exists. The stack's own managed-resource list survives a failed operation and would identify
+  # the right one unambiguously — worth switching to.
   local swa_host
   swa_host=$(stack_output staticWebAppHostname)
+  if [ -z "$swa_host" ]; then
+    swa_host=$(az staticwebapp list --resource-group "$AZURE_RESOURCE_GROUP" --query "[0].defaultHostname" -o tsv 2>/dev/null || echo "")
+  fi
   swa_host="${swa_host%.}"
   if [ -z "$swa_host" ]; then
     echo "ERROR: FRONTEND_CUSTOM_DOMAIN=\"$domain\" is set, but no Static Web App exists in the stack yet." >&2
