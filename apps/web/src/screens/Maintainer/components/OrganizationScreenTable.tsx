@@ -146,8 +146,8 @@ export const OrganizationScreenTable: FC = () => {
     () => ({
       keys: [
         "name",
+        "taxId",
         "sectorName",
-        "subsectorName",
         "sizeName",
         {
           name: "status",
