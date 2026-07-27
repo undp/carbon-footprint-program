@@ -36,11 +36,11 @@ Genera el branding del manual para este proyecto. Sigue estos pasos en orden.
    - Idioma/variante de los manuales y público objetivo.
    - Confirmación del **color primario** y la **tipografía** detectados: muestra los valores
      detectados como opción recomendada, con alternativa de ingresar valores manuales.
-   Toma en cuenta `$ARGUMENTS` como indicaciones de identidad si vienen.
+     Toma en cuenta `$ARGUMENTS` como indicaciones de identidad si vienen.
 
 5. **Construye DESDE CERO** (nunca copies un CSS preexistente; deriva del contrato):
    - `<DATA_DIR>/branding/tokens.json`: todos los tokens `--brand-*`
-     + `--font-main` + metadatos (nombre de app, organización, idioma).
+     - `--font-main` + metadatos (nombre de app, organización, idioma).
    - `<DATA_DIR>/branding/manual.css`: TODAS las clases del contrato,
      usando `var(--brand-*)` (sin hex hardcodeados salvo `#fff` donde el contrato lo indica).
    - `<DATA_DIR>/branding/componentes.html`: snippets de los componentes

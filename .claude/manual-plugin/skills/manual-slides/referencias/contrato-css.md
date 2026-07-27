@@ -17,46 +17,52 @@ toggle de formato.
 Todas obligatorias. `tokens.json` guarda estos mismos valores más metadatos.
 
 ### Colores de marca (primarios)
-| Variable | Rol |
-|----------|-----|
-| `--brand-primary` | Color principal: acentos, dividers, íconos, números de página, bordes de tip-box. |
-| `--brand-primary-dark` | Variante oscura; inicio del gradiente de portada. |
-| `--brand-primary-light` | Variante clara; fin del gradiente de portada y fondo de dividers. |
+
+| Variable                | Rol                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `--brand-primary`       | Color principal: acentos, dividers, íconos, números de página, bordes de tip-box. |
+| `--brand-primary-dark`  | Variante oscura; inicio del gradiente de portada.                                 |
+| `--brand-primary-light` | Variante clara; fin del gradiente de portada y fondo de dividers.                 |
 
 ### Colores base
-| Variable | Rol |
-|----------|-----|
-| `--brand-text` | Texto principal. |
+
+| Variable                 | Rol                                                                |
+| ------------------------ | ------------------------------------------------------------------ |
+| `--brand-text`           | Texto principal.                                                   |
 | `--brand-text-secondary` | Texto secundario (~60% opacidad del texto). Descripciones, footer. |
-| `--brand-text-tertiary` | Texto terciario (~42% opacidad del texto). |
-| `--brand-bg` | Fondo general de referencia de los slides. |
-| `--brand-surface` | Fondo de las slides de contenido y de cards/tablas. |
+| `--brand-text-tertiary`  | Texto terciario (~42% opacidad del texto).                         |
+| `--brand-bg`             | Fondo general de referencia de los slides.                         |
+| `--brand-surface`        | Fondo de las slides de contenido y de cards/tablas.                |
 
 ### Colores de anotación
-| Variable | Rol |
-|----------|-----|
-| `--brand-annotation-red` | Fondo de los callouts numerados sobre screenshots y de los `legend-num`. |
-| `--brand-annotation-orange` | Color de anotación alternativo (suele coincidir con el primario). |
+
+| Variable                    | Rol                                                                      |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `--brand-annotation-red`    | Fondo de los callouts numerados sobre screenshots y de los `legend-num`. |
+| `--brand-annotation-orange` | Color de anotación alternativo (suele coincidir con el primario).        |
 
 ### Escala de grises (100 claro → 900 oscuro)
+
 `--brand-grey-100`, `-200`, `-300`, `-400`, `-500`, `-600`, `-800`, `-900`.
 Usos clave: `-200` fondos suaves (header de tabla, placeholder, borde superior del footer),
 `-300` fondo de referencia del `body` y bordes, `-400` bordes punteados y dashed,
 `-500`/`-600` textos e íconos deshabilitados/placeholder.
 
 ### Colores semánticos
-| Variable | Rol |
-|----------|-----|
-| `--brand-success` | Verde (estado ok). |
-| `--brand-warning` | Ámbar (advertencia). |
-| `--brand-error` | Rojo (error). |
-| `--brand-info` | Azul (info-box, íconos informativos). |
+
+| Variable          | Rol                                   |
+| ----------------- | ------------------------------------- |
+| `--brand-success` | Verde (estado ok).                    |
+| `--brand-warning` | Ámbar (advertencia).                  |
+| `--brand-error`   | Rojo (error).                         |
+| `--brand-info`    | Azul (info-box, íconos informativos). |
 
 ### Tipografía y layout
-| Variable | Valor de referencia | Rol |
-|----------|--------------------|-----|
-| `--font-main` | p. ej. `'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif` | Tipografía global. |
-| `--slide-padding` | `64px 80px` | Padding interior de las slides. |
+
+| Variable          | Valor de referencia                                                 | Rol                             |
+| ----------------- | ------------------------------------------------------------------- | ------------------------------- |
+| `--font-main`     | p. ej. `'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif` | Tipografía global.              |
+| `--slide-padding` | `64px 80px`                                                         | Padding interior de las slides. |
 
 > Nota de genericización: el template original incluía `--letter-padding`; se **elimina**
 > porque no hay formato carta. Los fondos translúcidos derivados de un color (fondos de
@@ -80,11 +86,13 @@ Usos clave: `-200` fondos suaves (header de tabla, placeholder, borde superior d
 ## 3. Slide base y footer
 
 ### `.slide`
+
 Contenedor base de cada slide. `position:relative`; `background:var(--brand-surface)`;
 `overflow:hidden`; **`counter-increment: slide-counter;`** (numera cada slide).
 Las dimensiones reales las fija `.format-slide .slide` (§15).
 
 ### `.slide__footer`
+
 Barra inferior fija, presente en TODAS las slides.
 `position:absolute; bottom:0; left:0; right:0;` `padding:12px 40px;`
 `display:flex; justify-content:space-between; align-items:center;`
@@ -108,11 +116,13 @@ Portada con gradiente de marca a pantalla completa.
 - `.slide--cover .slide__footer`: `border-top-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6);`
 
 ### Layout de contenido
+
 - `.cover-content`: `display:flex; justify-content:space-between; align-items:center; width:100%; gap:60px;`
 - `.cover-text`: `flex:0 0 45%;`
 - `.cover-mockup`: `flex:0 0 50%;`
 
 ### Textos de portada
+
 - `.cover-logo`: `font-size:42px; font-weight:700; letter-spacing:2px; margin-bottom:48px;`
 - `.cover-subtitle`: `font-size:16px; font-weight:400; letter-spacing:3px; text-transform:uppercase; opacity:0.8; margin-bottom:12px;`
 - `.cover-title`: `font-size:56px; font-weight:700; line-height:1.1; margin-bottom:8px;`
@@ -120,6 +130,7 @@ Portada con gradiente de marca a pantalla completa.
 - `.cover-version`: `font-size:14px; font-weight:400; opacity:0.6;`
 
 ### Mockup (marco del screenshot)
+
 - `.cover-mockup-frame`: `border-radius:12px; padding:12px; background:rgba(0,0,0,0.25);`
 - `.cover-mockup-screen`: `border-radius:6px; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; overflow:hidden;`
 - `.cover-mockup-screen img`: `width:100%; height:100%; object-fit:cover;`
@@ -129,6 +140,7 @@ Portada con gradiente de marca a pantalla completa.
 ## 5. Marca de agua del ícono del módulo (`.module-icon-bg`)
 
 Ícono gigante translúcido de fondo, en cover y divider.
+
 - `.module-icon-bg`: `position:absolute; top:0; left:0; bottom:0; width:55%; overflow:hidden; pointer-events:none; display:flex; align-items:center; justify-content:center;`
 - `.module-icon-bg .material-symbols-rounded`: `font-size:580px; color:rgba(255,255,255,0.05); font-variation-settings:'FILL' 1;`
 - `.slide--divider .module-icon-bg`: `display:none;` (en divider se declara pero se oculta).
@@ -138,6 +150,7 @@ Portada con gradiente de marca a pantalla completa.
 ## 6. Slide DIVIDER (`.slide--divider`)
 
 Separador de sección centrado, fondo de color claro de marca.
+
 - `.slide--divider`: `background:var(--brand-primary-light); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;`
 - `.slide--divider .slide__footer`: `border-top-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5);`
 - `.divider-icon-wrap`: círculo `width:88px; height:88px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; margin-bottom:24px;`
@@ -149,6 +162,7 @@ Separador de sección centrado, fondo de color claro de marca.
 ## 7. Slide OBJECTIVES (`.slide--objectives`)
 
 Lista vertical centrada de 3 objetivos.
+
 - `.slide--objectives`: `display:flex; flex-direction:column; justify-content:center;`
 - `.objectives-title`: `font-size:36px; font-weight:700; color:var(--brand-text); margin-bottom:48px; text-align:center;`
 - `.objectives-list`: `display:flex; flex-direction:column; gap:36px; max-width:900px; margin:0 auto;`
@@ -163,6 +177,7 @@ Lista vertical centrada de 3 objetivos.
 ## 8. Slide INDEX (`.slide--index`)
 
 Índice a 2 columnas.
+
 - `.slide--index`: `display:flex; flex-direction:column; justify-content:center;`
 - `.index-title`: `font-size:36px; font-weight:700; color:var(--brand-text); margin-bottom:40px; text-align:center;`
 - `.index-columns`: **multicolumna** `columns:2; column-gap:80px; max-width:960px; margin:0 auto; width:100%;`
@@ -177,12 +192,14 @@ Lista vertical centrada de 3 objetivos.
 ## 9. Slide CONTENT (`.slide--content`)
 
 Slide de contenido general.
+
 - `.slide--content`: `display:flex; flex-direction:column; justify-content:flex-start;`
 - `.content-title`: `font-size:32px; font-weight:700; color:var(--brand-text); margin-bottom:20px;`
 - `.content-description`: `font-size:17px; color:var(--brand-text-secondary); line-height:1.7; margin-bottom:28px; max-width:none;`
 - `.content-description strong`: `color:var(--brand-text); font-weight:600;`
 
 ### Split texto + visual (45% / 55%)
+
 - `.content-split`: `display:flex; gap:48px; align-items:flex-start; flex:1;`
 - `.content-split__text`: `flex:0 0 45%; padding-top:8px;`
 - `.content-split__visual`: `flex:1;`
@@ -192,16 +209,19 @@ Slide de contenido general.
 ## 10. Screenshots
 
 ### Contenedor simple
+
 - `.screenshot-container`: `position:relative; border-radius:8px; overflow:hidden;`
 - `.screenshot-container img`: `width:100%; display:block;`
 
 ### Placeholder (sin captura)
+
 - `.screenshot-placeholder`: `background:var(--brand-grey-200); border:2px dashed var(--brand-grey-400); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; min-height:280px;`
 - `.screenshot-placeholder .material-symbols-rounded`: `font-size:48px; color:var(--brand-grey-500); margin-bottom:12px;`
 - `.screenshot-placeholder__label`: `font-size:14px; color:var(--brand-grey-600); margin-bottom:4px;`
 - `.screenshot-placeholder__filename`: `font-size:12px; color:var(--brand-grey-500); font-family:monospace;`
 
 ### Screenshot anotado con callouts
+
 - `.annotated-screenshot`: `position:relative; border-radius:8px; overflow:hidden; max-width:85%; margin:0 auto;`
 - `.annotated-screenshot img`: `width:100%; display:block;`
 - `.callout-num`: punto numerado posicionado en `%` sobre la imagen. Círculo
@@ -211,6 +231,7 @@ Slide de contenido general.
   `z-index:2; position:absolute;`
 
 ### Leyenda de anotaciones
+
 - `.annotation-legend`: `list-style:none; columns:2; column-gap:48px; margin-top:36px; font-size:13px; color:var(--brand-text-secondary);`
 - `.annotation-legend.cols-3`: `columns:3;` (para >4 items).
 - `.annotation-legend li`: `display:flex; align-items:baseline; gap:8px; line-height:1.45; padding:4px 0; break-inside:avoid;`
@@ -221,6 +242,7 @@ Slide de contenido general.
 ## 11. Info-box y tip-box
 
 Cajas con borde izquierdo de color. Máx 2 por slide (regla dura).
+
 - `.info-box`: `display:flex; gap:14px; padding:18px 22px;` fondo = **info a 6% de opacidad**;
   `border-left:4px solid var(--brand-info); border-radius:0 6px 6px 0; margin:20px 0; font-size:15px; line-height:1.5; color:var(--brand-text);`
 - `.info-box .material-symbols-rounded`: `color:var(--brand-info); font-size:22px; flex-shrink:0; margin-top:1px;`
@@ -249,6 +271,7 @@ Cajas con borde izquierdo de color. Máx 2 por slide (regla dura).
 ## 14. Status dot (`.status-dot`)
 
 Punto de color inline para estados.
+
 - `.status-dot`: `display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle;`
 - Modificadores (mapear a los tokens semánticos, no a hex fijos):
   - `.status-dot--error` → `background:var(--brand-error);`
@@ -262,6 +285,7 @@ Punto de color inline para estados.
 ## 15. Formato slide (landscape)
 
 Fija las dimensiones reales de cada slide. El `<body>` lleva `class="format-slide"`.
+
 - `.format-slide .slide`: `min-height:100vh; padding:var(--slide-padding); padding-bottom:52px; margin-bottom:4px;`
 - `.format-slide .slide--cover`: `padding:60px 80px 52px;`
 - `.format-slide .slide--divider`: `padding:0;`
@@ -271,6 +295,7 @@ Fija las dimensiones reales de cada slide. El `<body>` lleva `class="format-slid
 ## 16. Estilos de impresión (`@media print`) y `@page`
 
 Clave para que el PDF salga una slide por página sin cortes.
+
 - `body`: `background:white;`
 - `.slide`: `break-after:page; break-inside:avoid; page-break-after:always; page-break-inside:avoid; overflow:hidden; margin:0; box-shadow:none; border-radius:0;`
 - `.slide:last-child`: `break-after:auto; page-break-after:auto;`

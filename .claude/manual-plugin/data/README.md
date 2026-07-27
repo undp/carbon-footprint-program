@@ -8,21 +8,21 @@ con las carpetas vacías (solo `.gitkeep`).
 
 La escribe `/manual:branding` (y la ajusta `/manual:branding-update`):
 
-| Archivo | Contenido |
-|---------|-----------|
-| `tokens.json` | Todos los tokens `--brand-*`, `--font-main` y metadatos (nombre de la app, organización, idioma). |
-| `manual.css` | Hoja de estilos completa de los slides, con TODAS las clases del contrato usando `var(--brand-*)`. |
-| `componentes.html` | Snippets de componentes adaptados al branding del proyecto. |
-| `branding.html` | Guía de estilo navegable (paleta, tipografía, componentes renderizados). |
+| Archivo            | Contenido                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `tokens.json`      | Todos los tokens `--brand-*`, `--font-main` y metadatos (nombre de la app, organización, idioma).  |
+| `manual.css`       | Hoja de estilos completa de los slides, con TODAS las clases del contrato usando `var(--brand-*)`. |
+| `componentes.html` | Snippets de componentes adaptados al branding del proyecto.                                        |
+| `branding.html`    | Guía de estilo navegable (paleta, tipografía, componentes renderizados).                           |
 
 ## modules/
 
 La escribe `/manual:explore`:
 
-| Archivo | Contenido |
-|---------|-----------|
-| `index.json` | Lista de módulos descubiertos: `[{slug, titulo, fuente, estado, fecha}]`. |
-| `<slug>.md` | Ficha de cada módulo: propósito, rutas, pantallas, acciones, entidades, estados, referencias de código, dudas abiertas y evidencia. |
+| Archivo         | Contenido                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.json`    | Lista de módulos descubiertos: `[{slug, titulo, fuente, estado, fecha}]`.                                                                             |
+| `<slug>.md`     | Ficha de cada módulo: propósito, rutas, pantallas, acciones, entidades, estados, referencias de código, dudas abiertas y evidencia.                   |
 | `baseline.json` | Línea base git de la última exploración: `{commit, branch, fecha}`. La usa `/manual:explore-update` para re-explorar por `git diff` solo lo cambiado. |
 
 ## Nota de persistencia

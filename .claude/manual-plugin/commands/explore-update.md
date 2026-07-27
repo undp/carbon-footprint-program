@@ -27,24 +27,26 @@ Si incluye Playwright, pregunta (AskUserQuestion, máx 4): URL base, ruta inicia
 datos de prueba (solo para la sesión). **Nunca** registres secretos ni datos reales en las fichas.
 
 **Paso 4 — Alcance del re-escaneo.** Decide entre incremental y completo:
+
 - Si **no** existe `baseline.json`, **o** el proyecto no es repo git (`git rev-parse
-  --is-inside-work-tree` falla), **o** el commit guardado ya no existe (`git cat-file -e
-  <commit>^{commit}` falla, p. ej. tras rebase/squash) → **exploración completa**: orquesta
+--is-inside-work-tree` falla), **o** el commit guardado ya no existe (`git cat-file -e
+<commit>^{commit}` falla, p. ej. tras rebase/squash) → **exploración completa**: orquesta
   subagentes sonnet (áreas a–d de `/manual:explore`) sobre TODO el código, aplica las reglas del
   Paso 6, salta al Paso 7 y anota el motivo del fallback en el resumen.
 - Si existe y es válido → **incremental**: archivos cambiados = `git diff --name-only <commit>
-  HEAD` unido a `git status --porcelain` (cambios sin commitear). Si el set queda **vacío**,
+HEAD` unido a `git status --porcelain` (cambios sin commitear). Si el set queda **vacío**,
   reporta "sin cambios desde `<commit_corto>` (`<fecha>`)" y **termina sin tocar nada**.
 
 **Paso 5 — Mapeo incremental.** Cruza cada archivo cambiado contra las rutas de código
 registradas en las fichas y prepara subagentes **acotados** (nunca al repo entero):
+
 - Archivo bajo las rutas de un módulo existente → ese módulo es **candidato CAMBIADO**; lanza un
   subagente acotado a esas rutas/directorios.
 - Archivos que no mapean a ningún módulo (nuevas rutas/feature dirs) → **discovery acotado** a
   esos paths para detectar módulos **NUEVO**.
 - Módulo cuyas rutas registradas fueron **todas eliminadas** → **OBSOLETO**.
 - Módulos no tocados por el diff → **SIN CAMBIOS** (no re-explorar).
-Si el modo incluye Playwright, cruza la navegación en vivo de esas pantallas con el código.
+  Si el modo incluye Playwright, cruza la navegación en vivo de esas pantallas con el código.
 
 **Paso 6 — Subagentes.** TODOS con `subagent_type: general-purpose` y **`model: sonnet`** (único
 modelo permitido; nunca otro). Dales objetivo + alcance acotado; retorno SOLO destilado (módulos
@@ -54,13 +56,14 @@ con evidencia `paths:líneas`), nunca volcados de código. Luego consolida y ded
 **SIN CAMBIOS** / **OBSOLETO**.
 
 **Paso 8 — Escritura selectiva.** Sin clobber de módulos no afectados:
+
 - **NUEVO** → crea su ficha (mismo formato que `/manual:explore`: nombre, slug, propósito, rutas,
   pantallas, acciones, entidades, estados, referencias de código, dudas abiertas, evidencia).
 - **CAMBIADO** → actualiza su ficha; **preserva** notas y dudas manuales cuando sea posible.
 - **OBSOLETO** → marca `estado: obsoleto` en `index.json` y anótalo en la ficha; **NO la borres**.
 - **SIN CAMBIOS** → no tocar.
-Fusiona `index.json` por `slug` (`{slug, titulo, fuente, estado, fecha}`), refrescando `fecha`
-solo en los módulos tocados.
+  Fusiona `index.json` por `slug` (`{slug, titulo, fuente, estado, fecha}`), refrescando `fecha`
+  solo en los módulos tocados.
 
 **Paso 9 — Refresca la línea base.** Salvo que el proyecto no sea repo git, reescribe
 `<DATA_DIR>/modules/baseline.json` con el `git rev-parse HEAD` actual, la rama y la fecha ISO.

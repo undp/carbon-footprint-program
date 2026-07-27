@@ -25,6 +25,7 @@ empezar, y credenciales o datos de prueba disponibles (úsalos solo para la sesi
 **Paso 3 — Exploración de código (orquestación).** Lanza **múltiples subagentes EN PARALELO**
 (tool Agent, `subagent_type: general-purpose`) divididos por áreas para mapear todo el código y
 el flujo:
+
 - (a) rutas / navegación / routers / sidebar,
 - (b) features / páginas / vistas y su propósito,
 - (c) permisos / roles / guards,
