@@ -80,7 +80,7 @@ Estructura mínima del capítulo:
 
 ```
 COVER        → Portada con screenshot del módulo
-OBJECTIVES   → 3 objetivos del módulo con íconos (siempre 3)
+OBJECTIVES   → "Objetivos del manual de usuarios de <Módulo>" + 3 objetivos con íconos (siempre 3)
 INDEX        → Índice de contenidos en 2 columnas
 [DIVIDER + CONTENT] × N  → Separador de sección + contenido, por cada sección
 BACK COVER   → Cierre: la misma lámina de portada, repetida
