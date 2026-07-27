@@ -36,7 +36,7 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    y la skill `manual-slides`. Si la ficha tiene **dudas abiertas** o hay ambigüedad funcional
    que afecte el manual, resuélvelas con AskUserQuestion antes de continuar.
 
-4. **Si ya existe `user_manual/<slug>.html`**, usa AskUserQuestion:
+4. **Si ya existe `user_manual/<slug>/<slug>.html`**, usa AskUserQuestion:
    **Regenerar desde cero** o **Actualizar secciones específicas**.
 
 5. **Screenshots.** Usa AskUserQuestion:
@@ -45,10 +45,11 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
      proyecto no documenta vistas responsivas). Nombres: `overview.png`, `tabla.png`,
      `formulario.png`, `detalle.png`, `dialog-*.png`. Guardar en `user_manual/screenshots/<slug>/`.
    - **Sin capturas** — usar `.screenshot-placeholder`.
-   Si el MCP de Playwright no está disponible, degrada a placeholders y avísalo.
+     Si el MCP de Playwright no está disponible, degrada a placeholders y avísalo.
 
 6. **Copia el CSS**: `<DATA_DIR>/branding/manual.css` →
-   `user_manual/assets/manual.css` (solo si no existe o cambió). Enlázalo en el HTML.
+   `user_manual/assets/manual.css` (solo si no existe o cambió). Enlázalo en el HTML como
+   `../assets/manual.css`: el manual vive en su propia carpeta `user_manual/<slug>/`.
 
 7. **Planifica y escribe el manual** según la skill, usando los templates exactos de
    `plantillas-slides.html`:
@@ -56,7 +57,7 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    Entre **10 y 20 slides** según la complejidad del módulo.
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
-   Escribe el archivo en `user_manual/<slug>.html`.
+   Escribe el archivo en `user_manual/<slug>/<slug>.html`.
 
 8. **Reglas duras**: máx 20 slides; estructura Cover → Objectives (3) → Index →
    [Divider + Content] × N; sin vistas responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
@@ -71,7 +72,7 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 10. **Genera el PDF**:
     ```bash
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-      "user_manual/<slug>.html" "user_manual/<slug>.pdf"
+      "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
     ```
     Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrece instalarlas como
     devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.

@@ -29,7 +29,7 @@ Seis comandos que se encadenan en un flujo:
 ```
 /manual:branding                 # una vez por proyecto
 /manual:explore                  # descubre los módulos
-/manual:create @inventario       # genera user_manual/inventario.html + .pdf
+/manual:create @inventario       # genera user_manual/inventario/inventario.html + .pdf
 ```
 
 ## Requisitos
@@ -64,6 +64,7 @@ claude --plugin-dir ./.claude/manual-plugin
 ```
 
 > **Notas.**
+>
 > 1. Gracias a la resolución de `<DATA_DIR>`, con el plugin copiado dentro del proyecto los
 >    datos (branding y fichas de módulos) quedan en `manual-plugin/data/` **del proyecto**
 >    (versionable y persistente), no en un cache efímero.
@@ -75,14 +76,14 @@ claude --plugin-dir ./.claude/manual-plugin
 
 ## Dónde queda cada cosa
 
-| Contenido | Ubicación |
-|-----------|-----------|
+| Contenido                                 | Ubicación                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Branding (tokens, CSS, componentes, guía) | `<DATA_DIR>/branding/` (`manual-plugin/data/branding/` del proyecto si el plugin está copiado al repo) |
-| Fichas de módulos e índice | `<DATA_DIR>/modules/` (`manual-plugin/data/modules/` del proyecto si el plugin está copiado al repo) |
-| Manuales HTML generados | `user_manual/<slug>.html` **del proyecto** |
-| CSS del manual | `user_manual/assets/manual.css` **del proyecto** |
-| Screenshots | `user_manual/screenshots/<slug>/` **del proyecto** |
-| PDF final | `user_manual/<slug>.pdf` **del proyecto** |
+| Fichas de módulos e índice                | `<DATA_DIR>/modules/` (`manual-plugin/data/modules/` del proyecto si el plugin está copiado al repo)   |
+| Manuales HTML generados                   | `user_manual/<slug>/<slug>.html` **del proyecto**                                                      |
+| CSS del manual                            | `user_manual/assets/manual.css` **del proyecto**                                                       |
+| Screenshots                               | `user_manual/screenshots/<slug>/` **del proyecto**                                                     |
+| PDF final                                 | `user_manual/<slug>/<slug>.pdf` **del proyecto**                                                       |
 
 ## Validación
 

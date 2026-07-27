@@ -16,10 +16,10 @@ con los cambios pedidos. Sigue estos pasos en orden.
 
 1. **Resuelve el target desde `$ARGUMENTS`.** El **primer token** es el objetivo; el **resto** es
    el prompt de cambios.
-   - Empieza con `@` → es un módulo; resuelve a `user_manual/<slug>.html`.
+   - Empieza con `@` → es un módulo; resuelve a `user_manual/<slug>/<slug>.html`.
    - Termina en `.html` → es una ruta; úsala directo.
    - Si el HTML no existe, no se identifica o es ambiguo → usa AskUserQuestion listando los manuales
-     existentes (glob `user_manual/*.html`).
+     existentes (glob `user_manual/*/*.html`).
    - Si no viene prompt de cambios → pregunta al usuario qué debe cambiar (AskUserQuestion o pregunta
      directa) antes de continuar.
 
@@ -28,7 +28,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
    `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/contrato-css.md` y
    `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/plantillas-slides.html`, para mantener
    fidelidad de clases y estructura. Si falta el branding, **advierte pero continúa**: el HTML ya
-   trae su CSS copiado en `assets/manual.css`.
+   trae su CSS copiado en `user_manual/assets/manual.css` (enlazado como `../assets/manual.css`).
 
 3. **Interpreta el prompt y aplica los cambios al HTML**: editar textos, agregar / eliminar /
    reordenar slides, ajustar callouts, cambiar o insertar screenshots, etc. DEBE respetar:
@@ -37,7 +37,7 @@ con los cambios pedidos. Sigue estos pasos en orden.
    - las **reglas duras**: máx 20 slides; máx 2 info/tip-box por slide; máx 6-7 callouts por
      screenshot; español neutro en segunda persona; sin datos reales de personas; sin jerga técnica
      (API, base de datos).
-   Si agregas o quitas slides, **mantén el slide Index sincronizado** (títulos y números de página).
+     Si agregas o quitas slides, **mantén el slide Index sincronizado** (títulos y números de página).
 
 4. **Capturas nuevas.** Si algún cambio las requiere, usa AskUserQuestion:
    **Capturar con Playwright** (pide la URL en la pregunta siguiente) o **Usar placeholders**.
@@ -51,9 +51,10 @@ con los cambios pedidos. Sigue estos pasos en orden.
    correctos.
 
 6. **PDF.** Con AskUserQuestion pregunta si regenerar el PDF. Si sí:
+
    ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-     "user_manual/<slug>.html" "user_manual/<slug>.pdf"
+     "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
    ```
 
 7. **Resumen final**: qué slides y secciones se modificaron.

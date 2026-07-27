@@ -27,8 +27,8 @@ repo), usa `manual-plugin/data/` del proyecto; si no, usa `${CLAUDE_PLUGIN_ROOT}
 - **Referencias** (spec y herramientas): `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/`
   → `contrato-css.md`, `plantillas-slides.html`, `exportar-pdf.cjs`.
 - **Salida** (en el PROYECTO, cwd, no en el plugin):
-  `user_manual/<slug>.html`, `user_manual/assets/manual.css`,
-  `user_manual/screenshots/<slug>/`, `user_manual/<slug>.pdf`.
+  `user_manual/<slug>/<slug>.html`, `user_manual/assets/manual.css`,
+  `user_manual/screenshots/<slug>/`, `user_manual/<slug>/<slug>.pdf`.
 
 ## Formato
 
@@ -40,21 +40,25 @@ lleva `class="format-slide"`. No hay formato carta ni toggle de formato.
 ## Workflow (9 pasos)
 
 ### Paso 0 — Prerrequisitos
+
 - Confirmar que existe **branding** (`<DATA_DIR>/branding/tokens.json` + `manual.css`). Si falta,
   correr `/manual:branding` antes.
 - Confirmar que el módulo a documentar tiene **ficha** en `<DATA_DIR>/modules/`. Si no, correr
   `/manual:explore`.
-- Si el módulo ya tiene `user_manual/<slug>.html`, decidir con el usuario:
+- Si el módulo ya tiene `user_manual/<slug>/<slug>.html`, decidir con el usuario:
   **regenerar desde cero** o **actualizar** secciones puntuales.
 
 ### Paso 1 — Investigar el módulo
+
 Leer la ficha `<DATA_DIR>/modules/<slug>.md` y, si hace falta, el código del módulo. Documentar:
 vistas/pantallas, componentes interactivos (formularios, tablas, dialogs, drawers),
 estados y transiciones, y métricas/KPIs si existen.
 Si la ficha tiene **dudas abiertas** que afecten el manual, resolverlas con el usuario.
 
 ### Paso 2 — Obtener screenshots
+
 Capturar con Playwright desde la app en vivo (si está disponible) o usar placeholders.
+
 - Resolución: **1920** (desktop vista completa); el detalle puede ser 1440 o un crop del 1920.
   Los manuales de este proyecto **no documentan vistas responsivas** (no se capturan tablet ni móvil).
 - Nombres: `overview.png`, `tabla.png`, `formulario.png`/`crear.png`/`editar.png`,
@@ -66,28 +70,36 @@ Capturar con Playwright desde la app en vivo (si está disponible) o usar placeh
 - Sin Playwright: usar `.screenshot-placeholder` describiendo qué mostrará cada captura.
 
 ### Paso 3 — Planificar la estructura de slides
+
 Estructura mínima del capítulo:
+
 ```
 COVER        → Portada con screenshot del módulo
 OBJECTIVES   → 3 objetivos del módulo con íconos (siempre 3)
 INDEX        → Índice de contenidos en 2 columnas
 [DIVIDER + CONTENT] × N  → Separador de sección + contenido, por cada sección
 ```
+
 Cantidad de slides según complejidad (**tope duro: 20**):
+
 - Simple (1 vista, pocos features): **10-14**.
 - Mediano (2-3 vistas): **14-18**.
 - Complejo (mapa, múltiples vistas): **18-20** (el original sugería hasta 22; aquí se
   recorta a 20 por la regla dura).
 
 ### Paso 4 — Preparar el HTML
-- Crear `user_manual/<slug>.html` a partir del esqueleto de `plantillas-slides.html`.
+
+- Crear `user_manual/<slug>/<slug>.html` a partir del esqueleto de `plantillas-slides.html`.
+  El HTML vive en su propia carpeta, así que `assets/` y `screenshots/` se referencian
+  **un nivel arriba** (`../assets/…`, `../screenshots/<slug>/…`).
 - Copiar `<DATA_DIR>/branding/manual.css` → `user_manual/assets/manual.css` (si no existe o cambió)
-  y enlazarlo con `<link rel="stylesheet" href="assets/manual.css">`.
+  y enlazarlo con `<link rel="stylesheet" href="../assets/manual.css">`.
 - Personalizar: `<title>` = "Manual de Usuario — <Nombre Módulo> | <APP_NAME>";
   ícono del módulo en cover y dividers; footer "APP_NAME | vista <Módulo> | versión X";
   cover con título, screenshot y versión.
 
 ### Paso 5 — Escribir cada slide
+
 Usar los templates **exactos** de `plantillas-slides.html` (no inventar clases).
 Tipos disponibles: cover, objectives, index, divider, content con screenshot anotado,
 content split (texto 45% / visual 55%) y content con tabla de estados.
@@ -96,23 +108,29 @@ máx 6-7 por screenshot; numerar de izquierda a derecha y de arriba a abajo. Con
 items en la leyenda, usar `class="annotation-legend cols-3"`.
 
 ### Paso 6 — Elementos complementarios
+
 Info-box, tip-box, feature-list, data-table con status-dot y screenshot-placeholder, según
 las plantillas. Respetar máximo 2 info/tip-box por slide.
 
 ### Paso 7 — Verificar visualmente
+
 Si Playwright está disponible, abrir el HTML a **1440×810** y verificar: cada slide se ve
 completa (sin cortes), los callouts calzan con el screenshot, todos los `<img>` cargan, el
 footer y el número de página aparecen en todas las slides, y el índice tiene páginas correctas.
 
 ### Paso 8 — Confirmar con el usuario
+
 Antes del PDF, preguntar (AskUserQuestion) si quiere ajustes o si está listo para generar.
 
 ### Paso 9 — Generar PDF
+
 Ejecutar el script parametrizado:
+
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-  "user_manual/<slug>.html" "user_manual/<slug>.pdf"
+  "user_manual/<slug>/<slug>.html" "user_manual/<slug>/<slug>.pdf"
 ```
+
 Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrecer instalarlas como
 devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
 
@@ -121,16 +139,19 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 ## Secciones típicas por tipo de módulo
 
 **Tabla + formulario**
+
 1. Información general (overview) · 2. Crear/Editar registros (formulario) ·
-3. Gestión de registros (tabla, estados) · 4. Métricas/KPIs (si aplica).
+2. Gestión de registros (tabla, estados) · 4. Métricas/KPIs (si aplica).
 
 **Mapa + datos**
+
 1. Mapa en vivo (capas, interacciones) · 2. Gestión asociada (si aplica) ·
-3. Solicitudes/Registros (tabla, formulario, ciclo de vida) · 4. Métricas KPI.
+2. Solicitudes/Registros (tabla, formulario, ciclo de vida) · 4. Métricas KPI.
 
 **Dashboard / métricas**
+
 1. Vista general (dashboard) · 2. Filtros y controles · 3. Gráficos y tablas ·
-4. Exportación de datos.
+2. Exportación de datos.
 
 ---
 
@@ -159,8 +180,9 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 ## Checklist final
 
 - [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido).
-- [ ] `manual.css` copiado a `user_manual/assets/` y enlazado.
-- [ ] Screenshots (o placeholders) en `screenshots/<slug>/`; todos los `<img src>` resuelven.
+- [ ] `manual.css` copiado a `user_manual/assets/` y enlazado como `../assets/manual.css`.
+- [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug>/`; todos los `<img src>`
+      apuntan a `../screenshots/<slug>/` y resuelven.
 - [ ] Posiciones de callout verificadas visualmente.
 - [ ] Footer y número de página correctos en TODAS las slides.
 - [ ] Ícono del módulo correcto en cover y dividers.
