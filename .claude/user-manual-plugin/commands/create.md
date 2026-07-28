@@ -74,44 +74,15 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 9. **Verificación visual** a **1440×810** (Playwright si está disponible): cada slide completa
    sin cortes, callouts alineados, imágenes que cargan, footer y páginas correctos.
 
-10. **Prueba de comprensión (subagente Sonnet).** Formula **10 preguntas** que una persona usuaria
-    debería poder responder con el manual: el camino completo de punta a punta, los campos
-    obligatorios, los avisos y estados, las acciones secundarias (adjuntos, comentarios, descargas)
-    y al menos dos casos de borde del flujo. Lanza un subagente con el Agent tool
-    (`subagent_type: general-purpose`, `model: sonnet`) cuya **única fuente permitida** sea
-    `user_manual/<slug_snake>/<slug_snake>.html` y las capturas que ese HTML referencia
-    (`user_manual/screenshots/<slug_snake>/`); prohíbele explícitamente leer el código de la
-    aplicación, las fichas del plugin o cualquier otro archivo, y apoyarse en conocimiento previo
-    (si el manual no lo dice, la respuesta correcta es «el manual no lo dice»). Pídele que responda
-    cada pregunta con: respuesta breve, número de página donde está, y una marca
-    **RESPONDIDA / INFERIDA / NO ESTÁ**, más una sección final de **vacíos del manual**.
-    Todo lo que quede INFERIDA o NO ESTÁ es un hueco: corrígelo en el manual (o descártalo con
-    justificación) antes de seguir, y **verifica en el código cualquier dato nuevo** que agregues.
+10. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
 
-11. **Revisión con Codex (opcional).** Usa AskUserQuestion: **Revisar con Codex** o
-    **Saltar la revisión**. Si acepta:
-
-    ```bash
-    codex exec --sandbox read-only --skip-git-repo-check -c model_reasoning_effort=high \
-      "$(cat <archivo-con-el-prompt>)" < /dev/null > <salida>.md 2>&1
-    ```
-
-    El `< /dev/null` **es obligatorio**: si stdin queda abierto, `codex exec` se cuelga en
-    «Reading additional input from stdin…» y nunca arranca.
-    El `<prompt>` debe pedir: contrastar el manual (HTML + capturas) con el **código real** del
-    módulo y con la ficha `<DATA_DIR>/modules/<slug>.md`, y reportar **mejoras, inconsistencias,
-    pasos faltantes, aclaraciones y contenidos o explicaciones incompletas**, ordenados por
-    severidad, con ubicación en el manual (lámina/página) y evidencia en el código
-    (`archivo:línea`), sin modificar archivos. Tarda varios minutos: córrelo en segundo plano.
-    Presenta los hallazgos al usuario, aplica los que corresponda y descarta el resto con
-    justificación. Si el comando `codex` no está disponible, avísalo y continúa.
-
-12. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
-
-13. **Genera el PDF**:
+11. **Genera el PDF**:
     ```bash
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
       "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
     ```
     Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrece instalarlas como
     devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
+
+Al cerrar, **recomienda** (sin ejecutarlo) correr `/user-manual:review @<slug>` sobre el manual
+recién generado: prueba de comprensión con un subagente y revisión opcional con Codex.

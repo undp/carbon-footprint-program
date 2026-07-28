@@ -8,7 +8,7 @@ un capítulo de manual por módulo, listo para entregar.
 
 ## Qué hace
 
-Seis comandos que se encadenan en un flujo:
+Siete comandos que se encadenan en un flujo:
 
 1. **`/user-manual:branding [indicaciones]`** — detecta la identidad del proyecto
    (colores, tipografía, componentes) y genera el branding del manual: `tokens.json`,
@@ -21,7 +21,10 @@ Seis comandos que se encadenan en un flujo:
    detectando los nuevos, los cambiados y los obsoletos sin regenerar todo.
 5. **`/user-manual:create @<modulo>`** — genera el manual HTML del módulo (cover, objetivos,
    índice, secciones con screenshots anotados) y su PDF.
-6. **`/user-manual:update @<modulo> <cambios>`** — edita un manual ya generado aplicando
+6. **`/user-manual:review @<modulo>`** — revisa un manual ya generado: prueba de comprensión con
+   un subagente (10 preguntas, única fuente el manual) y revisión opcional con Codex contra el
+   código real. Úsalo después de `create` o de un `update` que tocó contenido.
+7. **`/user-manual:update @<modulo> <cambios>`** — edita un manual ya generado aplicando
    los cambios descritos en lenguaje natural.
 
 ### Ejemplo de flujo
@@ -30,6 +33,7 @@ Seis comandos que se encadenan en un flujo:
 /user-manual:branding                 # una vez por proyecto
 /user-manual:explore                  # descubre los módulos
 /user-manual:create @inventario       # genera user_manual/inventario/inventario.html + .pdf
+/user-manual:review @inventario       # comprensión + revisión contra el código
 ```
 
 ## Requisitos
@@ -102,7 +106,7 @@ user-manual-plugin/
 ├── .claude-plugin/plugin.json
 ├── README.md
 ├── commands/            branding, branding-update, explore, explore-update,
-│                        create, update
+│                        create, review, update
 ├── skills/manual-slides/
 │   ├── SKILL.md
 │   └── referencias/     contrato-css.md, plantillas-slides.html,
