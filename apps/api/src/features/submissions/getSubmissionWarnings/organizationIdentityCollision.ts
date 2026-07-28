@@ -156,8 +156,10 @@ const computeCollisionFields = (
  */
 const buildBranchMetadata = (
   applicant: OrganizationIdentity,
+  applicantSubmissionStatus: SubmissionStatus,
   candidates: OrganizationIdentity[],
-  collisionState: CollisionState
+  collisionState: CollisionState,
+  isAccredited: (organizationId: bigint) => boolean
 ): OrganizationIdentityCollisionMetadata[] => {
   const byOrg = new Map<
     string,
@@ -182,6 +184,7 @@ const buildBranchMetadata = (
   return [...byOrg.values()].map(({ representative, fields }) => ({
     collisionState,
     organizationId: representative.organizationId.toString(),
+    organizationIsAccredited: isAccredited(representative.organizationId),
     taxId: representative.taxId,
     legalName: representative.legalName,
     tradeName: representative.tradeName,
@@ -189,6 +192,7 @@ const buildBranchMetadata = (
       taxId: applicant.taxId,
       legalName: applicant.legalName,
       tradeName: applicant.tradeName,
+      submissionStatus: applicantSubmissionStatus,
     },
     collisionFields: COLLISION_FIELD_ORDER.filter((field) => fields.has(field)),
   }));
@@ -201,7 +205,13 @@ const joinFieldLabels = (fields: CollisionField[]): string => {
   return `${labels.slice(0, -1).join(", ")} y ${labels[labels.length - 1]}`;
 };
 
-/** Spanish one-line summary (design D9). Falls back to legal name when taxId is null. */
+/**
+ * Spanish one-line summary (design D9): names the conflicting POSTULATION and
+ * then the organization behind it. Falls back to the legal name when taxId is
+ * null. The organization clause branches on `organizationIsAccredited`, not on
+ * the collision state — a pending collision usually comes from an organization
+ * that is not inscribed yet, and calling it inscribed would simply be false.
+ */
 const buildMessage = (
   metadata: OrganizationIdentityCollisionMetadata
 ): string => {
@@ -210,11 +220,33 @@ const buildMessage = (
     metadata.taxId !== null
       ? `${TAX_ID_LABEL_SHORT} ${metadata.taxId}`
       : `«${metadata.legalName}»`;
-  const subject =
+  const postulacion =
     metadata.collisionState === "APPROVED"
-      ? `una organización inscrita (${identity})`
-      : `otra postulación pendiente (${identity})`;
-  return `Coincide con ${subject} en ${campos}.`;
+      ? "la postulación aprobada"
+      : "la postulación pendiente";
+  const organizacion = metadata.organizationIsAccredited
+    ? `la organización inscrita (${identity})`
+    : `una organización no inscrita (${identity})`;
+  return `Coincide con ${postulacion} de ${organizacion} en ${campos}.`;
+};
+
+/**
+ * Which of the given organizations are accredited, read from the flag the
+ * summary view already materializes (`is_accredited`). Returns an empty set
+ * without touching the database when there is nothing to look up.
+ */
+const findAccreditedOrganizationIds = async (
+  prisma: PrismaClient,
+  organizationIds: bigint[]
+): Promise<Set<string>> => {
+  if (organizationIds.length === 0) return new Set();
+
+  const rows = await prisma.organizationSummaryView.findMany({
+    where: { organizationId: { in: organizationIds }, isAccredited: true },
+    select: { organizationId: true },
+  });
+
+  return new Set(rows.map((row) => row.organizationId.toString()));
 };
 
 /**
@@ -233,7 +265,8 @@ const buildMessage = (
  */
 export const getOrganizationIdentityCollisionWarnings = async (
   prisma: PrismaClient,
-  applicant: OrganizationIdentity
+  applicant: OrganizationIdentity,
+  applicantSubmissionStatus: SubmissionStatus
 ): Promise<GetSubmissionWarningsResponse> => {
   const fieldMatch = buildFieldMatchClause(applicant);
   if (fieldMatch === null) return []; // applicant has no comparable identity field
@@ -280,10 +313,31 @@ export const getOrganizationIdentityCollisionWarnings = async (
     }),
   ]);
 
+  // A candidate from the approved branch is accredited by construction — it
+  // matched THROUGH an approved submission. A pending candidate may or may not
+  // be, so ask the view that already materializes the flag. (Only the boolean is
+  // read here: the view's displayed snapshot is still off-limits per design D4.)
+  const accreditedPendingOrgIds = await findAccreditedOrganizationIds(
+    prisma,
+    pendingRows.map((row) => row.organizationId)
+  );
+
   // APPROVED before PENDING (collision-warning ordering requirement).
   const metadata = [
-    ...buildBranchMetadata(applicant, approvedRows, "APPROVED"),
-    ...buildBranchMetadata(applicant, pendingRows, "PENDING"),
+    ...buildBranchMetadata(
+      applicant,
+      applicantSubmissionStatus,
+      approvedRows,
+      "APPROVED",
+      () => true
+    ),
+    ...buildBranchMetadata(
+      applicant,
+      applicantSubmissionStatus,
+      pendingRows,
+      "PENDING",
+      (organizationId) => accreditedPendingOrgIds.has(organizationId.toString())
+    ),
   ];
 
   return metadata.map((entry) => ({

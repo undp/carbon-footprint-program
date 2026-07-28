@@ -94,14 +94,26 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 
 ### Requirement: Collision warning payload and ordering
 
-An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared. The returned warnings SHALL be ordered with `APPROVED` (accredited) collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
+An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), whether that organization is itself accredited (`organizationIsAccredited`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review. The returned warnings SHALL be ordered with `APPROVED` collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
+
+`collisionState` and `organizationIsAccredited` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client or message SHALL infer one from the other.
 
 Carrying `applicant` in the payload SHALL be the only source the client uses for the applicant side of the comparison: the submission-history response exposes the organization's _displayed_ snapshot (`organization_summary_view` ranks `PENDING` above `APPROVED`), which is not necessarily the snapshot the collision was computed from.
 
 #### Scenario: Payload carries both tuples
 
 - **WHEN** a collision warning is returned
-- **THEN** its `metadata` SHALL contain `organizationId`, `taxId`, `legalName`, `tradeName`, `collisionState`, a non-empty `collisionFields` array, and an `applicant` tuple holding the compared `taxId`, `legalName` and `tradeName`
+- **THEN** its `metadata` SHALL contain `organizationId`, `organizationIsAccredited`, `taxId`, `legalName`, `tradeName`, `collisionState`, a non-empty `collisionFields` array, and an `applicant` tuple holding the compared `taxId`, `legalName`, `tradeName` and `submissionStatus`
+
+#### Scenario: Pending collision against an accredited organization
+
+- **WHEN** the collision is against the pending submission of an organization that already has an approved submission
+- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = true`
+
+#### Scenario: Pending collision against a first-time applicant
+
+- **WHEN** the collision is against the pending submission of an organization with no approved submission
+- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = false`, and the message SHALL NOT describe that organization as inscribed
 
 #### Scenario: Accredited collisions ordered first
 
@@ -110,20 +122,23 @@ Carrying `applicant` in the payload SHALL be the only source the client uses for
 
 ### Requirement: Inline conflict presentation in the review dialog
 
-When an admin opens the accreditation review dialog for a submission that has identity-collision warnings, the web application SHALL display a dedicated "Conflictos detectados" section, shown only for organization-accreditation submissions and only when at least one warning is present. Warnings SHALL be grouped by collision state (accredited first, then pending). Each conflicting organization SHALL be shown as a collapsed chip (state, RUT, legal name) that expands to a side-by-side comparison of the applicant and the conflicting organization across the three identity fields, with the colliding field visually highlighted. The section SHALL NOT navigate the admin away from the dialog to resolve the conflict. All section text SHALL be in Spanish.
+When an admin opens the accreditation review dialog for a submission that has identity-collision warnings, the web application SHALL display a dedicated "Conflictos detectados" section, shown only for organization-accreditation submissions and only when at least one warning is present. The section's subtitle SHALL state explicitly that the information is referential and that the request can be approved anyway. Warnings SHALL be listed flat in the order the endpoint returned them and numbered sequentially ("Conflicto 1", "Conflicto 2") so a reviewer can refer to one unambiguously. Each conflicting organization SHALL be shown as a collapsed row (position, whether that organization is inscribed, tax id, legal name) that expands to a side-by-side comparison. The section SHALL NOT navigate the admin away from the dialog to resolve the conflict. All section text SHALL be in Spanish.
+
+The collapsed row's status chip SHALL describe the **organization** (inscribed / not inscribed) and SHALL reuse the app-wide organization status chip, so the same standing renders the same way here as in any other screen. The status of the **submission** that collided SHALL be shown inside the comparison instead, never conflated with the organization's standing in a single chip.
 
 #### Scenario: Conflicts section shown when warnings exist
 
 - **WHEN** the admin opens the review dialog of an organization-accreditation submission that has one or more collision warnings
-- **THEN** a "Conflictos detectados" section SHALL be displayed, with one chip per conflicting organization grouped by state
+- **THEN** a "Conflictos detectados" section SHALL be displayed, with one numbered collapsible per conflicting organization and a subtitle stating that approval is still possible
 
 #### Scenario: No section when there are no warnings
 
 - **WHEN** the submission has no collision warnings (or is not an organization-accreditation submission)
 - **THEN** the conflicts section SHALL NOT be rendered
 
-#### Scenario: Expanding a chip shows the field comparison
+#### Scenario: Expanding a conflict shows the field comparison
 
-- **WHEN** the admin expands a conflicting-organization chip
+- **WHEN** the admin expands a conflicting-organization row
 - **THEN** the UI SHALL show a side-by-side comparison of the applicant's and the conflicting organization's `tradeName`, `legalName`, and `taxId`, highlighting the field(s) that collide
+- **AND** it SHALL add a row with the status of each side's submission (the one under review, and the one that collided)
 - **AND** both columns SHALL be rendered from the warning payload's tuples, so the highlighted cells always show the values that were compared

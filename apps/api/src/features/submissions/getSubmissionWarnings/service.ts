@@ -15,6 +15,7 @@ export const getSubmissionWarningsService = async (
     where: { id: BigInt(submissionId) },
     select: {
       type: true,
+      status: true,
       subject: {
         select: {
           organizationData: {
@@ -37,7 +38,11 @@ export const getSubmissionWarningsService = async (
     case SubmissionType.ORGANIZATION_ACCREDITATION: {
       const applicant = submission.subject.organizationData?.organizationData;
       if (!applicant) return [];
-      return getOrganizationIdentityCollisionWarnings(prisma, applicant);
+      return getOrganizationIdentityCollisionWarnings(
+        prisma,
+        applicant,
+        submission.status
+      );
     }
     default:
       return [];

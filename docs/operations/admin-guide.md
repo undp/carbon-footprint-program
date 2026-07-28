@@ -75,16 +75,18 @@ Open a submission from the queue to see its full detail view, including:
 
 For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Conflictos detectados"** section when the applicant's identity collides with another organization. Matching is field-to-same-field (`legalName`, `tradeName`, `taxId`), exact, case-insensitive and trimmed on both sides; null fields are skipped. There is no fuzzy matching and no country-specific tax-id normalization, so the same tax id written in two formats (`76.123.456-7` vs `761234567`) does not match.
 
-Each conflicting organization is one chip, grouped by collision state:
+The warnings are **referential only** — the section states so explicitly, and the request can be approved with conflicts outstanding. Branches (_sedes_) of the same real organization share identity values by nature, so they surface here as awareness signals rather than errors.
 
-| State      | Meaning                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| `APPROVED` | Collides with an already-inscribed organization, compared against its **approved** snapshot — not its displayed row |
-| `PENDING`  | Collides with another organization's pending submission                                                             |
+Conflicts are listed flat and numbered ("Conflicto 1", "Conflicto 2") in the order the endpoint returns them, which puts collisions against an approved submission first. Each row carries two facts that must not be confused:
 
-Expanding a chip shows a side-by-side comparison of the two identity tuples with the colliding fields highlighted. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
+| Fact                                         | Where it is shown                                    | Values                                                                                                     |
+| -------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Standing of the conflicting **organization** | Chip in the collapsed row                            | Inscrita / No Inscrita (`metadata.organizationIsAccredited`)                                               |
+| Status of the **submission** that collided   | "Estado de la postulación" row inside the comparison | Aprobada (`collisionState = APPROVED`, compared against the **approved** snapshot) / Pendiente (`PENDING`) |
 
-Branches (_sedes_) of the same real company share identity values by nature, so they surface here as awareness signals rather than errors — the warning never blocks approval, it is context for the reviewer.
+A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data. That is why the two facts are reported separately, and why the warning message says, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social".
+
+Expanding a conflict shows a side-by-side comparison of the two identity tuples with the colliding fields highlighted, plus the status of each side's submission. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
 
 ### Approving
 

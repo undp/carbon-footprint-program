@@ -2,19 +2,28 @@ import { FC, useState } from "react";
 import { Box, Collapse, Stack, Typography, useTheme } from "@mui/material";
 import { ExpandMoreOutlined } from "@mui/icons-material";
 import { TAX_ID_LABEL_SHORT } from "@repo/constants";
+import { OrganizationDisplayStatusValues } from "@repo/types";
 import { StatusChip } from "@/components/StatusChip";
-import { COLLISION_STATE_CONFIG } from "@/labels/chips/collisionState";
+import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization";
 import type { CollisionWarning } from "./collisionWarnings";
 import { ConflictComparison } from "./ConflictComparison";
 
 type Props = {
   collision: CollisionWarning;
+  /** 1-based position within the section, shown as "Conflicto N". */
+  position: number;
 };
 
-export const ConflictOrgChip: FC<Props> = ({ collision }) => {
+export const ConflictOrgChip: FC<Props> = ({ collision, position }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
   const { metadata, message } = collision;
+
+  // The header chip describes the conflicting ORGANIZATION (inscribed or not);
+  // the state of the submission it collides with lives in the comparison grid.
+  const organizationStatus = metadata.organizationIsAccredited
+    ? OrganizationDisplayStatusValues.ACCREDITED
+    : OrganizationDisplayStatusValues.NOT_ACCREDITED;
 
   return (
     <Box
@@ -30,10 +39,17 @@ export const ConflictOrgChip: FC<Props> = ({ collision }) => {
         alignItems="center"
         spacing={1}
         onClick={() => setExpanded((value) => !value)}
-        sx={{ cursor: "pointer", px: 1, py: 0.75 }}
+        sx={{ cursor: "pointer", px: 1.25, py: 1 }}
       >
+        <Typography
+          variant="caption"
+          fontWeight={600}
+          sx={{ flexShrink: 0, color: theme.palette.text.secondary }}
+        >
+          Conflicto {position}
+        </Typography>
         <StatusChip
-          config={COLLISION_STATE_CONFIG[metadata.collisionState]}
+          config={ORGANIZATION_DISPLAY_STATUS_CONFIG[organizationStatus]}
           size="small"
         />
         <Typography variant="caption" fontWeight={600} sx={{ flexShrink: 0 }}>

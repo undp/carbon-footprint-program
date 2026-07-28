@@ -156,8 +156,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.collisionState).toBe("APPROVED");
     expect(m.organizationId).toBe(org.id.toString());
     expect(m.collisionFields).toEqual(["legalName"]);
+    expect(m.organizationIsAccredited).toBe(true);
     expect(warnings[0].message).toBe(
-      `Coincide con una organización inscrita (RUT ${conflicting.taxId}) en razón social.`
+      `Coincide con la postulación aprobada de la organización inscrita (RUT ${conflicting.taxId}) en razón social.`
     );
     // Both sides of the comparison come from the payload: the applicant tuple is
     // the snapshot the endpoint actually matched on, not the org's displayed row.
@@ -165,6 +166,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
       legalName: applicant.legalName,
       tradeName: applicant.tradeName,
       taxId: applicant.taxId,
+      submissionStatus: SubmissionStatus.PENDING,
     });
   });
 
@@ -189,6 +191,61 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.collisionState).toBe("PENDING");
     expect(m.organizationId).toBe(org.id.toString());
     expect(m.collisionFields).toEqual(["tradeName"]);
+    // A pending collision usually comes from an organization that is not
+    // inscribed yet — the message must not claim otherwise.
+    expect(m.organizationIsAccredited).toBe(false);
+    expect(warnings[0].message).toBe(
+      `Coincide con la postulación pendiente de una organización no inscrita (RUT ${conflicting.taxId}) en nombre comercial.`
+    );
+  });
+
+  it("marks a pending collision as inscribed when that organization is already accredited", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // An inscribed organization editing its data: approved v1 (no collision) and
+    // a pending v2 that collides. The organization IS accredited, the colliding
+    // submission is pending.
+    const conflictingOrg = await createTestOrganization(prisma);
+    const approvedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...uniqueIdentity(), status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV1.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const pendingV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: `TAX-${randomUUID()}`,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      pendingV2.id,
+      SubmissionStatus.PENDING,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.collisionState).toBe("PENDING");
+    expect(m.organizationIsAccredited).toBe(true);
+    expect(warnings[0].message).toBe(
+      `Coincide con la postulación pendiente de la organización inscrita (RUT ${m.taxId}) en razón social.`
+    );
   });
 
   it("flags a tax-id (RUT) collision", async () => {
@@ -419,7 +476,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(warnings).toHaveLength(1);
     expect(meta(warnings[0]).taxId).toBeNull();
     expect(warnings[0].message).toBe(
-      `Coincide con una organización inscrita («${applicant.legalName}») en razón social.`
+      `Coincide con la postulación aprobada de la organización inscrita («${applicant.legalName}») en razón social.`
     );
   });
 

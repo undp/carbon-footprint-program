@@ -45,7 +45,9 @@ For `APPROVED` collisions, read the `OrganizationData` linked to the org's `APPR
 
 Both sides of the comparison come from the warning payload (`metadata.applicant` + the conflicting tuple). The applicant column is **not** rebuilt from the submission-history response: that one carries the organization's displayed snapshot (the summary view ranks `PENDING` above `APPROVED`, and the same tuple is attached to every timeline entry), so reading it here would let the dialog highlight two values that never matched.
 
-A "Conflictos detectados" amber section between `CurrentStatusBanner` and `OrgDataSection`. Collapsed: one chip per conflicting org (state · RUT · legal name), grouped accredited-first. Expanded: a side-by-side mini-table (applicant vs that org, three identity rows) with the colliding cell highlighted. **Alternatives considered:** a minimal chips + `OrgDataSection` re-use (less guided comparison), and an always-visible full matrix (clearest but heavy for the common single-conflict case). Hybrid is compact by default and rich on demand, and scales from 1 to N conflicts.
+A "Conflictos detectados" amber section between `CurrentStatusBanner` and `OrgDataSection`, whose subtitle says outright that the information is referential and the request can be approved anyway — the section informs a decision, it does not gate it. Collapsed: one numbered row per conflicting org ("Conflicto N" · inscribed / not inscribed · tax id · legal name), flat and in the endpoint's order. Expanded: a side-by-side grid (applicant vs that org) with the three identity rows plus the status of each side's submission, the colliding cells highlighted. **Alternatives considered:** a minimal chips + `OrgDataSection` re-use (less guided comparison), and an always-visible full matrix (clearest but heavy for the common single-conflict case). Hybrid is compact by default and rich on demand, and scales from 1 to N conflicts.
+
+Two facts must not be squeezed into one chip: whether the conflicting **organization** is inscribed, and the status of the **submission** whose snapshot matched. The collapsed row carries the first (through the app-wide organization status chip, so an inscribed organization looks inscribed here too) and the comparison carries the second. Grouping headers per collision state were dropped in favour of the numbering: with the two facts separated, a state-based grouping was describing something the chips no longer said.
 
 ### D6 — RUT column swap kept as standalone prep
 
@@ -65,13 +67,15 @@ Because values are stored verbatim (nothing trims on write), the normalization m
 
 ### D9 — Spanish message copy (server-built summary)
 
-The generic bag's `message` is a one-line Spanish summary; the chip and comparison carry the structured tuple. Field labels: `legalName`→"razón social", `tradeName`→"nombre comercial", `taxId`→"RUT". Templates:
+The generic bag's `message` is a one-line Spanish summary; the chip and comparison carry the structured tuple. Field labels: `legalName`→"razón social", `tradeName`→"nombre comercial", `taxId`→`TAX_ID_LABEL_SHORT`. The sentence names the colliding **postulation** first and then the organization behind it, and the organization clause branches on `organizationIsAccredited` — never on the collision state, since a pending collision most often comes from an organization that is not inscribed yet:
 
-- `APPROVED`: `Coincide con una empresa inscrita (RUT {taxId}) en {campos}.`
-- `PENDING`: `Coincide con otra postulación pendiente (RUT {taxId}) en {campos}.`
+- `Coincide con {postulación} de {organización} en {campos}.`
+- `{postulación}`: `la postulación aprobada` (`APPROVED`) / `la postulación pendiente` (`PENDING`).
+- `{organización}`: `la organización inscrita ({identidad})` when `organizationIsAccredited`, otherwise `una organización no inscrita ({identidad})`.
+- `{identidad}`: `RUT {taxId}`, falling back to `«{legalName}»` when the conflicting org has no `taxId`.
 - `{campos}` joins the colliding field labels with "y" (e.g. "razón social y nombre comercial").
-- If the conflicting org's `taxId` is null, fall back to its legal name: `... (empresa «{legalName}») en {campos}.`
-  (Resolves former open question on copy. Final wording is UI-tunable during implementation.)
+
+Wording follows `VOCAB`: "organización", never "empresa". (Resolves former open question on copy.)
 
 ## Risks / Trade-offs
 

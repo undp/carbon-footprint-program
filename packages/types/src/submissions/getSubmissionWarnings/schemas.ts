@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
+import { SubmissionStatusSchema } from "../../baseSchemas/submission.js";
 
 export const GetSubmissionWarningsParamsSchema = z.object({
   id: IdSchema.describe("The submission ID"),
@@ -28,7 +29,13 @@ export const WarningType = {
   ORGANIZATION_IDENTITY_COLLISION: "ORGANIZATION_IDENTITY_COLLISION",
 } as const;
 
-/** APPROVED = conflicting org's accredited snapshot; PENDING = its pending edit. */
+/**
+ * Status of the conflicting submission whose snapshot was compared: `APPROVED` =
+ * the accredited snapshot, `PENDING` = a submission still under review. It says
+ * nothing about the organization itself — a `PENDING` collision can come from a
+ * first-time applicant or from an already-inscribed organization editing its
+ * data, which is what `organizationIsAccredited` distinguishes.
+ */
 export const CollisionStateSchema = z.enum(["APPROVED", "PENDING"]);
 
 /** The three identity fields compared field-to-same-field (design D3). */
@@ -56,12 +63,19 @@ export const OrganizationIdentityTupleSchema = z.object({
 export const OrganizationIdentityCollisionMetadataSchema = z.object({
   collisionState: CollisionStateSchema,
   organizationId: IdSchema.describe("The conflicting organization's ID"),
+  organizationIsAccredited: z
+    .boolean()
+    .describe(
+      "Whether the conflicting organization is itself accredited, independently of the compared submission's status"
+    ),
   taxId: z.string().nullable().describe("Conflicting org tax ID (RUT/RUC/ID)"),
   legalName: z.string().describe("Conflicting org legal name"),
   tradeName: z.string().nullable().describe("Conflicting org trade name"),
-  applicant: OrganizationIdentityTupleSchema.describe(
-    "The applicant snapshot that was actually compared"
-  ),
+  applicant: OrganizationIdentityTupleSchema.extend({
+    submissionStatus: SubmissionStatusSchema.describe(
+      "Status of the submission under review"
+    ),
+  }).describe("The applicant snapshot that was actually compared"),
   collisionFields: z
     .array(CollisionFieldSchema)
     .min(1)
