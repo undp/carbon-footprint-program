@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual de Usuario — Calculadora de huella | Huella Latam</title>
+    <link rel="stylesheet" href="../assets/manual.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+      .format-slide .slide__footer-right::after { content: attr(data-page); }
+    </style>
+  </head>
+  <body class="format-slide">
+    <!-- ========================= 1 · COVER ========================= -->
+    <section class="slide slide--cover">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="cover-content">
+        <div class="cover-text">
+          <div class="cover-logo">PNUD</div>
+          <div class="cover-subtitle">Manual de usuario</div>
+          <h1 class="cover-title">Calculadora de huella</h1>
+          <div class="cover-app-name">Huella Latam</div>
+          <div class="cover-version">versión 1.0 &nbsp;|&nbsp; julio 2026</div>
+        </div>
+        <div class="cover-mockup">
+          <div class="cover-mockup-frame">
+            <div class="cover-mockup-screen">
+              <img
+                src="../screenshots/calculadora_huella/overview.png"
+                alt="Calculadora de huella — vista desktop"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="1">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 2 · OBJECTIVES ========================= -->
+    <section class="slide slide--objectives">
+      <h2 class="objectives-title">Objetivos del manual de usuarios de Calculadora de huella</h2>
+      <div class="objectives-list">
+        <div class="objective-item">
+          <div class="objective-icon">
+            <span class="material-symbols-rounded">route</span>
+          </div>
+          <div class="objective-text">
+            <h3>Calcular tu huella de punta a punta</h3>
+            <p>
+              Recorrer los <strong>cinco pasos</strong> del asistente y obtener el total de tu
+              organización, con cuenta o sin ella.
+            </p>
+          </div>
+        </div>
+        <div class="objective-item">
+          <div class="objective-icon">
+            <span class="material-symbols-rounded">edit_note</span>
+          </div>
+          <div class="objective-text">
+            <h3>Ingresar cada dato con confianza</h3>
+            <p>
+              Saber qué pide cada campo, cómo se elige el <strong>factor de emisión</strong> y cómo
+              respaldar lo que declaras.
+            </p>
+          </div>
+        </div>
+        <div class="objective-item">
+          <div class="objective-icon">
+            <span class="material-symbols-rounded">insights</span>
+          </div>
+          <div class="objective-text">
+            <h3>Leer y guardar tu resultado</h3>
+            <p>
+              Interpretar el desglose por alcance, revisar los factores aplicados y conservar tu
+              <strong>borrador</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="2">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 3 · INDEX ========================= -->
+    <section class="slide slide--index">
+      <h2 class="index-title">Índice de contenidos</h2>
+      <div class="index-columns">
+        <div class="index-item">
+          <span class="index-item-title is-section">Antes de empezar</span>
+          <span class="index-item-page">4</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Dos formas de empezar</span>
+          <span class="index-item-page">5</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">El recorrido en cinco pasos</span>
+          <span class="index-item-page">6</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title is-section">Paso 1 · Perfilamiento</span>
+          <span class="index-item-page">7</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Describe tu organización</span>
+          <span class="index-item-page">8</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title is-section">Paso 2 · Fuentes de emisión</span>
+          <span class="index-item-page">9</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Elige qué vas a medir</span>
+          <span class="index-item-page">10</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title is-section">Paso 3 · Datos de cada fuente</span>
+          <span class="index-item-page">11</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Ingresa tus cantidades</span>
+          <span class="index-item-page">12</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Respalda y amplía cada línea</span>
+          <span class="index-item-page">13</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Si solo tienes el total</span>
+          <span class="index-item-page">14</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title is-section">Paso 4 · Resumen</span>
+          <span class="index-item-page">15</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Revisa antes de calcular</span>
+          <span class="index-item-page">16</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Los factores aplicados</span>
+          <span class="index-item-page">17</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title is-section">Paso 5 · Resultados</span>
+          <span class="index-item-page">18</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Tu huella y tu plan</span>
+          <span class="index-item-page">19</span>
+        </div>
+        <div class="index-item">
+          <span class="index-item-title index-bullet">Guarda tu borrador</span>
+          <span class="index-item-page">20</span>
+        </div>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="3">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 4 · DIVIDER: Antes de empezar ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">flag</span>
+      </div>
+      <h2 class="divider-title">Antes de empezar</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="4">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 5 · CONTENT: Dos formas de empezar ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Dos formas de empezar</h2>
+      <p class="content-description">
+        Desde la pantalla de inicio eliges cómo trabajar. Las dos rutas abren el
+        <strong>mismo asistente de cinco pasos</strong>: cambia el nivel de detalle que se te pide.
+        No necesitas cuenta para empezar a calcular.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/landing-c.png"
+          alt="Pantalla de inicio con las dos tarjetas para empezar un cálculo"
+        />
+        <span class="callout-num" style="top: 59.7%; left: 31.3%;">1</span>
+        <span class="callout-num" style="top: 59.7%; left: 54.1%;">2</span>
+        <span class="callout-num" style="top: 90.2%; left: 34.6%;">3</span>
+        <span class="callout-num" style="top: 90.2%; left: 57.3%;">4</span>
+      </div>
+
+      <ul class="annotation-legend">
+        <li>
+          <span class="legend-num">1</span><strong>Quiero calcular mi huella:</strong> la ruta
+          guiada; el sistema aplica los factores por ti.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Ya tengo mis cálculos:</strong> para cargar tus
+          propios números, con más libertad en unidades y factores.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Usar calculadora:</strong> abre el asistente en la
+          ruta guiada.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Subir emisiones:</strong> abre el asistente en la
+          ruta para tus propios cálculos.
+        </li>
+      </ul>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="5">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 6 · CONTENT: El recorrido en cinco pasos ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">El recorrido en cinco pasos</h2>
+      <p class="content-description">
+        El asistente avanza paso a paso y <strong>guarda tu avance</strong> a medida que completas.
+        Puedes volver atrás en cualquier momento con el botón <strong>Volver</strong>.
+      </p>
+      <ul class="feature-list">
+        <li>
+          <span class="material-symbols-rounded">badge</span>
+          <span
+            ><strong>Paso 1 · Perfilamiento:</strong> año de medición, nombre del cálculo y datos de
+            tu organización.</span
+          >
+        </li>
+        <li>
+          <span class="material-symbols-rounded">checklist</span>
+          <span
+            ><strong>Paso 2 · Fuentes o actividades:</strong> eliges qué vas a medir, con sugerencias
+            según tu rubro.</span
+          >
+        </li>
+        <li>
+          <span class="material-symbols-rounded">edit_note</span>
+          <span
+            ><strong>Paso 3 · Datos de cada fuente:</strong> ingresas cantidades y el cálculo se hace
+            solo.</span
+          >
+        </li>
+        <li>
+          <span class="material-symbols-rounded">fact_check</span>
+          <span
+            ><strong>Paso 4 · Resumen:</strong> revisas todo lo ingresado, con los factores aplicados
+            a la vista.</span
+          >
+        </li>
+        <li>
+          <span class="material-symbols-rounded">insights</span>
+          <span
+            ><strong>Paso 5 · Resultados:</strong> ves tu huella total, su desglose y el plan de
+            reducción sugerido.</span
+          >
+        </li>
+      </ul>
+      <div class="tip-box">
+        <span class="material-symbols-rounded">lightbulb</span>
+        <span>
+          Sin cuenta también funciona: tu cálculo queda guardado <strong>en este navegador</strong>,
+          así que no lo verás en otro equipo y se pierde si borras los datos de navegación. Al
+          <strong>iniciar sesión desde el paso 5</strong>, pasa a tu perfil.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="6">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 7 · DIVIDER: Paso 1 ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">badge</span>
+      </div>
+      <h2 class="divider-title">Paso 1 · Perfilamiento</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="7">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 8 · CONTENT: Paso 1 ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Paso 1: describe tu organización</h2>
+      <p class="content-description">
+        Este paso define el punto de partida. Los campos con asterisco —<strong>año</strong>,
+        <strong>nombre</strong>, <strong>rubro</strong> y <strong>sub-rubro</strong>— son
+        obligatorios; además, el rubro activa las fuentes recomendadas del paso siguiente.
+      </p>
+
+      <div class="annotated-screenshot annotated-screenshot--sm">
+        <img
+          src="../screenshots/calculadora_huella/paso1-c.png"
+          alt="Formulario de perfilamiento con año, nombre, organización, rubro y actividad principal"
+        />
+        <span class="callout-num" style="top: 19.4%; left: 25.3%;">1</span>
+        <span class="callout-num" style="top: 19.4%; left: 74.6%;">2</span>
+        <span class="callout-num" style="top: 39.7%; left: 25.3%;">3</span>
+        <span class="callout-num" style="top: 39.7%; left: 74.6%;">4</span>
+        <span class="callout-num" style="top: 55.9%; left: 25.3%;">5</span>
+        <span class="callout-num" style="top: 72.4%; left: 25.3%;">6</span>
+      </div>
+
+      <ul class="annotation-legend cols-3">
+        <li>
+          <span class="legend-num">1</span><strong>Año de medición:</strong> el período que vas a
+          medir.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Nombre borrador huella:</strong> cómo reconocerás
+          este cálculo más adelante.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Nombre de la organización:</strong> opcional;
+          aparece en la ficha del resumen.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Tamaño:</strong> opcional; ayuda a comparar con
+          organizaciones parecidas.
+        </li>
+        <li>
+          <span class="legend-num">5</span><strong>Rubro y sub-rubro:</strong> el sector y el
+          subsector de tu organización; definen las fuentes que se te sugerirán.
+        </li>
+        <li>
+          <span class="legend-num">6</span><strong>Actividad principal y cantidad:</strong> la unidad
+          de tu operación (por ejemplo, lotes al año) para ver tu huella por unidad; si eliges una
+          actividad, la cantidad pasa a ser obligatoria.
+        </li>
+      </ul>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="8">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 9 · DIVIDER: Paso 2 ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">checklist</span>
+      </div>
+      <h2 class="divider-title">Paso 2 · Fuentes de emisión</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="9">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 10 · CONTENT: Paso 2 ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Paso 2: elige qué vas a medir</h2>
+      <p class="content-description">
+        Aquí ves todas las fuentes de emisión disponibles, agrupadas por
+        <strong>alcance</strong>. Marca las que aplican a tu organización; podrás agregar o quitar
+        fuentes más adelante.
+      </p>
+
+      <div class="annotated-screenshot annotated-screenshot--sm">
+        <img
+          src="../screenshots/calculadora_huella/paso2-c.png"
+          alt="Fuentes de emisión agrupadas en tres alcances, con fuentes recomendadas por rubro"
+        />
+        <span class="callout-num" style="top: 22.7%; left: 69.7%;">1</span>
+        <span class="callout-num" style="top: 33.3%; left: 35.5%;">2</span>
+        <span class="callout-num" style="top: 31.7%; left: 60%;">3</span>
+        <span class="callout-num" style="top: 36.8%; left: 96.4%;">4</span>
+      </div>
+
+      <ul class="annotation-legend">
+        <li>
+          <span class="legend-num">1</span><strong>Los tres alcances:</strong> agrupan las fuentes
+          según dónde se generan las emisiones.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Casilla:</strong> márcala para incluir esa fuente
+          en tu cálculo.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Recomendada:</strong> destacada por tu rubro; es
+          una sugerencia, no una obligación.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>(i):</strong> abre una explicación de la fuente;
+          la descripción bajo cada nombre orienta qué incluir.
+        </li>
+      </ul>
+
+      <div class="tip-box">
+        <span class="material-symbols-rounded">lightbulb</span>
+        <span>
+          No hace falta marcar fuentes en los tres alcances: marca <strong>solo las que apliquen</strong>
+          a tu organización. Si dejas un alcance sin fuentes, el asistente te lo recordará al
+          continuar, por si se te pasó alguna.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="10">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 11 · DIVIDER: Paso 3 ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">edit_note</span>
+      </div>
+      <h2 class="divider-title">Paso 3 · Datos de cada fuente</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="11">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 12 · CONTENT: Paso 3 grilla ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Paso 3: ingresa tus cantidades</h2>
+      <p class="content-description">
+        Cada fuente que marcaste tiene su propia grilla. Tú ingresas la
+        <strong>cantidad</strong> y el sistema resuelve el factor y las emisiones:
+        <strong>5.000 L × 2,57 kg/L = 12,85 tCO₂e</strong>.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/paso3-c.png"
+          alt="Grilla de captura con una línea completa y sus emisiones calculadas"
+        />
+        <span class="callout-num" style="top: 10.8%; left: 17.2%;">1</span>
+        <span class="callout-num" style="top: 29.2%; left: 57.5%;">2</span>
+        <span class="callout-num" style="top: 86.8%; left: 13.7%;">3</span>
+        <span class="callout-num" style="top: 86.8%; left: 31.9%;">4</span>
+        <span class="callout-num" style="top: 86.8%; left: 43.9%;">5</span>
+        <span class="callout-num" style="top: 86.8%; left: 71.8%;">6</span>
+        <span class="callout-num" style="top: 86.8%; left: 83.8%;">7</span>
+      </div>
+
+      <ul class="annotation-legend cols-3">
+        <li>
+          <span class="legend-num">1</span><strong>Alcances:</strong> cambia de alcance sin perder lo
+          que escribiste.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Total del alcance:</strong> se actualiza con cada
+          línea que completas.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Variables de la fuente:</strong> describen qué
+          usaste (tipo de equipo, combustible).
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Unidad:</strong> la unidad en que registras el
+          consumo.
+        </li>
+        <li>
+          <span class="legend-num">5</span><strong>Cantidad:</strong> lo consumido durante el año que
+          mides.
+        </li>
+        <li>
+          <span class="legend-num">6</span><strong>Factor y su fuente:</strong> se cargan solos según
+          lo que elegiste.
+        </li>
+        <li>
+          <span class="legend-num">7</span><strong>Emisiones y acciones:</strong> el resultado de la
+          línea, más adjuntar, comentar o borrar.
+        </li>
+      </ul>
+
+      <div class="info-box">
+        <span class="material-symbols-rounded">info</span>
+        <span>
+          <strong>Agregar fuente</strong> suma otra línea a la misma fuente de emisión: útil si
+          tienes varios equipos o combustibles.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="12">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 13 · CONTENT: Respaldo por línea ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Respalda y amplía cada línea</h2>
+      <div class="content-split">
+        <div class="content-split__text">
+          <p class="content-description">
+            Cada línea admite respaldo y notas. Así tu cálculo queda documentado y otra persona
+            puede entenderlo después.
+          </p>
+          <ul class="feature-list">
+            <li>
+              <span class="material-symbols-rounded">upload_file</span>
+              <span
+                ><strong>Adjuntar archivos:</strong> sube facturas o planillas de respaldo de esa
+                línea.</span
+              >
+            </li>
+            <li>
+              <span class="material-symbols-rounded">comment</span>
+              <span
+                ><strong>Comentarios:</strong> anota supuestos o el detalle de un factor propio.</span
+              >
+            </li>
+            <li>
+              <span class="material-symbols-rounded">add</span>
+              <span
+                ><strong>Agregar fuente:</strong> suma más líneas dentro de la misma fuente.</span
+              >
+            </li>
+            <li>
+              <span class="material-symbols-rounded">library_add</span>
+              <span
+                ><strong>Agregar subcategorías:</strong> incorpora fuentes que no marcaste en el paso
+                2.</span
+              >
+            </li>
+          </ul>
+
+          <div class="info-box">
+            <span class="material-symbols-rounded">info</span>
+            <span>
+              Se aceptan <strong>JPG, PNG, PDF, XLS y XLSX de hasta 10 MB</strong> por archivo;
+              quedan guardados al presionar <strong>Actualizar</strong>.
+            </span>
+          </div>
+        </div>
+        <div class="content-split__visual">
+          <div class="screenshot-container">
+            <img
+              src="../screenshots/calculadora_huella/dialog-evidencia-c.png"
+              alt="Ventana de archivos adjuntos de una línea de emisión"
+            />
+          </div>
+        </div>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="13">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 14 · CONTENT: Solo el total ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Si solo tienes el total</h2>
+      <p class="content-description">
+        Cuando ya conoces el total de una fuente y no su detalle, puedes registrarlo directamente.
+        Esta opción aparece en la ruta <strong>Ya tengo mis cálculos</strong>.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/paso3-total-c.png"
+          alt="Fuente con el total de emisiones ingresado directamente y otra fuente con detalle"
+        />
+        <span class="callout-num" style="top: 12.9%; left: 57.5%;">1</span>
+        <span class="callout-num" style="top: 45.8%; left: 64.4%;">2</span>
+        <span class="callout-num" style="top: 54.2%; left: 74.3%;">3</span>
+        <span class="callout-num" style="top: 88%; left: 81.6%;">4</span>
+      </div>
+
+      <ul class="annotation-legend">
+        <li>
+          <span class="legend-num">1</span><strong>Total del alcance:</strong> suma las fuentes con
+          detalle y las de total directo.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Emisiones:</strong> escribe aquí el total de esa
+          fuente, en tCO₂e.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Sólo quiero ingresar el total:</strong> reemplaza
+          la grilla por un único campo.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Las demás fuentes:</strong> siguen registrándose
+          línea a línea.
+        </li>
+      </ul>
+
+      <div class="info-box">
+        <span class="material-symbols-rounded">info</span>
+        <span>
+          Puedes volver al detalle desmarcando la casilla. En el resumen y en los resultados, esa
+          fuente aparece <strong>solo con su total</strong>, sin el detalle línea a línea.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="14">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 15 · DIVIDER: Paso 4 ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">fact_check</span>
+      </div>
+      <h2 class="divider-title">Paso 4 · Resumen</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="15">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 16 · CONTENT: Paso 4 ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Paso 4: revisa antes de calcular</h2>
+      <p class="content-description">
+        El resumen reúne todo lo ingresado: la ficha de tu organización, el
+        <strong>total</strong> y el detalle por fuente con el factor aplicado.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/paso4-c.png"
+          alt="Resumen con la ficha del cálculo, el total de emisiones y el detalle por alcance"
+        />
+        <span class="callout-num" style="top: 12.2%; left: 87.7%;">1</span>
+        <span class="callout-num" style="top: 12.2%; left: 95.4%;">2</span>
+        <span class="callout-num" style="top: 24.7%; left: 2.7%;">3</span>
+        <span class="callout-num" style="top: 42.7%; left: 52.1%;">4</span>
+        <span class="callout-num" style="top: 59.8%; left: 87.4%;">5</span>
+        <span class="callout-num" style="top: 78.2%; left: 16.3%;">6</span>
+      </div>
+
+      <ul class="annotation-legend cols-3">
+        <li>
+          <span class="legend-num">1</span><strong>Descargar:</strong> baja una carpeta comprimida
+          con el resumen de emisiones y la metodología en Excel, un archivo de lectura y los
+          respaldos que adjuntaste.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Estado:</strong> mientras trabajas en el
+          asistente, tu cálculo se mantiene en <em>Borrador</em>.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Ficha del cálculo:</strong> año, organización,
+          rubro, tamaño y actividad principal.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Total de emisiones:</strong> la suma de todas las
+          fuentes, con su equivalencia por actividad.
+        </li>
+        <li>
+          <span class="legend-num">5</span><strong>Subtotal por alcance:</strong> cuánto aporta cada
+          alcance y su porcentaje.
+        </li>
+        <li>
+          <span class="legend-num">6</span><strong>Detalle por fuente:</strong> cantidad, unidad,
+          factor y emisiones de cada línea; las fuentes cargadas como total muestran solo su total.
+        </li>
+      </ul>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="16">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 17 · CONTENT: Factores aplicados ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Los factores que se aplicaron</h2>
+      <p class="content-description">
+        Al final del resumen queda la lista de <strong>factores utilizados</strong>. Es la
+        trazabilidad de cada número: qué valor se aplicó y de dónde viene.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/paso4-factores-c.png"
+          alt="Tabla de factores utilizados con su valor, unidad y referencia"
+        />
+        <span class="callout-num" style="top: 20.7%; left: 10.5%;">1</span>
+        <span class="callout-num" style="top: 20.7%; left: 30.2%;">2</span>
+        <span class="callout-num" style="top: 20.7%; left: 52.1%;">3</span>
+        <span class="callout-num" style="top: 20.7%; left: 69.8%;">4</span>
+        <span class="callout-num" style="top: 20.7%; left: 85.8%;">5</span>
+      </div>
+
+      <ul class="annotation-legend cols-3">
+        <li>
+          <span class="legend-num">1</span><strong>Alcance:</strong> la categoría a la que pertenece
+          la fuente.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Sub-categoría:</strong> la fuente de emisión que
+          mediste.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Parámetros de actividad:</strong> la combinación
+          que seleccionaste en la grilla.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Factor:</strong> el valor aplicado por cada unidad
+          ingresada.
+        </li>
+        <li>
+          <span class="legend-num">5</span><strong>Fuente:</strong> la referencia del factor (por
+          ejemplo, DEFRA 2025).
+        </li>
+      </ul>
+
+      <div class="tip-box">
+        <span class="material-symbols-rounded">lightbulb</span>
+        <span>
+          Si un factor no calza con tu realidad, usa la ruta <strong>Ya tengo mis cálculos</strong>:
+          ahí puedes ingresar tu propio factor y explicarlo en el comentario de la línea.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="17">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 18 · DIVIDER: Paso 5 ========================= -->
+    <section class="slide slide--divider">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="divider-icon-wrap">
+        <span class="material-symbols-rounded">insights</span>
+      </div>
+      <h2 class="divider-title">Paso 5 · Resultados</h2>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="18">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 19 · CONTENT: Paso 5 ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Paso 5: tu huella y tu plan</h2>
+      <p class="content-description">
+        El último paso muestra tu <strong>huella total</strong>, cómo se reparte y qué hacer con
+        ella. Es la pantalla que conviene guardar y compartir.
+      </p>
+
+      <div class="annotated-screenshot annotated-screenshot--sm">
+        <img
+          src="../screenshots/calculadora_huella/paso5-c.png"
+          alt="Resultados con el total, el desglose por alcance, el ranking y el plan de reducción"
+        />
+        <span class="callout-num" style="top: 6.8%; left: 30.8%;">1</span>
+        <span class="callout-num" style="top: 5.1%; left: 89.5%;">2</span>
+        <span class="callout-num" style="top: 19.1%; left: 36.1%;">3</span>
+        <span class="callout-num" style="top: 36.4%; left: 69.8%;">4</span>
+        <span class="callout-num" style="top: 60%; left: 60.1%;">5</span>
+        <span class="callout-num" style="top: 77.7%; left: 12.1%;">6</span>
+      </div>
+
+      <ul class="annotation-legend cols-3">
+        <li>
+          <span class="legend-num">1</span><strong>Total de emisiones:</strong> tu huella del año
+          medido, en tCO₂e.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Plan de reducción sugerido:</strong> acciones
+          propuestas para tus fuentes principales.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Desglose por alcance:</strong> el aporte de cada
+          alcance, en toneladas y en porcentaje.
+        </li>
+        <li>
+          <span class="legend-num">4</span><strong>Tu huella equivalente:</strong> las emisiones por
+          unidad de tu actividad principal.
+        </li>
+        <li>
+          <span class="legend-num">5</span><strong>Ranking de emisiones:</strong> las fuentes que más
+          pesan, de mayor a menor.
+        </li>
+        <li>
+          <span class="legend-num">6</span><strong>Gráfico de participación:</strong> la misma
+          distribución, de un vistazo.
+        </li>
+      </ul>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="19">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 20 · CONTENT: Guardar borrador ========================= -->
+    <section class="slide slide--content">
+      <h2 class="content-title">Guarda tu borrador</h2>
+      <p class="content-description">
+        Si empezaste sin cuenta, este es el momento de guardar. Al iniciar sesión, el cálculo que
+        acabas de hacer queda <strong>asociado a tu perfil</strong>.
+      </p>
+
+      <div class="annotated-screenshot">
+        <img
+          src="../screenshots/calculadora_huella/dialog-guardar-c.png"
+          alt="Aviso para iniciar sesión y guardar el borrador del cálculo"
+        />
+        <span class="callout-num" style="top: 32.8%; left: 67.4%;">1</span>
+        <span class="callout-num" style="top: 58.6%; left: 53.5%;">2</span>
+        <span class="callout-num" style="top: 58.6%; left: 64.2%;">3</span>
+      </div>
+
+      <ul class="annotation-legend">
+        <li>
+          <span class="legend-num">1</span><strong>El aviso:</strong> para conservar el cálculo
+          necesitas una cuenta.
+        </li>
+        <li>
+          <span class="legend-num">2</span><strong>Cancelar:</strong> vuelves a los resultados sin
+          guardar.
+        </li>
+        <li>
+          <span class="legend-num">3</span><strong>Iniciar sesión:</strong> entras o creas tu cuenta,
+          y el borrador se guarda.
+        </li>
+      </ul>
+
+      <div class="tip-box">
+        <span class="material-symbols-rounded">verified</span>
+        <span>
+          Con la sesión iniciada, <strong>Guardar borrador</strong> te lleva a
+          <strong>tu lista de huellas</strong>: el listado de todos tus cálculos guardados, donde
+          puedes retomar este o empezar otro.
+        </span>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="20">Página </span>
+      </footer>
+    </section>
+
+    <!-- ========================= 21 · CONTRAPORTADA (repite la portada) ========================= -->
+    <section class="slide slide--cover">
+      <div class="module-icon-bg">
+        <span class="material-symbols-rounded">calculate</span>
+      </div>
+      <div class="cover-content">
+        <div class="cover-text">
+          <div class="cover-logo">PNUD</div>
+          <div class="cover-subtitle">Manual de usuario</div>
+          <h1 class="cover-title">Calculadora de huella</h1>
+          <div class="cover-app-name">Huella Latam</div>
+          <div class="cover-version">versión 1.0 &nbsp;|&nbsp; julio 2026</div>
+        </div>
+        <div class="cover-mockup">
+          <div class="cover-mockup-frame">
+            <div class="cover-mockup-screen">
+              <img
+                src="../screenshots/calculadora_huella/overview.png"
+                alt="Calculadora de huella — vista desktop"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide__footer">
+        <span class="slide__footer-left"
+          >Huella Latam &nbsp;|&nbsp; vista Calculadora de huella &nbsp;|&nbsp; versión 1.0</span
+        >
+        <span class="slide__footer-right" data-page="21">Página </span>
+      </footer>
+    </section>
+  </body>
+</html>
