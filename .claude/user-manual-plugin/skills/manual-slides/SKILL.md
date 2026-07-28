@@ -87,14 +87,42 @@ BACK COVER   → Cierre: la misma lámina de portada, repetida
 ```
 
 El capítulo **cierra con la portada repetida** (mismo markup, `data-page` corriendo). No va en
-el índice y no cuenta para el tope de slides.
+el índice y no cuenta para la extensión acordada.
 
-Cantidad de slides según complejidad (**tope duro: 20**, sin contar la contraportada):
+#### Acordar la extensión (obligatorio antes de escribir)
 
-- Simple (1 vista, pocos features): **10-14**.
-- Mediano (2-3 vistas): **14-18**.
-- Complejo (mapa, múltiples vistas): **18-20** (el original sugería hasta 22; aquí se
-  recorta a 20 por la regla dura).
+No hay tope fijo ni tramos por tipo de módulo: **la extensión la decides tú a partir del contenido
+que este módulo realmente tiene**, y la confirmas con el usuario antes de escribir. Un módulo
+"simple" con seis estados y tres diálogos puede necesitar más láminas que uno "complejo" de
+recorrido lineal; el número sale del inventario, no de una etiqueta.
+
+**1 · Inventaria lo que hay que cubrir.** Con la ficha (y el código si hace falta), lista las
+unidades de contenido: cada vista, cada paso de un flujo, cada formulario con sus campos
+obligatorios, cada diálogo o acción secundaria (adjuntos, comentarios, descargas), los estados y
+avisos, y los casos de borde que la persona va a encontrar. Una unidad es algo que alguien
+necesita para poder actuar; si no lo necesita, no entra ni al inventario ni al manual.
+
+**2 · Agrupa en láminas según lo que aguanta una lámina.** Los límites de densidad son los que
+fuerzan las divisiones, no un cupo: una lámina sostiene **una captura anotada con 6-7 callouts
+como máximo**, hasta **2 info/tip-box**, y nunca pasa de **810 px de alto**. Un tema que no cabe
+ahí se parte en dos; dos temas que sobran en media lámina se juntan. Suma después el andamiaje
+fijo: portada + objetivos + índice (3), un divider por sección, y la contraportada (que no cuenta).
+
+**3 · Propón el número que salió y confírmalo con AskUserQuestion.** No preguntes en abstracto:
+muestra de dónde viene. Ofrece tu cálculo como primera opción (marcada «(Recomendado)») y dos
+alternativas reales —una más breve y una más extensa— explicando en cada una **qué cobertura se
+gana o se pierde**, no solo el número. La opción «Other» deja al usuario fijar el suyo. Por ejemplo:
+
+> **Pregunta:** Conté 12 unidades de contenido (5 pasos, 3 diálogos, 2 rutas de entrada, factores,
+> guardado del borrador) y 5 secciones. ¿Qué extensión le doy al capítulo?
+> **Opciones:** `20 láminas (Recomendado)` — una de detalle por paso, más respaldo, total directo y
+> factores · `15 láminas` — un paso por lámina, sin las de detalle: se pierden los casos de borde ·
+> `26 láminas` — cada diálogo y cada caso de borde con su propia lámina.
+
+**4 · Trata lo acordado como presupuesto, no como pared.** Escribe dentro de eso. Si al planificar
+o al escribir descubres que el contenido verificado no cabe, **vuelve a preguntar** con el número
+que sí calza y qué lo exige; nunca lo excedas en silencio, ni rellenes con láminas de adorno para
+llegar a la cifra, ni recortes contenido verificado para forzarla.
 
 ### Paso 4 — Preparar el HTML
 
@@ -177,7 +205,8 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 ## Reglas duras (no romper)
 
-- Máximo **20 slides** por capítulo (la contraportada no cuenta).
+- **Extensión acordada con el usuario** (ver Paso 3): confirma el rango con AskUserQuestion antes
+  de escribir y no lo excedas sin volver a preguntar. La contraportada no cuenta.
 - El capítulo **cierra repitiendo la lámina de portada**.
 - Máximo **2 info-box o tip-box** por slide.
 - Máximo **6-7 callouts** por screenshot.
@@ -192,6 +221,8 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 ## Checklist final
 
+- [ ] Extensión confirmada con el usuario (AskUserQuestion) antes de escribir, y el capítulo cabe
+      en lo acordado.
 - [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido).
 - [ ] `manual.css` copiado a `user_manual/assets/` y enlazado como `../assets/manual.css`.
 - [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug_snake>/`; todos los `<img src>`

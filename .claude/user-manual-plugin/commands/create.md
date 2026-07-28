@@ -58,12 +58,19 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    `plantillas-slides.html`:
    Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N →
    Back cover (la misma lámina de portada, repetida como cierre).
-   Entre **10 y 20 slides** según la complejidad del módulo (la contraportada no cuenta).
+   **Antes de escribir, acuerda la extensión** (ver «Acordar la extensión» en la skill): no hay
+   tramos fijos — inventaria las unidades de contenido de este módulo, agrúpalas según lo que
+   aguanta una lámina (6-7 callouts, máx 2 cajas, 810 px) y decide tú el número. Confírmalo con
+   **AskUserQuestion** mostrando de dónde sale el cálculo, con tu número como primera opción más una
+   alternativa más breve y otra más extensa, y diciendo en cada una qué cobertura se gana o se
+   pierde (la contraportada no cuenta). Si el
+   usuario ya indicó una extensión en las instrucciones adicionales, respétala y no preguntes.
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
    Escribe el archivo en `user_manual/<slug_snake>/<slug_snake>.html`.
 
-8. **Reglas duras**: máx 20 slides (sin contar la contraportada); estructura Cover →
+8. **Reglas duras**: la extensión acordada en el paso 7 (sin contar la contraportada; para
+   excederla, vuelve a preguntar); estructura Cover →
    Objectives (3) → Index → [Divider + Content] × N → Back cover; ninguna lámina sobre 810 px de
    alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); sin vistas
    responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
