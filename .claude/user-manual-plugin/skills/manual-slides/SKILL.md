@@ -42,7 +42,7 @@ lleva `class="format-slide"`. No hay formato carta ni toggle de formato.
 
 ---
 
-## Workflow (9 pasos)
+## Workflow (11 pasos)
 
 ### Paso 0 — Prerrequisitos
 
@@ -127,11 +127,46 @@ Si Playwright está disponible, abrir el HTML a **1440×810** y verificar: cada 
 completa (sin cortes), los callouts calzan con el screenshot, todos los `<img>` cargan, el
 footer y el número de página aparecen en todas las slides, y el índice tiene páginas correctas.
 
-### Paso 8 — Confirmar con el usuario
+### Paso 8 — Probar la comprensión con un subagente
+
+Antes de cerrar el manual, comprobar que **se sostiene solo**: formular **10 preguntas** que una
+persona usuaria debería poder responder con él (camino completo, campos obligatorios, avisos y
+estados, acciones secundarias como adjuntos o descargas, y al menos dos casos de borde) y lanzarlas
+a un subagente (Agent tool, `subagent_type: general-purpose`, `model: sonnet`).
+
+- **Única fuente permitida**: `user_manual/<slug_snake>/<slug_snake>.html` y las capturas que ese
+  HTML referencia. Prohibirle el código de la app, las fichas del plugin, cualquier otro archivo y
+  el conocimiento previo: si el manual no lo dice, la respuesta es «el manual no lo dice».
+- **Formato de respuesta**: por pregunta, respuesta breve + número de página + marca
+  **RESPONDIDA / INFERIDA / NO ESTÁ**; al final, una sección de **vacíos del manual**.
+- Cada INFERIDA o NO ESTÁ es un hueco del manual: corregirlo (o descartarlo con justificación)
+  antes de seguir, verificando en el código cualquier dato nuevo que se agregue.
+
+### Paso 9 — Revisión con Codex (opcional)
+
+Preguntar con AskUserQuestion si quiere una revisión con Codex (**Revisar con Codex** /
+**Saltar la revisión**). Si acepta:
+
+```bash
+codex exec --sandbox read-only --skip-git-repo-check -c model_reasoning_effort=high \
+  "$(cat <archivo-con-el-prompt>)" < /dev/null > <salida>.md 2>&1
+```
+
+El `< /dev/null` **es obligatorio**: con stdin abierto, `codex exec` se queda esperando en
+«Reading additional input from stdin…» y no arranca nunca (parece "pensando" durante horas).
+
+El prompt debe pedir que contraste el manual (HTML + capturas) con el **código real** del módulo y
+su ficha, y que reporte **mejoras, inconsistencias, pasos faltantes, aclaraciones y contenidos o
+explicaciones incompletas**, por severidad, con ubicación en el manual y evidencia en el código
+(`archivo:línea`), sin modificar archivos. Tarda varios minutos: correrlo en segundo plano.
+Presentar los hallazgos, aplicar los que correspondan y descartar el resto con justificación. Si
+`codex` no está instalado, avisarlo y continuar.
+
+### Paso 10 — Confirmar con el usuario
 
 Antes del PDF, preguntar (AskUserQuestion) si quiere ajustes o si está listo para generar.
 
-### Paso 9 — Generar PDF
+### Paso 11 — Generar PDF
 
 Ejecutar el script parametrizado:
 
@@ -201,6 +236,8 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 - [ ] Ícono del módulo correcto en cover y dividers.
 - [ ] Índice con números de página correctos.
 - [ ] Sin datos reales; solo datos ficticios.
+- [ ] Prueba de comprensión hecha (10 preguntas al subagente) y sus vacíos resueltos.
+- [ ] Ofrecida la revisión con Codex y aplicados los hallazgos aceptados.
 - [ ] Preguntado al usuario si quiere ajustes antes del PDF.
 - [ ] PDF generado sin cortes de contenido.
 
