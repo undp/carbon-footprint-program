@@ -54,11 +54,10 @@ con los cambios pedidos. Sigue estos pasos en orden.
    ven completas sin cortes, los callouts calzan, las imágenes cargan, footer y números de página
    correctos.
 
-6. **Antes del PDF, si los cambios tocaron contenido** (no solo estética o posiciones de callouts),
-   corre los pasos 8 y 9 de la skill `manual-slides` sobre el manual actualizado: la **prueba de
-   comprensión** con un subagente Sonnet (10 preguntas, única fuente el HTML y sus capturas) y la
-   **revisión opcional con Codex** (AskUserQuestion: _Revisar con Codex_ / _Saltar la revisión_).
-   Resuelve los vacíos y los hallazgos aceptados antes de exportar.
+6. **Revisión de contenido.** Si los cambios tocaron contenido (no solo estética o posiciones de
+   callouts), **recomienda** correr `/user-manual:review @<slug>` sobre el manual actualizado:
+   prueba de comprensión con un subagente Sonnet y revisión opcional con Codex. Recomiéndalo, no lo
+   ejecutes; si el usuario prefiere revisar primero, deja el PDF para después de la revisión.
 
 7. **PDF.** Con AskUserQuestion pregunta si regenerar el PDF. Si sí:
 
