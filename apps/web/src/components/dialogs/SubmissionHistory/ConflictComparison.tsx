@@ -41,8 +41,13 @@ type ComparisonRow = {
  *
  * Both columns come from the warning payload — the applicant tuple is the
  * snapshot the API actually compared, not the organization's displayed data.
- * Laid out as a grid with wrapping cells and one separator per row, so it scales
- * to any value length without overflowing the dialog horizontally.
+ *
+ * Laid out as a bordered grid: cells carry the rules themselves, so there is NO
+ * grid gap (a gap would break every rule into three floating segments) and no
+ * `alignItems: center` on the container (cells must stretch, or a taller cell
+ * leaves the neighbouring rules at a different height). Gutters come from cell
+ * padding and one vertical rule separates the two compared columns; values wrap
+ * inside their cell, so any length fits without scrolling the dialog sideways.
  */
 export const ConflictComparison: FC<Props> = ({ metadata }) => {
   const theme = useTheme();
@@ -90,62 +95,78 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
     },
   ];
 
-  const cellSx = (collides: boolean, isLast: boolean) => ({
-    borderRadius: "4px",
-    px: 1,
-    py: 0.75,
+  const rule = `1px solid ${theme.palette.divider}`;
+
+  const cellSx = (isLast: boolean) => ({
+    display: "flex",
+    alignItems: "center",
+    minHeight: 38,
+    px: 1.5,
+    py: 1,
     fontSize: "0.75rem",
     overflowWrap: "anywhere" as const,
-    borderBottom: isLast ? "none" : `1px solid ${theme.palette.divider}`,
-    bgcolor: collides ? alpha(theme.palette.warning.main, 0.18) : "transparent",
+    borderBottom: isLast ? "none" : rule,
+  });
+
+  const labelCellSx = (isLast: boolean) => ({
+    ...cellSx(isLast),
+    fontSize: "0.7rem",
+    color: theme.palette.text.secondary,
+    bgcolor: alpha(theme.palette.text.primary, 0.02),
+  });
+
+  const valueCellSx = (
+    collides: boolean,
+    isLast: boolean,
+    isConflictColumn: boolean
+  ) => ({
+    ...cellSx(isLast),
+    borderLeft: isConflictColumn ? rule : "none",
+    bgcolor: collides ? alpha(theme.palette.warning.main, 0.16) : "transparent",
     color: collides ? theme.palette.warning.dark : theme.palette.text.primary,
     fontWeight: collides ? 600 : 400,
   });
 
-  const labelSx = (isLast: boolean) => ({
+  const headerCellSx = (isConflictColumn: boolean) => ({
+    ...cellSx(false),
+    minHeight: 32,
     py: 0.75,
-    pr: 1,
-    fontSize: "0.7rem",
-    color: theme.palette.text.secondary,
-    borderBottom: isLast ? "none" : `1px solid ${theme.palette.divider}`,
-  });
-
-  const headerSx = {
     fontSize: "0.7rem",
     fontWeight: 600,
-    pb: 0.75,
     color: theme.palette.text.secondary,
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  } as const;
+    borderLeft: isConflictColumn ? rule : "none",
+    bgcolor: alpha(theme.palette.text.primary, 0.02),
+  });
 
   return (
-    <Box
-      sx={{
-        borderTop: `1px solid ${theme.palette.divider}`,
-        bgcolor: theme.palette.background.default,
-        p: 1.5,
-      }}
-    >
+    <Box sx={{ borderTop: rule, p: 1.5 }}>
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "minmax(104px, 0.8fr) 1fr 1fr",
-          columnGap: 2,
-          rowGap: 0.75,
-          alignItems: "center",
+          gridTemplateColumns: "minmax(112px, 0.85fr) 1fr 1fr",
+          border: rule,
+          borderRadius: "6px",
+          overflow: "hidden",
+          bgcolor: theme.palette.background.paper,
         }}
       >
-        <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}` }} />
-        <Typography sx={headerSx}>Esta postulación</Typography>
-        <Typography sx={headerSx}>Organización en conflicto</Typography>
+        <Box sx={headerCellSx(false)} />
+        <Typography sx={headerCellSx(false)}>Esta postulación</Typography>
+        <Typography sx={headerCellSx(true)}>
+          Organización en conflicto
+        </Typography>
 
         {rows.map((row, index) => {
           const isLast = index === rows.length - 1;
           return (
             <Fragment key={row.key}>
-              <Typography sx={labelSx(isLast)}>{row.label}</Typography>
-              <Box sx={cellSx(row.collides, isLast)}>{row.applicant}</Box>
-              <Box sx={cellSx(row.collides, isLast)}>{row.conflict}</Box>
+              <Typography sx={labelCellSx(isLast)}>{row.label}</Typography>
+              <Box sx={valueCellSx(row.collides, isLast, false)}>
+                {row.applicant}
+              </Box>
+              <Box sx={valueCellSx(row.collides, isLast, true)}>
+                {row.conflict}
+              </Box>
             </Fragment>
           );
         })}
