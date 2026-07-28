@@ -36,11 +36,15 @@ con los cambios pedidos. Sigue estos pasos en orden.
    - el **contrato de clases** (no inventar clases ni variables fuera del contrato);
    - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N → Back cover
      (la portada repetida como cierre);
-   - las **reglas duras**: máx 20 slides sin contar la contraportada; ninguna lámina sobre 810 px
+   - las **reglas duras**: ninguna lámina sobre 810 px
      de alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); máx 2
      info/tip-box por slide; máx 6-7 callouts por
      screenshot; español neutro en segunda persona; sin datos reales de personas; sin jerga técnica
      (API, base de datos).
+   - la **extensión**: no hay tope fijo, pero si tus cambios agregan o quitan láminas y el prompt
+     no pidió explícitamente cambiar el largo, confirma la nueva extensión con **AskUserQuestion**
+     antes de escribir: di cuántas láminas tiene hoy, cuántas quedarían y qué se gana con la
+     diferencia (la contraportada no cuenta).
      Si agregas o quitas slides, **mantén el slide Index sincronizado** (títulos y números de página).
 
 4. **Capturas nuevas.** Si algún cambio las requiere, usa AskUserQuestion:

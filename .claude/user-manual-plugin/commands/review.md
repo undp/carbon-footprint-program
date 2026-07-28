@@ -74,11 +74,17 @@ código real del módulo y aplica los hallazgos que se verifiquen. Sigue estos p
    siguiente) · **Solo dejar el informe** (sin editar el manual).
 
 7. **Aplica y re-verifica.** Al editar el HTML respeta el **contrato de clases** (no inventar clases
-   ni variables) y las **reglas duras**: máx 20 láminas sin contar la contraportada; ninguna lámina
+   ni variables) y las **reglas duras**: ninguna lámina
    sobre 810 px de alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`);
    máx 2 info/tip-box por lámina; máx 6-7 callouts por screenshot; **índice sincronizado** (títulos
    y números de página) si agregas o quitas láminas; español neutro en segunda persona; sin jerga
-   técnica (API, base de datos); sin datos reales de personas. Después **re-verifica visualmente a
+   técnica (API, base de datos); sin datos reales de personas.
+   **Extensión:** no hay tope fijo. Prefiere corregir texto existente antes que agregar láminas,
+   pero si algún hallazgo verificado necesita una lámina nueva, confírmalo con **AskUserQuestion**
+   antes de escribirla: di cuántas láminas tiene el manual hoy, cuántas quedarían y qué hallazgo lo
+   exige (la contraportada no cuenta). Nunca descartes un hallazgo verificado solo por no alargar el
+   manual: si no cabe, la decisión es del usuario.
+   Después **re-verifica visualmente a
    1440×810** (Playwright si está disponible) las láminas tocadas: completas sin cortes, callouts
    alineados, imágenes que cargan, footer y números de página correctos.
 
