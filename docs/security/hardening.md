@@ -26,64 +26,55 @@ The API runs behind Azure App Service, which may sit behind Azure Front Door or 
 
 ## HTTP Security Headers
 
-`@fastify/helmet` (v13.0.2) is declared as a dependency in `apps/api/package.json` but **the plugin is not registered** — no plugin file exists under `apps/api/src/plugins/external/`.
+`@fastify/helmet` is registered via `apps/api/src/plugins/external/helmet.ts`. The file follows the repo's autoloaded external-plugins pattern — a `fastify-plugin`-wrapped plugin plus an exported `autoConfig` object — so `@fastify/autoload` picks it up and registers it automatically; there is no manual wiring elsewhere.
 
-This means the following security headers are **not currently set** by the API:
+The plugin applies helmet's secure header defaults **globally**, to every response:
 
-| Header                      | Purpose                            | Default without Helmet |
-| --------------------------- | ---------------------------------- | ---------------------- |
-| `Content-Security-Policy`   | Restricts resource loading origins | Not set                |
-| `Strict-Transport-Security` | Enforces HTTPS for future visits   | Not set                |
-| `X-Frame-Options`           | Prevents clickjacking via iframes  | Not set                |
-| `X-Content-Type-Options`    | Prevents MIME sniffing             | Not set                |
-| `Referrer-Policy`           | Controls referrer header exposure  | Not set                |
-| `Permissions-Policy`        | Restricts browser feature access   | Not set                |
+| Header                                      | Purpose                                | Status                          |
+| ------------------------------------------- | -------------------------------------- | ------------------------------- |
+| `Strict-Transport-Security` (HSTS)          | Enforces HTTPS for future visits       | Set (helmet default)            |
+| `X-Frame-Options`                           | Prevents clickjacking via iframes      | Set (helmet default)            |
+| `X-Content-Type-Options`                    | Prevents MIME sniffing                 | Set (helmet default, `nosniff`) |
+| `Referrer-Policy`                           | Controls referrer header exposure      | Set (helmet default)            |
+| Cross-Origin-\* policies (COOP, CORP, etc.) | Isolates the origin from other origins | Set (helmet default)            |
+| `Content-Security-Policy`                   | Restricts resource loading origins     | **Disabled** — see below        |
 
-**Action required:** Create `apps/api/src/plugins/external/helmet.ts` to register the plugin:
-
-```typescript
-import fp from "fastify-plugin";
-import fastifyHelmet from "@fastify/helmet";
-
-export default fp(async (fastify) => {
-  await fastify.register(fastifyHelmet, {
-    contentSecurityPolicy: false, // configure per deployment if needed
-  });
-});
-```
-
-For API-only backends serving JSON (no HTML), the most critical headers are `X-Content-Type-Options: nosniff` and `X-Frame-Options: DENY`. CSP can be disabled or minimally configured since the API does not serve HTML content.
+**`contentSecurityPolicy` is intentionally disabled.** The only HTML surface the API serves is the Swagger UI at `/api/docs`; its inline bootstrap script/styles would be blocked by helmet's default CSP, and a CSP adds little value for JSON responses that are never rendered as a document. This is a deliberate, documented trade-off recorded in the comment at the top of `helmet.ts`, not an outstanding gap.
 
 ---
 
 ## CORS
 
-CORS is configured in `apps/api/src/plugins/external/cors.ts`:
+CORS is configured in `apps/api/src/plugins/external/cors.ts`, which **fails closed in production**: if `NODE_ENV=production` and `ALLOWED_ORIGIN` is unset, the module throws at boot, before the server ever starts accepting traffic.
 
 ```typescript
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+if (IS_PROD && !ALLOWED_ORIGIN) {
+  throw new Error("ALLOWED_ORIGIN is required when NODE_ENV=production. ...");
+}
+
 export const autoConfig: FastifyCorsOptions = {
-  origin: ALLOWED_ORIGIN || true, // true = wildcard * if env var not set
+  origin: ALLOWED_ORIGIN || true,
   credentials: !!ALLOWED_ORIGIN,
-  methods: ["GET", "POST", "PATCH", "DELETE"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
 };
 ```
 
-| Aspect                      | Status                                                  |
-| --------------------------- | ------------------------------------------------------- |
-| Allowed methods             | GET, POST, PATCH, DELETE only (PUT excluded by design)  |
-| `credentials: true`         | Set only when `ALLOWED_ORIGIN` is explicitly configured |
-| Fallback if env var not set | `origin: true` — allows all origins                     |
+| Aspect                                                      | Status                                                                                                     |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Allowed methods                                             | GET, POST, PATCH, DELETE, PUT                                                                              |
+| `credentials: true`                                         | Set only when `ALLOWED_ORIGIN` is explicitly configured                                                    |
+| Production (`NODE_ENV=production`) without `ALLOWED_ORIGIN` | **Boot fails** — the app throws and refuses to start                                                       |
+| Dev/test without `ALLOWED_ORIGIN`                           | `origin: true` — reflects any origin; this permissive fallback is reachable only when `IS_PROD` is `false` |
 
-**Risk:** If `ALLOWED_ORIGIN` is not set in a deployed environment, the API accepts requests from any origin. This must not occur in Production or Staging.
+**Fail-closed by design:** the permissive fallback (`origin: true`, which would reflect any origin with credentials disabled) is a real cross-origin risk, so it is only ever reachable in local development and tests. In any environment running with `NODE_ENV=production`, a missing `ALLOWED_ORIGIN` now surfaces immediately as a startup crash instead of silently opening CORS to all origins — the misconfiguration can no longer reach a deployed environment undetected.
 
 **Required configuration:**
 
-| Environment       | `ALLOWED_ORIGIN` value                         |
-| ----------------- | ---------------------------------------------- |
-| Production        | `https://<production-static-web-app-hostname>` |
-| Staging           | `https://<staging-static-web-app-hostname>`    |
-| Local development | `http://localhost:5173` (or relevant dev port) |
+| Environment       | `ALLOWED_ORIGIN` value                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Production        | `https://<production-static-web-app-hostname>` — **required; app will not boot without it** |
+| Staging           | `https://<staging-static-web-app-hostname>` — required if `NODE_ENV=production`             |
+| Local development | `http://localhost:5173` (or relevant dev port) — optional, falls back to permissive CORS    |
 
 ---
 
@@ -197,15 +188,15 @@ Known package security tools applicable to this stack:
 
 ## Hardening Checklist (Pre-Production)
 
-| Item                                              | Status         | Action                                                     |
-| ------------------------------------------------- | -------------- | ---------------------------------------------------------- |
-| Helmet plugin registered                          | ❌ Missing     | Create `apps/api/src/plugins/external/helmet.ts`           |
-| `ALLOWED_ORIGIN` set in all environments          | ⚠️ Required    | Set via App Service configuration / Key Vault reference    |
-| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required    | Verify; `forced-user`/`none` must not appear in Production |
-| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify      | Review `allowedIpRanges` Bicep parameter per environment   |
-| HTTPS-only enforced on App Service                | ⚠️ Verify      | Add `httpsOnly: true` to App Service Bicep module          |
-| Front Door WAF enabled in Production              | ⚠️ Recommended | Deploy with Premium SKU for WAF rate limiting              |
-| MIME type validation on file uploads              | ❌ Missing     | Add content-type validation in file upload handler         |
-| `pnpm audit` run and issues addressed             | ⚠️ Ongoing     | Run before each release; address critical/high findings    |
-| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional    | Add VNet integration for highest-security deployments      |
-| CMK encryption for database/storage               | ⚠️ Optional    | Required only if local regulation mandates it              |
+| Item                                              | Status                    | Action                                                                                                                                            |
+| ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Helmet plugin registered                          | ✅ Done                   | Registered via `apps/api/src/plugins/external/helmet.ts` (autoloaded); see [HTTP Security Headers](#http-security-headers)                        |
+| `ALLOWED_ORIGIN` set in all environments          | ✅ Enforced in Production | Boot fails in Production without it (see [CORS](#cors)); still set explicitly per environment via App Service configuration / Key Vault reference |
+| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required               | Verify; `forced-user`/`none` must not appear in Production                                                                                        |
+| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify                 | Review `allowedIpRanges` Bicep parameter per environment                                                                                          |
+| HTTPS-only enforced on App Service                | ⚠️ Verify                 | Add `httpsOnly: true` to App Service Bicep module                                                                                                 |
+| Front Door WAF enabled in Production              | ⚠️ Recommended            | Deploy with Premium SKU for WAF rate limiting                                                                                                     |
+| MIME type validation on file uploads              | ❌ Missing                | Add content-type validation in file upload handler                                                                                                |
+| `pnpm audit` run and issues addressed             | ⚠️ Ongoing                | Run before each release; address critical/high findings                                                                                           |
+| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional               | Add VNet integration for highest-security deployments                                                                                             |
+| CMK encryption for database/storage               | ⚠️ Optional               | Required only if local regulation mandates it                                                                                                     |

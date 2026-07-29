@@ -1,5 +1,7 @@
 # Huella Latam
 
+[![CI](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml/badge.svg)](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/undp/carbon-footprint-program/badge)](https://securityscorecards.dev/viewer/?uri=github.com/undp/carbon-footprint-program) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
+
 A platform — a **digital public good for Latin America** — for measuring, managing, and reducing carbon footprints.
 
 Monorepo (pnpm + Turborepo): a Fastify + Prisma API (`apps/api`), a React + Vite + MUI web app (`apps/web`), shared libraries (`packages/*`), and Azure Bicep infrastructure (`infra/`).
@@ -83,7 +85,8 @@ Huella Latam aims to follow the [Principles for Digital Development](https://dig
 and recognized software best practices:
 
 - **Open standards:** OpenID Connect for auth, OpenAPI/Swagger for the API
-  (`http://localhost:8080/docs`), and non-proprietary data export (JSON/CSV via API).
+  (`http://localhost:8080/api/docs`), and data export in XLSX (Office Open XML) format (see
+  [`docs/development/data-export.md`](./docs/development/data-export.md)).
 - **Reuse & open source:** built on open-source components; provider-agnostic storage;
   AGPL-3.0 licensed for the public good.
 - **Privacy & security by design:** RBAC, OIDC, secrets in a vault, encryption at rest/in
@@ -94,13 +97,12 @@ and recognized software best practices:
   privilege**; dependencies are kept current via [Dependabot](./.github/dependabot.yml)
   (version updates + security alerts).
 - **Static analysis (SAST):** a [CodeQL workflow](./.github/workflows/codeql.yml) scans the
-  code on every push, PR, and weekly. Results upload to GitHub code scanning once the
-  repository is public.
+  code on every push, PR, and weekly. Results upload to GitHub code scanning.
 - **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
 
-**Planned hardening:** once this repository is public, code scanning (CodeQL) is active and
-secret scanning + push protection can be enabled in Settings → Code security. An OpenSSF
-Scorecard badge workflow can then be added. See [`SECURITY.md`](./SECURITY.md).
+**Standards in progress:** code scanning (CodeQL), secret scanning, and push protection are all
+active, and the OpenSSF Scorecard workflow publishes results (badge above). The OpenSSF Best
+Practices Badge is not yet registered. See [`SECURITY.md`](./SECURITY.md).
 
 ## 📄 License
 

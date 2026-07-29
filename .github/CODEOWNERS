@@ -2,18 +2,17 @@
 # Owners are requested for review automatically when matching files change.
 # Syntax: https://docs.github.com/articles/about-code-owners
 #
-# TODO: Replace the placeholder team below with the real GitHub team slug (or
-# individual @usernames) for the UNDP Huella Latam maintainers. An unresolved team
-# is ignored by GitHub, so review assignment will not work until this is set.
+# Owners are the @undp/carbon-footprint-program-maintainers org team; membership is managed
+# in the org's team settings.
 
 # Default owners for everything in the repo
-*                       @undp/huella-latam-maintainers
+*                       @undp/carbon-footprint-program-maintainers
 
 # Security-sensitive areas — require maintainer review
-/infra/                 @undp/huella-latam-maintainers
-/.github/               @undp/huella-latam-maintainers
-/docs/security/         @undp/huella-latam-maintainers
-/packages/database/     @undp/huella-latam-maintainers
-SECURITY.md             @undp/huella-latam-maintainers
-LICENSE                 @undp/huella-latam-maintainers
-GOVERNANCE.md           @undp/huella-latam-maintainers
+/infra/                 @undp/carbon-footprint-program-maintainers
+/.github/               @undp/carbon-footprint-program-maintainers
+/docs/security/         @undp/carbon-footprint-program-maintainers
+/packages/database/     @undp/carbon-footprint-program-maintainers
+SECURITY.md             @undp/carbon-footprint-program-maintainers
+LICENSE                 @undp/carbon-footprint-program-maintainers
+GOVERNANCE.md           @undp/carbon-footprint-program-maintainers

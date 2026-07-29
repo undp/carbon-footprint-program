@@ -1,9 +1,11 @@
 import fp from "fastify-plugin";
 import cors, { FastifyCorsOptions } from "@fastify/cors";
-
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+import { ALLOWED_ORIGIN } from "@/config/environment.js";
 
 export const autoConfig: FastifyCorsOptions = {
+  // In production ALLOWED_ORIGIN is guaranteed set (parseEnv fails closed at
+  // boot otherwise), so the `|| true` wildcard fallback only ever applies in
+  // dev/test where reflecting any origin is acceptable.
   origin: ALLOWED_ORIGIN || true,
   credentials: !!ALLOWED_ORIGIN,
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
