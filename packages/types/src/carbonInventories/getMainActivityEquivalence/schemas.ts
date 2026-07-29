@@ -12,7 +12,7 @@ export const GetMainActivityEquivalenceResponseSchema = z
       .number()
       .nonnegative()
       .describe(
-        "Emissions per main activity unit, rounded to 2 decimal places"
+        "Emissions in tCO2e per unit of the main activity, with full precision"
       ),
     activityName: OrganizationMainActivityBaseSchema.shape.name,
   })

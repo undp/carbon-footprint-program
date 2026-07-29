@@ -10,6 +10,7 @@ import {
   useSuggestedReductionPlan,
 } from "@/api/query";
 import { Routes } from "@/interfaces/routes/routes.const";
+import { formatter } from "@/utils/formatting";
 import { EmissionCategorySummary } from "./EmissionCategorySummary";
 import { EmissionEquivalenceCard } from "./EmissionEquivalenceCard";
 import { EmissionsPieChart } from "./EmissionsPieChart";
@@ -106,8 +107,8 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
           </Box>
           <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
             <EmissionEquivalenceCard
-              value={equivalence?.rate.toFixed(2).replace(".", ",") ?? null}
-              unit={equivalence ? `kg CO₂e/${equivalence.activityName}` : null}
+              value={equivalence ? formatter.rate(equivalence.rate) : null}
+              unit={equivalence ? `tCO₂e/${equivalence.activityName}` : null}
               isLoading={isEquivalenceLoading}
               hasError={isEquivalenceError}
             />
