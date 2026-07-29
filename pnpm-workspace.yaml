@@ -70,7 +70,7 @@ overrides:
   # Removed '@prisma/dev>@hono/node-server' pin: Prisma 7.9 (@prisma/dev 0.24.14)
   # drops @hono/node-server entirely, resolving GHSA-frvp-7c67-39w9.
 
-# --- Accepted advisories (reviewed 2026-07-25) ---
+# --- Accepted advisories (reviewed 2026-07-29) ---
 # GHSA-mh99-v99m-4gvg (CVE-2026-14257) also flags the pinned brace-expansion 1.1.16
 # and 2.1.2: its vulnerable range is '<=5.0.7', which crosses majors, and no backport
 # was ever published for the 1.x / 2.x lines. Forcing them to 5.0.8 is not an option
@@ -80,12 +80,12 @@ overrides:
 # down with them. Where the flagged copies actually live:
 #   - web's dependency tree: exceljs > archiver/unzipper > glob > minimatch. Node-side
 #     code that never reaches the browser bundle.
-#   - the api image: only through devDependencies (eslint's minimatch 3, and
-#     testcontainers > archiver's minimatch 5/9), which ship in the image because
-#     apps/api/Dockerfile installs without --prod. They are never loaded by the
-#     runtime entrypoint. api's --prod closure resolves brace-expansion to 5.0.8 only.
+#   - the api runtime image: nowhere. Its node_modules comes from a --prod install
+#     (the `prod-deps` stage in apps/api/Dockerfile), whose closure resolves
+#     brace-expansion to 5.0.8 only. The 1.x/2.x copies still reach the `builder`
+#     stage that the migrate/seed one-shots reuse, where no entrypoint loads them.
 # The 5.x copy IS patched by the override above. Revisit if a 1.1.17 / 2.1.3 backport
-# is published, or once the api image stops shipping devDependencies.
+# is published.
 auditConfig:
   ignoreGhsas:
     - GHSA-mh99-v99m-4gvg
