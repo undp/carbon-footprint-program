@@ -121,3 +121,24 @@ updates:
       default-days: 7
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      # Dependabot treats each sub-path of a composite action repository as its
+      # own dependency, so codeql-action/init, /analyze and /upload-sarif would
+      # otherwise arrive as three separate PRs. That breaks CodeQL: init writes
+      # its own action version into $RUNNER_TEMP/config and analyze refuses to
+      # read a config written by another version, so any PR that moves only one
+      # of them fails with "Loaded a configuration file for version X, but
+      # running version Y". Group them so they always bump in lockstep.
+      # See PRs #551-#553 and .github/workflows/codeql.yml.
+      codeql-action:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action"
+          - "github/codeql-action/*"
+      # Same lockstep requirement for security updates, which ignore the
+      # version-updates group above and need their own entry.
+      codeql-action-security:
+        applies-to: security-updates
+        patterns:
+          - "github/codeql-action"
+          - "github/codeql-action/*"

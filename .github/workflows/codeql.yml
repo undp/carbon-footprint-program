@@ -37,6 +37,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # init and analyze MUST stay on the same version. init serializes its own
+      # action version into $RUNNER_TEMP/config, and analyze refuses to read a
+      # config written by a different version ("Loaded a configuration file for
+      # version X, but running version Y"). Bump both refs in the same commit —
+      # see the codeql-action group in .github/dependabot.yml.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
