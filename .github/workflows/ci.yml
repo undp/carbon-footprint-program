@@ -347,51 +347,23 @@ jobs:
       - run: pnpm test:web
         if: needs.changes.outputs.code == 'true'
 
-  # Boot the *assembled* production images and assert they actually serve traffic.
-  #
-  # WHY THIS EXISTS — nothing else in CI executes the shipped artifact. `build`
-  # runs `pnpm build` over the source tree; `test` / `test-web` run Vitest against
-  # source, resolving @repo/* and path aliases through vite-tsconfig-paths. The
-  # image runs `node dist/server.js`: plain Node ESM resolution over tsc-emitted,
-  # tsc-alias-rewritten output. Those are different resolvers over different
-  # files, so a module that resolves in every existing job can still be absent
-  # from the image. #555 (api runtime image cut down to a --prod dependency tree)
-  # made that failure mode reachable and shipped on package-count evidence alone.
-  # @fastify/autoload compounds it: plugins and routes are imported dynamically at
-  # createApp() time by globbing the filesystem, so most of the import graph is
-  # only resolved by actually booting.
-  #
-  # Deliberately NOT in trivy.yml, which already builds both images: that workflow
-  # is advisory-by-design (see its header — path-filtered and occasionally flaky
-  # on vuln-DB downloads), so a functional gate there could never be a required
-  # check. These follow this file's deadlock-safe pattern instead: the jobs always
-  # run and gate every step on `code`.
-  #
-  # SCOPE — a boot probe, not end-to-end coverage. It proves the process starts,
-  # the module graph resolves, and the entry route answers. It does not exercise
-  # business logic, auth, or storage round-trips, and it cannot see a *partial*
-  # autoload failure: if one route file went missing from dist, autoload would
-  # register fewer routes and /health would still return 200.
+  # Build the production images and boot them: no other job executes the shipped
+  # artifact, so a module can resolve in `build` / `test` and still be missing from
+  # the image. Why that gap exists, what each job does and does not cover, and why
+  # this is not folded into trivy.yml: see the `smoke-api` / `smoke-web` section of
+  # docs/development/ci-cd.md.
   smoke-api:
     needs: [check-draft, changes]
     name: Image Smoke (api)
     runs-on: ubuntu-latest
     services:
-      # The api refuses to finish booting without a reachable database: the prisma
-      # plugin's onReady hook runs `$connect()` then `SELECT 1` and rethrows on
-      # failure, by design (apps/api/src/plugins/app/prisma.ts). `SELECT 1` touches
-      # no table, so an empty database is enough — no migrations, no seed. That
-      # round-trip is also the point: it exercises the generated Prisma client and
-      # the pg adapter, the artifacts that span the builder -> prod-deps stage seam
-      # where `dist` and `node_modules` come from two separate installs.
+      # Required: the prisma plugin's onReady hook runs `SELECT 1` and rethrows on
+      # failure, so the image will not finish booting without a reachable database.
+      # No migrations — `SELECT 1` touches no table, so an empty one suffices.
       #
-      # Digest-pinned to the same image as docker-compose.yml and the Testcontainers
-      # suite (apps/api/test/setup/testDatabase.ts) — bump all three together.
-      # Dependabot does not track service-container images in workflows.
-      #
-      # Service containers start even when the steps below no-op on a docs-only
-      # PR. A few seconds of wasted Postgres is the price of keeping this a
-      # required-check-safe job rather than a job-level `if:`.
+      # KEEP IN SYNC: digest-pinned to the same image as docker-compose.yml and
+      # apps/api/test/setup/testDatabase.ts — bump all three together. Dependabot
+      # does not track service-container images in workflows.
       postgres:
         image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
         env:
@@ -419,28 +391,14 @@ jobs:
       - name: Boot the image and probe /health
         if: needs.changes.outputs.code == 'true'
         env:
-          # The minimum env that reaches a listening state, i.e. every fail-closed
-          # guard in apps/api/src/config/environment.ts that fires when
-          # NODE_ENV=production. Values are placeholders; nothing here is dialled.
+          # Placeholders satisfying every *unconditional* production guard in
+          # apps/api/src/config/environment.ts; nothing here is dialled. AUTH_PROVIDER
+          # and CHATBOT_ENABLED stay unset so the guards behind them need no live IdP
+          # or Azure OpenAI — see the doc section for why that costs no coverage.
           #
-          # ALLOWED_ORIGIN is the one guard with no conditional: production always
-          # requires it, or CORS would reflect any origin. AUTH_PROVIDER is left
-          # unset on purpose -> "none", which keeps the production JWKS guards from
-          # firing without needing a live IdP; the module graph is identical either
-          # way, because jwt.ts -> jwksConfig.js -> jwks-rsa is a chain of *static*
-          # imports that Node resolves at load time regardless of the runtime
-          # branch. CHATBOT_ENABLED unset -> false, which is what keeps the
-          # COOKIE_SECRET, LLM_PROVIDER and AZURE_OPENAI_* guards quiet.
-          #
-          # STORAGE_PROVIDER and its MINIO_* vars are needed only because
-          # buildStorageConfig() throws at import without them. Nothing connects:
-          # storagePlugin builds a client from config, and prisma is the only
-          # plugin with an onReady hook. MINIO_RELAY_ENABLED stays unset, so the
-          # API_ORIGIN guard is unreachable.
-          #
-          # KEEP IN SYNC: adding a new unconditional production guard to
-          # environment.ts means adding its variable here, or this job fails with
-          # that guard's own error message — which is the intended feedback.
+          # KEEP IN SYNC: a new unconditional production guard in environment.ts needs
+          # its variable added here, or this job fails with that guard's own error
+          # message — which is the intended feedback.
           DATABASE_URL: postgresql://smoke:smoke@localhost:5432/smoke
           ALLOWED_ORIGIN: https://web.smoke.invalid
           STORAGE_PROVIDER: minio
@@ -481,30 +439,26 @@ jobs:
 
           cat health.json
           echo
-          # /health answers 503 with database:"disconnected" when the Prisma
-          # round-trip fails, which `curl -f` already rejected. Assert the body
-          # explicitly anyway, so a future always-200 health route cannot silently
-          # turn this gate into a bare TCP check.
+          # Asserted explicitly, though `curl -f` already rejected the 503, so a
+          # future always-200 health route cannot quietly reduce this to a TCP check.
           jq -e '.status == "ok" and .database == "connected"' health.json > /dev/null
 
       - name: Container logs
         if: failure() && needs.changes.outputs.code == 'true'
         run: docker logs api-smoke || true
 
-  # The web image cannot have api's problem — its runner is nginx serving a static
-  # bundle, with no Node runtime and no node_modules to go missing. It gets a smoke
-  # test for a different, currently unguarded reason: apps/web/nginx.conf and
-  # apps/web/security-headers.conf are validated by nothing at all in CI, and the
-  # Dockerfile rewrites the latter with busybox `sed` at build time.
+  # The web image cannot have api's problem (nginx + a static bundle, no Node
+  # runtime), so this covers a different unguarded gap: nothing else in CI validates
+  # apps/web/nginx.conf or the CSP that the Dockerfile rewrites with busybox `sed`.
   smoke-web:
     needs: [check-draft, changes]
     name: Image Smoke (web)
     runs-on: ubuntu-latest
     env:
-      # Distinct reserved-TLD hostnames (RFC 2606), one per placeholder, so the
-      # assertions below can tell them apart. Passed with no path component: the
-      # Dockerfile's origin() helper strips everything after scheme://host[:port],
-      # and bare origins keep the expected value equal to the input.
+      # One distinct reserved-TLD hostname (RFC 2606) per placeholder, so the CSP
+      # assertions can tell them apart. No path component: the Dockerfile's origin()
+      # helper strips anything after scheme://host[:port], and bare origins keep the
+      # expected value equal to the input.
       VITE_API_BASE_URL: https://api.smoke.invalid
       VITE_OIDC_ISSUER: https://idp.smoke.invalid
       STORAGE_ORIGIN: https://storage.smoke.invalid
@@ -558,11 +512,9 @@ jobs:
           fi
           echo "$csp"
 
-          # The Dockerfile substitutes __API_ORIGIN__ / __IDP_ORIGIN__ /
-          # __STORAGE_ORIGIN__ into the CSP. A renamed or newly added placeholder
-          # the sed does not cover ships as a literal token, which browsers treat
-          # as a bogus source expression and drop — silently breaking every API,
-          # IdP and storage call in production.
+          # A placeholder the Dockerfile's sed does not cover ships as a literal
+          # token, which browsers drop as a bogus source expression — silently
+          # breaking every API, IdP and storage call in production.
           if printf '%s\n' "$csp" | grep -qE '__[A-Z_]+__'; then
             echo "::error::Unsubstituted placeholder left in the CSP header."
             exit 1
