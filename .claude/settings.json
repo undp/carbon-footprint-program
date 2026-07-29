@@ -1,0 +1,8 @@
+{
+  "extraKnownMarketplaces": {
+    "cfp-plugins": { "source": { "source": "directory", "path": "." } }
+  },
+  "enabledPlugins": {
+    "user-manual@cfp-plugins": true
+  }
+}
