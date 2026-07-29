@@ -153,8 +153,8 @@ export const BusinessProfilingScreen: FC = () => {
 
   useInventoryErrorHandler(inventoryError);
 
-  // Single guarded exit path, shared by the header button and by "Volver"
-  // (step 1 has no previous step, so going back means leaving the wizard).
+  // Guarded exit path for the header exit button — the only way out of step 1,
+  // since it is the first step and has no previous one.
   //   - Clean form: exit immediately.
   //   - Logged in + valid form: save, then exit.
   //   - Guest, or invalid form (a freshly created inventory arrives with no
@@ -203,16 +203,8 @@ export const BusinessProfilingScreen: FC = () => {
     ? EXIT_DIALOG_CONTENT.LOGGED_IN
     : EXIT_DIALOG_CONTENT.GUEST;
 
-  const backButton: FooterButton = {
-    text: "Volver",
-    align: "right",
-    buttonProps: {
-      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: handleExitClick,
-      loading: isSubmittingAndExiting,
-      disabled: globalSubmitting,
-    },
-  };
+  // No footer "Volver" button here: step 1 is the first step, so going back
+  // means leaving the wizard — exactly what the header exit button does.
   const nextButton: FooterButton = {
     text: "Siguiente",
     align: "right",
@@ -248,7 +240,7 @@ export const BusinessProfilingScreen: FC = () => {
             ),
           }}
           footerProps={{
-            buttons: [backButton, nextButton],
+            buttons: [nextButton],
           }}
           isLoading={isLoading}
           hasError={hasInventoryError}
