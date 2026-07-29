@@ -4,17 +4,9 @@
 #
 # `expired_at` is a review deadline, not a suppression forever: once the date
 # passes, Trivy drops the entry and the scan fails again until it is re-assessed.
-vulnerabilities:
-  - id: CVE-2026-14257
-    expired_at: 2026-10-27
-    statement: >-
-      Accepted advisory, documented as GHSA-mh99-v99m-4gvg in pnpm-workspace.yaml
-      (auditConfig.ignoreGhsas). It only reaches brace-expansion 1.1.16 and 2.1.2,
-      which enter the api image solely through devDependencies (eslint's minimatch 3;
-      testcontainers > archiver's minimatch 5/9) that the runtime entrypoint never
-      loads. The production dependency closure resolves brace-expansion to 5.0.8,
-      which is patched. No backport was published for the 1.x / 2.x lines, and forcing
-      them to 5.0.8 breaks minimatch: 5.x exports `expand` as a named export while
-      1.x/2.x export the function itself. The root cause, the api image shipping
-      devDependencies, is tracked at
-      https://github.com/undp/carbon-footprint-program/issues/541
+#
+# Empty on purpose: both images scan clean without suppressions. CVE-2026-14257 was
+# the only entry, and it is now fixed rather than accepted — the api runner takes its
+# node_modules from a --prod install (the `prod-deps` stage in apps/api/Dockerfile),
+# so the unpatchable brace-expansion 1.x/2.x copies no longer reach a scanned image.
+vulnerabilities: []
