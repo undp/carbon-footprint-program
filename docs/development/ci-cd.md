@@ -63,7 +63,9 @@ check-draft
 ├── changes ──┬── lint
 │             ├── type-check
 │             ├── test ── coverage
-│             └── build
+│             ├── build
+│             ├── smoke-api
+│             └── smoke-web
 ├── verify-changes-filter
 ├── format
 ├── audit
@@ -83,12 +85,14 @@ check-draft
 | `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                                                                        |
 | `coverage`              | Merges the three test legs' coverage and enforces the `apps/api` gate (90% for all four metrics: lines, statements, functions, branches). |
 | `build`                 | Turborepo build of all apps and packages.                                                                                                 |
+| `smoke-api`             | Boots the built api image against an empty Postgres and probes `/health` (see below).                                                     |
+| `smoke-web`             | Boots the built web image, probes the SPA and verifies the substituted CSP (see below).                                                   |
 | `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).                                                                  |
 | `zizmor`                | Static analysis of the GitHub Actions workflows.                                                                                          |
 | `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                                                                              |
 | `secret-scan`           | Full-history secret scan (betterleaks).                                                                                                   |
 
-The code-gated jobs (`lint`, `type-check`, `test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
+The code-gated jobs (`lint`, `type-check`, `test`, `coverage`, `build`, `smoke-api`, `smoke-web`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
 
 ---
 
@@ -104,7 +108,7 @@ Acts as a gate. If the PR is a draft, this job is skipped, which causes all down
 
 ### Docs-only optimization
 
-The heavy jobs (`lint`, `type-check`, `test`, `coverage`, `build`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
+The heavy jobs (`lint`, `type-check`, `test`, `coverage`, `build`, `smoke-api`, `smoke-web`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
 
 The `changes` job (using `dorny/paths-filter`) sets a `code` output that is `true` when anything build-affecting changed. Each gated step carries `if: needs.changes.outputs.code == 'true'`. The filter's pattern list is a second source of truth for "what affects the build", so `verify-changes-filter` (`scripts/check-ci-changes-filter.mjs`) guards it against drift.
 
@@ -212,11 +216,32 @@ Builds all apps and packages via Turborepo. The frontend build requires `VITE_AP
 
 ---
 
+### `smoke-api` / `smoke-web`
+
+Build the production container images and **boot them**, asserting each one actually serves traffic. Reported as `Image Smoke (api)` and `Image Smoke (web)`.
+
+**Why they exist.** No other job executes the shipped artifact. `build` compiles the source tree; `test` and `test-web` run Vitest against source, resolving `@repo/*` and path aliases through `vite-tsconfig-paths`. The api image runs `node dist/server.js` — plain Node ESM resolution over `tsc`-emitted, `tsc-alias`-rewritten output. Those are different resolvers over different files, so a module can resolve in every other job and still be missing from the image. `@fastify/autoload` widens the gap: plugins and routes are imported dynamically at `createApp()` time by globbing the filesystem, so most of the import graph is only resolved by booting.
+
+| Job         | What it proves                                                                                                                                                                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke-api` | The image boots, its module graph resolves, and `/health` returns `status: "ok"` with `database: "connected"`. Catches a missing runtime module, a dangling pnpm symlink, an un-copied `@repo/*` dist, and Prisma client/adapter breakage across the `builder` → `prod-deps` stage seam.       |
+| `smoke-web` | nginx starts, the SPA is served, and the CSP header contains no unsubstituted `__*__` placeholder while carrying every expected origin. `apps/web/nginx.conf` and `apps/web/security-headers.conf` are otherwise validated by nothing in CI, and the Dockerfile rewrites the latter via `sed`. |
+
+`smoke-api` needs a database because the Prisma plugin's `onReady` hook runs `$connect()` then `SELECT 1` and rethrows on failure, by design. It uses a **service container** (not Testcontainers) and runs **no migrations** — `SELECT 1` touches no table, so an empty database suffices. That round-trip is deliberate: it exercises the generated Prisma client and the pg adapter, the artifacts that span the stage seam where `dist` and `node_modules` come from two separate installs. The Postgres image is digest-pinned to match `docker-compose.yml` and `apps/api/test/setup/testDatabase.ts` — bump all three together, since Dependabot does not track service-container images in workflows.
+
+> **Scope:** a boot probe, not end-to-end coverage. Neither job exercises business logic, auth, or storage round-trips, and `smoke-api` cannot detect a _partial_ autoload failure — if one route file vanished from `dist`, autoload would register fewer routes and `/health` would still answer 200.
+
+These checks are deliberately **not** part of `trivy.yml`, which already builds both images: that workflow is advisory-by-design and path-filtered (see its header), so a functional gate there could never be a required check. They follow `ci.yml`'s [docs-only optimization](#docs-only-optimization) pattern instead — the job always runs and every step is gated on `changes`.
+
+---
+
 ## Environment Variables and Secrets
 
-The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner, so no external Azure or MinIO credentials are required.
+The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner — except `smoke-api`'s Postgres, which is a workflow service container — so no external Azure or MinIO credentials are required.
 
 - `build` sets `VITE_API_BASE_URL` to a placeholder.
+- `smoke-api` sets the minimum env that satisfies every unconditional production guard in `apps/api/src/config/environment.ts` (`DATABASE_URL`, `ALLOWED_ORIGIN`, `STORAGE_PROVIDER` + `MINIO_*`), all placeholders that nothing dials. `AUTH_PROVIDER` is left unset so it defaults to `none`, avoiding the need for a live IdP; the module graph is unaffected, because `jwt.ts` → `jwksConfig.js` → `jwks-rsa` are static imports resolved at load time regardless. **Adding a new unconditional production guard means adding its variable here**, or the job fails with that guard's own error message.
+- `smoke-web` passes `VITE_API_BASE_URL`, `VITE_OIDC_ISSUER` and `STORAGE_ORIGIN` as build args — distinct reserved-TLD (RFC 2606) hostnames, so the CSP assertions can tell them apart.
 - `test` needs no storage env in the workflow: each Vitest project declares its own dummy connection vars in `test.env` (`STORAGE_PROVIDER` plus `AZURE_STORAGE_ACCOUNT_NAME` / `AZURE_STORAGE_CONTAINER_NAME` for the Azure projects, or `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_REGION` for the MinIO project). These only satisfy the config validation in `apps/api/src/config/environment.ts`; none are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`, and the dynamic MinIO endpoint is applied from the injected descriptor in `createTestApp` before `app.ready()`.
 
 ---
