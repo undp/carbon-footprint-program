@@ -82,10 +82,26 @@ limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/r
 The default is `false`, so a deployment that upgrades without setting the variable keeps its
 previous behaviour rather than silently starting to trust a header.
 
-Per topology: **self-hosted** — set it to your reverse proxy's address or range. **Azure with
-Front Door** — set it to the Front Door / App Service front-end ranges. **Azure App Service
-without Front Door** — the platform front-end still proxies to the container, so `request.ip`
-without `TRUST_PROXY` is the platform's address, not the visitor's.
+Per topology: **self-hosted** — set it to your reverse proxy's address or range. **Azure App
+Service without Front Door** — the platform front end still proxies to the container, so
+`request.ip` without `TRUST_PROXY` is the platform's address, not the visitor's; `1` trusts that
+single hop. **Azure with Front Door** — `2`, or the Front Door / App Service front-end ranges.
+On Azure the value is supplied by the `apiTrustProxy` parameter in `infra/main.bicep`, which
+emits the app setting; it defaults to empty so redeploying the template does not change request
+handling on its own.
+
+> **Verify the hop count against the real deployment before setting it.** Trusting fewer hops
+> than exist leaves the shared bucket in place; trusting more lets a caller forge the header and
+> select its own bucket. The parameter is deliberately not derived from `enableFrontDoor`,
+> because the hop count is a property of the actual request path.
+
+**A forwarded address is not always a bare IP.** Azure App Service appends the client's IP **and
+ephemeral port** to `X-Forwarded-For` (`203.0.113.9:51234`), and proxy-addr passes that through
+verbatim — so with `TRUST_PROXY` set, `request.ip` carries the port. Bucketing on that value
+directly would give every TCP connection from one caller its own key, which does not merely fail
+to fix the shared-bucket problem: it removes the rate limit altogether. The key generator
+therefore normalizes the address to the bare IP (`toRateLimitKey` in
+`apps/api/src/plugins/external/rate-limit.ts`), leaving IPv6 — bare or bracketed — intact.
 
 **Logs are unaffected either way.** The request logger installs a custom `req` serializer
 (`apps/api/src/app.ts`) emitting only `id`, `method`, `url` and `params`; it drops Fastify's
