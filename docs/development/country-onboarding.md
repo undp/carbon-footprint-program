@@ -15,8 +15,13 @@ Each country deployment requires:
 5. **Organization main activities** — KPI metrics per sector
 6. An **OIDC-compatible IdP** (e.g. Entra External ID, Keycloak) for authentication
 7. A dedicated Azure **infrastructure deployment** per environment
+8. **Published operational contacts** — privacy/DSAR, DPO, abuse, and child-safety escalation
+   ([Step 12](#step-12--publish-the-deployments-operational-contacts)) — **required before the
+   deployment serves real users**, and required of every operator, not only adopting countries
 
 All data in items 1–5 is loaded from declarative JSON seed files under `tools/seed/src/data/base/`.
+Items 6–7 are infrastructure; item 8 is an accountability obligation that no amount of
+configuration can satisfy on the operator's behalf.
 
 ---
 
@@ -360,7 +365,7 @@ time — rather than a general intention to comply.
 Also decide and record these operational values, which upstream states only as a baseline your
 deployment may strengthen but should not silently drop:
 
-- The breach-notification window you will honour (many applicable laws expect 72 hours).
+- The breach-notification window you will honor (many applicable laws expect 72 hours).
 - Retention limits and an anonymization trigger for personal data.
 - Moderation response targets per severity, and the appeal contact and timeline.
 - Whether to enable automated CSAM hash-scanning at the storage tier (e.g. PhotoDNA), which is
