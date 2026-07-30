@@ -122,7 +122,7 @@ A RESTful HTTP API built with Fastify v5. It follows a **feature-based modular m
 - Pino (structured JSON logging)
 - Zod (request/response schema validation)
 - Object storage via the `@repo/storage` package — a provider-agnostic adapter with **Azure Blob Storage** (Managed Identity, `@azure/identity` + `@azure/storage-blob`) and **MinIO/S3** implementations selected by `STORAGE_PROVIDER`; `apps/api` depends on `@repo/storage` rather than on the SDKs directly
-- `openai` SDK (Azure OpenAI) — powers the optional chatbot feature (gated by `CHATBOT_ENABLED`)
+- `openai` SDK (Azure OpenAI) — powers the optional chatbot feature (gated by `CHATBOT_ENABLED`), for both streaming chat completions and corpus embeddings; see [Chatbot retrieval flow](#chatbot-retrieval-flow-rag)
 - Prisma client (via `@repo/database`)
 
 **API domains / feature modules:**
@@ -194,7 +194,7 @@ A shared package exposing the Prisma ORM client and schema. Both the API and mig
 - Submissions & files (`Submission`, `SubmissionSubject` + subject link tables, `File`, `SubmissionFile`) + view `SubmissionSummaryView`
 - Recognition (`Badge`)
 - Reduction (`ReductionProject`, `ReductionPlanInitiative`) — note: neutralization plans are a **planned** feature, not yet modeled
-- Chatbot (`ChatbotChatConversation`, `ChatbotChatMessage`, `ChatbotCorpusSource`, `ChatbotCorpusChunk`, `ChatbotCorpusIngestRun`)
+- Chatbot (`ChatbotChatConversation`, `ChatbotChatMessage`, `ChatbotCorpusSource`, `ChatbotCorpusChunk`, `ChatbotCorpusIngestRun`) — `ChatbotCorpusChunk` carries an `embedding vector(1024)` column (pgvector) with an HNSW cosine index; it is modelled as `Unsupported(...)` because Prisma has no vector type, so retrieval queries it with raw SQL
 
 ---
 
@@ -284,6 +284,54 @@ Frontend                         API                          Azure Blob Storage
     │◄─────────────────────────────┤                                │
     │  FileRecord created          │                                │
 ```
+
+### Chatbot Retrieval Flow (RAG)
+
+Only present when `CHATBOT_ENABLED=true`; with the flag off none of these routes register and no AI code path is reachable.
+
+Retrieval is split into an **offline** path an operator runs, and an **online** path a turn runs.
+
+**Offline — corpus ingest (CLI, never an HTTP route):**
+
+```
+pnpm --filter api chatbot:ingest <pdf> --label … --version … --cite-url …
+    │
+    ├─ pdf-parse extracts text
+    ├─ chunk at section boundaries
+    ├─ embed each chunk (Azure OpenAI, 1024-dim)
+    └─ write ChatbotCorpusSource (status DRAFT) + chunks + an ingest-run audit row
+
+pnpm --filter api chatbot:activate <source-id>
+    └─ single timestamped cutover: DRAFT → ACTIVE, previous version → OUTDATED
+```
+
+Retrieval only ever reads `ACTIVE` sources, so a half-ingested `DRAFT` or a superseded `OUTDATED` document can never be quoted to a user.
+
+**Online — one turn of `POST /api/chatbot/message`:**
+
+```
+1. Advisory lock on the caller identity → load history, enforce caps,
+   insert the user row + an empty assistant row, release the lock
+   (the lock is NOT held across the LLM call)
+2. Invoke the model with the searchKnowledge tool advertised
+3. Peek the first stream event BEFORE hijacking the response:
+     ├─ delta/usage  → non-tool turn: hijack now, stream deltas straight through
+     └─ tool_call    → run retrieval, then invoke a SECOND time with the
+                       assistant tool_calls + tool result replayed, and stream that
+4. Finalize the assistant row (content, tokens, latency, sources_cited)
+5. Emit terminal `event: done` carrying the cited sources, then end the stream
+```
+
+Peeking before the hijack is deliberate: once the response is hijacked the status
+line is committed, so a pre-stream failure could only be reported as an SSE error.
+Peeking first lets a provider failure — or a second consecutive `tool_call`, which
+breaks the single-round invariant — surface as a real HTTP status instead.
+
+Exactly **one** tool round runs per turn. Token accounting uses the second
+(terminal) usage event only, never a sum across rounds, because the first
+invocation terminates on `tool_call` and reports no usage.
+
+**Modules** (`apps/api/src/features/chatbot/`): `embeddingProvider/` (mock | Azure, chosen by `EMBEDDING_PROVIDER`), `searchKnowledge/` (the only place in `src` that touches the corpus tables, enforced by a lint test), `tools/searchKnowledge/` (the schema the model sees; its arguments are treated as untrusted), `prompts/` (Spanish system prompt loaded from Markdown), `llmProvider/` (mock | Azure, chosen by `LLM_PROVIDER`).
 
 ---
 
