@@ -399,7 +399,10 @@ jobs:
           # breakage that has bitten this repo (moved/renamed docs, wrong paths).
           # External URLs are skipped, so the gate is deterministic and never
           # flakes on network or rate limits. No GITHUB_TOKEN needed.
-          args: "--offline --no-progress --exclude-path node_modules README.md 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
+          # '*.md' covers the root policy documents (PRIVACY, SECURITY,
+          # CODE_OF_CONDUCT, CONTENT_MODERATION, GOVERNANCE) alongside README —
+          # they cross-link heavily into docs/ and were previously unchecked.
+          args: "--offline --no-progress --exclude-path node_modules '*.md' 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
           fail: true
 
   secret-scan:
