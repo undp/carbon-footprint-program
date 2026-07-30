@@ -17,9 +17,15 @@ export const CHATBOT_CONVERSATION_COOKIE_MAX_AGE =
 // Letting JS read+clear the cookie is required so the "Nueva conversación"
 // affordance can drop it client-side without a round-trip. Re-evaluate when
 // V4/V5 introduces private data.
+// SameSite must match `chatbot_session_id` (see helpers/identity.ts): both
+// cookies ride the same `credentials: "include"` requests, and production serves
+// the web app and API from different registrable domains. A Lax cookie is not
+// sent on those cross-site requests, so the rehydrate endpoint would never see
+// it and conversation persistence would silently do nothing in production.
+// SameSite=None requires Secure, which prod already sets.
 const baseCookieOptions = () => ({
   httpOnly: false as const,
-  sameSite: "lax" as const,
+  sameSite: IS_PROD ? ("none" as const) : ("lax" as const),
   secure: IS_PROD,
   path: CHATBOT_CONVERSATION_COOKIE_PATH,
   maxAge: CHATBOT_CONVERSATION_COOKIE_MAX_AGE,
@@ -72,14 +78,13 @@ export const setConversationCookie = (
 };
 
 export const clearConversationCookie = (reply: FastifyReply): void => {
+  // Mirror baseCookieOptions() so the clearing cookie matches the one being
+  // cleared — a browser only overwrites a cookie whose attributes line up.
   const serialized = reply.server.serializeCookie(
     CHATBOT_CONVERSATION_COOKIE_NAME,
     "",
     {
-      httpOnly: false,
-      sameSite: "lax",
-      secure: IS_PROD,
-      path: CHATBOT_CONVERSATION_COOKIE_PATH,
+      ...baseCookieOptions(),
       maxAge: 0,
     }
   );
