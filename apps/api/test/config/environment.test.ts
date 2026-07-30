@@ -27,7 +27,7 @@ describe("parseEnv — defaults (empty environment)", () => {
 
   it("applies the development defaults for every field", () => {
     expect(env).toEqual({
-      JWT_SECRET: "super-secret-key",
+      JWT_SECRET: undefined,
       IS_PROD: false,
       LOG_LEVEL: "debug",
       HOST: "localhost",
@@ -145,7 +145,11 @@ describe("parseEnv — enum validation", () => {
   it.each(["jwks", "forced-user", "none"])(
     "accepts the valid AUTH_PROVIDER %s",
     (value) => {
-      expect(parse({ AUTH_PROVIDER: value }).AUTH_PROVIDER).toBe(value);
+      // JWT_SECRET satisfies the static-secret guard that `jwks` without a
+      // JWKS_URI trips; it is inert for the other two providers.
+      expect(
+        parse({ AUTH_PROVIDER: value, JWT_SECRET: "dev-secret" }).AUTH_PROVIDER
+      ).toBe(value);
     }
   );
 
@@ -164,8 +168,10 @@ describe("parseEnv — enum validation", () => {
 
 describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", () => {
   it("does NOT enforce the JWKS guards outside production", () => {
-    // Dev with jwks and nothing else set must parse cleanly.
-    const env = parse({ AUTH_PROVIDER: "jwks" });
+    // Dev with jwks and no JWKS endpoint must parse cleanly — but the static
+    // HMAC secret is what verifies tokens in that configuration, so it has to
+    // be supplied explicitly (see the JWT_SECRET guard below).
+    const env = parse({ AUTH_PROVIDER: "jwks", JWT_SECRET: "dev-secret" });
     expect(env.AUTH_PROVIDER).toBe("jwks");
     expect(env.JWKS_URI).toBeUndefined();
   });
@@ -207,6 +213,48 @@ describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", ()
     expect(env.AUTH_PROVIDER).toBe("jwks");
     expect(env.JWKS_ISSUER).toBe("https://issuer/");
     expect(env.JWKS_AUDIENCE).toBe("api://app");
+  });
+});
+
+describe("parseEnv — JWT_SECRET has no built-in default", () => {
+  it("leaves JWT_SECRET undefined rather than substituting a hardcoded value", () => {
+    // Regression guard: a checked-in default HMAC secret is a published
+    // credential. Nothing in the source tree may supply one.
+    expect(parse().JWT_SECRET).toBeUndefined();
+    expect(parse({ JWT_SECRET: "" }).JWT_SECRET).toBe("");
+  });
+
+  it("refuses to boot when the static secret would verify tokens but is unset", () => {
+    // AUTH_PROVIDER=jwks with no JWKS_URI is the one config where JWT_SECRET
+    // actually authenticates callers.
+    expect(() => parse({ AUTH_PROVIDER: "jwks" })).toThrow(
+      /without JWKS_URI requires JWT_SECRET/
+    );
+    expect(() => parse({ AUTH_PROVIDER: "jwks", JWT_SECRET: "" })).toThrow(
+      /without JWKS_URI requires JWT_SECRET/
+    );
+  });
+
+  it("does not require JWT_SECRET for providers that never verify a token", () => {
+    // `none` / `forced-user` never call jwtVerify, so the secret is irrelevant;
+    // buildJwtConfig substitutes a per-boot ephemeral value.
+    expect(parse({ AUTH_PROVIDER: "none" }).JWT_SECRET).toBeUndefined();
+    expect(
+      parse({
+        AUTH_PROVIDER: "forced-user",
+        FORCED_USER_EMAIL: "me@test.com",
+        FORCED_USER_IDP_ID: "idp",
+      }).JWT_SECRET
+    ).toBeUndefined();
+  });
+
+  it("does not require JWT_SECRET once tokens are verified against JWKS", () => {
+    const env = parse({
+      AUTH_PROVIDER: "jwks",
+      JWKS_URI: "https://issuer/jwks",
+    });
+    expect(env.JWT_SECRET).toBeUndefined();
+    expect(env.JWKS_URI).toBe("https://issuer/jwks");
   });
 });
 

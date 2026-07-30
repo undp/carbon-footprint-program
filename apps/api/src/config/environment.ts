@@ -58,7 +58,12 @@ export type LlmProviderType = "mock" | "azure-openai";
  * table-testable with synthetic env inputs, with no module-reset gymnastics.
  */
 export interface ApiEnv {
-  JWT_SECRET: string;
+  /**
+   * Static HMAC secret for the non-JWKS `@fastify/jwt` branch. Undefined is
+   * allowed: it is only security-relevant when AUTH_PROVIDER=jwks has no
+   * JWKS_URI, which `parseEnv` rejects outright.
+   */
+  JWT_SECRET: string | undefined;
   IS_PROD: boolean;
   LOG_LEVEL: string;
   HOST: string;
@@ -96,8 +101,14 @@ export interface ApiEnv {
  * mirrors the original top-to-bottom module.
  */
 export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
-  // Default value for development only - should never reach production
-  const JWT_SECRET = source.JWT_SECRET || "super-secret-key";
+  // Read as-is: there is deliberately NO hardcoded fallback. A checked-in
+  // default HMAC secret is a published credential — anyone could mint tokens
+  // the static-secret branch would accept — so the value must come from the
+  // environment. `.envrc.template` and `.env.dockercompose.example` ship a
+  // dummy so the documented setup path always sets one explicitly. When it is
+  // absent AND it would actually guard authentication, the guard below refuses
+  // to boot; see jwksConfig.buildJwtConfig for the non-authenticating case.
+  const JWT_SECRET = source.JWT_SECRET;
 
   const IS_PROD = source.NODE_ENV?.toLowerCase() === "production";
 
@@ -161,9 +172,10 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   })();
 
   // Fail closed: in production, AUTH_PROVIDER=jwks MUST have a JWKS endpoint.
-  // Without JWKS_URI the @fastify/jwt config silently falls back to the static
-  // HMAC JWT_SECRET — whose dev default is public — so forged tokens would pass
-  // verification. Refuse to boot rather than serve auth open.
+  // Without JWKS_URI the @fastify/jwt config falls back to the static HMAC
+  // JWT_SECRET, which is a far weaker posture than provider-signed keys — a
+  // single shared string instead of a rotating asymmetric key set. Refuse to
+  // boot rather than serve auth open.
   if (IS_PROD && AUTH_PROVIDER === "jwks" && !JWKS_URI) {
     throw new Error(
       "AUTH_PROVIDER=jwks requires JWKS_URI in production. Refusing to start: " +
@@ -181,6 +193,23 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
       "AUTH_PROVIDER=jwks requires JWKS_ISSUER and JWKS_AUDIENCE in production. " +
         "Refusing to start: without them the API would accept any token the JWKS " +
         "can verify, regardless of which issuer or app it was minted for."
+    );
+  }
+
+  // Fail closed on the one configuration where the static HMAC secret actually
+  // authenticates callers: AUTH_PROVIDER=jwks with no JWKS_URI. There is no
+  // built-in default any more, so an unset JWT_SECRET here would mean either a
+  // crash deep in @fastify/jwt or — worse, if a default were ever reintroduced
+  // — a publicly known verification key. Demand it explicitly instead. The
+  // non-jwks providers (`none`, `forced-user`) never verify a token, so they do
+  // not need one; buildJwtConfig substitutes a per-boot ephemeral value there.
+  if (AUTH_PROVIDER === "jwks" && !JWKS_URI && !JWT_SECRET) {
+    throw new Error(
+      "AUTH_PROVIDER=jwks without JWKS_URI requires JWT_SECRET. Refusing to " +
+        "start: token verification would fall back to a static HMAC secret that " +
+        "is not configured. Set JWKS_URI to verify against the identity " +
+        "provider (recommended), or set JWT_SECRET for local development — " +
+        "`.envrc.template` ships a dummy value for exactly this case."
     );
   }
 

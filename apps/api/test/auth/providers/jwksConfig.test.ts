@@ -95,6 +95,27 @@ describe("buildJwtConfig", () => {
     expect(config.verify).toBeUndefined();
   });
 
+  it("mints an ephemeral secret instead of a hardcoded one when none is configured", () => {
+    // @fastify/jwt needs *some* secret at registration and the plugin is
+    // autoloaded unconditionally, so the non-authenticating providers reach this
+    // branch with no secret. It must never fall back to a checked-in constant.
+    const first = buildJwtConfig({
+      ...base,
+      jwtSecret: undefined,
+      jwksUri: undefined,
+    });
+    const second = buildJwtConfig({
+      ...base,
+      jwtSecret: undefined,
+      jwksUri: undefined,
+    });
+
+    expect(typeof first.secret).toBe("string");
+    expect(first.secret).toMatch(/^[0-9a-f]{64}$/);
+    // Ephemeral, not derived from anything checked in: two calls differ.
+    expect(first.secret).not.toEqual(second.secret);
+  });
+
   it("wires issuer + audience validation when both are configured", () => {
     const config = buildJwtConfig({
       ...base,

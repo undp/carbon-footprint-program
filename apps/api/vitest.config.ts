@@ -34,6 +34,11 @@ const SHARED_TEST_ENV = {
   LOCAL_BYPASS_REQUIRED_FIELDS: "false",
   LLM_PROVIDER: "mock",
   COOKIE_SECRET: "test-cookie-secret-do-not-use-in-prod",
+  // The API ships no built-in JWT_SECRET default (see config/environment.ts), so
+  // set one explicitly rather than leaning on buildJwtConfig's ephemeral
+  // fallback — the suite runs AUTH_PROVIDER=forced-user and never verifies a
+  // token, but a fixed value keeps @fastify/jwt registration deterministic.
+  JWT_SECRET: "test-jwt-secret-do-not-use-in-prod",
   // The chatbot is opt-in (CHATBOT_ENABLED defaults off). Enable it for the
   // suite so its routes register and the chatbot integration tests run
   // (LLM_PROVIDER defaults to "mock").
