@@ -71,15 +71,22 @@ and silences it. A deployment that is genuinely reached directly should write `f
 leaving the variable out.
 
 **Why this must be set per deployment, and what each mistake costs.** `request.ip` is the rate
-limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/rate-limit.ts`,
-100 req/min) keys on it explicitly. So:
+limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/rate-limit.ts`)
+keys on it explicitly. Its limit is **100 req/min per client _per API instance_**: the store is
+in-memory with no shared backend, so under horizontal autoscaling the effective ceiling is
+`100 × instance_count` per client. Fixing proxy trust makes the bucket per-client; it does not
+make it per-client-globally. See
+[Rate Limiting Is In-Memory Only](../operations/risks-and-limitations.md#rate-limiting-is-in-memory-only)
+— the two issues stack, and both must be closed before the limiter can be relied on under
+autoscaling. So:
 
 - **Left unset behind a proxy**, every caller resolves to the proxy's address and the limit
   becomes **one shared bucket** instead of a per-client one: a single heavy caller exhausts the
   budget for everyone. Nothing fails visibly when this happens. It compounds with
   [Azure Front Door and WAF](#azure-front-door-and-waf) below — without Front Door, this limiter
   is the only rate-limiting protection there is. The API logs a warning at boot when
-  `NODE_ENV=production` and `TRUST_PROXY` is unset, so the condition is at least discoverable.
+  `NODE_ENV=production` and `TRUST_PROXY` is unset — and **only** when unset: an explicit
+  `false` records the decision and is silent.
 - **Set to `true` while the API is internet-facing**, the opposite failure appears: a caller
   forges the header, mints a fresh bucket per request, and evades the limit entirely. Prefer an
   address allowlist or a hop count over `true`, which trusts whatever the caller sent when no
@@ -106,7 +113,27 @@ handling on its own.
 > **Verify the hop count against the real deployment before setting it.** Trusting fewer hops
 > than exist leaves the shared bucket in place; trusting more lets a caller forge the header and
 > select its own bucket. The parameter is deliberately not derived from `enableFrontDoor`,
-> because the hop count is a property of the actual request path.
+> because the hop count is a property of the actual request path. Measuring it on the demo is
+> tracked in [issue #571](https://github.com/undp/carbon-footprint-program/issues/571); the
+> values above are expectations, not measurements.
+
+> **A hop count is only safe while the origin cannot be reached by a shorter path.** It assumes
+> every request traverses the same number of proxies. If the backend is _also_ reachable
+> directly — bypassing the proxy you are counting — a caller taking the short route supplies the
+> forwarded header themselves, and the count that was correct for the long route now trusts
+> caller-supplied data.
+>
+> This is not theoretical on Azure: **App Service keeps its `*.azurewebsites.net` hostname
+> publicly reachable even when Front Door is deployed in front of it.** A deployment that sets
+> `2` for the Front Door path is trusting one attacker-controlled entry for anyone who calls the
+> `azurewebsites.net` name directly. The same applies self-hosted whenever the API container's
+> port is published alongside the reverse proxy.
+>
+> Mitigations, in order of preference: restrict the origin so only the proxy can reach it (Front
+> Door private link, or an App Service access restriction on the Front Door `X-Azure-FDID`), or
+> use an **IP/CIDR allowlist** instead of a hop count — an allowlist validates _who_ sent the
+> header rather than assuming _how many_ hops it crossed, so it degrades safely when a request
+> arrives by an unexpected route.
 
 **A forwarded address is not always a bare IP.** Azure App Service appends the client's IP **and
 ephemeral port** to `X-Forwarded-For` (`203.0.113.9:51234`), and proxy-addr passes that through
@@ -121,6 +148,47 @@ therefore normalizes the address to the bare IP (`toRateLimitKey` in
 default `remoteAddress`. No IP is written to any log line and no table in the schema stores a
 client IP — so there is no IP-based audit trail to corrupt with a forged header, and equally none
 to investigate an incident with.
+
+#### Setting it on a deployment that already exists
+
+An instance deployed before `TRUST_PROXY` existed has no such app setting, so it trusts nothing
+and its rate limit is one shared bucket. Merging the change does not fix that — **the value has
+to be set per deployment.**
+
+| Topology                       | Where the value goes                                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Azure (Bicep-managed)          | `apiTrustProxy` in `infra/params/main.<env>.bicepparam`, or `API_TRUST_PROXY` in the environment `deploy.sh` reads |
+| Azure (immediate, no redeploy) | `az webapp config appsettings set … --settings TRUST_PROXY=…` — **but see the warning below**                      |
+| Self-hosted                    | `TRUST_PROXY` in the deployment's env file (`.env.prod.dockercompose`), then recreate the `api` container          |
+
+```bash
+# Durable: set it where the template will keep it, then redeploy.
+API_TRUST_PROXY=1 ./infra/deploy.sh          # or edit the environment's .bicepparam
+
+# Immediate: apply to a running App Service without a full redeploy.
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings TRUST_PROXY=1
+
+# Confirm it took, and that the boot warning is gone.
+az webapp config appsettings list \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --query "[?name=='TRUST_PROXY']"
+```
+
+> **A hand-applied app setting does not survive the next deploy.** The App Service resource in
+> `appService.bicep` declares the whole `appSettings` collection, so an ARM deployment **replaces**
+> it — a `TRUST_PROXY` set with `az webapp config appsettings set` is dropped the next time
+> `deploy.sh` runs, and the API silently returns to one shared bucket with no error anywhere. Use
+> the CLI to fix a live instance quickly, then put the value in the `.bicepparam` (or
+> `API_TRUST_PROXY`) so it is not lost. `deploy.sh` warns when neither is set.
+
+**Verify afterwards**, rather than assuming the value took: the instance should no longer log
+`TRUST_PROXY is not configured` at boot, and the rate limit should bucket per client. Setting a
+_wrong_ value silences the warning just as well as a right one, so the warning's absence is not
+by itself evidence the topology is correct.
 
 ---
 

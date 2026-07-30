@@ -187,7 +187,9 @@ By design, the system does not support user-triggered bulk operations (e.g., bul
 
 The API uses `@fastify/rate-limit` configured at 100 requests/minute per IP. However, the store is in-memory with no Redis backend. In a multi-instance deployment (Production with autoscaling), each App Service instance maintains an independent counter, making the effective limit `100 × instance_count` per IP. The rate limiter does not protect against abuse when horizontal scaling is active.
 
-**Recommended action:** Back the rate limiter with Redis (e.g., Azure Cache for Redis) before enabling autoscaling in Production.
+**Which IP** the limit counts against is a second, independent question. `request.ip` reflects the real caller only where `TRUST_PROXY` is configured for the topology; left unconfigured behind a proxy, every caller resolves to the proxy's address and the limit is one bucket shared by all of them — so the effective ceiling is `100 × instance_count` for the whole world, not per client. See [Proxy Trust](../security/hardening.md#proxy-trust). **The two limitations stack**, and both have to be closed before this limiter can be relied on under autoscaling.
+
+**Recommended action:** Back the rate limiter with Redis (e.g., Azure Cache for Redis) before enabling autoscaling in Production, and set `TRUST_PROXY` per deployment.
 
 ### No Connection Pooling (PgBouncer)
 
