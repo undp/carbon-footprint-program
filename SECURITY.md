@@ -31,8 +31,11 @@ If you cannot use GitHub private vulnerability reporting, open a regular issue c
 technical detail** — just a request for a private channel — and a maintainer will respond with
 one. Never put the vulnerability itself in a public issue.
 
-If you do not receive an acknowledgement within 5 business days, escalate to the maintainer
-team through the channels in [`GOVERNANCE.md`](./GOVERNANCE.md).
+**On timing:** we aim to acknowledge a report within **3 business days** (see
+[What to expect](#what-to-expect)). That is our target, not a guarantee — so if **5 business
+days** pass with no acknowledgement at all, treat the report as having gone unseen and escalate
+to the maintainer team through the channels in [`GOVERNANCE.md`](./GOVERNANCE.md). The two-day
+gap is deliberate slack for holidays and handover; it is not a second, slower SLA.
 
 Please include:
 
@@ -42,7 +45,9 @@ Please include:
 
 ## What to expect
 
-- **Acknowledgement:** we aim to acknowledge a report within **3 business days**.
+- **Acknowledgement:** we aim to acknowledge a report within **3 business days**. If nothing has
+  reached you by 5, escalate as described under
+  [Reporting a vulnerability](#reporting-a-vulnerability).
 - **Assessment:** we will validate the issue, determine severity, and agree on a remediation
   timeline with you.
 - **Disclosure:** we practise coordinated disclosure — we will credit reporters (unless you
@@ -50,7 +55,7 @@ Please include:
   <!-- TODO: Confirm the acknowledgement/remediation SLAs UNDP wants to commit to.
        The 3-business-day acknowledgement above is the maintainer team's working
        target and is what the project's OpenSSF Best Practices entry declares; it
-       is NOT yet ratified by UNDP. Tracked in issue #460 (§3). Also pending: a
+       is NOT yet ratified by UNDP. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§3). Also pending: a
        monitored team inbox to complement GitHub private vulnerability reporting. -->
 
 ## Scope
