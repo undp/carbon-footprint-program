@@ -347,6 +347,192 @@ jobs:
       - run: pnpm test:web
         if: needs.changes.outputs.code == 'true'
 
+  # Build the production images and boot them: no other job executes the shipped
+  # artifact, so a module can resolve in `build` / `test` and still be missing from
+  # the image. Why that gap exists, what each job does and does not cover, and why
+  # this is not folded into trivy.yml: see the `smoke-api` / `smoke-web` section of
+  # docs/development/ci-cd.md.
+  smoke-api:
+    needs: [check-draft, changes]
+    name: Image Smoke (api)
+    runs-on: ubuntu-latest
+    services:
+      # Required: the prisma plugin's onReady hook runs `SELECT 1` and rethrows on
+      # failure, so the image will not finish booting without a reachable database.
+      # No migrations — `SELECT 1` touches no table, so an empty one suffices.
+      #
+      # KEEP IN SYNC: digest-pinned to the same image as docker-compose.yml and
+      # apps/api/test/setup/testDatabase.ts — bump all three together. Dependabot
+      # does not track service-container images in workflows.
+      postgres:
+        image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
+        env:
+          POSTGRES_USER: smoke
+          POSTGRES_PASSWORD: smoke
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: needs.changes.outputs.code == 'true'
+        with:
+          persist-credentials: false
+
+      # No build args: the api image takes none (same as trivy.yml's matrix).
+      - name: Build the api image
+        if: needs.changes.outputs.code == 'true'
+        run: docker build -f apps/api/Dockerfile -t api-smoke:ci .
+
+      - name: Boot the image and probe /health
+        if: needs.changes.outputs.code == 'true'
+        env:
+          # Placeholders satisfying every *unconditional* production guard in
+          # apps/api/src/config/environment.ts; nothing here is dialled. AUTH_PROVIDER
+          # and CHATBOT_ENABLED stay unset so the guards behind them need no live IdP
+          # or Azure OpenAI — see the doc section for why that costs no coverage.
+          #
+          # KEEP IN SYNC: a new unconditional production guard in environment.ts needs
+          # its variable added here, or this job fails with that guard's own error
+          # message — which is the intended feedback.
+          DATABASE_URL: postgresql://smoke:smoke@localhost:5432/smoke
+          ALLOWED_ORIGIN: https://web.smoke.invalid
+          STORAGE_PROVIDER: minio
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: smoke
+          MINIO_SECRET_KEY: smoke-secret
+        run: |
+          set -euo pipefail
+
+          # --network host so the container reaches the postgres service on
+          # localhost:5432. NODE_ENV=production is baked into the image, so the
+          # app binds 0.0.0.0:8080.
+          docker run -d --name api-smoke --network host \
+            -e DATABASE_URL -e ALLOWED_ORIGIN -e STORAGE_PROVIDER \
+            -e MINIO_ENDPOINT -e MINIO_ACCESS_KEY -e MINIO_SECRET_KEY \
+            api-smoke:ci
+
+          ok=""
+          for _ in $(seq 1 30); do
+            if curl -fsS --max-time 5 http://localhost:8080/health -o health.json; then
+              ok=1
+              break
+            fi
+            # A resolution failure (ERR_MODULE_NOT_FOUND, dangling pnpm symlink,
+            # a missing @repo/* dist) kills the process immediately — fail fast
+            # with logs instead of burning the full timeout.
+            if [ -z "$(docker ps -q -f name=api-smoke -f status=running)" ]; then
+              echo "::error::Container exited before it could serve /health."
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$ok" ]; then
+            echo "::error::api image did not serve a healthy /health within 60s."
+            exit 1
+          fi
+
+          cat health.json
+          echo
+          # Asserted explicitly, though `curl -f` already rejected the 503, so a
+          # future always-200 health route cannot quietly reduce this to a TCP check.
+          jq -e '.status == "ok" and .database == "connected"' health.json > /dev/null
+
+      - name: Container logs
+        if: failure() && needs.changes.outputs.code == 'true'
+        run: docker logs api-smoke || true
+
+  # The web image cannot have api's problem (nginx + a static bundle, no Node
+  # runtime), so this covers a different unguarded gap: nothing else in CI validates
+  # apps/web/nginx.conf or the CSP that the Dockerfile rewrites with busybox `sed`.
+  smoke-web:
+    needs: [check-draft, changes]
+    name: Image Smoke (web)
+    runs-on: ubuntu-latest
+    env:
+      # One distinct reserved-TLD hostname (RFC 2606) per placeholder, so the CSP
+      # assertions can tell them apart. No path component: the Dockerfile's origin()
+      # helper strips anything after scheme://host[:port], and bare origins keep the
+      # expected value equal to the input.
+      VITE_API_BASE_URL: https://api.smoke.invalid
+      VITE_OIDC_ISSUER: https://idp.smoke.invalid
+      STORAGE_ORIGIN: https://storage.smoke.invalid
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: needs.changes.outputs.code == 'true'
+        with:
+          persist-credentials: false
+
+      - name: Build the web image
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          set -euo pipefail
+          docker build -f apps/web/Dockerfile \
+            --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
+            --build-arg VITE_OIDC_ISSUER="$VITE_OIDC_ISSUER" \
+            --build-arg STORAGE_ORIGIN="$STORAGE_ORIGIN" \
+            -t web-smoke:ci .
+
+      - name: Boot the image, probe / and verify the CSP
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          set -euo pipefail
+
+          docker run -d --name web-smoke -p 8080:8080 web-smoke:ci
+
+          ok=""
+          for _ in $(seq 1 15); do
+            if curl -fsS --max-time 5 -D headers.txt -o /dev/null http://localhost:8080/; then
+              ok=1
+              break
+            fi
+            # nginx refuses to start on an invalid directive, so an unparseable
+            # conf shows up here rather than as a timeout.
+            if [ -z "$(docker ps -q -f name=web-smoke -f status=running)" ]; then
+              echo "::error::Container exited before it could serve the SPA (invalid nginx config?)."
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$ok" ]; then
+            echo "::error::web image did not serve / within 30s."
+            exit 1
+          fi
+
+          csp="$(tr -d '\r' < headers.txt | grep -i '^content-security-policy:' || true)"
+          if [ -z "$csp" ]; then
+            echo "::error::No Content-Security-Policy header — the security-headers snippet was not applied."
+            exit 1
+          fi
+          echo "$csp"
+
+          # A placeholder the Dockerfile's sed does not cover ships as a literal
+          # token, which browsers drop as a bogus source expression — silently
+          # breaking every API, IdP and storage call in production.
+          if printf '%s\n' "$csp" | grep -qE '__[A-Z_]+__'; then
+            echo "::error::Unsubstituted placeholder left in the CSP header."
+            exit 1
+          fi
+
+          # And the inverse: substitution happened, with the right values. Guards
+          # against an origin() regression that silently yields an empty string.
+          for origin in "$VITE_API_BASE_URL" "$VITE_OIDC_ISSUER" "$STORAGE_ORIGIN"; do
+            if ! printf '%s\n' "$csp" | grep -qF "$origin"; then
+              echo "::error::CSP is missing a substituted origin: $origin"
+              exit 1
+            fi
+          done
+
+      - name: Container logs
+        if: failure() && needs.changes.outputs.code == 'true'
+        run: docker logs web-smoke || true
+
   audit:
     needs: check-draft
     name: Audit
