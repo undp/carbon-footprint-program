@@ -20,6 +20,7 @@ const metadata = (
     legalName: "Acme SpA",
     tradeName: "Acme Chile",
     submissionStatus: SubmissionStatus.PENDING,
+    organizationIsAccredited: false,
   },
   collisionFields: ["legalName", "taxId"],
   ...overrides,

@@ -167,6 +167,8 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
       tradeName: applicant.tradeName,
       taxId: applicant.taxId,
       submissionStatus: SubmissionStatus.PENDING,
+      // A first-time applicant: its own organization is not inscribed yet.
+      organizationIsAccredited: false,
     });
   });
 
@@ -246,6 +248,53 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(warnings[0].message).toBe(
       `Coincide con la postulación pendiente de la organización inscrita (RUT ${m.taxId}) en razón social.`
     );
+  });
+
+  it("reports the applicant's own organization as inscribed when it is already accredited", async () => {
+    // The applicant is an inscribed organization editing its data: an approved v1
+    // with an unrelated identity, plus the pending v2 under review.
+    const applicantOrg = await createTestOrganization(prisma);
+    const approvedV1 = await createTestOrganizationData(
+      prisma,
+      applicantOrg.id,
+      { ...uniqueIdentity(), status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV1.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const applicant = uniqueIdentity();
+    const pendingV2 = await createTestOrganizationData(
+      prisma,
+      applicantOrg.id,
+      { ...applicant, status: OrganizationDataStatus.ACTIVE }
+    );
+    const { submission } = await createTestOrganizationDataSubmission(
+      prisma,
+      pendingV2.id,
+      SubmissionStatus.PENDING,
+      testUser.id
+    );
+
+    // Another organization whose approved snapshot shares the applicant's taxId.
+    await createOrgDataSubmission(
+      { ...uniqueIdentity(), taxId: applicant.taxId },
+      SubmissionStatus.APPROVED
+    );
+
+    const warnings = await getWarnings(submission.id.toString());
+
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.collisionFields).toEqual(["taxId"]);
+    // The applicant's standing is its own fact, independent of its submission
+    // being PENDING and of the conflicting organization's standing.
+    expect(m.applicant.submissionStatus).toBe(SubmissionStatus.PENDING);
+    expect(m.applicant.organizationIsAccredited).toBe(true);
   });
 
   it("flags a tax-id (RUT) collision", async () => {

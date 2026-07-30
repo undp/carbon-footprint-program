@@ -157,6 +157,7 @@ const computeCollisionFields = (
 const buildBranchMetadata = (
   applicant: OrganizationIdentity,
   applicantSubmissionStatus: SubmissionStatus,
+  applicantIsAccredited: boolean,
   candidates: OrganizationIdentity[],
   collisionState: CollisionState,
   isAccredited: (organizationId: bigint) => boolean
@@ -193,6 +194,7 @@ const buildBranchMetadata = (
       legalName: applicant.legalName,
       tradeName: applicant.tradeName,
       submissionStatus: applicantSubmissionStatus,
+      organizationIsAccredited: applicantIsAccredited,
     },
     collisionFields: COLLISION_FIELD_ORDER.filter((field) => fields.has(field)),
   }));
@@ -313,13 +315,21 @@ export const getOrganizationIdentityCollisionWarnings = async (
     }),
   ]);
 
+  // No candidate at all: nothing to report, and no reason to look up standings.
+  if (approvedRows.length === 0 && pendingRows.length === 0) return [];
+
   // A candidate from the approved branch is accredited by construction — it
   // matched THROUGH an approved submission. A pending candidate may or may not
-  // be, so ask the view that already materializes the flag. (Only the boolean is
-  // read here: the view's displayed snapshot is still off-limits per design D4.)
-  const accreditedPendingOrgIds = await findAccreditedOrganizationIds(
-    prisma,
-    pendingRows.map((row) => row.organizationId)
+  // be, and neither may the applicant's own organization (an inscribed
+  // organization editing its data collides as a pending applicant), so ask the
+  // view that already materializes the flag. (Only the boolean is read here: the
+  // view's displayed snapshot is still off-limits per design D4.)
+  const accreditedOrgIds = await findAccreditedOrganizationIds(prisma, [
+    applicant.organizationId,
+    ...pendingRows.map((row) => row.organizationId),
+  ]);
+  const applicantIsAccredited = accreditedOrgIds.has(
+    applicant.organizationId.toString()
   );
 
   // APPROVED before PENDING (collision-warning ordering requirement).
@@ -327,6 +337,7 @@ export const getOrganizationIdentityCollisionWarnings = async (
     ...buildBranchMetadata(
       applicant,
       applicantSubmissionStatus,
+      applicantIsAccredited,
       approvedRows,
       "APPROVED",
       () => true
@@ -334,9 +345,10 @@ export const getOrganizationIdentityCollisionWarnings = async (
     ...buildBranchMetadata(
       applicant,
       applicantSubmissionStatus,
+      applicantIsAccredited,
       pendingRows,
       "PENDING",
-      (organizationId) => accreditedPendingOrgIds.has(organizationId.toString())
+      (organizationId) => accreditedOrgIds.has(organizationId.toString())
     ),
   ];
 

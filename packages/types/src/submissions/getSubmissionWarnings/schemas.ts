@@ -75,6 +75,11 @@ export const OrganizationIdentityCollisionMetadataSchema = z.object({
     submissionStatus: SubmissionStatusSchema.describe(
       "Status of the submission under review"
     ),
+    organizationIsAccredited: z
+      .boolean()
+      .describe(
+        "Whether the applicant's own organization is already accredited (an inscribed organization editing its data)"
+      ),
   }).describe("The applicant snapshot that was actually compared"),
   collisionFields: z
     .array(CollisionFieldSchema)
