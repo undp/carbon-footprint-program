@@ -1,6 +1,6 @@
 # Huella Latam
 
-[![CI](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml/badge.svg)](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/undp/carbon-footprint-program/badge)](https://securityscorecards.dev/viewer/?uri=github.com/undp/carbon-footprint-program) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
+[![CI](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml/badge.svg)](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13873/badge)](https://www.bestpractices.dev/projects/13873) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/undp/carbon-footprint-program/badge)](https://securityscorecards.dev/viewer/?uri=github.com/undp/carbon-footprint-program) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 
 A platform — a **digital public good for Latin America** — for measuring, managing, and reducing carbon footprints.
 
@@ -99,10 +99,17 @@ and recognized software best practices:
 - **Static analysis (SAST):** a [CodeQL workflow](./.github/workflows/codeql.yml) scans the
   code on every push, PR, and weekly. Results upload to GitHub code scanning.
 - **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
+- **OpenSSF Best Practices badge — passing:** the project is certified at the
+  [**passing** level](https://www.bestpractices.dev/en/projects/13873) (badge above), meeting
+  the criteria across basics, change control, reporting, quality, security and analysis.
+  The badge is self-certified and publicly auditable — every answer, and the evidence behind it,
+  is visible on that page.
 
 **Standards in progress:** code scanning (CodeQL), secret scanning, and push protection are all
-active, and the OpenSSF Scorecard workflow publishes results (badge above). The OpenSSF Best
-Practices Badge is not yet registered. See [`SECURITY.md`](./SECURITY.md).
+active, and the OpenSSF Scorecard workflow publishes results (badge above). The next OpenSSF
+tiers — [Silver](https://www.bestpractices.dev/en/criteria/1) and
+[Gold](https://www.bestpractices.dev/en/criteria/2) — are not yet pursued.
+See [`SECURITY.md`](./SECURITY.md).
 
 ## 📄 License
 
