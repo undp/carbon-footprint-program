@@ -101,13 +101,14 @@ and recognized software best practices:
 - **Responsible disclosure:** see [`SECURITY.md`](./SECURITY.md).
 - **OpenSSF Best Practices badge — passing:** the project is certified at the
   [**passing** level](https://www.bestpractices.dev/en/projects/13873) (badge above), meeting
-  100% of the criteria across basics, change control, reporting, quality, security and analysis.
+  the criteria across basics, change control, reporting, quality, security and analysis.
   The badge is self-certified and publicly auditable — every answer, and the evidence behind it,
   is visible on that page.
 
 **Standards in progress:** code scanning (CodeQL), secret scanning, and push protection are all
 active, and the OpenSSF Scorecard workflow publishes results (badge above). The next OpenSSF
-tiers — [Silver and Gold](https://www.bestpractices.dev/en/criteria/1) — are not yet pursued.
+tiers — [Silver](https://www.bestpractices.dev/en/criteria/1) and
+[Gold](https://www.bestpractices.dev/en/criteria/2) — are not yet pursued.
 See [`SECURITY.md`](./SECURITY.md).
 
 ## 📄 License
