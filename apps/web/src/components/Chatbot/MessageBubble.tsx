@@ -1,7 +1,16 @@
-import { memo } from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { memo, useState } from "react";
+import {
+  Box,
+  CircularProgress,
+  Collapse,
+  IconButton,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
@@ -13,6 +22,19 @@ interface MessageBubbleProps {
   message: ChatbotMessage;
 }
 
+// One corpus source can contribute several retrieved chunks to the same turn.
+// The panel lists sources, not chunks, so collapse them by cite_url.
+const dedupeSourcesByUrl = <T extends { cite_url: string }>(
+  sources: T[]
+): T[] => {
+  const seen = new Set<string>();
+  return sources.filter((source) => {
+    if (seen.has(source.cite_url)) return false;
+    seen.add(source.cite_url);
+    return true;
+  });
+};
+
 // Memoized: each SSE delta replaces the `messages` array, but only the
 // in-flight assistant message object gets a new identity (updateLastAssistant
 // mutates just that index) — every prior bubble keeps its reference. Without
@@ -22,6 +44,7 @@ export const MessageBubble = memo(function MessageBubble({
   message,
 }: MessageBubbleProps) {
   const theme = useTheme();
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const isUser = message.role === "user";
 
   // A failed turn (unreachable server, degraded, too-large, or a mid-stream
@@ -62,11 +85,16 @@ export const MessageBubble = memo(function MessageBubble({
   const textColor = isUser
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary;
+  const uniqueSources = dedupeSourcesByUrl(message.sourcesCited ?? []);
+  const hasSources = !isUser && uniqueSources.length > 0;
 
+  // Column layout so the citations panel stacks under the bubble; alignItems
+  // does the horizontal alignment justifyContent did in the row layout.
   return (
     <Box
       display="flex"
-      justifyContent={isUser ? "flex-end" : "flex-start"}
+      flexDirection="column"
+      alignItems={isUser ? "flex-end" : "flex-start"}
       mb={1}
     >
       <Box
@@ -96,6 +124,11 @@ export const MessageBubble = memo(function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
+                // Strip inline citations at render time — the V1 corpus is
+                // dominated by a single source, so repeated `[label](url)`
+                // markers are noise; attribution lives in the
+                // "Fuentes consultadas" panel below.
+                components={{ a: () => null }}
               >
                 {message.content}
               </ReactMarkdown>
@@ -122,6 +155,43 @@ export const MessageBubble = memo(function MessageBubble({
           </Box>
         )}
       </Box>
+      {hasSources ? (
+        <Box mt={0.5} maxWidth="85%" width="100%">
+          <Box display="flex" alignItems="center" gap={0.5}>
+            <IconButton
+              size="small"
+              aria-label="Ver fuentes consultadas"
+              aria-expanded={sourcesOpen}
+              onClick={() => setSourcesOpen((prev) => !prev)}
+              sx={{
+                transform: sourcesOpen ? "rotate(180deg)" : "none",
+                transition: "transform 0.2s",
+              }}
+            >
+              <ExpandMoreIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="caption" color="text.secondary">
+              {`Fuentes consultadas (${uniqueSources.length})`}
+            </Typography>
+          </Box>
+          <Collapse in={sourcesOpen}>
+            <Stack spacing={0.5} mt={0.5} pl={2}>
+              {uniqueSources.map((source) => (
+                <Box key={source.cite_url}>
+                  <Link
+                    href={source.cite_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="caption"
+                  >
+                    {source.cite_label}
+                  </Link>
+                </Box>
+              ))}
+            </Stack>
+          </Collapse>
+        </Box>
+      ) : null}
     </Box>
   );
 });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { SourceCitationWire } from "@repo/types";
 import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
@@ -142,6 +143,23 @@ export const useChatStream = () => {
       const processEvent = (ev: SsePayload): SendMessageResult | null => {
         if (ev.id) lastEventIdRef.current = ev.id;
         if (ev.event === "done") {
+          // The terminal `done` payload carries the corpus chunks the assistant
+          // grounded this turn in (RAG). Optional: a non-tool turn omits it, and
+          // a foundation-era backend never sends it.
+          try {
+            const parsed = JSON.parse(ev.data) as {
+              sources?: SourceCitationWire[];
+            };
+            if (Array.isArray(parsed.sources) && parsed.sources.length > 0) {
+              const sources = parsed.sources;
+              updateLastAssistant((msg) => ({ ...msg, sourcesCited: sources }));
+            }
+          } catch {
+            // A malformed `done` payload must not fail an otherwise good turn —
+            // the text already streamed. Drop the citations and complete.
+            // eslint-disable-next-line no-console
+            console.warn("Malformed chatbot `done` event payload");
+          }
           return { kind: "completed" };
         }
         if (ev.event === "error") {
