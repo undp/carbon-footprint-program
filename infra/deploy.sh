@@ -260,6 +260,28 @@ if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   DEPLOY_PARAMS+=(--parameters frontendCustomDomain="$FRONTEND_CUSTOM_DOMAIN")
 fi
 
+# Proxy trust for the API (Fastify trustProxy -> TRUST_PROXY app setting).
+# Overrides whatever the environment's .bicepparam sets, so an operator can fix
+# a running deployment without editing a checked-in file.
+#
+# WARNING when it is NOT set: this deployment REPLACES the App Service
+# appSettings collection, so any TRUST_PROXY applied by hand with
+# `az webapp config appsettings set` is silently dropped here and the API falls
+# back to trusting nothing — every caller shares one rate-limit bucket again.
+# A manual fix therefore survives only until the next deploy; the durable place
+# for the value is the .bicepparam (or this variable).
+if [ -n "${API_TRUST_PROXY:-}" ]; then
+  log "Using API proxy trust (TRUST_PROXY): $API_TRUST_PROXY"
+  DEPLOY_PARAMS+=(--parameters apiTrustProxy="$API_TRUST_PROXY")
+else
+  log "WARNING: API_TRUST_PROXY is not set and none is passed on the command line."
+  log "         If the environment's .bicepparam leaves apiTrustProxy empty, the API"
+  log "         will trust no proxy and the 100 req/min rate limit will apply as ONE"
+  log "         bucket shared by every caller, per instance. This deploy also clears"
+  log "         any TRUST_PROXY set by hand on the App Service."
+  log "         See docs/security/hardening.md, \"Proxy Trust\"."
+fi
+
 # Add Azure authentication parameters if configured
 if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   log "Adding Azure authentication parameters to deployment..."
