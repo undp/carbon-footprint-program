@@ -52,33 +52,74 @@ const parseNumericEnv = (raw: string | undefined, fallback: number): number => {
 // internet-facing, the opposite failure appears: a caller forges the header and
 // mints itself a fresh bucket per request, evading the limit entirely.
 //
-// Default `false` preserves the previous hardcoded behaviour, so upgrading
-// without setting the variable changes nothing.
+// Effective default is `false`, preserving the previous hardcoded behaviour, so
+// upgrading without setting the variable changes nothing.
+
+/**
+ * Upper bound on a hop count. Real proxy chains are one or two deep (App
+ * Service alone; App Service behind Front Door), so ten is already generous.
+ *
+ * The bound exists because a hop count larger than the actual chain is not
+ * merely wrong, it is `true` by another name: proxy-addr walks the whole
+ * `X-Forwarded-For` chain and returns the leftmost entry, which is entirely
+ * caller-controlled. Without a ceiling, `TRUST_PROXY=10000` — a plausible typo
+ * for `TRUST_PROXY=1` — silently hands every caller the ability to choose its
+ * own rate-limit key.
+ */
+const MAX_TRUST_PROXY_HOPS = 10;
 
 /**
  * Parse `TRUST_PROXY` into the shape Fastify's `trustProxy` option accepts.
  *
- * - unset / empty / `"false"` → `false` (trust nothing; the safe default)
+ * - unset / empty → `undefined`, meaning **not configured**. The caller applies
+ *   `false`; the distinction exists only so the boot warning can tell an
+ *   operator who never considered this from one who decided against it.
+ * - `"false"` → `false` (trust nothing) — a deliberate choice, not a default
  * - `"true"` → `true` (trust the whole `X-Forwarded-For` chain)
- * - a bare integer → that many proxy hops in front of the API are trusted
+ * - a bare integer 0…{@link MAX_TRUST_PROXY_HOPS} → that many proxy hops
  * - anything else → passed through verbatim: a comma-separated IP/CIDR
  *   allowlist, or one of Fastify's named ranges (`loopback`, `linklocal`,
  *   `uniquelocal`)
  *
  * Prefer an allowlist or a hop count over `true` in production: `true` trusts
  * whatever the caller put in the header when no proxy overwrote it.
+ *
+ * @throws if an all-digit value is not a safe integer within the bound. This
+ * fails the boot rather than falling back, because every silent fallback here
+ * is a security posture the operator did not choose: falling back to `false`
+ * would restore the shared rate-limit bucket, and clamping to the maximum would
+ * trust more hops than were asked for.
  */
 const parseTrustProxy = (
   raw: string | undefined
-): boolean | number | string => {
+): boolean | number | string | undefined => {
   const trimmed = raw?.trim();
-  if (!trimmed) return false;
+  if (!trimmed) return undefined;
 
   const lowered = trimmed.toLowerCase();
   if (lowered === "true") return true;
   if (lowered === "false") return false;
 
-  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  if (/^\d+$/.test(trimmed)) {
+    const hops = Number(trimmed);
+    // A long enough digit string overflows to Infinity, and anything past
+    // Number.MAX_SAFE_INTEGER stops round-tripping — neither is a hop count.
+    if (
+      !Number.isSafeInteger(hops) ||
+      hops < 0 ||
+      hops > MAX_TRUST_PROXY_HOPS
+    ) {
+      throw new Error(
+        `Invalid TRUST_PROXY hop count: "${trimmed}". Expected a whole number ` +
+          `between 0 and ${MAX_TRUST_PROXY_HOPS}. Refusing to start: a hop ` +
+          `count larger than the real proxy chain makes every X-Forwarded-For ` +
+          `entry trusted, which lets a caller choose its own rate-limit key. ` +
+          `Use 1 for Azure App Service, 2 behind Front Door, or an IP/CIDR ` +
+          `allowlist.`
+      );
+    }
+    return hops;
+  }
 
   return trimmed;
 };
@@ -121,10 +162,15 @@ export interface ApiEnv {
   DATABASE_URL: string | undefined;
   /**
    * Fastify's `trustProxy`: which `X-Forwarded-*` senders may set `request.ip`.
-   * Typed as the union Fastify accepts — `false` (trust nothing), `true` (trust
-   * the chain), a hop count, or an IP/CIDR/named-range string.
+   * The union Fastify accepts — `false` (trust nothing), `true` (trust the
+   * chain), a hop count, or an IP/CIDR/named-range string.
+   *
+   * `undefined` means **not configured**, which is distinct from an explicit
+   * `false` even though both end up trusting nothing. Only the unconfigured
+   * case warns at boot: an operator who wrote `TRUST_PROXY=false` has already
+   * made the decision the warning exists to prompt.
    */
-  TRUST_PROXY: boolean | number | string;
+  TRUST_PROXY: boolean | number | string | undefined;
   MAX_EVENT_LOOP_DELAY_MS: number;
   MAX_EVENT_LOOP_UTILIZATION: number;
   JWKS_URI: string | undefined;

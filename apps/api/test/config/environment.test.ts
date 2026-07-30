@@ -34,7 +34,7 @@ describe("parseEnv — defaults (empty environment)", () => {
       PORT: 8080,
       ALLOWED_ORIGIN: undefined,
       DATABASE_URL: undefined,
-      TRUST_PROXY: false,
+      TRUST_PROXY: undefined,
       MAX_EVENT_LOOP_DELAY_MS: 300,
       MAX_EVENT_LOOP_UTILIZATION: 0.9,
       JWKS_URI: undefined,
@@ -542,18 +542,30 @@ describe("parseEnv — TRUST_PROXY", () => {
   // correct one differs per topology: an allowlist behind a known proxy, a hop
   // count behind a chain, false when the API is reached directly.
 
-  it("defaults to false, so an unset variable trusts nothing", () => {
-    // This is the pre-existing hardcoded behaviour. Upgrading without setting
-    // the variable must not start honouring a forwarded header.
-    expect(parse().TRUST_PROXY).toBe(false);
-    expect(parse({ TRUST_PROXY: undefined }).TRUST_PROXY).toBe(false);
+  it("reports an unset variable as undefined, not false", () => {
+    // undefined means "never configured" and false means "configured to trust
+    // nothing". Both trust nothing at runtime — app.ts applies `?? false` — but
+    // only the unconfigured case warrants the boot warning, so the two must not
+    // collapse here.
+    expect(parse().TRUST_PROXY).toBeUndefined();
+    expect(parse({ TRUST_PROXY: undefined }).TRUST_PROXY).toBeUndefined();
   });
 
-  it("treats empty and whitespace-only input as unset", () => {
+  it("treats empty and whitespace-only input as unconfigured", () => {
     // Compose files and Bicep templates routinely inject "" for an absent
-    // variable, which must not read as a truthy string.
-    expect(parse({ TRUST_PROXY: "" }).TRUST_PROXY).toBe(false);
-    expect(parse({ TRUST_PROXY: "   " }).TRUST_PROXY).toBe(false);
+    // variable, which must not read as a truthy string — nor as a deliberate
+    // decision to trust nothing.
+    expect(parse({ TRUST_PROXY: "" }).TRUST_PROXY).toBeUndefined();
+    expect(parse({ TRUST_PROXY: "   " }).TRUST_PROXY).toBeUndefined();
+  });
+
+  it("distinguishes an explicit false from an absent value", () => {
+    // The distinction the boot warning depends on: an operator who wrote
+    // TRUST_PROXY=false has already made the decision the warning prompts for,
+    // so warning at them on every boot would be a permanent false positive.
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).not.toBeUndefined();
+    expect(parse({}).TRUST_PROXY).toBeUndefined();
   });
 
   it("parses the booleans case-insensitively and ignores surrounding space", () => {
@@ -571,6 +583,48 @@ describe("parseEnv — TRUST_PROXY", () => {
     expect(parse({ TRUST_PROXY: "2" }).TRUST_PROXY).toBe(2);
     expect(parse({ TRUST_PROXY: " 3 " }).TRUST_PROXY).toBe(3);
     expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+  });
+
+  it("accepts the hop-count boundaries", () => {
+    // 0 (trust nothing, spelled as a count) and the documented ceiling.
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+    expect(parse({ TRUST_PROXY: "10" }).TRUST_PROXY).toBe(10);
+  });
+
+  it("refuses a hop count above the bound instead of trusting the whole chain", () => {
+    // The reason a bound exists: proxy-addr walks the full X-Forwarded-For
+    // chain when the count exceeds its length and returns the leftmost entry,
+    // which the caller controls. So "10000" — a plausible typo for "1" — would
+    // be `true` by another name, letting anyone pick their own rate-limit key.
+    expect(() => parse({ TRUST_PROXY: "11" })).toThrow(
+      /Invalid TRUST_PROXY hop count: "11"/
+    );
+    expect(() => parse({ TRUST_PROXY: "10000" })).toThrow(/between 0 and 10/);
+  });
+
+  it("refuses digit strings that are not safe integers", () => {
+    // Past MAX_SAFE_INTEGER a value stops round-tripping, and a long enough
+    // digit string overflows to Infinity. Neither is a hop count, and neither
+    // must be allowed to reach proxy-addr.
+    expect(() => parse({ TRUST_PROXY: "9007199254740993" })).toThrow(
+      /Invalid TRUST_PROXY hop count/
+    );
+    expect(() => parse({ TRUST_PROXY: "9".repeat(400) })).toThrow(
+      /Invalid TRUST_PROXY hop count/
+    );
+  });
+
+  it("fails the boot rather than falling back to a posture nobody chose", () => {
+    // Falling back to false would quietly restore the shared rate-limit bucket;
+    // clamping to the maximum would trust more hops than were asked for. Both
+    // are silent, so an out-of-range value stops startup instead.
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        ALLOWED_ORIGIN: PROD_ORIGIN,
+        TRUST_PROXY: "99",
+      })
+    ).toThrow(/Refusing to start/);
   });
 
   it("passes IP addresses, CIDR lists and named ranges through as strings", () => {
@@ -592,7 +646,7 @@ describe("parseEnv — TRUST_PROXY", () => {
     // the topology, and upstream cannot know it.
     expect(
       parse({ NODE_ENV: "production", ALLOWED_ORIGIN: PROD_ORIGIN }).TRUST_PROXY
-    ).toBe(false);
+    ).toBeUndefined();
     expect(
       parse({
         NODE_ENV: "production",

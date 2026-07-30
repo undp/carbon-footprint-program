@@ -56,13 +56,19 @@ Fastify's `trustProxy` decides whether `X-Forwarded-For` may set `request.ip`. I
 per deployment through the **`TRUST_PROXY`** environment variable (`apps/api/src/config/environment.ts`,
 wired into the Fastify constructor in `apps/api/src/app.ts`).
 
-| `TRUST_PROXY`               | Effect                                                 | Use when                                            |
-| --------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
-| unset / `false` _(default)_ | Trust nothing; `request.ip` is the TCP peer address    | The API is reached directly, with no proxy in front |
-| `10.0.0.0/8,192.168.0.0/16` | Trust only these senders; comma-separated IPs or CIDRs | **Preferred.** You know your proxy's address range  |
-| `1`                         | Trust that many proxy hops in front of the API         | A known-depth chain whose addresses are not fixed   |
-| `loopback` / `uniquelocal`  | Fastify's named ranges                                 | A sidecar or same-host proxy                        |
-| `true`                      | Trust the whole forwarded chain                        | Last resort — see the warning below                 |
+| `TRUST_PROXY`               | Effect                                                    | Use when                                                       |
+| --------------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| _unset_                     | Trusts nothing, **and warns at boot in production**       | Nothing — this is the "nobody decided" state                   |
+| `false`                     | Trusts nothing; `request.ip` is the TCP peer address      | The API is reached directly. Say it explicitly to stop warning |
+| `10.0.0.0/8,192.168.0.0/16` | Trust only these senders; comma-separated IPs or CIDRs    | **Preferred.** You know your proxy's address range             |
+| `1`                         | Trust that many proxy hops in front of the API (max `10`) | A known-depth chain whose addresses are not fixed              |
+| `loopback` / `uniquelocal`  | Fastify's named ranges                                    | A sidecar or same-host proxy                                   |
+| `true`                      | Trust the whole forwarded chain                           | Last resort — see the warning below                            |
+
+**Unset and `false` behave identically at runtime but are not the same setting.** Unset means
+nobody considered the question, and produces the boot warning below; `false` records a decision
+and silences it. A deployment that is genuinely reached directly should write `false` rather than
+leaving the variable out.
 
 **Why this must be set per deployment, and what each mistake costs.** `request.ip` is the rate
 limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/rate-limit.ts`,
@@ -78,9 +84,16 @@ limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/r
   forges the header, mints a fresh bucket per request, and evades the limit entirely. Prefer an
   address allowlist or a hop count over `true`, which trusts whatever the caller sent when no
   proxy overwrote it.
+- **Set to a hop count larger than the real chain**, you get `true` by another name — proxy-addr
+  walks the whole chain and returns the caller-controlled leftmost entry. This is why the hop
+  count is capped at **10** and why an out-of-range or non-integer value **fails the boot**
+  instead of falling back: `TRUST_PROXY=10000`, a plausible typo for `1`, would otherwise hand
+  every caller its own rate-limit key silently. Falling back to `false` would restore the shared
+  bucket and clamping would trust more hops than were asked for — both are postures the operator
+  did not choose, so neither is applied.
 
-The default is `false`, so a deployment that upgrades without setting the variable keeps its
-previous behaviour rather than silently starting to trust a header.
+The effective default is `false`, so a deployment that upgrades without setting the variable
+keeps its previous behaviour rather than silently starting to trust a header.
 
 Per topology: **self-hosted** — set it to your reverse proxy's address or range. **Azure App
 Service without Front Door** — the platform front end still proxies to the container, so

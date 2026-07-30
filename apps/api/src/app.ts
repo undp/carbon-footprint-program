@@ -71,26 +71,31 @@ export async function createApp(
     logger: getLoggerOptions(),
     genReqId: () => randomUUID(),
     // Resolves `request.ip` from X-Forwarded-For when the deployment sits behind
-    // a proxy it trusts. Defaults to false (trust nothing) — see TRUST_PROXY in
+    // a proxy it trusts. `undefined` means the operator never configured it, so
+    // apply Fastify's own default of trusting nothing. See TRUST_PROXY in
     // config/environment.ts for why this is per-deployment rather than a
     // constant, and what it costs to get wrong in either direction.
-    trustProxy: TRUST_PROXY,
+    trustProxy: TRUST_PROXY ?? false,
   }).withTypeProvider<ZodTypeProvider>();
 
-  // The cost of leaving this unset is silent: requests still succeed, but the
-  // rate limiter keys every one of them on the proxy's address, so the limit is
-  // shared across all callers instead of applied per client. Nothing surfaces
-  // that at runtime, so say it once at boot. Only in production — locally the
-  // API is reached directly and false is correct.
-  if (IS_PROD && TRUST_PROXY === false) {
+  // The cost of leaving this unconfigured is silent: requests still succeed,
+  // but the rate limiter keys every one of them on the proxy's address, so the
+  // limit is shared across all callers instead of applied per client. Nothing
+  // surfaces that at runtime, so say it once at boot.
+  //
+  // Gated on `undefined`, NOT on the effective `false`. A deployment that is
+  // genuinely reached directly sets TRUST_PROXY=false and is correct; warning
+  // at it every boot would be a permanent false positive, and a warning that is
+  // always wrong for someone is a warning everyone learns to ignore.
+  if (IS_PROD && TRUST_PROXY === undefined) {
     app.log.warn(
-      "TRUST_PROXY is not set, so request.ip is the peer address of the TCP " +
-        "connection. If this API is behind a load balancer, CDN or reverse " +
-        "proxy (Azure App Service, Front Door, nginx), every client resolves " +
-        "to the same address and the rate limiter applies ONE shared bucket " +
-        "to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a hop " +
-        "count. Set it to false explicitly if the API really is reached " +
-        "directly."
+      "TRUST_PROXY is not configured, so request.ip is the peer address of " +
+        "the TCP connection. If this API is behind a load balancer, CDN or " +
+        "reverse proxy (Azure App Service, Front Door, nginx), every client " +
+        "resolves to the same address and the rate limiter applies ONE shared " +
+        "bucket to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a " +
+        "hop count. Set it to false explicitly to record that the API really " +
+        "is reached directly and silence this warning."
     );
   }
 
