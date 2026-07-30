@@ -49,22 +49,23 @@ The PostgreSQL connection string contains the database password and must be trea
 
 ### JWT Secret (`JWT_SECRET`)
 
-The `JWT_SECRET` environment variable is used only when `AUTH_PROVIDER` is set to `forced-user` or `none` — both of which are development-only modes. In Production, `AUTH_PROVIDER=jwks` is used, which validates tokens via JWKS public key material and does not use `JWT_SECRET`.
+`JWT_SECRET` is the static HMAC secret for the non-JWKS `@fastify/jwt` branch. In Production, `AUTH_PROVIDER=jwks` is used, which validates tokens via JWKS public key material and does not use `JWT_SECRET` at all.
 
-| Environment       | `AUTH_PROVIDER`         | `JWT_SECRET` used? |
-| ----------------- | ----------------------- | ------------------ |
-| Production        | `jwks`                  | No                 |
-| Staging           | `jwks`                  | No                 |
-| Local development | `forced-user` or `none` | Yes (dev only)     |
+| Environment       | `AUTH_PROVIDER`         | `JWT_SECRET` used?                                 |
+| ----------------- | ----------------------- | -------------------------------------------------- |
+| Production        | `jwks` (+ `JWKS_URI`)   | No — tokens verified against the IdP's public keys |
+| Staging           | `jwks` (+ `JWKS_URI`)   | No — same                                          |
+| Local development | `jwks`, no `JWKS_URI`   | **Yes** — it is the verification key; must be set  |
+| Local development | `forced-user` or `none` | No — no token is verified                          |
 
-**Critical:** The codebase contains a hardcoded fallback for `JWT_SECRET`:
+**There is no hardcoded fallback.** `apps/api/src/config/environment.ts` reads the value from the environment and nothing else — a default HMAC secret committed to the repository would be a published credential, so anyone could mint tokens the static-secret branch accepts. Blank and whitespace-only values are normalised to unset.
 
-```typescript
-// apps/api/src/config/environment.ts
-JWT_SECRET: process.env.JWT_SECRET ?? "super-secret-key";
-```
+The two configurations that follow from this:
 
-This fallback exists purely for local convenience. It must never be relied upon in any environment where `AUTH_PROVIDER=forced-user` is used with real data. The `forced-user` provider should never be enabled in Staging or Production regardless.
+- **`AUTH_PROVIDER=jwks` without `JWKS_URI`** — the static secret is what verifies tokens, so it must be set explicitly. The API refuses to boot without it rather than serve unverifiable auth. `.envrc.template` and `.env.dockercompose.example` ship a throwaway dev value for exactly this case.
+- **`AUTH_PROVIDER=forced-user` / `none`** — no token is ever verified, but `@fastify/jwt` still demands _some_ secret at registration. The API mints a per-boot ephemeral value instead of falling back to a constant, so nothing needs configuring.
+
+The `forced-user` provider should never be enabled in Staging or Production regardless.
 
 ### JWKS / Entra ID Credentials
 
@@ -171,11 +172,11 @@ JWT_SECRET=local-dev-only
 
 ## Anti-Patterns to Avoid
 
-| Anti-pattern                                                             | Why it's prohibited                                         |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| Hardcoded secrets in source code                                         | Leaked in git history; visible to all contributors          |
-| Secrets as plaintext App Service settings (not Key Vault references)     | Visible in Azure Portal to anyone with resource read access |
-| Storing `AZURE_CLIENT_SECRET` in GitHub Actions secrets                  | Replaced by OIDC federation; secrets can be leaked in logs  |
-| Using storage account keys instead of managed identity                   | Keys must be rotated; managed identity has no expiry        |
-| Setting `JWT_SECRET` to `"super-secret-key"` in any deployed environment | Trivially guessable; compromises token integrity            |
-| Committing `.env` files                                                  | Exposes all local secrets permanently in git history        |
+| Anti-pattern                                                                       | Why it's prohibited                                         |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Hardcoded secrets in source code                                                   | Leaked in git history; visible to all contributors          |
+| Secrets as plaintext App Service settings (not Key Vault references)               | Visible in Azure Portal to anyone with resource read access |
+| Storing `AZURE_CLIENT_SECRET` in GitHub Actions secrets                            | Replaced by OIDC federation; secrets can be leaked in logs  |
+| Using storage account keys instead of managed identity                             | Keys must be rotated; managed identity has no expiry        |
+| Setting `JWT_SECRET` to a placeholder or example value in any deployed environment | Trivially guessable; compromises token integrity            |
+| Committing `.env` files                                                            | Exposes all local secrets permanently in git history        |

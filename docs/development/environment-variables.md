@@ -106,6 +106,13 @@ In production, `AUTH_PROVIDER=jwks` additionally requires `JWKS_URI`, `JWKS_ISSU
 `JWKS_AUDIENCE`, so the static-secret branch cannot be reached there at all. Generate a real
 value with `openssl rand -base64 48`.
 
+**Blank counts as unset.** Empty and whitespace-only values are normalised to undefined, so
+`JWT_SECRET=` behaves exactly like omitting it: the row above still applies. This matters
+because Docker Compose expands an absent variable to an empty string
+(`JWT_SECRET=${JWT_SECRET}` in `docker-compose.yml`) — a blank value is therefore a normal
+input, not a hand-crafted one, and it must never become a whitespace verification key or
+reach `@fastify/jwt`, which aborts startup on a falsy secret.
+
 ### Auth Provider (`AUTH_PROVIDER`)
 
 | Value         | Use case                                                                |
