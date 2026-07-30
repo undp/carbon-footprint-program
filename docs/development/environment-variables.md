@@ -142,6 +142,16 @@ from the tenant inputs above by `.envrc.azure.example` (local) and `appService.b
 | `JWKS_REQUIRED_SCOPE`   | No               | Required scope claim (default: `access_as_user`)                          |
 | `JWKS_SKIP_SCOPE_CHECK` | No               | Set `true` to disable scope enforcement entirely                          |
 
+### Proxy trust (`TRUST_PROXY`)
+
+Sets Fastify's [`trustProxy`](https://fastify.dev/docs/latest/Reference/Server/#trustproxy) — whether `X-Forwarded-For` may set `request.ip`. **This is not cosmetic:** `request.ip` is the rate limiter's bucket key, so leaving it unset behind a proxy makes the 100 req/min limit one bucket shared by every caller rather than one per client, and nothing fails visibly when it happens. Setting it to `true` on a directly internet-facing API has the opposite effect — a caller forges the header and evades the limit. The correct value is a property of your topology; see [`docs/security/hardening.md`](../security/hardening.md#proxy-trust) for the per-topology guidance.
+
+The default is `false` (trust nothing), which preserves the behaviour of deployments that upgrade without setting it. When `NODE_ENV=production` and the variable is unset, the API logs a warning at boot.
+
+| Variable      | Required | Default | Description                                                                                                                                                                                                                                                                                             |
+| ------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TRUST_PROXY` | No       | `false` | `false` / unset = trust nothing. A comma-separated IP/CIDR list (`10.0.0.0/8,192.168.0.0/16`) = trust only those senders — **preferred**. A bare integer (`1`) = trust that many hops. `loopback` / `linklocal` / `uniquelocal` = Fastify's named ranges. `true` = trust the whole chain (last resort). |
+
 ### Load Shedding (`@fastify/under-pressure`)
 
 The API registers [`@fastify/under-pressure`](https://github.com/fastify/under-pressure), which returns `503 Service Unavailable` when the process is overloaded. The two event-loop thresholds are env-configurable so an environment or CI runner under unusual load can tune them without a code change; the defaults preserve the platform's production behaviour. A malformed value (non-numeric or empty) falls back to the default. The heap and RSS limits remain hardcoded in `apps/api/src/plugins/external/under-pressure.ts`, and the plugin is not loaded when `NODE_ENV=test`.

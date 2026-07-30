@@ -52,33 +52,46 @@ In the Azure topologies, all data in transit between application components and 
 
 ### Proxy Trust
 
-**Current state: `trustProxy` is off, and is not configurable.** `apps/api/src/app.ts` constructs
-`Fastify({ logger, genReqId })` without the option, and nothing reads it from the environment, so
-it takes Fastify's default of `false` in every deployment. There is no per-deployment setting to
-verify.
+Fastify's `trustProxy` decides whether `X-Forwarded-For` may set `request.ip`. It is configured
+per deployment through the **`TRUST_PROXY`** environment variable (`apps/api/src/config/environment.ts`,
+wired into the Fastify constructor in `apps/api/src/app.ts`).
 
-With `trustProxy: false`, Fastify ignores `X-Forwarded-For` and `X-Forwarded-Proto` entirely and
-`request.ip` is the peer address of the TCP connection. That is the safe default against header
-spoofing, but it has a consequence wherever the API sits behind a proxy — which is every
-topology in the table above except a directly-exposed App Service:
+| `TRUST_PROXY`               | Effect                                                 | Use when                                            |
+| --------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| unset / `false` _(default)_ | Trust nothing; `request.ip` is the TCP peer address    | The API is reached directly, with no proxy in front |
+| `10.0.0.0/8,192.168.0.0/16` | Trust only these senders; comma-separated IPs or CIDRs | **Preferred.** You know your proxy's address range  |
+| `1`                         | Trust that many proxy hops in front of the API         | A known-depth chain whose addresses are not fixed   |
+| `loopback` / `uniquelocal`  | Fastify's named ranges                                 | A sidecar or same-host proxy                        |
+| `true`                      | Trust the whole forwarded chain                        | Last resort — see the warning below                 |
 
-- **Rate limiting keys off a proxy address, not the caller.** `@fastify/rate-limit`
-  (`apps/api/src/plugins/external/rate-limit.ts`, 100 req/min) uses its default key generator,
-  `request.ip`. Behind App Service's front-end, Front Door, or a self-hosted reverse proxy, that
-  value is the same for every caller, so the limit behaves as **one shared bucket** rather than a
-  per-client one: a single heavy caller can exhaust the budget for everyone. This compounds with
-  [Azure Front Door and WAF](#azure-front-door-and-waf) below: without Front Door, this limiter
-  is the only rate-limiting protection there is.
-- **Logs are unaffected.** The request logger installs a custom `req` serializer
-  (`apps/api/src/app.ts`) emitting only `id`, `method`, `url` and `params`; it drops Fastify's
-  default `remoteAddress`. No IP is written to any log line, `request.ip` is not read anywhere in
-  `apps/api/src`, and no table in the schema stores a client IP. There is no IP-based audit trail
-  to corrupt — and equally, none to investigate an incident with.
+**Why this must be set per deployment, and what each mistake costs.** `request.ip` is the rate
+limiter's bucket key — `@fastify/rate-limit` (`apps/api/src/plugins/external/rate-limit.ts`,
+100 req/min) keys on it explicitly. So:
 
-Enabling `trustProxy` would fix the rate-limit key **only** where the API is genuinely behind a
-trusted proxy; turning it on while the API is directly internet-facing would instead let any
-caller forge its own rate-limit key. That is why it needs to be a per-deployment setting rather
-than a constant, and why it is not simply switched on.
+- **Left unset behind a proxy**, every caller resolves to the proxy's address and the limit
+  becomes **one shared bucket** instead of a per-client one: a single heavy caller exhausts the
+  budget for everyone. Nothing fails visibly when this happens. It compounds with
+  [Azure Front Door and WAF](#azure-front-door-and-waf) below — without Front Door, this limiter
+  is the only rate-limiting protection there is. The API logs a warning at boot when
+  `NODE_ENV=production` and `TRUST_PROXY` is unset, so the condition is at least discoverable.
+- **Set to `true` while the API is internet-facing**, the opposite failure appears: a caller
+  forges the header, mints a fresh bucket per request, and evades the limit entirely. Prefer an
+  address allowlist or a hop count over `true`, which trusts whatever the caller sent when no
+  proxy overwrote it.
+
+The default is `false`, so a deployment that upgrades without setting the variable keeps its
+previous behaviour rather than silently starting to trust a header.
+
+Per topology: **self-hosted** — set it to your reverse proxy's address or range. **Azure with
+Front Door** — set it to the Front Door / App Service front-end ranges. **Azure App Service
+without Front Door** — the platform front-end still proxies to the container, so `request.ip`
+without `TRUST_PROXY` is the platform's address, not the visitor's.
+
+**Logs are unaffected either way.** The request logger installs a custom `req` serializer
+(`apps/api/src/app.ts`) emitting only `id`, `method`, `url` and `params`; it drops Fastify's
+default `remoteAddress`. No IP is written to any log line and no table in the schema stores a
+client IP — so there is no IP-based audit trail to corrupt with a forged header, and equally none
+to investigate an incident with.
 
 ---
 
