@@ -2,12 +2,14 @@ import { FC, Fragment, ReactNode } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
 import { TAX_ID_LABEL_SHORT } from "@repo/constants";
 import {
+  OrganizationDisplayStatusValues,
   SubmissionStatus,
   type CollisionField,
   type CollisionState,
   type OrganizationIdentityCollisionMetadata,
 } from "@repo/types";
 import { StatusChip } from "@/components/StatusChip";
+import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization";
 import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
 
 type Props = {
@@ -26,6 +28,20 @@ const CONFLICT_SUBMISSION_STATUS: Record<CollisionState, SubmissionStatus> = {
   PENDING: SubmissionStatus.PENDING,
 };
 
+/** An organization's standing chip: inscribed or not (never BLOCKED here). */
+const organizationStatusChip = (isAccredited: boolean) => (
+  <StatusChip
+    config={
+      ORGANIZATION_DISPLAY_STATUS_CONFIG[
+        isAccredited
+          ? OrganizationDisplayStatusValues.ACCREDITED
+          : OrganizationDisplayStatusValues.NOT_ACCREDITED
+      ]
+    }
+    size="small"
+  />
+);
+
 type ComparisonRow = {
   key: string;
   label: string;
@@ -35,9 +51,11 @@ type ComparisonRow = {
 };
 
 /**
- * Side-by-side comparison of the applicant and one conflicting organization: the
- * three identity fields plus the status of each side's submission. The colliding
- * field(s) (from `collisionFields`) are highlighted.
+ * Side-by-side comparison of the applicant and one conflicting organization. The
+ * two status rows come first — the submission each side is represented by, then
+ * each organization's own standing (inscribed or not), two facts that must not be
+ * read as one — followed by the three identity fields, with the colliding one(s)
+ * (from `collisionFields`) highlighted.
  *
  * Both columns come from the warning payload — the applicant tuple is the
  * snapshot the API actually compared, not the organization's displayed data.
@@ -65,13 +83,6 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
   };
 
   const rows: ComparisonRow[] = [
-    ...IDENTITY_ROWS.map(({ field, label }) => ({
-      key: field,
-      label,
-      applicant: applicantValues[field] || "-",
-      conflict: conflictValues[field] || "-",
-      collides: collisionFields.has(field),
-    })),
     {
       key: "submissionStatus",
       label: "Estado de la postulación",
@@ -93,6 +104,22 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
       ),
       collides: false,
     },
+    {
+      key: "organizationStatus",
+      label: "Estado de la organización",
+      applicant: organizationStatusChip(
+        metadata.applicant.organizationIsAccredited
+      ),
+      conflict: organizationStatusChip(metadata.organizationIsAccredited),
+      collides: false,
+    },
+    ...IDENTITY_ROWS.map(({ field, label }) => ({
+      key: field,
+      label,
+      applicant: applicantValues[field] || "-",
+      conflict: conflictValues[field] || "-",
+      collides: collisionFields.has(field),
+    })),
   ];
 
   const rule = `1px solid ${theme.palette.divider}`;

@@ -25,14 +25,14 @@
 - [x] 3.1 Add a `useGetSubmissionWarnings(submissionId)` query hook (`apps/web/src/api/query/submissions/`), lazy (`enabled: !!submissionId`), calling `admin/submissions/${id}/warnings`
 - [x] 3.2 Add a per-`type` metadata parser/guard for `ORGANIZATION_IDENTITY_COLLISION` (small Zod schema at the render boundary) to safely read `metadata`
 - [x] 3.3 Create the `ConflictsSection` component under `apps/web/src/components/dialogs/SubmissionHistory/`: render only when `isOrganizationAccreditation && warnings.length`; amber attention styling consistent with existing patterns; group by state (accredited first, then pending)
-- [x] 3.4 Render one numbered collapsed row per conflicting org ("Conflicto N" · organization standing · tax id · legal name); the chip goes through `<StatusChip>` + the app-wide `ORGANIZATION_DISPLAY_STATUS_CONFIG` (Inscrita / No Inscrita) so the standing renders as it does everywhere else, and the colliding submission's status moves into the comparison. No per-state grouping headers
+- [x] 3.4 Render one numbered collapsed row per conflicting org, carrying the numbering only ("Conflicto N") so every fact is read in one place — the comparison grid. No per-state grouping headers
 - [x] 3.7 Subtitle of the section states explicitly that the conflicts are referential and the request can be approved anyway
 - [x] 3.5 Insert `ConflictsSection` in `ViewSubmissionDialog.tsx` between `CurrentStatusBanner` and `OrgDataSection`; pass the current submission's id/warnings
 - [x] 3.6 Run `pnpm type-check` and `pnpm lint`
 
 ## 4. Phase 3 — Web: expand to side-by-side comparison
 
-- [x] 4.1 Build the comparison sub-component: on expand, show a side-by-side grid of applicant vs conflicting org over `tradeName`, `legalName`, `taxId`, plus an "Estado de la postulación" row with each side's submission status; one separator per row and generous cell padding so it reads as a grid
+- [x] 4.1 Build the comparison sub-component: on expand, show a side-by-side grid of applicant vs conflicting org, leading with an "Estado de la postulación" row (each side's submission status) and an "Estado de la organización" row (each side's standing through `<StatusChip>` + the app-wide `ORGANIZATION_DISPLAY_STATUS_CONFIG`, Inscrita / No Inscrita), followed by `tradeName`, `legalName`, `taxId`; one separator per row and generous cell padding so it reads as a grid
 - [x] 4.2 Highlight the colliding cell(s) using theme colors (driven by `collisionFields`)
 - [x] 4.3 Ensure the layout scales from 1 to N conflicts (per-chip expansion, no horizontal overflow of the dialog)
 - [x] 4.4 Run `pnpm type-check` and `pnpm lint`

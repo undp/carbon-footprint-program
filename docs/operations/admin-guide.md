@@ -77,16 +77,16 @@ For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Con
 
 The warnings are **referential only** — the section states so explicitly, and the request can be approved with conflicts outstanding. Branches (_sedes_) of the same real organization share identity values by nature, so they surface here as awareness signals rather than errors.
 
-Conflicts are listed flat and numbered ("Conflicto 1", "Conflicto 2") in the order the endpoint returns them, which puts collisions against an approved submission first. Each row carries two facts that must not be confused:
+Conflicts are listed flat and numbered ("Conflicto 1", "Conflicto 2") in the order the endpoint returns them, which puts collisions against an approved submission first. The collapsed row is only the handle; expanding it shows a side-by-side comparison (this submission vs. the conflicting organization) whose rows carry two facts that must not be confused:
 
-| Fact                                         | Where it is shown                                    | Values                                                                                                     |
-| -------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Standing of the conflicting **organization** | Chip in the collapsed row                            | Inscrita / No Inscrita (`metadata.organizationIsAccredited`)                                               |
-| Status of the **submission** that collided   | "Estado de la postulación" row inside the comparison | Aprobada (`collisionState = APPROVED`, compared against the **approved** snapshot) / Pendiente (`PENDING`) |
+| Row                         | Fact                                      | Values                                                                                                     |
+| --------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| "Estado de la postulación"  | Status of the **submission** on each side | Aprobada (`collisionState = APPROVED`, compared against the **approved** snapshot) / Pendiente (`PENDING`) |
+| "Estado de la organización" | Standing of each **organization** itself  | Inscrita / No Inscrita (`metadata.organizationIsAccredited`, and the same flag for the applicant)          |
 
-A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data. That is why the two facts are reported separately, and why the warning message says, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social".
+A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data — and the same is true of the applicant, which is why both sides report their own standing. That separation is also why the warning message says, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social".
 
-Expanding a conflict shows a side-by-side comparison of the two identity tuples with the colliding fields highlighted, plus the status of each side's submission. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
+Below the two status rows the comparison lists the three identity fields, with the colliding one(s) highlighted. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
 
 ### Approving
 

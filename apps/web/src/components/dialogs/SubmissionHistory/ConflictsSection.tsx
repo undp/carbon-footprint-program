@@ -3,7 +3,7 @@ import { alpha, Box, Stack, Typography, useTheme } from "@mui/material";
 import { WarningAmberOutlined } from "@mui/icons-material";
 import { useGetSubmissionWarnings } from "@/api/query/submissions/useGetSubmissionWarnings";
 import { parseCollisionWarnings } from "./collisionWarnings";
-import { ConflictOrgChip } from "./ConflictOrgChip";
+import { ConflictRow } from "./ConflictRow";
 
 type Props = {
   submissionId: string | null | undefined;
@@ -71,7 +71,7 @@ export const ConflictsSection: FC<Props> = ({
 
       <Stack spacing={1}>
         {collisions.map((collision, index) => (
-          <ConflictOrgChip
+          <ConflictRow
             key={`${collision.metadata.collisionState}-${collision.metadata.organizationId}`}
             collision={collision}
             position={index + 1}
