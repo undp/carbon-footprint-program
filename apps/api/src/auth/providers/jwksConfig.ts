@@ -15,6 +15,7 @@
  * @see https://datatracker.ietf.org/doc/html/rfc7517 - JSON Web Key (JWK) spec
  */
 
+import { randomBytes } from "node:crypto";
 import type { FastifyJWTOptions } from "@fastify/jwt";
 import { JwksClient } from "jwks-rsa";
 import {
@@ -77,8 +78,14 @@ export interface JwtConfigParams {
   jwksIssuer: string | undefined;
   /** Expected audience (`aud`). When falsy, audience validation is disabled. */
   jwksAudience: string | undefined;
-  /** Static HMAC secret used only in the (dev) fallback branch. */
-  jwtSecret: string;
+  /**
+   * Static HMAC secret used only in the (dev) fallback branch. May be undefined
+   * or blank: `environment.ts` requires it only when it would actually
+   * authenticate callers (AUTH_PROVIDER=jwks with no JWKS_URI). When it carries
+   * no value here the branch is not authenticating anyone, so a per-boot
+   * ephemeral secret is substituted rather than a hardcoded constant.
+   */
+  jwtSecret: string | undefined;
   /** Key source used by the dynamic secret resolver in the JWKS branch. */
   client: SigningKeySource | null;
 }
@@ -105,8 +112,24 @@ export function buildJwtConfig({
   client,
 }: JwtConfigParams): FastifyJWTOptions {
   if (!jwksUri) {
-    // Fallback to static secret for development
-    return { secret: jwtSecret };
+    // Fallback to static secret for development. `@fastify/jwt` requires *some*
+    // secret at registration, and the plugin is autoloaded unconditionally — so
+    // even AUTH_PROVIDER=none / forced-user, which never verify a token, reach
+    // this branch. When no secret is configured, mint a random one for this
+    // process instead of falling back to a checked-in constant: nothing signs
+    // tokens with it, so its value is irrelevant, and an ephemeral value cannot
+    // be leaked from the repository or reused across deployments. The
+    // configuration where this secret *does* authenticate callers
+    // (AUTH_PROVIDER=jwks with no JWKS_URI) is rejected in environment.ts, so it
+    // can never silently rely on the ephemeral value.
+    //
+    // `||` rather than `??`: an empty string must fall through to the ephemeral
+    // value too. `@fastify/jwt` asserts on a falsy secret (`assert(options.secret,
+    // 'missing secret')`), so letting `""` past here turns a blank env var into
+    // an opaque boot failure. environment.ts already normalises blanks to
+    // undefined; this keeps the invariant local to the function that needs it,
+    // for any caller.
+    return { secret: jwtSecret || randomBytes(32).toString("hex") };
   }
 
   return {
