@@ -2,7 +2,11 @@ import path from "node:path";
 import net from "node:net";
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type {
+  FastifyBaseLogger,
+  FastifyInstance,
+  FastifyRequest,
+} from "fastify";
 import {
   serializerCompiler,
   validatorCompiler,
@@ -63,6 +67,41 @@ function getLoggerOptions() {
   return baseOptions;
 }
 
+/**
+ * Warn once at boot when proxy trust was never configured in production.
+ *
+ * The cost of leaving it unconfigured is silent: requests still succeed, but
+ * the rate limiter keys every one of them on the proxy's address, so the limit
+ * is shared across all callers instead of applied per client. Nothing surfaces
+ * that at runtime.
+ *
+ * Gated on `undefined`, NOT on the effective `false`. A deployment that really
+ * is reached directly sets `TRUST_PROXY=false` and is correct; warning at it on
+ * every boot would be a permanent false positive, and a warning that is always
+ * wrong for someone is one everyone learns to ignore.
+ *
+ * Exported so the exact condition is testable without booting the whole app —
+ * the distinction between "unset" and "explicitly false" is subtle enough that
+ * a reader has already mistaken one for the other.
+ */
+export function warnIfProxyTrustUnconfigured(
+  log: Pick<FastifyBaseLogger, "warn">,
+  isProd: boolean,
+  trustProxy: boolean | number | string | undefined
+): void {
+  if (!isProd || trustProxy !== undefined) return;
+
+  log.warn(
+    "TRUST_PROXY is not configured, so request.ip is the peer address of " +
+      "the TCP connection. If this API is behind a load balancer, CDN or " +
+      "reverse proxy (Azure App Service, Front Door, nginx), every client " +
+      "resolves to the same address and the rate limiter applies ONE shared " +
+      "bucket to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a " +
+      "hop count. Set it to false explicitly to record that the API really " +
+      "is reached directly and silence this warning."
+  );
+}
+
 export async function createApp(
   withPrisma: boolean = true,
   opts?: { skipUnderPressure?: boolean }
@@ -78,26 +117,7 @@ export async function createApp(
     trustProxy: TRUST_PROXY ?? false,
   }).withTypeProvider<ZodTypeProvider>();
 
-  // The cost of leaving this unconfigured is silent: requests still succeed,
-  // but the rate limiter keys every one of them on the proxy's address, so the
-  // limit is shared across all callers instead of applied per client. Nothing
-  // surfaces that at runtime, so say it once at boot.
-  //
-  // Gated on `undefined`, NOT on the effective `false`. A deployment that is
-  // genuinely reached directly sets TRUST_PROXY=false and is correct; warning
-  // at it every boot would be a permanent false positive, and a warning that is
-  // always wrong for someone is a warning everyone learns to ignore.
-  if (IS_PROD && TRUST_PROXY === undefined) {
-    app.log.warn(
-      "TRUST_PROXY is not configured, so request.ip is the peer address of " +
-        "the TCP connection. If this API is behind a load balancer, CDN or " +
-        "reverse proxy (Azure App Service, Front Door, nginx), every client " +
-        "resolves to the same address and the rate limiter applies ONE shared " +
-        "bucket to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a " +
-        "hop count. Set it to false explicitly to record that the API really " +
-        "is reached directly and silence this warning."
-    );
-  }
+  warnIfProxyTrustUnconfigured(app.log, IS_PROD, TRUST_PROXY);
 
   // set up Zod validators and serializers
   app.setValidatorCompiler(validatorCompiler);
