@@ -35,6 +35,54 @@ const parseNumericEnv = (raw: string | undefined, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+// ============================================================================
+// Proxy Trust (Fastify `trustProxy`)
+// ============================================================================
+// Whether the API trusts `X-Forwarded-For` / `X-Forwarded-Proto` to resolve
+// `request.ip`. This has to be per-deployment because the correct answer is a
+// property of the topology, not of the software: the API may sit directly on a
+// socket, behind Azure App Service's front-end, behind Front Door, or behind an
+// operator's own nginx (see docs/security/hardening.md, "Deployment topology").
+//
+// It matters because `request.ip` is the rate limiter's bucket key
+// (plugins/external/rate-limit.ts). Left off behind a proxy, every caller
+// resolves to the SAME proxy address and the 100 req/min limit becomes one
+// shared bucket instead of a per-client one — so a single heavy caller can
+// exhaust the budget for everyone. Turned on while the API is directly
+// internet-facing, the opposite failure appears: a caller forges the header and
+// mints itself a fresh bucket per request, evading the limit entirely.
+//
+// Default `false` preserves the previous hardcoded behaviour, so upgrading
+// without setting the variable changes nothing.
+
+/**
+ * Parse `TRUST_PROXY` into the shape Fastify's `trustProxy` option accepts.
+ *
+ * - unset / empty / `"false"` → `false` (trust nothing; the safe default)
+ * - `"true"` → `true` (trust the whole `X-Forwarded-For` chain)
+ * - a bare integer → that many proxy hops in front of the API are trusted
+ * - anything else → passed through verbatim: a comma-separated IP/CIDR
+ *   allowlist, or one of Fastify's named ranges (`loopback`, `linklocal`,
+ *   `uniquelocal`)
+ *
+ * Prefer an allowlist or a hop count over `true` in production: `true` trusts
+ * whatever the caller put in the header when no proxy overwrote it.
+ */
+const parseTrustProxy = (
+  raw: string | undefined
+): boolean | number | string => {
+  const trimmed = raw?.trim();
+  if (!trimmed) return false;
+
+  const lowered = trimmed.toLowerCase();
+  if (lowered === "true") return true;
+  if (lowered === "false") return false;
+
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+
+  return trimmed;
+};
+
 /**
  * Trim env input and treat empty / whitespace-only strings as unset. Used by
  * the chatbot config block so a value like `"   "` cannot bypass the
@@ -71,6 +119,12 @@ export interface ApiEnv {
   PORT: number;
   ALLOWED_ORIGIN: string | undefined;
   DATABASE_URL: string | undefined;
+  /**
+   * Fastify's `trustProxy`: which `X-Forwarded-*` senders may set `request.ip`.
+   * Typed as the union Fastify accepts — `false` (trust nothing), `true` (trust
+   * the chain), a hop count, or an IP/CIDR/named-range string.
+   */
+  TRUST_PROXY: boolean | number | string;
   MAX_EVENT_LOOP_DELAY_MS: number;
   MAX_EVENT_LOOP_UTILIZATION: number;
   JWKS_URI: string | undefined;
@@ -126,6 +180,9 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   const PORT = parseInt(source.API_PORT ?? "8080", 10);
 
   const DATABASE_URL = source.DATABASE_URL;
+
+  /** Which `X-Forwarded-*` senders may set `request.ip`. See parseTrustProxy. */
+  const TRUST_PROXY = parseTrustProxy(source.TRUST_PROXY);
 
   /** Event-loop delay (ms) above which the API sheds load with a 503. */
   const MAX_EVENT_LOOP_DELAY_MS = parseNumericEnv(
@@ -327,6 +384,7 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     PORT,
     ALLOWED_ORIGIN,
     DATABASE_URL,
+    TRUST_PROXY,
     MAX_EVENT_LOOP_DELAY_MS,
     MAX_EVENT_LOOP_UTILIZATION,
     JWKS_URI,
@@ -359,6 +417,7 @@ export const HOST = env.HOST;
 export const PORT = env.PORT;
 export const ALLOWED_ORIGIN = env.ALLOWED_ORIGIN;
 export const DATABASE_URL = env.DATABASE_URL;
+export const TRUST_PROXY = env.TRUST_PROXY;
 export const MAX_EVENT_LOOP_DELAY_MS = env.MAX_EVENT_LOOP_DELAY_MS;
 export const MAX_EVENT_LOOP_UTILIZATION = env.MAX_EVENT_LOOP_UTILIZATION;
 export const JWKS_URI = env.JWKS_URI;

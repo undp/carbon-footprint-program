@@ -34,6 +34,7 @@ describe("parseEnv — defaults (empty environment)", () => {
       PORT: 8080,
       ALLOWED_ORIGIN: undefined,
       DATABASE_URL: undefined,
+      TRUST_PROXY: false,
       MAX_EVENT_LOOP_DELAY_MS: 300,
       MAX_EVENT_LOOP_UTILIZATION: 0.9,
       JWKS_URI: undefined,
@@ -531,5 +532,73 @@ describe("under-pressure thresholds — env overrides", () => {
     });
     expect(env.MAX_EVENT_LOOP_DELAY_MS).toBe(300);
     expect(env.MAX_EVENT_LOOP_UTILIZATION).toBe(0.9);
+  });
+});
+
+describe("parseEnv — TRUST_PROXY", () => {
+  // TRUST_PROXY feeds Fastify's `trustProxy` option, which decides whether
+  // X-Forwarded-For may set `request.ip` — the rate limiter's bucket key. The
+  // parser has to hand back each of the shapes Fastify accepts, because the
+  // correct one differs per topology: an allowlist behind a known proxy, a hop
+  // count behind a chain, false when the API is reached directly.
+
+  it("defaults to false, so an unset variable trusts nothing", () => {
+    // This is the pre-existing hardcoded behaviour. Upgrading without setting
+    // the variable must not start honouring a forwarded header.
+    expect(parse().TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: undefined }).TRUST_PROXY).toBe(false);
+  });
+
+  it("treats empty and whitespace-only input as unset", () => {
+    // Compose files and Bicep templates routinely inject "" for an absent
+    // variable, which must not read as a truthy string.
+    expect(parse({ TRUST_PROXY: "" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "   " }).TRUST_PROXY).toBe(false);
+  });
+
+  it("parses the booleans case-insensitively and ignores surrounding space", () => {
+    expect(parse({ TRUST_PROXY: "true" }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: "TRUE" }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: " True " }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "False" }).TRUST_PROXY).toBe(false);
+  });
+
+  it("parses a bare integer as a hop count, as a number", () => {
+    // Fastify distinguishes number from string here: 1 means "one proxy hop",
+    // while "1" would be read as an address. The coercion is load-bearing.
+    expect(parse({ TRUST_PROXY: "1" }).TRUST_PROXY).toBe(1);
+    expect(parse({ TRUST_PROXY: "2" }).TRUST_PROXY).toBe(2);
+    expect(parse({ TRUST_PROXY: " 3 " }).TRUST_PROXY).toBe(3);
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+  });
+
+  it("passes IP addresses, CIDR lists and named ranges through as strings", () => {
+    // Fastify/proxy-addr parses these itself; the env layer must not mangle
+    // them. A dotted quad must stay a string, not become NaN or a number.
+    expect(parse({ TRUST_PROXY: "10.0.0.1" }).TRUST_PROXY).toBe("10.0.0.1");
+    expect(
+      parse({ TRUST_PROXY: "10.0.0.0/8,192.168.0.0/16" }).TRUST_PROXY
+    ).toBe("10.0.0.0/8,192.168.0.0/16");
+    expect(parse({ TRUST_PROXY: "loopback" }).TRUST_PROXY).toBe("loopback");
+    expect(parse({ TRUST_PROXY: "uniquelocal" }).TRUST_PROXY).toBe(
+      "uniquelocal"
+    );
+    expect(parse({ TRUST_PROXY: " loopback " }).TRUST_PROXY).toBe("loopback");
+  });
+
+  it("is independent of NODE_ENV", () => {
+    // Production must not silently opt in: the correct value is a property of
+    // the topology, and upstream cannot know it.
+    expect(
+      parse({ NODE_ENV: "production", ALLOWED_ORIGIN: PROD_ORIGIN }).TRUST_PROXY
+    ).toBe(false);
+    expect(
+      parse({
+        NODE_ENV: "production",
+        ALLOWED_ORIGIN: PROD_ORIGIN,
+        TRUST_PROXY: "loopback",
+      }).TRUST_PROXY
+    ).toBe("loopback");
   });
 });

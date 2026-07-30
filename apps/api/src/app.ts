@@ -10,7 +10,7 @@ import {
 } from "fastify-type-provider-zod";
 
 import autoload from "@fastify/autoload";
-import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
+import { IS_PROD, LOG_LEVEL, TRUST_PROXY } from "@/config/environment.js";
 import { NETWORK_CONNECTION_ATTEMPT_TIMEOUT_MS } from "@/config/constants.js";
 
 // Process-wide: without this, every outbound connection (https agents and
@@ -70,7 +70,29 @@ export async function createApp(
   const app = Fastify({
     logger: getLoggerOptions(),
     genReqId: () => randomUUID(),
+    // Resolves `request.ip` from X-Forwarded-For when the deployment sits behind
+    // a proxy it trusts. Defaults to false (trust nothing) — see TRUST_PROXY in
+    // config/environment.ts for why this is per-deployment rather than a
+    // constant, and what it costs to get wrong in either direction.
+    trustProxy: TRUST_PROXY,
   }).withTypeProvider<ZodTypeProvider>();
+
+  // The cost of leaving this unset is silent: requests still succeed, but the
+  // rate limiter keys every one of them on the proxy's address, so the limit is
+  // shared across all callers instead of applied per client. Nothing surfaces
+  // that at runtime, so say it once at boot. Only in production — locally the
+  // API is reached directly and false is correct.
+  if (IS_PROD && TRUST_PROXY === false) {
+    app.log.warn(
+      "TRUST_PROXY is not set, so request.ip is the peer address of the TCP " +
+        "connection. If this API is behind a load balancer, CDN or reverse " +
+        "proxy (Azure App Service, Front Door, nginx), every client resolves " +
+        "to the same address and the rate limiter applies ONE shared bucket " +
+        "to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a hop " +
+        "count. Set it to false explicitly if the API really is reached " +
+        "directly."
+    );
+  }
 
   // set up Zod validators and serializers
   app.setValidatorCompiler(validatorCompiler);
