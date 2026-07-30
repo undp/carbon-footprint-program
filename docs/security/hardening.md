@@ -183,7 +183,12 @@ az webapp config appsettings list \
 > it — a `TRUST_PROXY` set with `az webapp config appsettings set` is dropped the next time
 > `deploy.sh` runs, and the API silently returns to one shared bucket with no error anywhere. Use
 > the CLI to fix a live instance quickly, then put the value in the `.bicepparam` (or
-> `API_TRUST_PROXY`) so it is not lost. `deploy.sh` warns when neither is set.
+> `API_TRUST_PROXY`) so it is not lost.
+
+`deploy.sh` reports which of the two sources it used, and warns **only when both are empty** — it
+reads `param apiTrustProxy` out of the selected `.bicepparam` rather than checking the environment
+variable alone, so setting the durable value is not nagged at on every deploy. `API_TRUST_PROXY`
+takes precedence when both are set.
 
 **Verify afterwards**, rather than assuming the value took: the instance should no longer log
 `TRUST_PROXY is not configured` at boot, and the rate limit should bucket per client. Setting a

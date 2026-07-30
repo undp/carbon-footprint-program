@@ -261,24 +261,38 @@ if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
 fi
 
 # Proxy trust for the API (Fastify trustProxy -> TRUST_PROXY app setting).
-# Overrides whatever the environment's .bicepparam sets, so an operator can fix
-# a running deployment without editing a checked-in file.
 #
-# WARNING when it is NOT set: this deployment REPLACES the App Service
-# appSettings collection, so any TRUST_PROXY applied by hand with
-# `az webapp config appsettings set` is silently dropped here and the API falls
-# back to trusting nothing — every caller shares one rate-limit bucket again.
-# A manual fix therefore survives only until the next deploy; the durable place
-# for the value is the .bicepparam (or this variable).
+# Two configured paths: API_TRUST_PROXY (this environment, overrides the file)
+# and `param apiTrustProxy` in the environment's .bicepparam (the durable one).
+# The warning below must fire only when BOTH are empty, so read the file rather
+# than assuming the variable is the only source — warning at an operator who
+# correctly set the .bicepparam would be a false positive on every deploy, and a
+# warning that is routinely wrong is one people stop reading.
+#
+# The `^\s*param` anchor keeps this from matching the explanatory comments
+# above the parameter. Bicep types it as string, so the value is always quoted.
+bicepparam_trust_proxy=""
+if [ -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
+  bicepparam_trust_proxy="$(
+    sed -n "s/^[[:space:]]*param[[:space:]]\{1,\}apiTrustProxy[[:space:]]*=[[:space:]]*'\(.*\)'[[:space:]]*$/\1/p" \
+      "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | tail -n 1
+  )"
+fi
+
 if [ -n "${API_TRUST_PROXY:-}" ]; then
-  log "Using API proxy trust (TRUST_PROXY): $API_TRUST_PROXY"
+  log "Using API proxy trust (TRUST_PROXY) from API_TRUST_PROXY: $API_TRUST_PROXY"
   DEPLOY_PARAMS+=(--parameters apiTrustProxy="$API_TRUST_PROXY")
+elif [ -n "$bicepparam_trust_proxy" ]; then
+  # Already carried by the parameter file; passing it again would be redundant.
+  log "Using API proxy trust (TRUST_PROXY) from $ENVIRONMENT_PARAMS_FILE: $bicepparam_trust_proxy"
 else
-  log "WARNING: API_TRUST_PROXY is not set and none is passed on the command line."
-  log "         If the environment's .bicepparam leaves apiTrustProxy empty, the API"
-  log "         will trust no proxy and the 100 req/min rate limit will apply as ONE"
-  log "         bucket shared by every caller, per instance. This deploy also clears"
-  log "         any TRUST_PROXY set by hand on the App Service."
+  log "WARNING: proxy trust is not configured — apiTrustProxy is empty in"
+  log "         $ENVIRONMENT_PARAMS_FILE and API_TRUST_PROXY is unset."
+  log "         The API will trust no proxy, so the 100 req/min rate limit applies as"
+  log "         ONE bucket shared by every caller, per instance. This deploy also"
+  log "         REPLACES the App Service appSettings collection, so any TRUST_PROXY"
+  log "         set by hand with 'az webapp config appsettings set' is cleared here."
+  log "         Set it in $ENVIRONMENT_PARAMS_FILE (durable) or via API_TRUST_PROXY."
   log "         See docs/security/hardening.md, \"Proxy Trust\"."
 fi
 
