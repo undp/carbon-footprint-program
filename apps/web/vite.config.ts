@@ -80,6 +80,27 @@ export default defineConfig(({ mode }) => {
               target: env.VITE_API_BASE_URL,
               changeOrigin: true,
               rewrite: (path) => path.replace(/^\/api/, ""),
+              // SSE streaming fix for the chatbot widget. Defer the flush
+              // to nextTick: http-proxy-3 emits `proxyRes` before its
+              // `writeHeaders` pass (gated on `!res.headersSent`), so a
+              // sync flushHeaders here makes the pass skip and the
+              // upstream Content-Type / Cache-Control / X-Accel-Buffering
+              // / Set-Cookie headers never reach the browser.
+              configure: (proxy) => {
+                proxy.on("proxyRes", (proxyRes, _req, res) => {
+                  const ct = proxyRes.headers["content-type"];
+                  if (
+                    typeof ct === "string" &&
+                    ct.includes("text/event-stream")
+                  ) {
+                    process.nextTick(() => {
+                      if (!res.writableEnded && !res.headersSent) {
+                        res.flushHeaders();
+                      }
+                    });
+                  }
+                });
+              },
             },
           }
         : undefined,
