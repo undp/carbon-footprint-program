@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
-import rateLimitPlugin, { autoConfig } from "@/plugins/external/rate-limit.js";
+import rateLimitPlugin, {
+  autoConfig,
+  toRateLimitKey,
+} from "@/plugins/external/rate-limit.js";
 
 // The rate limiter buckets by `request.ip`, and `request.ip` is only the real
 // caller when Fastify's `trustProxy` is configured for the topology. That
@@ -51,9 +54,44 @@ describe("rate-limit autoConfig", () => {
     expect(autoConfig.keyGenerator?.(request)).toBe("203.0.113.9");
   });
 
+  it("drops the port so one caller cannot span many buckets", () => {
+    // The Azure App Service shape. Two requests from one client differ only by
+    // ephemeral port; without this they would be two buckets, i.e. no limit.
+    const first = { ip: "203.0.113.9:51234" } as unknown as FastifyRequest;
+    const second = { ip: "203.0.113.9:51235" } as unknown as FastifyRequest;
+    expect(autoConfig.keyGenerator?.(first)).toBe("203.0.113.9");
+    expect(autoConfig.keyGenerator?.(second)).toBe(
+      autoConfig.keyGenerator?.(first)
+    );
+  });
+
   it("ships the documented 100 req/min production limit", () => {
     expect(autoConfig.max).toBe(100);
     expect(autoConfig.timeWindow).toBe("1 minute");
+  });
+});
+
+describe("toRateLimitKey", () => {
+  it("strips a port from an IPv4 address", () => {
+    expect(toRateLimitKey("203.0.113.9:51234")).toBe("203.0.113.9");
+    expect(toRateLimitKey("10.0.0.1:80")).toBe("10.0.0.1");
+  });
+
+  it("leaves a bare address untouched", () => {
+    expect(toRateLimitKey("203.0.113.9")).toBe("203.0.113.9");
+  });
+
+  it("does not mistake IPv6 colons for a port separator", () => {
+    // The failure this guards: naively splitting on ":" would truncate every
+    // IPv6 address to "2001", collapsing unrelated callers into one bucket.
+    expect(toRateLimitKey("2001:db8::1")).toBe("2001:db8::1");
+    expect(toRateLimitKey("::1")).toBe("::1");
+    expect(toRateLimitKey("::ffff:203.0.113.9")).toBe("::ffff:203.0.113.9");
+  });
+
+  it("unwraps the bracketed IPv6 forms", () => {
+    expect(toRateLimitKey("[2001:db8::1]:443")).toBe("2001:db8::1");
+    expect(toRateLimitKey("[2001:db8::1]")).toBe("2001:db8::1");
   });
 });
 
@@ -116,6 +154,22 @@ describe("rate-limit bucketing — trustProxy configured", () => {
     try {
       expect((await probe(app, "203.0.113.1")).statusCode).toBe(200);
       expect((await probe(app, "203.0.113.1")).statusCode).toBe(429);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("throttles an Azure App Service client whose port changes per connection", async () => {
+    // End-to-end version of the toRateLimitKey cases, in the shape that
+    // actually reaches the API on App Service: the platform appends
+    // "<client-ip>:<ephemeral-port>" to X-Forwarded-For, and proxy-addr hands
+    // it through with the port attached. Keyed naively, each of these three
+    // requests is a different caller and the limit never applies.
+    const app = await buildApp(PROXY_ADDRESS, 2);
+    try {
+      expect((await probe(app, "203.0.113.9:51234")).statusCode).toBe(200);
+      expect((await probe(app, "203.0.113.9:51235")).statusCode).toBe(200);
+      expect((await probe(app, "203.0.113.9:51236")).statusCode).toBe(429);
     } finally {
       await app.close();
     }
