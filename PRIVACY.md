@@ -4,10 +4,12 @@
 **Last updated:** 2026-07-01
 
 > This document describes how the Huella Latam **platform** is designed to handle personal
-> data. Huella Latam is deployed independently by each adopting country; **each country
-> deployment is the data controller** for its instance and is responsible for publishing a
-> user-facing privacy notice and for legal compliance in its jurisdiction. This policy
-> documents the platform's built-in privacy posture and the gaps a deployment must close.
+> data. Huella Latam is deployed independently by each adopting country; **the operator of each
+> deployment is its data controller** and is responsible for publishing a user-facing privacy
+> notice and for legal compliance in its jurisdiction. That includes UNDP for the demonstration
+> deployment it operates at <https://www.huellaslatam.org> — a demo is not exempt, because signing
+> in creates a user record from the identity provider's claims. This policy documents the
+> platform's built-in privacy posture and the gaps a deployment must close.
 >
 > A detailed technical companion to this policy lives in
 > [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md).
@@ -160,8 +162,9 @@ another organization controls. Requests that must go to the controller include:
 
 Each deployment publishes its own privacy contact — and, where its national law requires one, a
 designated data-protection officer. That contact appears in the deployment's own privacy notice,
-not here; publishing it is a required step of country onboarding (see
-[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md)).
+not here; publishing it is a required onboarding step for **every** operator, including the
+UNDP-run demonstration deployment (see
+[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
 
 > **On the term "DPO":** the upstream maintainer team is **not** a data-protection officer for
 > any deployment and must not be described as one. Under GDPR Art. 37–39 and comparable Latin

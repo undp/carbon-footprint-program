@@ -329,8 +329,17 @@ DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm --filter @repo/seed seed
 **Required before the deployment serves real users.** The steps above make the software run; this
 one makes it accountable. The upstream policy documents deliberately do not name these contacts,
 because **the operator of each instance is its data controller** and is the only party that can
-act on the reports below. Until a country publishes them, its users have policies that promise a
+act on the reports below. Until an operator publishes them, its users have policies that promise a
 process with nobody at the other end.
+
+> **This step applies to _every_ operator, not only adopting countries.** Any party that runs an
+> instance is that instance's operator and data controller — including UNDP, which operates the
+> demonstration deployment at <https://www.huellaslatam.org> (see
+> [`../security/hardening.md`](../security/hardening.md), "Deployment topology"). A demo is not
+> exempt: authentication creates a user record from the identity provider's claims, so an instance
+> holds personal data as soon as anyone signs in, regardless of what they type into forms. The
+> upstream project cannot ask a government to publish a contact it has not published for its own
+> deployment.
 
 Publish the following where your users can find them — in the deployment's own privacy notice,
 its help pages, or an equivalent public page — and keep them monitored:
