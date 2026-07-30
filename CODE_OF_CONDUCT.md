@@ -58,15 +58,33 @@ representative at an online or offline event.
 
 ## Enforcement
 
+The community leaders responsible for enforcement are the **maintainer team
+collectively** — the `@undp/carbon-footprint-program-maintainers` GitHub team (see
+[`.github/CODEOWNERS`](./.github/CODEOWNERS) and [`GOVERNANCE.md`](./GOVERNANCE.md)).
+Enforcement is a team responsibility, not one person's, so a report never depends
+on a single individual being available — or being someone you feel able to
+approach.
+
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at:
+reported by either route:
 
-michael.nolan@undp.org.
+- **Directly to any individual maintainer** of that team, via their GitHub profile
+  contact details. You may choose whichever maintainer you are most comfortable
+  with, and you are explicitly **not** expected to report to a maintainer who is
+  involved in the incident.
+- **By opening a GitHub issue that contains no detail** — simply a request for a
+  private channel — after which a maintainer will provide one. Do not describe the
+  incident itself in a public issue.
 
-If a report concerns this contact directly, or you do not receive a response, you
-may escalate to the maintainers listed in [`GOVERNANCE.md`](./GOVERNANCE.md).
+If a report concerns a maintainer directly, or you do not receive a response,
+escalate to the maintainer team through the channels in
+[`GOVERNANCE.md`](./GOVERNANCE.md).
 
 All complaints will be reviewed and investigated promptly and fairly.
+
+<!-- TODO: A monitored team inbox for conduct reports is still pending — it would
+     give reporters a private route that does not require a GitHub account. UNDP
+     decision, tracked in issue #460 (§1). -->
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
@@ -158,8 +176,11 @@ Where interaction does occur:
   deployment operator, who can revoke a user's access via role management.
 - Each country deployment operator is the first responder for end-user abuse reports
   within their instance.
-  <!-- TODO: Confirm the per-deployment escalation contact/process each operating
-       country should publish to its users. -->
+  Each operating country publishes its own escalation contact and process for in-instance
+  abuse, as a required step of country onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  Conduct _between community members_ upstream is handled by the maintainer team under the
+  Enforcement section above.
 
 ## Safety of underage users
 
@@ -172,7 +193,12 @@ Where interaction does occur:
   Entra ID); account eligibility is controlled by the deploying organization.
 - Any report involving a minor must be escalated by the deployment operator to the
   competent child-protection authority in that jurisdiction.
-  <!-- TODO: Confirm the child-safety escalation path per operating country. -->
+  Each deployment identifies its competent child-protection authority — and its INHOPE-member
+  hotline where one operates — **before launch**, and records the actual escalation procedure as a
+  required step of country onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  This cannot be specified centrally: the competent authority and the mandatory-reporting duty
+  differ by jurisdiction.
 
 ---
 
