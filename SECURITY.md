@@ -34,7 +34,8 @@ one. Never put the vulnerability itself in a public issue.
 **On timing:** we aim to acknowledge a report within **3 business days** (see
 [What to expect](#what-to-expect)). That is our target, not a guarantee — so if **5 business
 days** pass with no acknowledgement at all, treat the report as having gone unseen and escalate
-to the maintainer team through the channels in [`GOVERNANCE.md`](./GOVERNANCE.md). The two-day
+to the maintainer team through the channels listed under
+[Escalation & do-no-harm in `GOVERNANCE.md`](./GOVERNANCE.md#escalation--do-no-harm). The two-day
 gap is deliberate slack for holidays and handover; it is not a second, slower SLA.
 
 Please include:
