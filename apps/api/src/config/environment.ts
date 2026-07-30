@@ -51,6 +51,21 @@ const trimEnv = (value: string | undefined): string | undefined => {
 // - azure-openai: Production Azure OpenAI client (managed identity).
 export type LlmProviderType = "mock" | "azure-openai";
 
+// EMBEDDING_PROVIDER: "mock" | "azure-openai"
+// - mock: Deterministic SHA-256-seeded provider for local dev and tests.
+// - azure-openai: Production Azure OpenAI embeddings client.
+export type EmbeddingProviderType = "mock" | "azure-openai";
+
+/**
+ * Optional reasoning effort hint propagated to `chat.completions.create` as
+ * `reasoning_effort`. Applies only to reasoning models (gpt-5 family,
+ * o-series); for chat with streaming, `"minimal"` is the recommended value
+ * (higher levels push TTFT past 30 s and the widget's streaming UX breaks).
+ * For non-reasoning chat models (gpt-4.1, gpt-4o) leave this unset — the
+ * SDK may reject the parameter.
+ */
+export type AzureOpenAIReasoningEffort = "minimal" | "low" | "medium" | "high";
+
 /**
  * Fully-resolved scalar configuration derived from an environment record. Every
  * module-level export below is one field of this object; keeping the parsing in
@@ -87,6 +102,12 @@ export interface ApiEnv {
   COOKIE_SECRET: string;
   AZURE_OPENAI_ENDPOINT: string | undefined;
   AZURE_OPENAI_DEPLOYMENT_NAME: string | undefined;
+  AZURE_OPENAI_API_VERSION: string;
+  AZURE_OPENAI_API_KEY: string | undefined;
+  AZURE_OPENAI_REASONING_EFFORT: AzureOpenAIReasoningEffort | undefined;
+  AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: string | undefined;
+  AZURE_OPENAI_EMBEDDING_API_VERSION: string;
+  EMBEDDING_PROVIDER: EmbeddingProviderType;
 }
 
 /**
@@ -297,6 +318,91 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     }
   }
 
+  /**
+   * Azure OpenAI API version — promoted to env var (was hardcoded). Operators
+   * can bump the version per deployment without code changes.
+   */
+  const AZURE_OPENAI_API_VERSION =
+    trimEnv(source.AZURE_OPENAI_API_VERSION) ?? "2024-10-21";
+
+  /**
+   * Azure OpenAI API key — optional fallback for development. When set,
+   * providers use API key auth instead of DefaultAzureCredential. Production
+   * SHALL leave this unset and rely on managed identity (see runbook).
+   */
+  const AZURE_OPENAI_API_KEY = trimEnv(source.AZURE_OPENAI_API_KEY);
+
+  const AZURE_OPENAI_REASONING_EFFORT: AzureOpenAIReasoningEffort | undefined =
+    (() => {
+      const raw = trimEnv(source.AZURE_OPENAI_REASONING_EFFORT);
+      if (!raw) return undefined;
+      const valid: AzureOpenAIReasoningEffort[] = [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+      ];
+      if (!valid.includes(raw as AzureOpenAIReasoningEffort)) {
+        throw new Error(
+          `Invalid AZURE_OPENAI_REASONING_EFFORT value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+        );
+      }
+      return raw as AzureOpenAIReasoningEffort;
+    })();
+
+  /**
+   * Embedding deployment name — required when EMBEDDING_PROVIDER=azure-openai.
+   * Distinct from the chat deployment because embeddings use a separate model
+   * (text-embedding-3-large).
+   */
+  const AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME = trimEnv(
+    source.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+  );
+
+  /**
+   * Embedding API version — optional, defaults to AZURE_OPENAI_API_VERSION.
+   * Allows pinning the embedding endpoint to a different SDK contract than the
+   * chat endpoint when the deployment-side versions diverge.
+   */
+  const AZURE_OPENAI_EMBEDDING_API_VERSION =
+    trimEnv(source.AZURE_OPENAI_EMBEDDING_API_VERSION) ??
+    AZURE_OPENAI_API_VERSION;
+
+  // `mock` is rejected at boot when the chatbot is enabled in production: the
+  // mock returns SHA-256-derived vectors with no semantic relation to the input
+  // text, so cosine similarity over them is essentially random — silent corpus
+  // corruption is the failure mode and it must fail loud at boot instead.
+  const EMBEDDING_PROVIDER: EmbeddingProviderType = (() => {
+    const raw = source.EMBEDDING_PROVIDER ?? "mock";
+    const valid: EmbeddingProviderType[] = ["mock", "azure-openai"];
+    if (!valid.includes(raw as EmbeddingProviderType)) {
+      throw new Error(
+        `Invalid EMBEDDING_PROVIDER value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+      );
+    }
+    if (raw === "mock" && IS_PROD && CHATBOT_ENABLED) {
+      throw new Error(
+        'EMBEDDING_PROVIDER="mock" is not allowed when NODE_ENV=production and ' +
+          'CHATBOT_ENABLED=true. Set EMBEDDING_PROVIDER="azure-openai" and ' +
+          "provision the Azure OpenAI infra, or set CHATBOT_ENABLED=false to " +
+          "disable the chatbot."
+      );
+    }
+    if (raw === "azure-openai" && CHATBOT_ENABLED) {
+      const missing: string[] = [];
+      if (!AZURE_OPENAI_ENDPOINT) missing.push("AZURE_OPENAI_ENDPOINT");
+      if (!AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME)
+        missing.push("AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME");
+      if (missing.length > 0) {
+        throw new Error(
+          `EMBEDDING_PROVIDER="azure-openai" requires: ${missing.join(", ")}. ` +
+            "Set the missing variables or change EMBEDDING_PROVIDER."
+        );
+      }
+    }
+    return raw as EmbeddingProviderType;
+  })();
+
   // ==========================================================================
   // CORS origin (plugins/external/cors.ts)
   // ==========================================================================
@@ -343,6 +449,12 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     COOKIE_SECRET,
     AZURE_OPENAI_ENDPOINT,
     AZURE_OPENAI_DEPLOYMENT_NAME,
+    AZURE_OPENAI_API_VERSION,
+    AZURE_OPENAI_API_KEY,
+    AZURE_OPENAI_REASONING_EFFORT,
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME,
+    AZURE_OPENAI_EMBEDDING_API_VERSION,
+    EMBEDDING_PROVIDER,
   };
 }
 
@@ -375,6 +487,14 @@ export const LLM_PROVIDER = env.LLM_PROVIDER;
 export const COOKIE_SECRET = env.COOKIE_SECRET;
 export const AZURE_OPENAI_ENDPOINT = env.AZURE_OPENAI_ENDPOINT;
 export const AZURE_OPENAI_DEPLOYMENT_NAME = env.AZURE_OPENAI_DEPLOYMENT_NAME;
+export const AZURE_OPENAI_API_VERSION = env.AZURE_OPENAI_API_VERSION;
+export const AZURE_OPENAI_API_KEY = env.AZURE_OPENAI_API_KEY;
+export const AZURE_OPENAI_REASONING_EFFORT = env.AZURE_OPENAI_REASONING_EFFORT;
+export const AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME =
+  env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME;
+export const AZURE_OPENAI_EMBEDDING_API_VERSION =
+  env.AZURE_OPENAI_EMBEDDING_API_VERSION;
+export const EMBEDDING_PROVIDER = env.EMBEDDING_PROVIDER;
 
 // ============================================================================
 // Object Storage Configuration
