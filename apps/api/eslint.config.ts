@@ -123,7 +123,10 @@ const chatbotPlugin = {
   },
 };
 
-const mockFile = resolve(__dirname, "src/features/chatbot/llmProvider/mock.ts");
+const mockFiles = [
+  resolve(__dirname, "src/features/chatbot/llmProvider/mock.ts"),
+  resolve(__dirname, "src/features/chatbot/embeddingProvider/mock.ts"),
+];
 
 export default [
   ...apiConfig,
@@ -137,7 +140,7 @@ export default [
     plugins: { chatbot: chatbotPlugin },
   },
   {
-    files: [mockFile],
+    files: mockFiles,
     rules: {
       "chatbot/no-network-imports-in-mock": "error",
     },
