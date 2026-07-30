@@ -66,19 +66,33 @@ on a single individual being available — or being someone you feel able to
 approach.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by either route:
+reported by any of these routes. The first two are private; read the note on the
+third before using it.
 
 - **Directly to any individual maintainer** of that team, via their GitHub profile
   contact details. You may choose whichever maintainer you are most comfortable
   with, and you are explicitly **not** expected to report to a maintainer who is
   involved in the incident.
+- **To GitHub, via [Report abuse](https://github.com/contact/report-abuse)**, when
+  the behavior happened on GitHub — in an issue, pull request, discussion, comment
+  or commit. This route is private, is monitored by GitHub staff independently of
+  this project, and can act on an account across the whole platform rather than
+  only within this repository. Use it in preference to a public issue, and use it
+  in addition to telling us if you would like us to act as well.
 - **By opening a GitHub issue that contains no detail** — simply a request for a
-  private channel — after which a maintainer will provide one. Do not describe the
+  private channel — after which a maintainer will provide one. Never describe the
   incident itself in a public issue.
 
+> **The third route is not confidential, even with no detail in it.** The issue's
+> existence, your username and the timestamp are public and permanent, so anyone —
+> including the person you are reporting — can see that you asked for a private
+> channel and when. Where that exposure is itself the risk, as in harassment or
+> retaliation, use one of the private routes above instead. The public issue is a
+> fallback for reporters who have no other way to reach us, not the normal path.
+
 If a report concerns a maintainer directly, or you do not receive a response,
-escalate to the maintainer team through the channels in
-[`GOVERNANCE.md`](./GOVERNANCE.md).
+escalate to the maintainer team through the channels listed under
+[Escalation & do-no-harm in `GOVERNANCE.md`](./GOVERNANCE.md#escalation--do-no-harm).
 
 All complaints will be reviewed and investigated promptly and fairly.
 
