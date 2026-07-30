@@ -58,8 +58,11 @@ _(EPF requirement 3)_
 - **Third parties:** the platform itself sends no PII to third parties. Infrastructure
   sub-processors depend on the deployment (e.g. Microsoft Azure for hosting/identity when
   deployed on Azure).
-  <!-- TODO: Each deployment should list its actual infrastructure sub-processors and any
-       Data Processing Agreements (DPAs) in its user-facing privacy notice. -->
+  Each deployment lists its own infrastructure sub-processors and any Data Processing
+  Agreements in its user-facing privacy notice — a required step of country onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  The list is inherently per-deployment: it depends on the cloud, region, and identity provider
+  that deployment chose.
 
 ## 4. Privacy by design — deletion
 
@@ -88,8 +91,11 @@ The platform's default retention posture (see `docs/security/sensitive-data.md`)
 
 - **Gap (deployment responsibility):** there is no automated anonymization/erasure schedule for
   PII once it is no longer needed.
-  <!-- TODO: Define retention limits and an anonymization trigger for PII in line with each
-       deployment's national data-protection law. -->
+  Concrete retention limits and an anonymization trigger are set per deployment, in line with
+  its national data-protection law, and recorded at onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  <!-- TODO: UNDP to set the upstream *baseline* retention limit and anonymization trigger that a
+       deployment may strengthen but should not silently drop. Tracked in issue #460 (§4). -->
 
 ## 6. Data governance, security & access controls
 
@@ -106,8 +112,11 @@ _(EPF requirement 6 — also Indicator 9A)_
 - **Data integrity:** `createdById`/`updatedById`/`createdAt`/`updatedAt` audit columns on
   records; audit logging per [`docs/security/audit-logging.md`](./docs/security/audit-logging.md).
 - **Incident/breach response:** see [`SECURITY.md`](./SECURITY.md) for vulnerability disclosure.
-  <!-- TODO: Define the breach-notification commitment and timeline each deployment will honor
-       (e.g. notify affected data subjects and the national authority within N hours). -->
+  The breach-notification window is committed to per deployment and recorded at onboarding
+  (see [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md),
+  Step 12); many applicable laws expect notification within 72 hours.
+  <!-- TODO: UNDP to ratify the upstream *baseline* breach-notification window. Tracked in issue
+       #460 (§4). -->
 - **Applicable laws (by design):** the platform aligns with core principles shared by Latin
   American data-protection frameworks — Mexico (LFPDPPP), Colombia (Ley 1581/2012), Argentina
   (Ley 25.326), Brazil (LGPD), Chile (Ley 19.628), Peru (Ley 29733) — and GDPR: lawful basis,
@@ -117,10 +126,53 @@ _(EPF requirement 6 — also Indicator 9A)_
 
 ## Reporting a privacy concern
 
-<!-- TODO: Add a monitored privacy contact (email or the deployment's data-protection officer). -->
+Privacy concerns divide into two kinds, and they go to different places. This is a consequence
+of the ownership model stated at the top of this document: **each deployment is the data
+controller for its own instance**, while this repository provides the software.
 
-Contact: `TODO: privacy contact` — see also [`SECURITY.md`](./SECURITY.md) for vulnerability
-disclosure.
+### If your concern is about the software
+
+Route it to the **upstream maintainer team** — the `@undp/carbon-footprint-program-maintainers`
+GitHub team (see [`.github/CODEOWNERS`](./.github/CODEOWNERS) and
+[`GOVERNANCE.md`](./GOVERNANCE.md)). This covers, for example: a field that records more personal
+data than it needs, a defect that could expose one organization's data to another, a log line
+that captures something it should not, or a question about how the data model handles personal
+data.
+
+- If the concern has security impact — anything that could expose data if described publicly —
+  use the private channel in [`SECURITY.md`](./SECURITY.md): GitHub **Security → Report a
+  vulnerability**. Do not open a public issue for it.
+- Otherwise, open a normal GitHub issue.
+
+### If your concern is about your own personal data
+
+Route it to **the operator of the deployment you use** — the government body or organization
+running that instance. They are the data controller, and they are the only party who can act.
+
+The upstream maintainer team **cannot** service these requests: it has no access to any
+deployment's database, object storage, or identity provider, and no legal authority over data
+another organization controls. Requests that must go to the controller include:
+
+- Access to, correction of, deletion of, or export of your personal data (data-subject
+  requests).
+- Questions about the lawful basis, retention period, or sub-processors applying to your data.
+- Notification obligations following a personal-data breach.
+
+Each deployment publishes its own privacy contact — and, where its national law requires one, a
+designated data-protection officer. That contact appears in the deployment's own privacy notice,
+not here; publishing it is a required step of country onboarding (see
+[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md)).
+
+> **On the term "DPO":** the upstream maintainer team is **not** a data-protection officer for
+> any deployment and must not be described as one. Under GDPR Art. 37–39 and comparable Latin
+> American provisions, a DPO is a designated role with independence requirements and a
+> conflict-of-interest bar; the team that builds the processing software cannot hold it. Where a
+> DPO is required, the deploying controller designates one.
+
+<!-- TODO: A monitored upstream inbox would give people with no GitHub account a route to the
+     maintainer team for software-level privacy concerns. UNDP decision, tracked in issue #460
+     (§1). The deployment-level contacts are deliberately NOT listed here — they are per-country
+     and gated at onboarding. -->
 
 ---
 

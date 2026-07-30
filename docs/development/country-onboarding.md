@@ -324,6 +324,45 @@ DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm --filter @repo/seed seed
 
 ---
 
+## Step 12 — Publish the Deployment's Operational Contacts
+
+**Required before the deployment serves real users.** The steps above make the software run; this
+one makes it accountable. The upstream policy documents deliberately do not name these contacts,
+because **the operator of each instance is its data controller** and is the only party that can
+act on the reports below. Until a country publishes them, its users have policies that promise a
+process with nobody at the other end.
+
+Publish the following where your users can find them — in the deployment's own privacy notice,
+its help pages, or an equivalent public page — and keep them monitored:
+
+| Contact                             | Receives                                                                                  | Why it cannot be centralized                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Privacy / data-subject requests** | Access, correction, deletion and export requests; questions on lawful basis and retention | Only the controller can reach its own data; upstream has no access to it                         |
+| **Data-protection officer**         | Whatever your national law assigns to the role                                            | A DPO is a designated role with independence requirements — see [`PRIVACY.md`](../../PRIVACY.md) |
+| **Content / abuse reports**         | Prohibited or illegal content uploaded to your instance                                   | Only the operator can view or remove content in its own storage                                  |
+| **Child-safety escalation path**    | Any discovery of CSAM or a report involving a minor                                       | The competent authority and the mandatory-reporting duty differ by jurisdiction                  |
+| **Conduct escalation** (optional)   | End-user abuse within your instance, beyond the upstream Code of Conduct                  | Community conduct upstream is handled by the maintainer team; in-instance abuse is yours         |
+
+For the child-safety path specifically, identify **before launch**: the competent
+child-protection or law-enforcement authority in your jurisdiction, and the INHOPE-member hotline
+if one operates there. Record the actual escalation procedure — who calls whom, and within what
+time — rather than a general intention to comply.
+
+Also decide and record these operational values, which upstream states only as a baseline your
+deployment may strengthen but should not silently drop:
+
+- The breach-notification window you will honour (many applicable laws expect 72 hours).
+- Retention limits and an anonymization trigger for personal data.
+- Moderation response targets per severity, and the appeal contact and timeline.
+- Whether to enable automated CSAM hash-scanning at the storage tier (e.g. PhotoDNA), which is
+  advisable for any deployment expecting higher-risk uploads.
+
+Cross-references: [`PRIVACY.md`](../../PRIVACY.md),
+[`CONTENT_MODERATION.md`](../../CONTENT_MODERATION.md),
+[`CODE_OF_CONDUCT.md`](../../CODE_OF_CONDUCT.md), [`SECURITY.md`](../../SECURITY.md).
+
+---
+
 ## Seed Data Testing
 
 Before deploying to production, verify the seed data locally:
