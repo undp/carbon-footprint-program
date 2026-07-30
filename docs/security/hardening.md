@@ -4,23 +4,49 @@ This document describes the security hardening controls applied to the Huella La
 
 ---
 
-## Transport Security
+## Deployment topology (and what "the deployment" means here)
+
+There is no single production deployment of Huella Latam. Each adopting country provisions and
+operates its own instance, so the controls below describe **what the templates provision and
+what the application enforces**, not the posture of one canonical environment.
+
+Two topologies matter when reading this document:
+
+| Topology                                       | Frontend                                      | API                                                        | Edge                                                | Notes                                                                                                                                                        |
+| ---------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Demo site** — <https://www.huellaslatam.org> | Azure Static Web Apps (SWA)                   | Azure App Service, **facing the public internet directly** | **No Azure Front Door**                             | A **demonstration environment, not a production-grade deployment.** IdP is **Microsoft Entra ID**. Do not treat its configuration as a production reference. |
+| **Country deployment**                         | SWA (or any static host / container platform) | App Service (or any container platform)                    | Azure Front Door **optional, per adopting country** | Front Door is an available hardening/CDN layer each country may choose; it is not required by the application.                                               |
+
+Because Front Door is optional, nothing in the application depends on it. Any control this
+document attributes to Front Door applies **only** where a country has chosen to deploy it; the
+App Service and SWA controls apply in every topology.
 
 ### TLS Enforcement
 
-| Service                   | Enforcement                                             | Minimum TLS             |
-| ------------------------- | ------------------------------------------------------- | ----------------------- |
-| Azure Blob Storage        | `supportsHttpsTrafficOnly: true` (Bicep)                | TLS 1.2                 |
-| Azure Front Door          | HTTPS redirect enabled; HTTP connections rejected       | TLS 1.2                 |
-| Azure PostgreSQL          | `sslmode=require` in `DATABASE_URL`                     | TLS enforced by server  |
-| App Service (API)         | HTTPS-only recommended via App Service `httpsOnly` flag | TLS 1.2 (Azure default) |
-| Static Web App (frontend) | HTTPS enforced by Azure (no HTTP access)                | TLS 1.2                 |
+| Service                             | Enforcement                                             | Minimum TLS             |
+| ----------------------------------- | ------------------------------------------------------- | ----------------------- |
+| Azure Blob Storage                  | `supportsHttpsTrafficOnly: true` (Bicep)                | TLS 1.2                 |
+| App Service (API)                   | HTTPS-only recommended via App Service `httpsOnly` flag | TLS 1.2 (Azure default) |
+| Static Web App (frontend)           | HTTPS enforced by Azure (no HTTP access)                | TLS 1.2                 |
+| Azure PostgreSQL                    | `sslmode=require` in `DATABASE_URL`                     | TLS enforced by server  |
+| Azure Front Door — _optional layer_ | HTTPS redirect enabled; HTTP connections rejected       | TLS 1.2                 |
+
+TLS is always terminated by an Azure platform service — App Service and SWA in the default
+topology, Front Door additionally where a country deploys it. The application never terminates
+TLS itself and ships no certificate or cipher configuration; the platform's TLS 1.2+ suites are
+ECDHE-based, so the connection has forward secrecy in every topology. `minTlsVersion` is pinned
+to 1.2 in `infra/modules/appService.bicep`, `storage.bicep`, and `frontDoor.bicep`.
 
 All data in transit between application components and clients is encrypted. Plain HTTP is rejected or redirected at the infrastructure layer before requests reach application code.
 
 ### Proxy Trust
 
-The API runs behind Azure App Service, which may sit behind Azure Front Door or Azure's load balancer. When `trustProxy` is enabled in Fastify, the application trusts `X-Forwarded-For` and `X-Forwarded-Proto` headers to determine the real client IP and protocol. This setting should be verified to match the actual deployment topology to avoid IP spoofing via forged headers.
+In the default topology the API is reached directly on Azure App Service; where a country adds
+Azure Front Door, App Service sits behind it instead. When `trustProxy` is enabled in Fastify,
+the application trusts `X-Forwarded-For` and `X-Forwarded-Proto` headers to determine the real
+client IP and protocol. **`trustProxy` must match the actual topology of the deployment** —
+enabling it when the API is directly internet-facing lets a caller spoof its own IP with a
+forged header, which corrupts audit logs and any IP-based logic. Verify it per deployment.
 
 ---
 
