@@ -14,14 +14,29 @@ The platform is continuously delivered from the `main` branch; security fixes ar
 **Please do not report security vulnerabilities through public GitHub issues, discussions, or
 pull requests.**
 
-Instead, use one of the following private channels:
+The **security contact for this project is the maintainer team collectively** — the
+`@undp/carbon-footprint-program-maintainers` GitHub team (see
+[`.github/CODEOWNERS`](./.github/CODEOWNERS) and [`GOVERNANCE.md`](./GOVERNANCE.md)). Reports
+are handled by the team, not by any single individual, so disclosure never depends on one
+person's availability.
 
-1. **GitHub private vulnerability reporting** — open a report via the repository's
-   **Security → Report a vulnerability** tab (GitHub private advisories).
-2. **Email** — michael.nolan@undp.org.
+Use the private channel below:
 
-If you do not receive an acknowledgement within 5 business days, escalate via the
-maintainers listed in [`GOVERNANCE.md`](./GOVERNANCE.md).
+**GitHub private vulnerability reporting** — open a report via the repository's
+**Security → Report a vulnerability** tab (GitHub private advisories). This notifies the whole
+maintainer team privately and is the preferred route: it keeps the report, the discussion, the
+fix and the eventual CVE/advisory in one place, with no dependency on an individual mailbox.
+
+If you cannot use GitHub private vulnerability reporting, open a regular issue containing **no
+technical detail** — just a request for a private channel — and a maintainer will respond with
+one. Never put the vulnerability itself in a public issue.
+
+**On timing:** we aim to acknowledge a report within **3 business days** (see
+[What to expect](#what-to-expect)). That is our target, not a guarantee — so if **5 business
+days** pass with no acknowledgement at all, treat the report as having gone unseen and escalate
+to the maintainer team through the channels listed under
+[Escalation & do-no-harm in `GOVERNANCE.md`](./GOVERNANCE.md#escalation--do-no-harm). The two-day
+gap is deliberate slack for holidays and handover; it is not a second, slower SLA.
 
 Please include:
 
@@ -31,12 +46,18 @@ Please include:
 
 ## What to expect
 
-- **Acknowledgement:** we aim to acknowledge a report within **3 business days**.
+- **Acknowledgement:** we aim to acknowledge a report within **3 business days**. If nothing has
+  reached you by 5, escalate as described under
+  [Reporting a vulnerability](#reporting-a-vulnerability).
 - **Assessment:** we will validate the issue, determine severity, and agree on a remediation
   timeline with you.
 - **Disclosure:** we practise coordinated disclosure — we will credit reporters (unless you
   prefer to remain anonymous) once a fix is available.
-  <!-- TODO: Confirm the acknowledgement/remediation SLAs UNDP wants to commit to. -->
+  <!-- TODO: Confirm the acknowledgement/remediation SLAs UNDP wants to commit to.
+       The 3-business-day acknowledgement above is the maintainer team's working
+       target and is what the project's OpenSSF Best Practices entry declares; it
+       is NOT yet ratified by UNDP. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§3). Also pending: a
+       monitored team inbox to complement GitHub private vulnerability reporting. -->
 
 ## Scope
 

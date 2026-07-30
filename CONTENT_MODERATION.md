@@ -1,7 +1,7 @@
 # Content Moderation & Acceptable-Use Policy
 
 **Project:** Huella Latam
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-30
 
 > Huella Latam is **not** a public content-sharing or publishing platform. The only
 > user-supplied content is (a) structured data entered into carbon inventories and
@@ -42,17 +42,24 @@ Users must not upload or enter, at minimum:
   of CSAM must be treated as a criminal matter and escalated immediately (see §3). Operators
   requiring proactive scanning should integrate a hashing service (e.g. PhotoDNA) at the
   storage layer.
-  <!-- TODO: If a deployment expects higher-risk uploads, document/enable automated CSAM
-       hash-scanning at the storage tier. -->
+  Whether to enable automated CSAM hash-scanning is decided and recorded per deployment at
+  onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12);
+  it is advisable for any deployment expecting higher-risk uploads.
+  <!-- TODO: UNDP to decide whether upstream should make hash-scanning REQUIRED rather than
+       advisable for all deployments. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§3). -->
 
 ## 3. Reporting
 
-- **Users/organizations** report concerning content to their deployment operator.
-  <!-- TODO: Each country deployment should publish a monitored abuse-report contact. -->
+- **Users/organizations** report concerning content to their deployment operator, who publishes a
+  monitored abuse contact as a required step of country onboarding — see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12.
+  Reports do not go upstream; see [Contact](#contact) for why.
 - **Operators** escalate confirmed illegal content — and CSAM without exception — to the
   competent law-enforcement authority and, where applicable, an INHOPE-member hotline in their
-  jurisdiction.
-  <!-- TODO: Confirm the per-country law-enforcement / hotline escalation path. -->
+  jurisdiction. Each operator identifies and publishes that jurisdiction-specific route at
+  onboarding; it cannot be specified centrally, because the competent authority and the
+  reporting duty differ by country.
 
 ## 4. Moderation & removal
 
@@ -60,7 +67,11 @@ Users must not upload or enter, at minimum:
   revoke user access** through role management and storage administration.
 - **Target response:** illegal content (especially CSAM) is removed and escalated
   **immediately** upon confirmation; other prohibited content is actioned promptly.
-  <!-- TODO: Set concrete SLA targets per severity for your deployment. -->
+  Concrete response targets per severity are set per deployment and recorded at onboarding
+  (see [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md),
+  Step 12).
+  <!-- TODO: UNDP to set the upstream *baseline* moderation SLA per severity. Tracked in
+       https://github.com/undp/carbon-footprint-program/issues/460 (§3). -->
 - Available actions: remove the file/record, restrict or suspend the user's access, and report
   to authorities.
 
@@ -68,12 +79,44 @@ Users must not upload or enter, at minimum:
 
 - A user whose content or access was restricted may appeal to the deployment operator, who
   reviews the decision and responds.
-  <!-- TODO: Define the appeal contact and timeline per deployment. -->
+  The appeal contact and timeline are published per deployment and recorded at onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md),
+  Step 12).
 
 ## Contact
 
-Report content concerns to: `TODO: content/abuse contact` — see also
-[`SECURITY.md`](./SECURITY.md) and [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+Where to report depends on what the concern is. User-submitted content lives in a **specific
+deployment's** database and object storage, so only that deployment's operator can see it or act
+on it.
+
+### Content inside a deployment → that deployment's operator
+
+Report abusive, prohibited, or illegal content to **the operator of the instance you are using**
+— the government body or organization running it. They hold the access and the legal standing to
+remove content, suspend a user, and escalate to authorities in their jurisdiction. Each operator
+publishes its own monitored abuse contact and its child-safety escalation path; publishing them
+is a required step of country onboarding (see
+[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+
+**If the content is CSAM or otherwise criminal, contact law enforcement or an INHOPE-member
+hotline in that jurisdiction directly** — do not wait on any project channel, upstream or
+otherwise.
+
+The upstream maintainer team is deliberately **not** the contact for content reports. It has no
+access to any deployment's data and cannot remove a file from an instance it does not operate, so
+routing reports upstream would add a hop to the one process where delay causes real harm.
+
+### The moderation capability itself → the upstream maintainer team
+
+Report to the `@undp/carbon-footprint-program-maintainers` team (see
+[`.github/CODEOWNERS`](./.github/CODEOWNERS)) when the concern is about the software rather than a
+piece of content — for example a missing moderation control, an upload path that bypasses access
+checks, or a defect that makes prohibited content harder to find or remove. Use the private
+channel in [`SECURITY.md`](./SECURITY.md) if disclosing it publicly would create risk; otherwise
+open a normal GitHub issue.
+
+See also [`SECURITY.md`](./SECURITY.md) and [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) —
+conduct between community members is handled under the latter.
 
 ---
 

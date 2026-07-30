@@ -58,15 +58,47 @@ representative at an online or offline event.
 
 ## Enforcement
 
+The community leaders responsible for enforcement are the **maintainer team
+collectively** — the `@undp/carbon-footprint-program-maintainers` GitHub team (see
+[`.github/CODEOWNERS`](./.github/CODEOWNERS) and [`GOVERNANCE.md`](./GOVERNANCE.md)).
+Enforcement is a team responsibility, not one person's, so a report never depends
+on a single individual being available — or being someone you feel able to
+approach.
+
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at:
+reported by any of these routes. The first two are private; read the note on the
+third before using it.
 
-michael.nolan@undp.org.
+- **Directly to any individual maintainer** of that team, via their GitHub profile
+  contact details. You may choose whichever maintainer you are most comfortable
+  with, and you are explicitly **not** expected to report to a maintainer who is
+  involved in the incident.
+- **To GitHub, via [Report abuse](https://github.com/contact/report-abuse)**, when
+  the behavior happened on GitHub — in an issue, pull request, discussion, comment
+  or commit. This route is private, is monitored by GitHub staff independently of
+  this project, and can act on an account across the whole platform rather than
+  only within this repository. Use it in preference to a public issue, and use it
+  in addition to telling us if you would like us to act as well.
+- **By opening a GitHub issue that contains no detail** — simply a request for a
+  private channel — after which a maintainer will provide one. Never describe the
+  incident itself in a public issue.
 
-If a report concerns this contact directly, or you do not receive a response, you
-may escalate to the maintainers listed in [`GOVERNANCE.md`](./GOVERNANCE.md).
+> **The third route is not confidential, even with no detail in it.** The issue's
+> existence, your username and the timestamp are public and permanent, so anyone —
+> including the person you are reporting — can see that you asked for a private
+> channel and when. Where that exposure is itself the risk, as in harassment or
+> retaliation, use one of the private routes above instead. The public issue is a
+> fallback for reporters who have no other way to reach us, not the normal path.
+
+If a report concerns a maintainer directly, or you do not receive a response,
+escalate to the maintainer team through the channels listed under
+[Escalation & do-no-harm in `GOVERNANCE.md`](./GOVERNANCE.md#escalation--do-no-harm).
 
 All complaints will be reviewed and investigated promptly and fairly.
+
+<!-- TODO: A monitored team inbox for conduct reports is still pending — it would
+     give reporters a private route that does not require a GitHub account. UNDP
+     decision, tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§1). -->
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
@@ -158,8 +190,11 @@ Where interaction does occur:
   deployment operator, who can revoke a user's access via role management.
 - Each country deployment operator is the first responder for end-user abuse reports
   within their instance.
-  <!-- TODO: Confirm the per-deployment escalation contact/process each operating
-       country should publish to its users. -->
+  Each operating country publishes its own escalation contact and process for in-instance
+  abuse, as a required step of country onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  Conduct _between community members_ upstream is handled by the maintainer team under the
+  Enforcement section above.
 
 ## Safety of underage users
 
@@ -172,7 +207,12 @@ Where interaction does occur:
   Entra ID); account eligibility is controlled by the deploying organization.
 - Any report involving a minor must be escalated by the deployment operator to the
   competent child-protection authority in that jurisdiction.
-  <!-- TODO: Confirm the child-safety escalation path per operating country. -->
+  Each deployment identifies its competent child-protection authority — and its INHOPE-member
+  hotline where one operates — **before launch**, and records the actual escalation procedure as a
+  required step of country onboarding (see
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
+  This cannot be specified centrally: the competent authority and the mandatory-reporting duty
+  differ by jurisdiction.
 
 ---
 
