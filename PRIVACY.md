@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Project:** Huella Latam
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-30
 
 > This document describes how the Huella Latam **platform** is designed to handle personal
 > data. Huella Latam is deployed independently by each adopting country; **the operator of each
@@ -97,7 +97,7 @@ The platform's default retention posture (see `docs/security/sensitive-data.md`)
   its national data-protection law, and recorded at onboarding (see
   [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
   <!-- TODO: UNDP to set the upstream *baseline* retention limit and anonymization trigger that a
-       deployment may strengthen but should not silently drop. Tracked in issue #460 (§4). -->
+       deployment may strengthen but should not silently drop. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§4). -->
 
 ## 6. Data governance, security & access controls
 
@@ -117,8 +117,8 @@ _(EPF requirement 6 — also Indicator 9A)_
   The breach-notification window is committed to per deployment and recorded at onboarding
   (see [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md),
   Step 12); many applicable laws expect notification within 72 hours.
-  <!-- TODO: UNDP to ratify the upstream *baseline* breach-notification window. Tracked in issue
-       #460 (§4). -->
+  <!-- TODO: UNDP to ratify the upstream *baseline* breach-notification window. Tracked in
+       https://github.com/undp/carbon-footprint-program/issues/460 (§4). -->
 - **Applicable laws (by design):** the platform aligns with core principles shared by Latin
   American data-protection frameworks — Mexico (LFPDPPP), Colombia (Ley 1581/2012), Argentina
   (Ley 25.326), Brazil (LGPD), Chile (Ley 19.628), Peru (Ley 29733) — and GDPR: lawful basis,
@@ -173,9 +173,10 @@ UNDP-run demonstration deployment (see
 > DPO is required, the deploying controller designates one.
 
 <!-- TODO: A monitored upstream inbox would give people with no GitHub account a route to the
-     maintainer team for software-level privacy concerns. UNDP decision, tracked in issue #460
-     (§1). The deployment-level contacts are deliberately NOT listed here — they are per-country
-     and gated at onboarding. -->
+     maintainer team for software-level privacy concerns. UNDP decision, tracked in
+     https://github.com/undp/carbon-footprint-program/issues/460 (§1). The deployment-level
+     contacts are deliberately NOT listed here — they are per-country and gated at
+     onboarding. -->
 
 ---
 

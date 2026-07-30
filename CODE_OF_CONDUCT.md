@@ -84,7 +84,7 @@ All complaints will be reviewed and investigated promptly and fairly.
 
 <!-- TODO: A monitored team inbox for conduct reports is still pending — it would
      give reporters a private route that does not require a GitHub account. UNDP
-     decision, tracked in issue #460 (§1). -->
+     decision, tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§1). -->
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

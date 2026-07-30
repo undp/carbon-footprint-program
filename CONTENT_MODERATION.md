@@ -1,7 +1,7 @@
 # Content Moderation & Acceptable-Use Policy
 
 **Project:** Huella Latam
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-30
 
 > Huella Latam is **not** a public content-sharing or publishing platform. The only
 > user-supplied content is (a) structured data entered into carbon inventories and
@@ -47,14 +47,14 @@ Users must not upload or enter, at minimum:
   [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12);
   it is advisable for any deployment expecting higher-risk uploads.
   <!-- TODO: UNDP to decide whether upstream should make hash-scanning REQUIRED rather than
-       advisable for all deployments. Tracked in issue #460 (§3). -->
+       advisable for all deployments. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§3). -->
 
 ## 3. Reporting
 
 - **Users/organizations** report concerning content to their deployment operator, who publishes a
   monitored abuse contact as a required step of country onboarding — see
-  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md). Reports do
-  not go upstream; see [Contact](#contact) for why.
+  [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12.
+  Reports do not go upstream; see [Contact](#contact) for why.
 - **Operators** escalate confirmed illegal content — and CSAM without exception — to the
   competent law-enforcement authority and, where applicable, an INHOPE-member hotline in their
   jurisdiction. Each operator identifies and publishes that jurisdiction-specific route at
@@ -70,8 +70,8 @@ Users must not upload or enter, at minimum:
   Concrete response targets per severity are set per deployment and recorded at onboarding
   (see [`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md),
   Step 12).
-  <!-- TODO: UNDP to set the upstream *baseline* moderation SLA per severity. Tracked in issue
-       #460 (§3). -->
+  <!-- TODO: UNDP to set the upstream *baseline* moderation SLA per severity. Tracked in
+       https://github.com/undp/carbon-footprint-program/issues/460 (§3). -->
 - Available actions: remove the file/record, restrict or suspend the user's access, and report
   to authorities.
 
@@ -96,7 +96,7 @@ Report abusive, prohibited, or illegal content to **the operator of the instance
 remove content, suspend a user, and escalate to authorities in their jurisdiction. Each operator
 publishes its own monitored abuse contact and its child-safety escalation path; publishing them
 is a required step of country onboarding (see
-[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md)).
+[`docs/development/country-onboarding.md`](./docs/development/country-onboarding.md), Step 12).
 
 **If the content is CSAM or otherwise criminal, contact law enforcement or an INHOPE-member
 hotline in that jurisdiction directly** — do not wait on any project channel, upstream or
