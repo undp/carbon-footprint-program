@@ -116,6 +116,23 @@ describe("buildJwtConfig", () => {
     expect(first.secret).not.toEqual(second.secret);
   });
 
+  it("mints an ephemeral secret for an empty string instead of passing it through", () => {
+    // `@fastify/jwt` does `assert(options.secret, 'missing secret')` at
+    // registration, so an empty secret here would abort boot with an opaque
+    // AssertionError. Reachable in practice because Compose expands an absent
+    // variable to "" (`JWT_SECRET=${JWT_SECRET}` in docker-compose.yml).
+    // Whitespace-only input is normalised to undefined upstream by parseEnv's
+    // trimEnv, so this branch only has to reject falsy values.
+    const config = buildJwtConfig({
+      ...base,
+      jwtSecret: "",
+      jwksUri: undefined,
+    });
+
+    expect(config.secret).toBeTruthy();
+    expect(config.secret).toMatch(/^[0-9a-f]{64}$/);
+  });
+
   it("wires issuer + audience validation when both are configured", () => {
     const config = buildJwtConfig({
       ...base,

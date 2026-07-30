@@ -61,7 +61,8 @@ export interface ApiEnv {
   /**
    * Static HMAC secret for the non-JWKS `@fastify/jwt` branch. Undefined is
    * allowed: it is only security-relevant when AUTH_PROVIDER=jwks has no
-   * JWKS_URI, which `parseEnv` rejects outright.
+   * JWKS_URI, which `parseEnv` rejects outright. Empty / whitespace-only input
+   * is normalised to undefined, so "set but blank" is never a usable secret.
    */
   JWT_SECRET: string | undefined;
   IS_PROD: boolean;
@@ -101,14 +102,21 @@ export interface ApiEnv {
  * mirrors the original top-to-bottom module.
  */
 export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
-  // Read as-is: there is deliberately NO hardcoded fallback. A checked-in
-  // default HMAC secret is a published credential — anyone could mint tokens
-  // the static-secret branch would accept — so the value must come from the
+  // There is deliberately NO hardcoded fallback. A checked-in default HMAC
+  // secret is a published credential — anyone could mint tokens the
+  // static-secret branch would accept — so the value must come from the
   // environment. `.envrc.template` and `.env.dockercompose.example` ship a
   // dummy so the documented setup path always sets one explicitly. When it is
   // absent AND it would actually guard authentication, the guard below refuses
   // to boot; see jwksConfig.buildJwtConfig for the non-authenticating case.
-  const JWT_SECRET = source.JWT_SECRET;
+  //
+  // trimEnv, not a raw read: "" and "   " must mean *unset* everywhere. Compose
+  // injects an empty string for an absent variable (`JWT_SECRET=${JWT_SECRET}`
+  // in docker-compose.yml), and an empty string that reads as "configured"
+  // would (a) reach @fastify/jwt, whose `assert(options.secret)` kills boot
+  // with an opaque "missing secret", and (b) slip past the guard below — while
+  // `"   "` would slip past it and then be accepted as a real verification key.
+  const JWT_SECRET = trimEnv(source.JWT_SECRET);
 
   const IS_PROD = source.NODE_ENV?.toLowerCase() === "production";
 
@@ -200,9 +208,11 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   // authenticates callers: AUTH_PROVIDER=jwks with no JWKS_URI. There is no
   // built-in default any more, so an unset JWT_SECRET here would mean either a
   // crash deep in @fastify/jwt or — worse, if a default were ever reintroduced
-  // — a publicly known verification key. Demand it explicitly instead. The
-  // non-jwks providers (`none`, `forced-user`) never verify a token, so they do
-  // not need one; buildJwtConfig substitutes a per-boot ephemeral value there.
+  // — a publicly known verification key. Demand it explicitly instead. Thanks
+  // to trimEnv above, a blank value counts as unset and trips this too, rather
+  // than becoming a whitespace verification key. The non-jwks providers
+  // (`none`, `forced-user`) never verify a token, so they do not need one;
+  // buildJwtConfig substitutes a per-boot ephemeral value there.
   if (AUTH_PROVIDER === "jwks" && !JWKS_URI && !JWT_SECRET) {
     throw new Error(
       "AUTH_PROVIDER=jwks without JWKS_URI requires JWT_SECRET. Refusing to " +

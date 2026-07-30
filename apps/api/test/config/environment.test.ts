@@ -221,19 +221,43 @@ describe("parseEnv — JWT_SECRET has no built-in default", () => {
     // Regression guard: a checked-in default HMAC secret is a published
     // credential. Nothing in the source tree may supply one.
     expect(parse().JWT_SECRET).toBeUndefined();
-    expect(parse({ JWT_SECRET: "" }).JWT_SECRET).toBe("");
   });
 
-  it("refuses to boot when the static secret would verify tokens but is unset", () => {
-    // AUTH_PROVIDER=jwks with no JWKS_URI is the one config where JWT_SECRET
-    // actually authenticates callers.
-    expect(() => parse({ AUTH_PROVIDER: "jwks" })).toThrow(
-      /without JWKS_URI requires JWT_SECRET/
-    );
-    expect(() => parse({ AUTH_PROVIDER: "jwks", JWT_SECRET: "" })).toThrow(
-      /without JWKS_URI requires JWT_SECRET/
+  it.each(["", "   ", "\t\n"])(
+    "normalises the blank value %j to undefined rather than a usable secret",
+    (value) => {
+      // Compose injects an empty string for an absent variable
+      // (`JWT_SECRET=${JWT_SECRET}` in docker-compose.yml), so "set but blank"
+      // is a real input, not a hand-crafted one. It must read as *unset*: an
+      // empty string reaching @fastify/jwt trips its `assert(options.secret)`
+      // and kills boot with an opaque "missing secret", and a whitespace-only
+      // string would otherwise pass the guard below as a verification key.
+      expect(parse({ JWT_SECRET: value }).JWT_SECRET).toBeUndefined();
+    }
+  );
+
+  it("trims surrounding whitespace off a real secret", () => {
+    // Same normalisation the other secrets in this module get, so a stray
+    // newline in an env file cannot change the effective key.
+    expect(parse({ JWT_SECRET: "  dev-secret\n" }).JWT_SECRET).toBe(
+      "dev-secret"
     );
   });
+
+  it.each([undefined, "", "   "])(
+    "refuses to boot when the static secret would verify tokens but is %j",
+    (value) => {
+      // AUTH_PROVIDER=jwks with no JWKS_URI is the one config where JWT_SECRET
+      // actually authenticates callers, so every blank spelling must fail closed
+      // rather than boot with an unusable or whitespace key.
+      expect(() =>
+        parse({
+          AUTH_PROVIDER: "jwks",
+          ...(value === undefined ? {} : { JWT_SECRET: value }),
+        })
+      ).toThrow(/without JWKS_URI requires JWT_SECRET/);
+    }
+  );
 
   it("does not require JWT_SECRET for providers that never verify a token", () => {
     // `none` / `forced-user` never call jwtVerify, so the secret is irrelevant;

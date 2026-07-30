@@ -79,10 +79,10 @@ export interface JwtConfigParams {
   /** Expected audience (`aud`). When falsy, audience validation is disabled. */
   jwksAudience: string | undefined;
   /**
-   * Static HMAC secret used only in the (dev) fallback branch. May be
-   * undefined: `environment.ts` requires it only when it would actually
-   * authenticate callers (AUTH_PROVIDER=jwks with no JWKS_URI). When it is
-   * absent here the branch is not authenticating anyone, so a per-boot
+   * Static HMAC secret used only in the (dev) fallback branch. May be undefined
+   * or blank: `environment.ts` requires it only when it would actually
+   * authenticate callers (AUTH_PROVIDER=jwks with no JWKS_URI). When it carries
+   * no value here the branch is not authenticating anyone, so a per-boot
    * ephemeral secret is substituted rather than a hardcoded constant.
    */
   jwtSecret: string | undefined;
@@ -122,7 +122,14 @@ export function buildJwtConfig({
     // configuration where this secret *does* authenticate callers
     // (AUTH_PROVIDER=jwks with no JWKS_URI) is rejected in environment.ts, so it
     // can never silently rely on the ephemeral value.
-    return { secret: jwtSecret ?? randomBytes(32).toString("hex") };
+    //
+    // `||` rather than `??`: an empty string must fall through to the ephemeral
+    // value too. `@fastify/jwt` asserts on a falsy secret (`assert(options.secret,
+    // 'missing secret')`), so letting `""` past here turns a blank env var into
+    // an opaque boot failure. environment.ts already normalises blanks to
+    // undefined; this keeps the invariant local to the function that needs it,
+    // for any caller.
+    return { secret: jwtSecret || randomBytes(32).toString("hex") };
   }
 
   return {
