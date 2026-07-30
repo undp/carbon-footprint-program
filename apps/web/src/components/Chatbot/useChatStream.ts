@@ -4,10 +4,18 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { clearConversationCookieClient } from "./conversationCookie";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
 const DELETE_URL = "/api/chatbot/conversations/me";
+
+/** Shape `seedMessages` accepts — ids are minted here, not by the caller. */
+export type SeedMessage = {
+  role: "user" | "assistant";
+  content: string;
+  sourcesCited?: SourceCitationWire[];
+};
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
@@ -275,6 +283,13 @@ export const useChatStream = () => {
         CHATBOT_STREAM_OVERALL_TIMEOUT_MS
       );
 
+      // True while THIS turn is still the active one. `startNewConversation`
+      // nulls `abortRef` (and a newer send replaces it), so a turn it cancelled
+      // mid-flight cannot write state that belongs to the cleared/next thread.
+      // `stop()` deliberately leaves `abortRef` pointing here, so a user-stopped
+      // turn still resolves to "truncated" with its partial content.
+      const isCurrentTurn = (): boolean => abortRef.current === controller;
+
       const attempt = async (): Promise<{
         response: Response | null;
         transportError: boolean;
@@ -406,6 +421,9 @@ export const useChatStream = () => {
         consecutiveFailuresRef.current = 0;
         const result = await consumeStream(response, controller);
         if (!mountedRef.current) return;
+        // A `startNewConversation` during the stream already reset the thread;
+        // applying this turn's terminal state would re-dirty the cleared UI.
+        if (!isCurrentTurn()) return;
 
         switch (result.kind) {
           case "completed":
@@ -469,5 +487,61 @@ export const useChatStream = () => {
     abortRef.current?.abort();
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory, stop };
+  /**
+   * Replace the visible thread with a persisted conversation loaded on mount
+   * (see `useConversationRehydrate`). Ids are minted from this hook's own
+   * counter rather than accepted from the caller: two id sources could collide
+   * on `assistant-1` and let React reconcile a fresh bubble onto a seeded
+   * node — the very hazard the counter exists to prevent.
+   */
+  const seedMessages = useCallback(
+    (loaded: SeedMessage[]): void => {
+      if (loaded.length === 0) return;
+      setMessages(
+        loaded.map((m) => {
+          const seeded: ChatbotMessage = {
+            id: nextMessageId(m.role),
+            role: m.role,
+            content: m.content,
+          };
+          if (m.role === "assistant" && m.sourcesCited?.length) {
+            seeded.sourcesCited = m.sourcesCited;
+          }
+          return seeded;
+        })
+      );
+    },
+    [nextMessageId]
+  );
+
+  /**
+   * Start a fresh client-side thread. Prior turns stay persisted server-side —
+   * this is NOT a delete. The conversation cookie is dropped so a later reload
+   * does not rehydrate the thread we just left, and any in-flight turn is
+   * aborted so it cannot stream into the cleared view.
+   */
+  const startNewConversation = useCallback((): void => {
+    // Null the ref BEFORE aborting: `isCurrentTurn()` in the in-flight
+    // sendMessage reads it after its await resumes, and must observe that this
+    // turn is no longer current.
+    const inFlight = abortRef.current;
+    abortRef.current = null;
+    inFlight?.abort();
+    inFlightAssistantIdRef.current = null;
+    clearConversationCookieClient();
+    setMessages([]);
+    setState("empty");
+    lastEventIdRef.current = undefined;
+    consecutiveFailuresRef.current = 0;
+  }, []);
+
+  return {
+    state,
+    messages,
+    sendMessage,
+    deleteHistory,
+    stop,
+    seedMessages,
+    startNewConversation,
+  };
 };
