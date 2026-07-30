@@ -10,16 +10,19 @@ There is no single production deployment of Huella Latam. Each adopting country 
 operates its own instance, so the controls below describe **what the templates provision and
 what the application enforces**, not the posture of one canonical environment.
 
-Two topologies matter when reading this document:
+Three topologies matter when reading this document:
 
-| Topology                                       | Frontend                                      | API                                                        | Edge                                                | Notes                                                                                                                                                        |
-| ---------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Demo site** — <https://www.huellaslatam.org> | Azure Static Web Apps (SWA)                   | Azure App Service, **facing the public internet directly** | **No Azure Front Door**                             | A **demonstration environment, not a production-grade deployment.** IdP is **Microsoft Entra ID**. Do not treat its configuration as a production reference. |
-| **Country deployment**                         | SWA (or any static host / container platform) | App Service (or any container platform)                    | Azure Front Door **optional, per adopting country** | Front Door is an available hardening/CDN layer each country may choose; it is not required by the application.                                               |
+| Topology                                       | Frontend                                      | API                                                        | Edge                                                       | Notes                                                                                                                                                        |
+| ---------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Demo site** — <https://www.huellaslatam.org> | Azure Static Web Apps (SWA)                   | Azure App Service, **facing the public internet directly** | **No Azure Front Door**                                    | A **demonstration environment, not a production-grade deployment.** IdP is **Microsoft Entra ID**. Do not treat its configuration as a production reference. |
+| **Country deployment (Azure)**                 | SWA (or any static host / container platform) | App Service (or any container platform)                    | Azure Front Door **optional, per adopting country**        | Front Door is an available hardening/CDN layer each country may choose; it is not required by the application.                                               |
+| **Country deployment (self-hosted)**           | nginx container, plain HTTP on `8080`         | Fastify container, external PostgreSQL                     | **The operator's own reverse proxy / WAF — not this repo** | `docker-compose.prod.yml`; see [`../operations/production-deployment.md`](../operations/production-deployment.md). No Azure service is involved.             |
 
 Because Front Door is optional, nothing in the application depends on it. Any control this
 document attributes to Front Door applies **only** where a country has chosen to deploy it; the
-App Service and SWA controls apply in every topology.
+App Service and SWA controls apply in the two Azure topologies. In the self-hosted topology
+**none** of the Azure-platform controls below apply — the operator supplies their equivalents at
+their own edge.
 
 ### TLS Enforcement
 
@@ -31,22 +34,51 @@ App Service and SWA controls apply in every topology.
 | Azure PostgreSQL                    | `sslmode=require` in `DATABASE_URL`                     | TLS enforced by server  |
 | Azure Front Door — _optional layer_ | HTTPS redirect enabled; HTTP connections rejected       | TLS 1.2                 |
 
-TLS is always terminated by an Azure platform service — App Service and SWA in the default
-topology, Front Door additionally where a country deploys it. The application never terminates
-TLS itself and ships no certificate or cipher configuration; the platform's TLS 1.2+ suites are
-ECDHE-based, so the connection has forward secrecy in every topology. `minTlsVersion` is pinned
-to 1.2 in `infra/modules/appService.bicep`, `storage.bicep`, and `frontDoor.bicep`.
+The table above covers the two Azure topologies. There, TLS is terminated by an Azure platform
+service — App Service and SWA by default, Front Door additionally where a country deploys it —
+and the platform's TLS 1.2+ suites are ECDHE-based, so those connections have forward secrecy.
+`minTlsVersion` is pinned to 1.2 in `infra/modules/appService.bicep`, `storage.bicep`, and
+`frontDoor.bicep`.
 
-All data in transit between application components and clients is encrypted. Plain HTTP is rejected or redirected at the infrastructure layer before requests reach application code.
+**The application never terminates TLS itself** and ships no certificate or cipher configuration
+in any topology. In the self-hosted topology that means TLS, the certificate, the cipher suites
+and any HTTP→HTTPS redirect are entirely the operator's responsibility: the `web` container
+listens on plain HTTP (`apps/web/nginx.conf`, port `8080`) and expects a reverse proxy in front
+of it. This repo cannot make any forward-secrecy or minimum-version claim about that edge.
+Operators running self-hosted must verify their own proxy enforces TLS 1.2+ with ECDHE suites,
+and must set `ALLOWED_ORIGIN` and the `VITE_*` URLs to the public HTTPS origin.
+
+In the Azure topologies, all data in transit between application components and clients is encrypted, and plain HTTP is rejected or redirected at the infrastructure layer before requests reach application code.
 
 ### Proxy Trust
 
-In the default topology the API is reached directly on Azure App Service; where a country adds
-Azure Front Door, App Service sits behind it instead. When `trustProxy` is enabled in Fastify,
-the application trusts `X-Forwarded-For` and `X-Forwarded-Proto` headers to determine the real
-client IP and protocol. **`trustProxy` must match the actual topology of the deployment** —
-enabling it when the API is directly internet-facing lets a caller spoof its own IP with a
-forged header, which corrupts audit logs and any IP-based logic. Verify it per deployment.
+**Current state: `trustProxy` is off, and is not configurable.** `apps/api/src/app.ts` constructs
+`Fastify({ logger, genReqId })` without the option, and nothing reads it from the environment, so
+it takes Fastify's default of `false` in every deployment. There is no per-deployment setting to
+verify.
+
+With `trustProxy: false`, Fastify ignores `X-Forwarded-For` and `X-Forwarded-Proto` entirely and
+`request.ip` is the peer address of the TCP connection. That is the safe default against header
+spoofing, but it has a consequence wherever the API sits behind a proxy — which is every
+topology in the table above except a directly-exposed App Service:
+
+- **Rate limiting keys off a proxy address, not the caller.** `@fastify/rate-limit`
+  (`apps/api/src/plugins/external/rate-limit.ts`, 100 req/min) uses its default key generator,
+  `request.ip`. Behind App Service's front-end, Front Door, or a self-hosted reverse proxy, that
+  value is the same for every caller, so the limit behaves as **one shared bucket** rather than a
+  per-client one: a single heavy caller can exhaust the budget for everyone. This compounds with
+  [Azure Front Door and WAF](#azure-front-door-and-waf) below: without Front Door, this limiter
+  is the only rate-limiting protection there is.
+- **Logs are unaffected.** The request logger installs a custom `req` serializer
+  (`apps/api/src/app.ts`) emitting only `id`, `method`, `url` and `params`; it drops Fastify's
+  default `remoteAddress`. No IP is written to any log line, `request.ip` is not read anywhere in
+  `apps/api/src`, and no table in the schema stores a client IP. There is no IP-based audit trail
+  to corrupt — and equally, none to investigate an incident with.
+
+Enabling `trustProxy` would fix the rate-limit key **only** where the API is genuinely behind a
+trusted proxy; turning it on while the API is directly internet-facing would instead let any
+caller forge its own rate-limit key. That is why it needs to be a per-deployment setting rather
+than a constant, and why it is not simply switched on.
 
 ---
 
