@@ -47,6 +47,15 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-prod}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:?ALLOWED_ORIGIN is required (the web app's browser origin)}
+      # Which X-Forwarded-For senders may set request.ip — the rate limiter's
+      # bucket key. This service enumerates its environment explicitly (there is
+      # no env_file), so the variable has to be listed here or a value in
+      # .env.prod.dockercompose would only ever be used for ${...} interpolation
+      # and never reach the container. Empty = trust nothing, and NODE_ENV is
+      # production above, so the API warns at boot until it is set. A reverse
+      # proxy almost always fronts this stack — see
+      # docs/security/hardening.md, "Proxy Trust".
+      - TRUST_PROXY=${TRUST_PROXY:-}
       # Public origin of THIS API (browser-reachable, no path) — required when
       # MINIO_RELAY_ENABLED=true so the relay can rewrite presigned URLs.
       - API_ORIGIN=${API_ORIGIN:-}

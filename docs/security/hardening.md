@@ -161,6 +161,12 @@ to be set per deployment.**
 | Azure (immediate, no redeploy) | `az webapp config appsettings set … --settings TRUST_PROXY=…` — **but see the warning below**                      |
 | Self-hosted                    | `TRUST_PROXY` in the deployment's env file (`.env.prod.dockercompose`), then recreate the `api` container          |
 
+Self-hosted note: the `api` service in `docker-compose.prod.yml` enumerates its environment
+explicitly and has no `env_file:`, so a variable reaches the container only if it is listed there.
+`TRUST_PROXY` is passed through as `${TRUST_PROXY:-}`. A value set in the env file but missing from
+that list would be used only for `${...}` interpolation inside the compose file and would never
+reach the API — the setting would appear configured and do nothing.
+
 ```bash
 # Durable: set it where the template will keep it, then redeploy.
 API_TRUST_PROXY=1 ./infra/deploy.sh          # or edit the environment's .bicepparam
