@@ -102,11 +102,17 @@ export function warnIfProxyTrustUnconfigured(
   );
 }
 
-export async function createApp(
-  withPrisma: boolean = true,
-  opts?: { skipUnderPressure?: boolean }
-): Promise<FastifyInstance> {
-  const app = Fastify({
+/**
+ * The options `createApp` constructs Fastify with.
+ *
+ * Exported, like `getLoggerOptions`, so the env-to-constructor wiring can be
+ * asserted. `trustProxy` in particular is invisible once the server is built —
+ * Fastify consumes it in `Request.buildRequest` and does not surface it on
+ * `app.initialConfig` — so without this seam the option could be deleted
+ * outright and every test would still pass while the feature was gone.
+ */
+export function getServerOptions() {
+  return {
     logger: getLoggerOptions(),
     genReqId: () => randomUUID(),
     // Resolves `request.ip` from X-Forwarded-For when the deployment sits behind
@@ -115,7 +121,14 @@ export async function createApp(
     // config/environment.ts for why this is per-deployment rather than a
     // constant, and what it costs to get wrong in either direction.
     trustProxy: TRUST_PROXY ?? false,
-  }).withTypeProvider<ZodTypeProvider>();
+  };
+}
+
+export async function createApp(
+  withPrisma: boolean = true,
+  opts?: { skipUnderPressure?: boolean }
+): Promise<FastifyInstance> {
+  const app = Fastify(getServerOptions()).withTypeProvider<ZodTypeProvider>();
 
   warnIfProxyTrustUnconfigured(app.log, IS_PROD, TRUST_PROXY);
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { warnIfProxyTrustUnconfigured } from "@/app.js";
 
 // The boot warning has to fire for "nobody configured this" and stay silent for
@@ -45,5 +45,50 @@ describe("warnIfProxyTrustUnconfigured", () => {
     const log = spyLog();
     warnIfProxyTrustUnconfigured(log, false, undefined);
     expect(log.warn).not.toHaveBeenCalled();
+  });
+});
+
+// The env-to-constructor wiring. Fastify consumes `trustProxy` in
+// Request.buildRequest and never surfaces it — it is absent from
+// `app.initialConfig` — so a built server cannot be asked what it was given.
+// Without these, deleting the option from the constructor leaves the whole
+// suite green while the feature is gone: the bucketing tests below construct
+// their own Fastify with an explicit trustProxy and would not notice.
+describe("getServerOptions — trustProxy wiring", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("passes an unconfigured TRUST_PROXY through as false", async () => {
+    // The suite runs with TRUST_PROXY unset, so this is the default path.
+    const { getServerOptions } = await import("@/app.js");
+    expect(getServerOptions().trustProxy).toBe(false);
+  });
+
+  it("carries a configured allowlist through to the constructor options", async () => {
+    vi.stubEnv("TRUST_PROXY", "10.0.0.0/8");
+    vi.resetModules();
+
+    const { getServerOptions } = await import("@/app.js");
+    expect(getServerOptions().trustProxy).toBe("10.0.0.0/8");
+  });
+
+  it("carries a configured hop count through as a number", async () => {
+    // Guards the coercion end to end: Fastify reads 1 as a hop count but "1"
+    // as an address, so a string arriving here would silently change meaning.
+    vi.stubEnv("TRUST_PROXY", "1");
+    vi.resetModules();
+
+    const { getServerOptions } = await import("@/app.js");
+    expect(getServerOptions().trustProxy).toBe(1);
+  });
+
+  it("distinguishes an explicit false from unset at the constructor too", async () => {
+    vi.stubEnv("TRUST_PROXY", "false");
+    vi.resetModules();
+
+    const { getServerOptions } = await import("@/app.js");
+    expect(getServerOptions().trustProxy).toBe(false);
   });
 });

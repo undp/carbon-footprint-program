@@ -16,6 +16,14 @@ import type { RateLimitPluginOptions } from "@fastify/rate-limit";
  *
  * IPv6 is left intact — a bare address is full of colons, and the bracketed
  * form carries its own port syntax.
+ *
+ * **Knowingly out of scope:** the unbracketed IPv4-mapped-with-port form,
+ * `::ffff:203.0.113.9:51234`. It has three colons, so it falls through
+ * unchanged and one caller would span buckets. No proxy in any documented
+ * topology emits it — App Service sends the bare `IPv4:port` shape handled
+ * above, and the bracketed `[::ffff:…]:port` form is already unwrapped — so the
+ * pattern is left out rather than carried as untested surface. Recorded here so
+ * the next reader knows it was considered rather than missed.
  */
 export const toRateLimitKey = (ip: string): string => {
   // Bracketed IPv6, with or without a port: [2001:db8::1]:443 → 2001:db8::1
@@ -46,7 +54,15 @@ export const autoConfig: RateLimitPluginOptions = {
   // unset, every caller resolves to the proxy's address and shares ONE bucket.
   // The normalization is what keeps the configured case from failing the other
   // way — see toRateLimitKey.
-  keyGenerator: (request: FastifyRequest) => toRateLimitKey(request.ip),
+  //
+  // `?? ""` because Fastify types `request.ip` as string, but on the untrusted
+  // path it resolves to `socket.remoteAddress`, which Node types as
+  // `string | undefined`. Unobserved in practice, but without the guard an
+  // undefined would throw inside the onRequest hook and turn a rate-limiter
+  // edge case into a failed request; the inherited default generator would
+  // simply have keyed on undefined. One bucket for address-less connections is
+  // the same behaviour, without the 500.
+  keyGenerator: (request: FastifyRequest) => toRateLimitKey(request.ip ?? ""),
 };
 
 export default fp<RateLimitPluginOptions>(
