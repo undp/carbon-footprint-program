@@ -68,6 +68,50 @@ const parseNumericEnv = (raw: string | undefined, fallback: number): number => {
  */
 const MAX_TRUST_PROXY_HOPS = 10;
 
+/** proxy-addr's named ranges, accepted verbatim by Fastify's `trustProxy`. */
+const TRUST_PROXY_NAMED_RANGES = ["loopback", "linklocal", "uniquelocal"];
+
+/**
+ * Shape-check one entry of an allowlist: an IP, a CIDR block, or a named range.
+ *
+ * This exists because the library's own failure is unhelpful and inconsistent.
+ * Most malformed values throw from `proxyAddr.compile()` inside the `Fastify()`
+ * constructor with a message that never mentions `TRUST_PROXY` — an operator
+ * sees `invalid IP address: not-an-ip` and no pointer to the setting or the
+ * docs. And the failure is not even uniform: `10.0.0/8` is accepted leniently
+ * (as `10.0.0.0/8`), so the library cannot be relied on to catch a typo.
+ *
+ * Deliberately permissive about the address grammar and strict about ranges.
+ * The lenient short forms proxy-addr accepts stay accepted — rejecting a value
+ * that works today would break a running deployment for tidiness — while the
+ * numeric bounds that are unambiguously wrong (`999.999.999.999`, a `/99` IPv4
+ * prefix) are rejected here so they fail with a message that names the variable.
+ * proxy-addr remains the final authority; this is a pre-flight, not a parser.
+ */
+const isValidTrustProxyEntry = (entry: string): boolean => {
+  if (TRUST_PROXY_NAMED_RANGES.includes(entry.toLowerCase())) return true;
+
+  const [address, prefix, ...extra] = entry.split("/");
+  if (extra.length > 0) return false;
+  if (prefix !== undefined && !/^\d{1,3}$/.test(prefix)) return false;
+
+  // Any colon means IPv6 (including the IPv4-mapped `::ffff:1.2.3.4` form),
+  // whose grammar is too varied to re-implement — check the character set and
+  // the prefix bound, and leave exact validity to the library.
+  if (address.includes(":")) {
+    if (!/^[0-9a-fA-F.:]+$/.test(address)) return false;
+    return prefix === undefined || Number(prefix) <= 128;
+  }
+
+  // IPv4. Fewer than four octets is proxy-addr's accepted short form.
+  const octets = address.split(".");
+  if (octets.length > 4) return false;
+  if (!octets.every((o) => /^\d{1,3}$/.test(o) && Number(o) <= 255)) {
+    return false;
+  }
+  return prefix === undefined || Number(prefix) <= 32;
+};
+
 /**
  * Parse `TRUST_PROXY` into the shape Fastify's `trustProxy` option accepts.
  *
@@ -77,17 +121,17 @@ const MAX_TRUST_PROXY_HOPS = 10;
  * - `"false"` → `false` (trust nothing) — a deliberate choice, not a default
  * - `"true"` → `true` (trust the whole `X-Forwarded-For` chain)
  * - a bare integer 0…{@link MAX_TRUST_PROXY_HOPS} → that many proxy hops
- * - anything else → passed through verbatim: a comma-separated IP/CIDR
- *   allowlist, or one of Fastify's named ranges (`loopback`, `linklocal`,
- *   `uniquelocal`)
+ * - anything else → a comma-separated IP/CIDR allowlist, or one of Fastify's
+ *   named ranges (`loopback`, `linklocal`, `uniquelocal`), shape-checked per
+ *   entry and then passed through verbatim (Fastify splits and trims it itself)
  *
  * Prefer an allowlist or a hop count over `true` in production: `true` trusts
  * whatever the caller put in the header when no proxy overwrote it.
  *
- * @throws if an all-digit value is not a safe integer within the bound. This
- * fails the boot rather than falling back, because every silent fallback here
- * is a security posture the operator did not choose: falling back to `false`
- * would restore the shared rate-limit bucket, and clamping to the maximum would
+ * @throws if the value is not one of the shapes above. This fails the boot
+ * rather than falling back, because every silent fallback here is a security
+ * posture the operator did not choose: falling back to `false` would restore
+ * the shared rate-limit bucket, and clamping a hop count to the maximum would
  * trust more hops than were asked for.
  */
 const parseTrustProxy = (
@@ -119,6 +163,19 @@ const parseTrustProxy = (
       );
     }
     return hops;
+  }
+
+  const entries = trimmed.split(",").map((entry) => entry.trim());
+  if (entries.some((entry) => !isValidTrustProxyEntry(entry))) {
+    throw new Error(
+      `Invalid TRUST_PROXY value: "${trimmed}". Expected false, true, a hop ` +
+        `count between 0 and ${MAX_TRUST_PROXY_HOPS}, a named range ` +
+        `(${TRUST_PROXY_NAMED_RANGES.join(", ")}), or a comma-separated list ` +
+        `of IP addresses / CIDR blocks such as "10.0.0.0/8,192.168.0.0/16". ` +
+        `Refusing to start: proxy trust decides whose X-Forwarded-For may set ` +
+        `request.ip, which is the rate limiter's bucket key. See ` +
+        `docs/security/hardening.md, "Proxy Trust".`
+    );
   }
 
   return trimmed;

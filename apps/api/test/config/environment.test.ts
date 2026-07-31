@@ -627,6 +627,45 @@ describe("parseEnv — TRUST_PROXY", () => {
     ).toThrow(/Refusing to start/);
   });
 
+  it("rejects a malformed allowlist with a message that names the variable", () => {
+    // Without this the value reaches proxy-addr, which throws from inside the
+    // Fastify() constructor as "invalid IP address: not-an-ip" — no mention of
+    // TRUST_PROXY and no pointer to the docs, in contrast to the hop-count
+    // message. And the library is not even a reliable backstop: it accepts
+    // "10.0.0/8" leniently, so a typo can pass through it entirely.
+    expect(() => parse({ TRUST_PROXY: "not-an-ip" })).toThrow(
+      /Invalid TRUST_PROXY value: "not-an-ip"/
+    );
+    expect(() => parse({ TRUST_PROXY: "10.0.0.1,garbage" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    // Numerically impossible values, which the library would reject with its
+    // own wording — rejected here so every malformed shape fails alike.
+    expect(() => parse({ TRUST_PROXY: "999.999.999.999/8" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "10.0.0.0/99" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "2001:db8::/129" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    // Empty list entries: a trailing, leading or doubled comma.
+    expect(() => parse({ TRUST_PROXY: "10.0.0.0/8," })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "1.2.3.4.5" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+  });
+
+  it("keeps accepting the lenient short form proxy-addr already allows", () => {
+    // "10.0.0/8" is compiled by proxy-addr as 10.0.0.0/8 and works today.
+    // Rejecting it for tidiness would break a running deployment, so the check
+    // is permissive about address grammar and strict only about ranges.
+    expect(parse({ TRUST_PROXY: "10.0.0/8" }).TRUST_PROXY).toBe("10.0.0/8");
+  });
+
   it("passes IP addresses, CIDR lists and named ranges through as strings", () => {
     // Fastify/proxy-addr parses these itself; the env layer must not mangle
     // them. A dotted quad must stay a string, not become NaN or a number.

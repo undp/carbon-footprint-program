@@ -279,6 +279,80 @@ if [ -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
   )"
 fi
 
+# Pre-flight the value, from WHICHEVER source supplies it, before the
+# deployment starts. The API refuses to boot on a malformed TRUST_PROXY — the
+# right behaviour there, since every silent fallback is a security posture
+# nobody chose — but on App Service the value arrives as an ARM app setting, so
+# a typo becomes a crash-looping container whose only evidence is the container
+# log, discovered after a rollout. Checking here puts the same typo in the
+# operator's terminal instead. Both sources are checked: a bad value committed
+# to the .bicepparam is exactly as damaging as one exported by hand.
+#
+# Mirrors the rules in apps/api/src/config/environment.ts. Deliberately the
+# looser of the two — this is a pre-flight, and the app stays authoritative.
+validate_trust_proxy() {
+  local value="$1" entry address prefix octet
+  case "$value" in
+    true | false | loopback | linklocal | uniquelocal) return 0 ;;
+  esac
+  # Hop count: bounded, because more hops than the chain really has means every
+  # X-Forwarded-For entry is trusted and a caller picks its own bucket.
+  if [[ "$value" =~ ^[0-9]+$ ]]; then
+    [ "$value" -le 10 ]
+    return
+  fi
+  # Empty list entries: a leading, trailing or doubled comma. Word splitting
+  # below discards them silently, but the app rejects them, and a pre-flight
+  # that passes what the app will refuse is worse than none.
+  local compact
+  compact="$(echo "$value" | tr -d '[:space:]')"
+  case ",$compact," in *,,*) return 1 ;; esac
+
+  local IFS=','
+  for entry in $value; do
+    entry="$(echo "$entry" | tr -d '[:space:]')"
+    [ -n "$entry" ] || return 1
+    address="${entry%%/*}"
+    prefix=""
+    [ "$entry" != "$address" ] && prefix="${entry#*/}"
+    if [ -n "$prefix" ]; then
+      [[ "$prefix" =~ ^[0-9]{1,3}$ ]] || return 1
+    fi
+    if [[ "$address" == *:* ]]; then
+      # IPv6: character set and prefix bound only; the grammar is the app's job.
+      [[ "$address" =~ ^[0-9a-fA-F.:]+$ ]] || return 1
+      [ -z "$prefix" ] || [ "$prefix" -le 128 ] || return 1
+    else
+      [[ "$address" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){0,3}$ ]] || return 1
+      local IFS='.'
+      for octet in $address; do [ "$octet" -le 255 ] || return 1; done
+      [ -z "$prefix" ] || [ "$prefix" -le 32 ] || return 1
+    fi
+  done
+  return 0
+}
+
+trust_proxy_value=""
+trust_proxy_source=""
+if [ -n "${API_TRUST_PROXY:-}" ]; then
+  trust_proxy_value="$API_TRUST_PROXY"
+  trust_proxy_source="API_TRUST_PROXY"
+elif [ -n "$bicepparam_trust_proxy" ]; then
+  trust_proxy_value="$bicepparam_trust_proxy"
+  trust_proxy_source="$ENVIRONMENT_PARAMS_FILE"
+fi
+
+if [ -n "$trust_proxy_value" ] && ! validate_trust_proxy "$trust_proxy_value"; then
+  log "ERROR: invalid proxy trust value from $trust_proxy_source: '$trust_proxy_value'"
+  log "       Expected false, true, a hop count 0-10, a named range"
+  log "       (loopback|linklocal|uniquelocal), or a comma-separated list of IP"
+  log "       addresses / CIDR blocks such as '10.0.0.0/8,192.168.0.0/16'."
+  log "       Aborting before deployment: the API refuses to boot on this value,"
+  log "       so deploying it would leave a crash-looping container."
+  log "       See docs/security/hardening.md, \"Proxy Trust\"."
+  exit 1
+fi
+
 if [ -n "${API_TRUST_PROXY:-}" ]; then
   log "Using API proxy trust (TRUST_PROXY) from API_TRUST_PROXY: $API_TRUST_PROXY"
   DEPLOY_PARAMS+=(--parameters apiTrustProxy="$API_TRUST_PROXY")
