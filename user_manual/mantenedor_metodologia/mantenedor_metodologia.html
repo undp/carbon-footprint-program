@@ -219,8 +219,8 @@
         <li><span class="legend-num">1</span><strong>Agregar fila:</strong> crea una metodología nueva desde cero.</li>
         <li><span class="legend-num">2</span><strong>Nombre y descripción:</strong> identifican la versión.</li>
         <li>
-          <span class="legend-num">3</span><strong>Normativa:</strong> el marco de referencia, que
-          escribes tú (no es un selector): p. ej. GHG Protocol, GHG + ISO, etc.
+          <span class="legend-num">3</span><strong>Normativa:</strong> el marco de referencia: eliges
+          una opción sugerida —GHG Protocol, ISO 14064, ISO 14067, PAS 2050— o escribes la tuya.
         </li>
         <li><span class="legend-num">4</span><strong>Versión:</strong> el año o número de la metodología.</li>
         <li><span class="legend-num">5</span><strong>Estado:</strong> el interruptor que la activa. Solo una puede estar activa.</li>
@@ -256,7 +256,7 @@
 
       <ul class="annotation-legend">
         <li><span class="legend-num">1</span><strong>La copia (inactiva):</strong> es la que puedes editar libremente.</li>
-        <li><span class="legend-num">2</span><strong>Acciones habilitadas:</strong> en la copia puedes ajustar y eliminar.</li>
+        <li><span class="legend-num">2</span><strong>Acciones habilitadas:</strong> en la copia puedes ajustar, duplicar, descargar y eliminar; eliminar deja de estar permitido si ya tiene huellas asociadas.</li>
         <li><span class="legend-num">3</span><strong>La activa:</strong> es la que usa la calculadora hoy.</li>
         <li><span class="legend-num">4</span><strong>Acciones deshabilitadas:</strong> la activa no se edita ni se elimina.</li>
       </ul>
@@ -428,8 +428,8 @@
       <h2 class="content-title">Factores: el corazón del cálculo</h2>
       <p class="content-description">
         El factor es el número por el que se multiplica la actividad. La regla es simple:
-        <strong>emisión = actividad × factor</strong>. La persona usuaria lo ve en la captura, en el
-        resumen y en sus resultados.
+        <strong>emisión = actividad × factor</strong>. La persona usuaria lo ve en la captura y en el
+        resumen.
       </p>
 
       <div class="annotated-screenshot annotated-screenshot--sm">
@@ -457,8 +457,9 @@
       <div class="info-box">
         <span class="material-symbols-rounded">rule</span>
         <span>
-          Para que el factor sea válido, el <strong>desglose por gas debe sumar el valor total</strong>
-          y todos los factores de una misma fuente deben compartir la <strong>misma referencia</strong>.
+          El <strong>desglose por gas es opcional</strong>, pero si lo completas debe sumar el valor
+          total; y todos los factores de una misma fuente deben compartir la
+          <strong>misma referencia</strong>.
         </span>
       </div>
       <footer class="slide__footer">
@@ -510,7 +511,7 @@
       <ul class="annotation-legend cols-3">
         <li><span class="legend-num">1</span><strong>Agregar recomendación:</strong> crea una nueva regla por rubro.</li>
         <li><span class="legend-num">2</span><strong>Rubro:</strong> el sector de la organización.</li>
-        <li><span class="legend-num">3</span><strong>Subrubro:</strong> el subsector; «Todos los subrubros» aplica a todo el rubro.</li>
+        <li><span class="legend-num">3</span><strong>Subrubro:</strong> el subsector; «Todos los subrubros» cubre el rubro completo y, según la configuración, se suma a la regla del subrubro o cede ante ella.</li>
         <li><span class="legend-num">4</span><strong>Subcategorías:</strong> las fuentes que se sugieren y resaltan.</li>
         <li><span class="legend-num">5</span><strong>Acciones:</strong> borrar la recomendación.</li>
       </ul>
@@ -665,7 +666,7 @@
         <li><span class="legend-num">1</span><strong>Total del alcance:</strong> suma de las líneas capturadas.</li>
         <li><span class="legend-num">2</span><strong>Combustible:</strong> el valor de la dimensión que elige la persona.</li>
         <li><span class="legend-num">3</span><strong>Unidad:</strong> una de las unidades aceptadas de la fuente.</li>
-        <li><span class="legend-num">4</span><strong>Factor:</strong> se carga solo según la combinación elegida.</li>
+        <li><span class="legend-num">4</span><strong>Factor:</strong> se carga solo según la combinación elegida, salvo que la persona elija «Factor Propio» u «Otro» en Fuente factor.</li>
         <li><span class="legend-num">5</span><strong>Emisiones:</strong> cantidad × factor, el resultado de la línea.</li>
       </ul>
       <footer class="slide__footer">
