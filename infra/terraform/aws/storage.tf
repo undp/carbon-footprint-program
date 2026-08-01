@@ -37,6 +37,39 @@ resource "aws_s3_bucket_public_access_block" "files" {
   restrict_public_buckets = true
 }
 
+// Deny any non-TLS (plain-HTTP) request to the bucket — the S3 equivalent of the
+// Azure account's supportsHttpsTrafficOnly=true (infra/modules/storage.bicep) and
+// AWS-FSBP control S3.5. Presigned URLs are already HTTPS, so this only closes the
+// door on cleartext access. A Deny-only policy is not "public", so it coexists
+// with the public-access block above.
+data "aws_iam_policy_document" "files_bucket" {
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.files.arn, "${aws_s3_bucket.files.arn}/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "files" {
+  bucket = aws_s3_bucket.files.id
+  policy = data.aws_iam_policy_document.files_bucket.json
+
+  // Apply after the public-access block so PutBucketPolicy is not rejected mid-apply.
+  depends_on = [aws_s3_bucket_public_access_block.files]
+}
+
 // CORS so the browser can PUT/GET presigned URLs directly. Mirrors the corsRules
 // in storage.bicep: methods GET/PUT/HEAD, headers *, max-age 3600, origins = the
 // web origin (+ optional dev origin). Only created when at least one origin is

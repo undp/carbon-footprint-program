@@ -150,6 +150,27 @@ data "aws_iam_policy_document" "web_bucket" {
       values   = [aws_cloudfront_distribution.web.arn]
     }
   }
+
+  // Deny any non-TLS (plain-HTTP) request — mirrors the files bucket and the
+  // Azure account's supportsHttpsTrafficOnly=true. CloudFront reaches S3 over
+  // HTTPS, so this only closes the door on cleartext access.
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.web.arn, "${aws_s3_bucket.web.arn}/*"]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
 }
 
 resource "aws_s3_bucket_policy" "web" {
