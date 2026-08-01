@@ -91,6 +91,10 @@ docker build -f apps/api/Dockerfile -t "$REPO/api:v1" .
 docker push "$REPO/api:v1"
 ```
 
+> **Tags are immutable.** The Artifact Registry repo sets
+> `docker_config.immutable_tags = true`, so a tag cannot be overwritten. Use a
+> **unique tag per build** (`:v2`, a git SHA, …) rather than re-pushing `:v1`.
+
 Then point Cloud Run at it, either by re-applying with the new tag:
 
 ```bash

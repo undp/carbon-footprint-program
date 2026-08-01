@@ -74,6 +74,12 @@ docker build -f apps/api/Dockerfile -t "$ECR_URL:v1" .
 docker push "$ECR_URL:v1"
 ```
 
+> **Tags are immutable.** The ECR repo is created with
+> `image_tag_mutability = "IMMUTABLE"`, so a tag cannot be overwritten. Push a
+> **fresh tag** for each build (`:v2`, a git SHA, …) rather than re-pushing
+> `:v1`. The redeploy path below uses `--force-new-deployment` and does not
+> re-push a tag.
+
 Then either set `api_image = "<ECR_URL>:v1"` in `terraform.tfvars` and
 `terraform apply`, or force the existing service to redeploy:
 

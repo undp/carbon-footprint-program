@@ -5,8 +5,12 @@
 // resulting repo:tag (see README).
 
 resource "aws_ecr_repository" "api" {
-  name                 = "${local.name_prefix}-api"
-  image_tag_mutability = "MUTABLE"
+  name = "${local.name_prefix}-api"
+
+  // Immutable tags: a pushed tag cannot be overwritten, preserving deploy
+  // provenance (supply-chain best practice). Push a unique tag per build — the
+  // README's redeploy path uses `--force-new-deployment`, not a tag re-push.
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
