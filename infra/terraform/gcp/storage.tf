@@ -33,14 +33,17 @@ resource "google_storage_bucket" "files" {
   labels = local.labels
 
   // CORS so the browser can PUT/GET directly against presigned URLs. Mirrors the
-  // corsRules in infra/modules/storage.bicep (GET/PUT/HEAD, headers *, 3600s).
-  // Only emitted when at least one web origin is known.
+  // corsRules in infra/modules/storage.bicep (GET/PUT/HEAD, 3600s). response_header
+  // lists concrete headers rather than "*" — matching the AWS stack (aws/storage.tf):
+  // the browser reads ETag back after a presigned PUT, and a literal "*" is not
+  // reliably honored as a wildcard for Access-Control-Expose-Headers. Only emitted
+  // when at least one web origin is known.
   dynamic "cors" {
     for_each = length(local.web_cors_origins) > 0 ? [1] : []
     content {
       origin          = local.web_cors_origins
       method          = ["GET", "PUT", "HEAD"]
-      response_header = ["*"]
+      response_header = ["ETag", "Content-Length", "Content-Type"]
       max_age_seconds = 3600
     }
   }
