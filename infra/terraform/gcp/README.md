@@ -70,10 +70,13 @@ terraform apply
 `terraform output next_steps` prints the post-apply checklist with your concrete
 resource names filled in.
 
-> **First apply note.** `api_image` defaults to a placeholder that does not
-> exist. The Cloud Run service is created but its first revision cannot pull an
-> image until you build and push one (next section), then set `api_image` and
-> re-apply. This is expected for a fresh project.
+> **First apply note.** `api_image` defaults to Google's public Cloud Run
+> `hello` sample, so the first `terraform apply` **succeeds** — the service comes
+> up serving that placeholder page. Build and push the real API image (next
+> section), set `api_image`, and re-apply to deploy the actual API. (An earlier
+> revision of this stack shipped a non-pullable placeholder that made the first
+> apply fail on Cloud Run's revision-readiness wait; the runnable sample avoids
+> that.)
 
 ---
 

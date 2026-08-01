@@ -91,10 +91,12 @@ variable "db_availability_type" {
 // --------- API / Cloud Run (mirrors infra/modules/appService.bicep) ---------
 variable "api_image" {
   type = string
-  // Placeholder — the image does not exist until you build and push it (see
-  // README). Override with your real Artifact Registry ref before apply.
-  description = "Full Artifact Registry image reference (including tag) for the API container. Override with your pushed image; the placeholder will not deploy."
-  default     = "REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/api:latest"
+  // Runnable placeholder: Google's public Cloud Run "hello" sample. It lets the
+  // FIRST `terraform apply` succeed (the service comes up serving the hello
+  // page) before you have built and pushed the real API image. Override with
+  // your Artifact Registry ref (see README) and re-apply to deploy the API.
+  description = "Full Artifact Registry image reference (including tag) for the API container. Defaults to Google's public Cloud Run 'hello' sample so the first apply succeeds; override with your pushed image and re-apply."
+  default     = "us-docker.pkg.dev/cloudrun/container/hello:latest"
 }
 
 variable "api_cpu" {
