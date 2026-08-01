@@ -16,14 +16,15 @@ const minioEnv = (
 });
 
 describe("storageConfigFromEnv — MinIO credentials", () => {
-  it("parses keyless (both keys absent) with accessKey/secretKey undefined", () => {
+  it("parses keyless (both keys absent) omitting `credentials` entirely", () => {
     const config = storageConfigFromEnv(minioEnv());
     expect(config.provider).toBe(StorageProvider.MINIO);
     if (config.provider !== StorageProvider.MINIO)
       throw new Error("unreachable");
     expect(config.minio.endpoint).toBe("http://minio:9000");
-    expect(config.minio.accessKey).toBeUndefined();
-    expect(config.minio.secretKey).toBeUndefined();
+    // Absent, not present-and-undefined — the keyless config must not carry a
+    // `credentials` key at all.
+    expect("credentials" in config.minio).toBe(false);
   });
 
   it("treats empty-string keys (the docker-compose `${VAR:-}` placeholder) as absent", () => {
@@ -32,18 +33,19 @@ describe("storageConfigFromEnv — MinIO credentials", () => {
     );
     if (config.provider !== StorageProvider.MINIO)
       throw new Error("unreachable");
-    expect(config.minio.accessKey).toBeUndefined();
-    expect(config.minio.secretKey).toBeUndefined();
+    expect("credentials" in config.minio).toBe(false);
   });
 
-  it("keeps both keys when both are present (unchanged keyed behaviour)", () => {
+  it("nests both keys when both are present (unchanged keyed behaviour)", () => {
     const config = storageConfigFromEnv(
       minioEnv({ MINIO_ACCESS_KEY: "ak", MINIO_SECRET_KEY: "sk" })
     );
     if (config.provider !== StorageProvider.MINIO)
       throw new Error("unreachable");
-    expect(config.minio.accessKey).toBe("ak");
-    expect(config.minio.secretKey).toBe("sk");
+    expect(config.minio.credentials).toEqual({
+      accessKey: "ak",
+      secretKey: "sk",
+    });
   });
 
   it("throws when only MINIO_ACCESS_KEY is set (half-configured pair)", () => {

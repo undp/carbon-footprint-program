@@ -21,17 +21,20 @@ export interface AzureStorageConfig {
 export interface MinioStorageConfig {
   endpoint: string;
   /**
-   * Static S3 access key. Optional: when both `accessKey` and `secretKey` are
-   * set, the adapter signs with them (MinIO, on-prem S3, an explicit AWS IAM
-   * key, or Google Cloud Storage's HMAC interoperability keys). When both are
-   * absent, the adapter omits explicit credentials so the AWS SDK v3 default
-   * credential chain (ECS/EKS task role, EC2 instance profile, env vars, SSO,
-   * …) supplies them — the keyless best-practice path on AWS. Enforced
-   * both-or-neither by `storageConfigFromEnv`.
+   * Static S3 credentials. Optional, and nested as a **single object** so a
+   * half-set pair is not representable — the adapter therefore needs no
+   * cross-field guard, and the both-or-neither rule stays a pure env-parsing
+   * concern inside `storageConfigFromEnv`.
+   *
+   * - **Present** → the adapter signs with these keys (MinIO, on-prem S3, an
+   *   explicit AWS IAM key, or Google Cloud Storage's HMAC interoperability
+   *   keys).
+   * - **Omitted** → the adapter omits explicit credentials so the AWS SDK v3
+   *   default credential chain (ECS/EKS task role, EC2 instance profile,
+   *   `AWS_*` env vars, SSO, …) supplies them — the keyless best-practice path
+   *   on AWS.
    */
-  accessKey?: string | undefined;
-  /** Static S3 secret key. Optional, both-or-neither with `accessKey`. */
-  secretKey?: string | undefined;
+  credentials?: { accessKey: string; secretKey: string } | undefined;
   bucket: string;
   region: string;
   forcePathStyle: boolean;
@@ -135,8 +138,11 @@ export function storageConfigFromEnv(
     provider,
     minio: {
       endpoint,
-      accessKey,
-      secretKey,
+      // Spread rather than assign so the keyless config omits `credentials`
+      // entirely instead of carrying a present-but-undefined key.
+      ...(accessKey !== undefined && secretKey !== undefined
+        ? { credentials: { accessKey, secretKey } }
+        : {}),
       // `||` (not `??`) so the empty-string placeholder also defaults.
       bucket: env.MINIO_BUCKET || "files",
       region: env.MINIO_REGION || "us-east-1",

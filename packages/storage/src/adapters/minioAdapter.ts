@@ -217,19 +217,19 @@ export function createMinioAdapter(
     endpoint: config.endpoint,
     region: config.region,
     forcePathStyle: config.forcePathStyle,
-    // When both static keys are present, sign with them (MinIO, on-prem S3,
-    // Google Cloud Storage HMAC keys, or an explicit AWS IAM key). When both
-    // are absent, omit the `credentials` key ENTIRELY — do not pass
+    // When static credentials are configured, sign with them (MinIO, on-prem
+    // S3, Google Cloud Storage HMAC keys, or an explicit AWS IAM key). When
+    // they are absent, omit the `credentials` key ENTIRELY — do not pass
     // `credentials: { accessKeyId: undefined, … }`, which would disable the
     // fallback — so the AWS SDK v3 default credential chain (ECS/EKS task role,
     // EC2 instance profile, env vars, SSO, …) supplies them. That is the
-    // keyless best-practice path on AWS. `storageConfigFromEnv` guarantees
-    // both-or-neither, so the pair is never half-set here.
-    ...(config.accessKey && config.secretKey
+    // keyless best-practice path on AWS. The pair is nested in a single
+    // optional object, so a half-set state cannot reach here.
+    ...(config.credentials
       ? {
           credentials: {
-            accessKeyId: config.accessKey,
-            secretAccessKey: config.secretKey,
+            accessKeyId: config.credentials.accessKey,
+            secretAccessKey: config.credentials.secretKey,
           },
         }
       : {}),

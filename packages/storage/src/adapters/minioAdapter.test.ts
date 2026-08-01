@@ -52,8 +52,11 @@ describe("createMinioAdapter — credential wiring", () => {
     expect("credentials" in s3Config).toBe(false);
   });
 
-  it("passes explicit credentials when both keys are present", () => {
-    createMinioAdapter({ ...baseConfig, accessKey: "ak", secretKey: "sk" });
+  it("passes explicit credentials when static credentials are configured", () => {
+    createMinioAdapter({
+      ...baseConfig,
+      credentials: { accessKey: "ak", secretKey: "sk" },
+    });
 
     const s3Config = capturedConfigs[0];
     expect(s3Config.credentials).toEqual({
