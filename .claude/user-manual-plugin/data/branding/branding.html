@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guía de branding — Manuales Huella Latam (PNUD)</title>
+
+    <!-- Hoja de estilos del manual (fuente de verdad de los componentes) -->
+    <link rel="stylesheet" href="manual.css" />
+
+    <!-- Tipografía de marca + iconografía -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+
+    <!-- Estilos propios de la guía (no forman parte del manual) -->
+    <style>
+      body {
+        background: var(--brand-bg);
+        color: var(--brand-text);
+        line-height: 1.6;
+      }
+
+      .guide-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--brand-primary);
+        color: #fff;
+        padding: 18px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+      }
+      .guide-header__brand {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .guide-header__title {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .guide-header__sub {
+        font-size: 13px;
+        opacity: 0.8;
+      }
+      .guide-nav {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .guide-nav a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .guide-nav a:hover {
+        background: rgba(255, 255, 255, 0.24);
+      }
+
+      .guide-main {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 40px;
+      }
+      .guide-section {
+        margin-bottom: 64px;
+        scroll-margin-top: 88px;
+      }
+      .guide-section > h2 {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--brand-text);
+        margin-bottom: 4px;
+      }
+      .guide-section > h2 .material-symbols-rounded {
+        color: var(--brand-primary);
+        vertical-align: middle;
+        margin-right: 8px;
+        font-size: 26px;
+      }
+      .guide-section__desc {
+        color: var(--brand-text-secondary);
+        font-size: 15px;
+        margin-bottom: 24px;
+        max-width: 720px;
+      }
+      .guide-subtitle {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--brand-text-tertiary);
+        margin: 28px 0 12px;
+      }
+
+      /* Ficha de metadatos de marca */
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .meta-card {
+        background: var(--brand-surface);
+        border: 1px solid var(--brand-grey-300);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .meta-card__label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--brand-text-tertiary);
+        margin-bottom: 6px;
+      }
+      .meta-card__value {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--brand-text);
+      }
+
+      /* Paleta */
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 14px;
+      }
+      .swatch {
+        border: 1px solid var(--brand-grey-300);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--brand-surface);
+      }
+      .swatch__color {
+        height: 72px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .swatch__meta {
+        padding: 8px 12px 10px;
+      }
+      .swatch__name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--brand-text);
+      }
+      .swatch__hex {
+        font-family: "Roboto Mono", monospace;
+        font-size: 12px;
+        color: var(--brand-text-secondary);
+        text-transform: uppercase;
+      }
+      .swatch__var {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--brand-text-tertiary);
+        margin-top: 2px;
+      }
+
+      /* Escala tipográfica */
+      .type-row {
+        display: flex;
+        align-items: baseline;
+        gap: 24px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--brand-grey-200);
+      }
+      .type-row__spec {
+        flex: 0 0 150px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 12px;
+        color: var(--brand-text-tertiary);
+        line-height: 1.5;
+      }
+      .type-row__sample {
+        color: var(--brand-text);
+      }
+
+      /* Estados */
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px 32px;
+        background: var(--brand-surface);
+        border: 1px solid var(--brand-grey-300);
+        border-radius: 12px;
+        padding: 20px 24px;
+      }
+      .status-row span.item {
+        font-size: 14px;
+        color: var(--brand-text);
+      }
+
+      /* Cards para elementos sueltos */
+      .element-card {
+        background: var(--brand-surface);
+        border: 1px solid var(--brand-grey-300);
+        border-radius: 12px;
+        padding: 24px 28px;
+        margin-bottom: 20px;
+      }
+      .element-card > .element-card__tag {
+        display: inline-block;
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--brand-primary);
+        background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+      }
+
+      /* Previsualización de slides a escala (1440×810 → 0.6667) */
+      .example {
+        margin: 0 0 40px;
+      }
+      .example figcaption {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--brand-text);
+        margin-bottom: 4px;
+      }
+      .example figcaption span {
+        font-family: "Roboto Mono", monospace;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--brand-text-tertiary);
+        margin-left: 8px;
+      }
+      .slide-preview {
+        width: 960px;
+        max-width: 100%;
+        height: 540px;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid var(--brand-grey-300);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.12);
+      }
+      .slide-stage {
+        width: 1440px;
+        height: 810px;
+        transform: scale(0.66667);
+        transform-origin: top left;
+      }
+      /* fija la altura del slide dentro del stage (anula min-height:100vh) */
+      .slide-preview .slide-stage .slide {
+        min-height: 810px;
+        height: 810px;
+      }
+
+      /* mockup de app reutilizable */
+      .mock {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ================= HEADER / NAV ================= -->
+    <header class="guide-header">
+      <div class="guide-header__brand">
+        <span class="guide-header__title">Guía de branding · Manuales</span>
+        <span class="guide-header__sub">Huella Latam · PNUD</span>
+      </div>
+      <nav class="guide-nav">
+        <a href="#marca">Marca</a>
+        <a href="#paleta">Paleta</a>
+        <a href="#tipografia">Tipografía</a>
+        <a href="#estados">Estados</a>
+        <a href="#elementos">Elementos</a>
+        <a href="#slides">Slides</a>
+      </nav>
+    </header>
+
+    <main class="guide-main">
+      <!-- ================= MARCA ================= -->
+      <section id="marca" class="guide-section">
+        <h2><span class="material-symbols-rounded">badge</span>Marca</h2>
+        <p class="guide-section__desc">
+          Identidad aplicada a los manuales de usuario en formato slide 16:9. Los
+          valores derivan del theme de la aplicación (MUI + Tailwind) y del logo.
+        </p>
+        <div class="meta-grid">
+          <div class="meta-card">
+            <div class="meta-card__label">Aplicación</div>
+            <div class="meta-card__value">Huella Latam</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-card__label">Organización</div>
+            <div class="meta-card__value">PNUD</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-card__label">Idioma</div>
+            <div class="meta-card__value">Español neutro (LATAM)</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-card__label">Público</div>
+            <div class="meta-card__value">Usuarios finales</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-card__label">Color primario</div>
+            <div class="meta-card__value">#006E4D</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-card__label">Tipografía</div>
+            <div class="meta-card__value">Roboto</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PALETA ================= -->
+      <section id="paleta" class="guide-section">
+        <h2><span class="material-symbols-rounded">palette</span>Paleta</h2>
+        <p class="guide-section__desc">
+          Todos los colores del manual son tokens <code>--brand-*</code>. Los
+          componentes nunca usan hex directos (salvo blanco puro sobre fondos de marca).
+        </p>
+
+        <div class="guide-subtitle">Colores de marca</div>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch__color" style="background: #006e4d"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Primario</div>
+              <div class="swatch__hex">#006E4D</div>
+              <div class="swatch__var">--brand-primary</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #004d35"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Primario oscuro</div>
+              <div class="swatch__hex">#004D35</div>
+              <div class="swatch__var">--brand-primary-dark</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #338b70"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Primario claro</div>
+              <div class="swatch__hex">#338B70</div>
+              <div class="swatch__var">--brand-primary-light</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #63e4cf"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Acento (logo)</div>
+              <div class="swatch__hex">#63E4CF</div>
+              <div class="swatch__var">referencia · no token</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-subtitle">Colores base</div>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch__color" style="background: #414046"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Texto</div>
+              <div class="swatch__hex">#414046</div>
+              <div class="swatch__var">--brand-text</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #8d8c90"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Texto secundario</div>
+              <div class="swatch__hex">#8D8C90</div>
+              <div class="swatch__var">--brand-text-secondary</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #afafb1"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Texto terciario</div>
+              <div class="swatch__hex">#AFAFB1</div>
+              <div class="swatch__var">--brand-text-tertiary</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #f9f9f9"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Fondo</div>
+              <div class="swatch__hex">#F9F9F9</div>
+              <div class="swatch__var">--brand-bg</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #ffffff"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Superficie</div>
+              <div class="swatch__hex">#FFFFFF</div>
+              <div class="swatch__var">--brand-surface</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-subtitle">Anotación</div>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch__color" style="background: #d32f2f"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Anotación (callouts)</div>
+              <div class="swatch__hex">#D32F2F</div>
+              <div class="swatch__var">--brand-annotation-red</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #006e4d"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Anotación alt.</div>
+              <div class="swatch__hex">#006E4D</div>
+              <div class="swatch__var">--brand-annotation-orange</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-subtitle">Escala de grises</div>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch__color" style="background: #f5f5f5"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 100</div>
+              <div class="swatch__hex">#F5F5F5</div>
+              <div class="swatch__var">--brand-grey-100</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #eeeeee"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 200</div>
+              <div class="swatch__hex">#EEEEEE</div>
+              <div class="swatch__var">--brand-grey-200</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #e0e0e0"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 300</div>
+              <div class="swatch__hex">#E0E0E0</div>
+              <div class="swatch__var">--brand-grey-300</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #bdbdbd"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 400</div>
+              <div class="swatch__hex">#BDBDBD</div>
+              <div class="swatch__var">--brand-grey-400</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #9e9e9e"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 500</div>
+              <div class="swatch__hex">#9E9E9E</div>
+              <div class="swatch__var">--brand-grey-500</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #757575"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 600</div>
+              <div class="swatch__hex">#757575</div>
+              <div class="swatch__var">--brand-grey-600</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #424242"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 800</div>
+              <div class="swatch__hex">#424242</div>
+              <div class="swatch__var">--brand-grey-800</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #212121"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Grey 900</div>
+              <div class="swatch__hex">#212121</div>
+              <div class="swatch__var">--brand-grey-900</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TIPOGRAFÍA ================= -->
+      <section id="tipografia" class="guide-section">
+        <h2><span class="material-symbols-rounded">text_fields</span>Tipografía</h2>
+        <p class="guide-section__desc">
+          Familia única: <strong>Roboto</strong>
+          (<code>'Roboto', 'Helvetica', 'Arial', sans-serif</code>). Escala usada en
+          los slides del manual.
+        </p>
+
+        <div class="type-row">
+          <div class="type-row__spec">Portada<br />56px · 700</div>
+          <div class="type-row__sample" style="font-size: 56px; font-weight: 700; line-height: 1.1">
+            Inventario de carbono
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__spec">Título divisor<br />42px · 600</div>
+          <div class="type-row__sample" style="font-size: 42px; font-weight: 600">
+            Registro de emisiones
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__spec">Título de sección<br />36px · 700</div>
+          <div class="type-row__sample" style="font-size: 36px; font-weight: 700">
+            Objetivos del módulo
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__spec">Título de contenido<br />32px · 700</div>
+          <div class="type-row__sample" style="font-size: 32px; font-weight: 700">
+            Panel del inventario
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__spec">Cuerpo<br />17px · 400</div>
+          <div class="type-row__sample" style="font-size: 17px; font-weight: 400">
+            Texto de descripción de una slide de contenido. Usa
+            <strong>negritas</strong> para resaltar términos clave.
+          </div>
+        </div>
+        <div class="type-row">
+          <div class="type-row__spec">Leyenda / footer<br />13px · 400</div>
+          <div class="type-row__sample" style="font-size: 13px; font-weight: 400; color: var(--brand-text-secondary)">
+            Etiqueta de anotación, texto del footer y notas al pie.
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ESTADOS ================= -->
+      <section id="estados" class="guide-section">
+        <h2><span class="material-symbols-rounded">toggle_on</span>Colores de estado</h2>
+        <p class="guide-section__desc">
+          Puntos de estado (<code>.status-dot</code>) y colores semánticos para
+          ciclos de vida y estados de la aplicación.
+        </p>
+        <div class="status-row">
+          <span class="item"><span class="status-dot status-dot--success"></span>Éxito · --brand-success</span>
+          <span class="item"><span class="status-dot status-dot--info"></span>Información · --brand-info</span>
+          <span class="item"><span class="status-dot status-dot--primary"></span>Primario · --brand-primary</span>
+          <span class="item"><span class="status-dot status-dot--error"></span>Error · --brand-error</span>
+          <span class="item"><span class="status-dot status-dot--inactive"></span>Inactivo · --brand-grey-500</span>
+        </div>
+
+        <div class="guide-subtitle">Semánticos</div>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch__color" style="background: #2e7d32"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Éxito</div>
+              <div class="swatch__hex">#2E7D32</div>
+              <div class="swatch__var">--brand-success</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #ed6c02"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Advertencia</div>
+              <div class="swatch__hex">#ED6C02</div>
+              <div class="swatch__var">--brand-warning</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #d32f2f"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Error</div>
+              <div class="swatch__hex">#D32F2F</div>
+              <div class="swatch__var">--brand-error</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch__color" style="background: #0288d1"></div>
+            <div class="swatch__meta">
+              <div class="swatch__name">Información</div>
+              <div class="swatch__hex">#0288D1</div>
+              <div class="swatch__var">--brand-info</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ELEMENTOS ================= -->
+      <section id="elementos" class="guide-section">
+        <h2><span class="material-symbols-rounded">widgets</span>Elementos</h2>
+        <p class="guide-section__desc">
+          Componentes que se insertan dentro de las slides de contenido, mostrados a
+          tamaño real.
+        </p>
+
+        <div class="element-card">
+          <span class="element-card__tag">.info-box</span>
+          <div class="info-box">
+            <span class="material-symbols-rounded">info</span>
+            <span
+              >El inventario debe corresponder a un período anual completo antes de
+              enviarse a verificación.</span
+            >
+          </div>
+        </div>
+
+        <div class="element-card">
+          <span class="element-card__tag">.tip-box</span>
+          <div class="tip-box">
+            <span class="material-symbols-rounded">lightbulb</span>
+            <span
+              >Puedes duplicar el inventario del año anterior para acelerar la carga
+              de fuentes recurrentes.</span
+            >
+          </div>
+        </div>
+
+        <div class="element-card">
+          <span class="element-card__tag">.feature-list</span>
+          <ul class="feature-list">
+            <li>
+              <span class="material-symbols-rounded">bolt</span>
+              <span><strong>Energía:</strong> consumo eléctrico y combustibles de fuentes fijas.</span>
+            </li>
+            <li>
+              <span class="material-symbols-rounded">local_shipping</span>
+              <span><strong>Transporte:</strong> flota propia y viajes corporativos.</span>
+            </li>
+            <li>
+              <span class="material-symbols-rounded">delete</span>
+              <span><strong>Residuos:</strong> disposición y tratamiento de residuos.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="element-card">
+          <span class="element-card__tag">.data-table · .status-dot</span>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Etiqueta</th>
+                <th>Color</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="status-dot status-dot--inactive"></span>Borrador</td>
+                <td>Sin enviar</td>
+                <td>Gris</td>
+                <td>Aún no ha sido enviado a revisión.</td>
+              </tr>
+              <tr>
+                <td><span class="status-dot status-dot--primary"></span>Enviado</td>
+                <td>Recibido</td>
+                <td>Verde marca</td>
+                <td>El inventario fue enviado y está en cola.</td>
+              </tr>
+              <tr>
+                <td><span class="status-dot status-dot--info"></span>En revisión</td>
+                <td>En proceso</td>
+                <td>Azul</td>
+                <td>Un verificador está revisando el inventario.</td>
+              </tr>
+              <tr>
+                <td><span class="status-dot status-dot--success"></span>Aprobado</td>
+                <td>Reconocido</td>
+                <td>Verde</td>
+                <td>El inventario fue verificado y aprobado.</td>
+              </tr>
+              <tr>
+                <td><span class="status-dot status-dot--error"></span>Rechazado</td>
+                <td>Con observaciones</td>
+                <td>Rojo</td>
+                <td>El inventario requiere correcciones.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="element-card">
+          <span class="element-card__tag">.annotated-screenshot · .callout-num · .annotation-legend</span>
+          <div class="annotated-screenshot" style="max-width: 620px">
+            <img src="screenshots/transparencia.png" alt="Vista pública de Transparencia" />
+            <span class="callout-num" style="top: 19%; left: 9%">1</span>
+            <span class="callout-num" style="top: 19%; left: 74%">2</span>
+            <span class="callout-num" style="top: 30%; left: 8%">3</span>
+          </div>
+          <ul class="annotation-legend" style="max-width: 620px; margin-left: auto; margin-right: auto">
+            <li><span class="legend-num">1</span><strong>Título y ayuda:</strong> contexto de la vista.</li>
+            <li><span class="legend-num">2</span><strong>Búsqueda:</strong> filtra por organización o rubro.</li>
+            <li><span class="legend-num">3</span><strong>Tabla de organizaciones:</strong> resultados y reconocimiento.</li>
+          </ul>
+        </div>
+
+        <div class="element-card">
+          <span class="element-card__tag">.screenshot-placeholder</span>
+          <div class="screenshot-placeholder">
+            <span class="material-symbols-rounded">image</span>
+            <div class="screenshot-placeholder__label">Vista del formulario de captura</div>
+            <div class="screenshot-placeholder__filename">captura-fuente.png</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SLIDES ================= -->
+      <section id="slides" class="guide-section">
+        <h2><span class="material-symbols-rounded">slideshow</span>Slides</h2>
+        <p class="guide-section__desc">
+          Cada tipo de slide del manual, renderizado a escala (1440×810 → 66.7%). El
+          footer con número de página aparece en todas.
+        </p>
+
+        <!-- COVER -->
+        <figure class="example">
+          <figcaption>Portada <span>.slide--cover</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--cover">
+                <div class="module-icon-bg">
+                  <span class="material-symbols-rounded">eco</span>
+                </div>
+                <div class="cover-content">
+                  <div class="cover-text">
+                    <div class="cover-logo">PNUD</div>
+                    <div class="cover-subtitle">Manual de usuario</div>
+                    <h1 class="cover-title">Inventario de carbono</h1>
+                    <div class="cover-app-name">Huella Latam</div>
+                    <div class="cover-version">versión 1.0 &nbsp;|&nbsp; julio 2026</div>
+                  </div>
+                  <div class="cover-mockup">
+                    <div class="cover-mockup-frame">
+                      <div class="cover-mockup-screen">
+                        <img src="screenshots/simulador.png" alt="Simulador de huella — perfilamiento" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- OBJECTIVES -->
+        <figure class="example">
+          <figcaption>Objetivos <span>.slide--objectives</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--objectives">
+                <h2 class="objectives-title">Objetivos del módulo de Inventario de carbono</h2>
+                <div class="objectives-list">
+                  <div class="objective-item">
+                    <div class="objective-icon"><span class="material-symbols-rounded">add_chart</span></div>
+                    <div class="objective-text">
+                      <h3>Registrar emisiones</h3>
+                      <p>Captura las emisiones de tus fuentes por categoría y período.</p>
+                    </div>
+                  </div>
+                  <div class="objective-item">
+                    <div class="objective-icon"><span class="material-symbols-rounded">calculate</span></div>
+                    <div class="objective-text">
+                      <h3>Calcular tu huella</h3>
+                      <p>Convierte la actividad en toneladas de CO₂e con factores oficiales.</p>
+                    </div>
+                  </div>
+                  <div class="objective-item">
+                    <div class="objective-icon"><span class="material-symbols-rounded">verified</span></div>
+                    <div class="objective-text">
+                      <h3>Verificar y reconocer</h3>
+                      <p>Envía tu inventario a revisión y obtén el reconocimiento correspondiente.</p>
+                    </div>
+                  </div>
+                </div>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- INDEX -->
+        <figure class="example">
+          <figcaption>Índice <span>.slide--index</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--index">
+                <h2 class="index-title">Índice de contenidos</h2>
+                <div class="index-columns">
+                  <div class="index-item"><span class="index-item-title is-section">Introducción</span><span class="index-item-page">2</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Objetivos</span><span class="index-item-page">3</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Requisitos previos</span><span class="index-item-page">4</span></div>
+                  <div class="index-item"><span class="index-item-title is-section">Registro de emisiones</span><span class="index-item-page">5</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Fuentes fijas</span><span class="index-item-page">6</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Fuentes móviles</span><span class="index-item-page">7</span></div>
+                  <div class="index-item"><span class="index-item-title is-section">Cálculo</span><span class="index-item-page">8</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Factores de emisión</span><span class="index-item-page">9</span></div>
+                  <div class="index-item"><span class="index-item-title is-section">Verificación</span><span class="index-item-page">11</span></div>
+                  <div class="index-item"><span class="index-item-title index-bullet">Estados del inventario</span><span class="index-item-page">12</span></div>
+                </div>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- DIVIDER -->
+        <figure class="example">
+          <figcaption>Separador de sección <span>.slide--divider</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--divider">
+                <div class="module-icon-bg"><span class="material-symbols-rounded">eco</span></div>
+                <div class="divider-icon-wrap"><span class="material-symbols-rounded">add_chart</span></div>
+                <h2 class="divider-title">Registro de emisiones</h2>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- CONTENT: annotated -->
+        <figure class="example">
+          <figcaption>Contenido con screenshot anotado <span>.slide--content · .annotated-screenshot</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--content">
+                <h2 class="content-title">Perfilamiento de la organización</h2>
+                <p class="content-description">
+                  El simulador parte por el <strong>perfilamiento</strong>: con el año, el
+                  <strong>rubro</strong> y el tamaño, la plataforma sugiere las fuentes y
+                  actividades más relevantes.
+                </p>
+                <div class="annotated-screenshot">
+                  <img src="screenshots/simulador.png" alt="Simulador — paso de perfilamiento" />
+                  <span class="callout-num" style="top: 18%; left: 12%">1</span>
+                  <span class="callout-num" style="top: 30%; left: 26%">2</span>
+                  <span class="callout-num" style="top: 84%; left: 20%">3</span>
+                </div>
+                <ul class="annotation-legend cols-3">
+                  <li><span class="legend-num">1</span><strong>Paso y progreso:</strong> en qué etapa del simulador estás.</li>
+                  <li><span class="legend-num">2</span><strong>Datos de la organización:</strong> año, rubro y tamaño.</li>
+                  <li><span class="legend-num">3</span><strong>Ayuda contextual:</strong> explica cada campo cuando lo necesitas.</li>
+                </ul>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- CONTENT: split -->
+        <figure class="example">
+          <figcaption>Contenido con split texto + visual <span>.content-split</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--content">
+                <h2 class="content-title">Transparencia pública</h2>
+                <div class="content-split">
+                  <div class="content-split__text">
+                    <p class="content-description">
+                      Cualquier persona puede consultar las organizaciones que miden, verifican
+                      y reducen su huella de carbono.
+                    </p>
+                    <ul class="feature-list">
+                      <li><span class="material-symbols-rounded">search</span><span><strong>Búsqueda:</strong> por organización, rubro o sub-rubro.</span></li>
+                      <li><span class="material-symbols-rounded">calendar_month</span><span><strong>Filtro por año:</strong> acota el período de medición.</span></li>
+                      <li><span class="material-symbols-rounded">workspace_premium</span><span><strong>Reconocimiento:</strong> el tipo alcanzado por cada organización.</span></li>
+                    </ul>
+                    <div class="info-box">
+                      <span class="material-symbols-rounded">info</span>
+                      <span>La vista de Transparencia es pública y no requiere iniciar sesión.</span>
+                    </div>
+                  </div>
+                  <div class="content-split__visual">
+                    <div class="screenshot-container">
+                      <img src="screenshots/transparencia.png" alt="Vista pública de Transparencia" />
+                    </div>
+                  </div>
+                </div>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+        <!-- CONTENT: table -->
+        <figure class="example">
+          <figcaption>Contenido con tabla de estados <span>.data-table · .status-dot</span></figcaption>
+          <div class="slide-preview">
+            <div class="slide-stage format-slide">
+              <section class="slide slide--content">
+                <h2 class="content-title">Estados del inventario</h2>
+                <p class="content-description">
+                  El inventario pasa por distintos estados desde su creación hasta el
+                  reconocimiento.
+                </p>
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Estado</th><th>Etiqueta</th><th>Color</th><th>Descripción</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><span class="status-dot status-dot--inactive"></span>Borrador</td><td>Sin enviar</td><td>Gris</td><td>Aún no ha sido enviado a revisión.</td></tr>
+                    <tr><td><span class="status-dot status-dot--primary"></span>Enviado</td><td>Recibido</td><td>Verde marca</td><td>El inventario fue enviado y está en cola.</td></tr>
+                    <tr><td><span class="status-dot status-dot--info"></span>En revisión</td><td>En proceso</td><td>Azul</td><td>Un verificador está revisando el inventario.</td></tr>
+                    <tr><td><span class="status-dot status-dot--success"></span>Aprobado</td><td>Reconocido</td><td>Verde</td><td>El inventario fue verificado y aprobado.</td></tr>
+                    <tr><td><span class="status-dot status-dot--error"></span>Rechazado</td><td>Con observaciones</td><td>Rojo</td><td>El inventario requiere correcciones.</td></tr>
+                  </tbody>
+                </table>
+                <footer class="slide__footer">
+                  <span class="slide__footer-left">Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span>
+                  <span class="slide__footer-right">Página </span>
+                </footer>
+              </section>
+            </div>
+          </div>
+        </figure>
+
+      </section>
+    </main>
+  </body>
+</html>

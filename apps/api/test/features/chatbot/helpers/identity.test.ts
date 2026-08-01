@@ -142,9 +142,11 @@ describe("baseCookieOptions", () => {
 
   it("uses SameSite=None/Secure cookies in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    // Disable the chatbot so re-parsing the env under prod doesn't trip the
-    // mock-LLM / COOKIE_SECRET boot guards — this test only cares about IS_PROD.
+    // Disable the chatbot and set a valid CORS origin so re-parsing the env
+    // under prod doesn't trip the mock-LLM / COOKIE_SECRET / ALLOWED_ORIGIN
+    // boot guards — this test only cares about IS_PROD.
     vi.stubEnv("CHATBOT_ENABLED", "false");
+    vi.stubEnv("ALLOWED_ORIGIN", "https://app.example.cl");
     vi.resetModules();
     const mod = await import("@/features/chatbot/helpers/identity.js");
 

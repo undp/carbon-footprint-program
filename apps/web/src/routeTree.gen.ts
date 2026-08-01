@@ -9,83 +9,63 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TransparencyRouteImport } from './routes/transparency'
-import { Route as CarbonInventoryRouteImport } from './routes/carbon-inventory'
-import { Route as CapinautRouteImport } from './routes/capinaut'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as CapinautRouteImport } from './routes/capinaut'
+import { Route as CarbonInventoryRouteImport } from './routes/carbon-inventory'
+import { Route as TransparencyRouteImport } from './routes/transparency'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
-import { Route as AppShellRouteImport } from './routes/app/_shell'
-import { Route as AppFullscreenRouteImport } from './routes/app/_fullscreen'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminUnitsRouteImport } from './routes/admin/units'
-import { Route as AdminSubsectorsRouteImport } from './routes/admin/subsectors'
-import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
-import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
-import { Route as AdminSectorsRouteImport } from './routes/admin/sectors'
-import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
-import { Route as AdminReductionPlanInitiativesRouteImport } from './routes/admin/reduction-plan-initiatives'
-import { Route as AdminRateMeasurementUnitsRouteImport } from './routes/admin/rate-measurement-units'
-import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
-import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
-import { Route as AdminOrganizationSizesRouteImport } from './routes/admin/organization-sizes'
-import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
-import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
-import { Route as AdminMagnitudesRouteImport } from './routes/admin/magnitudes'
-import { Route as AdminExplanationsRouteImport } from './routes/admin/explanations'
-import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
-import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
-import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
-import { Route as AdminChangeHistoryRouteImport } from './routes/admin/change-history'
-import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
+import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminChangeHistoryRouteImport } from './routes/admin/change-history'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
+import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
+import { Route as AdminExplanationsRouteImport } from './routes/admin/explanations'
+import { Route as AdminMagnitudesRouteImport } from './routes/admin/magnitudes'
+import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
+import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
+import { Route as AdminOrganizationSizesRouteImport } from './routes/admin/organization-sizes'
+import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
+import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
+import { Route as AdminRateMeasurementUnitsRouteImport } from './routes/admin/rate-measurement-units'
+import { Route as AdminReductionPlanInitiativesRouteImport } from './routes/admin/reduction-plan-initiatives'
+import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
+import { Route as AdminSectorsRouteImport } from './routes/admin/sectors'
+import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
+import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
+import { Route as AdminSubsectorsRouteImport } from './routes/admin/subsectors'
+import { Route as AdminUnitsRouteImport } from './routes/admin/units'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AppFullscreenRouteImport } from './routes/app/_fullscreen'
+import { Route as AppShellRouteImport } from './routes/app/_shell'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
 import { Route as AppShellIndexRouteImport } from './routes/app/_shell/index'
-import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
-import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
-import { Route as CarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/carbon-inventory/$inventoryId/emission-results'
-import { Route as CarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/carbon-inventory/$inventoryId/emission-capture'
-import { Route as CarbonInventoryInventoryIdClaimRouteImport } from './routes/carbon-inventory/$inventoryId/claim'
-import { Route as CarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/carbon-inventory/$inventoryId/business-profiling'
-import { Route as AppShellReductionProjectsRouteImport } from './routes/app/_shell/reduction-projects'
-import { Route as AppShellReductionPlanRouteImport } from './routes/app/_shell/reduction-plan'
-import { Route as AppShellRecognitionsRouteImport } from './routes/app/_shell/recognitions'
-import { Route as AppShellMyOrganizationRouteImport } from './routes/app/_shell/my-organization'
-import { Route as AppShellHomeRouteImport } from './routes/app/_shell/home'
 import { Route as AppShellCarbonInventoriesRouteImport } from './routes/app/_shell/carbon-inventories'
+import { Route as AppShellHomeRouteImport } from './routes/app/_shell/home'
+import { Route as AppShellMyOrganizationRouteImport } from './routes/app/_shell/my-organization'
+import { Route as AppShellRecognitionsRouteImport } from './routes/app/_shell/recognitions'
+import { Route as AppShellReductionPlanRouteImport } from './routes/app/_shell/reduction-plan'
+import { Route as AppShellReductionProjectsRouteImport } from './routes/app/_shell/reduction-projects'
+import { Route as CarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/carbon-inventory/$inventoryId/business-profiling'
+import { Route as CarbonInventoryInventoryIdClaimRouteImport } from './routes/carbon-inventory/$inventoryId/claim'
+import { Route as CarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/carbon-inventory/$inventoryId/emission-capture'
+import { Route as CarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/carbon-inventory/$inventoryId/emission-results'
+import { Route as CarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/carbon-inventory/$inventoryId/emission-summary'
+import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
+import { Route as AppFullscreenReductionProjectsIdRouteImport } from './routes/app/_fullscreen/reduction-projects/$id'
+import { Route as AppFullscreenReductionProjectsNewRouteImport } from './routes/app/_fullscreen/reduction-projects/new'
 import { Route as AppShellReductionProjectsIndexRouteImport } from './routes/app/_shell/reduction-projects/index'
 import { Route as AppShellUserFormRouteImport } from './routes/app/_shell/user/form'
-import { Route as AppFullscreenReductionProjectsNewRouteImport } from './routes/app/_fullscreen/reduction-projects/new'
-import { Route as AppFullscreenReductionProjectsIdRouteImport } from './routes/app/_fullscreen/reduction-projects/$id'
-import { Route as AppFullscreenReductionProjectsIdEditRouteImport } from './routes/app/_fullscreen/reduction-projects/$id/edit'
 import { Route as AppFullscreenReductionProjectsIdDetailsRouteImport } from './routes/app/_fullscreen/reduction-projects/$id/details'
+import { Route as AppFullscreenReductionProjectsIdEditRouteImport } from './routes/app/_fullscreen/reduction-projects/$id/edit'
 
-const TransparencyRoute = TransparencyRouteImport.update({
-  id: '/transparency',
-  path: '/transparency',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CarbonInventoryRoute = CarbonInventoryRouteImport.update({
-  id: '/carbon-inventory',
-  path: '/carbon-inventory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CapinautRoute = CapinautRouteImport.update({
-  id: '/capinaut',
-  path: '/capinaut',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -93,47 +73,126 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CarbonInventoryIndexRoute = CarbonInventoryIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CarbonInventoryRoute,
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CapinautRoute = CapinautRouteImport.update({
+  id: '/capinaut',
+  path: '/capinaut',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarbonInventoryRoute = CarbonInventoryRouteImport.update({
+  id: '/carbon-inventory',
+  path: '/carbon-inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransparencyRoute = TransparencyRouteImport.update({
+  id: '/transparency',
+  path: '/transparency',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppShellRoute = AppShellRouteImport.update({
-  id: '/_shell',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppFullscreenRoute = AppFullscreenRouteImport.update({
-  id: '/_fullscreen',
-  getParentRoute: () => AppRoute,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
+const AdminBadgesRoute = AdminBadgesRouteImport.update({
+  id: '/badges',
+  path: '/badges',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminUnitsRoute = AdminUnitsRouteImport.update({
-  id: '/units',
-  path: '/units',
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminSubsectorsRoute = AdminSubsectorsRouteImport.update({
-  id: '/subsectors',
-  path: '/subsectors',
+const AdminChangeHistoryRoute = AdminChangeHistoryRouteImport.update({
+  id: '/change-history',
+  path: '/change-history',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDimensionsRoute = AdminDimensionsRouteImport.update({
+  id: '/dimensions',
+  path: '/dimensions',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
+  id: '/emission-factors',
+  path: '/emission-factors',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminExplanationsRoute = AdminExplanationsRouteImport.update({
+  id: '/explanations',
+  path: '/explanations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMagnitudesRoute = AdminMagnitudesRouteImport.update({
+  id: '/magnitudes',
+  path: '/magnitudes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMainActivitiesRoute = AdminMainActivitiesRouteImport.update({
+  id: '/main-activities',
+  path: '/main-activities',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
+  id: '/methodologies',
+  path: '/methodologies',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrganizationSizesRoute = AdminOrganizationSizesRouteImport.update({
+  id: '/organization-sizes',
+  path: '/organization-sizes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminParametersRoute = AdminParametersRouteImport.update({
+  id: '/parameters',
+  path: '/parameters',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRateMeasurementUnitsRoute =
+  AdminRateMeasurementUnitsRouteImport.update({
+    id: '/rate-measurement-units',
+    path: '/rate-measurement-units',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminReductionPlanInitiativesRoute =
+  AdminReductionPlanInitiativesRouteImport.update({
+    id: '/reduction-plan-initiatives',
+    path: '/reduction-plan-initiatives',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminRequestsRoute = AdminRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSectorsRoute = AdminSectorsRouteImport.update({
+  id: '/sectors',
+  path: '/sectors',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
+  id: '/subcategories',
+  path: '/subcategories',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSubcategoryRecommendationsRoute =
@@ -142,125 +201,80 @@ const AdminSubcategoryRecommendationsRoute =
     path: '/subcategory-recommendations',
     getParentRoute: () => AdminRoute,
   } as any)
-const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
-  id: '/subcategories',
-  path: '/subcategories',
+const AdminSubsectorsRoute = AdminSubsectorsRouteImport.update({
+  id: '/subsectors',
+  path: '/subsectors',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminSectorsRoute = AdminSectorsRouteImport.update({
-  id: '/sectors',
-  path: '/sectors',
+const AdminUnitsRoute = AdminUnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminRequestsRoute = AdminRequestsRouteImport.update({
-  id: '/requests',
-  path: '/requests',
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminReductionPlanInitiativesRoute =
-  AdminReductionPlanInitiativesRouteImport.update({
-    id: '/reduction-plan-initiatives',
-    path: '/reduction-plan-initiatives',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminRateMeasurementUnitsRoute =
-  AdminRateMeasurementUnitsRouteImport.update({
-    id: '/rate-measurement-units',
-    path: '/rate-measurement-units',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminParametersRoute = AdminParametersRouteImport.update({
-  id: '/parameters',
-  path: '/parameters',
-  getParentRoute: () => AdminRoute,
+const AppFullscreenRoute = AppFullscreenRouteImport.update({
+  id: '/_fullscreen',
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
-  id: '/organizations',
-  path: '/organizations',
-  getParentRoute: () => AdminRoute,
+const AppShellRoute = AppShellRouteImport.update({
+  id: '/_shell',
+  getParentRoute: () => AppRoute,
 } as any)
-const AdminOrganizationSizesRoute = AdminOrganizationSizesRouteImport.update({
-  id: '/organization-sizes',
-  path: '/organization-sizes',
-  getParentRoute: () => AdminRoute,
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
-  id: '/methodologies',
-  path: '/methodologies',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMainActivitiesRoute = AdminMainActivitiesRouteImport.update({
-  id: '/main-activities',
-  path: '/main-activities',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMagnitudesRoute = AdminMagnitudesRouteImport.update({
-  id: '/magnitudes',
-  path: '/magnitudes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminExplanationsRoute = AdminExplanationsRouteImport.update({
-  id: '/explanations',
-  path: '/explanations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
-  id: '/emission-factors',
-  path: '/emission-factors',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDimensionsRoute = AdminDimensionsRouteImport.update({
-  id: '/dimensions',
-  path: '/dimensions',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminChangeHistoryRoute = AdminChangeHistoryRouteImport.update({
-  id: '/change-history',
-  path: '/change-history',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminBadgesRoute = AdminBadgesRouteImport.update({
-  id: '/badges',
-  path: '/badges',
-  getParentRoute: () => AdminRoute,
+const CarbonInventoryIndexRoute = CarbonInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CarbonInventoryRoute,
 } as any)
 const AppShellIndexRoute = AppShellIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppShellRoute,
 } as any)
-const CarbonInventoryInventoryIdSubcategoryPreselectionRoute =
-  CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
-    id: '/$inventoryId/subcategory-preselection',
-    path: '/$inventoryId/subcategory-preselection',
-    getParentRoute: () => CarbonInventoryRoute,
+const AppShellCarbonInventoriesRoute =
+  AppShellCarbonInventoriesRouteImport.update({
+    id: '/carbon-inventories',
+    path: '/carbon-inventories',
+    getParentRoute: () => AppShellRoute,
   } as any)
-const CarbonInventoryInventoryIdEmissionSummaryRoute =
-  CarbonInventoryInventoryIdEmissionSummaryRouteImport.update({
-    id: '/$inventoryId/emission-summary',
-    path: '/$inventoryId/emission-summary',
-    getParentRoute: () => CarbonInventoryRoute,
+const AppShellHomeRoute = AppShellHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AppShellRoute,
+} as any)
+const AppShellMyOrganizationRoute = AppShellMyOrganizationRouteImport.update({
+  id: '/my-organization',
+  path: '/my-organization',
+  getParentRoute: () => AppShellRoute,
+} as any)
+const AppShellRecognitionsRoute = AppShellRecognitionsRouteImport.update({
+  id: '/recognitions',
+  path: '/recognitions',
+  getParentRoute: () => AppShellRoute,
+} as any)
+const AppShellReductionPlanRoute = AppShellReductionPlanRouteImport.update({
+  id: '/reduction-plan',
+  path: '/reduction-plan',
+  getParentRoute: () => AppShellRoute,
+} as any)
+const AppShellReductionProjectsRoute =
+  AppShellReductionProjectsRouteImport.update({
+    id: '/reduction-projects',
+    path: '/reduction-projects',
+    getParentRoute: () => AppShellRoute,
   } as any)
-const CarbonInventoryInventoryIdEmissionResultsRoute =
-  CarbonInventoryInventoryIdEmissionResultsRouteImport.update({
-    id: '/$inventoryId/emission-results',
-    path: '/$inventoryId/emission-results',
-    getParentRoute: () => CarbonInventoryRoute,
-  } as any)
-const CarbonInventoryInventoryIdEmissionCaptureRoute =
-  CarbonInventoryInventoryIdEmissionCaptureRouteImport.update({
-    id: '/$inventoryId/emission-capture',
-    path: '/$inventoryId/emission-capture',
+const CarbonInventoryInventoryIdBusinessProfilingRoute =
+  CarbonInventoryInventoryIdBusinessProfilingRouteImport.update({
+    id: '/$inventoryId/business-profiling',
+    path: '/$inventoryId/business-profiling',
     getParentRoute: () => CarbonInventoryRoute,
   } as any)
 const CarbonInventoryInventoryIdClaimRoute =
@@ -269,43 +283,41 @@ const CarbonInventoryInventoryIdClaimRoute =
     path: '/$inventoryId/claim',
     getParentRoute: () => CarbonInventoryRoute,
   } as any)
-const CarbonInventoryInventoryIdBusinessProfilingRoute =
-  CarbonInventoryInventoryIdBusinessProfilingRouteImport.update({
-    id: '/$inventoryId/business-profiling',
-    path: '/$inventoryId/business-profiling',
+const CarbonInventoryInventoryIdEmissionCaptureRoute =
+  CarbonInventoryInventoryIdEmissionCaptureRouteImport.update({
+    id: '/$inventoryId/emission-capture',
+    path: '/$inventoryId/emission-capture',
     getParentRoute: () => CarbonInventoryRoute,
   } as any)
-const AppShellReductionProjectsRoute =
-  AppShellReductionProjectsRouteImport.update({
-    id: '/reduction-projects',
-    path: '/reduction-projects',
-    getParentRoute: () => AppShellRoute,
+const CarbonInventoryInventoryIdEmissionResultsRoute =
+  CarbonInventoryInventoryIdEmissionResultsRouteImport.update({
+    id: '/$inventoryId/emission-results',
+    path: '/$inventoryId/emission-results',
+    getParentRoute: () => CarbonInventoryRoute,
   } as any)
-const AppShellReductionPlanRoute = AppShellReductionPlanRouteImport.update({
-  id: '/reduction-plan',
-  path: '/reduction-plan',
-  getParentRoute: () => AppShellRoute,
-} as any)
-const AppShellRecognitionsRoute = AppShellRecognitionsRouteImport.update({
-  id: '/recognitions',
-  path: '/recognitions',
-  getParentRoute: () => AppShellRoute,
-} as any)
-const AppShellMyOrganizationRoute = AppShellMyOrganizationRouteImport.update({
-  id: '/my-organization',
-  path: '/my-organization',
-  getParentRoute: () => AppShellRoute,
-} as any)
-const AppShellHomeRoute = AppShellHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => AppShellRoute,
-} as any)
-const AppShellCarbonInventoriesRoute =
-  AppShellCarbonInventoriesRouteImport.update({
-    id: '/carbon-inventories',
-    path: '/carbon-inventories',
-    getParentRoute: () => AppShellRoute,
+const CarbonInventoryInventoryIdEmissionSummaryRoute =
+  CarbonInventoryInventoryIdEmissionSummaryRouteImport.update({
+    id: '/$inventoryId/emission-summary',
+    path: '/$inventoryId/emission-summary',
+    getParentRoute: () => CarbonInventoryRoute,
+  } as any)
+const CarbonInventoryInventoryIdSubcategoryPreselectionRoute =
+  CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
+    id: '/$inventoryId/subcategory-preselection',
+    path: '/$inventoryId/subcategory-preselection',
+    getParentRoute: () => CarbonInventoryRoute,
+  } as any)
+const AppFullscreenReductionProjectsIdRoute =
+  AppFullscreenReductionProjectsIdRouteImport.update({
+    id: '/reduction-projects/$id',
+    path: '/reduction-projects/$id',
+    getParentRoute: () => AppFullscreenRoute,
+  } as any)
+const AppFullscreenReductionProjectsNewRoute =
+  AppFullscreenReductionProjectsNewRouteImport.update({
+    id: '/reduction-projects/new',
+    path: '/reduction-projects/new',
+    getParentRoute: () => AppFullscreenRoute,
   } as any)
 const AppShellReductionProjectsIndexRoute =
   AppShellReductionProjectsIndexRouteImport.update({
@@ -318,28 +330,16 @@ const AppShellUserFormRoute = AppShellUserFormRouteImport.update({
   path: '/user/form',
   getParentRoute: () => AppShellRoute,
 } as any)
-const AppFullscreenReductionProjectsNewRoute =
-  AppFullscreenReductionProjectsNewRouteImport.update({
-    id: '/reduction-projects/new',
-    path: '/reduction-projects/new',
-    getParentRoute: () => AppFullscreenRoute,
-  } as any)
-const AppFullscreenReductionProjectsIdRoute =
-  AppFullscreenReductionProjectsIdRouteImport.update({
-    id: '/reduction-projects/$id',
-    path: '/reduction-projects/$id',
-    getParentRoute: () => AppFullscreenRoute,
+const AppFullscreenReductionProjectsIdDetailsRoute =
+  AppFullscreenReductionProjectsIdDetailsRouteImport.update({
+    id: '/details',
+    path: '/details',
+    getParentRoute: () => AppFullscreenReductionProjectsIdRoute,
   } as any)
 const AppFullscreenReductionProjectsIdEditRoute =
   AppFullscreenReductionProjectsIdEditRouteImport.update({
     id: '/edit',
     path: '/edit',
-    getParentRoute: () => AppFullscreenReductionProjectsIdRoute,
-  } as any)
-const AppFullscreenReductionProjectsIdDetailsRoute =
-  AppFullscreenReductionProjectsIdDetailsRouteImport.update({
-    id: '/details',
-    path: '/details',
     getParentRoute: () => AppFullscreenReductionProjectsIdRoute,
   } as any)
 
@@ -674,39 +674,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/transparency': {
-      id: '/transparency'
-      path: '/transparency'
-      fullPath: '/transparency'
-      preLoaderRoute: typeof TransparencyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/carbon-inventory': {
-      id: '/carbon-inventory'
-      path: '/carbon-inventory'
-      fullPath: '/carbon-inventory'
-      preLoaderRoute: typeof CarbonInventoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/capinaut': {
-      id: '/capinaut'
-      path: '/capinaut'
-      fullPath: '/capinaut'
-      preLoaderRoute: typeof CapinautRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -716,193 +688,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/carbon-inventory/': {
-      id: '/carbon-inventory/'
-      path: '/'
-      fullPath: '/carbon-inventory/'
-      preLoaderRoute: typeof CarbonInventoryIndexRouteImport
-      parentRoute: typeof CarbonInventoryRoute
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capinaut': {
+      id: '/capinaut'
+      path: '/capinaut'
+      fullPath: '/capinaut'
+      preLoaderRoute: typeof CapinautRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carbon-inventory': {
+      id: '/carbon-inventory'
+      path: '/carbon-inventory'
+      fullPath: '/carbon-inventory'
+      preLoaderRoute: typeof CarbonInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transparency': {
+      id: '/transparency'
+      path: '/transparency'
+      fullPath: '/transparency'
+      preLoaderRoute: typeof TransparencyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/_shell': {
-      id: '/app/_shell'
-      path: ''
-      fullPath: '/app'
-      preLoaderRoute: typeof AppShellRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/_fullscreen': {
-      id: '/app/_fullscreen'
-      path: ''
-      fullPath: '/app'
-      preLoaderRoute: typeof AppFullscreenRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/units': {
-      id: '/admin/units'
-      path: '/units'
-      fullPath: '/admin/units'
-      preLoaderRoute: typeof AdminUnitsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/subsectors': {
-      id: '/admin/subsectors'
-      path: '/subsectors'
-      fullPath: '/admin/subsectors'
-      preLoaderRoute: typeof AdminSubsectorsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/subcategory-recommendations': {
-      id: '/admin/subcategory-recommendations'
-      path: '/subcategory-recommendations'
-      fullPath: '/admin/subcategory-recommendations'
-      preLoaderRoute: typeof AdminSubcategoryRecommendationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/subcategories': {
-      id: '/admin/subcategories'
-      path: '/subcategories'
-      fullPath: '/admin/subcategories'
-      preLoaderRoute: typeof AdminSubcategoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/sectors': {
-      id: '/admin/sectors'
-      path: '/sectors'
-      fullPath: '/admin/sectors'
-      preLoaderRoute: typeof AdminSectorsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/requests': {
-      id: '/admin/requests'
-      path: '/requests'
-      fullPath: '/admin/requests'
-      preLoaderRoute: typeof AdminRequestsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reduction-plan-initiatives': {
-      id: '/admin/reduction-plan-initiatives'
-      path: '/reduction-plan-initiatives'
-      fullPath: '/admin/reduction-plan-initiatives'
-      preLoaderRoute: typeof AdminReductionPlanInitiativesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/rate-measurement-units': {
-      id: '/admin/rate-measurement-units'
-      path: '/rate-measurement-units'
-      fullPath: '/admin/rate-measurement-units'
-      preLoaderRoute: typeof AdminRateMeasurementUnitsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/parameters': {
-      id: '/admin/parameters'
-      path: '/parameters'
-      fullPath: '/admin/parameters'
-      preLoaderRoute: typeof AdminParametersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/organizations': {
-      id: '/admin/organizations'
-      path: '/organizations'
-      fullPath: '/admin/organizations'
-      preLoaderRoute: typeof AdminOrganizationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/organization-sizes': {
-      id: '/admin/organization-sizes'
-      path: '/organization-sizes'
-      fullPath: '/admin/organization-sizes'
-      preLoaderRoute: typeof AdminOrganizationSizesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/methodologies': {
-      id: '/admin/methodologies'
-      path: '/methodologies'
-      fullPath: '/admin/methodologies'
-      preLoaderRoute: typeof AdminMethodologiesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/main-activities': {
-      id: '/admin/main-activities'
-      path: '/main-activities'
-      fullPath: '/admin/main-activities'
-      preLoaderRoute: typeof AdminMainActivitiesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/magnitudes': {
-      id: '/admin/magnitudes'
-      path: '/magnitudes'
-      fullPath: '/admin/magnitudes'
-      preLoaderRoute: typeof AdminMagnitudesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/explanations': {
-      id: '/admin/explanations'
-      path: '/explanations'
-      fullPath: '/admin/explanations'
-      preLoaderRoute: typeof AdminExplanationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/emission-factors': {
-      id: '/admin/emission-factors'
-      path: '/emission-factors'
-      fullPath: '/admin/emission-factors'
-      preLoaderRoute: typeof AdminEmissionFactorsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/dimensions': {
-      id: '/admin/dimensions'
-      path: '/dimensions'
-      fullPath: '/admin/dimensions'
-      preLoaderRoute: typeof AdminDimensionsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/dashboard': {
-      id: '/admin/dashboard'
-      path: '/dashboard'
-      fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/change-history': {
-      id: '/admin/change-history'
-      path: '/change-history'
-      fullPath: '/admin/change-history'
-      preLoaderRoute: typeof AdminChangeHistoryRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/badges': {
@@ -912,6 +737,181 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBadgesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/change-history': {
+      id: '/admin/change-history'
+      path: '/change-history'
+      fullPath: '/admin/change-history'
+      preLoaderRoute: typeof AdminChangeHistoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dimensions': {
+      id: '/admin/dimensions'
+      path: '/dimensions'
+      fullPath: '/admin/dimensions'
+      preLoaderRoute: typeof AdminDimensionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/emission-factors': {
+      id: '/admin/emission-factors'
+      path: '/emission-factors'
+      fullPath: '/admin/emission-factors'
+      preLoaderRoute: typeof AdminEmissionFactorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/explanations': {
+      id: '/admin/explanations'
+      path: '/explanations'
+      fullPath: '/admin/explanations'
+      preLoaderRoute: typeof AdminExplanationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/magnitudes': {
+      id: '/admin/magnitudes'
+      path: '/magnitudes'
+      fullPath: '/admin/magnitudes'
+      preLoaderRoute: typeof AdminMagnitudesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/main-activities': {
+      id: '/admin/main-activities'
+      path: '/main-activities'
+      fullPath: '/admin/main-activities'
+      preLoaderRoute: typeof AdminMainActivitiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/methodologies': {
+      id: '/admin/methodologies'
+      path: '/methodologies'
+      fullPath: '/admin/methodologies'
+      preLoaderRoute: typeof AdminMethodologiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/organization-sizes': {
+      id: '/admin/organization-sizes'
+      path: '/organization-sizes'
+      fullPath: '/admin/organization-sizes'
+      preLoaderRoute: typeof AdminOrganizationSizesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/organizations': {
+      id: '/admin/organizations'
+      path: '/organizations'
+      fullPath: '/admin/organizations'
+      preLoaderRoute: typeof AdminOrganizationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/parameters': {
+      id: '/admin/parameters'
+      path: '/parameters'
+      fullPath: '/admin/parameters'
+      preLoaderRoute: typeof AdminParametersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rate-measurement-units': {
+      id: '/admin/rate-measurement-units'
+      path: '/rate-measurement-units'
+      fullPath: '/admin/rate-measurement-units'
+      preLoaderRoute: typeof AdminRateMeasurementUnitsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reduction-plan-initiatives': {
+      id: '/admin/reduction-plan-initiatives'
+      path: '/reduction-plan-initiatives'
+      fullPath: '/admin/reduction-plan-initiatives'
+      preLoaderRoute: typeof AdminReductionPlanInitiativesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/requests': {
+      id: '/admin/requests'
+      path: '/requests'
+      fullPath: '/admin/requests'
+      preLoaderRoute: typeof AdminRequestsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sectors': {
+      id: '/admin/sectors'
+      path: '/sectors'
+      fullPath: '/admin/sectors'
+      preLoaderRoute: typeof AdminSectorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/subcategories': {
+      id: '/admin/subcategories'
+      path: '/subcategories'
+      fullPath: '/admin/subcategories'
+      preLoaderRoute: typeof AdminSubcategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/subcategory-recommendations': {
+      id: '/admin/subcategory-recommendations'
+      path: '/subcategory-recommendations'
+      fullPath: '/admin/subcategory-recommendations'
+      preLoaderRoute: typeof AdminSubcategoryRecommendationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/subsectors': {
+      id: '/admin/subsectors'
+      path: '/subsectors'
+      fullPath: '/admin/subsectors'
+      preLoaderRoute: typeof AdminSubsectorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/units': {
+      id: '/admin/units'
+      path: '/units'
+      fullPath: '/admin/units'
+      preLoaderRoute: typeof AdminUnitsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/_fullscreen': {
+      id: '/app/_fullscreen'
+      path: ''
+      fullPath: '/app'
+      preLoaderRoute: typeof AppFullscreenRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/_shell': {
+      id: '/app/_shell'
+      path: ''
+      fullPath: '/app'
+      preLoaderRoute: typeof AppShellRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carbon-inventory/': {
+      id: '/carbon-inventory/'
+      path: '/'
+      fullPath: '/carbon-inventory/'
+      preLoaderRoute: typeof CarbonInventoryIndexRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
     '/app/_shell/': {
       id: '/app/_shell/'
       path: '/'
@@ -919,74 +919,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppShellIndexRouteImport
       parentRoute: typeof AppShellRoute
     }
-    '/carbon-inventory/$inventoryId/subcategory-preselection': {
-      id: '/carbon-inventory/$inventoryId/subcategory-preselection'
-      path: '/$inventoryId/subcategory-preselection'
-      fullPath: '/carbon-inventory/$inventoryId/subcategory-preselection'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/carbon-inventory/$inventoryId/emission-summary': {
-      id: '/carbon-inventory/$inventoryId/emission-summary'
-      path: '/$inventoryId/emission-summary'
-      fullPath: '/carbon-inventory/$inventoryId/emission-summary'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionSummaryRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/carbon-inventory/$inventoryId/emission-results': {
-      id: '/carbon-inventory/$inventoryId/emission-results'
-      path: '/$inventoryId/emission-results'
-      fullPath: '/carbon-inventory/$inventoryId/emission-results'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionResultsRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/carbon-inventory/$inventoryId/emission-capture': {
-      id: '/carbon-inventory/$inventoryId/emission-capture'
-      path: '/$inventoryId/emission-capture'
-      fullPath: '/carbon-inventory/$inventoryId/emission-capture'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionCaptureRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/carbon-inventory/$inventoryId/claim': {
-      id: '/carbon-inventory/$inventoryId/claim'
-      path: '/$inventoryId/claim'
-      fullPath: '/carbon-inventory/$inventoryId/claim'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdClaimRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/carbon-inventory/$inventoryId/business-profiling': {
-      id: '/carbon-inventory/$inventoryId/business-profiling'
-      path: '/$inventoryId/business-profiling'
-      fullPath: '/carbon-inventory/$inventoryId/business-profiling'
-      preLoaderRoute: typeof CarbonInventoryInventoryIdBusinessProfilingRouteImport
-      parentRoute: typeof CarbonInventoryRoute
-    }
-    '/app/_shell/reduction-projects': {
-      id: '/app/_shell/reduction-projects'
-      path: '/reduction-projects'
-      fullPath: '/app/reduction-projects'
-      preLoaderRoute: typeof AppShellReductionProjectsRouteImport
-      parentRoute: typeof AppShellRoute
-    }
-    '/app/_shell/reduction-plan': {
-      id: '/app/_shell/reduction-plan'
-      path: '/reduction-plan'
-      fullPath: '/app/reduction-plan'
-      preLoaderRoute: typeof AppShellReductionPlanRouteImport
-      parentRoute: typeof AppShellRoute
-    }
-    '/app/_shell/recognitions': {
-      id: '/app/_shell/recognitions'
-      path: '/recognitions'
-      fullPath: '/app/recognitions'
-      preLoaderRoute: typeof AppShellRecognitionsRouteImport
-      parentRoute: typeof AppShellRoute
-    }
-    '/app/_shell/my-organization': {
-      id: '/app/_shell/my-organization'
-      path: '/my-organization'
-      fullPath: '/app/my-organization'
-      preLoaderRoute: typeof AppShellMyOrganizationRouteImport
+    '/app/_shell/carbon-inventories': {
+      id: '/app/_shell/carbon-inventories'
+      path: '/carbon-inventories'
+      fullPath: '/app/carbon-inventories'
+      preLoaderRoute: typeof AppShellCarbonInventoriesRouteImport
       parentRoute: typeof AppShellRoute
     }
     '/app/_shell/home': {
@@ -996,12 +933,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppShellHomeRouteImport
       parentRoute: typeof AppShellRoute
     }
-    '/app/_shell/carbon-inventories': {
-      id: '/app/_shell/carbon-inventories'
-      path: '/carbon-inventories'
-      fullPath: '/app/carbon-inventories'
-      preLoaderRoute: typeof AppShellCarbonInventoriesRouteImport
+    '/app/_shell/my-organization': {
+      id: '/app/_shell/my-organization'
+      path: '/my-organization'
+      fullPath: '/app/my-organization'
+      preLoaderRoute: typeof AppShellMyOrganizationRouteImport
       parentRoute: typeof AppShellRoute
+    }
+    '/app/_shell/recognitions': {
+      id: '/app/_shell/recognitions'
+      path: '/recognitions'
+      fullPath: '/app/recognitions'
+      preLoaderRoute: typeof AppShellRecognitionsRouteImport
+      parentRoute: typeof AppShellRoute
+    }
+    '/app/_shell/reduction-plan': {
+      id: '/app/_shell/reduction-plan'
+      path: '/reduction-plan'
+      fullPath: '/app/reduction-plan'
+      preLoaderRoute: typeof AppShellReductionPlanRouteImport
+      parentRoute: typeof AppShellRoute
+    }
+    '/app/_shell/reduction-projects': {
+      id: '/app/_shell/reduction-projects'
+      path: '/reduction-projects'
+      fullPath: '/app/reduction-projects'
+      preLoaderRoute: typeof AppShellReductionProjectsRouteImport
+      parentRoute: typeof AppShellRoute
+    }
+    '/carbon-inventory/$inventoryId/business-profiling': {
+      id: '/carbon-inventory/$inventoryId/business-profiling'
+      path: '/$inventoryId/business-profiling'
+      fullPath: '/carbon-inventory/$inventoryId/business-profiling'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdBusinessProfilingRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/claim': {
+      id: '/carbon-inventory/$inventoryId/claim'
+      path: '/$inventoryId/claim'
+      fullPath: '/carbon-inventory/$inventoryId/claim'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdClaimRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/emission-capture': {
+      id: '/carbon-inventory/$inventoryId/emission-capture'
+      path: '/$inventoryId/emission-capture'
+      fullPath: '/carbon-inventory/$inventoryId/emission-capture'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionCaptureRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/emission-results': {
+      id: '/carbon-inventory/$inventoryId/emission-results'
+      path: '/$inventoryId/emission-results'
+      fullPath: '/carbon-inventory/$inventoryId/emission-results'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionResultsRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/emission-summary': {
+      id: '/carbon-inventory/$inventoryId/emission-summary'
+      path: '/$inventoryId/emission-summary'
+      fullPath: '/carbon-inventory/$inventoryId/emission-summary'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdEmissionSummaryRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/carbon-inventory/$inventoryId/subcategory-preselection': {
+      id: '/carbon-inventory/$inventoryId/subcategory-preselection'
+      path: '/$inventoryId/subcategory-preselection'
+      fullPath: '/carbon-inventory/$inventoryId/subcategory-preselection'
+      preLoaderRoute: typeof CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport
+      parentRoute: typeof CarbonInventoryRoute
+    }
+    '/app/_fullscreen/reduction-projects/$id': {
+      id: '/app/_fullscreen/reduction-projects/$id'
+      path: '/reduction-projects/$id'
+      fullPath: '/app/reduction-projects/$id'
+      preLoaderRoute: typeof AppFullscreenReductionProjectsIdRouteImport
+      parentRoute: typeof AppFullscreenRoute
+    }
+    '/app/_fullscreen/reduction-projects/new': {
+      id: '/app/_fullscreen/reduction-projects/new'
+      path: '/reduction-projects/new'
+      fullPath: '/app/reduction-projects/new'
+      preLoaderRoute: typeof AppFullscreenReductionProjectsNewRouteImport
+      parentRoute: typeof AppFullscreenRoute
     }
     '/app/_shell/reduction-projects/': {
       id: '/app/_shell/reduction-projects/'
@@ -1017,32 +1031,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppShellUserFormRouteImport
       parentRoute: typeof AppShellRoute
     }
-    '/app/_fullscreen/reduction-projects/new': {
-      id: '/app/_fullscreen/reduction-projects/new'
-      path: '/reduction-projects/new'
-      fullPath: '/app/reduction-projects/new'
-      preLoaderRoute: typeof AppFullscreenReductionProjectsNewRouteImport
-      parentRoute: typeof AppFullscreenRoute
-    }
-    '/app/_fullscreen/reduction-projects/$id': {
-      id: '/app/_fullscreen/reduction-projects/$id'
-      path: '/reduction-projects/$id'
-      fullPath: '/app/reduction-projects/$id'
-      preLoaderRoute: typeof AppFullscreenReductionProjectsIdRouteImport
-      parentRoute: typeof AppFullscreenRoute
+    '/app/_fullscreen/reduction-projects/$id/details': {
+      id: '/app/_fullscreen/reduction-projects/$id/details'
+      path: '/details'
+      fullPath: '/app/reduction-projects/$id/details'
+      preLoaderRoute: typeof AppFullscreenReductionProjectsIdDetailsRouteImport
+      parentRoute: typeof AppFullscreenReductionProjectsIdRoute
     }
     '/app/_fullscreen/reduction-projects/$id/edit': {
       id: '/app/_fullscreen/reduction-projects/$id/edit'
       path: '/edit'
       fullPath: '/app/reduction-projects/$id/edit'
       preLoaderRoute: typeof AppFullscreenReductionProjectsIdEditRouteImport
-      parentRoute: typeof AppFullscreenReductionProjectsIdRoute
-    }
-    '/app/_fullscreen/reduction-projects/$id/details': {
-      id: '/app/_fullscreen/reduction-projects/$id/details'
-      path: '/details'
-      fullPath: '/app/reduction-projects/$id/details'
-      preLoaderRoute: typeof AppFullscreenReductionProjectsIdDetailsRouteImport
       parentRoute: typeof AppFullscreenReductionProjectsIdRoute
     }
   }

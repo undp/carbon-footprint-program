@@ -108,7 +108,7 @@ Request → Fastify → Route → Handler → Service → Database
 
 ### Prerequisites
 
-- Node.js >= 24.0.0
+- Node.js >= 26.0.0
 - pnpm (workspace package manager)
 - PostgreSQL database (configured in `@repo/database`)
 
@@ -365,11 +365,16 @@ export FORCED_USER_EMAIL="dev@example.com"
 export FORCED_USER_IDP_ID="local-dev"
 ```
 
-> **Note on `JWT_SECRET`.** A `JWT_SECRET` still exists in the code purely as a
-> **dev-only HMAC fallback** —
-> `export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";` — and
-> its default is public. It is **not** the authentication mechanism and should
-> **not** be configured to secure the API; use `AUTH_PROVIDER=jwks` instead.
+> **Note on `JWT_SECRET`.** A `JWT_SECRET` still exists in the code as the
+> **dev-only static HMAC fallback** for the non-JWKS `@fastify/jwt` branch. It
+> has **no built-in default** — the value is read from the environment only, so
+> there is no publicly known secret to inherit. It is **not** the production
+> authentication mechanism; use `AUTH_PROVIDER=jwks` with `JWKS_URI` instead,
+> where this value is unused entirely. With `forced-user` / `none` no token is
+> verified and a per-boot ephemeral secret is substituted, so you need not set
+> it. The one case that requires it is `AUTH_PROVIDER=jwks` _without_
+> `JWKS_URI`, where it is the verification key and the API refuses to boot
+> without it.
 
 For end-to-end setup, see:
 

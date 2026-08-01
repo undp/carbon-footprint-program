@@ -83,7 +83,7 @@
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
-    "test:ci": {
+    "test:leg": {
       "cache": false,
       "dependsOn": ["^build"],
       "passThroughEnv": ["LEG"],
@@ -129,6 +129,12 @@
       "cache": false,
       "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
+      "outputs": []
+    },
+    "@repo/database#type-check": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
     }
   }

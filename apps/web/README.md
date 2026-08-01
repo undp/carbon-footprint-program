@@ -117,7 +117,7 @@ apps/web/
 
 ### Prerequisites
 
-- Node.js >= 24.0.0
+- Node.js >= 26.0.0
 - pnpm >= 10.23.0
 
 ### Installation

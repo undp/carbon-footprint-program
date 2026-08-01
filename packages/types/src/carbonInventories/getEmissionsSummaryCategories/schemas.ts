@@ -20,7 +20,7 @@ const CategoryItemSchema = CategoryBaseSchema.pick({
     subtotal: z
       .number()
       .nonnegative()
-      .describe("The subtotal emissions in tCO2e, rounded to 2 decimal places"),
+      .describe("The subtotal emissions in tCO2e, with full precision"),
     percentage: z
       .number()
       .min(0)
@@ -47,7 +47,7 @@ export const GetEmissionsSummaryCategoriesResponseSchema = z
     totalEmissions: z
       .number()
       .nonnegative()
-      .describe("Total emissions in tCO2e, rounded to 2 decimal places"),
+      .describe("Total emissions in tCO2e, with full precision"),
     categories: z
       .array(CategoryItemSchema)
       .describe(

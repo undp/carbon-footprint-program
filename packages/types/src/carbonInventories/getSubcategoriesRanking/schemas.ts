@@ -25,7 +25,7 @@ const RankingItemSchema = z
     subtotal: z
       .number()
       .nonnegative()
-      .describe("The subtotal emissions in tCO2e, rounded to 2 decimal places"),
+      .describe("The subtotal emissions in tCO2e, with full precision"),
     percentage: z
       .number()
       .min(0)

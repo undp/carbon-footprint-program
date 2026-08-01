@@ -9,7 +9,7 @@ packages:
 # releases time to be flagged before they can enter the tree.
 minimumReleaseAge: 1440
 # Refuse to install any package that declares incompatibility with the Node
-# engine required in package.json (engines.node >= 24).
+# engine required in package.json (engines.node >= 26).
 engineStrict: true
 
 # The settings below are pnpm v11 defaults, pinned explicitly for auditability
@@ -26,7 +26,7 @@ blockExoticSubdeps: true
 verifyDepsBeforeRun: install
 
 allowBuilds:
-  '@prisma/engines': true
+  "@prisma/engines": true
   esbuild: true
   prisma: true
   cpu-features: false
@@ -35,9 +35,9 @@ allowBuilds:
 
 catalogs:
   shared:
-    '@types/node': ^26.1.0
-    '@vitest/coverage-v8': ^4.1.10
-    '@vitest/ui': ^4.1.10
+    "@types/node": ^26.1.0
+    "@vitest/coverage-v8": ^4.1.10
+    "@vitest/ui": ^4.1.10
     eslint: ^9.39.5
     pino: ^10.3.1
     rimraf: ^6.1.3
@@ -47,6 +47,45 @@ catalogs:
     zod: ^4.4.3
 
 overrides:
-  'exceljs>uuid': ^11.1.1
-  '@hookform/devtools>uuid': ^11.1.1
-  '@prisma/dev>@hono/node-server': 1.19.13
+  "exceljs>uuid": ^11.1.1
+  "@hookform/devtools>uuid": ^11.1.1
+  # --- Transitive security patches (pnpm audit --prod, 2026-07-25) ---
+  # Caret ranges only: a bare '>=' override value resolves to the global max
+  # (e.g. brace-expansion 5.x, fast-uri 4.x) and would jump across majors.
+  # Declare the override on the vulnerable package itself, never as 'parent>child':
+  # parent-scoped pins rot as soon as the chain changes (exactly what happened with
+  # '@prisma/dev>@hono/node-server' below, which had to be removed by hand). Narrow
+  # with '@<major>' only when several major lines coexist in the tree and an open
+  # range would jump majors. The one exception is breaking a specific vendor's exact
+  # pin, which has to be scoped to that parent ('@prisma/dev>valibot').
+  "@fastify/static": ^10.1.2 # GHSA-83w8-p2f5-377r + GHSA-8pvw-jcv7-9cmj (@fastify/swagger-ui>@fastify/static)
+  "@prisma/dev>valibot": ^1.4.2 # GHSA-5qjj-4xww-7phc — @prisma/dev pins 1.2.0 exactly, must be forced
+  "brace-expansion@1": ^1.1.16 # GHSA-3jxr-9vmj-r5cp (exceljs>archiver/unzipper)
+  "brace-expansion@2": ^2.1.2 # GHSA-3jxr-9vmj-r5cp (exceljs>archiver>readdir-glob>minimatch)
+  "brace-expansion@5": ^5.0.8 # GHSA-mh99-v99m-4gvg (@fastify/static>glob>minimatch)
+  "fast-uri@3": ^3.1.4 # GHSA-v2hh-gcrm-f6hx (fastify>ajv/fast-json-stringify; prisma>ajv)
+  "fast-xml-parser": ^5.10.1 # GHSA-8r6m-32jq-jx6q (@azure/storage-blob>@azure/core-xml)
+  "find-my-way": ^9.6.1 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
+  "postcss@8": ^8.5.18 # GHSA-r28c-9q8g-f849 (@tailwindcss/vite>vite>postcss)
+  # Removed '@prisma/dev>@hono/node-server' pin: Prisma 7.9 (@prisma/dev 0.24.14)
+  # drops @hono/node-server entirely, resolving GHSA-frvp-7c67-39w9.
+
+# --- Accepted advisories (reviewed 2026-07-29) ---
+# GHSA-mh99-v99m-4gvg (CVE-2026-14257) also flags the pinned brace-expansion 1.1.16
+# and 2.1.2: its vulnerable range is '<=5.0.7', which crosses majors, and no backport
+# was ever published for the 1.x / 2.x lines. Forcing them to 5.0.8 is not an option
+# either — 5.x is ESM-first and its CJS entry exports `expand` as a named export,
+# while 1.x/2.x export the function itself, so minimatch 3/5/9 would throw
+# `expand is not a function` and take eslint, glob, archiver and testcontainers
+# down with them. Where the flagged copies actually live:
+#   - web's dependency tree: exceljs > archiver/unzipper > glob > minimatch. Node-side
+#     code that never reaches the browser bundle.
+#   - the api runtime image: nowhere. Its node_modules comes from a --prod install
+#     (the `prod-deps` stage in apps/api/Dockerfile), whose closure resolves
+#     brace-expansion to 5.0.8 only. The 1.x/2.x copies still reach the `builder`
+#     stage that the migrate/seed one-shots reuse, where no entrypoint loads them.
+# The 5.x copy IS patched by the override above. Revisit if a 1.1.17 / 2.1.3 backport
+# is published.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-mh99-v99m-4gvg

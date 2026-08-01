@@ -80,14 +80,38 @@ the storage account.
 
 ### API
 
-| Variable        | Required | Default                              | Description                                           |
-| --------------- | -------- | ------------------------------------ | ----------------------------------------------------- |
-| `NODE_ENV`      | No       | `development`                        | Environment mode: `development`, `production`, `test` |
-| `LOG_LEVEL`     | No       | `debug` (dev) / `info` (prod)        | Pino log level: `debug`, `info`, `warn`, `error`      |
-| `APP_VERSION`   | No       | `unknown`                            | Application version string (injected by CI/CD)        |
-| `API_HOST`      | No       | `localhost` (dev) / `0.0.0.0` (prod) | Host to bind the API server                           |
-| `API_PORT`      | No       | `8080`                               | Port to bind the API server                           |
-| `AUTH_PROVIDER` | No       | `none`                               | Authentication provider. See below.                   |
+| Variable        | Required  | Default                              | Description                                                           |
+| --------------- | --------- | ------------------------------------ | --------------------------------------------------------------------- |
+| `NODE_ENV`      | No        | `development`                        | Environment mode: `development`, `production`, `test`                 |
+| `LOG_LEVEL`     | No        | `debug` (dev) / `info` (prod)        | Pino log level: `debug`, `info`, `warn`, `error`                      |
+| `APP_VERSION`   | No        | `unknown`                            | Application version string (injected by CI/CD)                        |
+| `API_HOST`      | No        | `localhost` (dev) / `0.0.0.0` (prod) | Host to bind the API server                                           |
+| `API_PORT`      | No        | `8080`                               | Port to bind the API server                                           |
+| `AUTH_PROVIDER` | No        | `none`                               | Authentication provider. See below.                                   |
+| `JWT_SECRET`    | See below | _none_                               | Static HMAC secret for the non-JWKS `@fastify/jwt` branch. See below. |
+
+### `JWT_SECRET`
+
+There is **no built-in default** — a secret committed to the repository is a published
+credential, so the value must come from the environment. `.envrc.template` and
+`.env.dockercompose.example` ship a throwaway dev value; copy one of them during setup.
+
+| Configuration                            | Is it required?              | Why                                                                           |
+| ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| `AUTH_PROVIDER=jwks` **with** `JWKS_URI` | No — unused                  | Tokens are verified against the IdP's public keys                             |
+| `AUTH_PROVIDER=jwks` **no** `JWKS_URI`   | **Yes — the API won't boot** | The static secret is what verifies tokens; unset would mean unverifiable auth |
+| `AUTH_PROVIDER=forced-user` / `none`     | No                           | No token is ever verified; a per-boot ephemeral secret is substituted         |
+
+In production, `AUTH_PROVIDER=jwks` additionally requires `JWKS_URI`, `JWKS_ISSUER` and
+`JWKS_AUDIENCE`, so the static-secret branch cannot be reached there at all. Generate a real
+value with `openssl rand -base64 48`.
+
+**Blank counts as unset.** Empty and whitespace-only values are normalised to undefined, so
+`JWT_SECRET=` behaves exactly like omitting it: the row above still applies. This matters
+because Docker Compose expands an absent variable to an empty string
+(`JWT_SECRET=${JWT_SECRET}` in `docker-compose.yml`) — a blank value is therefore a normal
+input, not a hand-crafted one, and it must never become a whitespace verification key or
+reach `@fastify/jwt`, which aborts startup on a falsy secret.
 
 ### Auth Provider (`AUTH_PROVIDER`)
 

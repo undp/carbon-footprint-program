@@ -275,7 +275,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   ],
   [
     "BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT",
-    "Una unidad no base no puede tener factor base 1 cuando ya existe una unidad base para esta magnitud.",
+    "El factor base 1 está reservado para la unidad base: una unidad no base no puede tener factor base 1.",
   ],
   // Carbon inventory association
   [

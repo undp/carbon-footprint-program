@@ -56,7 +56,7 @@ export const BaseUnitMustHaveBaseFactorOneError = createError(
 
 export const BaseFactorOneReservedForBaseUnitError = createError(
   "BASE_FACTOR_ONE_RESERVED_FOR_BASE_UNIT",
-  "A non-base unit cannot have baseFactor=1 when the magnitude already has a base unit.",
+  "A base factor of 1 is reserved for the base unit; a non-base unit cannot have a base factor of 1.",
   422
 );
 

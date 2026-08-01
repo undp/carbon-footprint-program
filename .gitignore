@@ -87,7 +87,7 @@ server/dist
 public/dist
 
 # Claude
-.claude/settings*
+.claude/settings.local.json
 
 # Agents
 .agents/settings*

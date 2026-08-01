@@ -1,0 +1,12 @@
+# Accepted advisories for the container-image scan (.github/workflows/trivy.yml).
+# This is the image-scan counterpart of `auditConfig.ignoreGhsas` in
+# pnpm-workspace.yaml: same advisories, different gate. Keep the two in sync.
+#
+# `expired_at` is a review deadline, not a suppression forever: once the date
+# passes, Trivy drops the entry and the scan fails again until it is re-assessed.
+#
+# Empty on purpose: both images scan clean without suppressions. CVE-2026-14257 was
+# the only entry, and it is now fixed rather than accepted — the api runner takes its
+# node_modules from a --prod install (the `prod-deps` stage in apps/api/Dockerfile),
+# so the unpatchable brace-expansion 1.x/2.x copies no longer reach a scanned image.
+vulnerabilities: []

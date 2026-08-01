@@ -65,7 +65,7 @@ dc down            # stop
 | `LOG_LEVEL`                    | `debug`                 | `debug` \| `info` \| `warn` \| `error`     |
 | `APP_VERSION`                  | `local`                 | Shown in logs / responses                  |
 | `ALLOWED_ORIGIN`               | `http://localhost:3000` | CORS origin allowed to call the API        |
-| `JWT_SECRET`                   | `super-secret-key`      | **Change in production**                   |
+| `JWT_SECRET`                   | _none_                  | No built-in default; see below             |
 | `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation (local only)       |
 
 ### Authentication
@@ -79,6 +79,8 @@ dc down            # stop
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
 The API reads `JWKS_*` directly; derive Azure values from the [Azure setup](../infrastructure/AzureAuthenticationSetup.md) / `.envrc.azure.example` and Keycloak values from [Keycloak Setup](../infrastructure/KeycloakSetup.md). The storage tenant below is separate.
+
+`JWT_SECRET` has **no built-in default** — a secret committed to the repo would be a published credential. With `none` / `forced-user` no token is verified, so you can leave it unset (the API mints a per-boot ephemeral value). It is required only for `jwks` **without** `JWKS_URI`, where it becomes the token verification key and the API refuses to boot without it; `.env.dockercompose.example` ships a throwaway dev value. Blank counts as unset.
 
 ### Web build args
 

@@ -30,6 +30,12 @@ export function getDefaultCodeForStatus(statusCode: number): string {
   return "INTERNAL_SERVER_ERROR";
 }
 
+const DATABASE_ERROR_RESULT = {
+  statusCode: 500,
+  code: "DATABASE_ERROR",
+  message: "A database error occurred",
+} as const;
+
 /**
  * Safety net for Prisma errors that bubble up without being caught in service code.
  * Returns a normalized result or null if the error is not a Prisma error.
@@ -63,12 +69,26 @@ export function handlePrismaError(error: unknown): {
           code: "DATABASE_FOREIGN_KEY_CONSTRAINT",
           message: "Related record not found",
         };
-      default:
+      // Genuine data conflicts, so they keep the 409 bucket: a database
+      // constraint failure (P2004), a null constraint violation (P2011), a
+      // missing required value (P2012) and a required relation violation
+      // (P2014).
+      case "P2004":
+      case "P2011":
+      case "P2012":
+      case "P2014":
         return {
           statusCode: 409,
           code: "DATABASE_CONSTRAINT_VIOLATION",
           message: "Database constraint violation",
         };
+      // Since Prisma v7.9 the driver adapter surfaces connection/transaction
+      // failures as PrismaClientKnownRequestError too (P1000/P1001/P1008/P1017/
+      // P1018, P2034, P2037), and anything it can't map as the generic P2039
+      // "Database error". An unknown code is not a constraint violation, so
+      // return 500 — it gets logged with a stack instead of posing as a 409.
+      default:
+        return DATABASE_ERROR_RESULT;
     }
   }
 
@@ -78,11 +98,7 @@ export function handlePrismaError(error: unknown): {
     error instanceof Prisma.PrismaClientInitializationError ||
     error instanceof Prisma.PrismaClientUnknownRequestError
   ) {
-    return {
-      statusCode: 500,
-      code: "DATABASE_ERROR",
-      message: "A database error occurred",
-    };
+    return DATABASE_ERROR_RESULT;
   }
 
   return null;

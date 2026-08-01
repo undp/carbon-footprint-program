@@ -40,7 +40,7 @@ Discrepancies between the proposal and the current implementation are noted expl
 
 | Category                | Technology                                                    | Version | Notes                                                                                                    |
 | ----------------------- | ------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| **Runtime**             | Node.js                                                       | ≥ 24    | ⚠️ **Upgraded** — proposal recommended Node 20 LTS; project uses Node 24+                                |
+| **Runtime**             | Node.js                                                       | ≥ 26    | ⚠️ **Upgraded** — proposal recommended Node 20 LTS; project uses Node 26+                                |
 | **Framework**           | Fastify                                                       | 5.x     | ✅ As proposed                                                                                           |
 | **Language**            | TypeScript                                                    | 5.x     | ✅ As proposed                                                                                           |
 | **ORM**                 | Prisma                                                        | 7.x     | ✅ As proposed                                                                                           |
@@ -124,7 +124,7 @@ A standalone Python script for seeding emission factor data from Excel spreadshe
 | ------------------- | ---------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Component library   | ShadCN/UI                          | Material UI (MUI) v7                               | MUI provides richer pre-built components at the cost of more opinionated styling |
 | HTTP client         | fetch / axios                      | ky                                                 | Minor — ky is a lightweight fetch wrapper with a similar API                     |
-| Node version        | Node 20 LTS                        | Node 24                                            | Forward-compatible — newer features available                                    |
+| Node version        | Node 20 LTS                        | Node 26                                            | Forward-compatible — newer features available                                    |
 | API testing         | Vitest + Supertest                 | Vitest + Testcontainers                            | More realistic integration tests with real DB/storage containers                 |
 | Frontend tests      | Vitest + RTL + Playwright          | Vitest + RTL implemented; Playwright (E2E) not yet | Logic-layer regression coverage in place; render-heavy UI / E2E still uncovered  |
 | i18n                | i18next + react-i18next            | Not implemented                                    | Platform is currently single-language (Spanish)                                  |
