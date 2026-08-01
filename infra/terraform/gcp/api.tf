@@ -165,8 +165,8 @@ resource "google_cloud_run_v2_service" "api" {
         }
       }
 
-      // Health probes on GET /health (Azure App Service uses a health-check path;
-      // docker-compose uses the same endpoint).
+      // Startup probe gates the revision on real readiness: GET /health does a
+      // SELECT 1 and 503s until Postgres is reachable (fail-fast on boot).
       startup_probe {
         http_get {
           path = "/health"
@@ -177,9 +177,12 @@ resource "google_cloud_run_v2_service" "api" {
         timeout_seconds       = 5
         failure_threshold     = 6
       }
+      // Liveness is process-only: GET / (the DB-free status page). Using /health
+      // here would let a transient DB outage fail liveness on every instance at
+      // once and make Cloud Run recycle the whole service (restart storm).
       liveness_probe {
         http_get {
-          path = "/health"
+          path = "/"
           port = 8080
         }
         period_seconds  = 30

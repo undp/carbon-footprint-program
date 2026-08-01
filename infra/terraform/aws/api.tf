@@ -145,9 +145,13 @@ resource "aws_ecs_task_definition" "api" {
         { name = "MINIO_SECRET_KEY", valueFrom = aws_secretsmanager_secret.minio_secret_key.arn }
       ]
 
-      // Same probe as apps/api/Dockerfile HEALTHCHECK (curl is present in the image).
+      // Liveness only: hit the DB-free status page at GET / (curl is present in
+      // the image). NOT /health, which does a SELECT 1 and returns 503 when
+      // Postgres is unreachable — a transient DB blip must not make ECS kill and
+      // replace otherwise-healthy tasks (restart storm). Readiness/DB health is
+      // surfaced by the app's own 503s on real endpoints.
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -186,8 +190,10 @@ resource "aws_lb" "api" {
   }
 }
 
-// IP target group — Fargate awsvpc tasks register by ENI IP. Health check hits
-// the same GET /health endpoint the container probe uses.
+// IP target group — Fargate awsvpc tasks register by ENI IP. The health check
+// hits the DB-free status page at GET / (not /health): keeping targets healthy
+// during a DB outage lets the app return graceful 503s instead of the ALB
+// draining every target and ECS recycling the whole service.
 resource "aws_lb_target_group" "api" {
   name        = "${local.name_prefix}-api-tg"
   port        = 8080
@@ -196,7 +202,7 @@ resource "aws_lb_target_group" "api" {
   target_type = "ip"
 
   health_check {
-    path                = "/health"
+    path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
     matcher             = "200"
