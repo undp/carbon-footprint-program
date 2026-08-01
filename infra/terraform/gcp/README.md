@@ -78,6 +78,14 @@ resource names filled in.
 > apply fail on Cloud Run's revision-readiness wait; the runnable sample avoids
 > that.)
 
+> **Org-policy note.** With `api_allow_unauthenticated = true` (default) the API
+> is granted `roles/run.invoker` for `allUsers`. GCP organizations that enforce
+> **domain-restricted sharing** (`constraints/iam.allowedPolicyMemberDomains`)
+> reject `allUsers` bindings, so `terraform apply` fails at that step. If your org
+> does, set `api_allow_unauthenticated = false` and reach the API through an
+> authenticated invoker (or front it with the load balancer). The app still
+> enforces its own JWKS auth either way.
+
 ---
 
 ## 1. Build & push the API image
@@ -202,8 +210,9 @@ the browser. (Add that env in `api.tf` if you adopt the relay.)
 ## Custom domain + managed SSL
 
 - With `custom_domain_web = ""` (default): the LB serves the SPA over **HTTP** on
-  the reserved anycast IP (`lb_ip_address` output). Good for a quick test; not
-  for production.
+  the reserved anycast IP (`lb_ip_address` output). **Eval-only — the SPA and its
+  OIDC redirect travel in cleartext.** Set a custom domain for anything beyond a
+  quick test so the Google-managed cert + HTTPS (443) forwarding rule is provisioned.
 - With a domain set: Terraform provisions a **Google-managed SSL certificate**
   and the HTTPS (443) forwarding rule. Point the domain's DNS **A record at
   `lb_ip_address` first** — managed cert provisioning only completes once the

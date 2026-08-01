@@ -60,6 +60,13 @@ terraform output          # api_url, web_url, ecr_repository_url, next_steps, ..
 > you are not using a custom domain, apply once, copy `web_url` from the output
 > into `allowed_origin`, and apply again.
 
+> **⚠️ HTTP is eval-only.** With the shipped defaults (no `acm_certificate_arn_api`),
+> the ALB serves the API over **plain HTTP** — OIDC bearer tokens would travel in
+> cleartext. For anything past a throwaway evaluation, set `custom_domain_api` +
+> `acm_certificate_arn_api` (a regional ACM cert) so the ALB redirects HTTP→HTTPS
+> (see [Custom domains & certificates](#custom-domains--certificates) below). The
+> web tier is already HTTPS via CloudFront's `redirect-to-https`.
+
 ## 2. Build & push the API image, then redeploy
 
 ```bash

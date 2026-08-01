@@ -108,3 +108,12 @@ terraform validate
 ```
 
 `terraform plan` / `apply` require real cloud credentials and are run by the adopter.
+
+## State management
+
+These stacks use Terraform's **default local backend** so they run with zero
+setup. Local state (`*.tfstate`, git-ignored) contains **secrets in plaintext** —
+the generated DB password and the storage access keys — and has no locking.
+Before any shared or production use, configure an encrypted, locking **remote
+backend** in a `backend` block (AWS: S3 + DynamoDB; GCP: a GCS bucket). The
+`terraform validate` flow above stays credential-free with `-backend=false`.
