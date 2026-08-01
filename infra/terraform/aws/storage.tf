@@ -65,6 +65,11 @@ resource "aws_s3_bucket_cors_configuration" "files" {
 // chain. Object-level actions on <bucket>/*, bucket-level actions on the bucket
 // ARN. CopyObject (used by the adapter) needs only Get on the source + Put on
 // the destination, both covered. Scoped to this one bucket — nothing else.
+//
+// Deliberately NOT granted: s3:AbortMultipartUpload (and its ListMultipartUploadParts
+// / ListBucketMultipartUploads siblings). The adapter presigns single-part
+// PutObject and never initiates a multipart upload, so those are dead
+// permissions today. Add them here if a large-file/multipart upload path lands.
 resource "aws_iam_role_policy" "app_storage" {
   name = "${local.name_prefix}-app-storage-s3"
   role = aws_iam_role.ecs_task.id
@@ -78,8 +83,7 @@ resource "aws_iam_role_policy" "app_storage" {
         Action = [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:AbortMultipartUpload"
+          "s3:DeleteObject"
         ]
         Resource = "${aws_s3_bucket.files.arn}/*"
       },
