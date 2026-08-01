@@ -111,7 +111,7 @@ Acts as a gate. If the PR is a draft, this job is skipped, which causes all down
 
 ### Docs-only optimization
 
-The heavy jobs (`lint`, `type-check`, `test`, `coverage`, `build`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
+The heavy jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
 
 The `changes` job (using `dorny/paths-filter`) sets a `code` output that is `true` when anything build-affecting changed. Each gated step carries `if: needs.changes.outputs.code == 'true'`. The filter's pattern list is a second source of truth for "what affects the build", so `verify-changes-filter` (`scripts/check-ci-changes-filter.mjs`) guards it against drift.
 
