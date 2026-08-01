@@ -63,6 +63,7 @@ check-draft
 ├── changes ──┬── lint
 │             ├── type-check
 │             ├── test ── coverage
+│             ├── package-test
 │             └── build
 ├── verify-changes-filter
 ├── format
@@ -81,6 +82,7 @@ check-draft
 | `type-check`            | `tsc --noEmit` across all projects.                                                |
 | `format`                | Prettier `--check`.                                                                |
 | `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                 |
+| `package-test`          | Vitest unit tests for `packages/*` (`pnpm test:packages`) — no DB, no containers.  |
 | `coverage`              | Merges the three test legs' coverage and enforces the ≥80% `apps/api` gate.        |
 | `build`                 | Turborepo build of all apps and packages.                                          |
 | `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).           |
@@ -88,7 +90,12 @@ check-draft
 | `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                       |
 | `secret-scan`           | Full-history secret scan (betterleaks).                                            |
 
-The code-gated jobs (`lint`, `type-check`, `test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
+The code-gated jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
+
+> **Adding a job is two steps.** A new job reports a status check but does not
+> **block** a merge until a maintainer adds its check name to the required-checks
+> list in branch protection on `main`. Until then the job can go red while the PR
+> stays mergeable. `Package Unit Tests` is the most recent addition and needs this.
 
 ---
 
