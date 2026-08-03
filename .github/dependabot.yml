@@ -71,6 +71,15 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@tanstack/eslint-plugin-router"
         update-types: ["version-update:semver-major"]
+      # TanStack Devtools shell is pre-1.0. Under semver a 0.x minor is a
+      # breaking line, so the `minor-and-patch` group below would silently take
+      # breaking updates (the same trap that katex 0.17 -> 0.18 set in PR #537).
+      # Hold minors and take only patches until these reach 1.0, then drop these
+      # two entries and let the normal major/minor rules apply. Tracked in #454.
+      - dependency-name: "@tanstack/react-devtools"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@tanstack/devtools-vite"
+        update-types: ["version-update:semver-minor"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
       # Security updates still open their own PRs; majors are grouped per

@@ -14,7 +14,9 @@ import { oidcUserManager } from "../auth/oidcUserManager";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
@@ -37,10 +39,23 @@ function RootComponent() {
             onSigninCallback={onSigninCallback}
           >
             <QueryClientProvider client={queryClient}>
+              {/* One devtools shell hosting both inspectors as tabs, instead
+                  of each library's own floating toggle. Mounted inside
+                  QueryClientProvider so the Query panel sees the client, and
+                  inside the root route so the Router panel sees the match
+                  tree. */}
               {IS_DEVELOPMENT && (
-                <ReactQueryDevtools
-                  initialIsOpen={false}
-                  buttonPosition="bottom-left"
+                <TanStackDevtools
+                  plugins={[
+                    {
+                      name: "TanStack Query",
+                      render: <ReactQueryDevtoolsPanel />,
+                    },
+                    {
+                      name: "TanStack Router",
+                      render: <TanStackRouterDevtoolsPanel />,
+                    },
+                  ]}
                 />
               )}
               <AuthProvider>
