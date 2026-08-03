@@ -4,9 +4,31 @@ import type {
   GetEmissionFactorsResponse,
 } from "@repo/types";
 import { display, BASE_FONT_SIZE } from "@/services/excel";
-import { formatter } from "@/utils/formatting";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
+
+/**
+ * Emission factors need their own number format: with the shared
+ * `#,##0.00` a factor of `0,056944` *displays* as `0,06` inside the
+ * spreadsheet, reproducing there the very rounding this change removes from
+ * the app. Two decimals are always shown (matching the app's floor) and up to
+ * six are added only when the factor has them.
+ */
+const NUM_FMT_FACTOR = "#,##0.00####";
+
+/**
+ * Same factor format with the rate unit appended as literal text. The cell
+ * keeps a plain number as its value — a spreadsheet formula can still
+ * multiply it — while showing which unit that number is expressed in. It is
+ * per cell and not in the column header because each factor row carries its
+ * own rate unit (`kg CO₂e/L`, `kg CO₂e/kWh`, …).
+ */
+function factorNumFmtWithUnit(rateUnit: string | null | undefined): string {
+  if (!rateUnit) return NUM_FMT_FACTOR;
+  // Double quotes delimit literal text in a number format, so they cannot
+  // appear inside one.
+  return `${NUM_FMT_FACTOR}" ${rateUnit.replaceAll('"', "")}"`;
+}
 
 function buildSummarySheet(
   workbook: ExcelJS.Workbook,
@@ -132,7 +154,7 @@ function buildDetailTableSheet(
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
   worksheet.getColumn(6).numFmt = NUM_FMT_DECIMAL;
-  worksheet.getColumn(7).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(7).numFmt = NUM_FMT_FACTOR;
   worksheet.getColumn(9).numFmt = NUM_FMT_DECIMAL;
 }
 
@@ -163,9 +185,10 @@ function buildFactorsSheet(
       display(categoryLabel),
       display(factor.subcategoryName),
       display(factor.activityParameter),
-      display(
-        `${formatter.emissionFactor(factor.factorValue)} ${factor.rateUnit}`
-      ),
+      // Numeric, not a preformatted string: the reader must be able to
+      // multiply this cell. The rate unit rides along in the cell's number
+      // format (see `factorNumFmtWithUnit`).
+      display(factor.factorValue),
       display(source),
     ];
   });
@@ -196,6 +219,14 @@ function buildFactorsSheet(
   });
 
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+  // Row 1 is the table header, so data rows start at 2 and keep the order of
+  // `factorsData`.
+  factorsData.forEach((factor, index) => {
+    worksheet.getRow(index + 2).getCell(4).numFmt = factorNumFmtWithUnit(
+      factor.rateUnit
+    );
+  });
 }
 
 /**
