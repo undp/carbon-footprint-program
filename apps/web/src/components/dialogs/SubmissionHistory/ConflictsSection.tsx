@@ -8,12 +8,19 @@ import { ConflictRow } from "./ConflictRow";
 type Props = {
   submissionId: string | null | undefined;
   isOrganizationAccreditation: boolean;
+  /**
+   * Whether the viewer may read the admin-only warnings endpoint. Required, and
+   * deliberately not defaulted: the trust boundary belongs here, not in the
+   * route topology that happens to render this dialog.
+   */
+  canViewWarnings: boolean;
 };
 
 /**
  * "Conflictos detectados" — surfaces identity-collision warnings for an
- * organization-accreditation submission. Renders nothing unless the submission
- * is an accreditation AND at least one collision warning exists.
+ * organization-accreditation submission. Renders nothing unless the viewer may
+ * read them AND the submission is an accreditation AND at least one collision
+ * warning exists.
  *
  * The list is flat and numbered ("Conflicto 1", "Conflicto 2") so a reviewer can
  * point at one out loud. It keeps the API's order, which puts collisions against
@@ -22,17 +29,24 @@ type Props = {
 export const ConflictsSection: FC<Props> = ({
   submissionId,
   isOrganizationAccreditation,
+  canViewWarnings,
 }) => {
   const theme = useTheme();
 
-  // Only query for accreditation submissions with a concrete id.
+  // `admin/submissions/:id/warnings` is ADMIN/SUPERADMIN-only, so the query is
+  // gated on the caller's permission as well as on the submission being an
+  // accreditation with a concrete id. Without the gate an org-user surface
+  // rendering this dialog would fire 403s (and TanStack Query would retry them).
   const enabledId =
-    isOrganizationAccreditation && submissionId ? submissionId : undefined;
+    canViewWarnings && isOrganizationAccreditation && submissionId
+      ? submissionId
+      : undefined;
   const { data } = useGetSubmissionWarnings(enabledId);
 
   const collisions = useMemo(() => parseCollisionWarnings(data), [data]);
 
-  if (!isOrganizationAccreditation || collisions.length === 0) return null;
+  if (!canViewWarnings || !isOrganizationAccreditation) return null;
+  if (collisions.length === 0) return null;
 
   return (
     <Box

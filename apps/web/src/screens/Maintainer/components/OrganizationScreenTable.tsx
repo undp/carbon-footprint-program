@@ -217,6 +217,7 @@ export const OrganizationScreenTable: FC = () => {
         open={historyOrgId !== null}
         organizationId={historyOrgId ?? undefined}
         onClose={handleCloseHistory}
+        isAdmin
       />
     </Box>
   );
