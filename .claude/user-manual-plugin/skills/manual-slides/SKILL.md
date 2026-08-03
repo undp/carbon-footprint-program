@@ -235,6 +235,12 @@ workspace: crea un `package-lock.json` paralelo al `pnpm-lock.yaml`.
 - [ ] `manual.css` copiado a `user_manual/assets/` y enlazado como `../assets/manual.css`.
 - [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug_snake>/`; todos los `<img src>`
       apuntan a `../screenshots/<slug_snake>/` y resuelven.
+- [ ] Sin capturas huérfanas: `screenshots/<slug_snake>/` contiene exactamente lo que el capítulo
+      referencia, nada más.
+- [ ] Sin referencias remotas: ninguna hoja de estilo, fuente ni imagen externa; el capítulo se abre
+      y se exporta a PDF sin red.
+- [ ] Todos los `<span class="material-symbols-rounded">` con `aria-hidden="true"`: la ligatura es
+      texto real y si no, el lector de pantalla y la capa de texto del PDF la leen como palabra.
 - [ ] Posiciones de callout verificadas visualmente.
 - [ ] Footer y número de página correctos en TODAS las slides.
 - [ ] Ícono del módulo correcto en cover y dividers.

@@ -81,9 +81,29 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
 9. **Verificación visual** a **1440×810** (Playwright si está disponible): cada slide completa
    sin cortes, callouts alineados, imágenes que cargan, footer y páginas correctos.
 
-10. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
+10. **Higiene de la carpeta.** Un capítulo tiene que quedar autocontenido y sin residuos. Corre
+    las dos verificaciones; ambas deben salir vacías:
 
-11. **Genera el PDF**:
+    ```bash
+    # (a) Capturas en disco que el capítulo no referencia.
+    comm -13 \
+      <(grep -oP "(?<=src=\")\.\./screenshots/<slug_snake>/[^\"]+" \
+          "user_manual/<slug_snake>/<slug_snake>.html" | sed 's|.*/||' | sort -u) \
+      <(ls "user_manual/screenshots/<slug_snake>/" | sort)
+
+    # (b) Referencias remotas: el capítulo debe abrirse y exportarse sin red.
+    grep -rn "https\?://" "user_manual/<slug_snake>/<slug_snake>.html" user_manual/assets
+    ```
+
+    Si (a) lista algo son capturas crudas que quedaron fuera del corte: **pregunta con
+    AskUserQuestion si borrarlas**, no las dejes ahí. Conviviendo con las que sí se usan nadie
+    las distingue después, así que la salida segura pasa a ser «guardar todo» y la carpeta solo
+    crece; además tapan la señal de que falta una captura. Si (b) lista algo, reemplázalo por un
+    recurso local (para fuentes, ver `user_manual/assets/fonts/README.md`).
+
+11. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
+
+12. **Genera el PDF**:
     ```bash
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
       "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"

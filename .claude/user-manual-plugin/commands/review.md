@@ -88,12 +88,31 @@ código real del módulo y aplica los hallazgos que se verifiquen. Sigue estos p
    1440×810** (Playwright si está disponible) las láminas tocadas: completas sin cortes, callouts
    alineados, imágenes que cargan, footer y números de página correctos.
 
-8. **PDF.** Si se aplicaron cambios, usa AskUserQuestion para ofrecer regenerarlo:
+8. **Higiene de la carpeta.** Independiente de los hallazgos, audita la carpeta del capítulo.
+   Ambas verificaciones deben salir vacías:
+
+   ```bash
+   # (a) Capturas en disco que el capítulo no referencia.
+   comm -13 \
+     <(grep -oP "(?<=src=\")\.\./screenshots/<slug_snake>/[^\"]+" \
+         "user_manual/<slug_snake>/<slug_snake>.html" | sed 's|.*/||' | sort -u) \
+     <(ls "user_manual/screenshots/<slug_snake>/" | sort)
+
+   # (b) Referencias remotas: el capítulo debe abrirse y exportarse sin red.
+   grep -rn "https\?://" "user_manual/<slug_snake>/<slug_snake>.html" user_manual/assets
+   ```
+
+   Reporta lo que salga como un hallazgo más y **pregunta con AskUserQuestion antes de borrar**
+   capturas. Esto es mecánico y no debería depender de que alguien se acuerde: una captura
+   huérfana queda permanente en cada clon y vuelve indistinguible lo vivo de lo abandonado.
+
+9. **PDF.** Si se aplicaron cambios, usa AskUserQuestion para ofrecer regenerarlo:
 
    ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
      "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
    ```
 
-9. **Resumen final**: hallazgos aplicados, hallazgos descartados con su motivo, láminas modificadas
-   y vacíos que quedaron abiertos (si el usuario eligió solo el informe).
+10. **Resumen final**: hallazgos aplicados, hallazgos descartados con su motivo, láminas
+    modificadas, lo que salió de la higiene de la carpeta y vacíos que quedaron abiertos (si el
+    usuario eligió solo el informe).
