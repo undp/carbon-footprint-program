@@ -414,6 +414,8 @@ Con `ACTION_ON_UNMANAGE=detachAll`, que es el requisito para poder omitir:
 | Los grants ya existen (redeploy de un RG en uso)           | **Inocuo** — quedan intactos, solo pasan a estar detachados (sin administrar por el stack)        |
 | Resource Group nuevo, o identidad del App Service recreada | **La API queda rota** — sin `AcrPull` falla el pull de la imagen, y sin acceso a blobs el storage |
 
+En un Resource Group nuevo hay una consecuencia más, que afecta al operador y no a la aplicación: entre los grants omitidos está el `Key Vault Secrets Officer` del grupo de desarrollo, y el Key Vault autoriza su data plane por RBAC. Sin ese grant, quien despliega **no puede leer** los secretos del vault, así que el chequeo de "¿ya existe la contraseña de Postgres?" no puede responderse. `deploy.sh` **aborta** en ese punto en vez de asumir que el secreto no existe: generar una contraseña nueva resetearía el admin de PostgreSQL en cada redeploy. El mensaje indica qué grant falta.
+
 Verificar los grants de la identidad administrada de la API:
 
 ```bash

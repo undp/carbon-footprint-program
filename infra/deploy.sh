@@ -237,20 +237,43 @@ DB_PASSWORD=""
 if [ -n "$EXISTING_VAULT" ]; then
   log "Found existing Key Vault: $EXISTING_VAULT"
   
-  # Check if secret exists (don't retrieve value, just check existence)
-  SECRET_EXISTS=$(az keyvault secret show \
+  # Check if secret exists (don't retrieve value, just check existence).
+  #
+  # "Cannot read" is not "does not exist". The vault authorizes its data plane through RBAC, so an
+  # operator without Key Vault Secrets User/Officer fails this lookup with a permission error — and
+  # reading that as an absent secret generates a new password, which resets the PostgreSQL admin
+  # credential on every redeploy: exactly the overwrite this check exists to prevent. That is not
+  # hypothetical: the vault grant is one of the role assignments the deploy drops when the account
+  # cannot write them, so the degraded path removes the very read this check depends on.
+  #
+  # Only an explicit SecretNotFound allows generating a password. Any other failure aborts.
+  SECRET_LOOKUP_RESULT=0
+  SECRET_LOOKUP=$(az keyvault secret show \
     --vault-name "$EXISTING_VAULT" \
     --name "postgres-admin-password" \
-    --query "name" -o tsv 2>/dev/null || echo "")
-  
-  if [ -n "$SECRET_EXISTS" ]; then
+    --query "name" -o tsv 2>&1) || SECRET_LOOKUP_RESULT=$?
+
+  if [ "$SECRET_LOOKUP_RESULT" -eq 0 ] && [ -n "$SECRET_LOOKUP" ]; then
     log "Password secret already exists. Skipping password generation (will not overwrite)."
     # Pass empty string to Bicep so it skips secret creation and preserves existing
     DB_PASSWORD=""
-  else
+  elif printf '%s' "$SECRET_LOOKUP" | grep -qi "SecretNotFound"; then
     log "No existing password secret found. Generating new password..."
     DB_PASSWORD=$(openssl rand -hex 32)
     log "New password generated"
+  else
+    log "ERROR: could not determine whether postgres-admin-password exists in $EXISTING_VAULT."
+    log "       $SECRET_LOOKUP"
+    log ""
+    log "       Refusing to generate a new password: if the secret does exist, writing another one"
+    log "       resets the PostgreSQL admin credential."
+    log ""
+    log "       If the error above is a permission one (Forbidden / ForbiddenByRbac), this account"
+    log "       cannot read the vault's secrets — most likely because the template's dev-group Key"
+    log "       Vault grant was skipped (see the role-assignment warning above), or because"
+    log "       AZURE_SUBSCRIPTION_GROUP is unset and no other grant gives this account read"
+    log "       access. Grant 'Key Vault Secrets User' on $EXISTING_VAULT and retry."
+    exit 1
   fi
 else
   log "No existing Key Vault found. Generating new password..."
