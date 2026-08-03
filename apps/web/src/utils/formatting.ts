@@ -285,16 +285,6 @@ export class Formatter {
     return this.formatNumeric(value);
   }
 
-  rate(
-    value: number | null | undefined,
-    options?: { ifEmpty?: string }
-  ): string {
-    if (value == null || Number.isNaN(value)) {
-      return options?.ifEmpty ?? this.defaultEmptyValue;
-    }
-    return this.formatNumeric(value);
-  }
-
   /**
    * Emission factors are stored with 10 decimals and typically live in the
    * `0,01–1` range, where the shared `formatNumeric` caps at 2 decimals and

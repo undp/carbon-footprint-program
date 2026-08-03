@@ -110,13 +110,6 @@ describe("Formatter — numeric formatting (via quantity)", () => {
     expect(fmt.quantity(null, { ifEmpty: "sin dato" })).toBe("sin dato");
     expect(fmt.quantity(NaN, { ifEmpty: "sin dato" })).toBe("sin dato");
   });
-
-  it("rate delegates to the same numeric formatting", () => {
-    expect(fmt.rate(1234.5)).toBe("1.234,5");
-    expect(fmt.rate(0.0000005)).toBe("<0,000001");
-    expect(fmt.rate(null)).toBe(DEFAULT_EMPTY_VALUE);
-    expect(fmt.rate(NaN, { ifEmpty: "x" })).toBe("x");
-  });
 });
 
 describe("Formatter — emissionFactor", () => {
