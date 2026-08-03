@@ -1,6 +1,8 @@
 import { FC, Fragment, ReactNode } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
-import { TAX_ID_LABEL_SHORT } from "@repo/constants";
+// `upperFirst`, not `capitalize`: the latter lowercases the rest, turning the
+// tax-id label ("RUT") into "Rut".
+import { upperFirst } from "lodash-es";
 import {
   OrganizationDisplayStatusValues,
   SubmissionStatus,
@@ -11,16 +13,18 @@ import {
 import { StatusChip } from "@/components/StatusChip";
 import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization";
 import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
+import { COLLISION_FIELD_LABELS } from "./collisionCopy";
 
 type Props = {
   metadata: OrganizationIdentityCollisionMetadata;
 };
 
-const IDENTITY_ROWS: { field: CollisionField; label: string }[] = [
-  { field: "tradeName", label: "Nombre comercial" },
-  { field: "legalName", label: "Razón social" },
-  { field: "taxId", label: TAX_ID_LABEL_SHORT },
-];
+/** Row order of the identity fields; labels come from the shared collision copy. */
+const IDENTITY_ROW_ORDER = [
+  "tradeName",
+  "legalName",
+  "taxId",
+] as const satisfies readonly CollisionField[];
 
 /** The compared snapshot's collision state, as the submission status it means. */
 const CONFLICT_SUBMISSION_STATUS: Record<CollisionState, SubmissionStatus> = {
@@ -113,9 +117,9 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
       conflict: organizationStatusChip(metadata.organizationIsAccredited),
       collides: false,
     },
-    ...IDENTITY_ROWS.map(({ field, label }) => ({
+    ...IDENTITY_ROW_ORDER.map((field) => ({
       key: field,
-      label,
+      label: upperFirst(COLLISION_FIELD_LABELS[field]),
       applicant: applicantValues[field] || "-",
       conflict: conflictValues[field] || "-",
       collides: collisionFields.has(field),

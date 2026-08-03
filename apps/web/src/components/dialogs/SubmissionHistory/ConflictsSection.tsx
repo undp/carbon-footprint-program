@@ -70,10 +70,10 @@ export const ConflictsSection: FC<Props> = ({
       </Typography>
 
       <Stack spacing={1}>
-        {collisions.map((collision, index) => (
+        {collisions.map((metadata, index) => (
           <ConflictRow
-            key={`${collision.metadata.collisionState}-${collision.metadata.organizationId}`}
-            collision={collision}
+            key={`${metadata.collisionState}-${metadata.organizationId}`}
+            metadata={metadata}
             position={index + 1}
           />
         ))}

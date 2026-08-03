@@ -1,11 +1,12 @@
 import { FC, useState } from "react";
 import { Box, Collapse, Stack, Typography, useTheme } from "@mui/material";
 import { ExpandMoreOutlined } from "@mui/icons-material";
-import type { CollisionWarning } from "./collisionWarnings";
+import type { OrganizationIdentityCollisionMetadata } from "@repo/types";
+import { buildCollisionMessage } from "./collisionCopy";
 import { ConflictComparison } from "./ConflictComparison";
 
 type Props = {
-  collision: CollisionWarning;
+  metadata: OrganizationIdentityCollisionMetadata;
   /** 1-based position within the section, shown as "Conflicto N". */
   position: number;
 };
@@ -16,10 +17,10 @@ type Props = {
  * submissions' status and the three identity fields — lives in the comparison
  * grid, so a reviewer reads one surface instead of two.
  */
-export const ConflictRow: FC<Props> = ({ collision, position }) => {
+export const ConflictRow: FC<Props> = ({ metadata, position }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
-  const { metadata, message } = collision;
+  const message = buildCollisionMessage(metadata);
 
   return (
     <Box

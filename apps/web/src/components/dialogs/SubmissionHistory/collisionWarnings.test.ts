@@ -40,8 +40,6 @@ const warning = (
 ): GetSubmissionWarningsResponse[number] =>
   ({
     type: WarningType.ORGANIZATION_IDENTITY_COLLISION,
-    message:
-      "Coincide con la postulación aprobada de la organización inscrita (RUT 76123456-7) en RUT.",
     metadata: metadata(),
     ...overrides,
   }) as GetSubmissionWarningsResponse[number];
@@ -55,11 +53,7 @@ describe("parseCollisionWarnings", () => {
   it("parses a well-formed collision warning into typed metadata", () => {
     const parsed = parseCollisionWarnings([warning()]);
 
-    expect(parsed).toHaveLength(1);
-    expect(parsed[0].message).toBe(
-      "Coincide con la postulación aprobada de la organización inscrita (RUT 76123456-7) en RUT."
-    );
-    expect(parsed[0].metadata).toEqual(metadata());
+    expect(parsed).toEqual([metadata()]);
   });
 
   it("drops warnings of an unrecognized type", () => {
@@ -86,10 +80,7 @@ describe("parseCollisionWarnings", () => {
   });
 
   it("keeps the API's ordering and drops only the malformed entries", () => {
-    const approved = warning();
     const pending = warning({
-      message:
-        "Coincide con la postulación pendiente de una organización no inscrita (RUT 999) en RUT.",
       metadata: metadata({
         collisionState: "PENDING",
         organizationId: "7",
@@ -98,12 +89,12 @@ describe("parseCollisionWarnings", () => {
     });
 
     const parsed = parseCollisionWarnings([
-      approved,
+      warning(),
       warning({ type: "UNKNOWN" }),
       pending,
     ]);
 
-    expect(parsed.map((entry) => entry.metadata.collisionState)).toEqual([
+    expect(parsed.map((entry) => entry.collisionState)).toEqual([
       "APPROVED",
       "PENDING",
     ]);

@@ -18,10 +18,13 @@ export const WarningTypeSchema = z.enum(WarningType);
  * shape depends on `type`; consumers branch on `type` and parse `metadata` at
  * the render boundary. Keeping it generic lets future submission types add their
  * own warning kinds without changing the response contract.
+ *
+ * The bag carries STRUCTURE ONLY — no prose. User-facing copy is composed by the
+ * client from `metadata`, so the Spanish wording (and its `VOCAB` vocabulary)
+ * lives in one place, the front, instead of being duplicated server-side.
  */
 export const WarningSchema = z.object({
   type: WarningTypeSchema.describe("Warning kind identifier"),
-  message: z.string().describe("Human-readable summary (Spanish)"),
   metadata: z
     .record(z.string(), z.unknown())
     .describe("Free-form metadata; shape depends on `type`"),

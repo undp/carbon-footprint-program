@@ -157,9 +157,10 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.organizationId).toBe(org.id.toString());
     expect(m.collisionFields).toEqual(["legalName"]);
     expect(m.organizationIsAccredited).toBe(true);
-    expect(warnings[0].message).toBe(
-      `Coincide con la postulación aprobada de la organización inscrita (RUT ${conflicting.taxId}) en razón social.`
-    );
+    // The payload is structure only — no prose. The Spanish sentence is composed
+    // by the client (see collisionCopy.test.ts).
+    expect(warnings[0]).not.toHaveProperty("message");
+    expect(m.taxId).toBe(conflicting.taxId);
     // Both sides of the comparison come from the payload: the applicant tuple is
     // the snapshot the endpoint actually matched on, not the org's displayed row.
     expect(m.applicant).toEqual({
@@ -194,11 +195,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.organizationId).toBe(org.id.toString());
     expect(m.collisionFields).toEqual(["tradeName"]);
     // A pending collision usually comes from an organization that is not
-    // inscribed yet — the message must not claim otherwise.
+    // inscribed yet — the payload must not claim otherwise.
     expect(m.organizationIsAccredited).toBe(false);
-    expect(warnings[0].message).toBe(
-      `Coincide con la postulación pendiente de una organización no inscrita (RUT ${conflicting.taxId}) en nombre comercial.`
-    );
+    expect(m.taxId).toBe(conflicting.taxId);
   });
 
   it("marks a pending collision as inscribed when that organization is already accredited", async () => {
@@ -245,9 +244,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     const m = meta(warnings[0]);
     expect(m.collisionState).toBe("PENDING");
     expect(m.organizationIsAccredited).toBe(true);
-    expect(warnings[0].message).toBe(
-      `Coincide con la postulación pendiente de la organización inscrita (RUT ${m.taxId}) en razón social.`
-    );
+    expect(m.collisionFields).toEqual(["legalName"]);
   });
 
   it("reports the applicant's own organization as inscribed when it is already accredited", async () => {
@@ -488,7 +485,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("falls back to the conflicting org's legal name when it has no taxId", async () => {
+  it("exposes a null taxId for a conflicting org that has none", async () => {
     const applicant = uniqueIdentity();
     const { applicantSubmissionId } = await createApplicant(applicant);
 
@@ -500,10 +497,11 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     const warnings = await getWarnings(applicantSubmissionId);
 
     expect(warnings).toHaveLength(1);
-    expect(meta(warnings[0]).taxId).toBeNull();
-    expect(warnings[0].message).toBe(
-      `Coincide con la postulación aprobada de la organización inscrita («${applicant.legalName}») en razón social.`
-    );
+    const m = meta(warnings[0]);
+    // The client falls back to «legalName» when there is no tax id, so the tuple
+    // has to carry both (see collisionCopy.test.ts).
+    expect(m.taxId).toBeNull();
+    expect(m.legalName).toBe(applicant.legalName);
   });
 
   it("ignores OUTDATED organization data", async () => {

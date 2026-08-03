@@ -1,6 +1,5 @@
 import type { Prisma, PrismaClient } from "@repo/database";
 import { OrganizationDataStatus, SubmissionStatus } from "@repo/database";
-import { TAX_ID_LABEL_SHORT } from "@repo/constants";
 import {
   CollisionField,
   CollisionState,
@@ -43,18 +42,12 @@ export type OrganizationIdentity = Prisma.OrganizationDataGetPayload<{
   select: typeof ORGANIZATION_IDENTITY_SELECT;
 }>;
 
-/** Field order used for stable message/display output (design D9). */
+/** Field order used for stable metadata/display output (design D9). */
 const COLLISION_FIELD_ORDER = [
   "legalName",
   "tradeName",
   "taxId",
 ] as const satisfies readonly CollisionField[];
-
-const FIELD_LABELS: Record<CollisionField, string> = {
-  legalName: "razón social",
-  tradeName: "nombre comercial",
-  taxId: TAX_ID_LABEL_SHORT,
-};
 
 /**
  * Generic, multi-country normalization for matching (design D8): trim +
@@ -196,38 +189,6 @@ const buildBranchMetadata = (
   }));
 };
 
-/** Joins field labels with commas and a final "y" (e.g. "razón social y RUT"). */
-const joinFieldLabels = (fields: CollisionField[]): string => {
-  const labels = fields.map((field) => FIELD_LABELS[field]);
-  if (labels.length <= 1) return labels.join("");
-  return `${labels.slice(0, -1).join(", ")} y ${labels[labels.length - 1]}`;
-};
-
-/**
- * Spanish one-line summary (design D9): names the conflicting POSTULATION and
- * then the organization behind it. Falls back to the legal name when taxId is
- * null. The organization clause branches on `organizationIsAccredited`, not on
- * the collision state — a pending collision usually comes from an organization
- * that is not inscribed yet, and calling it inscribed would simply be false.
- */
-const buildMessage = (
-  metadata: OrganizationIdentityCollisionMetadata
-): string => {
-  const campos = joinFieldLabels(metadata.collisionFields);
-  const identity =
-    metadata.taxId !== null
-      ? `${TAX_ID_LABEL_SHORT} ${metadata.taxId}`
-      : `«${metadata.legalName}»`;
-  const postulacion =
-    metadata.collisionState === "APPROVED"
-      ? "la postulación aprobada"
-      : "la postulación pendiente";
-  const organizacion = metadata.organizationIsAccredited
-    ? `la organización inscrita (${identity})`
-    : `una organización no inscrita (${identity})`;
-  return `Coincide con ${postulacion} de ${organizacion} en ${campos}.`;
-};
-
 /**
  * Which of the given organizations are accredited, read from the flag the
  * summary view already materializes (`is_accredited`). Returns an empty set
@@ -348,9 +309,10 @@ export const getOrganizationIdentityCollisionWarnings = async (
     ),
   ];
 
+  // Structure only, no prose: the Spanish sentence is composed by the client
+  // from this metadata, where the `VOCAB` vocabulary already lives.
   return metadata.map((entry) => ({
     type: WarningType.ORGANIZATION_IDENTITY_COLLISION,
-    message: buildMessage(entry),
     metadata: entry,
   }));
 };
