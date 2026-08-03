@@ -71,8 +71,11 @@ export const ConflictsSection: FC<Props> = ({
 
       <Stack spacing={1}>
         {collisions.map((metadata, index) => (
+          // One organization can yield several warnings in the same state — one
+          // per snapshot whose colliding fields no other snapshot covers — so the
+          // fields are part of the identity of a row, not just the org and state.
           <ConflictRow
-            key={`${metadata.collisionState}-${metadata.organizationId}`}
+            key={`${metadata.collisionState}-${metadata.organizationId}-${metadata.collisionFields.join("-")}`}
             metadata={metadata}
             position={index + 1}
           />

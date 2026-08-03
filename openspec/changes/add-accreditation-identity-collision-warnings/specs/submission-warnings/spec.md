@@ -37,7 +37,9 @@ The warning SHALL carry structure only and SHALL NOT carry user-facing prose: th
 
 ### Requirement: Organization-accreditation identity-collision detection
 
-For a submission of type `ORGANIZATION_ACCREDITATION`, the system SHALL detect identity collisions between the applicant submission's organization data and other organizations, comparing **field to same field** — `legalName` vs `legalName`, `tradeName` vs `tradeName`, and `taxId` vs `taxId` — using exact, case-insensitive matching over values that are trimmed when written. A collision SHALL only be reported against a **different** organization (`organizationId` differs from the applicant's). The applicant's own organization (including its other data versions) SHALL be excluded. Each collision SHALL produce a warning of type `ORGANIZATION_IDENTITY_COLLISION`; a single organization MAY produce more than one warning when it collides in more than one state (its approved snapshot and a pending edit both match) — such warnings SHALL NOT be merged. Two collision states SHALL be distinguished:
+For a submission of type `ORGANIZATION_ACCREDITATION`, the system SHALL detect identity collisions between the applicant submission's organization data and other organizations, comparing **field to same field** — `legalName` vs `legalName`, `tradeName` vs `tradeName`, and `taxId` vs `taxId` — using exact, case-insensitive matching over values that are trimmed when written. A collision SHALL only be reported against a **different** organization (`organizationId` differs from the applicant's). The applicant's own organization (including its other data versions) SHALL be excluded. Each collision SHALL produce a warning of type `ORGANIZATION_IDENTITY_COLLISION`; a single organization MAY produce more than one warning when it collides in more than one state (its approved snapshot and a pending edit both match) — such warnings SHALL NOT be merged.
+
+Every warning SHALL report the identity tuple and the colliding fields of **one** organization-data snapshot, so that each reported colliding field holds equal values on both sides of the comparison. Colliding fields SHALL NOT be combined across snapshots. Where an organization holds several snapshots in the same state, a snapshot SHALL be reported only if its colliding fields are not already covered by another reported snapshot of that organization and state; snapshots colliding on disjoint field sets SHALL each be reported. Two collision states SHALL be distinguished:
 
 - `APPROVED` — the conflicting organization is accredited; the comparison SHALL use that organization's **approved** organization-data snapshot (the one linked to an `APPROVED`/`APPROVED_AUTOMATICALLY` submission), NOT the summary view's displayed/pending row.
 - `PENDING` — the conflicting organization has a pending submission; the comparison SHALL use that pending organization data.
@@ -93,6 +95,16 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 
 - **WHEN** a conflicting organization's approved snapshot AND its pending edit both match the applicant
 - **THEN** the endpoint SHALL return two separate warnings for that organization — one with `collisionState = APPROVED` and one with `collisionState = PENDING`
+
+#### Scenario: Organization with two approved snapshots colliding on different fields
+
+- **WHEN** an organization holds two `ACTIVE` approved snapshots and the newer collides on a subset of the fields the older collides on
+- **THEN** the endpoint SHALL report the older snapshot's fields together with the older snapshot's identity tuple, and SHALL NOT report a field whose value differs between the two sides
+
+#### Scenario: Organization snapshots colliding on disjoint fields
+
+- **WHEN** two `ACTIVE` snapshots of one organization in the same state collide on field sets where neither covers the other
+- **THEN** the endpoint SHALL return one warning per snapshot, each reporting only its own colliding fields and tuple
 
 #### Scenario: Branch (sede) awareness
 

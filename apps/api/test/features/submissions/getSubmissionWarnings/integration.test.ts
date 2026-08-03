@@ -438,6 +438,140 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(meta(warnings[1]).organizationId).toBe(conflictingOrg.id.toString());
   });
 
+  it("reports each approved snapshot on its own fields when an org has two", async () => {
+    // Approving never marks the prior approved snapshot OUTDATED, so an org that
+    // edited and was re-approved holds two ACTIVE+APPROVED snapshots. Here they
+    // collide on DIFFERENT field subsets: v1 on legalName + taxId, v2 on
+    // legalName only. Every warning must describe one real snapshot — a
+    // highlighted field has to show two equal values on both sides.
+    const applicant = {
+      legalName: `Legal ${randomUUID()}`,
+      tradeName: `Trade ${randomUUID()}`,
+      taxId: `TAX-${randomUUID()}`,
+    };
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    const conflictingOrg = await createTestOrganization(prisma);
+    const approvedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: applicant.taxId,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV1.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+    // Newer, but a strictly smaller collision set: it must not represent v1's.
+    const approvedV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: `TAX-${randomUUID()}`,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV2.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    // v2's fields (legalName) are covered by v1's (legalName + taxId), so only
+    // the maximal one survives — no warning citing v2's unrelated taxId.
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.collisionFields).toEqual(["legalName", "taxId"]);
+    expect(m.legalName).toBe(applicant.legalName);
+    expect(m.taxId).toBe(applicant.taxId);
+
+    // The invariant, stated directly: each colliding field matches on both sides.
+    m.collisionFields.forEach((field) => {
+      expect(m[field]?.toLowerCase()).toBe(
+        m.applicant[field]?.toLowerCase() ?? null
+      );
+    });
+  });
+
+  it("keeps a warning per snapshot when two of an org's snapshots collide on disjoint fields", async () => {
+    const applicant = {
+      legalName: `Legal ${randomUUID()}`,
+      tradeName: `Trade ${randomUUID()}`,
+      taxId: `TAX-${randomUUID()}`,
+    };
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    const conflictingOrg = await createTestOrganization(prisma);
+    // v1 collides only on taxId, v2 only on legalName: neither set covers the
+    // other, so merging them would invent a snapshot that never existed.
+    const approvedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: `Legal ${randomUUID()}`,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: applicant.taxId,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV1.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+    const approvedV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: `TAX-${randomUUID()}`,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV2.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toHaveLength(2);
+    const fieldSets = warnings.map((warning) => meta(warning).collisionFields);
+    expect(fieldSets).toEqual(
+      expect.arrayContaining([["legalName"], ["taxId"]])
+    );
+
+    // Both sides equal on every highlighted field, in both warnings.
+    warnings.forEach((warning) => {
+      const m = meta(warning);
+      expect(m.organizationId).toBe(conflictingOrg.id.toString());
+      m.collisionFields.forEach((field) => {
+        expect(m[field]?.toLowerCase()).toBe(
+          m.applicant[field]?.toLowerCase() ?? null
+        );
+      });
+    });
+  });
+
   it("returns one warning per conflicting organization", async () => {
     const applicant = uniqueIdentity();
     const { applicantSubmissionId } = await createApplicant(applicant);

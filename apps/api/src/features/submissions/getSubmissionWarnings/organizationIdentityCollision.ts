@@ -137,13 +137,61 @@ const computeCollisionFields = (
   return fields;
 };
 
+/** One colliding candidate snapshot, with the fields it collides on. */
+type CollisionMatch = {
+  snapshot: OrganizationIdentity;
+  fields: CollisionField[];
+};
+
+/** Whether every field of `subset` is also in `superset`. */
+const isCoveredBy = (
+  subset: CollisionField[],
+  superset: CollisionField[]
+): boolean => subset.every((field) => superset.includes(field));
+
 /**
- * Groups matching candidate rows into one warning per conflicting organization.
- * An organization can have several ACTIVE snapshots in the same state (approval
- * never marks a prior approved snapshot OUTDATED), so the colliding fields are
- * unioned across an org's matching snapshots and the representative tuple is the
- * most recent one — candidates arrive ordered by `id` desc, making both the
- * representative and the warning order deterministic across requests.
+ * Reduces one organization's colliding snapshots to those whose collision set is
+ * MAXIMAL, dropping any snapshot whose fields another kept snapshot already
+ * covers.
+ *
+ * Each surviving warning therefore reports one real snapshot: its
+ * `collisionFields` and its identity tuple come from the same row, so a
+ * highlighted field always shows two equal values. Unioning the fields across an
+ * org's snapshots while keeping only the newest tuple broke exactly that — with
+ * v1 `{Foo, 111}` and v2 `{Foo, 222}` both ACTIVE+APPROVED and an applicant
+ * `{Foo, 111}`, `taxId` entered the union through v1 while the tuple came from
+ * v2, and the grid highlighted a "match" reading 111 against 222.
+ *
+ * An org holding several ACTIVE snapshots in one state is normal, not an edge
+ * case: approving never marks the prior approved snapshot OUTDATED.
+ *
+ * Snapshots colliding on disjoint field sets each keep their own warning — two
+ * consistent warnings beat one merged-but-false warning. Duplicated or dominated
+ * sets collapse, so identical snapshots do not produce identical warnings.
+ */
+const keepMaximalMatches = (matches: CollisionMatch[]): CollisionMatch[] => {
+  // Most complete first. `matches` arrives newest-first (candidates are read
+  // `id` desc) and the sort is stable, so between equally complete snapshots the
+  // newest survives and the output order is deterministic across requests.
+  const byCompleteness = [...matches].sort(
+    (a, b) => b.fields.length - a.fields.length
+  );
+
+  const kept: CollisionMatch[] = [];
+  for (const match of byCompleteness) {
+    const alreadyCovered = kept.some((keptMatch) =>
+      isCoveredBy(match.fields, keptMatch.fields)
+    );
+    if (!alreadyCovered) kept.push(match);
+  }
+
+  return kept;
+};
+
+/**
+ * Turns the matching candidate rows into warnings, grouped by organization so
+ * that redundant snapshots of the same org collapse (see
+ * {@link keepMaximalMatches}).
  */
 const buildBranchMetadata = (
   applicant: OrganizationIdentity,
@@ -153,40 +201,41 @@ const buildBranchMetadata = (
   collisionState: CollisionState,
   isAccredited: (organizationId: bigint) => boolean
 ): OrganizationIdentityCollisionMetadata[] => {
-  const byOrg = new Map<
-    string,
-    { representative: OrganizationIdentity; fields: Set<CollisionField> }
-  >();
+  const byOrg = new Map<string, CollisionMatch[]>();
 
   for (const candidate of candidates) {
     const fields = computeCollisionFields(applicant, candidate);
     if (fields.length === 0) continue;
 
     const key = candidate.organizationId.toString();
-    const existing = byOrg.get(key);
-    if (existing) {
-      fields.forEach((field) => existing.fields.add(field));
+    const matches = byOrg.get(key);
+    if (matches) {
+      matches.push({ snapshot: candidate, fields });
     } else {
-      byOrg.set(key, { representative: candidate, fields: new Set(fields) });
+      byOrg.set(key, [{ snapshot: candidate, fields }]);
     }
   }
 
-  return [...byOrg.values()].map(({ representative, fields }) => ({
-    collisionState,
-    organizationId: representative.organizationId.toString(),
-    organizationIsAccredited: isAccredited(representative.organizationId),
-    taxId: representative.taxId,
-    legalName: representative.legalName,
-    tradeName: representative.tradeName,
-    applicant: {
-      taxId: applicant.taxId,
-      legalName: applicant.legalName,
-      tradeName: applicant.tradeName,
-      submissionStatus: applicantSubmissionStatus,
-      organizationIsAccredited: applicantIsAccredited,
-    },
-    collisionFields: COLLISION_FIELD_ORDER.filter((field) => fields.has(field)),
-  }));
+  return [...byOrg.values()]
+    .flatMap(keepMaximalMatches)
+    .map(({ snapshot, fields }) => ({
+      collisionState,
+      organizationId: snapshot.organizationId.toString(),
+      organizationIsAccredited: isAccredited(snapshot.organizationId),
+      taxId: snapshot.taxId,
+      legalName: snapshot.legalName,
+      tradeName: snapshot.tradeName,
+      applicant: {
+        taxId: applicant.taxId,
+        legalName: applicant.legalName,
+        tradeName: applicant.tradeName,
+        submissionStatus: applicantSubmissionStatus,
+        organizationIsAccredited: applicantIsAccredited,
+      },
+      // Already in COLLISION_FIELD_ORDER: computeCollisionFields pushes in that
+      // order, and every field here comes from this one snapshot.
+      collisionFields: fields,
+    }));
 };
 
 /**
@@ -218,9 +267,11 @@ const findAccreditedOrganizationIds = async (
  *   (the approved snapshot the summary view never exposes; design D4).
  * - PENDING: matched against another org's pending submission data.
  *
- * One org may yield two warnings (APPROVED + PENDING) if it collides in both
- * states — kept separate, never merged (design D7). APPROVED warnings are
- * ordered before PENDING.
+ * One org may yield more than one warning — one per state it collides in
+ * (APPROVED + PENDING, kept separate and never merged, design D7) and, within a
+ * state, one per snapshot whose colliding fields no other snapshot of that org
+ * covers ({@link keepMaximalMatches}). Every warning reports a single real
+ * snapshot. APPROVED warnings are ordered before PENDING.
  */
 export const getOrganizationIdentityCollisionWarnings = async (
   prisma: PrismaClient,
