@@ -168,8 +168,10 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
   "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
 ```
 
-Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrecer instalarlas como
-devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
+Requiere `playwright-core` y `pdf-lib`, ya declaradas como devDependencies en la raíz del repo:
+basta `pnpm install`. Si faltaran, instalarlas con el gestor del proyecto
+(`pnpm add -Dw playwright-core pdf-lib`) u ofrecer saltar el PDF. Nunca `npm install` en este
+workspace: crea un `package-lock.json` paralelo al `pnpm-lock.yaml`.
 
 ---
 

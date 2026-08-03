@@ -88,8 +88,11 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
       "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
     ```
-    Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrece instalarlas como
-    devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
+    Requiere `playwright-core` y `pdf-lib`, ya declaradas como devDependencies en la raíz del
+    repo: basta `pnpm install`. Si faltaran, instálalas con el gestor del proyecto
+    (`pnpm add -Dw playwright-core pdf-lib`) o ofrece saltar el PDF. Nunca uses `npm install`
+    aquí: dejaría un `package-lock.json` junto al `pnpm-lock.yaml` y un `node_modules` que
+    pelea con el `.npmrc` del workspace.
 
 Al cerrar, **recomienda** (sin ejecutarlo) correr `/user-manual:review @<slug>` sobre el manual
 recién generado: prueba de comprensión con un subagente y revisión opcional con Codex.

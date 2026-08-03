@@ -41,8 +41,10 @@ Siete comandos que se encadenan en un flujo:
 - **Claude Code**.
 - **MCP de Playwright** (opcional): para exploración en vivo y captura de screenshots.
   Sin él, la exploración se limita al código y los manuales usan placeholders.
-- **`playwright-core` + `pdf-lib`** en el proyecto para exportar el PDF:
-  `npm install --save-dev playwright-core pdf-lib`.
+- **`playwright-core` + `pdf-lib`** para exportar el PDF. En este repo ya están
+  declaradas como devDependencies en la raíz, así que `pnpm install` alcanza. En
+  otro proyecto, instálalas con su gestor (aquí sería
+  `pnpm add -Dw playwright-core pdf-lib`).
 
 ## Instalación
 
