@@ -26,16 +26,18 @@ The system SHALL expose `GET /admin/submissions/:id/warnings` that returns a JSO
 
 ### Requirement: Generic warning shape
 
-Each warning returned by the endpoint SHALL be a generic object with the fields `type` (string identifier of the warning kind), `message` (a human-readable summary in Spanish), and `metadata` (a free-form object whose shape depends on `type`). Consumers SHALL be able to branch on `type` to interpret `metadata`.
+Each warning returned by the endpoint SHALL be a generic object with the fields `type` (an identifier drawn from the registry of warning kinds) and `metadata` (a free-form object whose shape depends on `type`). Consumers SHALL be able to branch on `type` to interpret `metadata`.
+
+The warning SHALL carry structure only and SHALL NOT carry user-facing prose: the Spanish summary SHALL be composed by the client from `metadata`, so the wording and its vocabulary live in a single place.
 
 #### Scenario: Warning object structure
 
 - **WHEN** the endpoint returns a warning
-- **THEN** the warning SHALL contain a string `type`, a non-empty Spanish `message`, and a `metadata` object
+- **THEN** the warning SHALL contain a `type` from the warning-kind registry and a `metadata` object, and SHALL NOT contain a `message` field
 
 ### Requirement: Organization-accreditation identity-collision detection
 
-For a submission of type `ORGANIZATION_ACCREDITATION`, the system SHALL detect identity collisions between the applicant submission's organization data and other organizations, comparing **field to same field** — `legalName` vs `legalName`, `tradeName` vs `tradeName`, and `taxId` vs `taxId` — using exact, case-insensitive, whitespace-trimmed matching. A collision SHALL only be reported against a **different** organization (`organizationId` differs from the applicant's). The applicant's own organization (including its other data versions) SHALL be excluded. Each collision SHALL produce a warning of type `ORGANIZATION_IDENTITY_COLLISION`; a single organization MAY produce more than one warning when it collides in more than one state (its approved snapshot and a pending edit both match) — such warnings SHALL NOT be merged. Two collision states SHALL be distinguished:
+For a submission of type `ORGANIZATION_ACCREDITATION`, the system SHALL detect identity collisions between the applicant submission's organization data and other organizations, comparing **field to same field** — `legalName` vs `legalName`, `tradeName` vs `tradeName`, and `taxId` vs `taxId` — using exact, case-insensitive matching over values that are trimmed when written. A collision SHALL only be reported against a **different** organization (`organizationId` differs from the applicant's). The applicant's own organization (including its other data versions) SHALL be excluded. Each collision SHALL produce a warning of type `ORGANIZATION_IDENTITY_COLLISION`; a single organization MAY produce more than one warning when it collides in more than one state (its approved snapshot and a pending edit both match) — such warnings SHALL NOT be merged. Two collision states SHALL be distinguished:
 
 - `APPROVED` — the conflicting organization is accredited; the comparison SHALL use that organization's **approved** organization-data snapshot (the one linked to an `APPROVED`/`APPROVED_AUTOMATICALLY` submission), NOT the summary view's displayed/pending row.
 - `PENDING` — the conflicting organization has a pending submission; the comparison SHALL use that pending organization data.
@@ -57,10 +59,15 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 - **WHEN** the applicant's `taxId` exactly matches (normalized) the `taxId` of a different organization
 - **THEN** the endpoint SHALL return a warning whose `collisionFields` includes `taxId`
 
-#### Scenario: Stored value with surrounding whitespace
+#### Scenario: Stored value differing only by letter case
 
-- **WHEN** a different organization's stored identity value differs from the applicant's only by surrounding whitespace and/or letter case (values are stored verbatim; nothing trims on write)
-- **THEN** the collision SHALL still be detected — normalization SHALL apply to both sides of the comparison, not only to the applicant's value
+- **WHEN** a different organization's stored identity value differs from the applicant's only by letter case
+- **THEN** the collision SHALL still be detected
+
+#### Scenario: Identity values are stored trimmed
+
+- **WHEN** an organization's identity field is submitted with surrounding whitespace
+- **THEN** the value SHALL be stored trimmed, so that padding never changes a value's identity for the comparison; a whitespace-only value SHALL be rejected as empty
 
 #### Scenario: Comparison uses the approved snapshot, not the displayed row
 
@@ -96,7 +103,7 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 
 An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), whether that organization is itself accredited (`organizationIsAccredited`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review and whether the applicant's own organization is already accredited (`applicant.organizationIsAccredited`). The returned warnings SHALL be ordered with `APPROVED` collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
 
-`collisionState` and `organizationIsAccredited` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client or message SHALL infer one from the other. The same independence SHALL hold for the applicant: the submission under review is `PENDING` while its organization MAY already be inscribed, which is why the payload reports the applicant's standing explicitly instead of letting the client derive it.
+`collisionState` and `organizationIsAccredited` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client SHALL infer one from the other. The same independence SHALL hold for the applicant: the submission under review is `PENDING` while its organization MAY already be inscribed, which is why the payload reports the applicant's standing explicitly instead of letting the client derive it.
 
 Carrying `applicant` in the payload SHALL be the only source the client uses for the applicant side of the comparison: the submission-history response exposes the organization's _displayed_ snapshot (`organization_summary_view` ranks `PENDING` above `APPROVED`), which is not necessarily the snapshot the collision was computed from.
 
@@ -113,7 +120,7 @@ Carrying `applicant` in the payload SHALL be the only source the client uses for
 #### Scenario: Pending collision against a first-time applicant
 
 - **WHEN** the collision is against the pending submission of an organization with no approved submission
-- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = false`, and the message SHALL NOT describe that organization as inscribed
+- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = false`, and the client's summary SHALL NOT describe that organization as inscribed
 
 #### Scenario: Applicant that is itself an inscribed organization
 

@@ -9,24 +9,25 @@
 
 ## 2. Phase 1 — API: submission warnings endpoint + collision detection
 
-- [x] 2.1 Add Zod schemas under `packages/types/src/submissions/getSubmissionWarnings/`: `GetSubmissionWarningsParamsSchema` (`{ id }`), the generic `WarningSchema` (`{ type: string, message: string, metadata: z.record(z.string(), z.unknown()) }` or equivalent free-form object), and `GetSubmissionWarningsResponseSchema = z.array(WarningSchema)`; export the response-derived type
+- [x] 2.1 Add Zod schemas under `packages/types/src/submissions/getSubmissionWarnings/`: `GetSubmissionWarningsParamsSchema` (`{ id }`), the generic `WarningSchema` (`{ type: z.enum(WarningType), metadata: z.record(z.string(), z.unknown()) }` — structure only, no prose), and `GetSubmissionWarningsResponseSchema = z.array(WarningSchema)`; export the response-derived type
 - [x] 2.2 Define the collision warning `type` constant (`ORGANIZATION_IDENTITY_COLLISION`) and a typed metadata shape (for internal construction) with `collisionState`, `organizationId`, `taxId`, `legalName`, `tradeName`, `collisionFields`
 - [x] 2.3 Create the feature `apps/api/src/features/submissions/getSubmissionWarnings/` with `route.ts` (`GET /submissions/:id/warnings` under the admin router, ADMIN/SUPERADMIN), `handler.ts`, `service.ts` (generic dispatch only) and `organizationIdentityCollision.ts` (all organization-specific logic, so a future warning kind gets its own sibling file instead of growing one `helpers.ts`)
 - [x] 2.4 In the service, load the submission by id; dispatch by `submission.type`; return `[]` for types without warning logic
-- [x] 2.5 Implement accreditation collision detection: read the applicant submission's `OrganizationData` (`legalName`, `tradeName`, `taxId`); query other organizations' matching field values, excluding the applicant's own `organizationId`; exact, case-insensitive, trimmed matching (Prisma `mode: "insensitive"`) applied uniformly to the three fields, skipping null fields. Normalization is GENERIC (multi-country) — do NOT add Chile-specific RUT logic (no dots/hyphen stripping, no verifier digit) per design D8; cross-format taxId matching is a documented deferred limitation
+- [x] 2.5 Implement accreditation collision detection: read the applicant submission's `OrganizationData` (`legalName`, `tradeName`, `taxId`); query other organizations' matching field values, excluding the applicant's own `organizationId`; exact, case-insensitive matching (Prisma `equals` + `mode: "insensitive"`) applied uniformly to the three fields, skipping null fields. Trimming is enforced at the write contract (`OrganizationMutationDataSchema.trim()`), NOT with a `contains` prefilter — see design D8. Normalization is GENERIC (multi-country) — do NOT add Chile-specific RUT logic (no dots/hyphen stripping, no verifier digit); cross-format taxId matching is a documented deferred limitation
 - [x] 2.6 Implement the `APPROVED` branch: match against each accredited org's **approved** `OrganizationData` (reuse `accredited_organizations_ids` / `hasApprovedOrganizationData` join to `APPROVED`/`APPROVED_AUTOMATICALLY` submissions), not `OrganizationSummaryView`
 - [x] 2.7 Implement the `PENDING` branch: match against other organizations' pending submission data
 - [x] 2.8 Build one warning per collision (per design D7 — keep both): an org that matches on both its approved and pending snapshots yields two separate warnings (one `APPROVED`, one `PENDING`), not merged; order `APPROVED` before `PENDING`
-- [x] 2.9 Compose the Spanish `message` from the D9 templates ("Coincide con una empresa inscrita (RUT {taxId}) en {campos}." / "...otra postulación pendiente..."; join fields with "y"; fall back to legal name when taxId is null)
+- [x] 2.9 Keep the API free of prose — no `message` field. The Spanish summary is composed on the web from `metadata` (task 3.8), per design D9
 - [x] 2.10 Register the route in the admin submissions router; wire response schema `200` + `ApiErrorResponseSchema`; run `pnpm type-check` and `pnpm lint`
 
 ## 3. Phase 2 — Web: "Conflictos detectados" section (chips grouped by state)
 
-- [x] 3.1 Add a `useGetSubmissionWarnings(submissionId)` query hook (`apps/web/src/api/query/submissions/`), lazy (`enabled: !!submissionId`), calling `admin/submissions/${id}/warnings`
+- [x] 3.1 Add a `useGetSubmissionWarnings(submissionId)` query hook (`apps/web/src/api/query/submissions/`), lazy (`enabled: !!submissionId`), calling `admin/submissions/${id}/warnings`. Its query key carries `SubmissionQueryKey.SubmissionUpdateDependency` like its siblings, so approving/rejecting/reviewing any submission invalidates the warnings (they report other submissions' status and their organizations' standing)
 - [x] 3.2 Add a per-`type` metadata parser/guard for `ORGANIZATION_IDENTITY_COLLISION` (small Zod schema at the render boundary) to safely read `metadata`
 - [x] 3.3 Create the `ConflictsSection` component under `apps/web/src/components/dialogs/SubmissionHistory/`: render only when `isOrganizationAccreditation && warnings.length`; amber attention styling consistent with existing patterns; group by state (accredited first, then pending)
 - [x] 3.4 Render one numbered collapsed row per conflicting org, carrying the numbering only ("Conflicto N") so every fact is read in one place — the comparison grid. No per-state grouping headers
 - [x] 3.7 Subtitle of the section states explicitly that the conflicts are referential and the request can be approved anyway
+- [x] 3.8 Compose the Spanish summary on the web (`collisionCopy.ts`) from `metadata`, using `VOCAB` ("organización", "inscrita") and the D9 templates: name the postulation, then the organization (branching on `organizationIsAccredited`, never on the collision state); join fields with "y"; fall back to `«legalName»` when taxId is null. The field labels are the single source shared with the comparison grid (which `upperFirst`s them)
 - [x] 3.5 Insert `ConflictsSection` in `ViewSubmissionDialog.tsx` between `CurrentStatusBanner` and `OrgDataSection`; pass the current submission's id/warnings
 - [x] 3.6 Run `pnpm type-check` and `pnpm lint`
 
@@ -40,8 +41,9 @@
 ## 5. Tests
 
 - [x] 5.1 API integration tests for `GET /admin/submissions/:id/warnings`: no collision → empty; legal-name collision with accredited org → `APPROVED` warning; trade-name collision with pending submission → `PENDING` warning; taxId collision; self-exclusion; approved-snapshot-not-displayed-row; multiple conflicts → one warning each; non-admin → forbidden; unknown id → not found; non-accreditation type → empty
-- [x] 5.2 API integration tests for the normalization/payload contract: conflicting value stored with surrounding whitespace still matches (both sides normalized); null identity fields never match each other; `«legalName»` message fallback when the conflicting org has no `taxId`; `OUTDATED` organization data ignored; exact Spanish message copy; `metadata.applicant` equals the compared snapshot
-- [x] 5.3 Web unit tests (`pnpm test:web`, co-located `*.test.ts`) for `parseCollisionWarnings` (valid / unknown type / malformed metadata / ordering preserved) and for `COLLISION_STATE_CONFIG` (exhaustive over `CollisionState`, labels/tooltips verbatim)
+- [x] 5.2 API integration tests for the normalization/payload contract: null identity fields never match each other; the conflicting org's `taxId`/`legalName` are exposed so the client can fall back to `«legalName»`; `OUTDATED` organization data ignored; the payload carries no `message`; `metadata.applicant` equals the compared snapshot
+- [x] 5.3 Web unit tests (`pnpm test:web`, co-located `*.test.ts`) for `parseCollisionWarnings` (valid / unknown type / malformed metadata / ordering preserved) and for `collisionCopy` (`COLLISION_FIELD_LABELS` exhaustive over `CollisionField`; every `buildCollisionMessage` branch verbatim — approved/pending, inscribed/not, `«legalName»` fallback, one/two/three fields)
+- [x] 5.4 API integration tests for the write contract (`createOrganization`): every free-text field stored trimmed; whitespace-only `legalName` rejected as empty
 
 ## 6. Finalize
 

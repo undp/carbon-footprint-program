@@ -73,7 +73,7 @@ Open a submission from the queue to see its full detail view, including:
 
 **API:** `GET /admin/submissions/:id/warnings`
 
-For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Conflictos detectados"** section when the applicant's identity collides with another organization. Matching is field-to-same-field (`legalName`, `tradeName`, `taxId`), exact, case-insensitive and trimmed on both sides; null fields are skipped. There is no fuzzy matching and no country-specific tax-id normalization, so the same tax id written in two formats (`76.123.456-7` vs `761234567`) does not match.
+For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Conflictos detectados"** section when the applicant's identity collides with another organization. Matching is field-to-same-field (`legalName`, `tradeName`, `taxId`), exact and case-insensitive; null fields are skipped. Values are trimmed when they are **written** (every free-text field of the organization form), so the comparison needs no padding tolerance — rows loaded outside the API (seeds, scripts) must be trimmed at their own source. There is no fuzzy matching and no country-specific tax-id normalization, so the same tax id written in two formats (`76.123.456-7` vs `761234567`) does not match.
 
 The warnings are **referential only** — the section states so explicitly, and the request can be approved with conflicts outstanding. Branches (_sedes_) of the same real organization share identity values by nature, so they surface here as awareness signals rather than errors.
 
@@ -84,7 +84,7 @@ Conflicts are listed flat and numbered ("Conflicto 1", "Conflicto 2") in the ord
 | "Estado de la postulación"  | Status of the **submission** on each side | Aprobada (`collisionState = APPROVED`, compared against the **approved** snapshot) / Pendiente (`PENDING`) |
 | "Estado de la organización" | Standing of each **organization** itself  | Inscrita / No Inscrita (`metadata.organizationIsAccredited`, and the same flag for the applicant)          |
 
-A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data — and the same is true of the applicant, which is why both sides report their own standing. That separation is also why the warning message says, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social".
+A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data — and the same is true of the applicant, which is why both sides report their own standing. That separation is also why the expanded conflict reads, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social". The endpoint returns structure only (`{ type, metadata }`); that Spanish summary is composed by the web client from the metadata, so the wording and its `VOCAB` vocabulary live in one place.
 
 Below the two status rows the comparison lists the three identity fields, with the colliding one(s) highlighted. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
 

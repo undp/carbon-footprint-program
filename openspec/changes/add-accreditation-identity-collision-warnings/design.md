@@ -29,9 +29,11 @@ Two facts from the codebase drive this design:
 
 Keyed by submission id, dispatched internally by `submission.type`. **Alternative rejected:** folding a `warnings` field into `GET submissions/organization/:id/history`. That response is a bare array shared by three history types; adding warnings would force a wrapper and branch the shared `useViewSubmission` hook, and the history endpoint is org-scoped (`canAdminsBypass`) so warnings would leak to org users. A dedicated `/admin/...` route gives clean ADMIN/SUPERADMIN authorization, an isolated query, and room for future submission types.
 
-### D2 — Generic `Warning` bag `{ type, message, metadata }`
+### D2 — Generic `Warning` bag `{ type, metadata }`
 
-`metadata` typed as a free-form object (Zod `z.record`/`unknown`); the frontend defines a small per-`type` parser/guard at the render site to recover type-safety. **Alternative rejected:** a Zod `discriminatedUnion` on `type` (compile-time safety end to end). The bag was chosen deliberately to maximize back/front decoupling and future extensibility; the render-site guard keeps the UI safe where it matters.
+`metadata` typed as a free-form object (Zod `z.record`/`unknown`); the frontend defines a small per-`type` parser/guard at the render site to recover type-safety. **Alternative rejected:** a Zod `discriminatedUnion` on `type` (compile-time safety end to end). The bag was chosen deliberately to maximize back/front decoupling and future extensibility; the render-site guard keeps the UI safe where it matters. `type` itself is **not** free-form — it is `z.enum(WarningType)` over the registry of kinds, so the loose part of the contract is confined to `metadata`. The runtime guard still checks `type`, because a newer API can send a kind the deployed front does not know.
+
+The bag carries **structure only, no prose** (see D9): user-facing copy is composed by the client.
 
 ### D3 — Field-level exact detection (not display-name, not fuzzy)
 
@@ -61,13 +63,17 @@ Detection matches the applicant against each other org's approved snapshot (if a
 
 `taxId` is intentionally a generic string field — labeled by the shared `TAX_ID_LABEL` constant ("RUT / RUC / ID Tributario") — because the platform is a Latin-America-wide good; there is **no** RUT formatter/validator/verifier-digit logic anywhere in the codebase, and none should be added here. Matching therefore normalizes generically: **trim + case-insensitive** equality applied uniformly to `legalName`, `tradeName`, and `taxId`; null (and whitespace-only) fields are skipped. Chile-specific RUT normalization (stripping dots/hyphen, verifier-digit handling) is explicitly NOT done.
 
-Because values are stored verbatim (nothing trims on write), the normalization must apply to **both** sides. A Prisma `equals` filter can only normalize the applicant's value, so the query uses a deliberately **loose prefilter** (`contains`, case-insensitive) and the exact, trimmed, field-to-same-field equality is decided in memory over the candidate rows — the "over the candidate set" option below, without raw SQL. Loose in SQL, exact in memory: padding no longer produces false negatives, and substring matches are dropped before a warning is built.
+Normalization must hold on **both** sides, and it is enforced where the value enters the system: `OrganizationMutationDataSchema` `.trim()`s every free-text field, so `OrganizationData` never stores a padded value. With both sides already whitespace-free, the query filters on case-insensitive `equals` (indexable, no wildcards) and the in-memory comparison decides **which** fields collided.
+
+**Alternative rejected:** a loose `contains` prefilter to rescue padded rows, with exact equality decided in memory. It compiles to an unindexable `ILIKE '%value%'` that returns every row sharing a substring — the whole table for a one-character name — and Prisma does not escape LIKE metacharacters, so a `%` in the applicant's value matched everything. Trimming at the write contract removes the reason it existed and fixes the dirty data at the source for the rest of the app. **Residual limitation:** rows written outside the contract (seeds, scripts, direct SQL) must trim at their own source.
 
 **Known limitation:** the same real tax id entered in different formats (`"76.123.456-7"` vs `"761234567"`) still will not match. Closing that gap would need a **generic** separator-stripping helper in `packages/utils` applied over the same candidate set — deferred until false-negatives are observed, and kept format-agnostic (never Chile-only). (Resolves former open question on normalization.)
 
-### D9 — Spanish message copy (server-built summary)
+### D9 — Spanish copy composed by the client
 
-The generic bag's `message` is a one-line Spanish summary; the comparison grid carries the structured tuple. Field labels: `legalName`→"razón social", `tradeName`→"nombre comercial", `taxId`→`TAX_ID_LABEL_SHORT`. The sentence names the colliding **postulation** first and then the organization behind it, and the organization clause branches on `organizationIsAccredited` — never on the collision state, since a pending collision most often comes from an organization that is not inscribed yet:
+The API sends **structure only**; the one-line Spanish summary is built on the front (`collisionCopy.ts`) from `metadata`, and the comparison grid renders the structured tuple. **Alternative rejected:** a server-built `message` field in the bag. The vocabulary lives in `VOCAB` (`apps/web/src/config/vocab.ts`), which the API cannot import, so a server-built sentence duplicates "organización" / "inscrita" and drifts the day a term changes. Composing on the client also keeps the three field labels single-sourced: the message uses them in prose form and the comparison grid `upperFirst`s the same record for its row labels.
+
+Field labels: `legalName`→"razón social", `tradeName`→"nombre comercial", `taxId`→`TAX_ID_LABEL_SHORT`. The colliding fields are listed in the order the API sends them (the API owns that ordering). The sentence names the colliding **postulation** first and then the organization behind it, and the organization clause branches on `organizationIsAccredited` — never on the collision state, since a pending collision most often comes from an organization that is not inscribed yet:
 
 - `Coincide con {postulación} de {organización} en {campos}.`
 - `{postulación}`: `la postulación aprobada` (`APPROVED`) / `la postulación pendiente` (`PENDING`).
