@@ -31,6 +31,8 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 
 El comportamiento de eliminación lo decide la variable **obligatoria** `ACTION_ON_UNMANAGE`, no el nombre del ambiente. No tiene default: `deploy.sh` aborta si no está seteada, para que cada despliegue declare su propia respuesta en vez de heredar una destructiva.
 
+> **Migración:** si tenés un `infra/.envrc` creado antes de este cambio, agregale `export ACTION_ON_UNMANAGE="detachAll"` a cada perfil. Sin eso el próximo `./deploy.sh` corta con `ACTION_ON_UNMANAGE is required` antes de tocar nada.
+
 #### 🔒 `ACTION_ON_UNMANAGE=detachAll`
 
 - **Comportamiento**: los recursos que dejan de estar declarados en el template **NO se eliminan**; quedan en el Resource Group sin ser administrados por el stack
