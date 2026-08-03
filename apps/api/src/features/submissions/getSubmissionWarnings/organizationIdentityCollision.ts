@@ -4,6 +4,8 @@ import {
   CollisionField,
   CollisionState,
   GetSubmissionWarningsResponse,
+  OrganizationDisplayStatus,
+  OrganizationDisplayStatusValues,
   OrganizationIdentityCollisionMetadata,
   WarningType,
 } from "@repo/types";
@@ -196,10 +198,10 @@ const keepMaximalMatches = (matches: CollisionMatch[]): CollisionMatch[] => {
 const buildBranchMetadata = (
   applicant: OrganizationIdentity,
   applicantSubmissionStatus: SubmissionStatus,
-  applicantIsAccredited: boolean,
+  applicantStatus: OrganizationDisplayStatus,
   candidates: OrganizationIdentity[],
   collisionState: CollisionState,
-  isAccredited: (organizationId: bigint) => boolean
+  organizationStatusOf: (organizationId: bigint) => OrganizationDisplayStatus
 ): OrganizationIdentityCollisionMetadata[] => {
   const byOrg = new Map<string, CollisionMatch[]>();
 
@@ -221,7 +223,7 @@ const buildBranchMetadata = (
     .map(({ snapshot, fields }) => ({
       collisionState,
       organizationId: snapshot.organizationId.toString(),
-      organizationIsAccredited: isAccredited(snapshot.organizationId),
+      organizationStatus: organizationStatusOf(snapshot.organizationId),
       taxId: snapshot.taxId,
       legalName: snapshot.legalName,
       tradeName: snapshot.tradeName,
@@ -230,7 +232,7 @@ const buildBranchMetadata = (
         legalName: applicant.legalName,
         tradeName: applicant.tradeName,
         submissionStatus: applicantSubmissionStatus,
-        organizationIsAccredited: applicantIsAccredited,
+        organizationStatus: applicantStatus,
       },
       // Already in COLLISION_FIELD_ORDER: computeCollisionFields pushes in that
       // order, and every field here comes from this one snapshot.
@@ -239,22 +241,28 @@ const buildBranchMetadata = (
 };
 
 /**
- * Which of the given organizations are accredited, read from the flag the
- * summary view already materializes (`is_accredited`). Returns an empty set
- * without touching the database when there is nothing to look up.
+ * The standing of each given organization, read from the `display_status` the
+ * summary view already materializes. Returns an empty map without touching the
+ * database when there is nothing to look up.
+ *
+ * `display_status` rather than `is_accredited`: the latter is blind to BLOCKED
+ * (a blocked organization keeps its approved snapshot, so it reads accredited),
+ * which would label a blocked conflict "Inscrita".
  */
-const findAccreditedOrganizationIds = async (
+const findOrganizationStatuses = async (
   prisma: PrismaClient,
   organizationIds: bigint[]
-): Promise<Set<string>> => {
-  if (organizationIds.length === 0) return new Set();
+): Promise<Map<string, OrganizationDisplayStatus>> => {
+  if (organizationIds.length === 0) return new Map();
 
   const rows = await prisma.organizationSummaryView.findMany({
-    where: { organizationId: { in: organizationIds }, isAccredited: true },
-    select: { organizationId: true },
+    where: { organizationId: { in: organizationIds } },
+    select: { organizationId: true, displayStatus: true },
   });
 
-  return new Set(rows.map((row) => row.organizationId.toString()));
+  return new Map(
+    rows.map((row) => [row.organizationId.toString(), row.displayStatus])
+  );
 };
 
 /**
@@ -326,37 +334,43 @@ export const getOrganizationIdentityCollisionWarnings = async (
   // No candidate at all: nothing to report, and no reason to look up standings.
   if (approvedRows.length === 0 && pendingRows.length === 0) return [];
 
-  // A candidate from the approved branch is accredited by construction — it
-  // matched THROUGH an approved submission. A pending candidate may or may not
-  // be, and neither may the applicant's own organization (an inscribed
-  // organization editing its data collides as a pending applicant), so ask the
-  // view that already materializes the flag. (Only the boolean is read here: the
-  // view's displayed snapshot is still off-limits per design D4.)
-  const accreditedOrgIds = await findAccreditedOrganizationIds(prisma, [
+  // Every organization involved needs its own standing looked up, the approved
+  // branch included: matching THROUGH an approved submission proves the snapshot
+  // is the approved one, NOT that the organization is in good standing — a
+  // BLOCKED organization keeps its approved snapshot and would otherwise be
+  // reported as inscribed. Same for the applicant's own organization, which may
+  // already be inscribed and merely editing its data. (Only the standing is read
+  // here: the view's displayed snapshot stays off-limits per design D4.)
+  const organizationStatuses = await findOrganizationStatuses(prisma, [
     applicant.organizationId,
+    ...approvedRows.map((row) => row.organizationId),
     ...pendingRows.map((row) => row.organizationId),
   ]);
-  const applicantIsAccredited = accreditedOrgIds.has(
-    applicant.organizationId.toString()
-  );
+
+  // An organization always has a summary row, so a miss is unreachable; falling
+  // back to NOT_ACCREDITED keeps the function total without ever claiming a
+  // standing we did not read.
+  const statusOf = (organizationId: bigint): OrganizationDisplayStatus =>
+    organizationStatuses.get(organizationId.toString()) ??
+    OrganizationDisplayStatusValues.NOT_ACCREDITED;
 
   // APPROVED before PENDING (collision-warning ordering requirement).
   const metadata = [
     ...buildBranchMetadata(
       applicant,
       applicantSubmissionStatus,
-      applicantIsAccredited,
+      statusOf(applicant.organizationId),
       approvedRows,
       "APPROVED",
-      () => true
+      statusOf
     ),
     ...buildBranchMetadata(
       applicant,
       applicantSubmissionStatus,
-      applicantIsAccredited,
+      statusOf(applicant.organizationId),
       pendingRows,
       "PENDING",
-      (organizationId) => accreditedOrgIds.has(organizationId.toString())
+      statusOf
     ),
   ];
 

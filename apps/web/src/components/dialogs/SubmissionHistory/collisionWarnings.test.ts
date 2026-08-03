@@ -3,7 +3,11 @@ import type {
   GetSubmissionWarningsResponse,
   OrganizationIdentityCollisionMetadata,
 } from "@repo/types";
-import { SubmissionStatus, WarningType } from "@repo/types";
+import {
+  OrganizationDisplayStatusValues,
+  SubmissionStatus,
+  WarningType,
+} from "@repo/types";
 import { parseCollisionWarnings } from "./collisionWarnings";
 
 const metadata = (
@@ -11,7 +15,7 @@ const metadata = (
 ): OrganizationIdentityCollisionMetadata => ({
   collisionState: "APPROVED",
   organizationId: "42",
-  organizationIsAccredited: true,
+  organizationStatus: OrganizationDisplayStatusValues.ACCREDITED,
   taxId: "76123456-7",
   legalName: "Acme SpA",
   tradeName: "Acme",
@@ -20,7 +24,7 @@ const metadata = (
     legalName: "Acme SpA",
     tradeName: "Acme Chile",
     submissionStatus: SubmissionStatus.PENDING,
-    organizationIsAccredited: false,
+    organizationStatus: OrganizationDisplayStatusValues.NOT_ACCREDITED,
   },
   collisionFields: ["legalName", "taxId"],
   ...overrides,
@@ -84,7 +88,7 @@ describe("parseCollisionWarnings", () => {
       metadata: metadata({
         collisionState: "PENDING",
         organizationId: "7",
-        organizationIsAccredited: false,
+        organizationStatus: OrganizationDisplayStatusValues.NOT_ACCREDITED,
       }),
     });
 

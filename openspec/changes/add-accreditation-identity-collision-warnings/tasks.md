@@ -27,7 +27,7 @@
 - [x] 3.3 Create the `ConflictsSection` component under `apps/web/src/components/dialogs/SubmissionHistory/`: render only when `isOrganizationAccreditation && warnings.length`; amber attention styling consistent with existing patterns; group by state (accredited first, then pending)
 - [x] 3.4 Render one numbered collapsed row per conflicting org, carrying the numbering only ("Conflicto N") so every fact is read in one place — the comparison grid. No per-state grouping headers
 - [x] 3.7 Subtitle of the section states explicitly that the conflicts are referential and the request can be approved anyway
-- [x] 3.8 Compose the Spanish summary on the web (`collisionCopy.ts`) from `metadata`, using `VOCAB` ("organización", "inscrita") and the D9 templates: name the postulation, then the organization (branching on `organizationIsAccredited`, never on the collision state); join fields with "y"; fall back to `«legalName»` when taxId is null. The field labels are the single source shared with the comparison grid (which `upperFirst`s them)
+- [x] 3.8 Compose the Spanish summary on the web (`collisionCopy.ts`) from `metadata`, using `VOCAB` ("organización", "inscrita") and the D9 templates: name the postulation, then the organization (branching on `organizationStatus` (exhaustive: inscrita / no inscrita / bloqueada), never on the collision state); join fields with "y"; fall back to `«legalName»` when taxId is null. The field labels are the single source shared with the comparison grid (which `upperFirst`s them)
 - [x] 3.5 Insert `ConflictsSection` in `ViewSubmissionDialog.tsx` between `CurrentStatusBanner` and `OrgDataSection`; pass the current submission's id/warnings
 - [x] 3.6 Run `pnpm type-check` and `pnpm lint`
 

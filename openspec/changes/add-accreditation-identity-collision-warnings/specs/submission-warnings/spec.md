@@ -106,6 +106,11 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 - **WHEN** two `ACTIVE` snapshots of one organization in the same state collide on field sets where neither covers the other
 - **THEN** the endpoint SHALL return one warning per snapshot, each reporting only its own colliding fields and tuple
 
+#### Scenario: Collision against a blocked organization
+
+- **WHEN** the collision is against the approved snapshot of an organization whose own status is BLOCKED
+- **THEN** the warning SHALL report `organizationStatus = BLOCKED`, and the client SHALL present it as blocked rather than as inscribed
+
 #### Scenario: Branch (sede) awareness
 
 - **WHEN** a different organization shares an identity field value with the applicant (e.g. same `legalName`, different `tradeName`)
@@ -113,31 +118,31 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 
 ### Requirement: Collision warning payload and ordering
 
-An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), whether that organization is itself accredited (`organizationIsAccredited`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review and whether the applicant's own organization is already accredited (`applicant.organizationIsAccredited`). The returned warnings SHALL be ordered with `APPROVED` collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
+An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), that organization's own standing (`organizationStatus`, one of `ACCREDITED` / `NOT_ACCREDITED` / `BLOCKED`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review and the applicant's own organization standing (`applicant.organizationStatus`). The returned warnings SHALL be ordered with `APPROVED` collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
 
-`collisionState` and `organizationIsAccredited` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client SHALL infer one from the other. The same independence SHALL hold for the applicant: the submission under review is `PENDING` while its organization MAY already be inscribed, which is why the payload reports the applicant's standing explicitly instead of letting the client derive it.
+`collisionState` and `organizationStatus` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. An organization's standing SHALL be read from the standing the summary view materializes, never inferred from the collision state: a BLOCKED organization keeps its approved snapshot and therefore collides through the approved branch, so it SHALL be reported as blocked rather than as accredited. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client SHALL infer one from the other. The same independence SHALL hold for the applicant: the submission under review is `PENDING` while its organization MAY already be inscribed, which is why the payload reports the applicant's standing explicitly instead of letting the client derive it.
 
 Carrying `applicant` in the payload SHALL be the only source the client uses for the applicant side of the comparison: the submission-history response exposes the organization's _displayed_ snapshot (`organization_summary_view` ranks `PENDING` above `APPROVED`), which is not necessarily the snapshot the collision was computed from.
 
 #### Scenario: Payload carries both tuples
 
 - **WHEN** a collision warning is returned
-- **THEN** its `metadata` SHALL contain `organizationId`, `organizationIsAccredited`, `taxId`, `legalName`, `tradeName`, `collisionState`, a non-empty `collisionFields` array, and an `applicant` tuple holding the compared `taxId`, `legalName`, `tradeName`, `submissionStatus` and `organizationIsAccredited`
+- **THEN** its `metadata` SHALL contain `organizationId`, `organizationStatus`, `taxId`, `legalName`, `tradeName`, `collisionState`, a non-empty `collisionFields` array, and an `applicant` tuple holding the compared `taxId`, `legalName`, `tradeName`, `submissionStatus` and `organizationStatus`
 
 #### Scenario: Pending collision against an accredited organization
 
 - **WHEN** the collision is against the pending submission of an organization that already has an approved submission
-- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = true`
+- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationStatus = ACCREDITED`
 
 #### Scenario: Pending collision against a first-time applicant
 
 - **WHEN** the collision is against the pending submission of an organization with no approved submission
-- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationIsAccredited = false`, and the client's summary SHALL NOT describe that organization as inscribed
+- **THEN** the warning SHALL report `collisionState = PENDING` and `organizationStatus = NOT_ACCREDITED`, and the client's summary SHALL NOT describe that organization as inscribed
 
 #### Scenario: Applicant that is itself an inscribed organization
 
 - **WHEN** the submission under review belongs to an organization that already has an approved submission (an inscribed organization editing its data)
-- **THEN** the warning SHALL report `applicant.submissionStatus = PENDING` and `applicant.organizationIsAccredited = true`
+- **THEN** the warning SHALL report `applicant.submissionStatus = PENDING` and `applicant.organizationStatus = ACCREDITED`
 
 #### Scenario: Accredited collisions ordered first
 

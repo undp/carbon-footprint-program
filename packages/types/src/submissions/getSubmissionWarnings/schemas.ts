@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import { SubmissionStatusSchema } from "../../baseSchemas/submission.js";
+import { OrganizationDisplayStatusSchema } from "../../organizations/schemas.js";
 
 export const GetSubmissionWarningsParamsSchema = z.object({
   id: IdSchema.describe("The submission ID"),
@@ -39,7 +40,7 @@ export const GetSubmissionWarningsResponseSchema = z.array(WarningSchema);
  * the accredited snapshot, `PENDING` = a submission still under review. It says
  * nothing about the organization itself — a `PENDING` collision can come from a
  * first-time applicant or from an already-inscribed organization editing its
- * data, which is what `organizationIsAccredited` distinguishes.
+ * data, which is what `organizationStatus` distinguishes.
  */
 export const CollisionStateSchema = z.enum(["APPROVED", "PENDING"]);
 
@@ -68,11 +69,9 @@ export const OrganizationIdentityTupleSchema = z.object({
 export const OrganizationIdentityCollisionMetadataSchema = z.object({
   collisionState: CollisionStateSchema,
   organizationId: IdSchema.describe("The conflicting organization's ID"),
-  organizationIsAccredited: z
-    .boolean()
-    .describe(
-      "Whether the conflicting organization is itself accredited, independently of the compared submission's status"
-    ),
+  organizationStatus: OrganizationDisplayStatusSchema.describe(
+    "Standing of the conflicting organization itself, independently of the compared submission's status"
+  ),
   taxId: z.string().nullable().describe("Conflicting org tax ID (RUT/RUC/ID)"),
   legalName: z.string().describe("Conflicting org legal name"),
   tradeName: z.string().nullable().describe("Conflicting org trade name"),
@@ -80,11 +79,9 @@ export const OrganizationIdentityCollisionMetadataSchema = z.object({
     submissionStatus: SubmissionStatusSchema.describe(
       "Status of the submission under review"
     ),
-    organizationIsAccredited: z
-      .boolean()
-      .describe(
-        "Whether the applicant's own organization is already accredited (an inscribed organization editing its data)"
-      ),
+    organizationStatus: OrganizationDisplayStatusSchema.describe(
+      "Standing of the applicant's own organization (an inscribed organization may be editing its data)"
+    ),
   }).describe("The applicant snapshot that was actually compared"),
   collisionFields: z
     .array(CollisionFieldSchema)

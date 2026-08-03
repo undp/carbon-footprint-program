@@ -12,11 +12,13 @@ import {
   type PrismaClient,
   type User,
   OrganizationDataStatus,
+  OrganizationStatus,
   SubmissionStatus,
   SubmissionType,
   SystemRole,
 } from "@repo/database";
 import {
+  OrganizationDisplayStatusValues,
   type GetSubmissionWarningsResponse,
   type OrganizationIdentityCollisionMetadata,
   WarningType,
@@ -156,7 +158,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.collisionState).toBe("APPROVED");
     expect(m.organizationId).toBe(org.id.toString());
     expect(m.collisionFields).toEqual(["legalName"]);
-    expect(m.organizationIsAccredited).toBe(true);
+    expect(m.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.ACCREDITED
+    );
     // The payload is structure only — no prose. The Spanish sentence is composed
     // by the client (see collisionCopy.test.ts).
     expect(warnings[0]).not.toHaveProperty("message");
@@ -169,7 +173,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
       taxId: applicant.taxId,
       submissionStatus: SubmissionStatus.PENDING,
       // A first-time applicant: its own organization is not inscribed yet.
-      organizationIsAccredited: false,
+      organizationStatus: OrganizationDisplayStatusValues.NOT_ACCREDITED,
     });
   });
 
@@ -196,7 +200,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.collisionFields).toEqual(["tradeName"]);
     // A pending collision usually comes from an organization that is not
     // inscribed yet — the payload must not claim otherwise.
-    expect(m.organizationIsAccredited).toBe(false);
+    expect(m.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.NOT_ACCREDITED
+    );
     expect(m.taxId).toBe(conflicting.taxId);
   });
 
@@ -243,7 +249,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(warnings).toHaveLength(1);
     const m = meta(warnings[0]);
     expect(m.collisionState).toBe("PENDING");
-    expect(m.organizationIsAccredited).toBe(true);
+    expect(m.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.ACCREDITED
+    );
     expect(m.collisionFields).toEqual(["legalName"]);
   });
 
@@ -291,7 +299,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     // The applicant's standing is its own fact, independent of its submission
     // being PENDING and of the conflicting organization's standing.
     expect(m.applicant.submissionStatus).toBe(SubmissionStatus.PENDING);
-    expect(m.applicant.organizationIsAccredited).toBe(true);
+    expect(m.applicant.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.ACCREDITED
+    );
   });
 
   it("flags a tax-id (RUT) collision", async () => {
@@ -436,6 +446,39 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(meta(warnings[1]).collisionState).toBe("PENDING");
     expect(meta(warnings[0]).organizationId).toBe(conflictingOrg.id.toString());
     expect(meta(warnings[1]).organizationId).toBe(conflictingOrg.id.toString());
+  });
+
+  it("reports a blocked organization as blocked, not as inscribed", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // Blocking does not touch the approved snapshot, so this org still collides
+    // through the APPROVED branch. `is_accredited` is blind to BLOCKED, which is
+    // why the standing has to come from `display_status`.
+    const blockedOrg = await createTestOrganization(prisma, {
+      status: OrganizationStatus.BLOCKED,
+    });
+    const orgData = await createTestOrganizationData(prisma, blockedOrg.id, {
+      legalName: applicant.legalName,
+      tradeName: `Trade ${randomUUID()}`,
+      taxId: `TAX-${randomUUID()}`,
+      status: OrganizationDataStatus.ACTIVE,
+    });
+    await createTestOrganizationDataSubmission(
+      prisma,
+      orgData.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.organizationId).toBe(blockedOrg.id.toString());
+    expect(m.collisionState).toBe("APPROVED");
+    expect(m.organizationStatus).toBe(OrganizationDisplayStatusValues.BLOCKED);
   });
 
   it("reports each approved snapshot on its own fields when an org has two", async () => {

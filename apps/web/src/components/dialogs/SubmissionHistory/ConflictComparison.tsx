@@ -4,10 +4,10 @@ import { alpha, Box, Typography, useTheme } from "@mui/material";
 // tax-id label ("RUT") into "Rut".
 import { upperFirst } from "lodash-es";
 import {
-  OrganizationDisplayStatusValues,
   SubmissionStatus,
   type CollisionField,
   type CollisionState,
+  type OrganizationDisplayStatus,
   type OrganizationIdentityCollisionMetadata,
 } from "@repo/types";
 import { StatusChip } from "@/components/StatusChip";
@@ -32,16 +32,14 @@ const CONFLICT_SUBMISSION_STATUS: Record<CollisionState, SubmissionStatus> = {
   PENDING: SubmissionStatus.PENDING,
 };
 
-/** An organization's standing chip: inscribed or not (never BLOCKED here). */
-const organizationStatusChip = (isAccredited: boolean) => (
+/**
+ * An organization's standing chip, read straight from the payload's standing —
+ * the app-wide config covers Inscrita / No Inscrita / Bloqueada, so a blocked
+ * organization reads as blocked instead of borrowing one of the other two.
+ */
+const organizationStatusChip = (status: OrganizationDisplayStatus) => (
   <StatusChip
-    config={
-      ORGANIZATION_DISPLAY_STATUS_CONFIG[
-        isAccredited
-          ? OrganizationDisplayStatusValues.ACCREDITED
-          : OrganizationDisplayStatusValues.NOT_ACCREDITED
-      ]
-    }
+    config={ORGANIZATION_DISPLAY_STATUS_CONFIG[status]}
     size="small"
   />
 );
@@ -111,10 +109,8 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
     {
       key: "organizationStatus",
       label: "Estado de la organización",
-      applicant: organizationStatusChip(
-        metadata.applicant.organizationIsAccredited
-      ),
-      conflict: organizationStatusChip(metadata.organizationIsAccredited),
+      applicant: organizationStatusChip(metadata.applicant.organizationStatus),
+      conflict: organizationStatusChip(metadata.organizationStatus),
       collides: false,
     },
     ...IDENTITY_ROW_ORDER.map((field) => ({
