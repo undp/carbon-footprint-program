@@ -58,44 +58,54 @@ resolve_frontend_origin() {
 # names are deterministic guids). Detecting the permission lets the deploy skip exactly those
 # resources instead of dying on them.
 #
-# Uses the Authorization checkAccess API, which evaluates *effective* access — direct,
-# group-inherited and PIM-activated roles all count, which listing role assignments would miss. It
-# is only served on the 2018-09-01-preview api-version. The caller's object ID comes from the `oid`
-# claim of the ARM access token rather than Graph (`az ad signed-in-user show`), which is commonly
+# Uses the Authorization permissions API, which returns the actions/notActions the CALLER holds at
+# the scope. Because it is evaluated for the caller, roles inherited from a group or from a
+# management group — and PIM roles already activated — are all included, with no need for the
+# caller's object ID or for Graph (`az ad signed-in-user show` / `/me/getMemberGroups`), commonly
 # blocked for guest and restricted accounts.
 #
-# Returns 1 only on an explicit NotAllowed. Everything else returns 0 — that covers both "can write"
-# and "could not determine" (no token, undecodable claims, API error, unrecognized decision), which
-# are deliberately conflated: never silently drop the grants, let ARM fail loudly instead.
-# Read-only, so it is also safe under DRY_RUN.
+# Two alternatives were tried and rejected:
+#   - checkAccess evaluates only the subject it is handed. With ObjectId alone it does NOT expand
+#     group membership, so an operator whose Owner comes from a group — the common case here — is
+#     reported NotAllowed, and the deploy would silently drop grants it was allowed to write.
+#     Passing subject.attributes.Groups fixes that, at the cost of a Graph call for the memberships.
+#   - ARM's own pre-flight (az deployment group validate) does not authorize role assignments at all:
+#     it returns Succeeded for a template whose role assignment a later deploy would refuse.
+#
+# An entry grants the action when one of its actions matches it and none of its notActions does —
+# RBAC's own rule. Patterns are globs, matched case-insensitively, so Contributor's notAction
+# `Microsoft.Authorization/*/Write` correctly blocks `.../roleAssignments/write`.
+#
+# Returns 1 only when the API answered and no entry grants the action. Everything else returns 0 —
+# that covers both "can write" and "could not determine" (API error, unparseable answer), which are
+# deliberately conflated: never silently drop the grants, let ARM fail loudly instead. Deny
+# assignments are not visible through this API, and can only err in that same direction.
+# Read-only, so it is also safe under DRY_RUN; the resource group must already exist, which it does
+# by the time this runs (the deploy creates it earlier).
 # Requires AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP (read at call time).
 can_write_role_assignments() {
-  local token payload oid decision
+  local action='Microsoft.Authorization/roleAssignments/write'
+  local permissions granting
 
-  token=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv 2>/dev/null || echo "")
-  if [ -z "$token" ]; then
+  permissions=$(az rest \
+    --method get \
+    --url "https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Authorization/permissions?api-version=2022-04-01" \
+    -o json 2>/dev/null || echo "")
+  if [ -z "$permissions" ]; then
     return 0
   fi
 
-  # JWT payload: base64url -> base64, re-padded to a multiple of 4. Decoded with openssl, already a
-  # hard dependency of deploy.sh, so no assumption is needed about which base64 flavour is installed.
-  payload=$(printf '%s' "$token" | cut -d. -f2 | tr '_-' '/+')
-  while [ $((${#payload} % 4)) -ne 0 ]; do
-    payload="${payload}="
-  done
-  oid=$(printf '%s' "$payload" | openssl base64 -d -A 2>/dev/null | jq -r '.oid // empty' 2>/dev/null || echo "")
-  if [ -z "$oid" ]; then
+  granting=$(printf '%s' "$permissions" | jq -r --arg a "$action" '
+    def globmatch($pat; $s): $s | test("^" + ($pat | gsub("\\."; "\\.") | gsub("\\*"; ".*")) + "$"; "i");
+    [ .value[]?
+      | select(([.actions[]?    | select(globmatch(.; $a))] | length) > 0)
+      | select(([.notActions[]? | select(globmatch(.; $a))] | length) == 0)
+    ] | length' 2>/dev/null || echo "")
+  if [ -z "$granting" ]; then
     return 0
   fi
 
-  decision=$(az rest \
-    --method post \
-    --url "https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Authorization/checkAccess?api-version=2018-09-01-preview" \
-    --body "{\"subject\":{\"attributes\":{\"ObjectId\":\"${oid}\"}},\"actions\":[{\"id\":\"Microsoft.Authorization/roleAssignments/write\",\"isDataAction\":false}]}" \
-    --query "[0].accessDecision" -o tsv 2>/dev/null || echo "")
-
-  # Only an explicit NotAllowed suppresses the grants; "Allowed" and anything unreadable attempt it.
-  [ "$decision" != "NotAllowed" ]
+  [ "$granting" != "0" ]
 }
 
 # Read a single deployment-stack output, normalizing a missing/null output to

@@ -394,9 +394,14 @@ Tu cuenta necesita **dos** cosas en el Resource Group:
 
 Cómo se detecta (`can_write_role_assignments` en `infra/lib/common.sh`):
 
-1. Obtiene el object id del caller desde el claim `oid` del token de ARM — no vía Graph (`az ad signed-in-user show`), que suele estar bloqueado en cuentas guest o restringidas.
-2. Consulta la API `Microsoft.Authorization/checkAccess` en el scope del Resource Group, que evalúa el acceso **efectivo**: incluye roles directos, heredados por grupo y activados vía PIM — algo que listar role assignments no captura.
-3. Solo un `NotAllowed` explícito omite los grants. Si el probe falla por cualquier motivo (sin token, claims ilegibles, error de API), asume que sí puede escribirlos: nunca se omiten grants en silencio, preferimos que ARM falle ruidosamente.
+1. Consulta la API `Microsoft.Authorization/permissions` en el scope del Resource Group. Devuelve los `actions`/`notActions` que tiene **el caller** ahí; al evaluarse para el caller, incluye roles directos, heredados por grupo, heredados de un management group y roles PIM ya activados. No necesita el object id ni Graph.
+2. Aplica la regla de RBAC: una entrada otorga la acción si alguno de sus `actions` la matchea y ninguno de sus `notActions` lo hace. Los patrones son globs case-insensitive, así que el `notAction` de Contributor `Microsoft.Authorization/*/Write` bloquea correctamente `Microsoft.Authorization/roleAssignments/write`.
+3. Los grants se omiten solo si la API respondió y ninguna entrada otorga la acción. Si el probe falla por cualquier motivo (error de API, respuesta ilegible), asume que sí puede escribirlos: nunca se omiten grants en silencio, preferimos que ARM falle ruidosamente. Las _deny assignments_ no son visibles por esta API, y solo pueden errar en esa misma dirección.
+
+Dos alternativas descartadas:
+
+- **`checkAccess`** evalúa únicamente el sujeto que se le pasa. Con `ObjectId` a secas **no expande membresías de grupo**: a un operador cuyo Owner viene de un grupo le responde `NotAllowed`, y el deploy termina omitiendo grants que sí podía escribir — exactamente el falso negativo que este probe debe evitar. Pasarle `subject.attributes.Groups` lo corrige, a cambio de una llamada a Graph (`/me/getMemberGroups`) para obtener las membresías.
+- **El pre-flight de ARM** (`az deployment group validate`) no autoriza role assignments: devuelve `Succeeded` para un template cuyo role assignment un deploy posterior sí rechazaría.
 
 Cuando se omiten, `main.bicep` deja fuera los seis grants que administra: los tres de la identidad del App Service, los dos opcionales del grupo de desarrollo sobre Storage, y el `Key Vault Secrets Officer` del grupo de desarrollo.
 

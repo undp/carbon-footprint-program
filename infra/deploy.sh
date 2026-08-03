@@ -279,7 +279,7 @@ echo "════════════════════════�
 log "Checking whether this account can write role assignments..."
 if can_write_role_assignments; then
   ENABLE_ROLE_ASSIGNMENTS="true"
-  log "Role assignments: enabled (account can write them)"
+  log "Role assignments: enabled (effective permissions in $AZURE_RESOURCE_GROUP allow writing them)"
 else
   ENABLE_ROLE_ASSIGNMENTS="false"
 
@@ -288,9 +288,11 @@ else
   # permission error for the destruction of the grants the deploy was trying to preserve. Aborting
   # here costs nothing: no resource has been touched yet.
   if [ "$ACTION_ON_UNMANAGE" = "deleteResources" ]; then
-    log "ERROR: this account cannot write role assignments, so the deploy would drop them from the"
-    log "       template — and with ACTION_ON_UNMANAGE=deleteResources the stack DELETES resources"
-    log "       that leave the template. That would destroy the very grants being preserved."
+    log "ERROR: the effective permissions of this account in $AZURE_RESOURCE_GROUP do not include"
+    log "       Microsoft.Authorization/roleAssignments/write, so the deploy would drop the role"
+    log "       assignments from the template — and with ACTION_ON_UNMANAGE=deleteResources the"
+    log "       stack DELETES resources that leave the template. That would destroy the very"
+    log "       grants being preserved."
     log ""
     log "       Pick one:"
     log "         - ACTION_ON_UNMANAGE=detachAll  → the grants are preserved, untracked (safe)"
@@ -301,7 +303,8 @@ else
     exit 1
   fi
 
-  log "⚠️  Role assignments SKIPPED — this account cannot write them in $AZURE_RESOURCE_GROUP"
+  log "⚠️  Role assignments SKIPPED — the effective permissions of this account in"
+  log "    $AZURE_RESOURCE_GROUP do not include Microsoft.Authorization/roleAssignments/write."
   log "    ACTION_ON_UNMANAGE=detachAll, so existing grants are preserved (detached, untracked)."
   log "    On a resource group where they were never created, the API identity ends up without"
   log "    AcrPull (image pull fails) and without blob access. To fix, have an Owner grant this"
