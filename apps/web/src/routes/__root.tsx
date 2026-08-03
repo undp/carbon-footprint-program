@@ -17,6 +17,10 @@ import { AuthProvider, ExplanationProvider } from "../contexts";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import {
+  DEVTOOLS_TRIGGER_BOTTOM_PX,
+  OVERLAY_RIGHT_PX,
+} from "@/devtools/overlayLayout";
 import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
@@ -47,16 +51,9 @@ function RootComponent() {
               {IS_DEVELOPMENT && (
                 <>
                   {/* The shell only offers corner/edge presets, no offset, so
-                      the exact placement comes from here. It shares the
-                      bottom-right corner with ChatbotWidget, so the clearance
-                      it needs depends on whether that widget is mounted:
-
-                        - right: 16px  matches ChatbotWidget's `right: 16` so the
-                          two line up. The shell's own default is a smaller
-                          built-in token, which left them looking off-axis.
-                        - bottom: with the chatbot on, clear its 56px-tall FAB at
-                          bottom:16 (occupying 16-72px) and leave a 16px gap.
-                          With it off, take the corner itself.
+                      its exact slot in the bottom-right stack comes from here.
+                      Offsets live in devtools/overlayLayout so this and
+                      FormDebugPanel cannot drift apart.
 
                       `!important` is needed because the shell injects its own
                       `position: fixed; bottom/right` into <head> at runtime. The
@@ -67,10 +64,8 @@ function RootComponent() {
                   <GlobalStyles
                     styles={{
                       'button[aria-label="Open TanStack Devtools"]': {
-                        right: "16px !important",
-                        bottom: IS_CHATBOT_ENABLED
-                          ? "88px !important"
-                          : "16px !important",
+                        right: `${OVERLAY_RIGHT_PX}px !important`,
+                        bottom: `${DEVTOOLS_TRIGGER_BOTTOM_PX}px !important`,
                       },
                     }}
                   />
