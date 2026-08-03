@@ -313,6 +313,79 @@ describe("POST /api/app/organizations - Integration Tests", () => {
     });
   });
 
+  describe("Whitespace trimming", () => {
+    it("should store every free-text field trimmed", async () => {
+      // `OrganizationMutationDataSchema` trims before validating, so nothing is
+      // ever stored padded. It matters most for the identity fields: they are
+      // compared against other organizations by the accreditation
+      // identity-collision detection, and " Acme SpA " would read as a different
+      // identity than "Acme SpA".
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/app/organizations",
+        payload: {
+          legalName: "  Padded Legal Name  ",
+          tradeName: "  Padded Trade Name  ",
+          taxId: "  76123456-7  ",
+          countryOrganizationSizeId: "1",
+          sectorId: "5",
+          subsectorId: "12",
+          employeesCount: 50,
+          address: "  123 Padded Street  ",
+          representativeFullName: "  Jane Doe  ",
+          representativeTaxId: "  987654321  ",
+          representativePositionId: "1",
+          representativePhone: "  +1234567890  ",
+          representativeEmail: "jane.doe@test.com",
+          mainActivityId: "8",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateOrganizationResponse;
+
+      const organizationData = await prisma.organizationData.findFirst({
+        where: { organizationId: BigInt(body.id) },
+      });
+
+      expect(organizationData?.legalName).toBe("Padded Legal Name");
+      expect(organizationData?.tradeName).toBe("Padded Trade Name");
+      expect(organizationData?.taxId).toBe("76123456-7");
+      expect(organizationData?.address).toBe("123 Padded Street");
+      expect(organizationData?.representativeFullName).toBe("Jane Doe");
+      expect(organizationData?.representativeTaxId).toBe("987654321");
+      expect(organizationData?.representativePhone).toBe("+1234567890");
+    });
+
+    it("should return 400 when legalName is whitespace only", async () => {
+      // Trimming runs before `.min(1)`, so "   " is now as invalid as "".
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/app/organizations",
+        payload: {
+          legalName: "   ",
+          tradeName: "Test Trade Name",
+          taxId: "123456789",
+          countryOrganizationSizeId: "1",
+          sectorId: "5",
+          subsectorId: "12",
+          employeesCount: 50,
+          address: "123 Test Street",
+          representativeFullName: "John Doe",
+          representativeTaxId: "987654321",
+          representativePositionId: "1",
+          representativePhone: "+1234567890",
+          representativeEmail: "john.doe@test.com",
+          mainActivityId: "8",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
+    });
+  });
+
   describe("Validation - Missing required fields", () => {
     it("should return 400 when legalName is missing", async () => {
       const response = await app.inject({
