@@ -72,6 +72,11 @@ Capturar con Playwright desde la app en vivo (si está disponible) o usar placeh
 - **Datos ficticios obligatorios**: nunca datos reales de personas. Usar nombres
   inventados (p. ej. "González Muñoz, Carlos") y códigos genéricos. Si la app trae datos
   reales, interceptarlos/reemplazarlos antes de capturar (`page.route()`).
+- **Los correos van siempre en `@example.com`** (o `.org`/`.net`), los dominios que
+  la RFC 2606 reserva para documentación. Un dominio inventado que suena plausible
+  es registrable por cualquiera mañana: implica una organización real y desvía el
+  mail que un lector copie del manual. Los nombres de empresa inventados sí sirven
+  tal cual — el problema es solo el dominio.
 - Sin Playwright: usar `.screenshot-placeholder` describiendo qué mostrará cada captura.
 
 ### Paso 3 — Planificar la estructura de slides
@@ -219,7 +224,8 @@ workspace: crea un `package-lock.json` paralelo al `pnpm-lock.yaml`.
 - No incluir texto técnico de implementación (API, base de datos).
 - Solo formato slide (landscape); sin formato carta ni toggle.
 - **No documentar vistas responsivas**: este proyecto no las presenta en los manuales.
-- **Nunca datos reales de personas** en los screenshots — siempre datos ficticios.
+- **Nunca datos reales de personas** en los screenshots — siempre datos ficticios, con
+  los correos en `@example.com`.
 
 ## Checklist final
 
@@ -233,7 +239,7 @@ workspace: crea un `package-lock.json` paralelo al `pnpm-lock.yaml`.
 - [ ] Footer y número de página correctos en TODAS las slides.
 - [ ] Ícono del módulo correcto en cover y dividers.
 - [ ] Índice con números de página correctos.
-- [ ] Sin datos reales; solo datos ficticios.
+- [ ] Sin datos reales; solo datos ficticios, con los correos en `@example.com`.
 - [ ] Preguntado al usuario si quiere ajustes antes del PDF.
 - [ ] PDF generado sin cortes de contenido.
 - [ ] Prueba de comprensión (10 preguntas al subagente) y sus vacíos resueltos — se cubre con
