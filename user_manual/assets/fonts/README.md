@@ -10,15 +10,31 @@ no está en el subconjunto, regenéralo con el comando de abajo.
 
 ## Archivos
 
-| Archivo                                 | Familia                  | Contenido                                              |
-| --------------------------------------- | ------------------------ | ------------------------------------------------------ |
-| `material-symbols-rounded-subset.woff2` | Material Symbols Rounded | Solo los 63 íconos que usan los capítulos              |
-| `roboto-latin.woff2`                    | Roboto                   | Subconjunto `latin`                                    |
-| `roboto-latin-ext.woff2`                | Roboto                   | Subconjunto `latin-ext` (acentos y caracteres latinos) |
+| Archivo                                    | Familia                  | Contenido                                     |
+| ------------------------------------------ | ------------------------ | --------------------------------------------- |
+| `material-symbols-rounded-subset.woff2`    | Material Symbols Rounded | Solo los 63 íconos que usan los capítulos     |
+| `roboto-{latin,latin-ext}-{300…700}.woff2` | Roboto                   | Una instancia estática por peso y subconjunto |
 
-Las tres son fuentes variables. Material Symbols conserva sus cuatro ejes
-(`FILL`, `GRAD`, `opsz`, `wght`), de modo que `font-variation-settings: "FILL" 1`
-sigue funcionando; Roboto conserva el eje `wght`.
+Material Symbols es **variable** y conserva sus cuatro ejes (`FILL`, `GRAD`,
+`opsz`, `wght`), de modo que `font-variation-settings: "FILL" 1` sigue
+funcionando en la marca de agua de la portada.
+
+Roboto, en cambio, va en **instancias estáticas** —10 archivos: los pesos 300,
+400, 500, 600 y 700 en los subconjuntos `latin` y `latin-ext`— y eso es
+deliberado. Chromium no puede incrustar una instancia de fuente variable como
+programa de fuente en el PDF: la convierte en **Type 3**, es decir contornos como
+procedimientos de dibujo, y como el exportador arma una página por lámina y
+luego las fusiona, esa conversión se repite en cada página. Medido sobre los
+cinco capítulos:
+
+| Roboto                        | PDFs (5 capítulos) | Fuentes incrustadas        |
+| ----------------------------- | ------------------ | -------------------------- |
+| variable (`wght@300..700`)    | 11.4 MB            | 118 Type 3, 3 CID TrueType |
+| instancias estáticas (actual) | 8.0 MB             | 62 CID TrueType, 20 Type 3 |
+
+Los 114 KB extra que cuestan los archivos estáticos ahorran 3.2 MB de binario
+versionado y dejan la capa de texto del PDF con subconjuntos de fuente reales.
+**No vuelvas a la fuente variable de Roboto.**
 
 ## Licencia
 
@@ -54,10 +70,28 @@ curl -s -A "$UA" "$(grep -oP 'url\(\K[^)]+' /tmp/ms.css)" \
   -o assets/fonts/material-symbols-rounded-subset.woff2
 ```
 
-Roboto rara vez cambia. Si hay que rehacerlo, pide
-`https://fonts.googleapis.com/css2?family=Roboto:wght@300..700` con la misma UA
-y baja los woff2 de los bloques `/* latin */` y `/* latin-ext */`, copiando su
-`unicode-range` a `manual.css`.
+Roboto rara vez cambia. Si hay que rehacerlo, **pide un peso a la vez**: con un
+solo valor en `wght` la API devuelve una instancia estática, mientras que con un
+rango o una lista (`wght@300..700`, `wght@300;400`) devuelve la fuente variable,
+que es justo lo que hay que evitar.
+
+```bash
+for w in 300 400 500 600 700; do
+  curl -s -A "$UA" "https://fonts.googleapis.com/css2?family=Roboto:wght@$w" -o /tmp/r.css
+  # de /tmp/r.css, baja el woff2 de los bloques /* latin */ y /* latin-ext */ a
+  # assets/fonts/roboto-<subconjunto>-$w.woff2 y copia su unicode-range a manual.css
+done
+```
+
+Para comprobar que quedaron estáticas: una fuente estática no tiene tabla `fvar`.
+
+```bash
+python3 -c "
+from fontTools.ttLib import TTFont   # pip install fonttools brotli
+import glob
+for p in sorted(glob.glob('assets/fonts/roboto-*.woff2')):
+    print(p, 'variable' if 'fvar' in TTFont(p) else 'estática')"
+```
 
 Después de regenerar, confirma que ningún ícono quedó fuera del subconjunto: un
 glifo ausente se renderiza como su nombre en texto, y un ícono correcto mide
