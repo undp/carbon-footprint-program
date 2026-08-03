@@ -33,6 +33,10 @@ validate_frontend_custom_domain() {
 # Sets RESOLVED_ORIGIN (empty when neither source is available) and
 # RESOLVED_ORIGIN_SOURCE (human-readable label for the caller's logs). Warns on
 # stderr when the env var diverges from the origin the stack authorized.
+#
+# Both are read by the sourcing script (deploy-api.sh, deploy-web.sh), a use the
+# linter cannot see from here — hence the SC2034 exemption below.
+# shellcheck disable=SC2034
 resolve_frontend_origin() {
   if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
     RESOLVED_ORIGIN="https://${FRONTEND_CUSTOM_DOMAIN}"
