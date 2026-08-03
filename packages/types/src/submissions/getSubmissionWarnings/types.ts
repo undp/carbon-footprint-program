@@ -7,6 +7,7 @@ import {
   OrganizationIdentityCollisionMetadataSchema,
   OrganizationIdentityTupleSchema,
   WarningSchema,
+  WarningTypeSchema,
 } from "./schemas.js";
 
 export type GetSubmissionWarningsParams = z.infer<
@@ -18,6 +19,8 @@ export type GetSubmissionWarningsResponse = z.infer<
 >;
 
 export type Warning = z.infer<typeof WarningSchema>;
+
+export type WarningTypeValue = z.infer<typeof WarningTypeSchema>;
 
 export type CollisionState = z.infer<typeof CollisionStateSchema>;
 

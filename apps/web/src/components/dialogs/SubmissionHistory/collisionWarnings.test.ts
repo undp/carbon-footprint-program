@@ -26,15 +26,25 @@ const metadata = (
   ...overrides,
 });
 
+/**
+ * `type` is loosened on purpose: the contract types it as the current registry,
+ * but a newer API can still send a kind this build does not know, and dropping
+ * those is exactly what the parser must do at runtime.
+ */
+type WarningOverrides = Partial<
+  Omit<GetSubmissionWarningsResponse[number], "type">
+> & { type?: string };
+
 const warning = (
-  overrides: Partial<GetSubmissionWarningsResponse[number]> = {}
-): GetSubmissionWarningsResponse[number] => ({
-  type: WarningType.ORGANIZATION_IDENTITY_COLLISION,
-  message:
-    "Coincide con la postulación aprobada de la organización inscrita (RUT 76123456-7) en RUT.",
-  metadata: metadata(),
-  ...overrides,
-});
+  overrides: WarningOverrides = {}
+): GetSubmissionWarningsResponse[number] =>
+  ({
+    type: WarningType.ORGANIZATION_IDENTITY_COLLISION,
+    message:
+      "Coincide con la postulación aprobada de la organización inscrita (RUT 76123456-7) en RUT.",
+    metadata: metadata(),
+    ...overrides,
+  }) as GetSubmissionWarningsResponse[number];
 
 describe("parseCollisionWarnings", () => {
   it("returns an empty array when the query has no data yet", () => {

@@ -6,6 +6,13 @@ export const GetSubmissionWarningsParamsSchema = z.object({
   id: IdSchema.describe("The submission ID"),
 });
 
+/** Registry of warning `type` identifiers. Extend as new kinds are added. */
+export const WarningType = {
+  ORGANIZATION_IDENTITY_COLLISION: "ORGANIZATION_IDENTITY_COLLISION",
+} as const;
+
+export const WarningTypeSchema = z.enum(WarningType);
+
 /**
  * Generic warning bag (design D2). `metadata` is intentionally free-form — its
  * shape depends on `type`; consumers branch on `type` and parse `metadata` at
@@ -13,7 +20,7 @@ export const GetSubmissionWarningsParamsSchema = z.object({
  * own warning kinds without changing the response contract.
  */
 export const WarningSchema = z.object({
-  type: z.string().describe("Warning kind identifier"),
+  type: WarningTypeSchema.describe("Warning kind identifier"),
   message: z.string().describe("Human-readable summary (Spanish)"),
   metadata: z
     .record(z.string(), z.unknown())
@@ -23,11 +30,6 @@ export const WarningSchema = z.object({
 export const GetSubmissionWarningsResponseSchema = z.array(WarningSchema);
 
 // --- Organization identity-collision warning (first warning kind) -----------
-
-/** Registry of warning `type` identifiers. Extend as new kinds are added. */
-export const WarningType = {
-  ORGANIZATION_IDENTITY_COLLISION: "ORGANIZATION_IDENTITY_COLLISION",
-} as const;
 
 /**
  * Status of the conflicting submission whose snapshot was compared: `APPROVED` =
