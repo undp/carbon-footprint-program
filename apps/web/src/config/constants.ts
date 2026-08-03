@@ -94,8 +94,62 @@ export const APP_LOCALE = "es-ES";
 /**
  * Maximum number of decimal places accepted by `<NumericInput />` (passed to
  * `react-number-format`'s `decimalScale`). Independent from display precision.
+ *
+ * This is the app-wide default for every decimal `NumericInput`, with two
+ * deliberate exceptions: `FormNumericField` forces `0` when `onlyInteger` is
+ * set, and the emission-factor cell passes `FACTOR_INPUT_DECIMAL_SCALE` (see
+ * below for why the two scales differ).
  */
 export const INPUT_DECIMAL_SCALE = 4;
+
+/**
+ * Decimal places accepted by the emission-factor input (own factors only).
+ *
+ * Matches the `Decimal(28,10)` column that stores the factor, so a factor the
+ * user types or pastes is never silently truncated on the way in. It differs
+ * from `INPUT_DECIMAL_SCALE` on purpose: raising the global scale would change
+ * quantities, reduction-scenario inputs and every other numeric form, while
+ * the truncation problem only exists for factors.
+ */
+export const FACTOR_INPUT_DECIMAL_SCALE = 10;
+
+/**
+ * Display precision of an emission factor: the formatter targets
+ * `FACTOR_DISPLAY_SIGNIFICANT_DIGITS` significant digits, bounded by a floor
+ * and a ceiling of decimal places.
+ *
+ * The floor is a no-regression guarantee against the previous 2-decimal
+ * format: no factor may ever be shown with less precision than before, so a
+ * value like `1164,4894` keeps 2 decimals (`1.164,49`) instead of collapsing
+ * to 4 significant digits. The ceiling preserves the existing `<0,000001`
+ * threshold label instead of rendering `0,000000`; the untruncated value stays
+ * reachable through the exact-value affordance.
+ *
+ * Floor and ceiling therefore take precedence over the significant-digit
+ * target — that is the intended behaviour, not a rounding bug to "fix".
+ */
+export const FACTOR_DISPLAY_SIGNIFICANT_DIGITS = 4;
+export const FACTOR_DISPLAY_MIN_DECIMALS = 2;
+export const FACTOR_DISPLAY_MAX_DECIMALS = 6;
+
+/**
+ * Thresholds of the adaptive mass scale used for the main-activity emission
+ * intensity (tCO₂e per unit of activity). The unit is picked so the presented
+ * number lands in `[1, 1000)`: at or above `INTENSITY_TON_THRESHOLD_T` it is
+ * shown in tonnes, at or above `INTENSITY_KG_THRESHOLD_T` in kilograms, and
+ * below that in grams.
+ *
+ * `INTENSITY_MIN_DISPLAY_G` is the gram floor: a positive rate too small to
+ * render with `INTENSITY_MAX_DECIMALS` decimals is shown as `<0,01 g CO₂e`
+ * rather than as zero.
+ *
+ * Scoped to the equivalence card and the step-4 caption only — totals,
+ * rankings and the transparency portal stay in tCO₂e for comparability.
+ */
+export const INTENSITY_TON_THRESHOLD_T = 1;
+export const INTENSITY_KG_THRESHOLD_T = 0.001;
+export const INTENSITY_MAX_DECIMALS = 2;
+export const INTENSITY_MIN_DISPLAY_G = 0.01;
 
 /**
  * Default placeholder rendered by the Formatter when a value is `null`,

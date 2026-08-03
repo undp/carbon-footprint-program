@@ -111,16 +111,217 @@ describe("Formatter — numeric formatting (via quantity)", () => {
     expect(fmt.quantity(NaN, { ifEmpty: "sin dato" })).toBe("sin dato");
   });
 
-  it("rate / emissionFactor delegate to the same numeric formatting", () => {
+  it("rate delegates to the same numeric formatting", () => {
     expect(fmt.rate(1234.5)).toBe("1.234,5");
     expect(fmt.rate(0.0000005)).toBe("<0,000001");
     expect(fmt.rate(null)).toBe(DEFAULT_EMPTY_VALUE);
     expect(fmt.rate(NaN, { ifEmpty: "x" })).toBe("x");
+  });
+});
 
+describe("Formatter — emissionFactor", () => {
+  const fmt = new Formatter("es-ES", 4);
+
+  // es-ES → "1.234,5". Reads a rendered factor back as a number so the tests
+  // below can multiply exactly what the user sees on screen.
+  const parseDisplayed = (displayed: string): number =>
+    Number(displayed.replaceAll(".", "").replace(",", "."));
+
+  const decimalsShown = (displayed: string): number =>
+    displayed.split(",")[1]?.length ?? 0;
+
+  it("keeps the previous output for the values the old formatter got right", () => {
     expect(fmt.emissionFactor(1000000)).toBe("1.000.000");
     expect(fmt.emissionFactor(0.001)).toBe("0,001");
     expect(fmt.emissionFactor(undefined)).toBe(DEFAULT_EMPTY_VALUE);
     expect(fmt.emissionFactor(null, { ifEmpty: "-" })).toBe("-");
+  });
+
+  it.each<[number, string]>([
+    // The reported bug: 4 significant digits instead of the old "0,06".
+    [0.056944, "0,05694"],
+    // No zero padding up to the significant-digit target.
+    [2.68, "2,68"],
+    // The 2-decimal floor keeps the tenth that 4 significant digits would drop.
+    [1234.5, "1.234,5"],
+    // The 6-decimal ceiling is enough for this one, no label needed.
+    [0.000123, "0,000123"],
+  ])("emissionFactor(%p) -> %p", (input, expected) => {
+    expect(fmt.emissionFactor(input)).toBe(expected);
+  });
+
+  it("gives the 2-decimal floor precedence over the significant digits", () => {
+    // Real seed value: 6 significant digits, because dropping to 4 (1.164)
+    // would show less precision than the format this change replaces.
+    expect(fmt.emissionFactor(1164.4894)).toBe("1.164,49");
+    expect(fmt.emissionFactor(999.99)).toBe("999,99");
+  });
+
+  it("gives the 6-decimal ceiling precedence over the significant digits", () => {
+    // A single significant digit; the rest lives in the exact-value affordance.
+    expect(fmt.emissionFactor(0.00000149)).toBe("0,000001");
+  });
+
+  it.each<[number, string]>([
+    // Zero is short-circuited before the threshold guard...
+    [0, "0"],
+    // ...and the threshold guard runs before formatting, so a value that would
+    // round up to a displayable 0,000001 still reads as "below the threshold".
+    [0.0000005, "<0,000001"],
+    [0.0000001, "<0,000001"],
+    [-0.0000001, ">-0,000001"],
+    // Exactly 10⁻⁶ is displayable, so it is NOT labelled.
+    [0.000001, "0,000001"],
+  ])("emissionFactor(%p) -> %p (guard order)", (input, expected) => {
+    expect(fmt.emissionFactor(input)).toBe(expected);
+  });
+
+  it.each<[number | null | undefined, string]>([
+    [null, DEFAULT_EMPTY_VALUE],
+    [undefined, DEFAULT_EMPTY_VALUE],
+    [NaN, DEFAULT_EMPTY_VALUE],
+  ])("emissionFactor(%p) -> empty placeholder", (input, expected) => {
+    expect(fmt.emissionFactor(input)).toBe(expected);
+  });
+
+  it("emissionFactor honours ifEmpty override", () => {
+    expect(fmt.emissionFactor(NaN, { ifEmpty: "sin factor" })).toBe(
+      "sin factor"
+    );
+  });
+
+  it.each<number>([
+    0.056944, 2.68, 1234.5, 1164.4894, 0.000123, 0.00000149, 0.01, 0.009999,
+    0.5, 1000000, 0.001, 999.99,
+  ])("never shows fewer decimals than the previous format for %p", (input) => {
+    // `quantity()` still runs the untouched shared formatter, so it is the
+    // living reference of the pre-change output.
+    expect(decimalsShown(fmt.emissionFactor(input))).toBeGreaterThanOrEqual(
+      decimalsShown(fmt.quantity(input))
+    );
+  });
+
+  it("lets the user reproduce the reported emissions with the displayed factor", () => {
+    const quantity = 21600;
+    const storedFactor = 0.056944;
+
+    const displayedFactor = parseDisplayed(fmt.emissionFactor(storedFactor));
+    const manualTons = (quantity * displayedFactor) / 1000;
+    const reportedTons = (quantity * storedFactor) / 1000;
+
+    expect(fmt.emissions(manualTons)).toBe(fmt.emissions(reportedTons));
+    expect(fmt.emissions(reportedTons)).toBe(`1,23${EMISSIONS_SUFFIX}`);
+  });
+
+  it("documents that very large quantities no longer reconcile by hand", () => {
+    // Known and accepted limit: display precision is per column, not per row,
+    // so at this scale the rounded factor drifts. The audit path is the exact
+    // value affordance plus the calculation chain, not a per-row precision.
+    const quantity = 10000000;
+    const storedFactor = 0.056944;
+
+    const displayedFactor = parseDisplayed(fmt.emissionFactor(storedFactor));
+
+    expect(fmt.emissions((quantity * displayedFactor) / 1000)).toBe(
+      `569,4${EMISSIONS_SUFFIX}`
+    );
+    expect(fmt.emissions((quantity * storedFactor) / 1000)).toBe(
+      `569,44${EMISSIONS_SUFFIX}`
+    );
+  });
+});
+
+describe("Formatter — emissionFactorExact", () => {
+  const fmt = new Formatter("es-ES", 4);
+
+  it.each<[number, string]>([
+    [0.056944, "0,056944"],
+    [0.0569441234, "0,0569441234"],
+    [1164.4894, "1.164,4894"],
+    [0.0000001, "0,0000001"],
+    [0, "0"],
+  ])("emissionFactorExact(%p) -> %p", (input, expected) => {
+    expect(fmt.emissionFactorExact(input)).toBe(expected);
+  });
+
+  it("applies no display rounding of its own", () => {
+    // The display formatter rounds; the exact one must not.
+    expect(fmt.emissionFactor(0.0569441234)).toBe("0,05694");
+    expect(fmt.emissionFactorExact(0.0569441234)).toBe("0,0569441234");
+  });
+
+  it.each<[number | null | undefined, string]>([
+    [null, DEFAULT_EMPTY_VALUE],
+    [undefined, DEFAULT_EMPTY_VALUE],
+    [NaN, DEFAULT_EMPTY_VALUE],
+  ])("emissionFactorExact(%p) -> empty placeholder", (input, expected) => {
+    expect(fmt.emissionFactorExact(input)).toBe(expected);
+  });
+
+  it("emissionFactorExact honours ifEmpty override", () => {
+    expect(fmt.emissionFactorExact(null, { ifEmpty: "s/d" })).toBe("s/d");
+  });
+});
+
+describe("Formatter — emissionIntensity", () => {
+  const fmt = new Formatter("es-ES", 4);
+
+  it.each<[number, string, string]>([
+    [1.23, "1,23", "t CO₂e"],
+    [0.00425, "4,25", "kg CO₂e"],
+    // The reported case: 1,2299904 tCO₂e over 21.600 litres.
+    [0.0000569444, "56,94", "g CO₂e"],
+    // Whole grams are not padded with zeros.
+    [0.000057, "57", "g CO₂e"],
+  ])("emissionIntensity(%p) -> %p %s", (input, value, unit) => {
+    expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
+  });
+
+  it.each<[number, string, string]>([
+    // Threshold borders belong to the larger unit.
+    [1, "1", "t CO₂e"],
+    [0.001, "1", "kg CO₂e"],
+    // Rounding must not push a number out of its unit.
+    [0.000999999, "1", "kg CO₂e"],
+    [0.999999, "1", "t CO₂e"],
+    // Nothing larger than a tonne, so the target range is exceeded on purpose.
+    [1200, "1.200", "t CO₂e"],
+  ])("emissionIntensity(%p) -> %p %s (borders)", (input, value, unit) => {
+    expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
+  });
+
+  it("floors a positive rate too small to render in grams", () => {
+    expect(fmt.emissionIntensity(0.000000000005)).toEqual({
+      value: "<0,01",
+      unit: "g CO₂e",
+    });
+  });
+
+  it("renders a zero rate as zero grams, not as the floor label", () => {
+    expect(fmt.emissionIntensity(0)).toEqual({ value: "0", unit: "g CO₂e" });
+  });
+});
+
+describe("Formatter — the precision change stops at factors", () => {
+  const fmt = new Formatter("es-ES", 4);
+
+  // Emissions are the reporting unit and quantities are typed by the user, so
+  // both keep the shared 2-decimal formatting even for values that the factor
+  // formatter now renders with more precision.
+  it.each<[number, string]>([
+    [0.056944, "0,06"],
+    [1164.4894, "1.164,49"],
+    [1234.5, "1.234,5"],
+  ])(
+    "quantity(%p) still uses the shared formatting -> %p",
+    (input, expected) => {
+      expect(fmt.quantity(input)).toBe(expected);
+    }
+  );
+
+  it("emissions still uses the shared formatting", () => {
+    expect(fmt.emissions(0.056944)).toBe(`0,06${EMISSIONS_SUFFIX}`);
+    expect(fmt.emissions(0.056944, { withSuffix: false })).toBe("0,06");
   });
 });
 
