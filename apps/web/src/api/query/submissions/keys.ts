@@ -36,10 +36,14 @@ export const submissionsKeys = {
       reductionProjectId,
       SubmissionQueryKey.HistoryUpdateDependency,
     ] as const,
+  // Carries SubmissionUpdateDependency: warnings report the conflicting
+  // submissions' status and their organizations' standing, so approving or
+  // rejecting ANY submission can change what this one says.
   warnings: (submissionId: string) =>
     [
       SubmissionQueryKey.Root,
       SubmissionQueryKey.Warnings,
       submissionId,
+      SubmissionQueryKey.SubmissionUpdateDependency,
     ] as const,
 };
