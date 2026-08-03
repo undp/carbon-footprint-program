@@ -1,10 +1,11 @@
 import { FC } from "react";
 import { useWatch } from "react-hook-form";
-import { Typography, Tooltip } from "@mui/material";
-import { NumericInput } from "@/components";
+import { Tooltip } from "@mui/material";
+import { DetailTooltipText, NumericInput } from "@/components";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { formatter } from "@/utils/formatting";
+import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
 import {
   MethodologyEmissionFactorDimension,
   RateMeasurementUnit,
@@ -47,11 +48,23 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 
   const isEditableBySource = isFactorValueEditable(factorSource);
 
+  // The displayed factor is rounded for legibility; the value behind the
+  // emissions the app reports is the one the API delivered.
+  const exactValueDetail =
+    value == null || Number.isNaN(value)
+      ? ""
+      : `Valor usado en el cálculo: ${formatter.emissionFactorExact(value)} ${
+          unit?.abbreviation ?? ""
+        }`.trim();
+
   const inputElement = isEditableBySource ? (
     <NumericInput
       value={value ?? null}
       suffix={unit?.abbreviation ?? ""}
       onChange={onChange}
+      // Own factors accept the full precision the database preserves, so a
+      // pasted official factor is never truncated without warning.
+      decimalScale={FACTOR_INPUT_DECIMAL_SCALE}
       disabled={disabled || !validation.canEditFactorValue}
       min={0}
       placeholder=""
@@ -65,10 +78,10 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
       }}
     />
   ) : (
-    <Typography>
+    <DetailTooltipText detail={exactValueDetail}>
       {formatter.emissionFactor(value, { ifEmpty: " " })}{" "}
       {unit?.abbreviation ?? ""}
-    </Typography>
+    </DetailTooltipText>
   );
 
   if (

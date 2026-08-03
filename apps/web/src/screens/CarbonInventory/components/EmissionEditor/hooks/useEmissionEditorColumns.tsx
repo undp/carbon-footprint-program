@@ -260,6 +260,7 @@ export const useEmissionEditorColumns = ({
           <EmissionEditorEmissionsCell
             subcategoryId={subcategory.id}
             lineId={params.row.lineId}
+            rateMeasurementUnits={rateMeasurementUnits || []}
           />
         ),
       },
