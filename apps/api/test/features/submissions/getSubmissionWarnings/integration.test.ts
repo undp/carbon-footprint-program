@@ -469,29 +469,6 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(orgIds).toEqual([orgA.id.toString(), orgB.id.toString()].sort());
   });
 
-  it("matches a conflicting value stored with surrounding whitespace", async () => {
-    const applicant = uniqueIdentity();
-    const { applicantSubmissionId } = await createApplicant(applicant);
-
-    // Stored verbatim (nothing trims on write), lowercased and padded: matching
-    // must normalize BOTH sides, not only the applicant's value.
-    const { org } = await createOrgDataSubmission(
-      {
-        legalName: `  ${applicant.legalName.toLowerCase()}  `,
-        tradeName: `Trade ${randomUUID()}`,
-        taxId: `TAX-${randomUUID()}`,
-      },
-      SubmissionStatus.APPROVED
-    );
-
-    const warnings = await getWarnings(applicantSubmissionId);
-
-    expect(warnings).toHaveLength(1);
-    const m = meta(warnings[0]);
-    expect(m.organizationId).toBe(org.id.toString());
-    expect(m.collisionFields).toEqual(["legalName"]);
-  });
-
   it("skips null identity fields instead of matching them against each other", async () => {
     const legalName = `Legal ${randomUUID()}`;
     const { applicantSubmissionId } = await createApplicant({

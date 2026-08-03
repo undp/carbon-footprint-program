@@ -74,41 +74,39 @@ const normalize = (value: string | null): string | null => {
   return trimmed.length === 0 ? null : trimmed.toLowerCase();
 };
 
-/**
- * Per-field prefilter clauses: `equals` OR `contains`, both case-insensitive.
- *
- * `equals` alone is not enough — stored values are never trimmed at write time,
- * so it silently misses a candidate saved as `"Acme SpA "` even though the
- * design mandates whitespace-trimmed matching. `contains` covers the padded
- * rows, and keeping `equals` alongside it makes the filter a provable superset
- * of plain equality: `contains` compiles to `LIKE '%value%'` and Prisma does not
- * escape LIKE metacharacters, so a value carrying a backslash would otherwise
- * change meaning inside the pattern.
- */
-const clausesForField = (
+/** Case-insensitive exact-equality clause for one identity field. */
+const clauseForField = (
   field: CollisionField,
   value: string
-): Prisma.OrganizationDataWhereInput[] => {
-  const exact = { equals: value, mode: "insensitive" } as const;
-  const loose = { contains: value, mode: "insensitive" } as const;
+): Prisma.OrganizationDataWhereInput => {
+  const equals = { equals: value, mode: "insensitive" } as const;
 
   switch (field) {
     case "legalName":
-      return [{ legalName: exact }, { legalName: loose }];
+      return { legalName: equals };
     case "tradeName":
-      return [{ tradeName: exact }, { tradeName: loose }];
+      return { tradeName: equals };
     case "taxId":
-      return [{ taxId: exact }, { taxId: loose }];
+      return { taxId: equals };
   }
 };
 
 /**
- * Builds the candidate PREFILTER over the applicant's non-null identity fields.
- * It is deliberately loose — it also returns superstrings ("Acme SpA de Chile")
- * and treats `%`/`_` in the applicant's value as wildcards — because
- * `computeCollisionFields` below decides the actual collision with trimmed,
- * exact equality on both sides. Loose here, exact there: no false negatives on
- * padding, no false positives either.
+ * Builds the candidate filter over the applicant's non-null identity fields:
+ * case-insensitive equality, one clause per field, OR-ed.
+ *
+ * Equality is enough because `OrganizationMutationDataSchema` trims every
+ * identity field before it is stored, so both sides are already whitespace-free
+ * — the applicant's value through `normalize` here, the candidate's at write
+ * time. A `contains` prefilter (the earlier approach, to rescue padded rows)
+ * compiles to an unindexable `ILIKE '%value%'` that returns every row sharing a
+ * substring — the whole table for a one-character name — and Prisma does not
+ * escape LIKE metacharacters, so a `%` in the applicant's value matched
+ * everything. Rows written outside the contract (seeds, scripts) must be trimmed
+ * at their own source.
+ *
+ * `computeCollisionFields` below still decides WHICH fields collided, since this
+ * clause only says "at least one did".
  *
  * Returns null when the applicant has no comparable field (caller skips).
  */
@@ -117,7 +115,7 @@ const buildFieldMatchClause = (
 ): Prisma.OrganizationDataWhereInput[] | null => {
   const clauses = COLLISION_FIELD_ORDER.flatMap((field) => {
     const value = normalize(applicant[field]);
-    return value === null ? [] : clausesForField(field, value);
+    return value === null ? [] : [clauseForField(field, value)];
   });
 
   return clauses.length > 0 ? clauses : null;
@@ -169,8 +167,6 @@ const buildBranchMetadata = (
 
   for (const candidate of candidates) {
     const fields = computeCollisionFields(applicant, candidate);
-    // The prefilter is intentionally loose (see buildFieldMatchClause), so rows
-    // that only matched as a substring are dropped right here.
     if (fields.length === 0) continue;
 
     const key = candidate.organizationId.toString();
