@@ -332,6 +332,7 @@ else
   log "    On a resource group where they were never created, the API identity ends up without"
   log "    AcrPull (image pull fails) and without blob access. To fix, have an Owner grant this"
   log "    account 'Role Based Access Control Administrator' on the resource group and redeploy."
+  log "    NOTE: this deploy still reports success — the stack completes, the API does not run."
   log "    Details: docs/infrastructure/Deployment.md"
 fi
 

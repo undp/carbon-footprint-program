@@ -84,6 +84,11 @@ resolve_frontend_origin() {
 # that covers both "can write" and "could not determine" (API error, unparseable answer), which are
 # deliberately conflated: never silently drop the grants, let ARM fail loudly instead. Deny
 # assignments are not visible through this API, and can only err in that same direction.
+#
+# "Could not determine" warns on stderr rather than passing silently: conflating it with "can write"
+# is the right *safety* choice, but a probe broken by, say, a changed response shape would otherwise
+# be indistinguishable from a genuinely-allowed account — the feature would quietly become dead code
+# and the next Contributor-only deploy would fail exactly as it did before this existed.
 # Read-only, so it is also safe under DRY_RUN; the resource group must already exist, which it does
 # by the time this runs (the deploy creates it earlier).
 # Requires AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP (read at call time).
@@ -96,6 +101,8 @@ can_write_role_assignments() {
     --url "https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Authorization/permissions?api-version=2022-04-01" \
     -o json 2>/dev/null || echo "")
   if [ -z "$permissions" ]; then
+    echo "Warning: could not read this account's effective permissions in $AZURE_RESOURCE_GROUP." >&2
+    echo "         Assuming role assignments can be written; ARM will fail loudly if they cannot." >&2
     return 0
   fi
 
@@ -106,6 +113,9 @@ can_write_role_assignments() {
       | select(([.notActions[]? | select(globmatch(.; $a))] | length) == 0)
     ] | length' 2>/dev/null || echo "")
   if [ -z "$granting" ]; then
+    echo "Warning: unexpected response from the permissions API — could not evaluate" >&2
+    echo "         actions/notActions for $AZURE_RESOURCE_GROUP. Assuming role assignments can be" >&2
+    echo "         written; ARM will fail loudly if they cannot." >&2
     return 0
   fi
 
