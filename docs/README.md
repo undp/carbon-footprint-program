@@ -15,6 +15,22 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [User and Organization Membership](./overview/user-organization-membership.md) | User creation, joining organizations, organization roles and permissions, membership audit trail       |
 | [Neutralization Plan](./overview/neutralization-plan.md)                       | Planned feature: what is already scaffolded (enums, badges, type system) and what remains to be built  |
 
+## User Manuals
+
+End-user manuals, in Spanish, one per application view — slides with annotated
+screenshots of the real app, plus a PDF export. Written for the people who _use_
+the platform, not for contributors. See
+[`user_manual/README.md`](../user_manual/README.md) for how they are structured
+and regenerated.
+
+| Manual                                                                                                                                                                          | Audience                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Inicio — [HTML](../user_manual/inicio/inicio.html) · [PDF](../user_manual/inicio/inicio.pdf)                                                                                    | Any user: first-steps guide and dashboard                     |
+| Calculadora de huella — [HTML](../user_manual/calculadora_huella/calculadora_huella.html) · [PDF](../user_manual/calculadora_huella/calculadora_huella.pdf)                     | Capturing activity data and calculating a footprint           |
+| Huella organizacional — [HTML](../user_manual/huella_organizacional/huella_organizacional.html) · [PDF](../user_manual/huella_organizacional/huella_organizacional.pdf)         | Managing an organization's footprints and applying for badges |
+| Proyectos de reducción — [HTML](../user_manual/proyectos_de_reduccion/proyectos_de_reduccion.html) · [PDF](../user_manual/proyectos_de_reduccion/proyectos_de_reduccion.pdf)    | Registering and submitting GHG reduction projects             |
+| Mantenedor de metodología — [HTML](../user_manual/mantenedor_metodologia/mantenedor_metodologia.html) · [PDF](../user_manual/mantenedor_metodologia/mantenedor_metodologia.pdf) | Admins configuring methodologies and emission factors         |
+
 ## Architecture
 
 | Document                                                                           | Description                                                                                                        |
