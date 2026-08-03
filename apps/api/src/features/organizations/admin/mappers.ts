@@ -31,7 +31,7 @@ export function mapAdminOrganizationSummaryToResponse(
   return {
     id: org.organizationId.toString(),
     name: org.name,
-    taxId: org.organizationData.taxId ?? null,
+    taxId: org.organizationData.taxId,
     sectorName: org.organizationData.sector?.name ?? null,
     subsectorName: org.organizationData.subsector?.name ?? null,
     sizeName: org.organizationData.countryOrganizationSize?.name ?? null,

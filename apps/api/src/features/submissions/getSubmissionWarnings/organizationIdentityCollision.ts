@@ -69,6 +69,21 @@ const normalize = (value: string | null): string | null => {
   return trimmed.length === 0 ? null : trimmed.toLowerCase();
 };
 
+/**
+ * An identity with its three fields already normalized — null meaning "not
+ * comparable". The applicant is normalized once and reused for the query clause
+ * and for every candidate comparison, instead of per candidate row.
+ */
+type NormalizedIdentity = Record<CollisionField, string | null>;
+
+const normalizeIdentity = (
+  identity: OrganizationIdentity
+): NormalizedIdentity => ({
+  legalName: normalize(identity.legalName),
+  tradeName: normalize(identity.tradeName),
+  taxId: normalize(identity.taxId),
+});
+
 /** Case-insensitive exact-equality clause for one identity field. */
 const clauseForField = (
   field: CollisionField,
@@ -106,38 +121,28 @@ const clauseForField = (
  * Returns null when the applicant has no comparable field (caller skips).
  */
 const buildFieldMatchClause = (
-  applicant: OrganizationIdentity
+  applicant: NormalizedIdentity
 ): Prisma.OrganizationDataWhereInput[] | null => {
   const clauses = COLLISION_FIELD_ORDER.flatMap((field) => {
-    const value = normalize(applicant[field]);
+    const value = applicant[field];
     return value === null ? [] : [clauseForField(field, value)];
   });
 
   return clauses.length > 0 ? clauses : null;
 };
 
-/** Which of the three identity fields collide between applicant and candidate. */
+/**
+ * Which of the three identity fields collide between applicant and candidate,
+ * in {@link COLLISION_FIELD_ORDER} — the one place that order is defined.
+ */
 const computeCollisionFields = (
-  applicant: OrganizationIdentity,
+  applicant: NormalizedIdentity,
   candidate: OrganizationIdentity
-): CollisionField[] => {
-  const fields: CollisionField[] = [];
-  const legalName = normalize(applicant.legalName);
-  const tradeName = normalize(applicant.tradeName);
-  const taxId = normalize(applicant.taxId);
-
-  if (legalName !== null && legalName === normalize(candidate.legalName)) {
-    fields.push("legalName");
-  }
-  if (tradeName !== null && tradeName === normalize(candidate.tradeName)) {
-    fields.push("tradeName");
-  }
-  if (taxId !== null && taxId === normalize(candidate.taxId)) {
-    fields.push("taxId");
-  }
-
-  return fields;
-};
+): CollisionField[] =>
+  COLLISION_FIELD_ORDER.filter((field) => {
+    const value = applicant[field];
+    return value !== null && value === normalize(candidate[field]);
+  });
 
 /** One colliding candidate snapshot, with the fields it collides on. */
 type CollisionMatch = {
@@ -191,14 +196,24 @@ const keepMaximalMatches = (matches: CollisionMatch[]): CollisionMatch[] => {
 };
 
 /**
+ * The applicant side of every comparison, resolved once: the tuple reported back
+ * as-stored, the same tuple normalized for matching, and the two standings the
+ * payload carries.
+ */
+type Applicant = {
+  identity: OrganizationIdentity;
+  normalized: NormalizedIdentity;
+  submissionStatus: SubmissionStatus;
+  organizationStatus: OrganizationDisplayStatus;
+};
+
+/**
  * Turns the matching candidate rows into warnings, grouped by organization so
  * that redundant snapshots of the same org collapse (see
  * {@link keepMaximalMatches}).
  */
 const buildBranchMetadata = (
-  applicant: OrganizationIdentity,
-  applicantSubmissionStatus: SubmissionStatus,
-  applicantStatus: OrganizationDisplayStatus,
+  applicant: Applicant,
   candidates: OrganizationIdentity[],
   collisionState: CollisionState,
   organizationStatusOf: (organizationId: bigint) => OrganizationDisplayStatus
@@ -206,7 +221,7 @@ const buildBranchMetadata = (
   const byOrg = new Map<string, CollisionMatch[]>();
 
   for (const candidate of candidates) {
-    const fields = computeCollisionFields(applicant, candidate);
+    const fields = computeCollisionFields(applicant.normalized, candidate);
     if (fields.length === 0) continue;
 
     const key = candidate.organizationId.toString();
@@ -228,11 +243,11 @@ const buildBranchMetadata = (
       legalName: snapshot.legalName,
       tradeName: snapshot.tradeName,
       applicant: {
-        taxId: applicant.taxId,
-        legalName: applicant.legalName,
-        tradeName: applicant.tradeName,
-        submissionStatus: applicantSubmissionStatus,
-        organizationStatus: applicantStatus,
+        taxId: applicant.identity.taxId,
+        legalName: applicant.identity.legalName,
+        tradeName: applicant.identity.tradeName,
+        submissionStatus: applicant.submissionStatus,
+        organizationStatus: applicant.organizationStatus,
       },
       // Already in COLLISION_FIELD_ORDER: computeCollisionFields pushes in that
       // order, and every field here comes from this one snapshot.
@@ -286,7 +301,11 @@ export const getOrganizationIdentityCollisionWarnings = async (
   applicant: OrganizationIdentity,
   applicantSubmissionStatus: SubmissionStatus
 ): Promise<GetSubmissionWarningsResponse> => {
-  const fieldMatch = buildFieldMatchClause(applicant);
+  // Normalized once here: it feeds both the query clause and every candidate
+  // comparison, so re-deriving it per candidate row was pure repetition.
+  const normalizedApplicant = normalizeIdentity(applicant);
+
+  const fieldMatch = buildFieldMatchClause(normalizedApplicant);
   if (fieldMatch === null) return []; // applicant has no comparable identity field
 
   const otherActiveOrg: Prisma.OrganizationDataWhereInput = {
@@ -354,24 +373,17 @@ export const getOrganizationIdentityCollisionWarnings = async (
     organizationStatuses.get(organizationId.toString()) ??
     OrganizationDisplayStatusValues.NOT_ACCREDITED;
 
+  const applicantSide: Applicant = {
+    identity: applicant,
+    normalized: normalizedApplicant,
+    submissionStatus: applicantSubmissionStatus,
+    organizationStatus: statusOf(applicant.organizationId),
+  };
+
   // APPROVED before PENDING (collision-warning ordering requirement).
   const metadata = [
-    ...buildBranchMetadata(
-      applicant,
-      applicantSubmissionStatus,
-      statusOf(applicant.organizationId),
-      approvedRows,
-      "APPROVED",
-      statusOf
-    ),
-    ...buildBranchMetadata(
-      applicant,
-      applicantSubmissionStatus,
-      statusOf(applicant.organizationId),
-      pendingRows,
-      "PENDING",
-      statusOf
-    ),
+    ...buildBranchMetadata(applicantSide, approvedRows, "APPROVED", statusOf),
+    ...buildBranchMetadata(applicantSide, pendingRows, "PENDING", statusOf),
   ];
 
   // Structure only, no prose: the Spanish sentence is composed by the client
