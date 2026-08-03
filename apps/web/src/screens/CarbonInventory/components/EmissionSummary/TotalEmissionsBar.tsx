@@ -27,6 +27,14 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
     );
   }
 
+  // Adaptive mass unit: an intensity of 0,000057 tCO₂e per unit reads as
+  // 57 g CO₂e. The inventory total above stays in tCO₂e — it is compared
+  // across inventories and must not change unit with magnitude.
+  const intensity =
+    equivalence?.rate != null
+      ? formatter.emissionIntensity(equivalence.rate)
+      : null;
+
   return (
     <Box
       className="flex items-center justify-between rounded-lg px-4 py-3"
@@ -49,12 +57,12 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
         >
           {formatter.emissions(totalEmissions)}
         </Typography>
-        {equivalence?.rate != null && !!equivalence?.activityName && (
+        {intensity && !!equivalence?.activityName && (
           <Typography
             variant="caption"
             sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
           >
-            Equivalencia: {formatter.rate(equivalence.rate)} tCO₂e/
+            Equivalencia: {intensity.value} {intensity.unit}/
             {equivalence.activityName}
           </Typography>
         )}

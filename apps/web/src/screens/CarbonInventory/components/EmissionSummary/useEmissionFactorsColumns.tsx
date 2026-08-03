@@ -3,6 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { CategoryChip } from "@/components/EmissionResults";
+import { DetailTooltipText } from "@/components";
 import { formatter } from "@/utils/formatting";
 
 const extractDenominator = (rateUnit: string): string => {
@@ -79,11 +80,25 @@ export const useEmissionFactorsColumns = (): GridColDef<
         flex: 1.2,
         renderCell: ({ row }) => {
           const denominator = extractDenominator(row.rateUnit);
+          // Same audit affordance as the capture grid: the cell shows the
+          // rounded factor, the tooltip the value the emissions come from.
+          // The per-gas breakdown below inherits the precision but not the
+          // affordance — those values are not the number users reconcile.
+          const exactValueDetail =
+            row.factorValue == null
+              ? ""
+              : `Valor usado en el cálculo: ${formatter.emissionFactorExact(
+                  row.factorValue
+                )} ${row.rateUnit}`;
           return (
             <Box className="flex flex-col gap-0.5">
-              <Typography variant="body2" fontWeight="fontWeightRegular">
+              <DetailTooltipText
+                detail={exactValueDetail}
+                variant="body2"
+                fontWeight="fontWeightRegular"
+              >
                 {formatter.emissionFactor(row.factorValue)} {row.rateUnit}
-              </Typography>
+              </DetailTooltipText>
               {row.gasBreakdownLines.map((line, idx) => (
                 <Typography
                   key={idx}
