@@ -32,16 +32,44 @@ código real del módulo y aplica los hallazgos que se verifiquen. Sigue estos p
 3. **Prueba de comprensión (subagente Sonnet).** Formula **10 preguntas** que una persona usuaria
    debería poder responder con el manual: el camino completo de punta a punta, los campos
    obligatorios, los avisos y estados, las acciones secundarias (adjuntos, comentarios, descargas)
-   y **al menos dos casos de borde** del flujo. Lánzalas a un subagente con el Agent tool
-   (`subagent_type: general-purpose`, `model: sonnet`):
-   - **Única fuente permitida**: `user_manual/<slug_snake>/<slug_snake>.html` y las capturas que ese
-     HTML referencia (`user_manual/screenshots/<slug_snake>/`). Prohíbele explícitamente leer el
-     código de la aplicación, las fichas del plugin y cualquier otro archivo, y apoyarse en
-     conocimiento previo: si el manual no lo dice, la respuesta correcta es «el manual no lo dice».
+   y **al menos dos casos de borde** del flujo.
+
+   **Antes de lanzar la prueba, aísla el material**: copia el capítulo y solo las capturas que
+   referencia a un directorio temporal **fuera del repo**, y apunta al subagente ahí.
+
+   ```bash
+   sandbox="$(mktemp -d)/user_manual"
+   mkdir -p "$sandbox/<slug_snake>" "$sandbox/screenshots/<slug_snake>" "$sandbox/assets"
+   cp "user_manual/<slug_snake>/<slug_snake>.html" "$sandbox/<slug_snake>/"
+   cp user_manual/assets/manual.css "$sandbox/assets/"
+   grep -oP "(?<=src=\")\.\./screenshots/<slug_snake>/[^\"]+" \
+     "user_manual/<slug_snake>/<slug_snake>.html" | sed 's|.*/||' | sort -u |
+     while IFS= read -r f; do
+       cp "user_manual/screenshots/<slug_snake>/$f" "$sandbox/screenshots/<slug_snake>/"
+     done
+   ```
+
+   La copia conserva la estructura relativa (`../screenshots/…`, `../assets/manual.css`), así que el
+   capítulo se abre igual desde el sandbox. Tiene que quedar **fuera** de `user_manual/`: adentro, el
+   glob del paso 1 lo empezaría a listar como un capítulo más.
+
+   Lanza las preguntas a un subagente con el Agent tool (`subagent_type: general-purpose`,
+   `model: sonnet`):
+   - **Única fuente permitida**: el sandbox. Pásale su **ruta absoluta** y dile que ese directorio
+     es su raíz; mantén además la prohibición explícita de leer el código de la aplicación, las
+     fichas del plugin y cualquier archivo del repo, y de apoyarse en conocimiento previo del
+     proyecto: si el manual no lo dice, la respuesta correcta es «el manual no lo dice». El
+     aislamiento va **por construcción y no solo por instrucción** porque de eso depende el valor de
+     la prueba: una INFERIDA prueba un hueco del manual solo si el subagente no pudo mirar el
+     código. Si puede, reporta RESPONDIDA sobre un vacío real y el capítulo sale limpio sin que nada
+     avise.
    - **Formato de respuesta**: por pregunta, respuesta breve + número de página donde está + una
      marca **RESPONDIDA / INFERIDA / NO ESTÁ**; al final, una sección de **vacíos del manual**.
    - Cada INFERIDA o NO ESTÁ es un hueco candidato del manual: entra a la consolidación del paso 6,
      no se corrige a ciegas.
+   - Si el subagente avisa que no pudo leer algo (una captura que no llegó a la copia), es un fallo
+     del aislamiento y **no** un hueco del manual: repón el archivo y relanza. Al terminar la
+     prueba, borra el sandbox (`rm -rf "$(dirname "$sandbox")"`).
 
 4. **Revisión con Codex (opcional).** Usa AskUserQuestion: **Revisar con Codex** o **Saltar la
    revisión**. Si acepta, escribe el prompt en un archivo temporal (fuera de `user_manual/`) y
