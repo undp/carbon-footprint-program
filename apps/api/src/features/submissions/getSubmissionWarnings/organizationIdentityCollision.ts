@@ -144,57 +144,6 @@ const computeCollisionFields = (
     return value !== null && value === normalize(candidate[field]);
   });
 
-/** One colliding candidate snapshot, with the fields it collides on. */
-type CollisionMatch = {
-  snapshot: OrganizationIdentity;
-  fields: CollisionField[];
-};
-
-/** Whether every field of `subset` is also in `superset`. */
-const isCoveredBy = (
-  subset: CollisionField[],
-  superset: CollisionField[]
-): boolean => subset.every((field) => superset.includes(field));
-
-/**
- * Reduces one organization's colliding snapshots to those whose collision set is
- * MAXIMAL, dropping any snapshot whose fields another kept snapshot already
- * covers.
- *
- * Each surviving warning therefore reports one real snapshot: its
- * `collisionFields` and its identity tuple come from the same row, so a
- * highlighted field always shows two equal values. Unioning the fields across an
- * org's snapshots while keeping only the newest tuple broke exactly that — with
- * v1 `{Foo, 111}` and v2 `{Foo, 222}` both ACTIVE+APPROVED and an applicant
- * `{Foo, 111}`, `taxId` entered the union through v1 while the tuple came from
- * v2, and the grid highlighted a "match" reading 111 against 222.
- *
- * An org holding several ACTIVE snapshots in one state is normal, not an edge
- * case: approving never marks the prior approved snapshot OUTDATED.
- *
- * Snapshots colliding on disjoint field sets each keep their own warning — two
- * consistent warnings beat one merged-but-false warning. Duplicated or dominated
- * sets collapse, so identical snapshots do not produce identical warnings.
- */
-const keepMaximalMatches = (matches: CollisionMatch[]): CollisionMatch[] => {
-  // Most complete first. `matches` arrives newest-first (candidates are read
-  // `id` desc) and the sort is stable, so between equally complete snapshots the
-  // newest survives and the output order is deterministic across requests.
-  const byCompleteness = [...matches].sort(
-    (a, b) => b.fields.length - a.fields.length
-  );
-
-  const kept: CollisionMatch[] = [];
-  for (const match of byCompleteness) {
-    const alreadyCovered = kept.some((keptMatch) =>
-      isCoveredBy(match.fields, keptMatch.fields)
-    );
-    if (!alreadyCovered) kept.push(match);
-  }
-
-  return kept;
-};
-
 /**
  * The applicant side of every comparison, resolved once: the tuple reported back
  * as-stored, the same tuple normalized for matching, and the two standings the
@@ -208,33 +157,27 @@ type Applicant = {
 };
 
 /**
- * Turns the matching candidate rows into warnings, grouped by organization so
- * that redundant snapshots of the same org collapse (see
- * {@link keepMaximalMatches}).
+ * Turns the candidate snapshots into warnings, one per snapshot that collides.
+ *
+ * Each candidate is a whole organization's current identity in this state — the
+ * newest approved snapshot, or the single pending one — so a warning's
+ * `collisionFields` and its identity tuple always come from the same row and a
+ * highlighted field shows two equal values on both sides. There is nothing to
+ * merge across snapshots here, which is what previously let a field be reported
+ * as matching while the tuple displayed a different value for it.
  */
 const buildBranchMetadata = (
   applicant: Applicant,
   candidates: OrganizationIdentity[],
   collisionState: CollisionState,
   organizationStatusOf: (organizationId: bigint) => OrganizationDisplayStatus
-): OrganizationIdentityCollisionMetadata[] => {
-  const byOrg = new Map<string, CollisionMatch[]>();
-
-  for (const candidate of candidates) {
-    const fields = computeCollisionFields(applicant.normalized, candidate);
-    if (fields.length === 0) continue;
-
-    const key = candidate.organizationId.toString();
-    const matches = byOrg.get(key);
-    if (matches) {
-      matches.push({ snapshot: candidate, fields });
-    } else {
-      byOrg.set(key, [{ snapshot: candidate, fields }]);
-    }
-  }
-
-  return [...byOrg.values()]
-    .flatMap(keepMaximalMatches)
+): OrganizationIdentityCollisionMetadata[] =>
+  candidates
+    .map((snapshot) => ({
+      snapshot,
+      fields: computeCollisionFields(applicant.normalized, snapshot),
+    }))
+    .filter(({ fields }) => fields.length > 0)
     .map(({ snapshot, fields }) => ({
       collisionState,
       organizationId: snapshot.organizationId.toString(),
@@ -249,10 +192,61 @@ const buildBranchMetadata = (
         submissionStatus: applicant.submissionStatus,
         organizationStatus: applicant.organizationStatus,
       },
-      // Already in COLLISION_FIELD_ORDER: computeCollisionFields pushes in that
-      // order, and every field here comes from this one snapshot.
+      // Already in COLLISION_FIELD_ORDER, and every field here comes from this
+      // one snapshot.
       collisionFields: fields,
     }));
+
+/** Reaches an OrganizationData through an APPROVED/APPROVED_AUTOMATICALLY submission. */
+const APPROVED_THROUGH = {
+  subject: {
+    submissions: {
+      some: {
+        status: {
+          in: [
+            SubmissionStatus.APPROVED,
+            SubmissionStatus.APPROVED_AUTOMATICALLY,
+          ],
+        },
+      },
+    },
+  },
+} satisfies Prisma.SubmissionSubjectOrganizationDataWhereInput;
+
+/** Reaches an OrganizationData through a PENDING submission. */
+const PENDING_THROUGH = {
+  subject: { submissions: { some: { status: SubmissionStatus.PENDING } } },
+} satisfies Prisma.SubmissionSubjectOrganizationDataWhereInput;
+
+/**
+ * The CURRENT approved identity of each given organization: its newest ACTIVE
+ * snapshot reachable through an approved submission.
+ *
+ * An organization accumulates approved snapshots — approving never marks the
+ * previous one OUTDATED (`OUTDATED` is only used for rejected data), so an
+ * inscribed organization that edits and is re-approved keeps both. Only the
+ * newest is its identity: `organization_summary_view` resolves the displayed row
+ * the same way, `ORDER BY <status priority>, od.id DESC`. The older ones are
+ * history, and colliding against them would warn about a name or tax id the
+ * organization no longer holds.
+ */
+const findCurrentApprovedIdentities = async (
+  prisma: PrismaClient,
+  organizationIds: bigint[]
+): Promise<OrganizationIdentity[]> => {
+  if (organizationIds.length === 0) return [];
+
+  return prisma.organizationData.findMany({
+    where: {
+      organizationId: { in: organizationIds },
+      status: OrganizationDataStatus.ACTIVE,
+      submission: APPROVED_THROUGH,
+    },
+    select: ORGANIZATION_IDENTITY_SELECT,
+    // Newest first + one row per organization: the current approved snapshot.
+    orderBy: { id: "desc" },
+    distinct: ["organizationId"],
+  });
 };
 
 /**
@@ -285,16 +279,19 @@ const findOrganizationStatuses = async (
  * exact case-insensitive, trimmed on both sides) between the accreditation
  * applicant and other organizations, excluding the applicant's own organization.
  *
- * - APPROVED: matched against another org's approved snapshot — an ACTIVE
- *   OrganizationData linked to an APPROVED/APPROVED_AUTOMATICALLY submission
- *   (the approved snapshot the summary view never exposes; design D4).
- * - PENDING: matched against another org's pending submission data.
+ * - APPROVED: matched against another org's CURRENT approved snapshot — the
+ *   newest ACTIVE OrganizationData reachable through an
+ *   APPROVED/APPROVED_AUTOMATICALLY submission (the approved snapshot the
+ *   summary view never exposes; design D4). Superseded approved snapshots are
+ *   history and are not compared ({@link findCurrentApprovedIdentities}).
+ * - PENDING: matched against another org's pending submission data. At most one
+ *   exists per organization — `updateOrganization` refuses a second edit while
+ *   one is under review (`OrganizationUnderReviewError`).
  *
- * One org may yield more than one warning — one per state it collides in
- * (APPROVED + PENDING, kept separate and never merged, design D7) and, within a
- * state, one per snapshot whose colliding fields no other snapshot of that org
- * covers ({@link keepMaximalMatches}). Every warning reports a single real
- * snapshot. APPROVED warnings are ordered before PENDING.
+ * Each state therefore contributes at most one warning per organization, built
+ * from one real snapshot. An org may still yield two warnings when it collides
+ * in BOTH states (kept separate, never merged, design D7); APPROVED warnings are
+ * ordered before PENDING.
  */
 export const getOrganizationIdentityCollisionWarnings = async (
   prisma: PrismaClient,
@@ -311,44 +308,44 @@ export const getOrganizationIdentityCollisionWarnings = async (
   const otherActiveOrg: Prisma.OrganizationDataWhereInput = {
     status: OrganizationDataStatus.ACTIVE,
     organizationId: { not: applicant.organizationId },
-    OR: fieldMatch,
   };
 
-  const [approvedRows, pendingRows] = await Promise.all([
+  const [approvedCandidateOrgs, pendingRows] = await Promise.all([
+    // Which OTHER organizations have any approved snapshot matching. Only the
+    // ids: which snapshot matched is not the question, since the comparison runs
+    // against each organization's CURRENT approved snapshot below.
     prisma.organizationData.findMany({
       where: {
         ...otherActiveOrg,
-        submission: {
-          subject: {
-            submissions: {
-              some: {
-                status: {
-                  in: [
-                    SubmissionStatus.APPROVED,
-                    SubmissionStatus.APPROVED_AUTOMATICALLY,
-                  ],
-                },
-              },
-            },
-          },
-        },
+        OR: fieldMatch,
+        submission: APPROVED_THROUGH,
       },
-      select: ORGANIZATION_IDENTITY_SELECT,
-      orderBy: { id: "desc" },
+      select: { organizationId: true },
+      distinct: ["organizationId"],
     }),
     prisma.organizationData.findMany({
-      where: {
-        ...otherActiveOrg,
-        submission: {
-          subject: {
-            submissions: { some: { status: SubmissionStatus.PENDING } },
-          },
-        },
-      },
+      where: { ...otherActiveOrg, OR: fieldMatch, submission: PENDING_THROUGH },
       select: ORGANIZATION_IDENTITY_SELECT,
       orderBy: { id: "desc" },
     }),
   ]);
+
+  // The candidate organizations' CURRENT approved identity — the newest approved
+  // snapshot each one holds, resolved WITHOUT the field filter.
+  //
+  // Filtering first and then taking the newest of what matched would still hand
+  // back a superseded snapshot: if an org's current approved taxId is 222 and an
+  // older approved snapshot carried 111, an applicant with 111 matches only the
+  // older row, and reporting it claims the org is registered under a tax id it no
+  // longer holds. Re-reading here can legitimately find no collision at all, and
+  // that is the correct answer.
+  //
+  // No false negatives: an org whose current approved snapshot collides
+  // necessarily has a matching approved snapshot, so it is in the candidate set.
+  const approvedRows = await findCurrentApprovedIdentities(
+    prisma,
+    approvedCandidateOrgs.map((row) => row.organizationId)
+  );
 
   // No candidate at all: nothing to report, and no reason to look up standings.
   if (approvedRows.length === 0 && pendingRows.length === 0) return [];

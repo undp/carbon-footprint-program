@@ -481,12 +481,12 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(m.organizationStatus).toBe(OrganizationDisplayStatusValues.BLOCKED);
   });
 
-  it("reports each approved snapshot on its own fields when an org has two", async () => {
+  it("compares only against the organization's current approved snapshot", async () => {
     // Approving never marks the prior approved snapshot OUTDATED, so an org that
-    // edited and was re-approved holds two ACTIVE+APPROVED snapshots. Here they
-    // collide on DIFFERENT field subsets: v1 on legalName + taxId, v2 on
-    // legalName only. Every warning must describe one real snapshot — a
-    // highlighted field has to show two equal values on both sides.
+    // edited and was re-approved holds two ACTIVE+APPROVED snapshots. Only the
+    // newest is its identity — `organization_summary_view` resolves the displayed
+    // row the same way. Here v1 collides on legalName + taxId and v2, the current
+    // one, only on legalName.
     const applicant = {
       legalName: `Legal ${randomUUID()}`,
       tradeName: `Trade ${randomUUID()}`,
@@ -533,13 +533,16 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
 
     const warnings = await getWarnings(applicantSubmissionId);
 
-    // v2's fields (legalName) are covered by v1's (legalName + taxId), so only
-    // the maximal one survives — no warning citing v2's unrelated taxId.
+    // Only v2 — the organization's CURRENT approved identity — is compared. The
+    // taxId clash lives in v1, which the organization no longer holds, so it is
+    // not reported: warning about it would claim the org is registered under a
+    // tax id it superseded.
     expect(warnings).toHaveLength(1);
     const m = meta(warnings[0]);
-    expect(m.collisionFields).toEqual(["legalName", "taxId"]);
+    expect(m.collisionFields).toEqual(["legalName"]);
     expect(m.legalName).toBe(applicant.legalName);
-    expect(m.taxId).toBe(applicant.taxId);
+    expect(m.taxId).toBe(approvedV2.taxId);
+    expect(m.taxId).not.toBe(applicant.taxId);
 
     // The invariant, stated directly: each colliding field matches on both sides.
     m.collisionFields.forEach((field) => {
@@ -549,7 +552,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     });
   });
 
-  it("keeps a warning per snapshot when two of an org's snapshots collide on disjoint fields", async () => {
+  it("returns nothing when only a superseded approved snapshot collides", async () => {
     const applicant = {
       legalName: `Legal ${randomUUID()}`,
       tradeName: `Trade ${randomUUID()}`,
@@ -558,8 +561,9 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     const { applicantSubmissionId } = await createApplicant(applicant);
 
     const conflictingOrg = await createTestOrganization(prisma);
-    // v1 collides only on taxId, v2 only on legalName: neither set covers the
-    // other, so merging them would invent a snapshot that never existed.
+    // v1 shares the applicant's taxId, v2 — the current approved identity —
+    // shares nothing. The organization dropped that tax id, so there is no
+    // collision to report against the registry as it stands today.
     const approvedV1 = await createTestOrganizationData(
       prisma,
       conflictingOrg.id,
@@ -581,7 +585,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
       prisma,
       conflictingOrg.id,
       {
-        legalName: applicant.legalName,
+        legalName: `Legal ${randomUUID()}`,
         tradeName: `Trade ${randomUUID()}`,
         taxId: `TAX-${randomUUID()}`,
         status: OrganizationDataStatus.ACTIVE,
@@ -595,24 +599,11 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
       testUser.id
     );
 
+    // The candidate prefilter DOES find this organization (v1 matches), so this
+    // also covers the re-read legitimately finding no collision at all.
     const warnings = await getWarnings(applicantSubmissionId);
 
-    expect(warnings).toHaveLength(2);
-    const fieldSets = warnings.map((warning) => meta(warning).collisionFields);
-    expect(fieldSets).toEqual(
-      expect.arrayContaining([["legalName"], ["taxId"]])
-    );
-
-    // Both sides equal on every highlighted field, in both warnings.
-    warnings.forEach((warning) => {
-      const m = meta(warning);
-      expect(m.organizationId).toBe(conflictingOrg.id.toString());
-      m.collisionFields.forEach((field) => {
-        expect(m[field]?.toLowerCase()).toBe(
-          m.applicant[field]?.toLowerCase() ?? null
-        );
-      });
-    });
+    expect(warnings).toEqual([]);
   });
 
   it("returns one warning per conflicting organization", async () => {

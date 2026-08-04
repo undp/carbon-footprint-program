@@ -41,7 +41,7 @@ Compare `legalName↔legalName`, `tradeName↔tradeName`, `taxId↔taxId`, exact
 
 ### D4 — Compare accredited orgs against their APPROVED snapshot
 
-For `APPROVED` collisions, read the `OrganizationData` linked to the org's `APPROVED`/`APPROVED_AUTOMATICALLY` submission — not `OrganizationSummaryView` (which yields the pending v2). Reuse the `accredited_organizations_ids` logic / `hasApprovedOrganizationData` join. This is what closes the visibility gap and prevents missing a collision that lives in v1 but not v2. Pending collisions compare against the other org's pending data.
+For `APPROVED` collisions, read the org's newest `OrganizationData` linked to an `APPROVED`/`APPROVED_AUTOMATICALLY` submission (see D7) — not `OrganizationSummaryView` (which yields the pending v2). Reuse the `accredited_organizations_ids` logic / `hasApprovedOrganizationData` join. This is what closes the visibility gap and prevents missing a collision that lives in v1 but not v2. Pending collisions compare against the other org's pending data.
 
 ### D5 — Inline comparison in the review dialog (hybrid chips → expand)
 
@@ -55,13 +55,22 @@ Two facts must not be squeezed into one value: whether an **organization** is in
 
 Swap the grid's "Sub-Rubro" column for "RUT" and add `taxId` to Fuse keys; add `taxId` to `AdminOrganizationItemSchema` + admin mapper (`taxId` is already selected in the include — no query change, no migration). Justified on its own merit (admin can view/search by RUT), independent of the (dropped) navigation feature. No `filterModel`/`isAnyOf` involved.
 
-### D7 — Keep both collisions per organization, and never merge snapshots
+### D7 — Both states per organization, each against its current snapshot
 
 Detection matches the applicant against each other org's approved snapshot (if accredited) and pending snapshot (if it has a pending submission). If the **same** organization matches on both, emit **two** warnings — one with `collisionState = APPROVED` and one with `PENDING` — rather than collapsing them. Warnings are ordered `APPROVED` before `PENDING`. Rationale: keep the full picture visible — the org is both officially registered with the colliding value and has a pending edit that also collides. (Resolves former open question on dedup.)
 
-**Every warning reports exactly one real snapshot.** An org can hold several `ACTIVE` snapshots _within_ one state, because approving never marks the prior approved snapshot OUTDATED. The invariant that matters is _"a highlighted `collisionField` shows two equal values"_, and it constrains how those snapshots may be combined: they may not. Within an org and state, a snapshot is reported only when its colliding fields are **not covered** by another reported snapshot's — maximal collision sets survive, dominated and duplicated ones collapse, and snapshots colliding on disjoint fields each keep their own warning. Candidates are read `id desc` and the reduction sorts by completeness with a stable sort, so between equally complete snapshots the newest survives and the order is deterministic across requests.
+**Each state contributes at most one warning per organization, built from that organization's CURRENT identity in that state.** The two states are not symmetric:
 
-**Alternative rejected:** unioning the colliding fields across an org's snapshots and showing the newest tuple. It reports a field as matching while displaying the newest snapshot's value for it — with v1 `{Foo, 111}` and v2 `{Foo, 222}` both ACTIVE+APPROVED and an applicant `{Foo, 111}`, `taxId` entered the union through v1 while the tuple came from v2, so the grid highlighted a "match" reading 111 against 222 and the summary cited a tax id the applicant does not share. A misleading comparison is the one failure this feature exists to prevent.
+- **PENDING** — at most one per organization, enforced: `updateOrganization` refuses a second edit while one is under review (`OrganizationUnderReviewError`), org-wide and inside the transaction.
+- **APPROVED** — an organization _accumulates_ approved snapshots, because approving never marks the previous one OUTDATED (`OUTDATED` is only used for rejected data). Only the **newest** is its identity: `organization_summary_view` resolves the displayed row the same way (`ORDER BY <status priority>, od.id DESC`). The older ones are history.
+
+Selecting the current snapshot must happen **independently of the field filter**. Filtering first and taking the newest of what matched still yields a superseded row: if an org's current approved `taxId` is 222 and an older approved snapshot carried 111, an applicant with 111 matches only the older row. So the query finds candidate _organizations_ by match, then re-reads their current approved identity — a re-read that can legitimately find no collision at all, which is the correct answer. No false negatives: an org whose current snapshot collides necessarily has a matching snapshot, so it is in the candidate set.
+
+This makes two failure modes structurally impossible rather than handled.
+
+**Alternative rejected — union the colliding fields across an org's snapshots and show the newest tuple.** It reports a field as matching while displaying a different value for it: with v1 `{Foo, 111}` and v2 `{Foo, 222}` both ACTIVE+APPROVED and an applicant `{Foo, 111}`, `taxId` entered the union through v1 while the tuple came from v2, so the grid highlighted a "match" reading 111 against 222.
+
+**Alternative rejected — report every non-dominated snapshot separately.** Each warning is then internally consistent, but the older ones are collisions against identities the organization no longer holds, announced as "la organización inscrita (RUT 111)" when the registry says 222. Consistent and irrelevant. Historical identity reuse, if it ever matters, is a separate and separately-labelled signal — not a collision against the current registry.
 
 ### D8 — Generic, multi-country normalization for matching (no RUT-specific logic)
 
@@ -94,13 +103,13 @@ Wording follows `VOCAB`: "organización", never "empresa". (Resolves former open
 - **Exact matching on non-indexed text columns is a sequential scan.** → Acceptable: the query is per-submission, lazy, admin-only, over the accredited/pending subset. Add a functional index (`lower(...)`) later only if it becomes hot.
 - **`taxId` is nullable and not unique.** → Null fields are skipped in matching (no false match on empty). Pre-existing duplicate RUTs will surface as collisions — a desired side effect that exposes dirty data.
 - **Exposing the approved snapshot is a new data path.** → Strictly behind ADMIN/SUPERADMIN auth on the dedicated endpoint; not added to any org-scoped response.
-- **An org may appear in more than one warning** — one per state it collides in (`APPROVED` + `PENDING`), and one per snapshot within a state whose colliding fields no other reported snapshot covers. Intended per **D7**: each warning stays internally consistent, which merging cannot guarantee. → Revisit dedup if it proves noisy in practice.
+- **An org may appear in two warnings** — one per state it collides in (`APPROVED` + `PENDING`). Intended per **D7**. Within a state it appears at most once, against its current snapshot. → Revisit dedup if it proves noisy in practice.
 
 ## Open Questions
 
 All previously open questions are resolved:
 
-- **Dedup** (accredited + pending-editing same org) → **D7**: keep both warnings (one `APPROVED`, one `PENDING`); no collapse. Snapshots within a state are never merged either — only dominated ones collapse.
+- **Dedup** (accredited + pending-editing same org) → **D7**: keep both warnings (one `APPROVED`, one `PENDING`); no collapse. Within a state only the org's current snapshot is compared, so there is nothing to merge.
 - **Spanish copy** → **D9**: server-built summary templates (final wording UI-tunable at implementation).
 - **`taxId` normalization** → **D8**: generic trim + case-insensitive (no Chile-specific RUT logic); cross-format matching deferred as a generic helper.
 
