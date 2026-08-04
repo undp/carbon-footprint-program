@@ -1,10 +1,24 @@
 export ENVIRONMENT=""
 
+# REQUIRED — what happens to resources that stop being declared in the template. No default on
+# purpose: a resource can drop out for reasons that are easy to miss, and under deleteResources it is
+# destroyed. deploy.sh aborts if this is unset, so every environment states its own answer instead of
+# inheriting a destructive one.
+#   detachAll       resources leaving the template are PRESERVED, untracked. Use for anything
+#                   long-lived (shared, staging, production, anything with a public domain).
+#   deleteResources resources leaving the template are DELETED. Throwaway environments only.
+export ACTION_ON_UNMANAGE="detachAll"
+
 # Azure Subscription
 export AZURE_SUBSCRIPTION_ID=""
 export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 # Optional: Azure AD group for dev access to Key Vault and Storage (requires enableDevGroup*Access in bicepparam)
 # export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
+# Note: the template's role assignments are handled automatically — deploy.sh detects whether this
+# account can write them and skips exactly those resources when it cannot. Nothing to configure
+# here. If it cannot write them, ACTION_ON_UNMANAGE must be detachAll or the deploy aborts, because
+# dropping managed grants under deleteResources would destroy them. See
+# docs/infrastructure/Deployment.md.
 
 # Azure Entra ID — "external" (CIAM) or "organizational" (Azure AD)
 export AZURE_TENANT_TYPE="external"
