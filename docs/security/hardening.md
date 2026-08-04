@@ -196,6 +196,13 @@ reads `param apiTrustProxy` out of the selected `.bicepparam` rather than checki
 variable alone, so setting the durable value is not nagged at on every deploy. `API_TRUST_PROXY`
 takes precedence when both are set.
 
+`DRY_RUN=true ./infra/deploy.sh` prints the effective value and its source under **Proxy Trust** in
+the summary, so the posture a deploy would produce can be checked before it is applied. Prefer this
+to reading the echoed `az` command: the `.bicepparam` path passes no `apiTrustProxy` flag at all
+(the parameter file already carries it), so the flag's absence there does not mean the value is
+unset. The pre-flight validation runs in a dry run too, which is the cheapest way to catch a
+malformed value — the API refuses to boot on one, so deploying it yields a crash-looping container.
+
 **Verify afterwards**, rather than assuming the value took: the instance should no longer log
 `TRUST_PROXY is not configured` at boot, and the rate limit should bucket per client. Setting a
 _wrong_ value silences the warning just as well as a right one, so the warning's absence is not

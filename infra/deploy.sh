@@ -491,6 +491,12 @@ if [ "$DRY_RUN" = "true" ]; then
   if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontendCustomDomain=$FRONTEND_CUSTOM_DOMAIN \\"
   fi
+  # Conditional to match DEPLOY_PARAMS: the .bicepparam path deliberately does not
+  # append this flag, because the parameter file above already carries the value.
+  # Echoing it unconditionally would show a flag the real deploy never passes.
+  if [ -n "${API_TRUST_PROXY:-}" ]; then
+    log "[DRY RUN]   --parameters apiTrustProxy=$API_TRUST_PROXY \\"
+  fi
   log "[DRY RUN]   --deny-settings-mode none \\"
   log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"
   log "[DRY RUN]   --yes --verbose"
@@ -521,6 +527,16 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "  - Environment:     $ENVIRONMENT"
   echo "  - Parameters File: $ENVIRONMENT_PARAMS_FILE"
   echo "  - Role Assignments: $ENABLE_ROLE_ASSIGNMENTS"
+  # Both sources, unlike the flag echo above: what the operator needs to confirm is the
+  # posture the deploy would produce, not which of the two paths supplied it. TRUST_PROXY
+  # reaches the API as an ARM app setting, so a dry run is the last chance to notice a
+  # value nobody intended before a rollout makes it live.
+  if [ -n "$trust_proxy_value" ]; then
+    echo "  - Proxy Trust:     $trust_proxy_value (from $trust_proxy_source)"
+  else
+    echo "  - Proxy Trust:     not configured — the rate limit would apply as ONE bucket"
+    echo "                     shared by every caller, per instance"
+  fi
   echo ""
   echo "To execute the actual deployment, run without DRY_RUN:"
   echo "  ./deploy.sh"
