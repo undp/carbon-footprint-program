@@ -72,17 +72,34 @@ código real del módulo y aplica los hallazgos que se verifiquen. Sigue estos p
      prueba, borra el sandbox (`rm -rf "$(dirname "$sandbox")"`).
 
 4. **Revisión con Codex (opcional).** Usa AskUserQuestion: **Revisar con Codex** o **Saltar la
-   revisión**. Si acepta, escribe el prompt en un archivo temporal (fuera de `user_manual/`) y
-   córrelo:
+   revisión**. La pregunta tiene que decir **qué sale de la máquina**: aceptar manda a un servicio de
+   terceros el capítulo y el código fuente del módulo que Codex lea. Corre `--sandbox read-only`, así
+   que no modifica archivos, pero sí los envía — el consentimiento es sobre ese hecho, no sobre
+   «revisar con Codex».
+   Si acepta, escribe el prompt en un archivo temporal (fuera de `user_manual/`) y córrelo:
 
    ```bash
    codex exec --sandbox read-only --skip-git-repo-check -c model_reasoning_effort=high \
-     "$(cat <archivo-con-el-prompt>)" < /dev/null > <salida>.md 2>&1
+     "$(cat <archivo-con-el-prompt>)" < /dev/null > <salida>.md 2> <salida>.err
+   status=$?
    ```
 
    El `< /dev/null` **es obligatorio**: si stdin queda abierto, `codex exec` se cuelga en «Reading
    additional input from stdin…» y nunca arranca (parece "pensando" durante horas). Tarda varios
-   minutos: córrelo en **segundo plano**.
+   minutos: córrelo en **segundo plano** (el estado de salida llega al recoger la corrida; el chequeo
+   es el mismo).
+   **stderr va a un archivo aparte a propósito**: nunca lo mezcles en el informe con `2>&1`. Y antes
+   de leer el informe exige las **dos** cosas: `status -eq 0` **y** la marca final del reporte
+   presente en `<salida>.md`. Si falta cualquiera de las dos, la corrida **no produjo hallazgos**:
+   reporta el fallo con las últimas líneas de `<salida>.err` y sigue con los hallazgos del paso 3 —
+   el mismo camino que cuando `codex` no está instalado. Un `codex` que muere a mitad (auth vencida,
+   rate limit, red, modelo no disponible) deja un log de error en la cola del archivo, y "verificar"
+   ese log es peor que no haber corrido nada: quema una pasada larga y puede producir afirmaciones
+   convincentes sobre un manual que nadie revisó.
+   **Tamaño del prompt:** viaja como argumento, así que cae bajo el `ARG_MAX` del sistema; mantenlo
+   en unos pocos KB. Si necesita más, revisa `codex exec --help` por una opción que lea el prompt
+   desde un archivo en vez de crecer la línea de comandos (stdin no sirve: está tomado por
+   `< /dev/null`).
    El prompt debe pedir: contrastar el manual (HTML + capturas) con el **código real** del módulo y
    con la ficha `<DATA_DIR>/modules/<slug>.md`, y reportar **mejoras, inconsistencias, pasos
    faltantes, aclaraciones y contenidos o explicaciones incompletas**, ordenados por severidad, con
