@@ -311,3 +311,14 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 | Custom factor sources | `packages/utils/src/constants.ts`                                                                          |
 | Subtotals view        | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
 | Display precision     | `apps/web/src/utils/formatting.ts` (`Formatter`), `apps/web/src/config/constants.ts`                       |
+
+---
+
+## Verifying the calculation by hand
+
+[Manual Testing — Emission Capture](../development/manual-testing-emission-capture.md) is a pinned acceptance case for the capture screen: a fixture inventory covering all three categories and seven magnitudes, the exact inputs to type, and the expected per-line, per-subcategory and per-category totals. Use it after touching factor resolution, unit conversion, aggregation, or display formatting.
+
+Two behaviours documented there are worth knowing when reading this page:
+
+- The capture screen resolves factors from `GET /carbon-inventories/:id/methodology`, which returns each stored factor **plus a pre-generated variant per compatible rate unit**, rather than from `GET /emission-factors`.
+- Step 3 computes line totals in the browser with float64, while the persisted result is a `Decimal`. A single line can therefore differ by 0.01 tCO₂e between step 3 and step 4.

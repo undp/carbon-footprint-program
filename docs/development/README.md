@@ -35,8 +35,9 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 
 ## Quality and CI
 
-| Document                                        | Description                                                                                                                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [Testing Guide](./testing.md)                   | Vitest + Testcontainers setup, globalSetup lifecycle, factory utilities, and writing integration tests                        |
-| [CI/CD Pipeline](./ci-cd.md)                    | GitHub Actions workflow: triggers, jobs (lint / type-check / format / test / build), debugging failures, and adding new steps |
-| [Troubleshooting and FAQ](./troubleshooting.md) | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour                         |
+| Document                                                                  | Description                                                                                                                                                 |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Testing Guide](./testing.md)                                             | Vitest + Testcontainers setup, globalSetup lifecycle, factory utilities, and writing integration tests                                                      |
+| [Manual Testing — Emission Capture](./manual-testing-emission-capture.md) | Reproducible acceptance case for calculator step 3: fixture inventory, input recipe, expected line/subcategory/category totals, and known display artifacts |
+| [CI/CD Pipeline](./ci-cd.md)                                              | GitHub Actions workflow: triggers, jobs (lint / type-check / format / test / build), debugging failures, and adding new steps                               |
+| [Troubleshooting and FAQ](./troubleshooting.md)                           | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour                                                       |
