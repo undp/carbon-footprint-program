@@ -34,7 +34,7 @@
 - [x] 4.2 Agregar el affordance de valor exacto sobre el factor mostrado (rama no editable) con la etiqueta acordada, usando el valor almacenado sin redondear
 - [x] 4.3 Hacer el affordance accesible por foco y por toque, no solo por `hover`
 - [x] 4.4 Verificar que el tooltip de razón de deshabilitado existente (`validation.factorValueDisabledReason`) sigue funcionando y no compite con el nuevo affordance
-- [ ] 4.5 Verificar el round-trip de un factor propio de 10 decimales (`0,0569441234`): ingresar → guardar → recargar la pantalla → el valor vuelve completo. Cubre input, `mapLinesToSyncRequest`, el `z.number()` del contrato, la persistencia en `Decimal(28,10)` y el `Decimal.toNumber()` de vuelta
+- [x] 4.5 Verificar el round-trip de un factor propio de 10 decimales (`0,0569441234`): ingresar → guardar → recargar la pantalla → el valor vuelve completo. Cubre input, `mapLinesToSyncRequest`, el `z.number()` del contrato, la persistencia en `Decimal(28,10)` y el `Decimal.toNumber()` de vuelta
 
 ## 5. Paso 3 — celda de emisiones
 
@@ -51,7 +51,7 @@
 ## 7. Paso 5 y Home — tarjeta de equivalencia
 
 - [x] 7.1 En `EmissionResultsContent.tsx`, reemplazar `formatter.rate(equivalence.rate)` y la unidad hardcodeada `` `tCO₂e/${activityName}` `` por el resultado del método adaptativo, pasando `value` y `` `${unit}/${activityName}` `` a la tarjeta
-- [ ] 7.2 Verificar la tarjeta en las dos ubicaciones donde se monta (`EmissionResultsScreen` y `HomeScreen`) con un valor de cada tramo (t, kg, g), incluido el comportamiento de `OverflowTooltipText` en la tipografía hero
+- [x] 7.2 Verificar la tarjeta en las dos ubicaciones donde se monta (`EmissionResultsScreen` y `HomeScreen`) con un valor de cada tramo (t, kg, g), incluido el comportamiento de `OverflowTooltipText` en la tipografía hero — verificado en `EmissionResultsScreen` con los tres tramos (t/kg/g) sin recorte de `OverflowTooltipText`; `HomeScreen` monta el mismo `EmissionResultsContent` con las mismas props pero exige onboarding completo (organización inscrita + huella autodeclarada), así que ahí queda cubierto por identidad de componente, no por inspección visual
 - [x] 7.3 Confirmar que el estado vacío de la tarjeta (sin actividad principal declarada) sigue intacto
 
 ## 8. Export a Excel
@@ -73,8 +73,8 @@
 
 - [x] 10.1 `pnpm format && pnpm lint && pnpm type-check`
 - [x] 10.2 `pnpm test:web` (incluye el piso de coverage)
-- [ ] 10.3 Pasada manual en la app con un inventario cuyo factor tenga ≥4 decimales: en paso 3, `cantidad × factor mostrado` cierra contra la columna de emisiones; el valor exacto y la cadena de cálculo se abren con teclado y con toque
-- [ ] 10.4 Pasada manual de la equivalencia en los tres tramos (t, kg, g) verificando que la tarjeta del paso 5 y el caption del paso 4 muestran la misma unidad para el mismo inventario
+- [x] 10.3 Pasada manual en la app con un inventario cuyo factor tenga ≥4 decimales: en paso 3, `cantidad × factor mostrado` cierra contra la columna de emisiones; el valor exacto y la cadena de cálculo se abren con teclado y con toque
+- [x] 10.4 Pasada manual de la equivalencia en los tres tramos (t, kg, g) verificando que la tarjeta del paso 5 y el caption del paso 4 muestran la misma unidad para el mismo inventario
 - [x] 10.5 Commits modulares en orden: constantes + formateador + tests → paso 3 → paso 4 → paso 5/Home → Excel → limpieza
 - [ ] 10.6 PR con título en inglés en formato Conventional Commits y descripción que mencione explícitamente que los números mostrados cambian (más precisión, nunca menos) y que no hay cambios de datos
 
