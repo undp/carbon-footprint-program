@@ -1,0 +1,7 @@
+# The user manuals ship rendered artifacts: annotated screenshots, exported
+# PDFs, and subsetted web fonts. Marking them binary stops Git from attempting a
+# textual diff, and linguist-generated keeps them out of the repository's
+# language statistics and collapses them by default in pull-request review.
+user_manual/**/*.png binary linguist-generated=true
+user_manual/**/*.pdf binary linguist-generated=true
+user_manual/**/*.woff2 binary linguist-generated=true

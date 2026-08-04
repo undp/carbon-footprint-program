@@ -14,10 +14,14 @@ import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
   type User,
+  Prisma,
   CountrySectorStatus,
   SystemRole,
 } from "@repo/database";
 import type { CreateCountrySectorResponse } from "@repo/types";
+import { createCountrySectorService } from "@/features/countrySectors/admin/createCountrySector/service.js";
+import { NoCountryFoundError } from "@/features/methodologies/errors.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 const TEST_PREFIX = "Test - AdminSec ";
 
@@ -158,6 +162,91 @@ describe("POST /api/admin/country-sectors - Integration Tests", () => {
           data: { role: originalRole },
         });
       }
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should throw UserNotFoundError when there is no authenticated user", async () => {
+      await expect(
+        createCountrySectorService(
+          prisma,
+          { name: uniqueName("NoUser"), description: null },
+          null
+        )
+      ).rejects.toThrow();
+    });
+
+    it("should throw NoCountryFoundError when the database has no country", async () => {
+      // The `country` table is always seeded in every real deployment; this
+      // guard is a defensive check that cannot be reached through the seeded
+      // test database without deleting all countries (which would cascade
+      // through unrelated seeded data). A minimal stub standing in for the
+      // transaction's one read call before any mutation exercises the guard
+      // in isolation, without touching the real DB.
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({ country: { findFirst: () => Promise.resolve(null) } }),
+      } as unknown as PrismaClient;
+
+      await expect(
+        createCountrySectorService(
+          stubPrisma,
+          { name: uniqueName("NoCountry"), description: null },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toThrow(NoCountryFoundError);
+    });
+
+    it("should rethrow a non-duplicate database error unchanged (foreign key violation)", async () => {
+      const bogusUser = {
+        ...mapUserToResponse(testUser),
+        id: "999999999999",
+      };
+      const name = uniqueName("FKViolation");
+
+      await expect(
+        createCountrySectorService(
+          prisma,
+          { name, description: null },
+          bogusUser
+        )
+      ).rejects.toThrow();
+
+      // Cleanup in case the row was somehow created (it should not be).
+      await prisma.countrySector.deleteMany({ where: { name } });
+    });
+
+    it("rethrows a P2002 unchanged when the duplicated fields do not include name", async () => {
+      // The only unique constraint on `country_sector` is the partial
+      // (countryId, name) index, so a real P2002 from this table's create()
+      // always carries "name" in its duplicated fields. This branch is
+      // therefore defensive-only; a minimal stub exercises it in isolation.
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({
+            country: { findFirst: () => Promise.resolve({ id: 1n }) },
+            countrySector: {
+              create: () => {
+                throw new Prisma.PrismaClientKnownRequestError(
+                  "Unique constraint failed on the fields: (`other_field`)",
+                  {
+                    code: "P2002",
+                    clientVersion: "test",
+                    meta: { target: ["other_field"] },
+                  }
+                );
+              },
+            },
+          }),
+      } as unknown as PrismaClient;
+
+      await expect(
+        createCountrySectorService(
+          stubPrisma,
+          { name: uniqueName("StubP2002"), description: null },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toMatchObject({ code: "P2002" });
     });
   });
 });

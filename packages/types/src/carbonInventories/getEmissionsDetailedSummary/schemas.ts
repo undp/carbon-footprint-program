@@ -143,7 +143,10 @@ const InventoryAttributesSchema = z
 
 const EquivalenceSchema = z
   .object({
-    rate: z.number().nonnegative().describe("Emissions per activity unit"),
+    rate: z
+      .number()
+      .nonnegative()
+      .describe("Emissions in tCO2e per unit of the main activity"),
     activityName: z.string().describe("Main activity name"),
   })
   .strict();

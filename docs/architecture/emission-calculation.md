@@ -12,6 +12,12 @@ emissions (kg CO₂e) = quantity × applied emission factor
 
 Quantities and factors are captured immutably once a line is calculated, so any past result can be reproduced exactly. All intermediate emissions are stored in **kilograms** CO₂e; conversion to **tonnes** happens only at the display and aggregation layer.
 
+### Unit contract
+
+- **Database**: kg CO₂e.
+- **API responses**: **tCO₂e** — every emission value the API returns is already converted (`kgToTon`), including derived values such as the main-activity equivalence (`rate` is tCO₂e per activity unit). The only exception is **emission factors**, which are returned in their own `kg CO₂e/<unit>` rate unit, since that is the unit the factor libraries publish.
+- **Frontend**: formats only, never converts. A component that renders an API emission value must label it `tCO₂e` (`kg CO₂e` labels belong to emission factors alone).
+
 ---
 
 ## Data Model
@@ -238,8 +244,8 @@ Higher-level sums are computed in application code by iterating the view's rows.
 ## Display Precision
 
 - Storage: Decimal(28, 10).
-- API returns tCO₂e with full precision (the conversion is `kg / 1000`).
-- UI displays 2 decimals (`EMISSIONS_PRECISION = 2` in `apps/api/src/config/constants.ts`).
+- API returns tCO₂e with full precision (the conversion is `kg / 1000`); it never rounds.
+- Rounding is a frontend concern: the `Formatter` in `apps/web/src/utils/formatting.ts` displays 2 decimals by default, widening to at most `MAX_DISPLAY_DECIMALS` (`apps/web/src/config/constants.ts`) for values too small to show otherwise, and falling back to a `<0,000001` threshold below that.
 
 ---
 
@@ -304,4 +310,15 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 | Unit conversion       | `packages/utils/src/number.ts` (`kgToTon`, `tonToKg`)                                                      |
 | Custom factor sources | `packages/utils/src/constants.ts`                                                                          |
 | Subtotals view        | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
-| Display precision     | `apps/api/src/config/constants.ts` (`EMISSIONS_PRECISION`)                                                 |
+| Display precision     | `apps/web/src/utils/formatting.ts` (`Formatter`), `apps/web/src/config/constants.ts`                       |
+
+---
+
+## Verifying the calculation by hand
+
+[Manual Testing — Emission Capture](../development/manual-testing-emission-capture.md) is a pinned acceptance case for the capture screen: a fixture inventory covering all three categories and seven magnitudes, the exact inputs to type, and the expected per-line, per-subcategory and per-category totals. Use it after touching factor resolution, unit conversion, aggregation, or display formatting.
+
+Two behaviours documented there are worth knowing when reading this page:
+
+- The capture screen resolves factors from `GET /carbon-inventories/:id/methodology`, which returns each stored factor **plus a pre-generated variant per compatible rate unit**, rather than from `GET /emission-factors`.
+- Step 3 computes line totals in the browser with float64, while the persisted result is a `Decimal`. A single line can therefore differ by 0.01 tCO₂e between step 3 and step 4.

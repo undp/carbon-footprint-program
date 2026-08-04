@@ -27,6 +27,8 @@ import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
 } from "@test/factories/methodologyFactory.js";
+import { getCarbonInventorySubcategoriesSummaryService } from "@/features/carbonInventories/getCarbonInventorySubcategoriesSummary/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Tests", () => {
   let app: FastifyInstance;
@@ -600,6 +602,18 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       // Even with just a comment, if there's an active input, it's considered edited
       expect(firstSubcategory?.included).toBe(true);
       expect(firstSubcategory?.edited).toBe(true);
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getCarbonInventorySubcategoriesSummaryService(prisma, 999999999n)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
     });
   });
 });

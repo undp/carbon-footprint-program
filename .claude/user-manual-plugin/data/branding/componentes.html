@@ -1,0 +1,295 @@
+<!--
+  componentes.html — Snippets de slides adaptados al branding de Huella Latam (PNUD).
+
+  Copia el bloque que necesites. Los valores globales ya están rellenados:
+    APP_NAME  = Huella Latam
+    ORG_NAME  = PNUD
+  Reemplaza los placeholders {{...}} restantes por el contenido real del módulo
+  (nombre, ícono, screenshots, textos). NO cambies los nombres de clase.
+
+  Ejemplo de módulo usado abajo: "Inventario de carbono" (slug: inventario, ícono: eco).
+
+  El <body> del documento final lleva class="format-slide". El footer se repite
+  idéntico en TODAS las slides. Iconografía: Material Symbols Rounded.
+-->
+
+<!-- =========================================================
+     ESQUELETO DEL DOCUMENTO
+     ========================================================= -->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual de Usuario — {{MODULO_NOMBRE}} | Huella Latam</title>
+    <link rel="stylesheet" href="assets/manual.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+  </head>
+  <body class="format-slide">
+    <!-- ... aquí van las slides en orden ... -->
+  </body>
+</html>
+
+<!-- =========================================================
+     SLIDE: COVER (Portada)
+     ========================================================= -->
+<section class="slide slide--cover">
+  <div class="module-icon-bg">
+    <span class="material-symbols-rounded">eco</span>
+  </div>
+  <div class="cover-content">
+    <div class="cover-text">
+      <div class="cover-logo">PNUD</div>
+      <div class="cover-subtitle">Manual de usuario</div>
+      <h1 class="cover-title">Inventario de carbono</h1>
+      <div class="cover-app-name">Huella Latam</div>
+      <div class="cover-version">versión 1.0 &nbsp;|&nbsp; julio 2026</div>
+    </div>
+    <div class="cover-mockup">
+      <div class="cover-mockup-frame">
+        <div class="cover-mockup-screen">
+          <img
+            src="screenshots/inventario/overview.png"
+            alt="Inventario de carbono — vista desktop"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: OBJECTIVES (Objetivos) — SIEMPRE 3 objetivos
+     ========================================================= -->
+<section class="slide slide--objectives">
+  <h2 class="objectives-title">Objetivos del módulo de Inventario de carbono</h2>
+  <div class="objectives-list">
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_1}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_1}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_1}}</p>
+      </div>
+    </div>
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_2}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_2}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_2}}</p>
+      </div>
+    </div>
+    <div class="objective-item">
+      <div class="objective-icon">
+        <span class="material-symbols-rounded">{{ICONO_3}}</span>
+      </div>
+      <div class="objective-text">
+        <h3>{{TITULO_OBJETIVO_3}}</h3>
+        <p>{{DESCRIPCION_OBJETIVO_3}}</p>
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: INDEX (Índice) — 2 columnas
+     ========================================================= -->
+<section class="slide slide--index">
+  <h2 class="index-title">Índice de contenidos</h2>
+  <div class="index-columns">
+    <div class="index-item">
+      <span class="index-item-title is-section">{{NOMBRE_SECCION}}</span>
+      <span class="index-item-page">{{N}}</span>
+    </div>
+    <div class="index-item">
+      <span class="index-item-title index-bullet">{{SUBTEMA}}</span>
+      <span class="index-item-page">{{N}}</span>
+    </div>
+    <!-- ...repetir por cada sección y subtema... -->
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: DIVIDER (Separador de sección) — fondo primario claro
+     ========================================================= -->
+<section class="slide slide--divider">
+  <div class="module-icon-bg">
+    <span class="material-symbols-rounded">eco</span>
+  </div>
+  <div class="divider-icon-wrap">
+    <span class="material-symbols-rounded">{{ICONO_SECCION}}</span>
+  </div>
+  <h2 class="divider-title">{{NOMBRE_SECCION}}</h2>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con screenshot anotado
+     - callout-num: top/left en % relativos a la imagen (centro del punto)
+     - máx 6-7 callouts; numerar izq->der, arriba->abajo
+     - >4 items en leyenda: usar class="annotation-legend cols-3"
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO_CONTENIDO}}</h2>
+  <p class="content-description">
+    {{DESCRIPCION}} Usa <strong>negritas</strong> para resaltar términos clave.
+    2-3 líneas máximo.
+  </p>
+
+  <div class="annotated-screenshot">
+    <img src="screenshots/inventario/{{NOMBRE}}.png" alt="{{ALT}}" />
+    <span class="callout-num" style="top: {{Y1}}%; left: {{X1}}%;">1</span>
+    <span class="callout-num" style="top: {{Y2}}%; left: {{X2}}%;">2</span>
+  </div>
+
+  <ul class="annotation-legend">
+    <li>
+      <span class="legend-num">1</span>
+      <strong>{{ETIQUETA_1}}:</strong> {{QUE_ES_1}}
+    </li>
+    <li>
+      <span class="legend-num">2</span>
+      <strong>{{ETIQUETA_2}}:</strong> {{QUE_ES_2}}
+    </li>
+  </ul>
+
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con split (texto 45% + screenshot 55%)
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO}}</h2>
+  <div class="content-split">
+    <div class="content-split__text">
+      <p class="content-description">{{DESCRIPCION_FEATURE}}</p>
+      <ul class="feature-list">
+        <li>
+          <span class="material-symbols-rounded">{{ICONO}}</span>
+          <span><strong>{{FEATURE}}:</strong> {{DESCRIPCION_FEATURE_1_LINEA}}</span>
+        </li>
+      </ul>
+
+      <div class="info-box">
+        <span class="material-symbols-rounded">info</span>
+        <span>{{INFO_IMPORTANTE}}</span>
+      </div>
+    </div>
+    <div class="content-split__visual">
+      <div class="screenshot-container">
+        <img src="screenshots/inventario/{{NOMBRE}}.png" alt="{{ALT}}" />
+      </div>
+    </div>
+  </div>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     SLIDE: CONTENT con tabla de estados
+     status-dot: --error, --primary, --info, --success, --inactive
+     ========================================================= -->
+<section class="slide slide--content">
+  <h2 class="content-title">{{TITULO_ESTADOS}}</h2>
+  <p class="content-description">{{DESCRIPCION_CICLO_VIDA}}</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Etiqueta</th>
+        <th>Color</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="status-dot status-dot--success"></span>{{NOMBRE_ESTADO}}</td>
+        <td>{{ETIQUETA}}</td>
+        <td>{{COLOR}}</td>
+        <td>{{QUE_SIGNIFICA}}</td>
+      </tr>
+      <!-- ...repetir por cada estado... -->
+    </tbody>
+  </table>
+  <footer class="slide__footer">
+    <span class="slide__footer-left"
+      >Huella Latam &nbsp;|&nbsp; vista Inventario de carbono &nbsp;|&nbsp; versión 1.0</span
+    >
+    <span class="slide__footer-right">Página </span>
+  </footer>
+</section>
+
+<!-- =========================================================
+     ELEMENTOS COMPLEMENTARIOS (dentro de una slide de contenido)
+     ========================================================= -->
+
+<!-- Info box (máx 2 info/tip-box por slide) -->
+<div class="info-box">
+  <span class="material-symbols-rounded">info</span>
+  <span>{{TEXTO_INFORMATIVO}}</span>
+</div>
+
+<!-- Tip box -->
+<div class="tip-box">
+  <span class="material-symbols-rounded">lightbulb</span>
+  <span>{{CONSEJO}}</span>
+</div>
+
+<!-- Feature list -->
+<ul class="feature-list">
+  <li>
+    <span class="material-symbols-rounded">{{ICONO}}</span>
+    <span><strong>{{NOMBRE}}:</strong> {{DESCRIPCION_FEATURE}}</span>
+  </li>
+</ul>
+
+<!-- Screenshot placeholder (cuando NO hay captura disponible) -->
+<div class="screenshot-placeholder">
+  <span class="material-symbols-rounded">image</span>
+  <div class="screenshot-placeholder__label">{{QUE_MOSTRARA}}</div>
+  <div class="screenshot-placeholder__filename">{{nombre-archivo}}.png</div>
+</div>

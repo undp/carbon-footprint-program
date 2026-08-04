@@ -16,13 +16,23 @@ import {
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
 import { createTestCarbonInventorySubmission } from "@test/factories/submissionFactory.js";
+import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createCarbonInventory } from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   GetOrganizationRecognitionsResponse,
   SubmissionType,
 } from "@repo/types";
-import { SubmissionStatus } from "@repo/database";
+import {
+  SubmissionStatus,
+  OrganizationStatus,
+  InventoryStatus,
+} from "@repo/database";
+import { mapApprovedSubmissionsToRecognitions } from "@/features/organizations/app/getOrganizationRecognitions/helpers.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import type { StorageAdapter } from "@repo/storage";
 
 describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () => {
   let app: FastifyInstance;
@@ -176,5 +186,167 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
           r.submissionType === SubmissionType.REDUCTION_PROJECT_VERIFICATION
       )
     ).toBe(true);
+  });
+
+  describe("Organization not found", () => {
+    it("returns 404 when the organization id does not exist", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/9999999999/recognitions",
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
+    });
+
+    it("returns 404 when the organization is BLOCKED (not ACTIVE)", async () => {
+      const organization = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
+    });
+  });
+
+  describe("Data integrity guard", () => {
+    it("surfaces a 500 data-integrity error when an ACTIVE inventory with approved submissions has no year", async () => {
+      // `year` is only filtered by the query when a `year` param is supplied, so
+      // an inventory whose `year` is null still matches the (unfiltered) query
+      // as long as it carries an approved submission — a state that should
+      // never occur in practice but the service defends against it explicitly.
+      const organization = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const inventory = await createCarbonInventory(prisma, {
+        organizationId: organization.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.ACTIVE,
+        methodologyVersionId,
+        year: null,
+      });
+      await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        SubmissionStatus.APPROVED,
+        testUserId
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DATA_INTEGRITY_ERROR");
+    });
+  });
+
+  describe("mapApprovedSubmissionsToRecognitions (direct helper invocation)", () => {
+    // This feature isn't in test/setup/storageTestManifest.ts, so under the
+    // base (no-storage) Vitest leg `app.storage` is swapped for an adapter
+    // whose every method throws (see appFactory.ts) — a real HTTP round-trip
+    // through a RECOGNITION file can't exercise the signed-URL branch here.
+    // Call the exported helper directly with a lightweight storage stub
+    // (still real submission-shaped data, no DB/HTTP involved) instead.
+    const generateReadUrl: StorageAdapter["generateReadUrl"] = (path, opts) =>
+      Promise.resolve({
+        url: `https://example.test/${path}?contentType=${opts?.contentType ?? "none"}`,
+        expiresAt: new Date(),
+      });
+    const fakeStorage = { generateReadUrl } as unknown as StorageAdapter;
+
+    it("signs a read URL (with contentType) when the recognition file has a mimeType", async () => {
+      const [result] = await mapApprovedSubmissionsToRecognitions({
+        submissions: [
+          {
+            id: 1n,
+            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
+            updatedAt: new Date("2024-05-01T00:00:00.000Z"),
+            files: [
+              {
+                file: {
+                  blobPath: "some/blob/path.pdf",
+                  mimeType: "application/pdf",
+                },
+              },
+            ],
+          },
+        ],
+        measurementYear: 2024,
+        totalEmissions: 10,
+        storage: fakeStorage,
+      });
+
+      expect(result.recognitionFileUrl).toBe(
+        "https://example.test/some/blob/path.pdf?contentType=application/pdf"
+      );
+    });
+
+    it("signs a read URL with an undefined contentType when the recognition file has no mimeType", async () => {
+      const [result] = await mapApprovedSubmissionsToRecognitions({
+        submissions: [
+          {
+            id: 2n,
+            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
+            updatedAt: new Date("2024-05-01T00:00:00.000Z"),
+            files: [
+              {
+                file: {
+                  blobPath: "some/blob/path-2.pdf",
+                  mimeType: null,
+                },
+              },
+            ],
+          },
+        ],
+        measurementYear: 2024,
+        totalEmissions: 10,
+        storage: fakeStorage,
+      });
+
+      expect(result.recognitionFileUrl).toBe(
+        "https://example.test/some/blob/path-2.pdf?contentType=none"
+      );
+    });
+  });
+
+  describe("Reduction project recognitions with a null year", () => {
+    it("excludes a reduction project's recognitions when project.year is null, even with an approved submission", async () => {
+      const { organization, project } = await seedApprovedReductionProject(
+        // year is overridden to null below; this initial value is irrelevant.
+        2024
+      );
+      await prisma.reductionProject.update({
+        where: { id: project.id },
+        data: { year: null },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetOrganizationRecognitionsResponse;
+      expect(
+        body.some(
+          (r) =>
+            r.submissionType === SubmissionType.REDUCTION_PROJECT_VERIFICATION
+        )
+      ).toBe(false);
+    });
   });
 });

@@ -83,7 +83,7 @@ Azure Entra is a concrete instance of the [Generic OIDC contract](./GenericOidcA
 
 - Azure subscription with access to create resources
 - Permission to create or manage an Azure Entra tenant
-- Node.js 24+ and pnpm installed
+- Node.js 26+ and pnpm installed
 - Azure CLI installed and logged in
 - Access to the `undp-huella-latam` repository
 

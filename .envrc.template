@@ -40,10 +40,27 @@ export APP_VERSION=""
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, forced-user, none  (Azure Entra? use .envrc.azure.example)
+# Static HMAC secret for the non-JWKS @fastify/jwt branch. The API ships NO
+# built-in default on purpose (a checked-in secret is a published credential),
+# so configure a throwaway value here. It is REQUIRED when
+# AUTH_PROVIDER="jwks" without JWKS_URI — the API refuses to boot otherwise.
+# With JWKS_URI set, tokens are verified against the IdP's public keys and this
+# value is unused. Never reuse it outside local dev; for a real value:
+#   openssl rand -base64 48
+export JWT_SECRET="dev-only-dummy-secret-change-me"
 # export FORCED_USER_IDP_ID=""     # Must be set when using AUTH_PROVIDER="forced-user"
 # export FORCED_USER_EMAIL=""      # Must be set when using AUTH_PROVIDER="forced-user"
 # export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 # export LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation (e.g. allow empty strings) for local testing
+# TRUST_PROXY: whether X-Forwarded-For may set request.ip — the rate limiter's
+# bucket key. Leave unset locally: the browser reaches the API directly, so no
+# proxy is involved and "trust nothing" is correct, and the boot warning only
+# fires when NODE_ENV=production. It matters in DEPLOYED environments, where
+# leaving it unset behind a proxy makes the 100 req/min limit one bucket shared
+# by every caller. A deployed instance that IS reached directly should set
+# "false" explicitly — same behaviour, but it records the decision and silences
+# the warning. See docs/security/hardening.md ("Proxy Trust") per topology.
+# export TRUST_PROXY=""   # <ip-or-cidr>[,...] | <hops 0-10> | loopback | true | false
 
 # JWKS — what the API uses to validate access tokens (when AUTH_PROVIDER="jwks").
 # The API reads these as-is; it does NOT derive them from any provider settings.

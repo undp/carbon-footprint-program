@@ -68,7 +68,32 @@ src/routes/
 - `AuthProvider` from `react-oidc-context` (auth context)
 - `QueryClientProvider` (TanStack Query)
 - `AuthProvider` (app-level auth state)
+- `TanStackDevtools` (development only — see below)
 - Global error boundary and 404 component
+
+### Devtools
+
+Development builds mount a single `TanStackDevtools` shell
+(`@tanstack/react-devtools`) that hosts both inspectors as tabs, rather than
+each library rendering its own floating toggle:
+
+| Tab             | Panel                         | Inspects                                         |
+| --------------- | ----------------------------- | ------------------------------------------------ |
+| TanStack Query  | `ReactQueryDevtoolsPanel`     | Query cache — keys, fresh/stale state, refetches |
+| TanStack Router | `TanStackRouterDevtoolsPanel` | Match tree — active route, params, loader state  |
+
+It is gated behind `IS_DEVELOPMENT` and mounted inside `QueryClientProvider`
+(so the Query panel sees the client) and inside the root route (so the Router
+panel sees the match tree).
+
+`@tanstack/devtools-vite` is registered as the **first** Vite plugin, which
+adds click-to-open-source, browser/terminal console piping, and stripping of
+the devtools shell from production builds. The ordering is a requirement of the
+plugin, not a preference.
+
+Both packages are pre-1.0, so `.github/dependabot.yml` ignores their minor
+updates — for a 0.x package a minor is a breaking line. Remove those ignore
+entries once they reach 1.0.
 
 **Route guards** use `beforeLoad`:
 
@@ -272,4 +297,4 @@ Deployment target: Azure Static Web Apps. See [Frontend Deployment](../infrastru
 
 ## Testing
 
-The frontend currently has a placeholder `test` script but no frontend tests. Adding component tests (Vitest + React Testing Library) is tracked in [Refactoring Opportunities](../REFACTORING_OPPORTUNITIES.md).
+The frontend is tested with **Vitest + jsdom + React Testing Library**, co-located `*.test.ts(x)` next to the source. Coverage focuses on the logic layers — `utils/`, `hooks/`, `stores/`, the `labels/chips/` mappers, and the Chatbot module — each near-100%, behind a global coverage floor enforced in CI (`apps/web/vitest.config.ts`). Render-heavy `screens/`/`components/` and browser E2E are not yet covered. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).

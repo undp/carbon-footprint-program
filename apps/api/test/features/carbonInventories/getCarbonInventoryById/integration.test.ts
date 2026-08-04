@@ -26,6 +26,8 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { getCarbonInventoryByIdService } from "@/features/carbonInventories/getCarbonInventoryById/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 import {
   cleanupTestOrganization,
   createTestOrganization,
@@ -198,6 +200,18 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getCarbonInventoryByIdService(prisma, "999999999")
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
     });
   });
 

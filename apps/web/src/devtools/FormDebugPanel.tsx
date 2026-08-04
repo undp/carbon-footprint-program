@@ -5,6 +5,7 @@ import {
   type Control,
   type FieldValues,
 } from "react-hook-form";
+import { FORM_DEBUG_BOTTOM_PX, OVERLAY_RIGHT_PX } from "./overlayLayout";
 
 /**
  * Lightweight alternative to @hookform/devtools for forms using useFieldArray.
@@ -28,9 +29,11 @@ export const FormDebugPanel = <T extends FieldValues>({
   return (
     <div
       style={{
+        // Shares the bottom-right corner with ChatbotWidget's FAB and the
+        // TanStack Devtools trigger — see overlayLayout for the stack.
         position: "fixed",
-        bottom: 8,
-        right: 8,
+        bottom: FORM_DEBUG_BOTTOM_PX,
+        right: OVERLAY_RIGHT_PX,
         zIndex: 99999,
         fontFamily: "monospace",
         fontSize: 12,

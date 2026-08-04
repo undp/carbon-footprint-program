@@ -31,6 +31,13 @@ import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
 } from "@test/factories/methodologyFactory.js";
+import {
+  cleanupTestFiles,
+  createTestFile,
+} from "@test/factories/fileFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { syncCarbonInventoryLinesService } from "@/features/carbonInventories/syncCarbonInventoryLines/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () => {
   let app: FastifyInstance;
@@ -1322,6 +1329,390 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         where: { id: existingLine.id },
       });
       expect(unchangedLine?.status).toBe(CarbonInventoryLineStatus.ACTIVE);
+    });
+  });
+
+  describe("File linking (addFileUuids / removeFileIds)", () => {
+    afterEach(async () => {
+      await prisma.carbonInventoryLineFile.deleteMany({});
+      await cleanupTestFiles(prisma);
+    });
+
+    it("links an uploaded file to a newly created line via addFileUuids", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const user = await getTestLoggedUser(prisma);
+
+      const file = await createTestFile(prisma, user.id, {
+        blobPath: `CARBON_INVENTORY/${carbonInventory.id}/LINES/${crypto.randomUUID()}-doc.pdf`,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            {
+              subcategoryId: String(subcategoryIds[0]),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [file.uuid],
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      expect(body.created).toHaveLength(1);
+      expect(body.created[0].files).toHaveLength(1);
+      expect(body.created[0].files[0].uuid).toBe(file.uuid);
+
+      const link = await prisma.carbonInventoryLineFile.findUnique({
+        where: { fileId: file.id },
+      });
+      expect(link).not.toBeNull();
+      expect(link?.lineId.toString()).toBe(body.created[0].id);
+    });
+
+    it("returns 404 when addFileUuids references a file that does not exist", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            {
+              subcategoryId: String(subcategoryIds[0]),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [crypto.randomUUID()],
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("MISSING_FILES");
+    });
+
+    it("returns 422 when the file belongs to a different carbon inventory", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const user = await getTestLoggedUser(prisma);
+
+      const file = await createTestFile(prisma, user.id, {
+        blobPath: `CARBON_INVENTORY/999999999/LINES/${crypto.randomUUID()}-doc.pdf`,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            {
+              subcategoryId: String(subcategoryIds[0]),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [file.uuid],
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("CROSS_INVENTORY_FILE_LINKING");
+    });
+
+    it("returns 422 when the file is already linked to a different line", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const user = await getTestLoggedUser(prisma);
+
+      const existingLine = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      const file = await createTestFile(prisma, user.id, {
+        blobPath: `CARBON_INVENTORY/${carbonInventory.id}/LINES/${crypto.randomUUID()}-doc.pdf`,
+      });
+      await prisma.carbonInventoryLineFile.create({
+        data: {
+          lineId: existingLine.id,
+          fileId: file.id,
+          createdById: user.id,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            {
+              subcategoryId: String(subcategoryIds[0]),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [file.uuid],
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FILE_ALREADY_LINKED");
+    });
+
+    it("unlinks and soft-deletes a file via removeFileIds on update", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const user = await getTestLoggedUser(prisma);
+
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      const file = await createTestFile(prisma, user.id, {
+        blobPath: `CARBON_INVENTORY/${carbonInventory.id}/LINES/${crypto.randomUUID()}-doc.pdf`,
+      });
+      await prisma.carbonInventoryLineFile.create({
+        data: { lineId: line.id, fileId: file.id, createdById: user.id },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: line.id.toString(),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [file.id.toString()],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      expect(body.updated).toHaveLength(1);
+      expect(body.updated[0].files).toHaveLength(0);
+
+      const link = await prisma.carbonInventoryLineFile.findUnique({
+        where: { fileId: file.id },
+      });
+      expect(link).toBeNull();
+      const fileRow = await prisma.file.findUnique({
+        where: { id: file.id },
+      });
+      expect(fileRow?.status).toBe("DELETED");
+    });
+
+    it("is a no-op when removeFileIds references a file not linked to that line", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const user = await getTestLoggedUser(prisma);
+
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      // A file that exists but isn't linked to this (or any) line.
+      const unlinkedFile = await createTestFile(prisma, user.id, {
+        blobPath: `CARBON_INVENTORY/${carbonInventory.id}/LINES/${crypto.randomUUID()}-doc.pdf`,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: line.id.toString(),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [unlinkedFile.id.toString()],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const fileRow = await prisma.file.findUnique({
+        where: { id: unlinkedFile.id },
+      });
+      expect(fileRow?.status).toBe("ACTIVE");
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        syncCarbonInventoryLinesService(
+          prisma,
+          999999999n,
+          { create: [], update: [], delete: [] },
+          null
+        )
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("treats a null user as an anonymous actor (createdById = null) when creating a line", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+
+      const result = await syncCarbonInventoryLinesService(
+        prisma,
+        carbonInventory.id,
+        {
+          create: [
+            {
+              subcategoryId: String(subcategoryIds[0]),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+        null
+      );
+
+      expect(result.created).toHaveLength(1);
+      const createdLine = await prisma.carbonInventoryLine.findUnique({
+        where: { id: BigInt(result.created[0].id) },
+      });
+      expect(createdLine?.createdById).toBeNull();
     });
   });
 });

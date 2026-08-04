@@ -1,4 +1,10 @@
-## ADDED Requirements
+# profiling-maintainer Specification
+
+## Purpose
+
+Admin CRUD over the country sector (`rubro`) and country subsector (`subrubro`) catalogs, including their `status`/`description`/auditor columns, ACTIVE-only partial unique indexes, cascading soft-delete and restore, Spanish unique-constraint errors, the ACTIVE-only public read, the `Perfilamiento` sidebar group and routes, and the two maintainer screens built on the shared profiling layout.
+
+## Requirements
 
 ### Requirement: Country sectors and subsectors carry status, description, and auditors
 

@@ -8,11 +8,7 @@ import {
   LEGAL_TERMS_CONDITIONS_GROUP_KEY,
 } from "@repo/constants";
 import { FileStatus, type PrismaClient } from "@repo/database";
-import {
-  createStorageAdapter,
-  storageConfigFromEnv,
-  type StorageAdapter,
-} from "@repo/storage";
+import { type StorageAdapter } from "@repo/storage";
 import { SystemParameterKeyEnum } from "@repo/types";
 import type { SeedsDataset } from "../utils/index.js";
 
@@ -28,22 +24,21 @@ function buildLegalBlobPath(uuid: string, name: string): string {
 
 export async function seedTermsConditions(
   prisma: PrismaClient,
-  dataset: SeedsDataset
+  dataset: SeedsDataset,
+  storage: StorageAdapter | undefined
 ): Promise<void> {
   if (dataset !== "base") {
     console.log("⟳ Skipping terms & conditions seeding for non-base dataset");
     return;
   }
 
-  let storage: StorageAdapter;
-  try {
-    storage = await createStorageAdapter(storageConfigFromEnv(process.env));
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `⚠ Object storage not configured — skipping terms & conditions seeding (${reason})`
+  if (!storage) {
+    // Unreachable in practice: `main()` preflights object storage and injects a
+    // ready adapter for the base dataset before calling this. Guard defensively
+    // rather than silently skip (the bug this hardening removed).
+    throw new Error(
+      "seedTermsConditions: the base dataset requires an object-storage adapter, but none was provided"
     );
-    return;
   }
 
   console.log("Seeding terms & conditions...");

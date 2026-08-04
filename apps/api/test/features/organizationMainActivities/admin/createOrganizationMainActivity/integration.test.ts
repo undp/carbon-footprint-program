@@ -229,6 +229,34 @@ describe("POST /api/admin/organization-main-activities - Integration Tests", () 
     expect(response.statusCode).toBe(409);
   });
 
+  it("infers the sector from the subsector when only countrySubsectorId is provided", async () => {
+    const sector = await createTestCountrySector(prisma, {
+      name: uniqueName("Sec"),
+    });
+    const sub = await createTestCountrySubsector(prisma, sector.id, {
+      name: uniqueName("Sub"),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/admin/organization-main-activities/",
+      payload: {
+        name: uniqueName("InferredSector"),
+        countrySectorId: null,
+        countrySubsectorId: sub.id.toString(),
+        description: null,
+      },
+    });
+    expect(response.statusCode).toBe(201);
+    const body = JSON.parse(
+      response.body
+    ) as CreateOrganizationMainActivityResponse;
+    expect(body.countrySubsectorId).toBe(sub.id.toString());
+    // The sector was never supplied, but the service infers and persists it
+    // from the subsector's parent so the row never stores an orphaned subsector.
+    expect(body.countrySectorId).toBe(sector.id.toString());
+  });
+
   it("returns 403 when the caller has USER role", async () => {
     const originalRole = testUser.role;
     await prisma.user.update({

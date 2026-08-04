@@ -15,10 +15,27 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [User and Organization Membership](./overview/user-organization-membership.md) | User creation, joining organizations, organization roles and permissions, membership audit trail       |
 | [Neutralization Plan](./overview/neutralization-plan.md)                       | Planned feature: what is already scaffolded (enums, badges, type system) and what remains to be built  |
 
+## User Manuals
+
+End-user manuals, in Spanish, one per application view — slides with annotated
+screenshots of the real app, plus a PDF export. Written for the people who _use_
+the platform, not for contributors. See
+[`user_manual/README.md`](../user_manual/README.md) for how they are structured
+and regenerated.
+
+| Manual                                                                                                                                                                          | Audience                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Inicio — [HTML](../user_manual/inicio/inicio.html) · [PDF](../user_manual/inicio/inicio.pdf)                                                                                    | Any user: first-steps guide and dashboard                     |
+| Calculadora de huella — [HTML](../user_manual/calculadora_huella/calculadora_huella.html) · [PDF](../user_manual/calculadora_huella/calculadora_huella.pdf)                     | Capturing activity data and calculating a footprint           |
+| Huella organizacional — [HTML](../user_manual/huella_organizacional/huella_organizacional.html) · [PDF](../user_manual/huella_organizacional/huella_organizacional.pdf)         | Managing an organization's footprints and applying for badges |
+| Proyectos de reducción — [HTML](../user_manual/proyectos_de_reduccion/proyectos_de_reduccion.html) · [PDF](../user_manual/proyectos_de_reduccion/proyectos_de_reduccion.pdf)    | Registering and submitting GHG reduction projects             |
+| Mantenedor de metodología — [HTML](../user_manual/mantenedor_metodologia/mantenedor_metodologia.html) · [PDF](../user_manual/mantenedor_metodologia/mantenedor_metodologia.pdf) | Admins configuring methodologies and emission factors         |
+
 ## Architecture
 
 | Document                                                                           | Description                                                                                                        |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Codebase Map](./architecture/codebase-map.md)                                     | One-screen orientation: monorepo layout, where things live, request flow (start here)                              |
 | [System Architecture](./architecture/system-architecture.md)                       | Components, services, data flow, and integrations                                                                  |
 | [Tech Stack](./architecture/tech-stack.md)                                         | Validated technology decisions with rationale                                                                      |
 | [Emission Calculation Logic](./architecture/emission-calculation.md)               | Core formulas, data model, input types, aggregation, and end-to-end example                                        |
@@ -51,24 +68,25 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ## Development
 
-| Document                                                          | Description                                                                                                        |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [Local Setup](./development/local-setup.md)                       | Step-by-step local development setup                                                                               |
-| [Worktree Isolation](./development/worktree-isolation.md)         | Running several git worktrees at once: opt-in per-worktree API port + database, ADE hooks, and common pitfalls     |
-| [Environment Variables](./development/environment-variables.md)   | Complete reference for all environment variables                                                                   |
-| [Contributing Guide](./development/contributing.md)               | Branch workflow, code review, adding a new API feature                                                             |
-| [Frontend Architecture](./development/frontend-architecture.md)   | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen                       |
-| [API Design Conventions](./development/api-conventions.md)        | Feature folder pattern, route/handler/service layering, plugin architecture, error handling, adding a new endpoint |
-| [Data Export and Reporting](./development/data-export.md)         | Excel exports (inventory, reduction project, reduction plan), file downloads, and what is not yet supported        |
-| [Testing Guide](./development/testing.md)                         | Vitest + Testcontainers setup, test structure, writing integration tests                                           |
-| [Packages and Monorepo Internals](./development/packages.md)      | Shared packages, dependency graph, Turborepo pipeline, schema change propagation                                   |
-| [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior                                    |
-| [User Activity Tracking](./development/user-activity-tracking.md) | Session-level access logging, active/inactive classification, and admin UI integration                             |
-| [Country Onboarding Guide](./development/country-onboarding.md)   | How to deploy the platform in a new country: seed data, methodology, OIDC IdP, and infrastructure                  |
-| [Internationalization Plan](./development/i18n-plan.md)           | Forward-looking plan for adding i18n (not yet implemented)                                                         |
-| [CI/CD Pipeline](./development/ci-cd.md)                          | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps                                  |
-| [Troubleshooting and FAQ](./development/troubleshooting.md)       | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour              |
-| [Docker Compose](./operations/docker-compose.md)                  | Local & full-stack Docker Compose guide (services, env, auth + storage setup, troubleshooting)                     |
+| Document                                                                              | Description                                                                                                        |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Local Setup](./development/local-setup.md)                                           | Step-by-step local development setup                                                                               |
+| [Worktree Isolation](./development/worktree-isolation.md)                             | Running several git worktrees at once: opt-in per-worktree API port + database, ADE hooks, and common pitfalls     |
+| [Environment Variables](./development/environment-variables.md)                       | Complete reference for all environment variables                                                                   |
+| [Contributing Guide](./development/contributing.md)                                   | Branch workflow, code review, adding a new API feature                                                             |
+| [Frontend Architecture](./development/frontend-architecture.md)                       | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen                       |
+| [API Design Conventions](./development/api-conventions.md)                            | Feature folder pattern, route/handler/service layering, plugin architecture, error handling, adding a new endpoint |
+| [Data Export and Reporting](./development/data-export.md)                             | Excel exports (inventory, reduction project, reduction plan), file downloads, and what is not yet supported        |
+| [Testing Guide](./development/testing.md)                                             | Vitest + Testcontainers setup, test structure, writing integration tests                                           |
+| [Manual Testing — Emission Capture](./development/manual-testing-emission-capture.md) | Reproducible acceptance case for calculator step 3: fixture inventory, expected totals, and display artifacts      |
+| [Packages and Monorepo Internals](./development/packages.md)                          | Shared packages, dependency graph, Turborepo pipeline, schema change propagation                                   |
+| [System Parameters Reference](./development/system-parameters.md)                     | Database-backed configuration parameters and their effects on platform behavior                                    |
+| [User Activity Tracking](./development/user-activity-tracking.md)                     | Session-level access logging, active/inactive classification, and admin UI integration                             |
+| [Country Onboarding Guide](./development/country-onboarding.md)                       | How to deploy the platform in a new country: seed data, methodology, OIDC IdP, and infrastructure                  |
+| [Internationalization Plan](./development/i18n-plan.md)                               | Forward-looking plan for adding i18n (not yet implemented)                                                         |
+| [CI/CD Pipeline](./development/ci-cd.md)                                              | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps                                  |
+| [Troubleshooting and FAQ](./development/troubleshooting.md)                           | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour              |
+| [Docker Compose](./operations/docker-compose.md)                                      | Local & full-stack Docker Compose guide (services, env, auth + storage setup, troubleshooting)                     |
 
 ## Security
 

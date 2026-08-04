@@ -38,6 +38,9 @@ import {
   type ApiErrorResponse,
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
+import type { User } from "@repo/types";
+import { assignOrganizationToCarbonInventoryService } from "@/features/carbonInventories/assignOrganizationToCarbonInventory/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("POST /api/carbon-inventories/:id/assign-organization/:organizationId - Integration Tests", () => {
   let app: FastifyInstance;
@@ -277,6 +280,26 @@ describe("POST /api/carbon-inventories/:id/assign-organization/:organizationId -
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      const loggedUser = await getTestLoggedUser(prisma);
+      const user = { id: loggedUser.id.toString() } as unknown as User;
+
+      await expect(
+        assignOrganizationToCarbonInventoryService(
+          prisma,
+          "999999999",
+          "1",
+          user
+        )
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
     });
   });
 });

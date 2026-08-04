@@ -3,11 +3,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { BadgeStatus, BadgeType, type PrismaClient } from "@repo/database";
-import {
-  createStorageAdapter,
-  storageConfigFromEnv,
-  type StorageAdapter,
-} from "@repo/storage";
+import { type StorageAdapter } from "@repo/storage";
 import { FileType } from "@repo/types";
 import type { SeedsDataset } from "../utils/index.js";
 
@@ -44,22 +40,21 @@ function buildBadgeBlobPath(
 
 export async function seedBadges(
   prisma: PrismaClient,
-  dataset: SeedsDataset
+  dataset: SeedsDataset,
+  storage: StorageAdapter | undefined
 ): Promise<void> {
   if (dataset !== "base") {
     console.log("⟳ Skipping badge seeding for non-base dataset");
     return;
   }
 
-  let storage: StorageAdapter;
-  try {
-    storage = await createStorageAdapter(storageConfigFromEnv(process.env));
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `⚠ Object storage not configured — skipping badge seeding (${reason})`
+  if (!storage) {
+    // Unreachable in practice: `main()` preflights object storage and injects a
+    // ready adapter for the base dataset before calling this. Guard defensively
+    // rather than silently skip (the bug this hardening removed).
+    throw new Error(
+      "seedBadges: the base dataset requires an object-storage adapter, but none was provided"
     );
-    return;
   }
 
   const badgesDir = join(__dirname, "../data/badges");

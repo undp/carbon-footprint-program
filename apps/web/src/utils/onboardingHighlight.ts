@@ -1,4 +1,4 @@
-import { driver } from "driver.js";
+import { driver, type Popover } from "driver.js";
 import "driver.js/dist/driver.css";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { OnboardingFocus } from "./onboardingSignals";
@@ -22,6 +22,15 @@ export interface HighlightSpec {
   /** Fires only when the user explicitly closes the popover (overlay / ✕ / Esc)
    *  without following the spotlighted control. */
   onUserClose?: () => void;
+  /** Fires when the user follows the hint by clicking the spotlighted control
+   *  (which self-destroys the tour). Distinct from onUserClose so a one-time
+   *  hint can be marked seen on engagement, not only on explicit dismissal. */
+  onFollow?: () => void;
+  /** Opt-in: when set, the popover shows a single acknowledge button with this
+   *  label (alongside the ✕). Clicking it closes the spotlight through the same
+   *  explicit-close path as ✕/overlay/Esc, so `onUserClose` fires. Leave unset
+   *  to keep the default buttonless spotlight (other callers rely on that). */
+  confirmLabel?: string;
   /** Identifies the target in the dev-only warning emitted when it never
    *  resolves, so a contributor who breaks a target gets a signal, not silence. */
   debugLabel?: string;
@@ -71,6 +80,7 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
   // leave the popover orphaned — so dismiss the highlight along with it.
   const onTargetClick = () => {
     selfDestroy = true;
+    spec.onFollow?.();
     tour.destroy();
   };
 
@@ -79,10 +89,21 @@ export const runOnboardingHighlight = (spec: HighlightSpec): (() => void) => {
     if (element) {
       target = element;
       element.addEventListener("click", onTargetClick, { once: true });
-      tour.highlight({
-        element,
-        popover: { title: spec.title, description: spec.description },
-      });
+      const popover: Popover = {
+        title: spec.title,
+        description: spec.description,
+      };
+      if (spec.confirmLabel) {
+        // Show the acknowledge button (plus the ✕) and route its click through
+        // destroy() → onDestroyed → finish(true) → onUserClose, exactly like an
+        // explicit ✕/overlay/Esc close, so a one-time hint persists completion.
+        popover.showButtons = ["next", "close"];
+        popover.nextBtnText = spec.confirmLabel;
+        popover.onNextClick = () => {
+          tour.destroy();
+        };
+      }
+      tour.highlight({ element, popover });
     } else if (attempts < 25) {
       attempts += 1;
       timer = setTimeout(attempt, 200);

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the `DELETE /api/chatbot/conversations/me` endpoint, which lets any caller erase their own chat history to satisfy the platform's right-to-be-forgotten policy. Deletion is scoped to the resolved caller identity — `user_id` for authenticated callers, the signed `chatbot_session_id` cookie value for anonymous callers — and cascades to the associated `chatbot_chat_message` rows. The endpoint is idempotent (always HTTP 204, never 401), it is not identity-creating (it never mints a session cookie), and on the anonymous path it clears the session cookie so no chatbot trace remains in the browser.
 
 ## Requirements
 

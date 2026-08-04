@@ -6,12 +6,16 @@ import {
   afterAll,
   beforeEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import { createTestEmissionFactorDimension } from "@test/factories/emissionFactorFactory.js";
+import { createEmissionFactorDimensionService } from "@/features/emissionFactorDimensions/createEmissionFactorDimension/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
+import { EmissionFactorDimensionStatus } from "@repo/types";
 import type { CreateEmissionFactorDimensionResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -224,6 +228,214 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("Direct service invocation (bypassing schema-level validation)", () => {
+    // The route schema already rejects duplicate `values` entries via a zod
+    // `.refine`, so the service's own defensive `seenValues` duplicate check
+    // (helpers.ts-adjacent branch inside the service) can never be reached
+    // through HTTP. Call the service directly (still against the real test
+    // database, no mocks) to exercise that branch.
+    it("should return 409 when the values array contains duplicates (service-level guard)", async () => {
+      const { subcategory } = await buildTestSubcategory();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      await expect(
+        createEmissionFactorDimensionService(
+          prisma,
+          {
+            subcategoryId: subcategory.id.toString(),
+            name: "Bypass Schema Dup",
+            position: 1,
+            isRequired: false,
+            values: ["Same", "Same"],
+          },
+          mapUserToResponse(dbUser)
+        )
+      ).rejects.toMatchObject({ code: "DUPLICATE_DIMENSION_VALUE" });
+    });
+
+    // The route requires authentication (`requireAuth`), so `user` is always
+    // set on every real HTTP request; the service's own `!user` guard can
+    // only be reached by calling the service directly with `null`.
+    it("should throw USER_NOT_FOUND when no user is provided", async () => {
+      const { subcategory } = await buildTestSubcategory();
+
+      await expect(
+        createEmissionFactorDimensionService(
+          prisma,
+          {
+            subcategoryId: subcategory.id.toString(),
+            name: "No User Dimension",
+            position: 1,
+            isRequired: false,
+            values: ["V"],
+          },
+          null
+        )
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
+    });
+  });
+
+  describe("Real database-level P2002 conflicts (bypassing the in-app pre-check)", () => {
+    // With this Prisma version + driver adapter (`@prisma/adapter-pg`), a real
+    // P2002's `error.meta.target` is `undefined` -- the constraint's column
+    // names live under `error.meta.driverAdapterError.cause.constraint.fields`.
+    // The catch block now reads them via `getDuplicatedFieldsFromP2002Error`
+    // (the shared helper used elsewhere in the codebase), so it distinguishes a
+    // (subcategory_id, code) collision from a (subcategory_id, position) one.
+    // This scenario forces a *code*-index collision, so the correct outcome is
+    // the "unknown" value duplicate; the position arm is exercised separately
+    // in "Real database-level position conflicts" below.
+    it("surfaces a real code-index P2002 as an 'unknown' DuplicateDimensionValueError", async () => {
+      const { subcategory } = await buildTestSubcategory();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      // There is no app-level pre-check for `code` duplicates (only for
+      // position/count), so a plain, already-committed conflicting row is
+      // enough to force a real Prisma P2002 straight from the service's own
+      // INSERT -- no concurrency needed. The clock is frozen so we can
+      // pre-compute exactly the code the service will generate for
+      // position 1, and hold that code at a *different* position (2) so
+      // only the (subcategory_id, code) index collides, never the
+      // (subcategory_id, position) one.
+      vi.useFakeTimers({ toFake: ["Date"] });
+      try {
+        const frozenNow = Date.now();
+        const collidingCode = `dim_${subcategory.id.toString()}_1_${frozenNow}`;
+
+        await prisma.emissionFactorDimension.create({
+          data: {
+            subcategoryId: subcategory.id,
+            code: collidingCode,
+            name: "Pre-existing code collision",
+            position: 2,
+            isRequired: false,
+            status: EmissionFactorDimensionStatus.ACTIVE,
+            createdById: BigInt(dbUser.id),
+            updatedAt: null,
+          },
+        });
+
+        await expect(
+          createEmissionFactorDimensionService(
+            prisma,
+            {
+              subcategoryId: subcategory.id.toString(),
+              name: "Blocked By Code Collision",
+              position: 1,
+              isRequired: false,
+              values: ["V"],
+            },
+            mapUserToResponse(dbUser)
+          )
+        ).rejects.toMatchObject({ code: "DUPLICATE_DIMENSION_VALUE" });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  describe("Concurrency", () => {
+    // Two concurrent requests targeting the same subcategory + position both
+    // pass the pre-check (`existingPosition` findFirst) before either commits,
+    // so the second INSERT collides with the real partial unique index and
+    // surfaces as a genuine Prisma P2002 in the service's catch block -- not
+    // just the earlier application-level pre-check.
+    it("should return 409 for exactly one of two concurrent creations at the same position", async () => {
+      const { subcategory } = await buildTestSubcategory();
+
+      const payload = {
+        subcategoryId: subcategory.id.toString(),
+        name: "Race Position",
+        position: 1,
+        isRequired: false,
+        values: ["V"],
+      };
+
+      const [first, second] = await Promise.all([
+        app.inject({
+          method: "POST",
+          url: "/api/emission-factor-dimensions/",
+          payload,
+        }),
+        app.inject({
+          method: "POST",
+          url: "/api/emission-factor-dimensions/",
+          payload: { ...payload, values: ["W"] },
+        }),
+      ]);
+
+      const statusCodes = [first.statusCode, second.statusCode].sort();
+      expect(statusCodes).toEqual([201, 409]);
+
+      const conflictResponse = first.statusCode === 409 ? first : second;
+      const body = JSON.parse(conflictResponse.body) as { code: string };
+      // Under concurrency the losing INSERT can collide on either the
+      // position partial unique index or the value uniqueness constraint
+      // depending on interleaving, so assert the 409 carries one of the
+      // known conflict codes rather than a single non-deterministic one.
+      expect([
+        "DIMENSION_POSITION_ALREADY_TAKEN",
+        "DUPLICATE_DIMENSION_VALUE",
+      ]).toContain(body.code);
+    });
+  });
+
+  describe("Real database-level position conflicts (bypassing the in-app pre-check)", () => {
+    // The in-app `existingPosition` pre-check reads ACTIVE rows inside the same
+    // transaction, so an already-committed row at the same position is caught
+    // there, never by the service's own `catch`. Hold a conflicting dimension
+    // open (uncommitted) in a separate transaction — with a distinct `code` so
+    // ONLY the (subcategory_id, position) partial unique index collides — so the
+    // service's own pre-check (under READ COMMITTED) can't see it and its INSERT
+    // reaches the real index, surfacing a genuine Prisma P2002. This is the only
+    // path to the catch's position arm, which regressed silently to
+    // DuplicateDimensionValueError once `error.meta.target` went undefined under
+    // @prisma/adapter-pg.
+    it("maps a concurrent same-position P2002 to DimensionPositionAlreadyTakenError", async () => {
+      const { subcategory } = await buildTestSubcategory();
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      const holderPromise = prisma.$transaction(async (tx) => {
+        await tx.emissionFactorDimension.create({
+          data: {
+            subcategoryId: subcategory.id,
+            code: `holder_${subcategory.id.toString()}_pos1`,
+            name: "Held position holder",
+            position: 1,
+            isRequired: false,
+            status: EmissionFactorDimensionStatus.ACTIVE,
+            createdById: BigInt(dbUser.id),
+            updatedAt: null,
+          },
+        });
+        // Hold the row open (uncommitted) long enough for the concurrent service
+        // call below to pass its own position pre-check and reach its INSERT,
+        // which then blocks on the partial unique index until this commits.
+        // `pg_sleep` returns void, so `$executeRaw` is used (not `$queryRaw`).
+        await tx.$executeRaw`SELECT pg_sleep(0.3)`;
+      });
+
+      // Give the holder's INSERT time to land before starting the service call.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      await expect(
+        createEmissionFactorDimensionService(
+          prisma,
+          {
+            subcategoryId: subcategory.id.toString(),
+            name: "Blocked By Position Collision",
+            position: 1,
+            isRequired: false,
+            values: ["V"],
+          },
+          mapUserToResponse(dbUser)
+        )
+      ).rejects.toMatchObject({ code: "DIMENSION_POSITION_ALREADY_TAKEN" });
+
+      await holderPromise;
     });
   });
 });

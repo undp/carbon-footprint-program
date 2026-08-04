@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the dormant migration baseline for the future RAG corpus: the `chatbot_corpus_source`, `chatbot_corpus_chunk`, and `chatbot_corpus_ingest_run` tables (all in the `public` schema with the `chatbot_` prefix), their columns, the source-type/scope/status enums, and their foreign-key actions (CASCADE on chunks, SET NULL on ingest-run source to preserve audit history). These tables ship structurally complete but with no readers or writers, no `embedding` column, and no Postgres extension — the `pgvector` extension, the `embedding vector(N)` column, and the HNSW index are deferred to `chatbot-rag-ingest` (V1). The schema is deliberately shaped so that V1 migration lands additively without altering any column introduced here.
 
 ## Requirements
 

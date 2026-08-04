@@ -1,4 +1,10 @@
-## ADDED Requirements
+# admin-users-screen Specification
+
+## Purpose
+
+Defines the maintainer-facing screen at `/admin/users` for viewing the user base and managing admin role assignments. ADMIN viewers get a read-only view; SUPERADMIN viewers can promote users and change roles through dialogs that call `PATCH /users/:id/role`, with UI mirrors of the self-edit (INV-1) and last-SUPERADMIN (INV-2) guards. The screen also surfaces a per-user role-change history dialog backed by `GET /users/:id/role-history`.
+
+## Requirements
 
 ### Requirement: Admin users screen route and access
 
@@ -92,7 +98,7 @@ On the "Administradores" tab, when the viewer's role is SUPERADMIN, each row SHA
 - Offer all three role options (`USER`, `ADMIN`, `SUPERADMIN`).
 - Disable any option whose selection would violate INV-1 (self) or INV-2 (last SUPERADMIN), with a Spanish tooltip explaining the restriction.
 - When the user selects `USER`, surface an inline confirmation message in Spanish (e.g., "Esta acción revocará el rol de administrador.") before the submit button is enabled.
-- On submit, call `PATCH /users/:id` with `{ role: <selected> }`.
+- On submit, call `PATCH /users/:id/role` with `{ role: <selected> }`.
 
 The "Cambiar rol" action SHALL be hidden when the viewer's role is ADMIN.
 
@@ -110,17 +116,17 @@ The "Cambiar rol" action SHALL be hidden when the viewer's role is ADMIN.
 
 - **WHEN** the SUPERADMIN selects `USER` in the unified dialog
 - **THEN** the dialog displays a Spanish confirmation message
-- **AND** the submit button submits `PATCH /users/:id` with `{ role: "USER" }`
+- **AND** the submit button submits `PATCH /users/:id/role` with `{ role: "USER" }`
 
 ### Requirement: Promote dialog (SUPERADMIN only)
 
-The screen SHALL render a "Promover a admin" header action visible only to SUPERADMIN viewers. Clicking it SHALL open a dialog containing an autocomplete restricted to users with `role = USER` and a role selector with options ADMIN and SUPERADMIN. Submitting the dialog SHALL call `PATCH /users/:id` with `{ role: <selected> }` and, on success, close the dialog, invalidate the user list cache, and show a success snackbar in Spanish.
+The screen SHALL render a "Promover a admin" header action visible only to SUPERADMIN viewers. Clicking it SHALL open a dialog containing an autocomplete restricted to users with `role = USER` and a role selector with options ADMIN and SUPERADMIN. Submitting the dialog SHALL call `PATCH /users/:id/role` with `{ role: <selected> }` and, on success, close the dialog, invalidate the user list cache, and show a success snackbar in Spanish.
 
 #### Scenario: SUPERADMIN promotes a USER to ADMIN
 
 - **WHEN** a SUPERADMIN selects a USER and chooses "Administrador" in the dialog
 - **AND** confirms the promotion
-- **THEN** the system sends `PATCH /users/:id` with `{ role: "ADMIN" }`
+- **THEN** the system sends `PATCH /users/:id/role` with `{ role: "ADMIN" }`
 - **AND** on success the dialog closes, the list refreshes, and a Spanish success snackbar appears
 
 #### Scenario: ADMIN cannot open the promote dialog

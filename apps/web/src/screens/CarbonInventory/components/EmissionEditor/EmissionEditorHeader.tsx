@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { InfoButton, NumericInput, OverflowTooltipText } from "@/components";
+import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 import { formatter } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
@@ -174,6 +175,13 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         }`}
       >
         <FormControlLabel
+          // Tag only when actually available/visible: the wrapper Box above is
+          // merely hidden (not unmounted) when unavailable, so an unconditional
+          // tag would let the spotlight resolver pick a display:none checkbox
+          // from an earlier subcategory.
+          {...(isTotalManualEmissionsModeAvailable
+            ? onboardingTargetProps("emission-capture-expert-mode")
+            : {})}
           control={
             <Checkbox
               sx={{

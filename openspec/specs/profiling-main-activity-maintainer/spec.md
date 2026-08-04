@@ -1,4 +1,10 @@
-## ADDED Requirements
+# profiling-main-activity-maintainer Specification
+
+## Purpose
+
+Admin CRUD over the `organization_main_activity` catalog: its `status`/`description` columns and ACTIVE-only partial unique index, the create/list/update/soft-delete/restore endpoints with parent sector/subsector validation, the widened `/admin/main-activities` route and maintainer screen that replaces the former placeholder, and the ACTIVE-only public read.
+
+## Requirements
 
 ### Requirement: OrganizationMainActivity carries status and description
 
@@ -28,7 +34,7 @@ The soft-delete timestamp is captured by `updatedAt` (no separate `deletedAt`).
 The system SHALL expose the following admin endpoints under `/admin/organization-main-activities`, all requiring `SystemRole.ADMIN` or `SystemRole.SUPERADMIN`:
 
 - `POST` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000), countrySectorId?: string | null, countrySubsectorId?: string | null }`. When `countrySectorId` is provided, the parent sector MUST exist and be `ACTIVE` (validated inside `prisma.$transaction`); same for `countrySubsectorId`. A DELETED or missing parent MUST return `404` via `ResourceNotFoundError`. When BOTH `countrySectorId` and `countrySubsectorId` are provided, the subsector's `countrySectorId` MUST match the supplied `countrySectorId` — checked inside the same transaction. A mismatched pair MUST be rejected with `400` and a Spanish sentence on `error.message` indicating the subsector does not belong to the selected sector; the row MUST NOT be persisted.
-- `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, parent `countrySectorId`, `countrySectorName`, `countrySubsectorId`, `countrySubsectorName`, auditors, `isInUse`). Default `status=active`. Sort by main-activity `name` ASC.
+- `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, parent `countrySectorId`, `countrySectorName`, `countrySubsectorId`, `countrySubsectorName`, auditors, `impactedChildren`). Default `status=active`. Sort by main-activity `name` ASC.
 - `PATCH /:id` — partial update. Any of `name`, `description`, `countrySectorId`, `countrySubsectorId` MAY be provided. Empty body → `400`. Parent FKs validated inside transaction as in create, including the subsector→sector consistency check: after resolving the effective `(countrySectorId, countrySubsectorId)` pair (merging the patch with the persisted values), the subsector's `countrySectorId` MUST match the effective `countrySectorId`. A mismatched pair MUST be rejected with `400` and a Spanish sentence on `error.message`; the row MUST NOT be persisted. Stamps `updatedById`.
 - `DELETE /:id` — soft-delete. Not blocked by any catalog reference (no catalog table references main activity). Response: `200` with an empty body (the frontend invalidates and refetches; no consumer reads the deleted row).
 - `POST /:id/restore` — restore. Inside the same `prisma.$transaction`:
@@ -39,7 +45,7 @@ The system SHALL expose the following admin endpoints under `/admin/organization
 
 Validation and auditor stamping rules match the sector endpoints: `name` trimmed min(1) max(255); `description` tri-state (`undefined` = no-op, `null` = clear, `""` = null); PATCH body refined to require ≥ 1 field.
 
-`isInUse` for main activity MUST be computed as `organization_data.mainActivityId` count > 0.
+`impactedChildren` for main activity MUST carry an `organizationData` count: the number of `organization_data` rows referencing this main activity via `mainActivityId`.
 
 #### Scenario: Create without sector or subsector
 
@@ -86,7 +92,7 @@ The TanStack Router file route `/admin/main-activities` MUST:
 
 The sidebar child labeled `Actividades Principales` under the `Perfilamiento` group MUST target `/admin/main-activities`.
 
-The `MainActivitiesMaintainerScreen` MUST use the shared `ProfilingMaintainerScreenLayout`. Its DataGrid columns MUST include: parent-rubro selector (populated from admin ACTIVE sectors), parent-subrubro selector (populated from admin ACTIVE subsectors of the selected parent rubro, or all if no parent is selected), `name`, `description`, and row actions (soft-delete / restore depending on row status). The status filter toggle, in-use warning dialog, and unsaved-changes blocker MUST behave identically to the sector/subsector screens.
+The `MainActivitiesMaintainerScreen` MUST use the shared `ProfilingMaintainerScreenLayout`. Its DataGrid columns MUST include: parent-rubro selector (populated from admin ACTIVE sectors), parent-subrubro selector (populated from admin ACTIVE subsectors of the selected parent rubro, or all if no parent is selected), `name`, `description`, and row actions (soft-delete / restore depending on row status). The status filter toggle, delete-warning and blocked-action dialogs, and unsaved-changes blocker MUST behave identically to the sector/subsector screens.
 
 Successful mutations MUST invalidate both admin and public-side main-activity caches.
 

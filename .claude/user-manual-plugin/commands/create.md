@@ -1,0 +1,118 @@
+---
+description: Genera el manual de usuario HTML (y su PDF) de un módulo ya explorado, aplicando el branding del proyecto.
+argument-hint: "<modulo|modulo.md|@modulo> [instrucciones adicionales opcionales]"
+disable-model-invocation: true
+---
+
+Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
+
+**Directorio de datos**
+
+> Resuelve `<DATA_DIR>` así: si existe `user-manual-plugin/.claude-plugin/plugin.json` en la raíz
+> del proyecto (el plugin está copiado al repo), usa `user-manual-plugin/data/` del proyecto; si
+> no, usa `${CLAUDE_PLUGIN_ROOT}/data/`. Usa `<DATA_DIR>` para TODO lo que se escribe o lee de
+> branding y módulos.
+
+1. **Prerrequisitos.**
+   - Si falta el branding (`<DATA_DIR>/branding/tokens.json` y
+     `<DATA_DIR>/branding/manual.css`),
+     usa AskUserQuestion: **Ejecutar /user-manual:branding ahora** o **Cancelar**.
+   - Si `<DATA_DIR>/modules/index.json` no existe o está vacío,
+     usa AskUserQuestion: **Ejecutar /user-manual:explore ahora** o **Cancelar**.
+
+2. **Resuelve el módulo y las instrucciones adicionales desde `$ARGUMENTS`.** El primer token
+   es el objetivo del módulo; todo lo que siga (si lo hay) son instrucciones adicionales en
+   lenguaje natural para esta generación. Normaliza el objetivo antes de matchear: quita un `@`
+   inicial y una extensión `.md` final (`methodology.md` → `methodology`). Matchea el objetivo
+   normalizado contra `<DATA_DIR>/modules/index.json` y las fichas `<DATA_DIR>/modules/*.md`:
+   exacto → por prefijo → fuzzy. Si no hay objetivo, no hay match o es ambiguo, usa
+   AskUserQuestion mostrando la lista de módulos disponibles; si venían instrucciones
+   adicionales, consérvalas tras la elección del módulo.
+   El **slug de salida** (`<slug_snake>`) es el slug de la ficha con los `-` reemplazados por
+   `_` (`mantenedor-metodologia` → `mantenedor_metodologia`): todo lo que se escribe bajo
+   `user_manual/` usa snake_case.
+
+3. **Lee el contexto**: la ficha `<DATA_DIR>/modules/<slug>.md`,
+   `<DATA_DIR>/branding/tokens.json`,
+   `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/contrato-css.md`,
+   `${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/plantillas-slides.html`
+   y la skill `manual-slides`. Si la ficha tiene **dudas abiertas** o hay ambigüedad funcional
+   que afecte el manual, resuélvelas con AskUserQuestion antes de continuar.
+
+4. **Si ya existe `user_manual/<slug_snake>/<slug_snake>.html`**, usa AskUserQuestion:
+   **Regenerar desde cero** o **Actualizar secciones específicas**.
+
+5. **Screenshots.** Usa AskUserQuestion:
+   - **Capturar con Playwright** — en la pregunta siguiente pide la URL. Requiere datos
+     ficticios obligatorios (nunca datos reales de personas). Resolución **1920** (desktop; este
+     proyecto no documenta vistas responsivas). Nombres: `overview.png`, `tabla.png`,
+     `formulario.png`, `detalle.png`, `dialog-*.png`. Guardar en `user_manual/screenshots/<slug_snake>/`.
+   - **Sin capturas** — usar `.screenshot-placeholder`.
+     Si el MCP de Playwright no está disponible, degrada a placeholders y avísalo.
+
+6. **Copia el CSS**: `<DATA_DIR>/branding/manual.css` →
+   `user_manual/assets/manual.css` (solo si no existe o cambió). Enlázalo en el HTML como
+   `../assets/manual.css`: el manual vive en su propia carpeta `user_manual/<slug>/`.
+
+7. **Planifica y escribe el manual** según la skill, usando los templates exactos de
+   `plantillas-slides.html`:
+   Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N →
+   Back cover (la misma lámina de portada, repetida como cierre).
+   **Antes de escribir, acuerda la extensión** (ver «Acordar la extensión» en la skill): no hay
+   tramos fijos — inventaria las unidades de contenido de este módulo, agrúpalas según lo que
+   aguanta una lámina (6-7 callouts, máx 2 cajas, 810 px) y decide tú el número. Confírmalo con
+   **AskUserQuestion** mostrando de dónde sale el cálculo, con tu número como primera opción más una
+   alternativa más breve y otra más extensa, y diciendo en cada una qué cobertura se gana o se
+   pierde (la contraportada no cuenta). Si el
+   usuario ya indicó una extensión en las instrucciones adicionales, respétala y no preguntes.
+   Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
+   ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
+   Escribe el archivo en `user_manual/<slug_snake>/<slug_snake>.html`.
+
+8. **Reglas duras**: la extensión acordada en el paso 7 (sin contar la contraportada; para
+   excederla, vuelve a preguntar); estructura Cover →
+   Objectives (3) → Index → [Divider + Content] × N → Back cover; ninguna lámina sobre 810 px de
+   alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); sin vistas
+   responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
+   screenshot; español neutro en segunda persona; sin jerga técnica (API, base de datos); sin
+   datos reales de personas. Estas reglas priman siempre sobre las instrucciones adicionales:
+   si algo pedido en ellas choca con una regla dura, aplica la regla dura y avisa al usuario.
+
+9. **Verificación visual** a **1440×810** (Playwright si está disponible): cada slide completa
+   sin cortes, callouts alineados, imágenes que cargan, footer y páginas correctos.
+
+10. **Higiene de la carpeta.** Un capítulo tiene que quedar autocontenido y sin residuos. Corre
+    las dos verificaciones; ambas deben salir vacías:
+
+    ```bash
+    # (a) Capturas en disco que el capítulo no referencia.
+    comm -13 \
+      <(grep -oP "(?<=src=\")\.\./screenshots/<slug_snake>/[^\"]+" \
+          "user_manual/<slug_snake>/<slug_snake>.html" | sed 's|.*/||' | sort -u) \
+      <(ls "user_manual/screenshots/<slug_snake>/" | sort)
+
+    # (b) Referencias remotas: el capítulo debe abrirse y exportarse sin red.
+    grep -rn "https\?://" "user_manual/<slug_snake>/<slug_snake>.html" user_manual/assets
+    ```
+
+    Si (a) lista algo son capturas crudas que quedaron fuera del corte: **pregunta con
+    AskUserQuestion si borrarlas**, no las dejes ahí. Conviviendo con las que sí se usan nadie
+    las distingue después, así que la salida segura pasa a ser «guardar todo» y la carpeta solo
+    crece; además tapan la señal de que falta una captura. Si (b) lista algo, reemplázalo por un
+    recurso local (para fuentes, ver `user_manual/assets/fonts/README.md`).
+
+11. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
+
+12. **Genera el PDF**:
+    ```bash
+    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
+      "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
+    ```
+    Requiere `playwright-core` y `pdf-lib`, ya declaradas como devDependencies en la raíz del
+    repo: basta `pnpm install`. Si faltaran, instálalas con el gestor del proyecto
+    (`pnpm add -Dw playwright-core pdf-lib`) o ofrece saltar el PDF. Nunca uses `npm install`
+    aquí: dejaría un `package-lock.json` junto al `pnpm-lock.yaml` y un `node_modules` que
+    pelea con el `.npmrc` del workspace.
+
+Al cerrar, **recomienda** (sin ejecutarlo) correr `/user-manual:review @<slug>` sobre el manual
+recién generado: prueba de comprensión con un subagente y revisión opcional con Codex.

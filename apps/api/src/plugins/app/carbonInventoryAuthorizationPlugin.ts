@@ -111,6 +111,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
         request as FastifyRequest<{ Params: P }>
       );
 
+      /* v8 ignore next -- unreachable: every route wiring this hook supplies :id via idRequestExtractor */
       if (!carbonInventoryId) {
         log.warn(
           "Carbon inventory authorization check failed: carbon inventory ID not found"
@@ -124,6 +125,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
       const isAuthenticated = !!request.authUser;
 
       // For authenticated requests, ensure user is resolved from database
+      /* v8 ignore next -- unreachable: user-resolve-plugin always resolves currentUser for an authenticated request */
       if (isAuthenticated && !request.currentUser) {
         log.warn(
           { idpUserId: request.authUser!.idpUserId },

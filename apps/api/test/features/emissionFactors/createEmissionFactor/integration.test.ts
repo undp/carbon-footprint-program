@@ -16,9 +16,15 @@ import {
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
 } from "@test/factories/emissionFactorFactory.js";
+import { createEmissionFactorService } from "@/features/emissionFactors/createEmissionFactor/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 import type { CreateEmissionFactorResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import {
+  Prisma,
+  EmissionFactorStatus,
+  type PrismaClient,
+} from "@repo/database";
 
 describe("POST /api/emission-factors/ - Integration Tests", () => {
   let app: FastifyInstance;
@@ -153,6 +159,35 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(dbRecord).toBeDefined();
       expect(dbRecord!.source).toBe("IPCC persist");
     });
+
+    it("should create with a pre-configured dimensionValue2Name", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        dimensionValue2Name: "Vacuno",
+        source: "IPCC dim2",
+      });
+
+      // Pre-configure a dimension at position 2
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: false }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Vacuno",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateEmissionFactorResponse;
+
+      expect(body.dimensionValue2Name).toBe("Vacuno");
+      expect(body.dimensionValue2Id).toBeTruthy();
+    });
   });
 
   describe("Dimension validation", () => {
@@ -171,6 +206,156 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("DIMENSION_NOT_CONFIGURED");
+    });
+
+    it("should return 404 when the dimension is configured but the value name does not exist", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        dimensionValue1Name: "GhostValue",
+        source: "IPCC dim value not found",
+      });
+
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "RealValue",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_NOT_FOUND");
+    });
+  });
+
+  describe("Gas details validation", () => {
+    it("should return 400 when gasDetails sum does not match the declared value", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC gas mismatch",
+        value: 10,
+        gasDetails: {
+          CO2_FOSSIL: 1,
+          CH4: 0,
+          N2O: 0,
+          HFC: 0,
+          PFC: 0,
+          SF6: 0,
+          NF3: 0,
+        },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_GAS_DETAILS_MISMATCH");
+    });
+  });
+
+  describe("Duplicate detection", () => {
+    it("should return 409 when a required-dimension combination already has an active factor", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC dup required",
+        dimensionValue1Name: "A",
+        dimensionValue2Name: "X",
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "B",
+      });
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "X",
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "Y",
+      });
+
+      // First creation succeeds (dim1=A, dim2=X)
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      // Second creation with the exact same dim1/dim2 combination should conflict
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(second.statusCode).toBe(409);
+      const body = JSON.parse(second.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_DUPLICATE");
+    });
+
+    it("should return 409 when both required dimensions are left null on two active factors", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC dup null dims",
+        dimensionValue1Name: null,
+        dimensionValue2Name: null,
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim2.id, {
+        value: "X",
+      });
+
+      // First creation succeeds with both dims left null
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      // Second creation, also leaving both dims null, should conflict
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(second.statusCode).toBe(409);
+      const body = JSON.parse(second.body) as { code: string };
+      expect(body.code).toBe("EMISSION_FACTOR_DUPLICATE");
     });
   });
 
@@ -227,6 +412,157 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR");
+    });
+
+    it("should return 404 when rateMeasurementUnitId does not exist (FK violation)", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC bad rate unit",
+        rateMeasurementUnitId: "999999999",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("RATE_MEASUREMENT_UNIT_NOT_FOUND");
+    });
+  });
+
+  describe("Concurrency", () => {
+    // The application-level pre-check (`checkDuplicateEmissionFactor`) only
+    // sees committed rows (standard READ COMMITTED semantics), so it cannot
+    // detect a conflicting row inserted by another transaction that hasn't
+    // committed yet. To deterministically exercise the real Prisma P2002
+    // branch in the service's catch block (rather than relying on a genuine,
+    // non-deterministic two-request race), a separate transaction manually
+    // holds an uncommitted row with the exact target uniqueness key open
+    // while the service's own create runs: its pre-check passes (the
+    // blocking row isn't visible yet), so it proceeds to INSERT, which then
+    // blocks on the DB's real partial unique index. Once the blocking
+    // transaction commits, the service's blocked INSERT resumes and fails
+    // with a genuine unique-constraint violation.
+    it("should return 409 when a concurrent transaction commits a conflicting row while the create is in flight", async () => {
+      const { payload, subcategory, rateUnitId } =
+        await buildEmissionFactorPayload({
+          source: "IPCC transactional race",
+        });
+      const dbUser = await prisma.user.findFirstOrThrow();
+
+      // Both dimension value columns must be non-null for the DB's partial
+      // unique index to actually reject a duplicate -- Postgres treats
+      // NULL <> NULL under standard unique-index semantics, so a null/null
+      // combination on both sides would never collide.
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const dim1Value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim1.id,
+        { value: "Transactional Race Dim1" }
+      );
+      const dim2 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 2, isRequired: false }
+      );
+      const dim2Value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim2.id,
+        { value: "Transactional Race Dim2" }
+      );
+
+      const racePayload = {
+        ...payload,
+        dimensionValue1Name: "Transactional Race Dim1",
+        dimensionValue2Name: "Transactional Race Dim2",
+      };
+
+      let resolveInsertDone!: () => void;
+      const insertDone = new Promise<void>((resolve) => {
+        resolveInsertDone = resolve;
+      });
+      let resolveCommit!: () => void;
+      const commitSignal = new Promise<void>((resolve) => {
+        resolveCommit = resolve;
+      });
+
+      const blockerTxPromise = prisma.$transaction(async (tx) => {
+        await tx.emissionFactor.create({
+          data: {
+            subcategoryId: subcategory.id,
+            dimensionValue1Id: dim1Value.id,
+            dimensionValue2Id: dim2Value.id,
+            rateMeasurementUnitId: rateUnitId,
+            source: "IPCC transactional race",
+            gasDetails: {
+              CO2_FOSSIL: 0,
+              CH4: 0,
+              N2O: 0,
+              HFC: 0,
+              PFC: 0,
+              SF6: 0,
+              NF3: 0,
+            },
+            value: new Prisma.Decimal("1.5"),
+            status: EmissionFactorStatus.ACTIVE,
+            createdById: null,
+            updatedAt: null,
+          },
+        });
+        resolveInsertDone();
+        await commitSignal;
+      });
+
+      await insertDone;
+
+      const servicePromise = createEmissionFactorService(
+        prisma,
+        racePayload,
+        mapUserToResponse(dbUser)
+      );
+
+      // Give the service's own transaction enough time to pass its
+      // pre-check and reach (and block on) the real INSERT before we
+      // release the blocking transaction's lock.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      resolveCommit();
+
+      const [, serviceResult] = await Promise.all([
+        blockerTxPromise,
+        servicePromise.then(
+          (value) => ({ status: "fulfilled" as const, value }),
+          (error: unknown) => ({ status: "rejected" as const, error })
+        ),
+      ]);
+
+      expect(serviceResult.status).toBe("rejected");
+      if (serviceResult.status === "rejected") {
+        expect(serviceResult.error).toMatchObject({
+          code: "EMISSION_FACTOR_DUPLICATE",
+        });
+      }
+    });
+  });
+
+  describe("Direct service invocation (bypassing schema-level validation)", () => {
+    // This route always runs behind auth (`access: { mode: "private" }`), so
+    // `request.currentUser` is never null over HTTP. Call the service
+    // directly with `user = null` to exercise the defensive
+    // `if (!user) throw new UserNotFoundError()` guard.
+    it("should return USER_NOT_FOUND when called without a user", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC no user",
+      });
+
+      await expect(
+        createEmissionFactorService(prisma, payload, null)
+      ).rejects.toMatchObject({ code: "USER_NOT_FOUND" });
     });
   });
 });

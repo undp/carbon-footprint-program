@@ -28,7 +28,7 @@ cp .env.dockercompose.example .env.dockercompose
 docker compose --env-file .env.dockercompose up --build
 ```
 
-The defaults boot a working local stack (auth disabled, storage disabled). Edit the env file only for what you need — typically ports, `JWT_SECRET`, and the Azure storage Service Principal.
+The defaults boot the stack with auth disabled. **Object storage must be reachable**, though: `migrate` runs the base seed, which now [fails fast without storage](#azure-blob-storage-optional) and takes the whole stack down with it. Bring up the MinIO overlay (`-f docker-compose.yml -f docker-compose.minio.yml`) or configure Azure, or use the [migrations-only workflow](#common-workflows) to start without seeding. Edit the env file only for what you need — typically ports, `JWT_SECRET`, and the storage block.
 
 > Compose auto-loads only a file literally named `.env`. Ours is `.env.dockercompose` (gitignored; the `.example` is committed), so it's passed explicitly with `--env-file`.
 
@@ -65,7 +65,7 @@ dc down            # stop
 | `LOG_LEVEL`                    | `debug`                 | `debug` \| `info` \| `warn` \| `error`     |
 | `APP_VERSION`                  | `local`                 | Shown in logs / responses                  |
 | `ALLOWED_ORIGIN`               | `http://localhost:3000` | CORS origin allowed to call the API        |
-| `JWT_SECRET`                   | `super-secret-key`      | **Change in production**                   |
+| `JWT_SECRET`                   | _none_                  | No built-in default; see below             |
 | `LOCAL_BYPASS_REQUIRED_FIELDS` | `false`                 | Relaxes form validation (local only)       |
 
 ### Authentication
@@ -79,6 +79,8 @@ dc down            # stop
 | `jwks`        | `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE` (+ optional `JWKS_REQUIRED_SCOPE`) | OIDC auth (Entra, Keycloak, …) |
 
 The API reads `JWKS_*` directly; derive Azure values from the [Azure setup](../infrastructure/AzureAuthenticationSetup.md) / `.envrc.azure.example` and Keycloak values from [Keycloak Setup](../infrastructure/KeycloakSetup.md). The storage tenant below is separate.
+
+`JWT_SECRET` has **no built-in default** — a secret committed to the repo would be a published credential. With `none` / `forced-user` no token is verified, so you can leave it unset (the API mints a per-boot ephemeral value). It is required only for `jwks` **without** `JWKS_URI`, where it becomes the token verification key and the API refuses to boot without it; `.env.dockercompose.example` ships a throwaway dev value. Blank counts as unset.
 
 ### Web build args
 
@@ -104,7 +106,7 @@ See [web-docker.md](./web-docker.md) for the image internals.
 
 ### Azure Blob Storage (optional)
 
-The API uses blob storage for file upload/download, and `migrate` uses it to seed badges + terms & conditions. **Leave `AZURE_STORAGE_ACCOUNT_NAME` empty to disable both** — the seeds log a warning and skip (exit 0), and the stack still boots. Set it up only when you need files or the badge/terms seeds locally.
+The API uses blob storage for file upload/download, and `migrate` uses it to seed badges + terms & conditions — but the two have **different requirements**. The API boots without storage (uploads just fail until it's configured), so leaving `AZURE_STORAGE_ACCOUNT_NAME` empty is fine for the API. The **base seed, however, now requires reachable storage**: before writing anything it preflights the backend and **fails fast (exit 1)** if `STORAGE_PROVIDER` and its `AZURE_STORAGE_*` / `MINIO_*` block are unset/incomplete or the backend is unreachable. Because `migrate` runs the base seed and `api` waits on `migrate` completing successfully, a failed preflight means **the whole stack never comes up**. To boot locally without storage, use the [migrations-only workflow](#common-workflows) (skips the seed); otherwise configure a reachable backend — the MinIO overlay (`-f docker-compose.yml -f docker-compose.minio.yml`) or the Azure Service Principal below.
 
 `getStorageCredential()` picks the credential from **where the compute runs** — specifically, whether the host provides an Azure Managed Identity:
 
@@ -196,6 +198,17 @@ Another Postgres owns the host port. Either set `POSTGRES_PORT_HOST_MAPPING=5433
 | `InvalidAuthenticationTokenTenant`                                    | `AZURE_STORAGE_TENANT_ID` is the wrong tenant — it must be the **Directory tenant** (step 1).                                          |
 | `Container 'files' does not exist`                                    | Create it: storage account → **Containers → + Container** → `files`.                                                                   |
 | Browser `CORS blocked` on upload/download                             | CORS rule missing or origin mismatch (scheme / port / trailing slash) — see step 5. The API still works via `curl` from the host.      |
+
+### `migrate` fails: `Object storage is required for the base seed …`
+
+Locally the `migrate` service applies migrations **and** runs the base seed in one step (`prisma migrate deploy && … @repo/seed seed`), so a seed-storage failure surfaces here as a `migrate` failure. (In the production compose these are separate `migrate` / `seed` profiles, and this error comes from `seed` — see [Production Deployment](./production-deployment.md).)
+
+The base seed preflights object storage and refuses to write anything when it is unconfigured or unreachable. Two variants:
+
+- **`… is not configured`** — `STORAGE_PROVIDER` is unset or its `AZURE_STORAGE_*` / `MINIO_*` block is incomplete. Fill the storage block in `.env.dockercompose`.
+- **`… configured but not reachable`** — the vars are set but the backend didn't answer the connectivity probe (wrong endpoint/credentials, or the bucket/container doesn't exist). For MinIO, make sure the overlay is up (`-f docker-compose.yml -f docker-compose.minio.yml`); for Azure, see [Storage credential errors](#storage-credential--service-principal-errors) above.
+
+Nothing was written, so once fixed the seed re-runs cleanly. If you don't need storage locally, use the [migrations-only workflow](#common-workflows) to skip the seed.
 
 ### Seed fails with `Expected N emission factors but found M`
 

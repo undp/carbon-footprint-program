@@ -14,10 +14,11 @@ Monorepo (pnpm + Turborepo): `apps/api` (Fastify + Prisma), `apps/web` (React + 
 - `pnpm type-check` — TypeScript compilation check.
 - `pnpm lint` — run after code changes (zero warnings — any warning fails CI).
 - `pnpm format` — Prettier; **mandatory before every commit**.
-- `pnpm test --filter=api -- /{feature}/integration.test.ts --coverage=false` — single test file.
-- `pnpm test --filter=api -- /{domain} --coverage=false` — all tests in a domain.
+- `pnpm test:api -- /{feature}/integration.test.ts --coverage=false` — single test file.
+- `pnpm test:api -- /{domain} --coverage=false` — all tests in a domain.
+- `pnpm test:web` — apps/web Vitest suite (jsdom + React Testing Library) **with coverage**; enforces a low global coverage floor (thresholds in `vitest.config.ts`). The floor is a regression guard set just below current coverage, to be ratcheted up as the logic layers (`utils/`, `hooks/`, `stores/`, `components/Chatbot/`) gain tests — raise it by adding tests, not by bumping the number. Runs `turbo run test --filter=web`, which builds the `@repo/*` deps to `dist` first (their `exports` resolve there) before Vitest runs. A bare `pnpm --filter=web test` skips that build and fails to resolve `@repo/*` on a clean checkout; use it only once deps are built. `pnpm --filter=web test:watch` is the coverage-free fast dev loop. Config: `apps/web/vitest.config.ts` + `vitest.setup.ts`; tests are co-located `*.test.ts(x)` under `src/`.
 
-CI runs lint, type-check, format:check, test, and build in parallel on PRs to `main`; all must pass.
+CI runs lint, type-check, format:check, test (api matrix + `Test (web)`), and build in parallel on PRs to `main`; all must pass.
 
 ## Committing
 

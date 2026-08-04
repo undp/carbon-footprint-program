@@ -15,6 +15,7 @@
  * @see https://datatracker.ietf.org/doc/html/rfc7517 - JSON Web Key (JWK) spec
  */
 
+import { randomBytes } from "node:crypto";
 import type { FastifyJWTOptions } from "@fastify/jwt";
 import { JwksClient } from "jwks-rsa";
 import {
@@ -23,6 +24,132 @@ import {
   JWKS_ISSUER,
   JWKS_AUDIENCE,
 } from "@/config/environment.js";
+
+/**
+ * Minimal structural view of the jwks-rsa client the key resolver depends on.
+ * Declared here (rather than using `JwksClient` directly) so tests can inject a
+ * fake key source — a locally-generated key set — without a live JWKS endpoint.
+ * The real {@link JwksClient} satisfies this shape.
+ */
+export interface SigningKeySource {
+  getSigningKey(kid?: string): Promise<{ getPublicKey(): string }>;
+  getSigningKeys(): Promise<Array<{ getPublicKey(): string }>>;
+}
+
+/**
+ * Get a signing key from a JWKS client. Pure over its `client` argument (the
+ * remote is passed in, never captured from module scope) so every branch —
+ * unconfigured client, explicit `kid`, no `kid`, and the empty-key-set error —
+ * is unit-testable with an injected fake source.
+ *
+ * @param client - JWKS key source, or null when JWKS is not configured
+ * @param kid - Key ID from JWT header (optional for some providers)
+ * @returns Public key for token verification
+ * @throws Error if JWKS client not configured or no keys found
+ */
+export async function getSigningKey(
+  client: SigningKeySource | null,
+  kid?: string
+): Promise<string> {
+  if (!client) {
+    throw new Error("JWKS client not configured - check JWKS_URI");
+  }
+
+  // If kid is provided, get the specific key
+  if (kid) {
+    const key = await client.getSigningKey(kid);
+    return key.getPublicKey();
+  }
+
+  // If no kid, get all keys and use the first signing key
+  // This is common with some providers like Azure Entra External ID
+  const keys = await client.getSigningKeys();
+  if (!keys || keys.length === 0) {
+    throw new Error("No signing keys found in JWKS");
+  }
+  return keys[0].getPublicKey();
+}
+
+/** Resolved inputs the @fastify/jwt config is built from. */
+export interface JwtConfigParams {
+  /** JWKS endpoint. When falsy, the static-secret fallback is used. */
+  jwksUri: string | undefined;
+  /** Expected issuer (`iss`). When falsy, issuer validation is disabled. */
+  jwksIssuer: string | undefined;
+  /** Expected audience (`aud`). When falsy, audience validation is disabled. */
+  jwksAudience: string | undefined;
+  /**
+   * Static HMAC secret used only in the (dev) fallback branch. May be undefined
+   * or blank: `environment.ts` requires it only when it would actually
+   * authenticate callers (AUTH_PROVIDER=jwks with no JWKS_URI). When it carries
+   * no value here the branch is not authenticating anyone, so a per-boot
+   * ephemeral secret is substituted rather than a hardcoded constant.
+   */
+  jwtSecret: string | undefined;
+  /** Key source used by the dynamic secret resolver in the JWKS branch. */
+  client: SigningKeySource | null;
+}
+
+/**
+ * Build the @fastify/jwt options from already-resolved config values. Pure over
+ * its inputs (no env reads, no network) so both the JWKS branch — dynamic key
+ * resolution + issuer/audience enforcement — and the static-secret fallback are
+ * unit-testable. The module-level {@link jwtConfig} below wires the real env and
+ * client into it, so the production path is unchanged.
+ *
+ * When JWKS is configured (via `jwksUri`):
+ * - Uses dynamic secret resolution via JWKS
+ * - Validates issuer and audience if configured
+ *
+ * When not configured:
+ * - Falls back to the static `jwtSecret` for development
+ */
+export function buildJwtConfig({
+  jwksUri,
+  jwksIssuer,
+  jwksAudience,
+  jwtSecret,
+  client,
+}: JwtConfigParams): FastifyJWTOptions {
+  if (!jwksUri) {
+    // Fallback to static secret for development. `@fastify/jwt` requires *some*
+    // secret at registration, and the plugin is autoloaded unconditionally — so
+    // even AUTH_PROVIDER=none / forced-user, which never verify a token, reach
+    // this branch. When no secret is configured, mint a random one for this
+    // process instead of falling back to a checked-in constant: nothing signs
+    // tokens with it, so its value is irrelevant, and an ephemeral value cannot
+    // be leaked from the repository or reused across deployments. The
+    // configuration where this secret *does* authenticate callers
+    // (AUTH_PROVIDER=jwks with no JWKS_URI) is rejected in environment.ts, so it
+    // can never silently rely on the ephemeral value.
+    //
+    // `||` rather than `??`: an empty string must fall through to the ephemeral
+    // value too. `@fastify/jwt` asserts on a falsy secret (`assert(options.secret,
+    // 'missing secret')`), so letting `""` past here turns a blank env var into
+    // an opaque boot failure. environment.ts already normalises blanks to
+    // undefined; this keeps the invariant local to the function that needs it,
+    // for any caller.
+    return { secret: jwtSecret || randomBytes(32).toString("hex") };
+  }
+
+  return {
+    // Decode with complete: true so the secret callback receives the full
+    // decoded token (including header.kid) instead of just the payload.
+    decode: { complete: true },
+    // Use dynamic secret resolution via JWKS
+    secret: async (_request: unknown, token: unknown) => {
+      const decodedToken = token as { header?: { kid?: string } };
+      const kid = decodedToken.header?.kid;
+      return getSigningKey(client, kid);
+    },
+    verify: {
+      // Verify the token issuer if configured
+      allowedIss: jwksIssuer ? [jwksIssuer] : undefined,
+      // Verify the token audience if configured
+      allowedAud: jwksAudience ? [jwksAudience] : undefined,
+    },
+  };
+}
 
 /**
  * JWKS client for token validation.
@@ -37,43 +164,6 @@ const jwksClient = JWKS_URI
     })
   : null;
 
-/**
- * Get signing key from JWKS endpoint.
- *
- * @param kid - Key ID from JWT header (optional for some providers)
- * @returns Public key for token verification
- * @throws Error if JWKS client not configured or no keys found
- */
-async function getSigningKey(kid?: string): Promise<string> {
-  if (!jwksClient) {
-    throw new Error("JWKS client not configured - check JWKS_URI");
-  }
-
-  // If kid is provided, get the specific key
-  if (kid) {
-    const key = await jwksClient.getSigningKey(kid);
-    return key.getPublicKey();
-  }
-
-  // If no kid, get all keys and use the first signing key
-  // This is common with some providers like Azure Entra External ID
-  const keys = await jwksClient.getSigningKeys();
-  if (!keys || keys.length === 0) {
-    throw new Error("No signing keys found in JWKS");
-  }
-  return keys[0].getPublicKey();
-}
-
-/**
- * FastifyJWT configuration for JWKS validation.
- *
- * When JWKS is configured (via JWKS_URI):
- * - Uses dynamic secret resolution via JWKS
- * - Validates issuer and audience if configured
- *
- * When not configured:
- * - Falls back to static JWT_SECRET for development
- */
 // Warn at startup if JWKS is configured but issuer validation will be skipped
 if (JWKS_URI && !JWKS_ISSUER) {
   // eslint-disable-next-line no-console
@@ -84,25 +174,10 @@ if (JWKS_URI && !JWKS_ISSUER) {
   );
 }
 
-export const jwtConfig: FastifyJWTOptions = JWKS_URI
-  ? {
-      // Decode with complete: true so the secret callback receives the full
-      // decoded token (including header.kid) instead of just the payload.
-      decode: { complete: true },
-      // Use dynamic secret resolution via JWKS
-      secret: async (_request: unknown, token: unknown) => {
-        const decodedToken = token as { header?: { kid?: string } };
-        const kid = decodedToken.header?.kid;
-        return getSigningKey(kid);
-      },
-      verify: {
-        // Verify the token issuer if configured
-        allowedIss: JWKS_ISSUER ? [JWKS_ISSUER] : undefined,
-        // Verify the token audience if configured
-        allowedAud: JWKS_AUDIENCE ? [JWKS_AUDIENCE] : undefined,
-      },
-    }
-  : {
-      // Fallback to static secret for development
-      secret: JWT_SECRET,
-    };
+export const jwtConfig: FastifyJWTOptions = buildJwtConfig({
+  jwksUri: JWKS_URI,
+  jwksIssuer: JWKS_ISSUER,
+  jwksAudience: JWKS_AUDIENCE,
+  jwtSecret: JWT_SECRET,
+  client: jwksClient,
+});

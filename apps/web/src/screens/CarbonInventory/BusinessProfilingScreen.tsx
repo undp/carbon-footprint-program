@@ -145,18 +145,49 @@ export const BusinessProfilingScreen: FC = () => {
 
   const goToListOrLanding = user ? goToList : goToLanding;
 
+  const { submit: submitAndExit, isSubmitting: isSubmittingAndExiting } =
+    useBusinessProfilingSubmit({
+      inventoryId,
+      onSuccess: goToListOrLanding,
+    });
+
   useInventoryErrorHandler(inventoryError);
 
+  // Guarded exit path for the header exit button — the only way out of step 1,
+  // since it is the first step and has no previous one.
+  //   - Clean form: exit immediately.
+  //   - Logged in + valid form: save, then exit.
+  //   - Guest, or invalid form (a freshly created inventory arrives with no
+  //     year or name, so saving may not be possible): confirm exit without
+  //     saving.
   const handleExitClick = useCallback(() => {
     if (!isDirty) {
       goToListOrLanding();
-    } else {
-      setIsExitDialogOpen(true);
+      return;
     }
-  }, [goToListOrLanding, setIsExitDialogOpen, isDirty]);
+
+    if (!user) {
+      setIsExitDialogOpen(true);
+      return;
+    }
+
+    void handleSubmit(
+      (data) => submitAndExit(data, isDirty),
+      () => setIsExitDialogOpen(true)
+    )();
+  }, [
+    goToListOrLanding,
+    setIsExitDialogOpen,
+    isDirty,
+    user,
+    handleSubmit,
+    submitAndExit,
+  ]);
+
+  const globalSubmitting = isSubmitting || isSubmittingAndExiting;
 
   const isFormDisabled =
-    isSubmitting || isInventoryLoading || hasInventoryError;
+    globalSubmitting || isInventoryLoading || hasInventoryError;
 
   const isLoading = isInventoryLoading || !isReady;
 
@@ -172,14 +203,8 @@ export const BusinessProfilingScreen: FC = () => {
     ? EXIT_DIALOG_CONTENT.LOGGED_IN
     : EXIT_DIALOG_CONTENT.GUEST;
 
-  const backButton: FooterButton = {
-    text: "Volver",
-    align: "right",
-    buttonProps: {
-      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: goToListOrLanding,
-    },
-  };
+  // No footer "Volver" button here: step 1 is the first step, so going back
+  // means leaving the wizard — exactly what the header exit button does.
   const nextButton: FooterButton = {
     text: "Siguiente",
     align: "right",
@@ -208,13 +233,14 @@ export const BusinessProfilingScreen: FC = () => {
                 type={user ? "inventories" : "landing"}
                 buttonProps={{
                   onClick: handleExitClick,
-                  disabled: isSubmitting,
+                  disabled: globalSubmitting,
+                  loading: isSubmittingAndExiting,
                 }}
               />
             ),
           }}
           footerProps={{
-            buttons: [backButton, nextButton],
+            buttons: [nextButton],
           }}
           isLoading={isLoading}
           hasError={hasInventoryError}
@@ -354,10 +380,13 @@ export const BusinessProfilingScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={control} />}
-      {/* 
-        Custom exit logic: useExitDialog is not used due to required field constraints.
-          - If dirty: Show confirmation dialog to exit without saving.
-          - If clean: Exit immediately without prompting.
+      {/*
+        Custom exit logic: useExitDialog is not used because it hardcodes the
+        guest copy and skips the dirty check, and because the required fields
+        make the save-on-exit path fail-able (see handleExitClick):
+          - Clean form: exit immediately.
+          - Logged in + valid form: save, then exit.
+          - Guest, or invalid form: confirm exiting without saving.
       */}
       <ExitInventoryDialog
         open={isExitDialogOpen}

@@ -11,6 +11,7 @@ import {
   KgMeasurementUnitNotFoundError,
   KgMeasurementUnitImmutableError,
   BaseUnitImmutableError,
+  BaseFactorOneReservedForBaseUnitError,
 } from "./errors.js";
 
 type TransactionClient = Prisma.TransactionClient;
@@ -220,4 +221,20 @@ export const assertNotKgMu = (mu: Pick<MeasurementUnit, "abbreviation">) => {
 
 export const assertNotBaseUnit = (mu: Pick<MeasurementUnit, "isBase">) => {
   if (mu.isBase) throw new BaseUnitImmutableError();
+};
+
+/**
+ * baseFactor=1 is reserved for the base unit (see the CHECK constraint
+ * measurement_unit_base_factor_check), so a non-base unit with baseFactor=1 is
+ * invalid regardless of whether the magnitude already has a base unit. Reject it
+ * unconditionally with a clean 422 instead of letting it reach the DB
+ * constraint. Shared by create and update so the two paths can't drift.
+ */
+export const assertBaseFactorOneIsReservedForBaseUnit = (
+  isBase: boolean,
+  baseFactor: number | undefined
+): void => {
+  if (!isBase && baseFactor === 1) {
+    throw new BaseFactorOneReservedForBaseUnitError();
+  }
 };

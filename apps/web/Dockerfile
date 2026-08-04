@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e3bc686ea3f5bceaf696ca928c0aa067c3a28806fbfa81faccb877bf81756313 AS base
+FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
@@ -63,7 +63,7 @@ RUN pnpm turbo build --filter=web
 # of mainline's newer features, and stable gets the same security backports).
 # Digest-pinned for reproducibility; bump the tag and digest together, and move
 # to the next stable branch (1.32.x) deliberately rather than tracking mainline.
-FROM nginxinc/nginx-unprivileged:1.30.3-alpine-slim@sha256:655c2473e24d2daa31668390db9fe519e0c5a76cbbddb6a18b7d0dc08a36b654 AS runner
+FROM nginxinc/nginx-unprivileged:1.30.4-alpine-slim@sha256:e88d990b349df8cf4aa82f16642d7a23375016638c9ace4e5c6ca25028e62e65 AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin

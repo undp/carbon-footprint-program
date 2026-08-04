@@ -80,14 +80,38 @@ the storage account.
 
 ### API
 
-| Variable        | Required | Default                              | Description                                           |
-| --------------- | -------- | ------------------------------------ | ----------------------------------------------------- |
-| `NODE_ENV`      | No       | `development`                        | Environment mode: `development`, `production`, `test` |
-| `LOG_LEVEL`     | No       | `debug` (dev) / `info` (prod)        | Pino log level: `debug`, `info`, `warn`, `error`      |
-| `APP_VERSION`   | No       | `unknown`                            | Application version string (injected by CI/CD)        |
-| `API_HOST`      | No       | `localhost` (dev) / `0.0.0.0` (prod) | Host to bind the API server                           |
-| `API_PORT`      | No       | `8080`                               | Port to bind the API server                           |
-| `AUTH_PROVIDER` | No       | `none`                               | Authentication provider. See below.                   |
+| Variable        | Required  | Default                              | Description                                                           |
+| --------------- | --------- | ------------------------------------ | --------------------------------------------------------------------- |
+| `NODE_ENV`      | No        | `development`                        | Environment mode: `development`, `production`, `test`                 |
+| `LOG_LEVEL`     | No        | `debug` (dev) / `info` (prod)        | Pino log level: `debug`, `info`, `warn`, `error`                      |
+| `APP_VERSION`   | No        | `unknown`                            | Application version string (injected by CI/CD)                        |
+| `API_HOST`      | No        | `localhost` (dev) / `0.0.0.0` (prod) | Host to bind the API server                                           |
+| `API_PORT`      | No        | `8080`                               | Port to bind the API server                                           |
+| `AUTH_PROVIDER` | No        | `none`                               | Authentication provider. See below.                                   |
+| `JWT_SECRET`    | See below | _none_                               | Static HMAC secret for the non-JWKS `@fastify/jwt` branch. See below. |
+
+### `JWT_SECRET`
+
+There is **no built-in default** — a secret committed to the repository is a published
+credential, so the value must come from the environment. `.envrc.template` and
+`.env.dockercompose.example` ship a throwaway dev value; copy one of them during setup.
+
+| Configuration                            | Is it required?              | Why                                                                           |
+| ---------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| `AUTH_PROVIDER=jwks` **with** `JWKS_URI` | No — unused                  | Tokens are verified against the IdP's public keys                             |
+| `AUTH_PROVIDER=jwks` **no** `JWKS_URI`   | **Yes — the API won't boot** | The static secret is what verifies tokens; unset would mean unverifiable auth |
+| `AUTH_PROVIDER=forced-user` / `none`     | No                           | No token is ever verified; a per-boot ephemeral secret is substituted         |
+
+In production, `AUTH_PROVIDER=jwks` additionally requires `JWKS_URI`, `JWKS_ISSUER` and
+`JWKS_AUDIENCE`, so the static-secret branch cannot be reached there at all. Generate a real
+value with `openssl rand -base64 48`.
+
+**Blank counts as unset.** Empty and whitespace-only values are normalised to undefined, so
+`JWT_SECRET=` behaves exactly like omitting it: the row above still applies. This matters
+because Docker Compose expands an absent variable to an empty string
+(`JWT_SECRET=${JWT_SECRET}` in `docker-compose.yml`) — a blank value is therefore a normal
+input, not a hand-crafted one, and it must never become a whitespace verification key or
+reach `@fastify/jwt`, which aborts startup on a falsy secret.
 
 ### Auth Provider (`AUTH_PROVIDER`)
 
@@ -117,6 +141,33 @@ from the tenant inputs above by `.envrc.azure.example` (local) and `appService.b
 | `JWKS_AUDIENCE`         | Recommended      | Expected token audience (`aud` claim); empty disables audience validation |
 | `JWKS_REQUIRED_SCOPE`   | No               | Required scope claim (default: `access_as_user`)                          |
 | `JWKS_SKIP_SCOPE_CHECK` | No               | Set `true` to disable scope enforcement entirely                          |
+
+### Proxy trust (`TRUST_PROXY`)
+
+Sets Fastify's [`trustProxy`](https://fastify.dev/docs/latest/Reference/Server/#trustproxy) — whether `X-Forwarded-For` may set `request.ip`. **This is not cosmetic:** `request.ip` is the rate limiter's bucket key, so leaving it unset behind a proxy makes the 100 req/min limit one bucket shared by every caller rather than one per client, and nothing fails visibly when it happens. Setting it to `true` on a directly internet-facing API has the opposite effect — a caller forges the header and evades the limit. The correct value is a property of your topology; see [`docs/security/hardening.md`](../security/hardening.md#proxy-trust) for the per-topology guidance, the migration steps for deployments that already exist, and why a hop count is only safe when the origin cannot be reached by a shorter path.
+
+The limit is per client **per API instance** — the store is in-memory, so autoscaling multiplies it by the instance count ([Rate Limiting Is In-Memory Only](../operations/risks-and-limitations.md#rate-limiting-is-in-memory-only)). Configuring `TRUST_PROXY` makes the bucket per-client; it does not make it per-client-globally.
+
+The effective default is `false` (trust nothing), which preserves the behaviour of deployments that upgrade without setting it. On Azure the value comes from the `apiTrustProxy` parameter in `infra/main.bicep` rather than an env file; local development needs nothing, since the browser reaches the API directly.
+
+**Unset and `false` behave the same at runtime but are not the same setting.** When `NODE_ENV=production` and the variable is _unset_, the API logs a warning at boot. Writing `TRUST_PROXY=false` records that the API really is reached directly and silences it, so a correctly-configured direct deployment is not warned at on every boot.
+
+A hop count is capped at **10**, and a value that is out of range or not a whole number **fails the boot** rather than falling back. A count larger than the real chain is `true` by another name — proxy-addr returns the caller-controlled leftmost entry — so a typo like `10000` for `1` must not pass silently.
+
+An allowlist is shape-checked per entry for the same reason. Left to the library, a malformed value throws from inside the Fastify constructor as `invalid IP address: …`, naming neither the variable nor the docs — and the library is not a dependable backstop anyway, since it accepts short forms like `10.0.0/8` leniently. Those lenient forms keep working; what is rejected is input that could not be an address or a range. On Azure, `infra/deploy.sh` runs the same check on whichever source supplies the value and aborts before the deployment, so a typo surfaces in your terminal rather than as a crash-looping container.
+
+| Variable      | Required | Default                        | Description                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | -------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TRUST_PROXY` | No       | unset (acts as `false`, warns) | `false` = trust nothing, decision recorded. A comma-separated IP/CIDR list (`10.0.0.0/8,192.168.0.0/16`) = trust only those senders — **preferred**. A bare integer `0`–`10` = trust that many hops; out of range fails the boot. `loopback` / `linklocal` / `uniquelocal` = Fastify's named ranges. `true` = trust the whole chain (last resort). |
+
+### Load Shedding (`@fastify/under-pressure`)
+
+The API registers [`@fastify/under-pressure`](https://github.com/fastify/under-pressure), which returns `503 Service Unavailable` when the process is overloaded. The two event-loop thresholds are env-configurable so an environment or CI runner under unusual load can tune them without a code change; the defaults preserve the platform's production behaviour. A malformed value (non-numeric or empty) falls back to the default. The heap and RSS limits remain hardcoded in `apps/api/src/plugins/external/under-pressure.ts`, and the plugin is not loaded when `NODE_ENV=test`.
+
+| Variable                     | Required | Default | Description                                                                                                             |
+| ---------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `MAX_EVENT_LOOP_DELAY_MS`    | No       | `300`   | Event-loop delay ceiling in milliseconds. When exceeded, the API sheds load with `503`. Invalid values use the default. |
+| `MAX_EVENT_LOOP_UTILIZATION` | No       | `0.9`   | Event-loop utilization ceiling (`0`–`1`). When exceeded, the API sheds load with `503`. Invalid values use the default. |
 
 ### Frontend (Vite)
 

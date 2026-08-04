@@ -17,11 +17,30 @@ param databaseName string
 @description('Database user')
 param databaseUser string
 
-@description('Node.js version (e.g., node|24-lts)')
-param linuxFxVersion string = 'node|24-lts'
+@description('Node.js version (e.g., node|26-lts)')
+param linuxFxVersion string = 'node|26-lts'
 
 @description('Allowed origin for API CORS (e.g., https://app.example.com)')
 param allowedOrigin string
+
+// App Service always proxies to the container through its own front end, so
+// `request.ip` inside the API is the platform's address, not the caller's. That
+// is the rate limiter's bucket key (apps/api/src/plugins/external/rate-limit.ts),
+// so leaving this empty means the 100 req/min limit is ONE bucket shared by
+// every client rather than one per client.
+//
+// Empty is the default deliberately: it reproduces the behaviour every existing
+// deployment already has, so a redeploy of this template changes nothing on its
+// own. Setting it is a per-deployment decision because the correct value depends
+// on how many proxies sit in front:
+//   '1'  App Service alone — trust the single platform hop
+//   '2'  App Service behind Front Door
+// Verify against the deployment before setting it: trusting more hops than
+// actually exist lets a caller forge X-Forwarded-For and pick its own bucket.
+// An IP/CIDR allowlist is accepted too and is preferable where the proxy
+// addresses are known and stable. See docs/security/hardening.md, "Proxy Trust".
+@description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing. "1" = App Service alone; "2" = behind Front Door; or an IP/CIDR allowlist.')
+param trustProxy string = ''
 
 @description('Enable managed identity credentials for container registry')
 param useAcrManagedIdentity bool = false
@@ -90,8 +109,15 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
     type: 'SystemAssigned'
   }
   properties: {
+    // Enforce HTTPS: the platform 301-redirects any plain HTTP to HTTPS and stops
+    // serving the HTTP listener. Required by UNDP Defender for Cloud policy. Safe here
+    // because the API is only ever reached over HTTPS (ALLOWED_ORIGIN + front are https,
+    // and *.azurewebsites.net ships a managed cert by default).
+    httpsOnly: true
     serverFarmId: appServicePlan.id
     siteConfig: {
+      // Reject TLS below 1.2 (companion hardening to httpsOnly).
+      minTlsVersion: '1.2'
       linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: useAcrManagedIdentity
       cors: {
@@ -126,7 +152,12 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           name: 'DATABASE_URL'
           value: 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
-      ], storageAccountName != '' ? [
+      ], trustProxy != '' ? [
+        {
+          name: 'TRUST_PROXY'
+          value: trustProxy
+        }
+      ] : [], storageAccountName != '' ? [
         {
           name: 'STORAGE_PROVIDER'
           value: 'azure_blob_storage'

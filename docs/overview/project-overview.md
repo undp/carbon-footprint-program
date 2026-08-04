@@ -73,7 +73,7 @@ Organizations and administrators can attach supporting documents (certifications
 - Cross-country data federation or shared registries
 - Mobile applications (web-only)
 - Internationalization / multi-language UI (not yet implemented)
-- Frontend automated testing (partially implemented)
+- Full frontend UI / end-to-end testing (the logic layers — utils, hooks, stores, label mappers, Chatbot module — are unit-tested with Vitest + React Testing Library; render-heavy screens/components and browser E2E remain out of scope)
 
 ---
 

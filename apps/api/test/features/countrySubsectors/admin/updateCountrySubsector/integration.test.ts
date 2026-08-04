@@ -19,13 +19,17 @@ import {
   createCarbonInventory,
   carbonInventoryPatterns,
 } from "@test/factories/carbonInventorySeeder.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
+  Prisma,
   CountrySectorStatus,
   CountrySubsectorStatus,
 } from "@repo/database";
 import type { UpdateCountrySubsectorResponse } from "@repo/types";
+import { updateCountrySubsectorService } from "@/features/countrySubsectors/admin/updateCountrySubsector/service.js";
+import { mapUserToResponse } from "@/features/users/mappers.js";
 
 const TEST_PREFIX = "Test - AdminSubUpd ";
 
@@ -563,6 +567,106 @@ describe("PATCH /api/admin/country-subsectors/:id - Integration Tests", () => {
         payload: { name: uniqueName("New") },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it("returns 404 when description-only editing a DELETED subsector (no name/parent field to trigger the earlier existence check)", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("Parent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("DeletedDescOnly"),
+        status: CountrySubsectorStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/admin/country-subsectors/${sub.id.toString()}`,
+        payload: { description: "New description" },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should throw UserNotFoundError when there is no authenticated user", async () => {
+      const parent = await createTestCountrySector(prisma, {
+        name: uniqueName("NoUserParent"),
+      });
+      const sub = await createTestCountrySubsector(prisma, parent.id, {
+        name: uniqueName("NoUser"),
+      });
+      await expect(
+        updateCountrySubsectorService(
+          prisma,
+          sub.id.toString(),
+          { description: "x" },
+          null
+        )
+      ).rejects.toThrow();
+    });
+
+    // The only unique constraint on `country_subsector` is the partial
+    // (countrySectorId, name) index, so a real P2002 from this table's
+    // update() always carries "name" in its duplicated fields, and the only
+    // relation `connect` performed unconditionally here (updater) surfaces as
+    // P2025 -- never another code. Both the "not a P2002" and the "P2002
+    // without name" branches in the catch block are therefore defensive-only;
+    // a minimal stub standing in for the single write call exercises them in
+    // isolation, without touching the real DB.
+    it("rethrows a non-P2025/non-P2002 database error unchanged", async () => {
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({
+            countrySubsector: {
+              update: () => {
+                throw new Prisma.PrismaClientKnownRequestError(
+                  "Simulated foreign key violation",
+                  { code: "P2003", clientVersion: "test" }
+                );
+              },
+            },
+          }),
+      } as unknown as PrismaClient;
+      const testUser = await getTestLoggedUser(prisma);
+
+      await expect(
+        updateCountrySubsectorService(
+          stubPrisma,
+          "1",
+          { description: "x" },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toMatchObject({ code: "P2003" });
+    });
+
+    it("rethrows a P2002 unchanged when the duplicated fields do not include name", async () => {
+      const stubPrisma = {
+        $transaction: (fn: (tx: unknown) => unknown) =>
+          fn({
+            countrySubsector: {
+              update: () => {
+                throw new Prisma.PrismaClientKnownRequestError(
+                  "Unique constraint failed on the fields: (`other_field`)",
+                  {
+                    code: "P2002",
+                    clientVersion: "test",
+                    meta: { target: ["other_field"] },
+                  }
+                );
+              },
+            },
+          }),
+      } as unknown as PrismaClient;
+      const testUser = await getTestLoggedUser(prisma);
+
+      await expect(
+        updateCountrySubsectorService(
+          stubPrisma,
+          "1",
+          { description: "x" },
+          mapUserToResponse(testUser)
+        )
+      ).rejects.toMatchObject({ code: "P2002" });
     });
   });
 });

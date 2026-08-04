@@ -1,5 +1,5 @@
 import { Navigate, Outlet, createRootRoute } from "@tanstack/react-router";
-import { ThemeProvider } from "@mui/material";
+import { GlobalStyles, ThemeProvider } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { es } from "date-fns/locale";
@@ -14,7 +14,13 @@ import { oidcUserManager } from "../auth/oidcUserManager";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import {
+  DEVTOOLS_TRIGGER_BOTTOM_PX,
+  OVERLAY_RIGHT_PX,
+} from "@/devtools/overlayLayout";
 import { IS_CHATBOT_ENABLED, IS_DEVELOPMENT } from "../config/environment";
 import { Routes } from "@/interfaces";
 import { UnpluggedCablesIcon } from "../icons";
@@ -37,11 +43,51 @@ function RootComponent() {
             onSigninCallback={onSigninCallback}
           >
             <QueryClientProvider client={queryClient}>
+              {/* One devtools shell hosting both inspectors as tabs, instead
+                  of each library's own floating toggle. Mounted inside
+                  QueryClientProvider so the Query panel sees the client, and
+                  inside the root route so the Router panel sees the match
+                  tree. */}
               {IS_DEVELOPMENT && (
-                <ReactQueryDevtools
-                  initialIsOpen={false}
-                  buttonPosition="bottom-left"
-                />
+                <>
+                  {/* The shell only offers corner/edge presets, no offset, so
+                      its exact slot in the bottom-right stack comes from here.
+                      Offsets live in devtools/overlayLayout so this and
+                      FormDebugPanel cannot drift apart.
+
+                      `!important` is needed because the shell injects its own
+                      `position: fixed; bottom/right` into <head> at runtime. The
+                      aria-label is the only stable hook — its class names are
+                      generated. Living inside this IS_DEVELOPMENT block means
+                      @tanstack/devtools-vite strips the rule from production
+                      builds along with the shell itself. */}
+                  <GlobalStyles
+                    styles={{
+                      'button[aria-label="Open TanStack Devtools"]': {
+                        right: `${OVERLAY_RIGHT_PX}px !important`,
+                        bottom: `${DEVTOOLS_TRIGGER_BOTTOM_PX}px !important`,
+                      },
+                    }}
+                  />
+                  <TanStackDevtools
+                    // bottom-left is not an option here: the sidebar and logout
+                    // button own that corner. This only seeds the initial value
+                    // — the shell persists trigger settings in local storage
+                    // once it has run, so a dev machine that already opened it
+                    // keeps its stored position.
+                    config={{ position: "bottom-right" }}
+                    plugins={[
+                      {
+                        name: "TanStack Query",
+                        render: <ReactQueryDevtoolsPanel />,
+                      },
+                      {
+                        name: "TanStack Router",
+                        render: <TanStackRouterDevtoolsPanel />,
+                      },
+                    ]}
+                  />
+                </>
               )}
               <AuthProvider>
                 <ExplanationProvider>

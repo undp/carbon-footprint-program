@@ -1,0 +1,107 @@
+[
+  {
+    "slug": "landing",
+    "titulo": "Landing / acceso público",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "transparencia",
+    "titulo": "Transparencia pública",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "calculadora-huella",
+    "titulo": "Calculadora de huella (asistente de cálculo)",
+    "fuente": "ambas",
+    "estado": "verificado",
+    "fecha": "2026-08-04"
+  },
+  {
+    "slug": "inicio",
+    "titulo": "Inicio (onboarding y panel personal)",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "mi-organizacion",
+    "titulo": "Mi organización",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "huella-organizacional",
+    "titulo": "Huella organizacional (gestión de inventarios)",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "plan-de-reduccion",
+    "titulo": "Plan de reducción",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "proyectos-de-reduccion",
+    "titulo": "Proyectos de reducción",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "reconocimientos",
+    "titulo": "Reconocimientos",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "perfil-usuario",
+    "titulo": "Perfil de usuario",
+    "fuente": "ambas",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "admin-panel",
+    "titulo": "Administración (panel, organizaciones, solicitudes, usuarios)",
+    "fuente": "codigo",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "mantenedor-metodologia",
+    "titulo": "Mantenedor: metodología de cálculo",
+    "fuente": "codigo",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "mantenedor-parametrizacion",
+    "titulo": "Mantenedor: unidades y parametrización de país",
+    "fuente": "codigo",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "mantenedor-contenido",
+    "titulo": "Mantenedor: sellos, iniciativas y explicaciones",
+    "fuente": "codigo",
+    "estado": "explorado",
+    "fecha": "2026-07-22"
+  },
+  {
+    "slug": "asistente-virtual",
+    "titulo": "Asistente virtual (chatbot)",
+    "fuente": "codigo",
+    "estado": "pendiente",
+    "fecha": "2026-07-22"
+  }
+]

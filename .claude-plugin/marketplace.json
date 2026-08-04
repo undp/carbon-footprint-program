@@ -1,0 +1,11 @@
+{
+  "name": "cfp-plugins",
+  "owner": { "name": "Carbon Footprint Program" },
+  "plugins": [
+    {
+      "name": "user-manual",
+      "source": "./.claude/user-manual-plugin",
+      "description": "Genera manuales de usuario HTML tipo slides adaptados al branding del proyecto."
+    }
+  ]
+}

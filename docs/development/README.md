@@ -18,6 +18,7 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 | Document                                             | Description                                                                                                                                                                                                                              |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Frontend Architecture](./frontend-architecture.md)  | React + Vite structure, TanStack Router, Zustand, TanStack Query, ky, react-hook-form, MUI + Tailwind, and how to add a new screen                                                                                                       |
+| [In-App Onboarding & Spotlights](./onboarding.md)    | End-user onboarding hints (driver.js spotlights): the session-agnostic completion model (localStorage ∪ DB), login merge, the home next-steps flow, one-time in-screen hints, and recipes for adding a new hint                          |
 | [API Design Conventions](./api-conventions.md)       | Feature folder pattern, route/handler/service layering, plugin architecture, authorization, error handling, and how to add a new endpoint                                                                                                |
 | [Packages and Monorepo Internals](./packages.md)     | Shared packages (`@repo/types`, `@repo/database`, `@repo/utils`), dependency graph, Turborepo pipeline, and schema-change propagation                                                                                                    |
 | [Data Export and Reporting](./data-export.md)        | Excel exports (inventory, reduction project, reduction plan), file downloads via SAS URL, and what is not yet supported                                                                                                                  |
@@ -34,8 +35,9 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 
 ## Quality and CI
 
-| Document                                        | Description                                                                                                                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [Testing Guide](./testing.md)                   | Vitest + Testcontainers setup, globalSetup lifecycle, factory utilities, and writing integration tests                        |
-| [CI/CD Pipeline](./ci-cd.md)                    | GitHub Actions workflow: triggers, jobs (lint / type-check / format / test / build), debugging failures, and adding new steps |
-| [Troubleshooting and FAQ](./troubleshooting.md) | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour                         |
+| Document                                                                  | Description                                                                                                                                                 |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Testing Guide](./testing.md)                                             | Vitest + Testcontainers setup, globalSetup lifecycle, factory utilities, and writing integration tests                                                      |
+| [Manual Testing — Emission Capture](./manual-testing-emission-capture.md) | Reproducible acceptance case for calculator step 3: fixture inventory, input recipe, expected line/subcategory/category totals, and known display artifacts |
+| [CI/CD Pipeline](./ci-cd.md)                                              | GitHub Actions workflow: triggers, jobs (lint / type-check / format / test / build), debugging failures, and adding new steps                               |
+| [Troubleshooting and FAQ](./troubleshooting.md)                           | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour                                                       |

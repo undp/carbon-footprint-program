@@ -19,6 +19,7 @@ import {
   CountryOrganizationSizeStatus,
 } from "@repo/database";
 import type { DeleteCountryOrganizationSizeResponse } from "@repo/types";
+import { deleteCountryOrganizationSizeService } from "@/features/countryOrganizationSizes/admin/deleteCountryOrganizationSize/service.js";
 
 const TEST_PREFIX = "Test - AdminSizeDel ";
 
@@ -90,5 +91,17 @@ describe("DELETE /api/admin/country-organization-sizes/:id - Integration Tests",
       url: "/api/admin/country-organization-sizes/9999999999",
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  describe("Service-level edge cases (not reachable via HTTP)", () => {
+    it("should throw UserNotFoundError when there is no authenticated user", async () => {
+      const size = await createTestCountryOrganizationSize(prisma, {
+        name: uniqueName("NoUser"),
+      });
+
+      await expect(
+        deleteCountryOrganizationSizeService(prisma, size.id.toString(), null)
+      ).rejects.toThrow();
+    });
   });
 });

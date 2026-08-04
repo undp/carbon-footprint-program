@@ -130,6 +130,7 @@ export const fetchCarbonInventoryRecognitions = async (
 
   const recognitionsByInventory = await Promise.all(
     inventories.map(async (inventory) => {
+      /* v8 ignore next 2 -- unreachable: the outer findMany `some` filter guarantees submission is present with a non-empty submissions array */
       const submissions = inventory.submission?.subject.submissions ?? [];
       if (submissions.length === 0) return [];
 
@@ -226,6 +227,7 @@ export const fetchReductionProjectRecognitions = async (
 
   const recognitionsByProject = await Promise.all(
     reductionProjects.map(async (project) => {
+      /* v8 ignore next -- unreachable: the outer findMany `some` filter guarantees project.submission is present */
       const submissions = project.submission?.subject.submissions ?? [];
       // A recognized project always has a year (enforced at submit). A null year
       // means an incomplete draft that can carry no recognition.

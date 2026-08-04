@@ -1,4 +1,10 @@
-## ADDED Requirements
+# inline-explanations Specification
+
+## Purpose
+
+Category and Subcategory records store their explanation markdown inline on their own row instead of joining a separate `Explanation` table, so read endpoints return the text without an extra fetch. This capability covers the inline nullable `explanation` column on both models, the removal of the unused `examples` column and the `Explanation.visible` flag, the create/update/list API contract, the position-and-name-matched seed, and the frontend context split between slug-fetch and direct-content rendering.
+
+## Requirements
 
 ### Requirement: Category and Subcategory store explanation inline
 

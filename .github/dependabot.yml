@@ -40,6 +40,19 @@ updates:
       # (justkey007/tsc-alias).
       - dependency-name: "tsc-alias"
         versions: [">=1.9.0"]
+      # katex is declared in apps/web only to import its stylesheet
+      # (katex/dist/katex.min.css). The markup is rendered by rehype-katex, which
+      # depends on katex ^0.16.0 as a regular dependency — not a peer — so it
+      # always uses its own copy. Both must resolve to the same version or the
+      # stylesheet stops matching the markup: katex 0.18 renamed every internal
+      # class to a `katex-` prefix (.base -> .katex-base, .strut, .rule,
+      # .stretchy, +17 more), so 0.18 CSS styles none of what 0.16 emits and every
+      # formula renders unstyled. Nothing fails loudly — no range conflict, and
+      # the `.katex` wrapper class survives, so MessageBubble's test still passes.
+      # Hold katex on the 0.16 line (a 0.x minor is a breaking line) until
+      # rehype-katex moves; 7.0.1 is currently its latest. Tracked in #454.
+      - dependency-name: "katex"
+        update-types: ["version-update:semver-minor"]
       # ESLint ecosystem: freeze every package's major until eslint v10 is
       # adopted as one coordinated change.
       # eslint 10 removed the deprecated context.getFilename() (rule reads moved
@@ -71,14 +84,80 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@tanstack/eslint-plugin-router"
         update-types: ["version-update:semver-major"]
+      # TanStack Devtools shell is pre-1.0. Under semver a 0.x minor is a
+      # breaking line, so the `minor-and-patch` group below would silently take
+      # breaking updates (the same trap that katex 0.17 -> 0.18 set in PR #537).
+      # Hold minors and take only patches until these reach 1.0, then drop these
+      # two entries and let the normal major/minor rules apply. Tracked in #454.
+      - dependency-name: "@tanstack/react-devtools"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@tanstack/devtools-vite"
+        update-types: ["version-update:semver-minor"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
-      # Security updates and majors still open their own PRs.
+      # Security updates still open their own PRs; majors are grouped per
+      # release-train family below.
       minor-and-patch:
         applies-to: version-updates
         update-types:
           - "minor"
           - "patch"
+      # Release-train families: packages published in lockstep that must be on
+      # the exact same version to work. A major that moves only one member of
+      # the family lands broken — this is what happened to eslint / @eslint/js
+      # (PRs #430 and #447) and to github/codeql-action (PRs #551-#553).
+      # `minor-and-patch` above already keeps these together for minor/patch, so
+      # each group is scoped to majors only and the two never overlap. Anything
+      # not listed here versions independently and keeps its own major PR.
+      prisma-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      vitest-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      testcontainers-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "testcontainers"
+          - "@testcontainers/*"
+      # @mui/x-* share a release train with each other. They also peer-depend on
+      # @mui/material, whose majors are ignored above pending issue #443 — see
+      # the PR body for that open question.
+      mui-x-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "@mui/x-*"
+      # react and react-dom must match exactly; the @types packages track the
+      # same major.
+      react-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # tailwindcss and its Vite plugin share a version line.
+      # @tailwindcss/typography versions independently (0.5.x) and is excluded.
+      tailwind-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/vite"
+      aws-sdk-major:
+        applies-to: version-updates
+        update-types: ["major"]
+        patterns:
+          - "@aws-sdk/*"
 
   # Docker base images in the API and web Dockerfiles (FROM ...@sha256:...), plus
   # the pinned betterleaks image used by the CI "Secret Scan" job
@@ -97,6 +176,17 @@ updates:
       default-days: 7
     commit-message:
       prefix: "chore(docker)"
+    groups:
+      # apps/api and apps/web pin the identical node base image digest, so every
+      # bump arrived as two duplicate PRs for the same digest (#532 + #534, and
+      # #461 + #462 before that). Unlike a release-train family this is not a
+      # correctness problem — each image builds independently — purely duplicate
+      # review. Group them into one PR. nginx and betterleaks are genuinely
+      # per-directory and stay ungrouped.
+      node-base-image:
+        applies-to: version-updates
+        patterns:
+          - "node"
     ignore:
       # Keep the web nginx image on the STABLE branch (even minor, 1.30.x).
       # nginx uses even minors for stable and odd minors for mainline, but
@@ -121,3 +211,24 @@ updates:
       default-days: 7
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      # Dependabot treats each sub-path of a composite action repository as its
+      # own dependency, so codeql-action/init, /analyze and /upload-sarif would
+      # otherwise arrive as three separate PRs. That breaks CodeQL: init writes
+      # its own action version into $RUNNER_TEMP/config and analyze refuses to
+      # read a config written by another version, so any PR that moves only one
+      # of them fails with "Loaded a configuration file for version X, but
+      # running version Y". Group them so they always bump in lockstep.
+      # See PRs #551-#553 and .github/workflows/codeql.yml.
+      codeql-action:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action"
+          - "github/codeql-action/*"
+      # Same lockstep requirement for security updates, which ignore the
+      # version-updates group above and need their own entry.
+      codeql-action-security:
+        applies-to: security-updates
+        patterns:
+          - "github/codeql-action"
+          - "github/codeql-action/*"

@@ -64,7 +64,9 @@ check-draft
 │             ├── type-check
 │             ├── test ── coverage
 │             ├── package-test
-│             └── build
+│             ├── build
+│             ├── smoke-api
+│             └── smoke-web
 ├── verify-changes-filter
 ├── format
 ├── audit
@@ -73,24 +75,26 @@ check-draft
 └── secret-scan
 ```
 
-| Job                     | Purpose                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `check-draft`           | Entry gate; skips everything on draft PRs.                                         |
-| `changes`               | Classifies the PR as code vs docs-only.                                            |
-| `verify-changes-filter` | Guards the `changes` filter against drift (`scripts/check-ci-changes-filter.mjs`). |
-| `lint`                  | ESLint across the monorepo (`--max-warnings=0`).                                   |
-| `type-check`            | `tsc --noEmit` across all projects.                                                |
-| `format`                | Prettier `--check`.                                                                |
-| `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                 |
-| `package-test`          | Vitest unit tests for `packages/*` (`pnpm test:packages`) — no DB, no containers.  |
-| `coverage`              | Merges the three test legs' coverage and enforces the ≥80% `apps/api` gate.        |
-| `build`                 | Turborepo build of all apps and packages.                                          |
-| `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).           |
-| `zizmor`                | Static analysis of the GitHub Actions workflows.                                   |
-| `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                       |
-| `secret-scan`           | Full-history secret scan (betterleaks).                                            |
+| Job                     | Purpose                                                                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `check-draft`           | Entry gate; skips everything on draft PRs.                                                                                                |
+| `changes`               | Classifies the PR as code vs docs-only.                                                                                                   |
+| `verify-changes-filter` | Guards the `changes` filter against drift (`scripts/check-ci-changes-filter.mjs`).                                                        |
+| `lint`                  | ESLint across the monorepo (`--max-warnings=0`).                                                                                          |
+| `type-check`            | `tsc --noEmit` across all projects.                                                                                                       |
+| `format`                | Prettier `--check`.                                                                                                                       |
+| `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                                                                        |
+| `package-test`          | Vitest unit tests for `packages/*` (`pnpm test:packages`) — no DB, no containers.                                                         |
+| `coverage`              | Merges the three test legs' coverage and enforces the `apps/api` gate (90% for all four metrics: lines, statements, functions, branches). |
+| `build`                 | Turborepo build of all apps and packages.                                                                                                 |
+| `smoke-api`             | Boots the built api image against an empty Postgres and probes `/health` (see below).                                                     |
+| `smoke-web`             | Boots the built web image, probes the SPA and verifies the substituted CSP (see below).                                                   |
+| `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).                                                                  |
+| `zizmor`                | Static analysis of the GitHub Actions workflows.                                                                                          |
+| `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                                                                              |
+| `secret-scan`           | Full-history secret scan (betterleaks).                                                                                                   |
 
-The code-gated jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
+The code-gated jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
 
 > **Adding a job is two steps.** A new job reports a status check but does not
 > **block** a merge until a maintainer adds its check name to the required-checks
@@ -111,7 +115,7 @@ Acts as a gate. If the PR is a draft, this job is skipped, which causes all down
 
 ### Docs-only optimization
 
-The heavy jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
+The heavy jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
 
 The `changes` job (using `dorny/paths-filter`) sets a `code` output that is `true` when anything build-affecting changed. Each gated step carries `if: needs.changes.outputs.code == 'true'`. The filter's pattern list is a second source of truth for "what affects the build", so `verify-changes-filter` (`scripts/check-ci-changes-filter.mjs`) guards it against drift.
 
@@ -151,38 +155,41 @@ Verifies Prettier formatting without modifying files. If any file is not formatt
 
 Runs the Vitest + Testcontainers integration tests. Docker is available on the GitHub-hosted runner, so Testcontainers can spin up PostgreSQL, Azurite, and MinIO containers.
 
-This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once:
+This is a matrix job with three legs that **partition** the suite into disjoint sets, so the storage layer is exercised against **both** storage providers without running the non-storage files more than once. Each leg is a **Vitest project** (`test.projects` in `apps/api/vitest.config.ts`); the leg name is both the `--project` filter and the branch-protection check name:
 
-| Leg (check name)       | `STORAGE_PROVIDER`    | Command                   | Scope                                                                                         |
-| ---------------------- | --------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `Test (base)`          | `azure_blob_storage`¹ | `pnpm test:base`          | The full suite **except** the storage manifest — the bulk, run once.                          |
-| `Test (storage-azure)` | `azure_blob_storage`  | `pnpm test:storage-azure` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
-| `Test (storage-minio)` | `minio`               | `pnpm test:storage-minio` | **Only** the storage manifest against MinIO.                                                  |
+| Leg (check name)       | Provider             | Scope                                                                                         |
+| ---------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| `Test (base)`          | none¹                | The full suite **except** the storage manifest — the bulk, run once.                          |
+| `Test (storage-azure)` | `azure_blob_storage` | **Only** the storage manifest (`apps/api/test/setup/storageTestManifest.ts`) against Azurite. |
+| `Test (storage-minio)` | `minio`              | **Only** the storage manifest against MinIO.                                                  |
 
-`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base leg's `exclude` and the storage legs' `include`; each test script sets `STORAGE_PROVIDER` itself, which selects the testcontainer in `globalSetup.ts`.
+`base ∪ storage-azure ∪ storage-minio` covers the full suite, and `base` is disjoint from the storage legs. The storage manifest is the single source of truth for both the base project's `exclude` and the storage projects' `include`. Each project selects its provider — and boots the matching testcontainer — from its **name** in `globalSetup.ts` (never from a shared `process.env`, which would be last-writer-wins across projects); each project also declares the matching `STORAGE_PROVIDER` in its `test.env` so `buildStorageConfig()` validation passes at `app.ready()`.
 
-¹ The `base` leg sets `STORAGE_PROVIDER=azure_blob_storage` only so `buildStorageConfig()` passes at `app.ready()` without depending on the storage container starting — it never touches real storage (its `app.storage` is the throwing adapter). It runs against Azurite like `storage-azure` at the container level, but exercises zero storage-manifest files.
+Each leg runs `pnpm test:api:leg` (with `LEG` set to the matrix leg), which is `vitest run --project=$LEG --coverage --reporter=blob`. The `--reporter=blob` output carries the coverage data and is merged natively in the `coverage` job below (no external merge script).
 
-Before running the tests, all three legs run `pnpm test:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
+¹ The `base` project boots **no** storage container — it never touches real storage (its `app.storage` is the throwing adapter). Its `test.env` still sets `STORAGE_PROVIDER=azure_blob_storage` (+ a dummy account name) purely so `buildStorageConfig()` passes at `app.ready()`.
 
-**Coverage artifact:** After each leg (even on failure), its coverage report is uploaded — `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio`:
+Before running the tests, all three legs run `pnpm test:api:verify-storage-manifest` — a static gate that fails if a test touches real storage but is missing from the manifest (or vice versa). A runtime guard backs it up: a storage-agnostic test's `app.storage` is a throwing adapter, so accidental storage access fails loudly. See [Storage test manifest](#storage-test-manifest) below.
+
+**Blob report artifact:** After each leg (even on failure), its Vitest blob report is uploaded — `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio`:
 
 ```yaml
 - uses: actions/upload-artifact@v7
   if: always()
   with:
-    name: ${{ matrix.coverage_artifact }}
-    path: apps/api/coverage/
+    name: blob-report-${{ matrix.leg }}
+    path: apps/api/.vitest-reports/
+    include-hidden-files: true # .vitest-reports is a dotfile dir
     retention-days: 7
 ```
 
-Download the artifact from the GitHub Actions run UI to inspect line-by-line coverage.
+The `coverage` job downloads all three and merges them (see below).
 
 #### Storage test manifest
 
 `apps/api/test/setup/storageTestManifest.ts` lists the tests that exercise real object storage. Two layers keep it from drifting:
 
-- **Static** — `pnpm test:verify-storage-manifest` scans the tests for storage markers (e.g. `inject("storageDescriptor")`, `uploadFixture(...)`, `app.storage.<method>`) and fails with an actionable message if a marked test is missing from the manifest, an entry no longer exists, or an entry has no markers.
+- **Static** — `pnpm test:api:verify-storage-manifest` scans the tests for storage markers (e.g. `inject("storageDescriptor")`, `uploadFixture(...)`, `app.storage.<method>`) and fails with an actionable message if a marked test is missing from the manifest, an entry no longer exists, or an entry has no markers.
 - **Runtime** — `createTestApp` installs a throwing storage adapter when no `storageDescriptor` is passed, so a test that quietly reaches for storage fails immediately instead of passing against a fake backend.
 
 When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANIFEST` (and pass `storageDescriptor: inject("storageDescriptor")` to `createTestApp`).
@@ -191,16 +198,18 @@ When you add a test that uploads/reads files, add its path to `STORAGE_TEST_MANI
 
 ### `coverage`
 
-Enforces a **≥80% coverage gate** (lines, statements, functions, branches) for `apps/api`.
+Enforces a **per-metric coverage gate** for `apps/api`: **90%** for all four metrics — lines, statements, functions, and branches. (Branches were the last to reach the bar; #512 closed the gap with new integration suites plus targeted `v8 ignore`s of genuinely-unreachable guards, retiring the earlier intermediate 85% branch ratchet.)
 
-Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so a per-run Vitest threshold cannot be used (a leg would fail on the files it never runs). Vitest's own thresholds are therefore kept at `0` (informational; the numbers still print in each leg's report — see `apps/api/vitest.shared.ts`), and the real gate lives here:
+Because the `test` matrix **partitions** the suite into three disjoint legs, no single leg exercises the whole codebase — so no single leg can be gated on its own coverage (it would fail on the files it never runs). The **90%** gate is declared once in `apps/api/vitest.config.ts` (`test.coverage.thresholds`); each single-project `test` leg overrides it to `0` on the CLI (its numbers still print in its own report), and the gate is applied only after the legs are merged:
 
-1. Each `test` leg uploads its raw Istanbul coverage (`coverage-final.json`) as an artifact.
-2. This job (`needs: test`) downloads all three, and `scripts/check-coverage.mjs` **merges** them — a line covered by _any_ leg counts as covered — then fails if the merged percentage of any metric is below 80%.
+1. Each `test` leg emits a Vitest **blob** report (`--reporter=blob`, coverage embedded) as an artifact.
+2. This job (`needs: test`) downloads all three into one flat dir (`merge-multiple: true` — `vitest --merge-reports` reads the dir non-recursively and rejects subfolders; each blob is uniquely named `blob-<leg>.json`) and runs `pnpm test:api:coverage:merge`, which is `vitest run --merge-reports --coverage`. That command doesn't override the thresholds, so the config's 90% gate applies. Vitest merges the coverage natively — a line covered by _any_ leg counts as covered (v8 merges hit-counts) — then fails if any metric falls below its threshold (90% for all four).
 
-The threshold is a constant in `scripts/check-coverage.mjs` (override locally with the `COVERAGE_THRESHOLD` env var). If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
+The gate lives in the config, so local (`test:coverage`) and CI (`test:coverage:merge`) use the exact same thresholds — only `test:leg` (a partial single-project run) opts out. If a `test` leg fails, this job is skipped (the PR is already blocked, and there is no complete coverage to merge).
 
-> **Scope:** this gate covers `apps/api` only. Frontend (`apps/web`) test coverage is tracked separately in issue #477.
+The merge step also produces a human-readable report (html + lcov + json) under `apps/api/coverage/`, which this job uploads as the `coverage-report-merged` artifact (`if: always()`, so it is available **even when the gate fails** — exactly when you need to see which lines are missing). Download it straight from the run instead of merging the per-leg blobs by hand.
+
+> **Scope:** this merged gate covers `apps/api`. Frontend (`apps/web`) has its own coverage gate — a low **global floor** enforced by the `Test (web)` job (thresholds in `apps/web/vitest.config.ts`, run with `--coverage`), ratcheted up as its logic layers gain tests. See [Testing → Web unit tests](./testing.md#web-unit-tests-appsweb).
 
 ---
 
@@ -214,12 +223,33 @@ Builds all apps and packages via Turborepo. The frontend build requires `VITE_AP
 
 ---
 
+### `smoke-api` / `smoke-web`
+
+Build the production container images and **boot them**, asserting each one actually serves traffic. Reported as `Image Smoke (api)` and `Image Smoke (web)`.
+
+**Why they exist.** No other job executes the shipped artifact. `build` compiles the source tree; `test` and `test-web` run Vitest against source, resolving `@repo/*` and path aliases through `vite-tsconfig-paths`. The api image runs `node dist/server.js` — plain Node ESM resolution over `tsc`-emitted, `tsc-alias`-rewritten output. Those are different resolvers over different files, so a module can resolve in every other job and still be missing from the image. `@fastify/autoload` widens the gap: plugins and routes are imported dynamically at `createApp()` time by globbing the filesystem, so most of the import graph is only resolved by booting.
+
+| Job         | What it proves                                                                                                                                                                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smoke-api` | The image boots, its module graph resolves, and `/health` returns `status: "ok"` with `database: "connected"`. Catches a missing runtime module, a dangling pnpm symlink, an un-copied `@repo/*` dist, and Prisma client/adapter breakage across the `builder` → `prod-deps` stage seam.       |
+| `smoke-web` | nginx starts, the SPA is served, and the CSP header contains no unsubstituted `__*__` placeholder while carrying every expected origin. `apps/web/nginx.conf` and `apps/web/security-headers.conf` are otherwise validated by nothing in CI, and the Dockerfile rewrites the latter via `sed`. |
+
+`smoke-api` needs a database because the Prisma plugin's `onReady` hook runs `$connect()` then `SELECT 1` and rethrows on failure, by design. It uses a **service container** (not Testcontainers) and runs **no migrations** — `SELECT 1` touches no table, so an empty database suffices. That round-trip is deliberate: it exercises the generated Prisma client and the pg adapter, the artifacts that span the stage seam where `dist` and `node_modules` come from two separate installs. The Postgres image is digest-pinned to match `docker-compose.yml` and `apps/api/test/setup/testDatabase.ts` — bump all three together, since Dependabot does not track service-container images in workflows.
+
+> **Scope:** a boot probe, not end-to-end coverage. Neither job exercises business logic, auth, or storage round-trips, and `smoke-api` cannot detect a _partial_ autoload failure — if one route file vanished from `dist`, autoload would register fewer routes and `/health` would still answer 200.
+
+These checks are deliberately **not** part of `trivy.yml`, which already builds both images: that workflow is advisory-by-design and path-filtered (see its header), so a functional gate there could never be a required check. They follow `ci.yml`'s [docs-only optimization](#docs-only-optimization) pattern instead — the job always runs and every step is gated on `changes`.
+
+---
+
 ## Environment Variables and Secrets
 
-The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner, so no external Azure or MinIO credentials are required.
+The CI workflow references **no secrets**. All test infrastructure (PostgreSQL, Azurite, MinIO) is provided by Testcontainers on the runner — except `smoke-api`'s Postgres, which is a workflow service container — so no external Azure or MinIO credentials are required.
 
 - `build` sets `VITE_API_BASE_URL` to a placeholder.
-- `test` provides dummy connection vars that satisfy the config validation in `apps/api/src/config/environment.ts`: `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`, `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`. `STORAGE_PROVIDER` itself is set by each test script (`azure_blob_storage` for `test:base` and `test:storage-azure`, `minio` for `test:storage-minio`); the `base` leg sets it purely so boot validation passes without the storage container. None of these are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`.
+- `smoke-api` sets the minimum env that satisfies every unconditional production guard in `apps/api/src/config/environment.ts` (`DATABASE_URL`, `ALLOWED_ORIGIN`, `STORAGE_PROVIDER` + `MINIO_*`), all placeholders that nothing dials. `AUTH_PROVIDER` is left unset so it defaults to `none`, avoiding the need for a live IdP; the module graph is unaffected, because `jwt.ts` → `jwksConfig.js` → `jwks-rsa` are static imports resolved at load time regardless. **Adding a new unconditional production guard means adding its variable here**, or the job fails with that guard's own error message.
+- `smoke-web` passes `VITE_API_BASE_URL`, `VITE_OIDC_ISSUER` and `STORAGE_ORIGIN` as build args — distinct reserved-TLD (RFC 2606) hostnames, so the CSP assertions can tell them apart.
+- `test` needs no storage env in the workflow: each Vitest project declares its own dummy connection vars in `test.env` (`STORAGE_PROVIDER` plus `AZURE_STORAGE_ACCOUNT_NAME` / `AZURE_STORAGE_CONTAINER_NAME` for the Azure projects, or `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` / `MINIO_BUCKET` / `MINIO_REGION` for the MinIO project). These only satisfy the config validation in `apps/api/src/config/environment.ts`; none are real secrets — the actual connection details come from the testcontainer started by `globalSetup.ts`, and the dynamic MinIO endpoint is applied from the injected descriptor in `createTestApp` before `app.ready()`.
 
 ---
 
@@ -231,21 +261,23 @@ In the GitHub Actions run UI, expand the failing job and step to see the full ou
 
 ### Download the coverage report
 
-The `coverage-report-base`, `coverage-report-storage-azure`, and `coverage-report-storage-minio` artifacts are uploaded after every test run. Download them from the "Artifacts" section of the run summary to see which lines are not covered. (Each leg reports coverage for only the files it ran, so no single artifact is the whole picture.)
+The `coverage` job uploads the merged, human-readable report as the `coverage-report-merged` artifact (html + lcov + json, `if: always()`) — download it from the run and open `index.html` to see exactly which lines are missing. This is the quickest path when the `Coverage` gate fails.
+
+The per-leg `blob-report-base`, `blob-report-storage-azure`, and `blob-report-storage-minio` artifacts are also uploaded after every test run. They are Vitest blob reports (not human-readable on their own); to reproduce the merge locally, download all three into `apps/api/.vitest-reports/` and run `pnpm --filter=api exec vitest run --merge-reports --coverage`, which produces the same report under `apps/api/coverage/`.
 
 ### Reproduce locally
 
 Every CI job runs the same command you can run locally:
 
-| CI job               | Local command                                                  |
-| -------------------- | -------------------------------------------------------------- |
-| lint                 | `pnpm lint`                                                    |
-| type-check           | `pnpm type-check`                                              |
-| format               | `pnpm format:check` (or `pnpm format` to fix)                  |
-| test (base)          | `pnpm test:verify-storage-manifest && pnpm test:base`          |
-| test (storage-azure) | `pnpm test:verify-storage-manifest && pnpm test:storage-azure` |
-| test (storage-minio) | `pnpm test:verify-storage-manifest && pnpm test:storage-minio` |
-| build                | `VITE_API_BASE_URL=https://example.invalid pnpm build`         |
+| CI job          | Local command                                            |
+| --------------- | -------------------------------------------------------- |
+| lint            | `pnpm lint`                                              |
+| type-check      | `pnpm type-check`                                        |
+| format          | `pnpm format:check` (or `pnpm format` to fix)            |
+| test + coverage | `pnpm test:api:verify-storage-manifest && pnpm test:api` |
+| build           | `VITE_API_BASE_URL=https://example.invalid pnpm build`   |
+
+`pnpm test:api` runs the whole suite (all three Vitest projects) in one command, merges coverage, and applies the gate — the local equivalent of the `test` matrix + `coverage` job combined. (CI splits it across three runners for wall-clock, then merges the blobs; the config and gate are identical.)
 
 ### Common failures
 
@@ -327,7 +359,7 @@ These run in CI today — most as jobs in `ci.yml`, the rest as dedicated workfl
 | Deployment to Azure                     | **Manual** — see [API Deployment](../infrastructure/ApiDeployment.md) and [Frontend Deployment](../infrastructure/StaticWebAppDeployment.md) |
 | Infrastructure provisioning             | **Manual** — see [Deployment Guide](../infrastructure/Deployment.md)                                                                         |
 | Database migrations                     | **Manual** — see [Database Migrations](../infrastructure/Migrations.md)                                                                      |
-| Frontend (`apps/web`) unit tests        | **Not implemented** — tracked in issue #477                                                                                                  |
+| Frontend (`apps/web`) unit tests        | **Implemented** — Vitest + jsdom + React Testing Library over the logic layers; global coverage floor enforced in CI                         |
 | End-to-end (browser) tests              | **Not implemented**                                                                                                                          |
 | Dynamic analysis (DAST / fuzzing)       | **Not implemented**                                                                                                                          |
 | Release tagging or changelog generation | **Not implemented**                                                                                                                          |

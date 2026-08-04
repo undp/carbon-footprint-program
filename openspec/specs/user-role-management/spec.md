@@ -1,193 +1,149 @@
-## ADDED Requirements
+# user-role-management Specification
 
-### Requirement: Discriminated update body for `PATCH /users/:id`
+## Purpose
 
-The system SHALL accept `PATCH /users/:id` with a body matching one of two disjoint shapes: a `SelfProfileUpdate` containing any subset of `email`, `countryJobPositionId`, `firstName`, `lastName`, `idpUserId`, `idpName`, `termsAccepted` (and no `role`), or an `AdminRoleUpdate` containing exactly `{ role: SystemRole }`. Bodies that mix profile fields with `role`, or that contain unknown fields, SHALL be rejected at the schema layer with a 400 Bad Request.
+Defines backend authorization, validation, and audit rules for changing a user's `SystemRole`. Role changes go through `PATCH /users/:id/role`, which is gated to SUPERADMIN at the route level, while self-profile updates use a separate `PATCH /users/me` endpoint that never touches `role`. Every real role change is recorded atomically in a `UserRoleAudit` row and exposed for reading through `GET /users/:id/role-history`.
 
-#### Scenario: Valid self-profile body
+## Requirements
 
-- **WHEN** a body containing only profile fields is submitted
-- **THEN** the schema accepts it as `SelfProfileUpdate`
+### Requirement: Self-profile update endpoint `PATCH /users/me`
 
-#### Scenario: Valid admin-role body
+The system SHALL expose `PATCH /users/me` (feature `updateMyProfile`) that updates the profile of the currently authenticated user. The body SHALL be a partial subset of `email`, `countryJobPositionId`, `firstName`, `lastName`, `idpUserId`, `idpName`, `termsAccepted`, validated with a strict Zod schema (`UpdateMyProfileBodySchema`) that requires at least one field and rejects unknown fields — including `role` — with HTTP 400. The route SHALL require authentication only (`access: { mode: "private" }`) and SHALL always target the caller's own record: there is no path parameter and therefore no cross-user profile edit.
 
-- **WHEN** a body of `{ role: "ADMIN" }` is submitted
-- **THEN** the schema accepts it as `AdminRoleUpdate`
+#### Scenario: Authenticated user updates own profile
 
-#### Scenario: Mixed body is rejected
+- **WHEN** an authenticated user sends `PATCH /users/me` with one or more allowed profile fields
+- **THEN** the response is 200 and the fields are updated on the caller's own record
 
-- **WHEN** a body contains both `firstName` and `role`
-- **THEN** the schema rejects it with 400
+#### Scenario: Empty body is rejected
 
-#### Scenario: Unknown field is rejected
+- **WHEN** the body contains no fields
+- **THEN** the system responds with HTTP 400
 
-- **WHEN** a body contains a key not present in either branch
-- **THEN** the schema rejects it with 400
+#### Scenario: Unknown or role field is rejected
 
-### Requirement: Route guard relaxation
-
-The route guard on `PATCH /users/:id` SHALL be `requireAuth` only. Field-level and row-level authorization for both branches SHALL be performed in the service layer.
+- **WHEN** the body contains `role` or any key outside the allowed profile fields
+- **THEN** the system responds with HTTP 400
 
 #### Scenario: Unauthenticated request
 
-- **WHEN** an unauthenticated request hits `PATCH /users/:id`
-- **THEN** the system rejects it with 401
+- **WHEN** an unauthenticated request hits `PATCH /users/me`
+- **THEN** the system responds with HTTP 401
 
-#### Scenario: Authenticated request reaches the service
+### Requirement: Role update endpoint `PATCH /users/:id/role` (SUPERADMIN only)
 
-- **WHEN** any authenticated user submits a request
-- **THEN** the request reaches the service layer for authorization decisions
+The system SHALL expose `PATCH /users/:id/role` (feature `updateUserRole`) that changes the `role` of the user identified by `:id`. The body SHALL be exactly `{ role: SystemRole }` validated by a strict Zod schema (`UpdateUserRoleBodySchema`); unknown fields SHALL be rejected with HTTP 400. The route SHALL be gated at the route level to SUPERADMIN (`access: { mode: "private", systemRoles: { kind: "roles", roles: [SUPERADMIN] } }`). Unauthenticated callers SHALL receive 401, and authenticated non-SUPERADMIN callers (USER or ADMIN) SHALL receive 403 from the route guard before the handler runs.
 
-### Requirement: Self-profile authorization
+#### Scenario: SUPERADMIN reaches the handler
 
-For an `AdminRoleUpdate` not being applied (i.e., the request body matches `SelfProfileUpdate`), the service SHALL allow the request only when the actor's `id` equals the target's `id`. Any other actor MUST be rejected with `InsufficientPermissionsError` (403).
+- **WHEN** a SUPERADMIN submits `{ role }` to `PATCH /users/:id/role`
+- **THEN** the request reaches the service, which evaluates the invariants below
 
-#### Scenario: USER edits own profile
+#### Scenario: USER or ADMIN is blocked by the route guard
 
-- **WHEN** a USER submits a `SelfProfileUpdate` to their own `id`
-- **THEN** the update is applied successfully
+- **WHEN** an authenticated USER or ADMIN calls `PATCH /users/:id/role`
+- **THEN** the system responds with HTTP 403 without invoking the service
 
-#### Scenario: ADMIN attempts to edit another user's profile
+#### Scenario: Unauthenticated request
 
-- **WHEN** an ADMIN submits a `SelfProfileUpdate` to another user's `id`
-- **THEN** the service rejects with `InsufficientPermissionsError` (403)
+- **WHEN** an unauthenticated request hits `PATCH /users/:id/role`
+- **THEN** the system responds with HTTP 401
 
-#### Scenario: SUPERADMIN attempts to edit another user's profile
+#### Scenario: Unknown field is rejected
 
-- **WHEN** a SUPERADMIN submits a `SelfProfileUpdate` to another user's `id`
-- **THEN** the service rejects with `InsufficientPermissionsError` (403)
-
-### Requirement: Admin-role authorization — actor must be SUPERADMIN
-
-For an `AdminRoleUpdate`, the service SHALL allow the mutation only when the actor's `role` is `SUPERADMIN`. Any other actor (USER or ADMIN) MUST be rejected with `InsufficientPermissionsError` (403).
-
-#### Scenario: USER attempts a role change
-
-- **WHEN** a USER submits an `AdminRoleUpdate`
-- **THEN** the service rejects with `InsufficientPermissionsError` (403)
-
-#### Scenario: ADMIN attempts a role change
-
-- **WHEN** an ADMIN submits an `AdminRoleUpdate`
-- **THEN** the service rejects with `InsufficientPermissionsError` (403)
-
-#### Scenario: SUPERADMIN attempts a role change
-
-- **WHEN** a SUPERADMIN submits an `AdminRoleUpdate`
-- **THEN** the service proceeds to evaluate the remaining invariants
+- **WHEN** the body contains any key other than `role`
+- **THEN** the system responds with HTTP 400
 
 ### Requirement: INV-1 — no self role change
 
-For an `AdminRoleUpdate`, the service SHALL reject the mutation with `SelfRoleChangeError` (403) when the target's `id` equals the actor's `id`.
+The service SHALL reject any role change whose target `:id` equals the actor's id with `SelfRoleChangeError` (403), before opening the update transaction.
 
 #### Scenario: SUPERADMIN attempts to change own role
 
-- **WHEN** a SUPERADMIN submits `{ role: "ADMIN" }` (or any role) to their own `id`
+- **WHEN** a SUPERADMIN submits `{ role }` (any value) to their own id
 - **THEN** the service rejects with `SelfRoleChangeError` (403)
 
 ### Requirement: Role transition validation
 
-For an `AdminRoleUpdate`, the service SHALL validate the target's current role transitions to the requested role per the following rules. Any disallowed transition MUST be rejected with `InvalidRoleTransitionError` (409).
-
-- target.role = `USER` → only `ADMIN` and `SUPERADMIN` are allowed (promotion).
-- target.role = `ADMIN` → `USER`, `ADMIN`, `SUPERADMIN` are allowed.
-- target.role = `SUPERADMIN` → `USER`, `ADMIN`, `SUPERADMIN` are allowed (subject to INV-2).
-
-A no-op transition (target.role equals body.role) SHALL be a true no-op: the service returns 200 with the existing user record without performing any database write — no audit row, no `updatedAt` bump, no `updatedById` change.
+The service SHALL validate the requested transition against an allow-map (`ALLOWED_ROLE_TRANSITIONS`). Currently every role (`USER`, `ADMIN`, `SUPERADMIN`) MAY transition to any of the three roles, subject to INV-1, INV-2, and no-op handling. A transition not present in the allow-map SHALL be rejected with `InvalidRoleTransitionError` (409).
 
 #### Scenario: Promote USER to ADMIN
 
 - **WHEN** a SUPERADMIN sets `role = "ADMIN"` on a target whose current role is `USER`
-- **THEN** the transition succeeds
+- **THEN** the transition is permitted and proceeds to the update
 
 #### Scenario: Demote ADMIN to USER
 
 - **WHEN** a SUPERADMIN sets `role = "USER"` on a target whose current role is `ADMIN`
-- **THEN** the transition succeeds
+- **THEN** the transition is permitted and proceeds to the update
 
-#### Scenario: Demote a SUPERADMIN (more than one exists)
+#### Scenario: Transition absent from the allow-map
 
-- **WHEN** a SUPERADMIN sets `role = "USER"` on another SUPERADMIN
-- **AND** more than one SUPERADMIN exists
-- **THEN** the transition succeeds
+- **WHEN** the requested transition is not present in `ALLOWED_ROLE_TRANSITIONS`
+- **THEN** the service rejects with `InvalidRoleTransitionError` (409)
+
+### Requirement: No-op role change performs no write
+
+When the target's current role equals the requested role, the service SHALL return the existing user record without performing any write — no `User` update, no `updatedAt`/`updatedById` change, and no `UserRoleAudit` row.
+
+#### Scenario: Same-role request
+
+- **WHEN** the requested role equals the target's current role
+- **THEN** the response is 200 with the existing record and no database write is performed
 
 ### Requirement: INV-2 — last SUPERADMIN preservation
 
-When an `AdminRoleUpdate` would change a target whose current role is `SUPERADMIN` to a non-SUPERADMIN role, the service SHALL count SUPERADMIN users within the same database transaction as the update and reject with `LastSuperadminError` (409) if the count is less than or equal to one.
+When a role change would demote a target whose current role is `SUPERADMIN` to a non-SUPERADMIN role, the service SHALL count SUPERADMIN users inside the same `prisma.$transaction` as the update and SHALL reject with `LastSuperadminError` (409) when the count is less than or equal to one.
 
 #### Scenario: Demoting the last SUPERADMIN
 
-- **WHEN** the database contains exactly one SUPERADMIN
-- **AND** a request would demote that user
+- **WHEN** exactly one SUPERADMIN exists and a request would demote that user
 - **THEN** the service rejects with `LastSuperadminError` (409)
 
 #### Scenario: Demoting one of several SUPERADMINs
 
-- **WHEN** the database contains two or more SUPERADMINs
-- **AND** a request demotes one of them
+- **WHEN** two or more SUPERADMINs exist and a request demotes one of them
 - **THEN** the service applies the update successfully
 
-#### Scenario: Concurrent demotions of two distinct SUPERADMINs
+### Requirement: Role change and audit row are written atomically
 
-- **WHEN** two demotion requests for two distinct SUPERADMINs are submitted concurrently with exactly two SUPERADMINs in the database
-- **THEN** at most one request SHALL succeed and any subsequent request SHALL fail with `LastSuperadminError` (409) — that is, the system SHALL never reduce the SUPERADMIN count below one
+On a real role change (`previousRole !== newRole`), the service SHALL, inside a single `prisma.$transaction`, update the target's `role` and set `updatedById` to the actor, and insert a `UserRoleAudit` row recording `{ userId: target.id, previousRole, newRole, changedById: actor.id }` (with `createdAt` set by the database default). If the audit insert fails, the entire transaction SHALL roll back so the role update does not persist.
 
-### Requirement: Serializable transaction with retry
+#### Scenario: Successful role change writes audit row
 
-The service SHALL perform the target lookup, the SUPERADMIN count (when applicable), the role update, and the audit row insert inside a single `prisma.$transaction` interactive transaction running at `Serializable` isolation level. The call site SHALL retry the transaction once on PostgreSQL serialization failure (`SQLSTATE 40001` / Prisma `P2034`); a second failure SHALL surface to the caller as a transient error.
+- **WHEN** a SUPERADMIN promotes a USER to ADMIN
+- **THEN** the target's role is `ADMIN`, `updatedById` equals the actor's id, and a `UserRoleAudit` row exists with `previousRole = USER`, `newRole = ADMIN`, `changedById = actor.id`, and `userId = target.id`
 
-#### Scenario: Service implementation uses Serializable isolation
+#### Scenario: Audit insert rollback
 
-- **WHEN** the service handles an `AdminRoleUpdate`
-- **THEN** the target read, count check, role update, and audit insert are all issued through the same `tx` client inside one `prisma.$transaction(async (tx) => …, { isolationLevel: 'Serializable' })` call
-
-#### Scenario: Concurrent demotions retry safely
-
-- **WHEN** two SUPERADMIN demotion requests against two distinct SUPERADMINs are submitted concurrently with exactly two SUPERADMINs in the database
-- **THEN** the database aborts one of the two transactions with a serialization failure
-- **AND** the call site retries that transaction once
-- **AND** on retry, the SUPERADMIN count is now 1 and INV-2 fires, returning `LastSuperadminError` (409)
-
-### Requirement: Audit fields on update
-
-Every successful update SHALL set `updatedById` to the actor's id and SHALL update `updatedAt` per the existing Prisma `@updatedAt` mechanism.
-
-#### Scenario: Successful update sets updatedById
-
-- **WHEN** an update succeeds
-- **THEN** `updatedById` on the target row equals the actor's id
+- **WHEN** the audit insert fails for any reason inside the transaction
+- **THEN** the role update is rolled back and the target's role remains unchanged
 
 ### Requirement: Error response shape and codes
 
-Errors raised by this endpoint SHALL conform to `ApiErrorResponseSchema` and SHALL use the following codes:
+Errors raised by `PATCH /users/:id/role` SHALL conform to `ApiErrorResponseSchema` and SHALL use the following codes. Authorization for the endpoint is enforced by the route-level SUPERADMIN guard, so a non-SUPERADMIN actor receives the guard's 403 rather than a service-thrown error.
 
-| Error class                    | HTTP status | Used when                                       |
-| ------------------------------ | ----------- | ----------------------------------------------- |
-| `SelfRoleChangeError`          | 403         | INV-1 violation                                 |
-| `LastSuperadminError`          | 409         | INV-2 violation                                 |
-| `InsufficientPermissionsError` | 403         | actor lacks permission for the requested branch |
-| `InvalidRoleTransitionError`   | 409         | requested transition is not allowed             |
-| `UserNotFoundError`            | 404         | target id does not exist                        |
+| Error class                  | code                      | HTTP status | Used when                        |
+| ---------------------------- | ------------------------- | ----------- | -------------------------------- |
+| `SelfRoleChangeError`        | `SELF_ROLE_CHANGE`        | 403         | INV-1 violation                  |
+| `LastSuperadminError`        | `LAST_SUPERADMIN`         | 409         | INV-2 violation                  |
+| `InvalidRoleTransitionError` | `INVALID_ROLE_TRANSITION` | 409         | requested transition not allowed |
+| `UserNotFoundError`          | `USER_NOT_FOUND`          | 404         | target id does not exist         |
 
 #### Scenario: Self role change attempt
 
 - **WHEN** the service rejects an update due to INV-1
-- **THEN** the response status is 403 with code `SelfRoleChangeError`
+- **THEN** the response status is 403 with code `SELF_ROLE_CHANGE`
 
 #### Scenario: Last SUPERADMIN demotion
 
 - **WHEN** the service rejects an update due to INV-2
-- **THEN** the response status is 409 with code `LastSuperadminError`
+- **THEN** the response status is 409 with code `LAST_SUPERADMIN`
 
-#### Scenario: Invalid transition
+#### Scenario: Missing target user
 
-- **WHEN** the service rejects an update because the requested transition is disallowed
-- **THEN** the response status is 409 with code `InvalidRoleTransitionError`
-
-#### Scenario: Forbidden actor
-
-- **WHEN** the service rejects because the actor lacks permission for the requested branch
-- **THEN** the response status is 403 with code `InsufficientPermissionsError`
+- **WHEN** the target id does not exist
+- **THEN** the response status is 404 with code `USER_NOT_FOUND`
 
 ### Requirement: Country-agnostic role management
 
@@ -196,32 +152,11 @@ The role management implementation SHALL NOT contain country-specific branches, 
 #### Scenario: Country deployment
 
 - **WHEN** the platform is deployed for any country
-- **THEN** the role management endpoint behaves identically without code changes
-
-### Requirement: Role-transition audit row written atomically
-
-Whenever an `AdminRoleUpdate` results in a real role change (`previousRole !== newRole`), the service SHALL insert a `UserRoleAudit` row recording `{ userId: target.id, previousRole, newRole, changedById: actor.id, createdAt: now() }` inside the same `prisma.$transaction` as the update. If the audit insert fails, the entire transaction SHALL roll back so the role update does not persist.
-
-#### Scenario: Successful role change writes audit row
-
-- **WHEN** a SUPERADMIN promotes a USER to ADMIN
-- **THEN** a `UserRoleAudit` row exists with `previousRole = USER`, `newRole = ADMIN`, `changedById = actor.id`, `userId = target.id`
-- **AND** the audit row's `createdAt` is set by the database default
-
-#### Scenario: No-op role change writes no audit row and no update
-
-- **WHEN** the requested role equals the target's current role
-- **THEN** no `UserRoleAudit` row is inserted
-- **AND** no `User` write is performed (`updatedAt` and `updatedById` are not bumped)
-
-#### Scenario: Audit insert rollback
-
-- **WHEN** the audit insert fails for any reason inside the transaction
-- **THEN** the role update is rolled back as well and the target's role remains unchanged
+- **THEN** the role management endpoints behave identically without code changes
 
 ### Requirement: `GET /users/:id/role-history` endpoint
 
-The system SHALL expose `GET /users/:id/role-history` returning the `UserRoleAudit` rows for the given user, ordered by `createdAt` descending. Each entry SHALL embed the actor's display fields directly under a `changedBy` sub-object containing `{ id, firstName, lastName, email }`, sourced from a Prisma relation `select` so the client renders the timeline without a follow-up lookup. The endpoint SHALL be gated to `[ADMIN, SUPERADMIN]` and SHALL return 404 when the user id does not exist.
+The system SHALL expose `GET /users/:id/role-history` (feature `getUserRoleHistory`) returning the `UserRoleAudit` rows for the given user, ordered by `createdAt` descending. Each entry SHALL embed the actor's display fields under a `changedBy` sub-object containing `{ id, firstName, lastName, email }`, sourced from a Prisma relation `select`. The route SHALL be gated to `[ADMIN, SUPERADMIN]`. The endpoint does NOT verify target existence: a user id with no audit rows — including a non-existent id — SHALL return an empty array with HTTP 200.
 
 #### Scenario: Response embeds actor display fields
 
@@ -230,13 +165,12 @@ The system SHALL expose `GET /users/:id/role-history` returning the `UserRoleAud
 
 #### Scenario: ADMIN reads another user's history
 
-- **WHEN** an ADMIN requests `GET /users/:id/role-history` for an existing user
-- **THEN** the response status is 200
-- **AND** the body is an array of audit rows ordered `createdAt DESC`
+- **WHEN** an ADMIN requests `GET /users/:id/role-history` for a user with transitions
+- **THEN** the response status is 200 and the body is an array of audit rows ordered `createdAt` descending
 
 #### Scenario: SUPERADMIN reads another user's history
 
-- **WHEN** a SUPERADMIN requests `GET /users/:id/role-history` for an existing user
+- **WHEN** a SUPERADMIN requests `GET /users/:id/role-history`
 - **THEN** the response status is 200
 
 #### Scenario: USER attempts to read history
@@ -249,15 +183,10 @@ The system SHALL expose `GET /users/:id/role-history` returning the `UserRoleAud
 - **WHEN** an unauthenticated request is made
 - **THEN** the response status is 401
 
-#### Scenario: Missing target user
+#### Scenario: User with no transitions or unknown id
 
-- **WHEN** the requested user id does not exist
-- **THEN** the response status is 404 with code `UserNotFoundError`
-
-#### Scenario: User with no transitions
-
-- **WHEN** the target user has never had a role change recorded
-- **THEN** the response is an empty array
+- **WHEN** the target user has no recorded role transitions, or the id does not correspond to any user
+- **THEN** the response is an empty array with HTTP 200
 
 ### Requirement: No backfill of pre-existing admins
 
@@ -278,14 +207,14 @@ The `UserRoleAudit` model SHALL declare both `user` (target) and `changedBy` (ac
 - **WHEN** any future code path attempts to hard-delete a `User` row referenced by a `UserRoleAudit` row (as either target or actor)
 - **THEN** the database SHALL reject the delete with a foreign-key constraint error
 
-### Requirement: `request.currentUser.role` available in service
+### Requirement: `request.currentUser` hydrated with id and role
 
-The `user-resolve-plugin` SHALL hydrate `request.currentUser` with at least `id` and `role` before any handler runs. The service-layer authorization in `updateUserService` and `getUserRoleHistoryService` SHALL be permitted to read `request.currentUser.role` directly without an additional database lookup.
+The `user-resolve-plugin` SHALL hydrate `request.currentUser` with at least `id` and `role` before any handler runs, so the role route guard and the `updateUserRole` / `getUserRoleHistory` handlers can rely on the current user's id and role without an additional database lookup.
 
 #### Scenario: Authenticated request reaches the service
 
 - **WHEN** an authenticated request reaches a user-management handler
-- **THEN** `request.currentUser.role` is defined and equals the user's current `SystemRole`
+- **THEN** `request.currentUser.id` and `request.currentUser.role` are defined and reflect the current user
 
 ### Requirement: `GET /users` includes user's job position name
 

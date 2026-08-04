@@ -106,6 +106,87 @@ describe("GET /api/carbon-inventories/:id/metadata - Integration Tests", () => {
       expect(body.status).toBe(CarbonInventoryDisplayStatusEnum.DRAFT);
     });
 
+    it("resolves organizationSectorName/SubsectorName/SizeName/MainActivityName from the organizationData catalog ids", async () => {
+      const sector = await prisma.countrySector.findFirstOrThrow({
+        select: { id: true, name: true },
+      });
+      const subsector = await prisma.countrySubsector.findFirstOrThrow({
+        select: { id: true, name: true },
+      });
+      const size = await prisma.countryOrganizationSize.findFirstOrThrow({
+        select: { id: true, name: true },
+      });
+      const mainActivity =
+        await prisma.organizationMainActivity.findFirstOrThrow({
+          select: { id: true, name: true },
+        });
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData({
+          sectorId: sector.id.toString(),
+          subsectorId: subsector.id.toString(),
+          sizeId: size.id.toString(),
+          mainActivityId: mainActivity.id.toString(),
+        })
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/metadata`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMetadataResponse;
+      expect(body.organizationSectorName).toBe(sector.name);
+      expect(body.organizationSubsectorName).toBe(subsector.name);
+      expect(body.organizationSizeName).toBe(size.name);
+      expect(body.organizationMainActivityName).toBe(mainActivity.name);
+    });
+
+    it("returns null catalog names when the organizationData has no catalog ids set", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/metadata`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMetadataResponse;
+      expect(body.organizationSectorName).toBeNull();
+      expect(body.organizationSubsectorName).toBeNull();
+      expect(body.organizationSizeName).toBeNull();
+      expect(body.organizationMainActivityName).toBeNull();
+    });
+
+    it("falls back to organizationData.name for organizationName when there is no linked organization summary", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData({
+          name: "Standalone Org Name",
+        })
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/metadata`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMetadataResponse;
+      expect(body.organizationName).toBe("Standalone Org Name");
+    });
+
     it("derives status from approved verification submissions", async () => {
       const testUser = await getTestLoggedUser(prisma);
       const organization = await createTestOrganization(prisma);

@@ -1,4 +1,10 @@
-## ADDED Requirements
+# profiling-organization-size-maintainer Specification
+
+## Purpose
+
+Admin CRUD over the `country_organization_size` catalog: its newly added `status`/`description`/auditor columns and ACTIVE-only partial unique index, the create/list/update/soft-delete/restore endpoints, the `/admin/organization-sizes` route and maintainer screen, and the ACTIVE-only public read consumed by organization and carbon-inventory profiling forms.
+
+## Requirements
 
 ### Requirement: CountryOrganizationSize gains status, description, and auditors
 
@@ -30,14 +36,14 @@ Existing rows in any deployment MUST remain valid after the migration: the defau
 The system SHALL expose the following admin endpoints under `/admin/country-organization-sizes`, all requiring `SystemRole.ADMIN` or `SystemRole.SUPERADMIN`:
 
 - `POST` — create. Body: `{ name: string (1..255, trimmed), description?: string | null (max 2000) }`. Server resolves `countryId` via `country.findFirst({ orderBy: { id: "asc" } })`. Stamps `createdById`. Response: `201`.
-- `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `isInUse`). Default `status=active`. Sort by `name` ASC.
+- `GET ?status=active|deleted|all` — list with admin fields (`status`, `description`, `createdAt`, `updatedAt`, `createdById`, `updatedById`, `impactedChildren`). Default `status=active`. Sort by `name` ASC.
 - `PATCH /:id` — partial update (`name`, `description`). Empty body → `400`. Stamps `updatedById`.
 - `DELETE /:id` — soft-delete. Not blocked by any catalog reference. Response: `200` with updated record.
 - `POST /:id/restore` — restore; rejects `409` on unique-scope name collision with another ACTIVE size in the same country.
 
 Validation and tri-state rules match the sector endpoints.
 
-`isInUse` for organization size MUST be computed as `organization_data.countryOrganizationSizeId` count > 0.
+`impactedChildren` for organization size MUST carry an `organizationData` count: the number of `organization_data` rows referencing this size via `countryOrganizationSizeId`.
 
 #### Scenario: Admin creates a size
 
@@ -60,7 +66,7 @@ The system SHALL register `/admin/organization-sizes` as a TanStack Router file 
 
 The sidebar child labeled `Tamaño de la Organización` under the `Perfilamiento` group MUST target `/admin/organization-sizes`.
 
-The `OrganizationSizesMaintainerScreen` MUST use the shared `ProfilingMaintainerScreenLayout`. Its DataGrid columns MUST include: `name`, `description`, row actions. The status filter toggle, in-use warning dialog, and unsaved-changes blocker MUST behave identically to the other profiling screens.
+The `OrganizationSizesMaintainerScreen` MUST use the shared `ProfilingMaintainerScreenLayout`. Its DataGrid columns MUST include: `name`, `description`, row actions. The status filter toggle, delete-warning and blocked-action dialogs, and unsaved-changes blocker MUST behave identically to the other profiling screens.
 
 Successful mutations MUST invalidate both admin and public-side organization-size caches (`countryOrganizationSizesKeys.admin.all` AND `countryOrganizationSizesKeys.app.all`).
 

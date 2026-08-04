@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e3bc686ea3f5bceaf696ca928c0aa067c3a28806fbfa81faccb877bf81756313 AS base
+FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
@@ -64,9 +64,42 @@ COPY tools/seed ./tools/seed
 WORKDIR /app
 RUN pnpm turbo build --filter=api...
 
-# Stage 4: Production image
+# Stage 4: Production-only dependency tree for the runtime image
+FROM base AS prod-deps
+WORKDIR /app
+
+# Copy workspace configuration files
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Only the workspace packages in api's production closure. --frozen-lockfile is
+# satisfied without the dev-only importers (tools/seed, packages/typescript-config),
+# and leaving them out keeps this layer off the rebuild path when seed data changes.
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY packages/storage/package.json ./packages/storage/
+COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/constants/package.json ./packages/constants/
+
+# `--prod` keeps eslint, vitest, testcontainers, tsx, archiver and their closures
+# out of the runtime image — with them go the minimatch 3/5/9 copies that pull the
+# unpatchable brace-expansion 1.x/2.x (see auditConfig in pnpm-workspace.yaml);
+# production resolves brace-expansion to 5.0.8 alone. `--filter-prod` rather than
+# plain `--filter` is what stops the `api...` selector from walking into api's
+# devDependencies, so @repo/seed is excluded by the command itself and not merely
+# by which package.json files happen to be copied above. `prisma` and `typescript`
+# do remain: they are optional peers of @prisma/client the lockfile already resolved.
+#
+# The runner takes node_modules from HERE and never from `builder`. Both must come
+# from a single install: pnpm's per-package symlinks point into the root
+# node_modules/.pnpm virtual store under peer-suffixed directory names, so a tree
+# mixed across two installs would dangle.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --prod --filter-prod api...
+
+# Stage 5: Production image
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e3bc686ea3f5bceaf696ca928c0aa067c3a28806fbfa81faccb877bf81756313 AS runner
+FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS runner
 WORKDIR /app
 
 # Set environment to production
@@ -122,14 +155,18 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/constants/dist ./packag
 # Copy storage package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/storage/dist ./packages/storage/dist
 
-# Copy node_modules from builder (includes all dependencies properly resolved)
-COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
-COPY --from=builder --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
-COPY --from=builder --chown=fastify:nodejs /app/packages/constants/node_modules ./packages/constants/node_modules
-COPY --from=builder --chown=fastify:nodejs /app/packages/storage/node_modules ./packages/storage/node_modules
+# Copy node_modules from prod-deps (production dependencies only). The root
+# node_modules carries pnpm's .pnpm virtual store that every per-package symlink
+# below resolves into, so all of these must come from the same install.
+# @repo/constants has no runtime dependencies of its own, so the --prod install
+# creates no node_modules for it and there is nothing to copy — its dist above
+# imports no external module.
+COPY --from=prod-deps --chown=fastify:nodejs /app/node_modules ./node_modules
+COPY --from=prod-deps --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=prod-deps --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=prod-deps --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=prod-deps --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
+COPY --from=prod-deps --chown=fastify:nodejs /app/packages/storage/node_modules ./packages/storage/node_modules
 # Ensure @repo/types is available inside api node_modules (ESM resolution)
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist

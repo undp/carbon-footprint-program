@@ -1,0 +1,697 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { StorageProvider } from "@repo/storage";
+import {
+  MAX_EVENT_LOOP_DELAY_MS,
+  MAX_EVENT_LOOP_UTILIZATION,
+  buildStorageConfig,
+  parseEnv,
+} from "@/config/environment.js";
+
+// `parseEnv(source)` is the pure config parser the module derives every exported
+// constant from. Testing it directly with synthetic env records lets us hit
+// every default, coercion, enum check, and fail-closed cross-field guard —
+// including the production-only ones that can never run in the test process —
+// without re-importing the module per case. The existing under-pressure tests
+// below still exercise the module-level derivation end to end.
+
+/** Merge overrides onto an empty (all-defaults, non-throwing) source. */
+const parse = (overrides: Record<string, string | undefined> = {}) =>
+  parseEnv({ ...overrides });
+
+// A syntactically valid browser origin used to satisfy the production-only
+// ALLOWED_ORIGIN CORS guard in tests whose focus is some OTHER prod behaviour.
+const PROD_ORIGIN = "https://app.example.cl";
+
+describe("parseEnv — defaults (empty environment)", () => {
+  const env = parse();
+
+  it("applies the development defaults for every field", () => {
+    expect(env).toEqual({
+      JWT_SECRET: undefined,
+      IS_PROD: false,
+      LOG_LEVEL: "debug",
+      HOST: "localhost",
+      PORT: 8080,
+      ALLOWED_ORIGIN: undefined,
+      DATABASE_URL: undefined,
+      TRUST_PROXY: undefined,
+      MAX_EVENT_LOOP_DELAY_MS: 300,
+      MAX_EVENT_LOOP_UTILIZATION: 0.9,
+      JWKS_URI: undefined,
+      JWKS_ISSUER: undefined,
+      JWKS_AUDIENCE: undefined,
+      JWKS_REQUIRED_SCOPE: "access_as_user",
+      AUTH_PROVIDER: "none",
+      FORCED_USER_EMAIL: undefined,
+      FORCED_USER_IDP_ID: undefined,
+      LOCAL_BYPASS_REQUIRED_FIELDS: false,
+      APP_VERSION: "unknown",
+      CHATBOT_ENABLED: false,
+      LLM_PROVIDER: "mock",
+      COOKIE_SECRET: "dev-only-cookie-secret-change-me",
+      AZURE_OPENAI_ENDPOINT: undefined,
+      AZURE_OPENAI_DEPLOYMENT_NAME: undefined,
+    });
+  });
+});
+
+describe("parseEnv — production defaults", () => {
+  it("shifts LOG_LEVEL and HOST defaults when NODE_ENV=production", () => {
+    const env = parse({ NODE_ENV: "production", ALLOWED_ORIGIN: PROD_ORIGIN });
+    expect(env.IS_PROD).toBe(true);
+    expect(env.LOG_LEVEL).toBe("info");
+    expect(env.HOST).toBe("0.0.0.0");
+  });
+
+  it("detects production case-insensitively", () => {
+    expect(
+      parse({ NODE_ENV: "Production", ALLOWED_ORIGIN: PROD_ORIGIN }).IS_PROD
+    ).toBe(true);
+    expect(
+      parse({ NODE_ENV: "PRODUCTION", ALLOWED_ORIGIN: PROD_ORIGIN }).IS_PROD
+    ).toBe(true);
+    expect(parse({ NODE_ENV: "prod" }).IS_PROD).toBe(false);
+  });
+});
+
+describe("parseEnv — scalar coercion and overrides", () => {
+  it("uses explicit overrides over defaults", () => {
+    const env = parse({
+      JWT_SECRET: "real-secret",
+      LOG_LEVEL: "warn",
+      API_HOST: "127.0.0.1",
+      API_PORT: "3000",
+      DATABASE_URL: "postgres://db",
+      APP_VERSION: "1.4.2",
+    });
+    expect(env.JWT_SECRET).toBe("real-secret");
+    expect(env.LOG_LEVEL).toBe("warn");
+    expect(env.HOST).toBe("127.0.0.1");
+    expect(env.PORT).toBe(3000);
+    expect(env.DATABASE_URL).toBe("postgres://db");
+    expect(env.APP_VERSION).toBe("1.4.2");
+  });
+
+  it("parses the load-shedding thresholds and falls back on malformed values", () => {
+    expect(
+      parse({ MAX_EVENT_LOOP_DELAY_MS: "500" }).MAX_EVENT_LOOP_DELAY_MS
+    ).toBe(500);
+    expect(
+      parse({ MAX_EVENT_LOOP_UTILIZATION: "0.75" }).MAX_EVENT_LOOP_UTILIZATION
+    ).toBe(0.75);
+    // Non-numeric, whitespace, and non-finite all fall back to the default.
+    expect(
+      parse({ MAX_EVENT_LOOP_DELAY_MS: "fast" }).MAX_EVENT_LOOP_DELAY_MS
+    ).toBe(300);
+    expect(
+      parse({ MAX_EVENT_LOOP_DELAY_MS: "   " }).MAX_EVENT_LOOP_DELAY_MS
+    ).toBe(300);
+    expect(
+      parse({ MAX_EVENT_LOOP_UTILIZATION: "Infinity" })
+        .MAX_EVENT_LOOP_UTILIZATION
+    ).toBe(0.9);
+  });
+
+  it("treats boolean flags with a strict/loose contract as documented", () => {
+    // LOCAL_BYPASS_REQUIRED_FIELDS is strict: only the exact string "true".
+    expect(
+      parse({ LOCAL_BYPASS_REQUIRED_FIELDS: "true" })
+        .LOCAL_BYPASS_REQUIRED_FIELDS
+    ).toBe(true);
+    expect(
+      parse({ LOCAL_BYPASS_REQUIRED_FIELDS: "TRUE" })
+        .LOCAL_BYPASS_REQUIRED_FIELDS
+    ).toBe(false);
+    // CHATBOT_ENABLED is case-insensitive.
+    expect(parse({ CHATBOT_ENABLED: "TRUE" }).CHATBOT_ENABLED).toBe(true);
+    expect(parse({ CHATBOT_ENABLED: "false" }).CHATBOT_ENABLED).toBe(false);
+  });
+
+  it("honours the JWKS scope override and skip flag", () => {
+    expect(parse({ JWKS_REQUIRED_SCOPE: "api.read" }).JWKS_REQUIRED_SCOPE).toBe(
+      "api.read"
+    );
+    expect(
+      parse({ JWKS_SKIP_SCOPE_CHECK: "true" }).JWKS_REQUIRED_SCOPE
+    ).toBeUndefined();
+    // Skip flag wins over an explicit scope override.
+    expect(
+      parse({ JWKS_SKIP_SCOPE_CHECK: "TRUE", JWKS_REQUIRED_SCOPE: "api.read" })
+        .JWKS_REQUIRED_SCOPE
+    ).toBeUndefined();
+  });
+});
+
+describe("parseEnv — enum validation", () => {
+  it.each(["jwks", "forced-user", "none"])(
+    "accepts the valid AUTH_PROVIDER %s",
+    (value) => {
+      // JWT_SECRET satisfies the static-secret guard that `jwks` without a
+      // JWKS_URI trips; it is inert for the other two providers.
+      expect(
+        parse({ AUTH_PROVIDER: value, JWT_SECRET: "dev-secret" }).AUTH_PROVIDER
+      ).toBe(value);
+    }
+  );
+
+  it("rejects an unknown AUTH_PROVIDER", () => {
+    expect(() => parse({ AUTH_PROVIDER: "bogus" })).toThrow(
+      /Invalid AUTH_PROVIDER value: bogus/
+    );
+  });
+
+  it("rejects an unknown LLM_PROVIDER", () => {
+    expect(() => parse({ LLM_PROVIDER: "gpt-5" })).toThrow(
+      /Invalid LLM_PROVIDER value: "gpt-5"/
+    );
+  });
+});
+
+describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", () => {
+  it("does NOT enforce the JWKS guards outside production", () => {
+    // Dev with jwks and no JWKS endpoint must parse cleanly — but the static
+    // HMAC secret is what verifies tokens in that configuration, so it has to
+    // be supplied explicitly (see the JWT_SECRET guard below).
+    const env = parse({ AUTH_PROVIDER: "jwks", JWT_SECRET: "dev-secret" });
+    expect(env.AUTH_PROVIDER).toBe("jwks");
+    expect(env.JWKS_URI).toBeUndefined();
+  });
+
+  it("refuses to boot in prod when JWKS_URI is missing", () => {
+    expect(() =>
+      parse({ NODE_ENV: "production", AUTH_PROVIDER: "jwks" })
+    ).toThrow(/requires JWKS_URI in production/);
+  });
+
+  it("refuses to boot in prod when issuer or audience is missing", () => {
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        AUTH_PROVIDER: "jwks",
+        JWKS_URI: "https://issuer/jwks",
+      })
+    ).toThrow(/requires JWKS_ISSUER and JWKS_AUDIENCE in production/);
+
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        AUTH_PROVIDER: "jwks",
+        JWKS_URI: "https://issuer/jwks",
+        JWKS_ISSUER: "https://issuer/",
+      })
+    ).toThrow(/requires JWKS_ISSUER and JWKS_AUDIENCE in production/);
+  });
+
+  it("boots in prod when the full jwks binding is provided", () => {
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
+      AUTH_PROVIDER: "jwks",
+      JWKS_URI: "https://issuer/jwks",
+      JWKS_ISSUER: "https://issuer/",
+      JWKS_AUDIENCE: "api://app",
+    });
+    expect(env.AUTH_PROVIDER).toBe("jwks");
+    expect(env.JWKS_ISSUER).toBe("https://issuer/");
+    expect(env.JWKS_AUDIENCE).toBe("api://app");
+  });
+});
+
+describe("parseEnv — JWT_SECRET has no built-in default", () => {
+  it("leaves JWT_SECRET undefined rather than substituting a hardcoded value", () => {
+    // Regression guard: a checked-in default HMAC secret is a published
+    // credential. Nothing in the source tree may supply one.
+    expect(parse().JWT_SECRET).toBeUndefined();
+  });
+
+  it.each(["", "   ", "\t\n"])(
+    "normalises the blank value %j to undefined rather than a usable secret",
+    (value) => {
+      // Compose injects an empty string for an absent variable
+      // (`JWT_SECRET=${JWT_SECRET}` in docker-compose.yml), so "set but blank"
+      // is a real input, not a hand-crafted one. It must read as *unset*: an
+      // empty string reaching @fastify/jwt trips its `assert(options.secret)`
+      // and kills boot with an opaque "missing secret", and a whitespace-only
+      // string would otherwise pass the guard below as a verification key.
+      expect(parse({ JWT_SECRET: value }).JWT_SECRET).toBeUndefined();
+    }
+  );
+
+  it("trims surrounding whitespace off a real secret", () => {
+    // Same normalisation the other secrets in this module get, so a stray
+    // newline in an env file cannot change the effective key.
+    expect(parse({ JWT_SECRET: "  dev-secret\n" }).JWT_SECRET).toBe(
+      "dev-secret"
+    );
+  });
+
+  it.each([undefined, "", "   "])(
+    "refuses to boot when the static secret would verify tokens but is %j",
+    (value) => {
+      // AUTH_PROVIDER=jwks with no JWKS_URI is the one config where JWT_SECRET
+      // actually authenticates callers, so every blank spelling must fail closed
+      // rather than boot with an unusable or whitespace key.
+      expect(() =>
+        parse({
+          AUTH_PROVIDER: "jwks",
+          ...(value === undefined ? {} : { JWT_SECRET: value }),
+        })
+      ).toThrow(/without JWKS_URI requires JWT_SECRET/);
+    }
+  );
+
+  it("does not require JWT_SECRET for providers that never verify a token", () => {
+    // `none` / `forced-user` never call jwtVerify, so the secret is irrelevant;
+    // buildJwtConfig substitutes a per-boot ephemeral value.
+    expect(parse({ AUTH_PROVIDER: "none" }).JWT_SECRET).toBeUndefined();
+    expect(
+      parse({
+        AUTH_PROVIDER: "forced-user",
+        FORCED_USER_EMAIL: "me@test.com",
+        FORCED_USER_IDP_ID: "idp",
+      }).JWT_SECRET
+    ).toBeUndefined();
+  });
+
+  it("does not require JWT_SECRET once tokens are verified against JWKS", () => {
+    const env = parse({
+      AUTH_PROVIDER: "jwks",
+      JWKS_URI: "https://issuer/jwks",
+    });
+    expect(env.JWT_SECRET).toBeUndefined();
+    expect(env.JWKS_URI).toBe("https://issuer/jwks");
+  });
+});
+
+describe("parseEnv — fail-closed production CORS guard (ALLOWED_ORIGIN)", () => {
+  it("does NOT enforce the guard outside production", () => {
+    // Dev without ALLOWED_ORIGIN must parse cleanly, leaving the field unset.
+    const env = parse();
+    expect(env.ALLOWED_ORIGIN).toBeUndefined();
+  });
+
+  it("refuses to boot in prod when ALLOWED_ORIGIN is missing", () => {
+    expect(() => parse({ NODE_ENV: "production" })).toThrow(
+      /ALLOWED_ORIGIN is required when NODE_ENV=production/
+    );
+  });
+
+  it("treats a whitespace-only ALLOWED_ORIGIN as unset in prod", () => {
+    expect(() =>
+      parse({ NODE_ENV: "production", ALLOWED_ORIGIN: "   " })
+    ).toThrow(/ALLOWED_ORIGIN is required when NODE_ENV=production/);
+  });
+
+  it("boots in prod when a valid ALLOWED_ORIGIN is provided", () => {
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: "https://app.example.cl",
+    });
+    expect(env.ALLOWED_ORIGIN).toBe("https://app.example.cl");
+  });
+});
+
+describe("parseEnv — chatbot cross-field guards", () => {
+  it("rejects the mock LLM provider in production when the chatbot is enabled", () => {
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        CHATBOT_ENABLED: "true",
+        LLM_PROVIDER: "mock",
+      })
+    ).toThrow(/"mock" is not allowed when NODE_ENV=production/);
+  });
+
+  it("allows the mock provider in production when the chatbot is disabled", () => {
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
+      LLM_PROVIDER: "mock",
+    });
+    expect(env.LLM_PROVIDER).toBe("mock");
+    expect(env.CHATBOT_ENABLED).toBe(false);
+  });
+
+  it("requires COOKIE_SECRET in production when the chatbot is enabled", () => {
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        CHATBOT_ENABLED: "true",
+        LLM_PROVIDER: "azure-openai",
+      })
+    ).toThrow(/COOKIE_SECRET is required/);
+
+    // Whitespace-only is treated as unset.
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        CHATBOT_ENABLED: "true",
+        LLM_PROVIDER: "azure-openai",
+        COOKIE_SECRET: "   ",
+      })
+    ).toThrow(/COOKIE_SECRET is required/);
+  });
+
+  it.each([
+    [
+      "both missing",
+      {},
+      /requires: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT_NAME/,
+    ],
+    [
+      "deployment missing",
+      { AZURE_OPENAI_ENDPOINT: "https://oai.example.com" },
+      /requires: AZURE_OPENAI_DEPLOYMENT_NAME/,
+    ],
+    [
+      "endpoint missing",
+      { AZURE_OPENAI_DEPLOYMENT_NAME: "gpt4o" },
+      /requires: AZURE_OPENAI_ENDPOINT/,
+    ],
+    [
+      "endpoint whitespace-only",
+      {
+        AZURE_OPENAI_ENDPOINT: "   ",
+        AZURE_OPENAI_DEPLOYMENT_NAME: "gpt4o",
+      },
+      /requires: AZURE_OPENAI_ENDPOINT/,
+    ],
+  ])(
+    "requires Azure endpoint + deployment when azure-openai is selected (%s)",
+    (_name, azureVars, pattern) => {
+      expect(() =>
+        parse({
+          CHATBOT_ENABLED: "true",
+          LLM_PROVIDER: "azure-openai",
+          ...azureVars,
+        })
+      ).toThrow(pattern);
+    }
+  );
+
+  it("skips the Azure guard when the chatbot is disabled", () => {
+    // azure-openai selected but chatbot off → no required-field enforcement.
+    const env = parse({ LLM_PROVIDER: "azure-openai" });
+    expect(env.LLM_PROVIDER).toBe("azure-openai");
+    expect(env.AZURE_OPENAI_ENDPOINT).toBeUndefined();
+  });
+
+  it("accepts a fully-valid production chatbot configuration", () => {
+    const env = parse({
+      NODE_ENV: "production",
+      ALLOWED_ORIGIN: PROD_ORIGIN,
+      CHATBOT_ENABLED: "true",
+      LLM_PROVIDER: "azure-openai",
+      COOKIE_SECRET: "a-sufficiently-long-random-secret",
+      AZURE_OPENAI_ENDPOINT: "https://oai.example.com",
+      AZURE_OPENAI_DEPLOYMENT_NAME: "gpt4o",
+    });
+    expect(env.CHATBOT_ENABLED).toBe(true);
+    expect(env.LLM_PROVIDER).toBe("azure-openai");
+    expect(env.COOKIE_SECRET).toBe("a-sufficiently-long-random-secret");
+    expect(env.AZURE_OPENAI_ENDPOINT).toBe("https://oai.example.com");
+    expect(env.AZURE_OPENAI_DEPLOYMENT_NAME).toBe("gpt4o");
+  });
+});
+
+describe("buildStorageConfig", () => {
+  const minioBase = {
+    STORAGE_PROVIDER: "minio",
+    MINIO_ENDPOINT: "http://minio:9000",
+    MINIO_ACCESS_KEY: "ak",
+    MINIO_SECRET_KEY: "sk",
+  };
+
+  it("propagates the provider parser's error when STORAGE_PROVIDER is missing", () => {
+    expect(() => buildStorageConfig({})).toThrow(
+      /STORAGE_PROVIDER is required/
+    );
+  });
+
+  it("returns the base config unchanged when the relay is disabled", () => {
+    const config = buildStorageConfig(minioBase);
+    expect(config.provider).toBe(StorageProvider.MINIO);
+    if (config.provider === StorageProvider.MINIO) {
+      expect(config.minio.publicBaseUrl).toBeUndefined();
+    }
+  });
+
+  it("rejects enabling the relay on a non-MinIO provider", () => {
+    expect(() =>
+      buildStorageConfig({
+        STORAGE_PROVIDER: "azure_blob_storage",
+        AZURE_STORAGE_ACCOUNT_NAME: "acct",
+        MINIO_RELAY_ENABLED: "true",
+      })
+    ).toThrow(/only valid with STORAGE_PROVIDER=minio/);
+  });
+
+  it("requires API_ORIGIN when the MinIO relay is enabled", () => {
+    expect(() =>
+      buildStorageConfig({ ...minioBase, MINIO_RELAY_ENABLED: "true" })
+    ).toThrow(/requires API_ORIGIN/);
+  });
+
+  it("rejects an API_ORIGIN that is not a valid URL", () => {
+    expect(() =>
+      buildStorageConfig({
+        ...minioBase,
+        MINIO_RELAY_ENABLED: "true",
+        API_ORIGIN: "not a url",
+      })
+    ).toThrow(/is not a valid URL/);
+  });
+
+  it("injects the relay base (trailing slash stripped) when the relay is valid", () => {
+    const config = buildStorageConfig({
+      ...minioBase,
+      MINIO_RELAY_ENABLED: "true",
+      API_ORIGIN: "https://api.example.cl/",
+    });
+    expect(config.provider).toBe(StorageProvider.MINIO);
+    if (config.provider === StorageProvider.MINIO) {
+      expect(config.minio.publicBaseUrl).toBe(
+        "https://api.example.cl/api/storage"
+      );
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The @fastify/under-pressure thresholds are also exercised through the module's
+// PUBLIC surface (the exported constants), pinning that the module-level
+// derivation from parseEnv(process.env) still preserves today's production
+// defaults and falls back safely on a malformed override.
+// ---------------------------------------------------------------------------
+
+// Stub the env vars, drop the cached module, and re-import so the module-level
+// reads in config/environment.ts pick up the stubbed values.
+const importWithEnv = async (env: Record<string, string>) => {
+  for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
+  vi.resetModules();
+  return import("@/config/environment.js");
+};
+
+describe("under-pressure thresholds — defaults", () => {
+  it("preserve today's production values when the env vars are unset", () => {
+    // The Vitest env sets neither variable, so the statically imported values
+    // must equal the hardcoded production defaults.
+    expect(MAX_EVENT_LOOP_DELAY_MS).toBe(300);
+    expect(MAX_EVENT_LOOP_UTILIZATION).toBe(0.9);
+  });
+});
+
+describe("under-pressure thresholds — env overrides", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("apply a valid numeric override", async () => {
+    const env = await importWithEnv({
+      MAX_EVENT_LOOP_DELAY_MS: "500",
+      MAX_EVENT_LOOP_UTILIZATION: "0.75",
+    });
+    expect(env.MAX_EVENT_LOOP_DELAY_MS).toBe(500);
+    expect(env.MAX_EVENT_LOOP_UTILIZATION).toBe(0.75);
+  });
+
+  it("fall back to the default for a non-numeric value", async () => {
+    const env = await importWithEnv({
+      MAX_EVENT_LOOP_DELAY_MS: "fast",
+      MAX_EVENT_LOOP_UTILIZATION: "high",
+    });
+    expect(env.MAX_EVENT_LOOP_DELAY_MS).toBe(300);
+    expect(env.MAX_EVENT_LOOP_UTILIZATION).toBe(0.9);
+  });
+
+  it("fall back to the default for an empty or non-finite value", async () => {
+    const env = await importWithEnv({
+      MAX_EVENT_LOOP_DELAY_MS: "   ",
+      MAX_EVENT_LOOP_UTILIZATION: "Infinity",
+    });
+    expect(env.MAX_EVENT_LOOP_DELAY_MS).toBe(300);
+    expect(env.MAX_EVENT_LOOP_UTILIZATION).toBe(0.9);
+  });
+});
+
+describe("parseEnv — TRUST_PROXY", () => {
+  // TRUST_PROXY feeds Fastify's `trustProxy` option, which decides whether
+  // X-Forwarded-For may set `request.ip` — the rate limiter's bucket key. The
+  // parser has to hand back each of the shapes Fastify accepts, because the
+  // correct one differs per topology: an allowlist behind a known proxy, a hop
+  // count behind a chain, false when the API is reached directly.
+
+  it("reports an unset variable as undefined, not false", () => {
+    // undefined means "never configured" and false means "configured to trust
+    // nothing". Both trust nothing at runtime — app.ts applies `?? false` — but
+    // only the unconfigured case warrants the boot warning, so the two must not
+    // collapse here.
+    expect(parse().TRUST_PROXY).toBeUndefined();
+    expect(parse({ TRUST_PROXY: undefined }).TRUST_PROXY).toBeUndefined();
+  });
+
+  it("treats empty and whitespace-only input as unconfigured", () => {
+    // Compose files and Bicep templates routinely inject "" for an absent
+    // variable, which must not read as a truthy string — nor as a deliberate
+    // decision to trust nothing.
+    expect(parse({ TRUST_PROXY: "" }).TRUST_PROXY).toBeUndefined();
+    expect(parse({ TRUST_PROXY: "   " }).TRUST_PROXY).toBeUndefined();
+  });
+
+  it("distinguishes an explicit false from an absent value", () => {
+    // The distinction the boot warning depends on: an operator who wrote
+    // TRUST_PROXY=false has already made the decision the warning prompts for,
+    // so warning at them on every boot would be a permanent false positive.
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).not.toBeUndefined();
+    expect(parse({}).TRUST_PROXY).toBeUndefined();
+  });
+
+  it("parses the booleans case-insensitively and ignores surrounding space", () => {
+    expect(parse({ TRUST_PROXY: "true" }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: "TRUE" }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: " True " }).TRUST_PROXY).toBe(true);
+    expect(parse({ TRUST_PROXY: "false" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "False" }).TRUST_PROXY).toBe(false);
+  });
+
+  it("parses a bare integer as a hop count, as a number", () => {
+    // Fastify distinguishes number from string here: 1 means "one proxy hop",
+    // while "1" would be read as an address. The coercion is load-bearing.
+    expect(parse({ TRUST_PROXY: "1" }).TRUST_PROXY).toBe(1);
+    expect(parse({ TRUST_PROXY: "2" }).TRUST_PROXY).toBe(2);
+    expect(parse({ TRUST_PROXY: " 3 " }).TRUST_PROXY).toBe(3);
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+  });
+
+  it("accepts the hop-count boundaries", () => {
+    // 0 (trust nothing, spelled as a count) and the documented ceiling.
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+    expect(parse({ TRUST_PROXY: "10" }).TRUST_PROXY).toBe(10);
+  });
+
+  it("refuses a hop count above the bound instead of trusting the whole chain", () => {
+    // The reason a bound exists: proxy-addr walks the full X-Forwarded-For
+    // chain when the count exceeds its length and returns the leftmost entry,
+    // which the caller controls. So "10000" — a plausible typo for "1" — would
+    // be `true` by another name, letting anyone pick their own rate-limit key.
+    expect(() => parse({ TRUST_PROXY: "11" })).toThrow(
+      /Invalid TRUST_PROXY hop count: "11"/
+    );
+    expect(() => parse({ TRUST_PROXY: "10000" })).toThrow(/between 0 and 10/);
+  });
+
+  it("refuses digit strings that are not safe integers", () => {
+    // Past MAX_SAFE_INTEGER a value stops round-tripping, and a long enough
+    // digit string overflows to Infinity. Neither is a hop count, and neither
+    // must be allowed to reach proxy-addr.
+    expect(() => parse({ TRUST_PROXY: "9007199254740993" })).toThrow(
+      /Invalid TRUST_PROXY hop count/
+    );
+    expect(() => parse({ TRUST_PROXY: "9".repeat(400) })).toThrow(
+      /Invalid TRUST_PROXY hop count/
+    );
+  });
+
+  it("fails the boot rather than falling back to a posture nobody chose", () => {
+    // Falling back to false would quietly restore the shared rate-limit bucket;
+    // clamping to the maximum would trust more hops than were asked for. Both
+    // are silent, so an out-of-range value stops startup instead.
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        ALLOWED_ORIGIN: PROD_ORIGIN,
+        TRUST_PROXY: "99",
+      })
+    ).toThrow(/Refusing to start/);
+  });
+
+  it("rejects a malformed allowlist with a message that names the variable", () => {
+    // Without this the value reaches proxy-addr, which throws from inside the
+    // Fastify() constructor as "invalid IP address: not-an-ip" — no mention of
+    // TRUST_PROXY and no pointer to the docs, in contrast to the hop-count
+    // message. And the library is not even a reliable backstop: it accepts
+    // "10.0.0/8" leniently, so a typo can pass through it entirely.
+    expect(() => parse({ TRUST_PROXY: "not-an-ip" })).toThrow(
+      /Invalid TRUST_PROXY value: "not-an-ip"/
+    );
+    expect(() => parse({ TRUST_PROXY: "10.0.0.1,garbage" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    // Numerically impossible values, which the library would reject with its
+    // own wording — rejected here so every malformed shape fails alike.
+    expect(() => parse({ TRUST_PROXY: "999.999.999.999/8" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "10.0.0.0/99" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "2001:db8::/129" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    // Empty list entries: a trailing, leading or doubled comma.
+    expect(() => parse({ TRUST_PROXY: "10.0.0.0/8," })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+    expect(() => parse({ TRUST_PROXY: "1.2.3.4.5" })).toThrow(
+      /Invalid TRUST_PROXY value/
+    );
+  });
+
+  it("keeps accepting the lenient short form proxy-addr already allows", () => {
+    // "10.0.0/8" is compiled by proxy-addr as 10.0.0.0/8 and works today.
+    // Rejecting it for tidiness would break a running deployment, so the check
+    // is permissive about address grammar and strict only about ranges.
+    expect(parse({ TRUST_PROXY: "10.0.0/8" }).TRUST_PROXY).toBe("10.0.0/8");
+  });
+
+  it("passes IP addresses, CIDR lists and named ranges through as strings", () => {
+    // Fastify/proxy-addr parses these itself; the env layer must not mangle
+    // them. A dotted quad must stay a string, not become NaN or a number.
+    expect(parse({ TRUST_PROXY: "10.0.0.1" }).TRUST_PROXY).toBe("10.0.0.1");
+    expect(
+      parse({ TRUST_PROXY: "10.0.0.0/8,192.168.0.0/16" }).TRUST_PROXY
+    ).toBe("10.0.0.0/8,192.168.0.0/16");
+    expect(parse({ TRUST_PROXY: "loopback" }).TRUST_PROXY).toBe("loopback");
+    expect(parse({ TRUST_PROXY: "uniquelocal" }).TRUST_PROXY).toBe(
+      "uniquelocal"
+    );
+    expect(parse({ TRUST_PROXY: " loopback " }).TRUST_PROXY).toBe("loopback");
+  });
+
+  it("is independent of NODE_ENV", () => {
+    // Production must not silently opt in: the correct value is a property of
+    // the topology, and upstream cannot know it.
+    expect(
+      parse({ NODE_ENV: "production", ALLOWED_ORIGIN: PROD_ORIGIN }).TRUST_PROXY
+    ).toBeUndefined();
+    expect(
+      parse({
+        NODE_ENV: "production",
+        ALLOWED_ORIGIN: PROD_ORIGIN,
+        TRUST_PROXY: "loopback",
+      }).TRUST_PROXY
+    ).toBe("loopback");
+  });
+});

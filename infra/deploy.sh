@@ -83,38 +83,66 @@ log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
-# 2.7) Set action-on-unmanage based on environment
-# Production/Staging: detachAll (safe - keeps unmanaged resources)
-# Development: deleteResources (clean up automatically)
-# Also set environment parameters file based on environment
-case "$ENVIRONMENT" in
-  production|staging)
-    ACTION_ON_UNMANAGE="detachAll"
-    log "Action on unmanage: detachAll (safe mode - resources will be preserved)"
-    log "Validated environment: $ENVIRONMENT"
+# 2.7) How destructive a redeploy may be. Required, with NO default: a resource stops being
+# declared in the template for reasons that are easy to miss (a value in .envrc turning a
+# conditional resource off, an operator without RBAC permission dropping the role assignments), and
+# under deleteResources those resources are destroyed. Guessing that from the environment name means
+# whoever hits it has to edit this script; making it an explicit variable means every deployment
+# states its own answer, and a new environment cannot inherit a destructive default by accident.
+#
+#   detachAll       Resources leaving the template are left in place, untracked. Required for
+#                   anything long-lived: nothing is destroyed, at the cost of orphaned resources.
+#   deleteResources Resources leaving the template are DELETED. Only for throwaway environments.
+#
+# `deleteAll` is deliberately not accepted: on a resource-group-scoped stack it deletes resource
+# groups too, which no deploy path here should ever do.
+: "${ACTION_ON_UNMANAGE:?ACTION_ON_UNMANAGE is required — set it to detachAll or deleteResources (see docs/infrastructure/Deployment.md)}"
 
-    ENVIRONMENT_PARAMS_FILE="params/main.${ENVIRONMENT}.bicepparam"
+case "$ACTION_ON_UNMANAGE" in
+  detachAll)
+    log "Action on unmanage: detachAll (resources leaving the template are preserved, untracked)"
     ;;
-  *)
-    ACTION_ON_UNMANAGE="deleteResources"
-    log "Validated environment: $ENVIRONMENT"
+  deleteResources)
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
-    echo "⚠️  WARNING: Development Mode - Auto-Cleanup Enabled"
+    echo "⚠️  WARNING: Auto-Cleanup Enabled — removals are DESTRUCTIVE"
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo ""
     log "Action on unmanage: deleteResources"
-    log "Resources removed from template will be AUTOMATICALLY DELETED"
+    log "Resources that stop being declared in the template will be DELETED"
     echo ""
-    echo "   This is safe for development but destructive for production."
-    echo "   To use safe mode, set ENVIRONMENT to 'staging' or 'production'."
+    echo "   Intended for throwaway environments only."
+    echo "   Long-lived deployments must set ACTION_ON_UNMANAGE=detachAll."
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo ""
-
-    ENVIRONMENT_PARAMS_FILE="params/main.development.bicepparam"
+    ;;
+  *)
+    log "ERROR: ACTION_ON_UNMANAGE must be 'detachAll' or 'deleteResources' (got: $ACTION_ON_UNMANAGE)"
+    log "       detachAll       — resources leaving the template are preserved (long-lived envs)"
+    log "       deleteResources — resources leaving the template are DELETED (throwaway envs)"
+    exit 1
     ;;
 esac
+
+log "Validated environment: $ENVIRONMENT"
+
+# A dedicated params file when one exists, development otherwise. production/staging must never
+# silently fall back — deploying them with development SKUs is worse than not deploying.
+ENVIRONMENT_PARAMS_FILE="params/main.${ENVIRONMENT}.bicepparam"
+if [ ! -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
+  case "$ENVIRONMENT" in
+    production | staging)
+      log "ERROR: $ENVIRONMENT_PARAMS_FILE not found. Create it before deploying $ENVIRONMENT."
+      exit 1
+      ;;
+    *)
+      log "⚠️  No $ENVIRONMENT_PARAMS_FILE — falling back to params/main.development.bicepparam"
+      log "    Development SKUs and settings (F1 App Service, dev CORS origin) will be applied."
+      ENVIRONMENT_PARAMS_FILE="params/main.development.bicepparam"
+      ;;
+  esac
+fi
 
 echo "Using environment parameters file: $ENVIRONMENT_PARAMS_FILE"
 
@@ -209,20 +237,43 @@ DB_PASSWORD=""
 if [ -n "$EXISTING_VAULT" ]; then
   log "Found existing Key Vault: $EXISTING_VAULT"
   
-  # Check if secret exists (don't retrieve value, just check existence)
-  SECRET_EXISTS=$(az keyvault secret show \
+  # Check if secret exists (don't retrieve value, just check existence).
+  #
+  # "Cannot read" is not "does not exist". The vault authorizes its data plane through RBAC, so an
+  # operator without Key Vault Secrets User/Officer fails this lookup with a permission error — and
+  # reading that as an absent secret generates a new password, which resets the PostgreSQL admin
+  # credential on every redeploy: exactly the overwrite this check exists to prevent. That is not
+  # hypothetical: the vault grant is one of the role assignments the deploy drops when the account
+  # cannot write them, so the degraded path removes the very read this check depends on.
+  #
+  # Only an explicit SecretNotFound allows generating a password. Any other failure aborts.
+  SECRET_LOOKUP_RESULT=0
+  SECRET_LOOKUP=$(az keyvault secret show \
     --vault-name "$EXISTING_VAULT" \
     --name "postgres-admin-password" \
-    --query "name" -o tsv 2>/dev/null || echo "")
-  
-  if [ -n "$SECRET_EXISTS" ]; then
+    --query "name" -o tsv 2>&1) || SECRET_LOOKUP_RESULT=$?
+
+  if [ "$SECRET_LOOKUP_RESULT" -eq 0 ] && [ -n "$SECRET_LOOKUP" ]; then
     log "Password secret already exists. Skipping password generation (will not overwrite)."
     # Pass empty string to Bicep so it skips secret creation and preserves existing
     DB_PASSWORD=""
-  else
+  elif printf '%s' "$SECRET_LOOKUP" | grep -qi "SecretNotFound"; then
     log "No existing password secret found. Generating new password..."
     DB_PASSWORD=$(openssl rand -hex 32)
     log "New password generated"
+  else
+    log "ERROR: could not determine whether postgres-admin-password exists in $EXISTING_VAULT."
+    log "       $SECRET_LOOKUP"
+    log ""
+    log "       Refusing to generate a new password: if the secret does exist, writing another one"
+    log "       resets the PostgreSQL admin credential."
+    log ""
+    log "       If the error above is a permission one (Forbidden / ForbiddenByRbac), this account"
+    log "       cannot read the vault's secrets — most likely because the template's dev-group Key"
+    log "       Vault grant was skipped (see the role-assignment warning above), or because"
+    log "       AZURE_SUBSCRIPTION_GROUP is unset and no other grant gives this account read"
+    log "       access. Grant 'Key Vault Secrets User' on $EXISTING_VAULT and retry."
+    exit 1
   fi
 else
   log "No existing Key Vault found. Generating new password..."
@@ -243,6 +294,48 @@ preflight_swa_custom_domain "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
 
 echo "═══════════════════════════════════════════════════════════════"
 
+# The template's role assignments need Microsoft.Authorization/roleAssignments/write, which
+# Contributor lacks. ARM authorizes the operation and not the diff, so a Contributor-only operator
+# fails the whole stack even when the grants already exist and the write is a no-op. Detect the
+# permission and drop exactly those resources when it is missing — deliberately not overridable, so
+# the deploy never skips grants an account was in fact allowed to write.
+log "Checking whether this account can write role assignments..."
+if can_write_role_assignments; then
+  ENABLE_ROLE_ASSIGNMENTS="true"
+  log "Role assignments: enabled (effective permissions in $AZURE_RESOURCE_GROUP allow writing them)"
+else
+  ENABLE_ROLE_ASSIGNMENTS="false"
+
+  # Dropping the grants means they stop being declared, and a stack-managed resource that stops
+  # being declared is DESTROYED under deleteResources. Refuse the combination instead of trading a
+  # permission error for the destruction of the grants the deploy was trying to preserve. Aborting
+  # here costs nothing: no resource has been touched yet.
+  if [ "$ACTION_ON_UNMANAGE" = "deleteResources" ]; then
+    log "ERROR: the effective permissions of this account in $AZURE_RESOURCE_GROUP do not include"
+    log "       Microsoft.Authorization/roleAssignments/write, so the deploy would drop the role"
+    log "       assignments from the template — and with ACTION_ON_UNMANAGE=deleteResources the"
+    log "       stack DELETES resources that leave the template. That would destroy the very"
+    log "       grants being preserved."
+    log ""
+    log "       Pick one:"
+    log "         - ACTION_ON_UNMANAGE=detachAll  → the grants are preserved, untracked (safe)"
+    log "         - have an Owner grant this account 'Role Based Access Control Administrator' on"
+    log "           $AZURE_RESOURCE_GROUP, so the grants stay declared and managed (durable fix)"
+    log ""
+    log "       Details: docs/infrastructure/Deployment.md"
+    exit 1
+  fi
+
+  log "⚠️  Role assignments SKIPPED — the effective permissions of this account in"
+  log "    $AZURE_RESOURCE_GROUP do not include Microsoft.Authorization/roleAssignments/write."
+  log "    ACTION_ON_UNMANAGE=detachAll, so existing grants are preserved (detached, untracked)."
+  log "    On a resource group where they were never created, the API identity ends up without"
+  log "    AcrPull (image pull fails) and without blob access. To fix, have an Owner grant this"
+  log "    account 'Role Based Access Control Administrator' on the resource group and redeploy."
+  log "    NOTE: this deploy still reports success — the stack completes, the API does not run."
+  log "    Details: docs/infrastructure/Deployment.md"
+fi
+
 # Build parameters array
 DEPLOY_PARAMS=(
   --name "$STACK_NAME"
@@ -252,12 +345,123 @@ DEPLOY_PARAMS=(
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
   --parameters environment="$ENVIRONMENT"
+  --parameters enableRoleAssignments="$ENABLE_ROLE_ASSIGNMENTS"
 )
 
 # Add optional parameters only if set
 if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
   log "Using frontend custom domain: $FRONTEND_CUSTOM_DOMAIN"
   DEPLOY_PARAMS+=(--parameters frontendCustomDomain="$FRONTEND_CUSTOM_DOMAIN")
+fi
+
+# Proxy trust for the API (Fastify trustProxy -> TRUST_PROXY app setting).
+#
+# Two configured paths: API_TRUST_PROXY (this environment, overrides the file)
+# and `param apiTrustProxy` in the environment's .bicepparam (the durable one).
+# The warning below must fire only when BOTH are empty, so read the file rather
+# than assuming the variable is the only source — warning at an operator who
+# correctly set the .bicepparam would be a false positive on every deploy, and a
+# warning that is routinely wrong is one people stop reading.
+#
+# The `^\s*param` anchor keeps this from matching the explanatory comments
+# above the parameter. Bicep types it as string, so the value is always quoted.
+bicepparam_trust_proxy=""
+if [ -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
+  bicepparam_trust_proxy="$(
+    sed -n "s/^[[:space:]]*param[[:space:]]\{1,\}apiTrustProxy[[:space:]]*=[[:space:]]*'\(.*\)'[[:space:]]*$/\1/p" \
+      "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | tail -n 1
+  )"
+fi
+
+# Pre-flight the value, from WHICHEVER source supplies it, before the
+# deployment starts. The API refuses to boot on a malformed TRUST_PROXY — the
+# right behaviour there, since every silent fallback is a security posture
+# nobody chose — but on App Service the value arrives as an ARM app setting, so
+# a typo becomes a crash-looping container whose only evidence is the container
+# log, discovered after a rollout. Checking here puts the same typo in the
+# operator's terminal instead. Both sources are checked: a bad value committed
+# to the .bicepparam is exactly as damaging as one exported by hand.
+#
+# Mirrors the rules in apps/api/src/config/environment.ts. Deliberately the
+# looser of the two — this is a pre-flight, and the app stays authoritative.
+validate_trust_proxy() {
+  local value="$1" entry address prefix octet
+  case "$value" in
+    true | false | loopback | linklocal | uniquelocal) return 0 ;;
+  esac
+  # Hop count: bounded, because more hops than the chain really has means every
+  # X-Forwarded-For entry is trusted and a caller picks its own bucket.
+  if [[ "$value" =~ ^[0-9]+$ ]]; then
+    [ "$value" -le 10 ]
+    return
+  fi
+  # Empty list entries: a leading, trailing or doubled comma. Word splitting
+  # below discards them silently, but the app rejects them, and a pre-flight
+  # that passes what the app will refuse is worse than none.
+  local compact
+  compact="$(echo "$value" | tr -d '[:space:]')"
+  case ",$compact," in *,,*) return 1 ;; esac
+
+  local IFS=','
+  for entry in $value; do
+    entry="$(echo "$entry" | tr -d '[:space:]')"
+    [ -n "$entry" ] || return 1
+    address="${entry%%/*}"
+    prefix=""
+    [ "$entry" != "$address" ] && prefix="${entry#*/}"
+    if [ -n "$prefix" ]; then
+      [[ "$prefix" =~ ^[0-9]{1,3}$ ]] || return 1
+    fi
+    if [[ "$address" == *:* ]]; then
+      # IPv6: character set and prefix bound only; the grammar is the app's job.
+      [[ "$address" =~ ^[0-9a-fA-F.:]+$ ]] || return 1
+      [ -z "$prefix" ] || [ "$prefix" -le 128 ] || return 1
+    else
+      [[ "$address" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){0,3}$ ]] || return 1
+      local IFS='.'
+      for octet in $address; do [ "$octet" -le 255 ] || return 1; done
+      [ -z "$prefix" ] || [ "$prefix" -le 32 ] || return 1
+    fi
+  done
+  return 0
+}
+
+trust_proxy_value=""
+trust_proxy_source=""
+if [ -n "${API_TRUST_PROXY:-}" ]; then
+  trust_proxy_value="$API_TRUST_PROXY"
+  trust_proxy_source="API_TRUST_PROXY"
+elif [ -n "$bicepparam_trust_proxy" ]; then
+  trust_proxy_value="$bicepparam_trust_proxy"
+  trust_proxy_source="$ENVIRONMENT_PARAMS_FILE"
+fi
+
+if [ -n "$trust_proxy_value" ] && ! validate_trust_proxy "$trust_proxy_value"; then
+  log "ERROR: invalid proxy trust value from $trust_proxy_source: '$trust_proxy_value'"
+  log "       Expected false, true, a hop count 0-10, a named range"
+  log "       (loopback|linklocal|uniquelocal), or a comma-separated list of IP"
+  log "       addresses / CIDR blocks such as '10.0.0.0/8,192.168.0.0/16'."
+  log "       Aborting before deployment: the API refuses to boot on this value,"
+  log "       so deploying it would leave a crash-looping container."
+  log "       See docs/security/hardening.md, \"Proxy Trust\"."
+  exit 1
+fi
+
+if [ -n "${API_TRUST_PROXY:-}" ]; then
+  log "Using API proxy trust (TRUST_PROXY) from API_TRUST_PROXY: $API_TRUST_PROXY"
+  DEPLOY_PARAMS+=(--parameters apiTrustProxy="$API_TRUST_PROXY")
+elif [ -n "$bicepparam_trust_proxy" ]; then
+  # Already carried by the parameter file; passing it again would be redundant.
+  log "Using API proxy trust (TRUST_PROXY) from $ENVIRONMENT_PARAMS_FILE: $bicepparam_trust_proxy"
+else
+  log "WARNING: proxy trust is not configured — apiTrustProxy is empty in"
+  log "         $ENVIRONMENT_PARAMS_FILE and API_TRUST_PROXY is unset."
+  log "         The API will trust no proxy, so the 100 req/min rate limit applies as"
+  log "         ONE bucket shared by every caller, per instance. This deploy also"
+  log "         REPLACES the App Service appSettings collection, so any TRUST_PROXY"
+  log "         set by hand with 'az webapp config appsettings set' is cleared here."
+  log "         Set it in $ENVIRONMENT_PARAMS_FILE (durable) or via API_TRUST_PROXY."
+  log "         See docs/security/hardening.md, \"Proxy Trust\"."
 fi
 
 # Add Azure authentication parameters if configured
@@ -283,8 +487,15 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
+  log "[DRY RUN]   --parameters enableRoleAssignments=$ENABLE_ROLE_ASSIGNMENTS \\"
   if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontendCustomDomain=$FRONTEND_CUSTOM_DOMAIN \\"
+  fi
+  # Conditional to match DEPLOY_PARAMS: the .bicepparam path deliberately does not
+  # append this flag, because the parameter file above already carries the value.
+  # Echoing it unconditionally would show a flag the real deploy never passes.
+  if [ -n "${API_TRUST_PROXY:-}" ]; then
+    log "[DRY RUN]   --parameters apiTrustProxy=$API_TRUST_PROXY \\"
   fi
   log "[DRY RUN]   --deny-settings-mode none \\"
   log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"
@@ -315,6 +526,17 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "  - Stack Name:      $STACK_NAME"
   echo "  - Environment:     $ENVIRONMENT"
   echo "  - Parameters File: $ENVIRONMENT_PARAMS_FILE"
+  echo "  - Role Assignments: $ENABLE_ROLE_ASSIGNMENTS"
+  # Both sources, unlike the flag echo above: what the operator needs to confirm is the
+  # posture the deploy would produce, not which of the two paths supplied it. TRUST_PROXY
+  # reaches the API as an ARM app setting, so a dry run is the last chance to notice a
+  # value nobody intended before a rollout makes it live.
+  if [ -n "$trust_proxy_value" ]; then
+    echo "  - Proxy Trust:     $trust_proxy_value (from $trust_proxy_source)"
+  else
+    echo "  - Proxy Trust:     not configured — the rate limit would apply as ONE bucket"
+    echo "                     shared by every caller, per instance"
+  fi
   echo ""
   echo "To execute the actual deployment, run without DRY_RUN:"
   echo "  ./deploy.sh"

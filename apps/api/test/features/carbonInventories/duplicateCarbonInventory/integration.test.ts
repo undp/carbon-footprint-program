@@ -24,6 +24,8 @@ import type { FastifyInstance } from "fastify";
 import { Prisma, type PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { duplicateCarbonInventoryService } from "@/features/carbonInventories/duplicateCarbonInventory/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () => {
   let app: FastifyInstance;
@@ -297,6 +299,56 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       );
     });
 
+    it("should duplicate a factor's derivationDetails when present", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const rateMeasurementUnit =
+        await prisma.rateMeasurementUnit.findFirstOrThrow();
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(2000),
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(1.5),
+        appliedFactorRateUnitId: rateMeasurementUnit.id,
+        derivationDetails: { note: "derived value" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${inventory.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as DuplicateCarbonInventoryResponse;
+
+      const newLines = await prisma.carbonInventoryLine.findMany({
+        where: { carbonInventoryId: BigInt(body.id) },
+        include: { inputs: { include: { factor: true } } },
+      });
+
+      expect(newLines[0].inputs[0].factor?.derivationDetails).toEqual({
+        note: "derived value",
+      });
+    });
+
     it("should NOT duplicate DELETED or OUTDATED lines", async () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
       const subcategoryIds = await getSubcategoryIds(
@@ -462,6 +514,36 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent (or DELETED) inventory before the service is ever
+    // reached, so exercise the service's own not-found guard directly against
+    // the real database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        duplicateCarbonInventoryService(prisma, "999999999", null)
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
+    });
+
+    it("treats a null/undefined user as an anonymous actor (createdById = null)", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      const result = await duplicateCarbonInventoryService(
+        prisma,
+        inventory.id.toString(),
+        null
+      );
+
+      const newInventory = await prisma.carbonInventory.findUnique({
+        where: { id: BigInt(result.id) },
+      });
+      expect(newInventory?.createdById).toBeNull();
     });
   });
 });

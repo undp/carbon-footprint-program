@@ -78,6 +78,26 @@ param enableDevGroupKeyVaultAccess bool = false
 @description('Grant Storage Blob Data Contributor to the dev group (for local development with az login)')
 param enableDevGroupStorageAccess bool = false
 
+// --------- RBAC parameters ---------
+// The role assignments below are the only resources in this template that need
+// `Microsoft.Authorization/roleAssignments/write`. Contributor does NOT include that action, and
+// ARM checks it during pre-flight validation — so a Contributor-only operator fails the *whole*
+// stack deploy even when every assignment already exists and would be a no-op (the names are
+// deterministic guids, so re-deploys are idempotent).
+//
+// deploy.sh computes this: it probes the caller's effective access with the Authorization
+// checkAccess API and passes false only when the account genuinely cannot write role assignments,
+// so the rest of the stack still deploys. It is intentionally not operator-configurable.
+//
+// Skipping only preserves the existing assignments under ACTION_ON_UNMANAGE=detachAll: a
+// stack-managed resource that stops being declared is DELETED under deleteResources, so deploy.sh
+// refuses that combination outright. On a fresh resource group, skipping leaves the App Service
+// identity with no AcrPull (image pull fails) and no blob access, so a privileged principal has to
+// run one deploy. The durable fix is granting the operator Role Based Access Control Administrator
+// on the resource group.
+@description('Create the RBAC role assignments owned by this template (App Service managed identity + optional dev group). Requires the deploying principal to hold Role Based Access Control Administrator, User Access Administrator or Owner. Computed by deploy.sh — set to false only when the caller cannot write role assignments.')
+param enableRoleAssignments bool = true
+
 @description('Allowed IP ranges for PostgreSQL firewall')
 param dbAllowedIpRanges array = []
 
@@ -128,6 +148,16 @@ param staticWebAppOutputLocation string = 'dist'
 // --------- App Service parameters ---------
 @description('SKU name for App Service Plan (e.g., F1 for Free tier)')
 param appServiceSkuName string = 'F1'
+
+// Passed to the API as TRUST_PROXY. Empty by default, which reproduces what
+// every existing deployment already does — so redeploying this template does
+// not change request handling on its own. Deliberately NOT derived from
+// enableFrontDoor: the hop count depends on the real request path, and guessing
+// it wrong is not a no-op in either direction (too few hops trusted keeps the
+// shared rate-limit bucket; too many lets a caller forge X-Forwarded-For and
+// choose its own). Set it once verified — see docs/security/hardening.md.
+@description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing (current behaviour). "1" = App Service alone; "2" = behind Front Door; or an IP/CIDR allowlist.')
+param apiTrustProxy string = ''
 
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
@@ -211,7 +241,8 @@ module keyVault 'modules/keyVault.bicep' = {
     location: location
     dbPassword: dbPassword
     devGroupObjectId: devGroupObjectId
-    enableDevGroupAccess: enableDevGroupKeyVaultAccess
+    // The module's dev-group grant is a role assignment too, so it follows enableRoleAssignments.
+    enableDevGroupAccess: enableRoleAssignments && enableDevGroupKeyVaultAccess
     tags: tags
   }
 }
@@ -307,6 +338,7 @@ module appService 'modules/appService.bicep' = {
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
     allowedOrigin: allowedOrigin
+    trustProxy: apiTrustProxy
     useAcrManagedIdentity: true
     storageAccountName: storage.outputs.name
     enableAzureAuth: enableAzureAuth
@@ -319,7 +351,7 @@ module appService 'modules/appService.bicep' = {
 }
 
 // Role assignment to allow App Service to pull from ACR
-module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
+module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = if (enableRoleAssignments) {
   name: 'appServiceAcrPull'
   scope: resourceGroup()
   #disable-next-line no-unnecessary-dependson
@@ -334,7 +366,7 @@ module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
 }
 
 // Role assignment to allow App Service to read/write blobs in Storage Account
-module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = {
+module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableRoleAssignments) {
   name: 'appServiceStorageBlobContributor'
   scope: resourceGroup()
   #disable-next-line no-unnecessary-dependson
@@ -349,7 +381,7 @@ module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = 
 }
 
 // Role assignment to allow Dev Group members to read/write blobs (for local development)
-module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
+module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableRoleAssignments && enableDevGroupStorageAccess && devGroupObjectId != '') {
   name: 'devGroupStorageBlobContributor'
   scope: resourceGroup()
   params: {
@@ -360,7 +392,7 @@ module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if
 }
 
 // Role assignment to allow App Service to generate User Delegation SAS tokens
-module appServiceStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = {
+module appServiceStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = if (enableRoleAssignments) {
   name: 'appServiceStorageBlobDelegator'
   scope: resourceGroup()
   #disable-next-line no-unnecessary-dependson
@@ -375,7 +407,7 @@ module appServiceStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bi
 }
 
 // Role assignment to allow Dev Group members to generate User Delegation SAS tokens (for local development)
-module devGroupStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
+module devGroupStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = if (enableRoleAssignments && enableDevGroupStorageAccess && devGroupObjectId != '') {
   name: 'devGroupStorageBlobDelegator'
   scope: resourceGroup()
   params: {

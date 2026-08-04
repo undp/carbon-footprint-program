@@ -235,6 +235,28 @@ describe("DELETE /api/measurement-units/:id - Integration Tests", () => {
     });
   });
 
+  describe("Data integrity", () => {
+    it("should throw a data integrity error when the canonical RMU is already gone (not ACTIVE)", async () => {
+      const created = await createUnit();
+      // Directly flip the canonical RMU to DELETED (rather than going through
+      // the delete endpoint), so the service's own soft-delete `updateMany`
+      // matches zero rows even though the unit itself is still ACTIVE.
+      await prisma.rateMeasurementUnit.updateMany({
+        where: { denominatorMeasurementUnitId: BigInt(created.id) },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/measurement-units/${created.id}`,
+      });
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DATA_INTEGRITY_ERROR");
+    });
+  });
+
   describe("Not found", () => {
     it("should return 404 for an unknown id", async () => {
       const response = await app.inject({

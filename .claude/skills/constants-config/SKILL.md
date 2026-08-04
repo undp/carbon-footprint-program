@@ -8,7 +8,7 @@ description: Where to place configurable / per-deployment values in the monorepo
 This platform is deployed independently by each country, so values that may vary per deployment must be explicit named constants — never inline literals.
 
 - **`packages/constants/`** (`@repo/constants`): domain constants used by both API and web (allowed greenhouse gases, GWP source options, max lengths, required documents). These are often tied to database enums or Zod schemas — modifying them may require data migration.
-- **`apps/api/src/config/constants.ts`**: API-specific constants like numeric precision (`PERCENTAGE_PRECISION`, `EMISSIONS_PRECISION`), tolerances, and SAS URL expiry times.
+- **`apps/api/src/config/constants.ts`**: API-specific constants like numeric precision (`PERCENTAGE_PRECISION`), tolerances, and SAS URL expiry times.
 - **`apps/web/src/config/constants.ts`**: frontend-specific constants like stale times, debounce intervals, sidebar width, file upload limits, and year ranges.
 - **`apps/web/src/config/vocab.ts`**: localized terminology (e.g., organization/inscription names in Spanish). Country deployments may need to adjust these labels.
 - **Screen-level `constants.ts`** files (e.g., `screens/Maintainer/`, `screens/ReductionProject/`): feature-specific labels, options, and UI content.

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change chatbot-foundation. Update Purpose after archive.
+Defines the `LLMProvider` abstraction that decouples the chatbot from any specific model backend. It fixes the single `streamCompletion(messages, options)` contract, the two shipped implementations (a deterministic, network-free `mock` and a managed-identity `azureOpenAI` client built on the `openai` SDK), and boot-time selection via the `LLM_PROVIDER` environment variable. It also owns the shared `estimateTokens` helper (the single source of truth for token estimation), the token-cap constants, the `CHATBOT_ENABLED` feature gate that makes the whole chatbot optional, and the boot guard that refuses to start with the mock provider in an enabled production deployment.
 
 ## Requirements
 
@@ -86,19 +86,38 @@ A factory `getLlmProvider()` SHALL select the `LLMProvider` implementation based
 - **WHEN** the API starts with `LLM_PROVIDER=banana`
 - **THEN** the process SHALL throw an `Error` whose message lists the allowed values and the invalid value, and the API SHALL NOT begin accepting requests
 
-### Requirement: System refuses to boot with `LLM_PROVIDER=mock` in production
+### Requirement: System refuses to boot with `LLM_PROVIDER=mock` in an enabled production deployment
 
-When `NODE_ENV=production` AND `LLM_PROVIDER=mock`, the boot validation SHALL throw with a descriptive error and the API SHALL NOT begin accepting requests. This guard prevents a mock provider from leaking into user traffic.
+When `NODE_ENV=production` AND `LLM_PROVIDER=mock` AND `CHATBOT_ENABLED=true`, the boot validation SHALL throw with a descriptive error and the API SHALL NOT begin accepting requests. This guard prevents a mock provider from leaking into user traffic. The `CHATBOT_ENABLED=true` conjunct is required: a production deployment that leaves the chatbot disabled (`CHATBOT_ENABLED=false`) needs no LLM provider at all, so the guard SHALL NOT fire in that case — even under `NODE_ENV=production` with `LLM_PROVIDER=mock` — and the API SHALL boot normally.
 
-#### Scenario: Mock-in-prod boot throws
+#### Scenario: Mock-in-prod boot throws when chatbot enabled
 
-- **WHEN** the API starts with `NODE_ENV=production` AND `LLM_PROVIDER=mock`
+- **WHEN** the API starts with `NODE_ENV=production` AND `LLM_PROVIDER=mock` AND `CHATBOT_ENABLED=true`
 - **THEN** the process SHALL throw an `Error` indicating that `mock` is not allowed in production, and the API SHALL NOT begin accepting requests
+
+#### Scenario: Mock-in-prod is allowed when chatbot disabled
+
+- **WHEN** the API starts with `NODE_ENV=production` AND `LLM_PROVIDER=mock` AND `CHATBOT_ENABLED=false`
+- **THEN** the boot guard SHALL NOT fire and the API SHALL boot normally, because a disabled chatbot requires no LLM provider
 
 #### Scenario: Mock-in-non-prod is allowed
 
 - **WHEN** the API starts with `NODE_ENV` set to `development`, `test`, or unset, AND `LLM_PROVIDER=mock`
 - **THEN** the API SHALL boot normally and `getLlmProvider()` SHALL return the mock implementation
+
+### Requirement: Chatbot feature is gated by the `CHATBOT_ENABLED` flag
+
+The entire chatbot SHALL be gated behind a single `CHATBOT_ENABLED` environment flag parsed in `apps/api/src/config/environment.ts`, default **off** (opt-in) — any value other than the string `"true"` (case-insensitive) SHALL be treated as disabled. When `CHATBOT_ENABLED=false`, the `routes/api/chatbot` group SHALL register no routes (the chatbot endpoints return 404), and the `LLM_PROVIDER` mock-in-prod guard and the `COOKIE_SECRET` production requirement SHALL be skipped. This upholds the Digital Public Good optionality principle: a deployment that does not connect the cloud LLM runs the full platform with no AI code path and no cloud dependency. When `CHATBOT_ENABLED=true`, the provider selection, boot guards, and the Azure configuration requirements (`AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_DEPLOYMENT_NAME` when `LLM_PROVIDER=azure-openai`) apply.
+
+#### Scenario: Disabled chatbot registers no routes
+
+- **WHEN** the API boots with `CHATBOT_ENABLED=false` (or the variable unset)
+- **THEN** the `routes/api/chatbot` group SHALL register nothing, `POST /api/chatbot/message` and `DELETE /api/chatbot/conversations/me` SHALL respond 404, and no LLM provider or cookie boot guard SHALL be evaluated
+
+#### Scenario: Enabled chatbot applies provider and cookie guards
+
+- **WHEN** the API boots with `CHATBOT_ENABLED=true`
+- **THEN** the chatbot routes SHALL be registered, the `LLM_PROVIDER` selection and mock-in-prod guard SHALL apply, and `COOKIE_SECRET` SHALL be required under `NODE_ENV=production`
 
 ### Requirement: Token caps are defined as named constants in API config
 

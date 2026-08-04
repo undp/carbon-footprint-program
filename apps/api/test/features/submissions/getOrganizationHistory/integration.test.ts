@@ -344,4 +344,74 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
       date: "2026-01-05T10:00:00.000Z",
     });
   });
+
+  describe("Legacy data fallbacks (no reviewedAt / reviewComments)", () => {
+    // In production, both the review and reject admin actions always stamp
+    // `reviewedAt` and require a non-empty `reviewComments` (see
+    // requests/admin/{reviewSubmission,rejectRequest}), so a REVIEWED/REJECTED
+    // submission missing either can't be produced through the app's own APIs.
+    // Seed the row directly to model pre-existing/legacy data and exercise the
+    // helpers' `?? submission.createdAt` / `?? ""` fallbacks.
+    it("falls back to createdAt and an empty comment for a REVIEWED submission with no reviewedAt/reviewComments", async () => {
+      const organization = await createMemberOrganization();
+      const organizationData = await createTestOrganizationData(
+        prisma,
+        organization.id
+      );
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        organizationData.id,
+        SubmissionStatus.REVIEWED,
+        testUser.id
+      );
+      const createdAt = new Date("2026-01-10T09:00:00.000Z");
+
+      await prisma.submission.update({
+        where: { id: submission.id },
+        data: { createdAt, reviewedAt: null, reviewComments: null },
+      });
+
+      const history = await getHistory(organization.id.toString());
+      const reviewedEntry = history.find(
+        (entry) => entry.eventType === SubmissionEventType.REVIEWED
+      );
+
+      expect(reviewedEntry).toMatchObject({
+        submissionId: submission.id.toString(),
+        date: createdAt.toISOString(),
+        comment: "",
+      });
+    });
+
+    it("falls back to createdAt and an empty comment for a REJECTED submission with no reviewedAt/reviewComments", async () => {
+      const organization = await createMemberOrganization();
+      const organizationData = await createTestOrganizationData(
+        prisma,
+        organization.id
+      );
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        organizationData.id,
+        SubmissionStatus.REJECTED,
+        testUser.id
+      );
+      const createdAt = new Date("2026-01-11T09:00:00.000Z");
+
+      await prisma.submission.update({
+        where: { id: submission.id },
+        data: { createdAt, reviewedAt: null, reviewComments: null },
+      });
+
+      const history = await getHistory(organization.id.toString());
+      const rejectedEntry = history.find(
+        (entry) => entry.eventType === SubmissionEventType.REJECTED
+      );
+
+      expect(rejectedEntry).toMatchObject({
+        submissionId: submission.id.toString(),
+        date: createdAt.toISOString(),
+        comment: "",
+      });
+    });
+  });
 });

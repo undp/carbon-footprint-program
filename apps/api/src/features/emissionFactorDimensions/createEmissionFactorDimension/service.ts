@@ -8,6 +8,7 @@ import {
   type CreateEmissionFactorDimensionResponse,
 } from "@repo/types";
 import { UserNotFoundError } from "../../users/errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import {
   SubcategoryNotFoundForDimensionError,
   MaxDimensionsPerSubcategoryError,
@@ -120,6 +121,7 @@ export const createEmissionFactorDimensionService = async (
         values: data.values.map((value) => {
           const createdValue = createdValuesByValue.get(value);
 
+          /* v8 ignore next -- unreachable: values are deduplicated before createManyAndReturn, so every value resolves to a created row */
           if (!createdValue) {
             throw new DuplicateDimensionValueError(value);
           }
@@ -136,12 +138,14 @@ export const createEmissionFactorDimensionService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
-        const target = Array.isArray(error.meta?.target)
-          ? error.meta.target.map(String)
-          : error.meta?.target
-            ? [JSON.stringify(error.meta.target)]
-            : [];
-        if (target.some((item) => item.includes("position"))) {
+        // Read the duplicated columns via the shared helper: with Prisma 7 +
+        // @prisma/adapter-pg, `error.meta.target` is undefined and the field
+        // names live under the driver-adapter cause, which the helper unwraps.
+        // Inspecting `error.meta.target` directly (as this used to) always
+        // yielded [], so the position-collision arm was dead and every P2002
+        // fell through to DuplicateDimensionValueError.
+        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+        if (duplicatedFields.some((field) => field.includes("position"))) {
           throw new DimensionPositionAlreadyTakenError(
             data.position.toString()
           );

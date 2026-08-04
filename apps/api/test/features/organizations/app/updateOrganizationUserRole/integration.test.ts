@@ -27,6 +27,7 @@ import {
   createTestMembership,
   cleanupTestMemberships,
 } from "@test/factories/membershipFactory.js";
+import { updateOrganizationUserRoleService } from "@/features/organizations/app/updateOrganizationUserRole/service.js";
 
 describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integration Tests", () => {
   let app: FastifyInstance;
@@ -459,6 +460,78 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         },
       });
       expect(adminCount).toBe(1);
+    });
+  });
+
+  describe("Direct service invocation (bypassing organization-role authorization)", () => {
+    // requireOrganizationRole (requiredOrganizationRoles: [ADMIN]) guarantees the
+    // organization exists (membership rows FK-reference it) whenever an actor
+    // reaches the handler, so the service's own `!organization` guard can never
+    // be reached over HTTP. Call the service directly (still against the real
+    // test database) to exercise it.
+    it("throws OrganizationNotFoundError when the organization does not exist (service-level guard)", async () => {
+      await expect(
+        updateOrganizationUserRoleService(
+          prisma,
+          "999999999",
+          adminUser.id.toString(),
+          { role: OrganizationRole.VIEWER },
+          null
+        )
+      ).rejects.toMatchObject({ code: "ORGANIZATION_NOT_FOUND" });
+    });
+
+    // Demoting the sole ADMIN as someone else requires the actor to also be an
+    // ADMIN (per requireOrganizationRole), which would make the target no
+    // longer the *sole* admin; demoting yourself as the sole admin instead hits
+    // CannotModifySelfError first. So "the target being demoted is the last
+    // admin" can only be produced by calling the service directly.
+    it("throws CannotRemoveLastAdminError when demoting the organization's sole ADMIN (service-level guard)", async () => {
+      const organization = await createTestOrganization(prisma);
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.ADMIN,
+      });
+
+      await expect(
+        updateOrganizationUserRoleService(
+          prisma,
+          organization.id.toString(),
+          adminUser.id.toString(),
+          { role: OrganizationRole.VIEWER },
+          null
+        )
+      ).rejects.toMatchObject({ code: "CANNOT_REMOVE_LAST_ADMIN" });
+    });
+
+    it("leaves updatedById/createdById unset when currentUser is null", async () => {
+      const organization = await createTestOrganization(prisma);
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.VIEWER,
+      });
+
+      const result = await updateOrganizationUserRoleService(
+        prisma,
+        organization.id.toString(),
+        adminUser.id.toString(),
+        { role: OrganizationRole.CONTRIBUTOR },
+        null
+      );
+
+      const newMembership = await prisma.userOrganizationMembership.findUnique({
+        where: { id: BigInt(result.membershipId) },
+      });
+      expect(newMembership).toBeDefined();
+      expect(newMembership!.createdById).toBeNull();
+
+      const oldMembership = await prisma.userOrganizationMembership.findFirst({
+        where: {
+          userId: adminUser.id,
+          organizationId: organization.id,
+          status: MembershipStatus.OUTDATED,
+        },
+      });
+      expect(oldMembership).toBeDefined();
+      expect(oldMembership!.updatedById).toBeNull();
     });
   });
 });

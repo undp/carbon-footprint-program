@@ -239,6 +239,40 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationData).toEqual(expectedOrganizationData);
     });
 
+    it("should default organizationData.name to null when unlinked and the payload's name is null", async () => {
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: {
+          organizationData: {
+            name: null,
+            sectorId: null,
+            subsectorId: null,
+            sizeId: null,
+            mainActivityId: null,
+            mainActivityQuantity: null,
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+
+      expect(body.organizationData?.name).toBeNull();
+      expect(body.organizationData?.sectorId).toBeNull();
+      expect(body.organizationData?.subsectorId).toBeNull();
+      expect(body.organizationData?.sizeId).toBeNull();
+      expect(body.organizationData?.mainActivityId).toBeNull();
+      expect(body.organizationData?.sector).toBeNull();
+      expect(body.organizationData?.subsector).toBeNull();
+      expect(body.organizationData?.size).toBeNull();
+      expect(body.organizationData?.mainActivity).toBeNull();
+    });
+
     it("should update preselectedNodesId", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",

@@ -54,7 +54,7 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
             variant="caption"
             sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
           >
-            Equivalencia: {formatter.rate(equivalence.rate)} kg CO₂e/
+            Equivalencia: {formatter.rate(equivalence.rate)} tCO₂e/
             {equivalence.activityName}
           </Typography>
         )}

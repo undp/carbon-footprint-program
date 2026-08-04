@@ -195,6 +195,57 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(body).toEqual(sorted);
     });
 
+    it("should break ties on identical names by ascending id", async () => {
+      const massMagnitude = await prisma.magnitude.findFirstOrThrow({
+        where: { code: "mass" },
+      });
+      const sameName = `Test Tie Name ${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+      async function createNamedUnit(): Promise<CreateMeasurementUnitResponse> {
+        const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/measurement-units",
+          payload: {
+            name: sameName,
+            abbreviation: `test-tie-${suffix}`,
+            magnitudeId: massMagnitude.id.toString(),
+            baseFactor: 500,
+            isBase: false,
+          },
+        });
+        expect(response.statusCode).toBe(201);
+        return JSON.parse(response.body) as CreateMeasurementUnitResponse;
+      }
+
+      try {
+        const first = await createNamedUnit();
+        const second = await createNamedUnit();
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/measurement-units",
+        });
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(
+          response.body
+        ) as GetAllMeasurementUnitsResponse;
+
+        const tied = body.filter((u) => u.name === sameName);
+        expect(tied).toHaveLength(2);
+        expect(tied[0].id).toBe(first.id);
+        expect(tied[1].id).toBe(second.id);
+        expect(Number(tied[0].id)).toBeLessThan(Number(tied[1].id));
+      } finally {
+        await prisma.rateMeasurementUnit.deleteMany({
+          where: { abbreviation: { startsWith: "kg/test-tie-" } },
+        });
+        await prisma.measurementUnit.deleteMany({
+          where: { abbreviation: { startsWith: "test-tie-" } },
+        });
+      }
+    });
+
     it("should place accented magnitude names with their base letter, not at the end", async () => {
       const response = await app.inject({
         method: "GET",
@@ -565,6 +616,29 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       });
 
       expect(await getReferenceCount(unit.id)).toBe(0);
+    });
+  });
+
+  // Must run last: it soft-deletes every ACTIVE measurement unit in this
+  // file's isolated database, so no other test in this file can run after it.
+  describe("Empty catalog", () => {
+    it("should have the service return an empty array (surfaced as 404 by the shared 'treat empty as not found' handler)", async () => {
+      await prisma.measurementUnit.updateMany({
+        where: { status: MeasurementUnitStatus.ACTIVE },
+        data: { status: MeasurementUnitStatus.DELETED },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units",
+      });
+
+      // `getAllMeasurementUnitsService` itself returns `[]` here (the branch
+      // this test targets), but `createGetAllHandler` treats an empty array
+      // as not-found by default, so the endpoint surfaces a 404.
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("RESOURCE_IS_EMPTY");
     });
   });
 });

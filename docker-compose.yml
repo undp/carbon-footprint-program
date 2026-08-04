@@ -68,6 +68,12 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - APP_VERSION=${APP_VERSION:-dev}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-http://localhost:3000}
+      # Which X-Forwarded-For senders may set request.ip. Not needed locally —
+      # the browser reaches the API directly and NODE_ENV is not production, so
+      # nothing warns. Listed for parity with docker-compose.prod.yml, so that a
+      # value set while reproducing a deployment issue actually reaches the
+      # container. See docs/security/hardening.md, "Proxy Trust".
+      - TRUST_PROXY=${TRUST_PROXY:-}
       # Public origin of THIS API (browser-reachable, no path) — required when
       # MINIO_RELAY_ENABLED=true so the relay can rewrite presigned URLs.
       - API_ORIGIN=${API_ORIGIN:-}

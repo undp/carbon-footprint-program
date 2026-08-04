@@ -25,6 +25,8 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { getSubcategoryRecommendationsService } from "@/features/carbonInventories/getSubcategoryRecommendations/service.js";
+import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
 describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integration Tests", () => {
   let app: FastifyInstance;
@@ -531,6 +533,52 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       ) as GetSubcategoryRecommendationsResponse;
       expect(body).toContain(subcategoryId.toString());
       expect(body).not.toContain(otherSubcategoryId.toString());
+    });
+  });
+
+  describe("Sector without a subsector", () => {
+    it("resolves recommendations when organizationData has a sector but no subsector", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData,
+        {
+          organizationData: {
+            name: "Test Corp",
+            sectorId: sectorId.toString(),
+            subsectorId: null,
+            sizeId: null,
+            mainActivityId: null,
+            mainActivityQuantity: null,
+          },
+        }
+      );
+
+      await prisma.subcategoryRecommendation.create({
+        data: { subcategoryId, sectorId, subsectorId: null },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/subcategory-recommendations`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetSubcategoryRecommendationsResponse;
+      expect(body).toContain(subcategoryId.toString());
+    });
+  });
+
+  describe("Service-level unit checks", () => {
+    // The HTTP layer's requireCarbonInventoryAccess preHandler already returns
+    // 403 for a non-existent inventory before the service is ever reached, so
+    // exercise the service's own not-found guard directly against the real
+    // database instead.
+    it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
+      await expect(
+        getSubcategoryRecommendationsService(prisma, "999999999")
+      ).rejects.toThrow(CarbonInventoryNotFoundError);
     });
   });
 });

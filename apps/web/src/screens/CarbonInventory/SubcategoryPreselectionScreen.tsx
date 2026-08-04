@@ -83,8 +83,15 @@ export const SubcategoryPreselectionScreen: FC = () => {
     isSavingSelections: isSavingSelectionsAndGoingToList,
   } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goToList });
 
+  const {
+    saveSelections: saveSelectionsAndGoBack,
+    isSavingSelections: isSavingSelectionsAndGoingBack,
+  } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goBack });
+
   const globalSubmitting =
-    isSavingSelections || isSavingSelectionsAndGoingToList;
+    isSavingSelections ||
+    isSavingSelectionsAndGoingToList ||
+    isSavingSelectionsAndGoingBack;
 
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
@@ -109,6 +116,12 @@ export const SubcategoryPreselectionScreen: FC = () => {
       return !category.subcategories.some((s) => formValues[s.id] === true);
     });
   }, [categories, methods]);
+
+  // "Volver" saves before navigating, same as "Siguiente" and as step 3: the
+  // selection only lives in the form until it is persisted.
+  const onBackClick = useCallback(() => {
+    void handleSubmit((values) => saveSelectionsAndGoBack(values, isDirty))();
+  }, [handleSubmit, saveSelectionsAndGoBack, isDirty]);
 
   const onNextClick = useCallback(() => {
     const doSubmit = () =>
@@ -151,7 +164,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       disabled: globalSubmitting,
-      onClick: goBack,
+      onClick: onBackClick,
+      loading: isSavingSelectionsAndGoingBack,
     },
   };
 

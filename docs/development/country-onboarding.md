@@ -15,8 +15,13 @@ Each country deployment requires:
 5. **Organization main activities** — KPI metrics per sector
 6. An **OIDC-compatible IdP** (e.g. Entra External ID, Keycloak) for authentication
 7. A dedicated Azure **infrastructure deployment** per environment
+8. **Published operational contacts** — privacy/DSAR, DPO, abuse, and child-safety escalation
+   ([Step 12](#step-12--publish-the-deployments-operational-contacts)) — **required before the
+   deployment serves real users**, and required of every operator, not only adopting countries
 
 All data in items 1–5 is loaded from declarative JSON seed files under `tools/seed/src/data/base/`.
+Items 6–7 are infrastructure; item 8 is an accountability obligation that no amount of
+configuration can satisfy on the operator's behalf.
 
 ---
 
@@ -321,6 +326,54 @@ DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm --filter @repo/seed seed
 > The seed only runs against a fresh database. If the target database already contains data, the seed logs a message and exits without changes — so it is safe to run by mistake, but it will **not** apply seed updates to an already-populated environment. Updating reference data in an existing environment must be done through the admin UI or a migration.
 
 > Never run `db:restore` against a production database — it drops all data first.
+
+---
+
+## Step 12 — Publish the Deployment's Operational Contacts
+
+**Required before the deployment serves real users.** The steps above make the software run; this
+one makes it accountable. The upstream policy documents deliberately do not name these contacts,
+because **the operator of each instance is its data controller** and is the only party that can
+act on the reports below. Until an operator publishes them, its users have policies that promise a
+process with nobody at the other end.
+
+> **This step applies to _every_ operator, not only adopting countries.** Any party that runs an
+> instance is that instance's operator and data controller — including UNDP, which operates the
+> demonstration deployment at <https://www.huellaslatam.org> (see
+> [`../security/hardening.md`](../security/hardening.md), "Deployment topology"). A demo is not
+> exempt: authentication creates a user record from the identity provider's claims, so an instance
+> holds personal data as soon as anyone signs in, regardless of what they type into forms. The
+> upstream project cannot ask a government to publish a contact it has not published for its own
+> deployment.
+
+Publish the following where your users can find them — in the deployment's own privacy notice,
+its help pages, or an equivalent public page — and keep them monitored:
+
+| Contact                             | Receives                                                                                  | Why it cannot be centralized                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Privacy / data-subject requests** | Access, correction, deletion and export requests; questions on lawful basis and retention | Only the controller can reach its own data; upstream has no access to it                         |
+| **Data-protection officer**         | Whatever your national law assigns to the role                                            | A DPO is a designated role with independence requirements — see [`PRIVACY.md`](../../PRIVACY.md) |
+| **Content / abuse reports**         | Prohibited or illegal content uploaded to your instance                                   | Only the operator can view or remove content in its own storage                                  |
+| **Child-safety escalation path**    | Any discovery of CSAM or a report involving a minor                                       | The competent authority and the mandatory-reporting duty differ by jurisdiction                  |
+| **Conduct escalation** (optional)   | End-user abuse within your instance, beyond the upstream Code of Conduct                  | Community conduct upstream is handled by the maintainer team; in-instance abuse is yours         |
+
+For the child-safety path specifically, identify **before launch**: the competent
+child-protection or law-enforcement authority in your jurisdiction, and the INHOPE-member hotline
+if one operates there. Record the actual escalation procedure — who calls whom, and within what
+time — rather than a general intention to comply.
+
+Also decide and record these operational values, which upstream states only as a baseline your
+deployment may strengthen but should not silently drop:
+
+- The breach-notification window you will honor (many applicable laws expect 72 hours).
+- Retention limits and an anonymization trigger for personal data.
+- Moderation response targets per severity, and the appeal contact and timeline.
+- Whether to enable automated CSAM hash-scanning at the storage tier (e.g. PhotoDNA), which is
+  advisable for any deployment expecting higher-risk uploads.
+
+Cross-references: [`PRIVACY.md`](../../PRIVACY.md),
+[`CONTENT_MODERATION.md`](../../CONTENT_MODERATION.md),
+[`CODE_OF_CONDUCT.md`](../../CODE_OF_CONDUCT.md), [`SECURITY.md`](../../SECURITY.md).
 
 ---
 

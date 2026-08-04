@@ -1,22 +1,22 @@
 # Testing Guide
 
-This document describes the test infrastructure, conventions, and patterns used in the Huella Latam API.
+This document describes the test infrastructure, conventions, and patterns used across the Huella Latam monorepo: the `apps/api` integration suite (Vitest + Testcontainers) and the `apps/web` unit suite (Vitest + jsdom + React Testing Library — see [Web unit tests](#web-unit-tests-appsweb)).
 
 ---
 
 ## Overview
 
-The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite by default, MinIO when `STORAGE_PROVIDER=minio`) — there are no mocks for the database layer. All tests live under `apps/api/test/`.
+The API uses **Vitest** with **Testcontainers** for integration testing. Tests run against real PostgreSQL and object-storage containers (Azurite for the `storage-azure` project, MinIO for `storage-minio`) — there are no mocks for the database layer. All **API** tests live under `apps/api/test/`; the web app's unit tests are **co-located** under `apps/web/src/` (see [Web unit tests](#web-unit-tests-appsweb)).
 
-| Aspect         | Detail                                                                                  |
-| -------------- | --------------------------------------------------------------------------------------- |
-| Framework      | Vitest 4.x                                                                              |
-| Test type      | Integration (HTTP layer + real DB)                                                      |
-| Database       | Testcontainers — `postgres:18-alpine`                                                   |
-| Storage        | Testcontainers — Azurite (default) or MinIO, per `STORAGE_PROVIDER`                     |
-| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                   |
-| Execution      | Parallel — files run across workers, each file gets its own database                    |
-| Coverage       | v8 provider; thresholds disabled (0%) in all environments (see the coverage note below) |
+| Aspect         | Detail                                                                                                                                                                                    |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework      | Vitest 4.x                                                                                                                                                                                |
+| Test type      | Integration (HTTP layer + real DB)                                                                                                                                                        |
+| Database       | Testcontainers — `postgres:18-alpine`                                                                                                                                                     |
+| Storage        | Testcontainers — Azurite (`storage-azure` project) or MinIO (`storage-minio` project)                                                                                                     |
+| Authentication | `AUTH_PROVIDER=forced-user` (hardcoded for all tests)                                                                                                                                     |
+| Execution      | Parallel — files run across workers, each file gets its own database                                                                                                                      |
+| Coverage       | v8 provider; **90%** gate (all four metrics) declared in the config and applied to any full/merged run; the single-project `test:leg` leg overrides it to 0 — see the coverage note below |
 
 ---
 
@@ -27,10 +27,10 @@ apps/api/test/
 ├── setup/
 │   ├── globalSetup.ts               # Starts/stops containers; migrates + seeds the template DB
 │   ├── testDatabase.ts              # PostgreSQL container + migration/seed helpers
-│   ├── testStorage.ts               # Storage container (Azurite or MinIO, per STORAGE_PROVIDER)
+│   ├── testStorage.ts               # Storage container (Azurite or MinIO, per project name)
 │   ├── perFileDatabase.ts           # Clones a private DB per test file from the template
 │   ├── storageTestManifest.ts       # Manifest of storage-dependent tests (both storage CI legs)
-│   └── assertStorageTestManifest.ts # Static verifier (pnpm test:verify-storage-manifest)
+│   └── assertStorageTestManifest.ts # Static verifier (pnpm test:api:verify-storage-manifest)
 ├── factories/                  # Test data helpers
 │   ├── appFactory.ts           # Creates a ready Fastify test instance
 │   ├── userFactory.ts
@@ -59,15 +59,23 @@ test/features/<feature>/<action>/service.test.ts   # service-level unit tests
 
 ## Global Setup and Database Lifecycle
 
-`test/setup/globalSetup.ts` runs once before all tests:
+`test/setup/globalSetup.ts` runs once **per Vitest project** before that project's tests:
 
 1. **PostgreSQL container** — `postgres:18-alpine`, credentials `testuser:testpass`, database `testdb`. Startup timeout: 180 s (accounts for first image pull in CI).
-2. **Storage container** — Azurite (`mcr.microsoft.com/azure-storage/azurite`, in-memory) by default, or MinIO (`minio/minio`) when `STORAGE_PROVIDER=minio` (see `test/setup/testStorage.ts`). The `test-files` container/bucket is not pre-created — the test adapters in `@repo/storage/testing` create it lazily and idempotently. Startup timeout: 120 s. If the storage container fails, database-only tests still run.
+2. **Storage container** — chosen from the **project name** (not an env var): the `storage-azure` project boots Azurite (`mcr.microsoft.com/azure-storage/azurite`, in-memory), `storage-minio` boots MinIO (`minio/minio`), and `base` boots **none** (its tests never touch storage). See `test/setup/testStorage.ts`. The `test-files` container/bucket is not pre-created — the test adapters in `@repo/storage/testing` create it lazily and idempotently. Startup timeout: 120 s. If a storage container fails to start, that project fails fast (every file in it needs the container); `base` is unaffected, as it boots none.
 3. **Migrations** — `prisma migrate deploy` is executed once against the **template** database (`testdb`).
 4. **Seeding** — the `@repo/seed` runner (`pnpm run seed` in `tools/seed`) with `SEEDS_DATASET=testing` populates all lookup tables (countries, job positions, methodologies, etc.) in the template.
-5. **Context injection** — the template database URL (`databaseUrl`) and a storage descriptor (`storageDescriptor`, provider + connection details) are passed to workers via Vitest's `project.provide()` interface.
+5. **Context injection** — the template database URL (`databaseUrl`) and a storage descriptor (`storageDescriptor`, provider + connection details, or `null` for `base`) are passed to that project's workers via Vitest's `project.provide()` interface. The dynamic MinIO endpoint is applied from that descriptor in `createTestApp` before `app.ready()`.
 
-The teardown function stops both containers after all tests complete.
+The teardown function stops the project's containers after its tests complete.
+
+> **Local Docker footprint.** Because `globalSetup` runs once **per project**, a
+> full local `pnpm test:api` (one `vitest run --coverage` over all three
+> projects) can stand up **three PostgreSQL containers plus Azurite and MinIO**
+> at peak — heavier than running the legs one at a time. On a constrained machine
+> or a tight Docker Desktop limit, run a single project for a lighter inner loop:
+> `pnpm --filter=api exec vitest run --project=base --coverage=false` (`base`
+> boots only PostgreSQL). CI is unaffected — each runner runs one `--project`.
 
 ### Per-file database isolation
 
@@ -103,10 +111,24 @@ CREATE DATABASE "t_<sha256(testFilePath)[:16]>" TEMPLATE "testdb"
 ## Running Tests
 
 ```bash
-# Run all API tests
+# Run every test suite (API storage legs + web + seed)
 pnpm test
 
-# Run a single test file
+# Run all API tests (all three Vitest projects), merge coverage, apply the gate
+pnpm test:api
+
+# Lighter inner loop: run a single project (base boots only PostgreSQL — no
+# storage container). Skip the gate, which a partial run can't clear.
+pnpm --filter=api exec vitest run --project=base --coverage=false
+
+# Run the apps/web suite (Vitest + jsdom; builds @repo/* deps first).
+# Runs with coverage and enforces a global coverage floor (see the note below).
+pnpm test:web
+
+# Run the tools/seed unit tests
+pnpm test:seed
+
+# Run a single API test file
 pnpm test --filter=api -- /createUser/integration.test.ts --coverage=false
 
 # Run all tests for a domain
@@ -115,6 +137,57 @@ pnpm test --filter=api -- /organizations --coverage=false
 # Open the Vitest UI dashboard
 pnpm --filter=api test:ui
 ```
+
+> **Web coverage floor.** `pnpm test:web` runs with `--coverage` and enforces a
+> **low global coverage floor** (thresholds in `apps/web/vitest.config.ts`).
+> Unlike the API — which enforces a merged 90% gate on all four metrics — the web floor is
+> deliberately low: `coverage.all` counts every file under `src/**`, and the app
+> is ~98% render-heavy, untested `screens/`/`components/`, so a high global gate
+> is impractical. The floor is a **regression guard** set just below the current
+> level to prevent backsliding, and is meant to be **ratcheted up over time** as
+> the logic layers (`utils/`, `hooks/`, `stores/`, `components/Chatbot/`) gain
+> tests — raise it by adding coverage, not by bumping the number, since adding
+> untested UI lowers the global percentage. The coverage-free fast dev loop is
+> `pnpm --filter=web test:watch` (no threshold checks).
+
+---
+
+## Web unit tests (`apps/web`)
+
+The web app is tested with **Vitest** + **jsdom** + **React Testing Library**. Tests are **co-located** next to the source as `*.test.ts(x)` (unlike the API's separate `test/` tree) and picked up by `include: ["src/**/*.{test,spec}.{ts,tsx}"]` in `apps/web/vitest.config.ts`.
+
+Run them with `pnpm test:web` (Turbo builds the `@repo/*` deps first, then runs Vitest **with coverage**). Use `pnpm --filter=web test:watch` for the coverage-free fast loop. Config: `apps/web/vitest.config.ts` + `vitest.setup.ts`.
+
+### What's covered
+
+Coverage targets the **logic layers**, each at ~100%:
+
+| Layer                 | Examples                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| `utils/`              | `getApiErrorMessage`, `formatting`, the Excel exporters, `files`, `validateLineFileOriginalName` |
+| `hooks/`              | `useCarbonInventoryAccess`, `useReductionProjectAccess`, `useFuzzySearch`, `useChatbotSize`      |
+| `stores/`             | `userStore`, `sidebarStore` (Zustand)                                                            |
+| `labels/chips/`       | the enum → label/color chip mappers                                                              |
+| `components/Chatbot/` | `useChatStream`, `MessageBubble`, `ChatbotIcon`                                                  |
+| route guards          | `requireRole`                                                                                    |
+
+Render-heavy `screens/`/`components/` and the `api/**` query hooks are **deliberately deferred** — they need render/MSW scaffolding and a dedicated effort; browser E2E (Playwright) is not set up. As a result the _global_ coverage figure is low (~8% lines) even though the covered files are near-100%.
+
+### Coverage floor (ratchet)
+
+`pnpm test:web` enforces a **low global coverage floor** (thresholds in `vitest.config.ts`). Because Vitest's `coverage.all` counts every file under `src/**` (~9,900 lines) and the app is ~98% untested UI, the floor is a **regression guard, not a target**. It is set just under the current level and **ratcheted up as tests are added** — raise it by adding coverage, never by just bumping the number. Adding untested UI lowers the global percentage, so the floor keeps a little headroom below current.
+
+### Conventions & patterns
+
+- **Assert exact Spanish strings** — mirror private/user-facing copy as local constants so a copy change trips a test deliberately.
+- **Determinism** — no `Date.now()` / argless `new Date()`; use `vi.useFakeTimers()` for debounce/timeout logic and pass explicit dates to formatters.
+- **Query-backed hooks** (`useCarbonInventoryAccess`, …) — `vi.mock` the underlying TanStack Query hook (via `vi.hoisted`) and `renderHook`; no `QueryClientProvider` needed because the real `useQuery` never runs.
+- **Zustand stores** — drive via `store.getState()` / `store.setState()`; no render.
+- **Components** — React Testing Library `render` + `screen`; MUI's `useTheme()` falls back to the default theme, so no `ThemeProvider` wrapper is needed for content/role assertions.
+- **Excel exporters** — round-trip the written buffer back through a fresh `ExcelJS.Workbook().xlsx.load(...)` and assert on cells.
+- **jsdom gaps handled in `vitest.setup.ts`** — an in-memory `localStorage` polyfill (jsdom here provides `sessionStorage` but not `localStorage`); jest-dom matchers are registered there, with an ambient `src/vitest.d.ts` (`import "@testing-library/jest-dom/vitest"`) so `tsc` sees `toBeInTheDocument` etc.
+
+> **CI resolution gotcha:** always run via `pnpm test:web` (`turbo run test --filter=web`), which builds the `@repo/*` deps to `dist` first. A bare `pnpm --filter=web test` skips that build and fails to resolve `@repo/*` on a clean checkout.
 
 ---
 
@@ -281,26 +354,44 @@ Every new endpoint should have tests covering:
 
 ---
 
+## Manual Testing
+
+Some behaviour is not covered by either suite — most notably the calculator's client-side arithmetic, factor auto-resolution and display formatting, which all live in the browser. For those there is a pinned, reproducible acceptance case:
+
+| Document                                                                  | Scope                                                                                                                                               |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Manual Testing — Emission Capture](./manual-testing-emission-capture.md) | Calculator step 3: fixture inventory, exact inputs to type, expected line/subcategory/category totals, SQL cross-check, and known display artifacts |
+
+Run it after changing factor resolution, unit conversion, emission aggregation, or number formatting.
+
+---
+
 ## Vitest Configuration Reference
 
-Key settings in `apps/api/vitest.shared.ts`, shared by `vitest.config.ts` (full suite, the default), `vitest.base.config.ts` (`pnpm test:base` — the full suite **minus** the storage manifest, used by the `base` CI leg), and `vitest.storage.config.ts` (`pnpm test:storage-azure` / `pnpm test:storage-minio` — **only** the files in the storage manifest, used by the storage CI legs):
+Everything lives in `apps/api/vitest.config.ts`: a local `defineApiVitestProject` helper builds one project, and the config assembles three **projects** (`test.projects`) — `base` (the full suite **minus** the storage manifest), `storage-azure`, and `storage-minio` (**only** the storage manifest, one per provider). Coverage and the other root-only options sit once on the root `test`. One config drives both `vitest run --coverage` locally and the `--project=<leg>` legs in CI:
 
-| Setting               | Value                                                           | Reason                                                                                                 |
-| --------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `maxWorkers`          | 4                                                               | Run files in parallel; safe because each file has its own database                                     |
-| `fileParallelism`     | true                                                            | Files run concurrently across workers                                                                  |
-| `testTimeout`         | 30 000 ms                                                       | Allows for slower container I/O                                                                        |
-| `hookTimeout`         | 30 000 ms                                                       | Allows beforeAll/afterAll to complete                                                                  |
-| `teardownTimeout`     | 10 000 ms                                                       | Container shutdown grace period                                                                        |
-| `globalSetup`         | `./test/setup/globalSetup.ts`                                   | Container lifecycle; migrate + seed the template DB                                                    |
-| `setupFiles`          | `./test/setup/perFileDatabase.ts`                               | Clones a private database per test file                                                                |
-| `coverage.thresholds` | 0% in all environments (branches, functions, lines, statements) | Forced to 0 everywhere (`process.env.CI \|\| true` in `vitest.shared.ts`); see the coverage note below |
+| Setting               | Value                                                                                         | Reason                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxWorkers`          | 4                                                                                             | Run files in parallel; safe because each file has its own database                                                                     |
+| `fileParallelism`     | true                                                                                          | Files run concurrently across workers                                                                                                  |
+| `testTimeout`         | 30 000 ms                                                                                     | Allows for slower container I/O                                                                                                        |
+| `hookTimeout`         | 30 000 ms                                                                                     | Allows beforeAll/afterAll to complete                                                                                                  |
+| `teardownTimeout`     | 10 000 ms                                                                                     | Container shutdown grace period                                                                                                        |
+| `globalSetup`         | `./test/setup/globalSetup.ts`                                                                 | Container lifecycle; migrate + seed the template DB                                                                                    |
+| `setupFiles`          | `./test/setup/perFileDatabase.ts`                                                             | Clones a private database per test file                                                                                                |
+| `coverage.thresholds` | **90%** for all four metrics (branches, functions, lines, statements), declared in the config | The gate lives where it is read; `test:leg` (a single-project, partial run) overrides it to 0 on the CLI — see the coverage note below |
 
-> **Note on coverage:** the 80% thresholds are currently **disabled in every
-> environment**. `vitest.shared.ts` forces them to 0 (`process.env.CI || true`
-> always evaluates truthy), so coverage is reported but never enforced — not even
-> locally. On top of that, coverage is now **per-leg and partial**: the three legs
-> (`base`, `storage-azure`, `storage-minio`) each emit their own coverage artifact
-> and these are **not merged**, so no single report reflects the whole suite.
-> Re-enabling the 80% gate is therefore incompatible with the current setup until
-> per-leg coverage is merged into one report.
+> **Note on coverage:** the **90%** gate (all four metrics — lines, statements,
+> functions, and branches) is declared once in `vitest.config.ts`
+> (`test.coverage.thresholds`) and applies to any full run. The suite is
+> partitioned into three projects (`base`, `storage-azure`, `storage-minio`), so a
+> single project never exercises the whole codebase — a per-project threshold
+> would fail on the files it never runs. The one run that opts out is `test:leg`,
+> which runs a single `--project` and overrides the thresholds to **0** on the CLI;
+> the gate is then applied once the projects' coverage is merged. v8 merges
+> hit-counts, so a line covered by _any_ project counts as covered.
+>
+> - **Locally:** `pnpm test:api` runs all three projects in one `vitest run --coverage`, merges their coverage, and applies the gate.
+> - **In CI:** each leg emits a blob report (`--reporter=blob`); the `coverage` job merges them (`vitest run --merge-reports --coverage`) and applies the gate. No external merge script.
+>
+> See the [`coverage` job](./ci-cd.md#coverage) in the CI/CD guide.

@@ -1,4 +1,10 @@
-## ADDED Requirements
+# magnitudes-maintainer-screen Specification
+
+## Purpose
+
+Defines the admin maintainer screen at `/admin/magnitudes`: an inline-edit `StylizedDataGrid` over the magnitudes returned by `GET /api/magnitudes`, supporting inline create, rename, and soft-delete, with read-only `code` on existing rows, a hidden delete control on system magnitudes, a disabled delete control on referenced magnitudes, and a sidebar entry under the collapsible "Unidades" group. All UI text is Spanish.
+
+## Requirements
 
 ### Requirement: Magnitudes maintainer screen at `/admin/magnitudes`
 

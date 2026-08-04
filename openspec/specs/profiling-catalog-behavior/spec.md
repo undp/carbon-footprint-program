@@ -1,4 +1,10 @@
-## ADDED Requirements
+# profiling-catalog-behavior Specification
+
+## Purpose
+
+Cross-cutting behavior shared by the four profiling catalog maintainers (rubros, subrubros, actividades principales, tamaños de organización): the per-table `status` enum and partial ACTIVE-only unique indexes, cascading soft-delete over ACTIVE catalog children, restore with collision checks, the admin status filter with per-row `impactedChildren` counts, ACTIVE-only public reads, the frontend selector union that keeps DELETED values rendering, the server-authoritative block on identity edits of in-use rows, and the dedicated maintainer layout.
+
+## Requirements
 
 ### Requirement: Per-table status column and dedicated enums
 
