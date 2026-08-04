@@ -76,9 +76,9 @@
 - [x] 10.3 Pasada manual en la app con un inventario cuyo factor tenga ≥4 decimales: en paso 3, `cantidad × factor mostrado` cierra contra la columna de emisiones; el valor exacto y la cadena de cálculo se abren con teclado y con toque
 - [x] 10.4 Pasada manual de la equivalencia en los tres tramos (t, kg, g) verificando que la tarjeta del paso 5 y el caption del paso 4 muestran la misma unidad para el mismo inventario
 - [x] 10.5 Commits modulares en orden: constantes + formateador + tests → paso 3 → paso 4 → paso 5/Home → Excel → limpieza
-- [ ] 10.6 PR con título en inglés en formato Conventional Commits y descripción que mencione explícitamente que los números mostrados cambian (más precisión, nunca menos) y que no hay cambios de datos
+- [x] 10.6 PR con título en inglés en formato Conventional Commits y descripción que mencione explícitamente que los números mostrados cambian (más precisión, nunca menos) y que no hay cambios de datos
 
 ## 11. Seguimiento
 
-- [ ] 11.1 Abrir issue de datos: `OrganizationMainActivity` necesita etiqueta singular o unidad propia para que la equivalencia pueda decir "por litro producido" en vez de "/litros producidos"
-- [ ] 11.2 Registrar en el issue que la escala adaptativa quedó deliberadamente fuera de totales, rankings y transparencia, con el motivo (comparabilidad)
+- [x] 11.1 Abrir issue de datos: `OrganizationMainActivity` necesita etiqueta singular o unidad propia para que la equivalencia pueda decir "por litro producido" en vez de "/litros producidos" → https://github.com/undp/carbon-footprint-program/issues/583
+- [x] 11.2 Registrar en el issue que la escala adaptativa quedó deliberadamente fuera de totales, rankings y transparencia, con el motivo (comparabilidad)
