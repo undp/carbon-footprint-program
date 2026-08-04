@@ -113,9 +113,31 @@ handling on its own.
 > **Verify the hop count against the real deployment before setting it.** Trusting fewer hops
 > than exist leaves the shared bucket in place; trusting more lets a caller forge the header and
 > select its own bucket. The parameter is deliberately not derived from `enableFrontDoor`,
-> because the hop count is a property of the actual request path. Measuring it on the demo is
-> tracked in [issue #571](https://github.com/undp/carbon-footprint-program/issues/571); the
-> values above are expectations, not measurements.
+> because the hop count is a property of the actual request path.
+
+**Measured on plain App Service** (no Front Door), from two clients in different locations, via
+[issue #571](https://github.com/undp/carbon-footprint-program/issues/571). Client addresses are
+shown in the documentation range; the link-local front-end address is verbatim:
+
+| What the container sees  | Value                                        |
+| ------------------------ | -------------------------------------------- |
+| `x-forwarded-for`        | `203.0.113.9:61784` — one entry, with a port |
+| `x-client-ip`            | `203.0.113.9` — already port-free            |
+| socket peer              | `169.254.129.4` — link-local, the front end  |
+| `request.ips`            | `["169.254.129.4", "203.0.113.9:61784"]`     |
+| `request.ip` (trust `1`) | `203.0.113.9:61784`                          |
+| rate-limit key           | `203.0.113.9`                                |
+
+Two entries in the chain means **one hop**, so `1` is correct and evidenced for plain App Service
+— including the demo, confirmed to run without Front Door. `2` would walk past the front end into
+the caller-controlled part of the header. No `X-Azure-*` headers are present without Front Door,
+which is also how you tell the topology apart. The socket peer being identical for both clients is
+the shared-bucket failure itself: with `TRUST_PROXY` unset, every caller keys on that one address.
+
+This is App Service platform behaviour rather than a property of one instance, so it transfers
+between deployments with the same topology — but only that far. Adding Front Door, a proxy in
+front of the API, or reaching the API through another service changes the chain and requires
+re-measuring rather than incrementing.
 
 > **A hop count is only safe while the origin cannot be reached by a shorter path.** It assumes
 > every request traverses the same number of proxies. If the backend is _also_ reachable
@@ -207,6 +229,25 @@ malformed value — the API refuses to boot on one, so deploying it yields a cra
 `TRUST_PROXY is not configured` at boot, and the rate limit should bucket per client. Setting a
 _wrong_ value silences the warning just as well as a right one, so the warning's absence is not
 by itself evidence the topology is correct.
+
+Bucketing can be checked in two requests, without exhausting anything, by reading the counter the
+limiter already returns:
+
+```bash
+# Same client, twice. `remaining` MUST decrement.
+curl -sD- -o/dev/null https://<api-host>/health | grep -i x-ratelimit-remaining
+curl -sD- -o/dev/null https://<api-host>/health | grep -i x-ratelimit-remaining
+```
+
+Each `curl` is a new TCP connection with a new ephemeral port. If `remaining` decrements, one
+caller maps to one bucket and the port is being normalized away. If it stays put, every connection
+is minting its own bucket — the limit is not merely shared, it is absent. Running the same pair
+from a second location should show the counter starting fresh, since a different client is a
+different bucket.
+
+This is worth doing per deployment: it exercises the value that deployment actually received,
+which the boot warning cannot tell you, and it is the check that distinguishes a correct hop count
+from a plausible wrong one.
 
 ---
 
