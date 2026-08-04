@@ -134,6 +134,32 @@ jobs:
       - run: pnpm type-check
         if: needs.changes.outputs.code == 'true'
 
+  # Fast, pure unit tests for shared packages (currently @repo/storage) — no
+  # database or testcontainers, so they stay out of the heavy `test` matrix.
+  # Gated on `code` like the other heavy jobs so docs-only PRs no-op while still
+  # reporting this check. `test:packages` runs via turbo, which builds the
+  # workspace deps (`^build`) the tests import at runtime.
+  package-test:
+    needs: [check-draft, changes]
+    name: Package Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: needs.changes.outputs.code == 'true'
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        if: needs.changes.outputs.code == 'true'
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: needs.changes.outputs.code == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: needs.changes.outputs.code == 'true'
+      - run: pnpm test:packages
+        if: needs.changes.outputs.code == 'true'
+
   format:
     needs: check-draft
     name: Format Check

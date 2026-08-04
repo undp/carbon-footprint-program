@@ -43,13 +43,13 @@ Each stack replicates the services the running app actually depends on today —
 | Azure (Bicep reference)                | AWS (`aws/`)                                | GCP (`gcp/`)                                          |
 | -------------------------------------- | ------------------------------------------- | ----------------------------------------------------- |
 | PostgreSQL Flexible Server             | RDS for PostgreSQL                          | Cloud SQL for PostgreSQL                              |
-| Blob Storage (`files` container)       | S3 bucket + IAM access key                  | GCS bucket + service-account HMAC key                 |
+| Blob Storage (`files` container)       | S3 bucket (keyless, ECS task role)          | GCS bucket + service-account HMAC key                 |
 | App Service (Linux container, `:8080`) | ECS Fargate service + ALB                   | Cloud Run service                                     |
 | Static Web App (React SPA)             | S3 bucket + CloudFront (OAC)                | GCS bucket + HTTPS LB + Cloud CDN                     |
 | Front Door (CDN + WAF, optional)       | CloudFront + optional AWS WAF               | Cloud CDN + optional Cloud Armor                      |
 | Container Registry (ACR)               | Elastic Container Registry (ECR)            | Artifact Registry                                     |
 | Key Vault                              | Secrets Manager                             | Secret Manager                                        |
-| Managed Identity → resource roles      | IAM roles (ECS task role) + IAM user        | Service accounts + IAM                                |
+| Managed Identity → resource roles      | IAM roles (ECS task/execution roles)        | Service accounts + IAM                                |
 | Entra ID (OIDC, optional)              | bring-your-own OIDC (Cognito is one option) | bring-your-own OIDC (Identity Platform is one option) |
 | Custom domain + managed TLS            | ACM certificate                             | Google-managed SSL certificate                        |
 

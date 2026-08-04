@@ -63,7 +63,7 @@ Fill in every placeholder — the template has no working defaults, and `docker-
 - **`DATABASE_URL`**: use the **application user**. If the password has special characters (`@ : / ? # & % $` …) it must be URL-encoded: `node -e "console.log(encodeURIComponent(process.argv[1]))" 'p@ss#word'`.
 - **`ALLOWED_ORIGIN` / `VITE_FRONT_BASE_URL`**: the exact browser origin of the web app (scheme + host + port, no trailing slash) — a mismatch shows up as CORS errors.
 - **`VITE_API_BASE_URL`**: the **host-exposed** API URL (uses `API_PORT`), not the container-internal port.
-- **`STORAGE_PROVIDER`**: `azure_blob_storage` (default) or `minio`. Fill only the matching storage block in the env file — the API refuses to boot if the selected provider's required vars are missing (`AZURE_STORAGE_ACCOUNT_NAME` for Azure; `MINIO_ENDPOINT`/`MINIO_ACCESS_KEY`/`MINIO_SECRET_KEY` for MinIO).
+- **`STORAGE_PROVIDER`**: `azure_blob_storage` (default) or `minio`. Fill only the matching storage block in the env file — the API refuses to boot if the selected provider's required vars are missing (`AZURE_STORAGE_ACCOUNT_NAME` for Azure; `MINIO_ENDPOINT` for MinIO). `MINIO_ACCESS_KEY`/`MINIO_SECRET_KEY` are **both-or-neither**: set both for MinIO, on-prem S3 or Google Cloud Storage (HMAC keys), or leave **both** unset on AWS to run **keyless** — the SDK default credential chain then supplies short-lived credentials from the ECS/EKS task role or EC2 instance profile. Setting exactly one aborts boot, and so does keyless mode with no ambient AWS credentials to resolve. See [File Storage](../infrastructure/FileStorage.md#minio-setup).
 - Shell/direnv exports silently override `--env-file` values — see [the precedence troubleshooting](./docker-compose.md#compose-uses-the-wrong-value-for-a-variable-shell--direnv-overrides---env-file).
 
 ## Connectivity check (before first boot)
@@ -99,9 +99,11 @@ export AZURE_STORAGE_CLIENT_SECRET=<sp-secret>
 
 # When STORAGE_PROVIDER=minio (instead of the Azure block above):
 # export MINIO_ENDPOINT=http://<minio-host>:9000
+# export MINIO_BUCKET=files
+# Both-or-neither. Required for MinIO / on-prem S3 / GCS (HMAC keys); omit BOTH
+# on AWS to run keyless off the ECS/EKS task role or EC2 instance profile.
 # export MINIO_ACCESS_KEY=<access-key>
 # export MINIO_SECRET_KEY=<secret-key>
-# export MINIO_BUCKET=files
 
 pnpm install
 pnpm --filter @repo/database validate:version   # preflight: connectivity + PostgreSQL >= 15

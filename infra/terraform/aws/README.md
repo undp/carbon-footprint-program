@@ -12,9 +12,9 @@ it, adjust the variables, and grow it into your production stack.
 - **ECS Fargate + ALB** — the `apps/api` container (port 8080, `GET /health`),
   behind an Application Load Balancer.
 - **S3 + CloudFront** — the static SPA bucket fronted by a CDN, plus a second S3
-  bucket for user file uploads (accessed by the API with an IAM access key).
+  bucket for user file uploads (accessed by the API keyless, via the ECS task role).
 - **ECR** — registry for the API image.
-- **Secrets Manager** — `DATABASE_URL` and the S3 access key/secret.
+- **Secrets Manager** — `DATABASE_URL` (object storage is keyless, so there is no S3 key to store).
 - **Optional WAFv2** — managed common rules + a rate limit on CloudFront.
 
 ## Azure → AWS mapping
@@ -23,13 +23,13 @@ it, adjust the variables, and grow it into your production stack.
 | -------------------- | ----------------------------------------------------- | --------------------------------------- |
 | API compute          | App Service (`appService.bicep`)                      | ECS Fargate service + ALB (`api.tf`)    |
 | Database             | PostgreSQL Flexible Server (`postgres.bicep`)         | RDS for PostgreSQL (`database.tf`)      |
-| File storage         | Storage Account + `files` container (`storage.bicep`) | S3 bucket + IAM user key (`storage.tf`) |
+| File storage         | Storage Account + `files` container (`storage.bicep`) | S3 bucket (`storage.tf`)                |
 | Web hosting          | Static Web App (`staticWebApp.bicep`)                 | S3 + CloudFront (`frontend.tf`)         |
 | CDN / WAF            | Front Door + WAF (`frontDoor.bicep`)                  | CloudFront + WAFv2 (`frontend.tf`)      |
 | Container registry   | ACR (`acr.bicep`)                                     | ECR (`registry.tf`)                     |
 | Secrets              | Key Vault (`keyVault.bicep`)                          | Secrets Manager (`secrets.tf`)          |
 | Network isolation    | Platform + PG firewall rules                          | VPC + security groups (`network.tf`)    |
-| Identity for storage | Managed Identity (RBAC)                               | Static IAM access key (see note below)  |
+| Identity for storage | Managed Identity (RBAC)                               | ECS task role (keyless, see note below) |
 
 ## Prerequisites
 
@@ -168,16 +168,22 @@ Full walkthrough:
      CloudFront distribution, then point `custom_domain_web` DNS at
      `cloudfront_domain_name`.
 
-## Storage: the static-key tradeoff
+## Storage: keyless (ECS task role)
 
 The API's S3 adapter
 ([`packages/storage/src/adapters/minioAdapter.ts`](../../../packages/storage/src/adapters/minioAdapter.ts))
-builds its S3 client from an explicit access key + secret — it does **not** use
-the AWS default credential chain, so it cannot use the ECS task role. This stack
-therefore creates a dedicated least-privilege IAM user + access key (scoped to
-the files bucket only) and injects it via Secrets Manager as `MINIO_ACCESS_KEY`
-/ `MINIO_SECRET_KEY`. Moving to keyless task-role auth would require an
-**app-code change** in the adapter and is out of scope for this reference.
+omits explicit credentials when `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` are
+unset, so the AWS SDK v3 **default credential chain** picks up the **ECS task
+role** automatically. This stack therefore grants a least-privilege S3 policy
+(scoped to the files bucket only) directly to the task role — **no IAM user, no
+long-lived access key, no Secrets Manager entry** for storage. There is nothing
+to rotate or leak, and the task carries no S3 credential in its config.
+
+> **AWS only.** This keyless path relies on the AWS default credential chain.
+> Google Cloud Storage's S3-interoperability API authenticates only with HMAC
+> keys, so the GCP stack still provisions and injects an HMAC key pair (see
+> `infra/terraform/gcp/`). Keyless there would need a native GCS adapter
+> (Workload Identity), which is out of scope.
 
 To keep the files bucket off the public internet, the app supports a **storage
 relay**: set `MINIO_RELAY_ENABLED=true` and `api_origin` so the API proxies
@@ -185,6 +191,42 @@ presigned URLs under `<API_ORIGIN>/api/storage` (see
 [`docs/infrastructure/FileStorage.md`](../../../docs/infrastructure/FileStorage.md)).
 This reference exposes S3 directly via presigned URLs (the historical default)
 and leaves the relay off.
+
+### Migrating from the static-key revision
+
+An earlier revision of this stack provisioned a dedicated `aws_iam_user` plus an
+`aws_iam_access_key` and injected the pair through two Secrets Manager entries.
+If you applied that revision, **`terraform apply` on this one is destructive**.
+Read this before applying:
+
+- `aws_iam_user.app_storage` and `aws_iam_access_key.app_storage` are
+  **destroyed**. Any other consumer of that key (a script, a CI job, a second
+  environment) loses access — check before applying.
+- The two MinIO Secrets Manager secrets are **deleted with
+  `recovery_window_in_days = 0`**: immediate and **unrecoverable**. Copy out any
+  value you still need first.
+- The key material also disappears from **Terraform state**, which is part of
+  the point — but it means the state file's history (if versioned remotely) is
+  the last place it survives.
+- There is a **transient failure window**. Terraform deletes the access key and
+  registers the new task definition immediately, but ECS replaces tasks
+  gradually. Until the rollout finishes, old tasks still hold the now-deleted
+  key in their environment and get `403 InvalidAccessKeyId` from S3 — **uploads
+  fail for the duration**.
+
+For a clean cutover, force the replacement instead of waiting for it:
+
+```bash
+terraform apply
+aws ecs update-service \
+  --cluster "<name_prefix>-cluster" \
+  --service "<name_prefix>-api" \
+  --force-new-deployment
+```
+
+Migrating in the other direction (back to static keys) needs no Terraform
+change: set `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` on the task and the adapter
+signs with them again.
 
 ## What this stack does NOT include
 

@@ -58,14 +58,6 @@ output "database_url_secret_arn" {
   value       = aws_secretsmanager_secret.database_url.arn
 }
 
-output "minio_key_secret_arns" {
-  description = "Secrets Manager ARNs for the S3 access key id and secret key used by the API storage adapter."
-  value = {
-    access_key = aws_secretsmanager_secret.minio_access_key.arn
-    secret_key = aws_secretsmanager_secret.minio_secret_key.arn
-  }
-}
-
 output "web_acm_validation_records" {
   description = "DNS validation records for the CloudFront ACM certificate (empty unless custom_domain_web is set). Create these CNAMEs, wait for the cert to reach ISSUED, then apply again (two-phase apply)."
   value       = var.custom_domain_web != "" ? aws_acm_certificate.web[0].domain_validation_options : []

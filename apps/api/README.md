@@ -384,10 +384,10 @@ For end-to-end setup, see:
 which object-storage backend to use, and each backend has its own provider-specific
 variables:
 
-| `STORAGE_PROVIDER`   | Required variables                                                                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `azure_blob_storage` | `AZURE_STORAGE_ACCOUNT_NAME` (container defaults to `files`; optional Service Principal via `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET`) |
-| `minio`              | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` (bucket defaults to `files`)                                                                                              |
+| `STORAGE_PROVIDER`   | Required variables                                                                                                                                                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `azure_blob_storage` | `AZURE_STORAGE_ACCOUNT_NAME` (container defaults to `files`; optional Service Principal via `AZURE_STORAGE_TENANT_ID` / `AZURE_STORAGE_CLIENT_ID` / `AZURE_STORAGE_CLIENT_SECRET`)                                                                                                                      |
+| `minio`              | `MINIO_ENDPOINT` (bucket defaults to `files`). `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` are **both-or-neither**: set both for MinIO, on-prem S3 or GCS HMAC keys; omit both on AWS for keyless auth via the SDK default credential chain (task role / instance profile). Setting exactly one aborts boot |
 
 For details, see [`../../docs/infrastructure/FileStorage.md`](../../docs/infrastructure/FileStorage.md).
 
