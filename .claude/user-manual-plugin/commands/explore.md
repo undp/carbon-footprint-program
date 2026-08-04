@@ -45,9 +45,15 @@ con el código para segmentar mejor los módulos.
 con: nombre, slug, propósito, rutas, pantallas/vistas, acciones principales, entidades,
 estados/badges, referencias de código (paths), dudas abiertas y evidencia (código / navegación /
 ambas). Actualiza `<DATA_DIR>/modules/index.json` como array de
-`{slug, titulo, fuente (codigo|playwright|ambas), estado (explorado|pendiente), fecha}`.
+`{slug, titulo, fuente (codigo|playwright|ambas), estado (explorado|verificado|pendiente|obsoleto), fecha}`.
+Esta exploración solo escribe `explorado` o `pendiente`: `verificado` lo pone
+`/user-manual:review` cuando contrasta la ficha contra el código, y `obsoleto`
+`/user-manual:explore-update`.
 **Fusiona** con los módulos previos (actualiza por `slug`, agrega nuevos); no borres módulos
-existentes salvo petición explícita del usuario.
+existentes salvo petición explícita del usuario. Si la ficha ya existe, no la sobreescribas a
+ciegas: **preserva** las notas manuales y lo que haya escrito `/user-manual:review` (secciones
+corregidas, dudas cerradas con evidencia) salvo que esta exploración encuentre otra cosa en el
+código — esa información viene de haberse verificado y no se recupera re-explorando.
 
 **Paso 6 — Degradación.** Si el MCP de Playwright no está disponible, continúa **solo con código**
 y avísalo. El branding **no** es prerrequisito: si falta (`<DATA_DIR>/branding/tokens.json` no

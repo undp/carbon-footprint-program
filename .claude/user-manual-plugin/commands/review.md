@@ -151,13 +151,39 @@ código real del módulo y aplica los hallazgos que se verifiquen. Sigue estos p
    capturas. Esto es mecánico y no debería depender de que alguien se acuerde: una captura
    huérfana queda permanente en cada clon y vuelve indistinguible lo vivo de lo abandonado.
 
-9. **PDF.** Si se aplicaron cambios, usa AskUserQuestion para ofrecer regenerarlo:
+9. **Escribe de vuelta en la ficha del módulo.** Corre este paso **siempre**, incluso si en el
+   paso 6 el usuario eligió «solo dejar el informe»: lo que se aprendió no depende de que se haya
+   editado el HTML. Actualiza `<DATA_DIR>/modules/<slug>.md` con lo que esta revisión estableció
+   **contra el código**:
+   - **Cierra las dudas que quedaron respondidas**: sácalas de «Dudas abiertas» y escribe la
+     respuesta en la sección que corresponda, con su evidencia `archivo:línea`. Agrega las dudas
+     **nuevas** que la revisión abrió.
+   - **Corrige y completa** rutas, pantallas, acciones, entidades y estados donde la revisión
+     encontró otra cosa, y suma lo que el manual necesitó y la ficha no tenía: validaciones, límites
+     de tamaño y formato, semántica de guardado, diferencias entre modos, reglas de negocio visibles
+     en la UI.
+   - En **Evidencia** anota la pasada, con fecha ISO y commit corto:
+     `- **revisión:** capítulo contrastado contra el código el <fecha> (commit <corto>)`.
+     Deja `estado: verificado` en la ficha y refresca `estado` y `fecha` **solo** de este slug en
+     `<DATA_DIR>/modules/index.json`.
+   - No borres notas manuales ni dudas que sigan abiertas, y **no escribas nada que no hayas
+     verificado en el paso 5**: la ficha alimenta la próxima generación, así que un error aquí se
+     propaga a los manuales que vengan.
 
-   ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
-     "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
-   ```
+   Sin este paso el pipeline es de una vía —los hallazgos entran al HTML y mueren ahí— y el próximo
+   `/user-manual:create` o `/user-manual:update` arranca de la misma ficha que produjo los errores:
+   las preguntas ya resueltas se vuelven a preguntar y la calidad queda siendo propiedad de cada
+   corrida en vez del sistema. Con él, las fichas acumulan precisión y cada capítulo futuro parte de
+   mejor piso.
 
-10. **Resumen final**: hallazgos aplicados, hallazgos descartados con su motivo, láminas
-    modificadas, lo que salió de la higiene de la carpeta y vacíos que quedaron abiertos (si el
-    usuario eligió solo el informe).
+10. **PDF.** Si se aplicaron cambios, usa AskUserQuestion para ofrecer regenerarlo:
+
+    ```bash
+    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
+      "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
+    ```
+
+11. **Resumen final**: hallazgos aplicados, hallazgos descartados con su motivo, láminas
+    modificadas, qué se escribió de vuelta en la ficha (dudas cerradas, secciones corregidas), lo que
+    salió de la higiene de la carpeta y vacíos que quedaron abiertos (si el usuario eligió solo el
+    informe).
