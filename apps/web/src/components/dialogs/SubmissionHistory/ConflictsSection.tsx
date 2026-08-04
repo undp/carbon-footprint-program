@@ -1,12 +1,14 @@
 import { FC, useMemo } from "react";
 import { alpha, Box, Stack, Typography, useTheme } from "@mui/material";
 import { WarningAmberOutlined } from "@mui/icons-material";
+import { SubmissionStatus } from "@repo/types";
 import { useGetSubmissionWarnings } from "@/api/query/submissions/useGetSubmissionWarnings";
 import { parseCollisionWarnings } from "./collisionWarnings";
 import { ConflictRow } from "./ConflictRow";
 
 type Props = {
   submissionId: string | null | undefined;
+  submissionStatus: SubmissionStatus | null;
   isOrganizationAccreditation: boolean;
   /**
    * Whether the viewer may read the admin-only warnings endpoint. Required, and
@@ -16,6 +18,25 @@ type Props = {
   canViewWarnings: boolean;
 };
 
+const COLLISION_LEAD =
+  "La identidad de esta postulación coincide con la de otras organizaciones.";
+
+/**
+ * The section's subtitle, which depends on whether the submission can still be
+ * acted on. Only a `PENDING` submission can be approved, rejected or returned
+ * with observations — the API's status transition filters on `PENDING` — so for
+ * any other status the copy must not offer an approval that is no longer
+ * available: an already-approved postulation keeps showing its conflicts, but as
+ * a record of what was approved rather than as input to a pending decision.
+ *
+ * The exact status is not named here; the `CurrentStatusBanner` right above the
+ * section already carries it.
+ */
+const subtitleFor = (status: SubmissionStatus | null): string =>
+  status === SubmissionStatus.PENDING
+    ? `${COLLISION_LEAD} Esta información es solo referencial: puedes aprobar la solicitud de todas formas.`
+    : `${COLLISION_LEAD} Esta postulación ya no está pendiente de revisión, así que la coincidencia queda solo como antecedente.`;
+
 /**
  * "Conflictos detectados" — surfaces identity-collision warnings for an
  * organization-accreditation submission. Renders nothing unless the viewer may
@@ -23,11 +44,12 @@ type Props = {
  * warning exists.
  *
  * The list is flat and numbered ("Conflicto 1", "Conflicto 2") so a reviewer can
- * point at one out loud. It keeps the API's order, which puts collisions against
- * an approved submission before collisions against a pending one.
+ * point at one out loud. It keeps the API's order: collisions against an approved
+ * submission first, then pending ones, then requests returned with observations.
  */
 export const ConflictsSection: FC<Props> = ({
   submissionId,
+  submissionStatus,
   isOrganizationAccreditation,
   canViewWarnings,
 }) => {
@@ -78,9 +100,7 @@ export const ConflictsSection: FC<Props> = ({
           color: theme.palette.text.secondary,
         }}
       >
-        La identidad de esta postulación coincide con la de otras
-        organizaciones. Esta información es solo referencial: puedes aprobar la
-        solicitud de todas formas.
+        {subtitleFor(submissionStatus)}
       </Typography>
 
       <Stack spacing={1}>

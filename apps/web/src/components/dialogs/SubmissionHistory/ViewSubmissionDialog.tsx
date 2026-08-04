@@ -238,6 +238,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
 
                   <ConflictsSection
                     submissionId={submission.submissionId}
+                    submissionStatus={submission.status}
                     isOrganizationAccreditation={isOrganizationAccreditation}
                     canViewWarnings={!!isAdmin}
                   />
