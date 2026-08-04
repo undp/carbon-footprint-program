@@ -5,9 +5,10 @@ When an admin reviews an organization accreditation submission, there is no way 
 ## What Changes
 
 - **New generic admin endpoint** `GET /admin/submissions/:id/warnings` returning a list of warnings for a submission. Computation dispatches by `submission.type`; the first (and currently only) implementation covers `ORGANIZATION_ACCREDITATION`. Lazy: fetched when the review dialog opens.
-- **Identity-collision detection** (field-level, exact, case-insensitive/normalized): compares the applicant submission's `legalName`, `tradeName`, and `taxId` against the **same field** of other organizations (`organizationId` differs), emitting one warning per conflicting organization. Two collision states:
+- **Identity-collision detection** (field-level, exact, case-insensitive/normalized): compares the applicant submission's `legalName`, `tradeName`, and `taxId` against the **same field** of other organizations (`organizationId` differs), emitting one warning per conflicting organization. Three collision states, covering everything still in the accreditation funnel (a rejected request is not a candidate):
   - `APPROVED` — collision against an accredited organization, compared against that org's **approved snapshot** (not the summary view's displayed/pending row).
   - `PENDING` — collision against another organization's pending submission.
+  - `REVIEWED` — collision against another organization's request returned with observations, while that round is still open (it has not been re-submitted or approved since). The organization is expected to correct and re-submit it, so the identity is about to come back.
   - Sedes of the same real company (same field values, different org) are surfaced as awareness signals by design, not suppressed.
 - **Warning payload exposes each conflicting org's full identity tuple** (`taxId`, `legalName`, `tradeName`) plus which fields collide and the collision state — surfacing the approved snapshot, which no screen exposes today.
 - **Generic `Warning` shape** — an intentionally generic bag `{ type, metadata }` so future submission types can add their own warning kinds without changing the contract. Structure only: the Spanish summary is composed by the web client from `metadata`, keeping the wording (and `VOCAB`) in one place.

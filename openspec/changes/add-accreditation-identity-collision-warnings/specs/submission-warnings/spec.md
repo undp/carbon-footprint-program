@@ -39,10 +39,13 @@ The warning SHALL carry structure only and SHALL NOT carry user-facing prose: th
 
 For a submission of type `ORGANIZATION_ACCREDITATION`, the system SHALL detect identity collisions between the applicant submission's organization data and other organizations, comparing **field to same field** — `legalName` vs `legalName`, `tradeName` vs `tradeName`, and `taxId` vs `taxId` — using exact, case-insensitive matching over values that are trimmed when written. A collision SHALL only be reported against a **different** organization (`organizationId` differs from the applicant's). The applicant's own organization (including its other data versions) SHALL be excluded. Each collision SHALL produce a warning of type `ORGANIZATION_IDENTITY_COLLISION`; a single organization MAY produce more than one warning when it collides in more than one state (its approved snapshot and a pending edit both match) — such warnings SHALL NOT be merged.
 
-Within a collision state, the comparison SHALL use the organization's **current** identity in that state, and each state SHALL contribute at most one warning per organization. A warning's colliding fields and identity tuple SHALL come from that one snapshot, so that each reported colliding field holds equal values on both sides; colliding fields SHALL NOT be combined across snapshots. Superseded snapshots SHALL NOT be compared: an organization accumulates approved snapshots (approval does not mark the previous one outdated) and only the newest is its identity, so a collision that exists only against an older snapshot SHALL NOT be reported. Two collision states SHALL be distinguished:
+Within a collision state, the comparison SHALL use the organization's **current** identity in that state, and each state SHALL contribute at most one warning per organization. A warning's colliding fields and identity tuple SHALL come from that one snapshot, so that each reported colliding field holds equal values on both sides; colliding fields SHALL NOT be combined across snapshots. Superseded snapshots SHALL NOT be compared: an organization accumulates snapshots (neither approval nor a returned review marks the previous one outdated) and only the newest is its identity in a state, so a collision that exists only against an older snapshot SHALL NOT be reported. Three collision states SHALL be distinguished:
 
 - `APPROVED` — the conflicting organization is accredited; the comparison SHALL use that organization's **newest approved** organization-data snapshot (the most recent one linked to an `APPROVED`/`APPROVED_AUTOMATICALLY` submission), NOT the summary view's displayed/pending row.
 - `PENDING` — the conflicting organization has a pending submission; the comparison SHALL use that pending organization data.
+- `REVIEWED` — the conflicting organization has a request that was returned with observations and whose round is still **open**; the comparison SHALL use that organization's newest such snapshot. A returned request remains in the funnel — the organization is expected to correct it and re-submit — so it SHALL be reported even though that snapshot cannot itself be approved. A round SHALL be treated as open only while the returned snapshot is still the organization's latest snapshot among those linked to an approved, pending or returned submission; once the organization re-submits (which clones the returned snapshot under a new pending submission) or is approved, the round SHALL be treated as closed and the returned snapshot SHALL NOT be reported, so the same identity is never announced twice under two states. Having an approved snapshot SHALL NOT by itself close a round: an inscribed organization whose edit was returned with observations SHALL still be reported, because its approved snapshot is older.
+
+A submission that was **rejected** SHALL NOT be a collision candidate in any state: it is out of the funnel and cannot be approved.
 
 Collisions arising from multiple branches (sedes) of the same real company SHALL be reported as awareness signals, not suppressed.
 
@@ -96,6 +99,31 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 - **WHEN** a conflicting organization's approved snapshot AND its pending edit both match the applicant
 - **THEN** the endpoint SHALL return two separate warnings for that organization — one with `collisionState = APPROVED` and one with `collisionState = PENDING`
 
+#### Scenario: Collision with a request returned with observations
+
+- **WHEN** the applicant's identity matches a different organization's request that was returned with observations and not superseded
+- **THEN** the endpoint SHALL return a warning with `collisionState = REVIEWED`
+
+#### Scenario: Returned request already re-submitted
+
+- **WHEN** a conflicting organization's returned snapshot has since been re-submitted (a newer snapshot of the same organization is linked to a pending submission)
+- **THEN** the endpoint SHALL report only the pending collision and SHALL NOT also report the returned one
+
+#### Scenario: Returned request since approved
+
+- **WHEN** a conflicting organization's returned snapshot has since been superseded by an approved one
+- **THEN** the endpoint SHALL report only the approved collision and SHALL NOT also report the returned one
+
+#### Scenario: Inscribed organization whose edit was returned
+
+- **WHEN** an inscribed organization's edit was returned with observations, that returned snapshot collides with the applicant, and it is the organization's latest snapshot
+- **THEN** the endpoint SHALL return a warning with `collisionState = REVIEWED` and `organizationStatus = ACCREDITED`
+
+#### Scenario: Rejected submission is not a candidate
+
+- **WHEN** the applicant's identity matches a different organization's snapshot whose submission was rejected
+- **THEN** the endpoint SHALL return no warning for that organization
+
 #### Scenario: Organization with two approved snapshots
 
 - **WHEN** an organization holds two `ACTIVE` approved snapshots that collide on different fields
@@ -118,7 +146,7 @@ Collisions arising from multiple branches (sedes) of the same real company SHALL
 
 ### Requirement: Collision warning payload and ordering
 
-An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), that organization's own standing (`organizationStatus`, one of `ACCREDITED` / `NOT_ACCREDITED` / `BLOCKED`), the `collisionState` (`APPROVED` or `PENDING`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review and the applicant's own organization standing (`applicant.organizationStatus`). The returned warnings SHALL be ordered with `APPROVED` collisions before `PENDING` collisions; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
+An `ORGANIZATION_IDENTITY_COLLISION` warning's `metadata` SHALL include the conflicting organization's identifier (`organizationId`), its full identity tuple (`taxId`, `legalName`, `tradeName`), that organization's own standing (`organizationStatus`, one of `ACCREDITED` / `NOT_ACCREDITED` / `BLOCKED`), the `collisionState` (`APPROVED`, `PENDING` or `REVIEWED`), `collisionFields` (the list of fields that matched), and the `applicant` identity tuple that was actually compared plus the status of the submission under review and the applicant's own organization standing (`applicant.organizationStatus`). The returned warnings SHALL be ordered `APPROVED`, then `PENDING`, then `REVIEWED`; within a state, order SHALL be deterministic across requests. This payload SHALL make the conflicting organization's approved snapshot values available to the client, which no other endpoint exposes today.
 
 `collisionState` and `organizationStatus` SHALL be treated as independent facts: the first is the status of the submission whose snapshot matched, the second is the standing of the organization behind it. An organization's standing SHALL be read from the standing the summary view materializes, never inferred from the collision state: a BLOCKED organization keeps its approved snapshot and therefore collides through the approved branch, so it SHALL be reported as blocked rather than as accredited. A `PENDING` collision MAY come either from a first-time applicant (not accredited) or from an already-inscribed organization editing its data, so no client SHALL infer one from the other. The same independence SHALL hold for the applicant: the submission under review is `PENDING` while its organization MAY already be inscribed, which is why the payload reports the applicant's standing explicitly instead of letting the client derive it.
 
@@ -146,19 +174,26 @@ Carrying `applicant` in the payload SHALL be the only source the client uses for
 
 #### Scenario: Accredited collisions ordered first
 
-- **WHEN** the endpoint returns both `APPROVED` and `PENDING` collision warnings
-- **THEN** all `APPROVED` warnings SHALL appear before any `PENDING` warning
+- **WHEN** the endpoint returns collision warnings in more than one state
+- **THEN** all `APPROVED` warnings SHALL appear before any `PENDING` warning, and all `PENDING` warnings before any `REVIEWED` warning
 
 ### Requirement: Inline conflict presentation in the review dialog
 
-When an admin opens the accreditation review dialog for a submission that has identity-collision warnings, the web application SHALL display a dedicated "Conflictos detectados" section, shown only for organization-accreditation submissions and only when at least one warning is present. The section's subtitle SHALL state explicitly that the information is referential and that the request can be approved anyway. Warnings SHALL be listed flat in the order the endpoint returned them and numbered sequentially ("Conflicto 1", "Conflicto 2") so a reviewer can refer to one unambiguously. Each conflicting organization SHALL be shown as a collapsed row carrying its position only ("Conflicto N") and expanding to a side-by-side comparison, which is the single surface where every fact about the conflict is read. The section SHALL NOT navigate the admin away from the dialog to resolve the conflict. All section text SHALL be in Spanish.
+When an admin opens the accreditation review dialog for a submission that has identity-collision warnings, the web application SHALL display a dedicated "Conflictos detectados" section, shown only for organization-accreditation submissions and only when at least one warning is present. The section SHALL be shown regardless of the submission's status, so an already-resolved postulation keeps showing the conflicts it was decided against.
+
+The section's subtitle SHALL depend on whether the submission can still be acted on. While the submission is `PENDING` it SHALL state explicitly that the information is referential and that the request can be approved anyway. For any other status it SHALL NOT offer an approval that is no longer available (only a `PENDING` submission can be approved, rejected or returned) and SHALL instead present the coincidence as a record. The subtitle SHALL NOT name the submission's status, which the status banner above the section already carries. Warnings SHALL be listed flat in the order the endpoint returned them and numbered sequentially ("Conflicto 1", "Conflicto 2") so a reviewer can refer to one unambiguously. Each conflicting organization SHALL be shown as a collapsed row carrying its position only ("Conflicto N") and expanding to a side-by-side comparison, which is the single surface where every fact about the conflict is read. The section SHALL NOT navigate the admin away from the dialog to resolve the conflict. All section text SHALL be in Spanish.
 
 The comparison SHALL report the standing of each **organization** (inscribed / not inscribed) and the status of each side's **submission** as two separate rows, never conflated into a single value, and the organization row SHALL reuse the app-wide organization status chip so the same standing renders the same way here as in any other screen.
 
 #### Scenario: Conflicts section shown when warnings exist
 
-- **WHEN** the admin opens the review dialog of an organization-accreditation submission that has one or more collision warnings
+- **WHEN** the admin opens the review dialog of a `PENDING` organization-accreditation submission that has one or more collision warnings
 - **THEN** a "Conflictos detectados" section SHALL be displayed, with one numbered collapsible per conflicting organization and a subtitle stating that approval is still possible
+
+#### Scenario: Conflicts of an already-resolved postulation
+
+- **WHEN** the admin opens the review dialog of a submission that is no longer `PENDING` (e.g. already approved) and that has collision warnings
+- **THEN** the section SHALL still be displayed with the same conflicts, and its subtitle SHALL present them as a record instead of offering to approve the request
 
 #### Scenario: No section when there are no warnings
 

@@ -46,7 +46,14 @@
 - [x] 5.4 API integration tests for the write contract (`createOrganization`): every free-text field stored trimmed; whitespace-only `legalName` rejected as empty
 - [x] 5.5 API integration regression tests for the current-snapshot rule: an org with two `ACTIVE` approved snapshots is compared only against the newest (its tuple and its fields, no union); a collision that exists only against a superseded snapshot returns nothing; every reported `collisionField` holds equal values on both sides
 
-## 6. Finalize
+## 6. Review follow-ups
 
-- [x] 6.1 Run `pnpm format && pnpm lint && pnpm type-check`
-- [ ] 6.2 Update any affected docs; open PR (English title/description per convention), UI strings in Spanish
+- [x] 6.1 Add `REVIEWED` as a third collision state (`CollisionStateSchema`, `REVIEWED_THROUGH`): a request returned with observations is still in the funnel, so a pending postulation must be able to collide with it. Report only the organization's newest returned snapshot, and only while the round is OPEN — i.e. it is still the org's latest snapshot among approved/pending/returned ones — so a re-submission (a clone carrying the same identity) or an approval represents it instead of duplicating it, while an inscribed org's returned EDIT stays visible. Order `APPROVED`, `PENDING`, `REVIEWED`
+- [x] 6.2 Web: extend the exhaustive records over `CollisionState` — `CONFLICT_SUBMISSION_STATUS` (comparison grid chip) and `POSTULATION_CLAUSES` ("la postulación con observaciones", replacing the ternary in `buildCollisionMessage`)
+- [x] 6.3 Make the section's subtitle depend on the submission's status: only a `PENDING` submission can be approved, so an already-resolved postulation keeps showing its conflicts but as a record, without offering an approval the UI cannot perform. Don't name the status — `CurrentStatusBanner` above already carries it
+- [x] 6.4 Tests: `REVIEWED` collision reported; returned round closed by a re-submission and by an approval; inscribed org's returned edit still visible; `REJECTED` never a candidate (pinning an exclusion that previously held only by omission); every `CollisionState` phrased by `buildCollisionMessage`
+
+## 7. Finalize
+
+- [x] 7.1 Run `pnpm format && pnpm lint && pnpm type-check`
+- [ ] 7.2 Update any affected docs; open PR (English title/description per convention), UI strings in Spanish
