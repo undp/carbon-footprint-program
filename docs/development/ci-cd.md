@@ -63,7 +63,9 @@ check-draft
 ├── changes ──┬── lint
 │             ├── type-check
 │             ├── test ── coverage
+│             ├── test-web
 │             ├── package-test
+│             ├── seed-test
 │             ├── build
 │             ├── smoke-api
 │             └── smoke-web
@@ -71,6 +73,7 @@ check-draft
 ├── format
 ├── audit
 ├── zizmor
+├── shellcheck
 ├── docs-links
 └── secret-scan
 ```
@@ -84,17 +87,20 @@ check-draft
 | `type-check`            | `tsc --noEmit` across all projects.                                                                                                       |
 | `format`                | Prettier `--check`.                                                                                                                       |
 | `test`                  | Vitest + Testcontainers, 3-leg matrix (see below).                                                                                        |
+| `test-web`              | Vitest + jsdom suite for `apps/web` (`pnpm test:web`), enforcing its global coverage floor.                                               |
 | `package-test`          | Vitest unit tests for `packages/*` (`pnpm test:packages`) — no DB, no containers.                                                         |
+| `seed-test`             | Vitest unit tests for `tools/seed` (`pnpm test:seed`) — no DB, no containers.                                                             |
 | `coverage`              | Merges the three test legs' coverage and enforces the `apps/api` gate (90% for all four metrics: lines, statements, functions, branches). |
 | `build`                 | Turborepo build of all apps and packages.                                                                                                 |
 | `smoke-api`             | Boots the built api image against an empty Postgres and probes `/health` (see below).                                                     |
 | `smoke-web`             | Boots the built web image, probes the SPA and verifies the substituted CSP (see below).                                                   |
 | `audit`                 | `pnpm audit --prod --audit-level moderate` (dependency vulnerabilities).                                                                  |
 | `zizmor`                | Static analysis of the GitHub Actions workflows.                                                                                          |
+| `shellcheck`            | ShellCheck over `infra/*.sh` and `infra/lib/*.sh` at severity `warning` (`-x`, so sourced files are analysed in context).                 |
 | `docs-links`            | Broken local-link check for Markdown docs (lychee, offline).                                                                              |
 | `secret-scan`           | Full-history secret scan (betterleaks).                                                                                                   |
 
-The code-gated jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
+The code-gated jobs (`lint`, `type-check`, `test`, `test-web`, `package-test`, `seed-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) run in **parallel** once `changes` reports; the ungated jobs (`format`, `audit`, `zizmor`, `shellcheck`, `docs-links`, `secret-scan`) run in parallel once `check-draft` passes.
 
 > **Adding a job is two steps.** A new job reports a status check but does not
 > **block** a merge until a maintainer adds its check name to the required-checks
@@ -115,7 +121,7 @@ Acts as a gate. If the PR is a draft, this job is skipped, which causes all down
 
 ### Docs-only optimization
 
-The heavy jobs (`lint`, `type-check`, `test`, `package-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
+The heavy jobs (`lint`, `type-check`, `test`, `test-web`, `package-test`, `seed-test`, `coverage`, `build`, `smoke-api`, `smoke-web`) skip their expensive **steps** on docs-only PRs, but the **jobs still run** and report their (required) status checks. This is deliberate: a required check that never reports — e.g. because the job was skipped via `on.paths` or a job-level `if:` — leaves the PR "pending" forever under branch protection. An always-running job that executes zero steps reports success instead.
 
 The `changes` job (using `dorny/paths-filter`) sets a `code` output that is `true` when anything build-affecting changed. Each gated step carries `if: needs.changes.outputs.code == 'true'`. The filter's pattern list is a second source of truth for "what affects the build", so `verify-changes-filter` (`scripts/check-ci-changes-filter.mjs`) guards it against drift.
 
