@@ -206,7 +206,6 @@ fi
 
 # Monitoring loop
 ITERATION=0
-LAST_STATUS=""
 
 while true; do
   ITERATION=$((ITERATION + 1))

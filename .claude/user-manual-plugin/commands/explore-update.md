@@ -59,7 +59,9 @@ con evidencia `paths:líneas`), nunca volcados de código. Luego consolida y ded
 
 - **NUEVO** → crea su ficha (mismo formato que `/user-manual:explore`: nombre, slug, propósito, rutas,
   pantallas, acciones, entidades, estados, referencias de código, dudas abiertas, evidencia).
-- **CAMBIADO** → actualiza su ficha; **preserva** notas y dudas manuales cuando sea posible.
+- **CAMBIADO** → actualiza su ficha; **preserva** notas y dudas manuales cuando sea posible. Si la
+  ficha venía `verificado` (la escribió `/user-manual:review` contra el código), bájala a
+  `explorado`: el código se movió y esa revisión ya no la respalda.
 - **OBSOLETO** → marca `estado: obsoleto` en `index.json` y anótalo en la ficha; **NO la borres**.
 - **SIN CAMBIOS** → no tocar.
   Fusiona `index.json` por `slug` (`{slug, titulo, fuente, estado, fecha}`), refrescando `fecha`

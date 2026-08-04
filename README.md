@@ -24,6 +24,7 @@ Full documentation lives in **[`docs/`](./docs/README.md)** — start with the i
 | Contributing                    | [`docs/development/contributing.md`](./docs/development/contributing.md)                                                       |
 | Deployment (Azure)              | [`docs/infrastructure/Deployment.md`](./docs/infrastructure/Deployment.md)                                                     |
 | App / package READMEs           | [`apps/api`](./apps/api/README.md) · [`apps/web`](./apps/web/README.md) · [`packages/database`](./packages/database/README.md) |
+| End-user manuals (Spanish)      | [`user_manual/README.md`](./user_manual/README.md) — slides + PDF, one per application view                                    |
 
 ## Quick start
 

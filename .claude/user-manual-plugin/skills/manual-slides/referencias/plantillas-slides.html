@@ -29,13 +29,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Manual de Usuario — {{MODULO_NOMBRE}} | {{APP_NAME}}</title>
     <link rel="stylesheet" href="../assets/manual.css" />
-    <!-- Iconografía: Material Symbols Rounded, cargada desde el CDN de Google Fonts.
-         Para manuales/PDF offline (sin acceso a internet al generar o abrir el PDF),
-         el branding puede definir una fuente de íconos local como alternativa. -->
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-    />
+    <!-- Iconografía y tipografía: Material Symbols Rounded y Roboto se sirven
+         localmente desde ../assets/fonts/ vía @font-face en manual.css. No
+         agregues hojas de estilo remotas: el capítulo debe abrirse y exportarse
+         a PDF sin red. -->
   </head>
   <body class="format-slide">
     <!-- ... aquí van las slides en orden ... -->
@@ -49,7 +46,7 @@
      ========================================================= -->
 <section class="slide slide--cover">
   <div class="module-icon-bg">
-    <span class="material-symbols-rounded">{{ICONO_MODULO}}</span>
+    <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_MODULO}}</span>
   </div>
   <div class="cover-content">
     <div class="cover-text">
@@ -86,7 +83,7 @@
   <div class="objectives-list">
     <div class="objective-item">
       <div class="objective-icon">
-        <span class="material-symbols-rounded">{{ICONO_1}}</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_1}}</span>
       </div>
       <div class="objective-text">
         <h3>{{TITULO_OBJETIVO_1}}</h3>
@@ -95,7 +92,7 @@
     </div>
     <div class="objective-item">
       <div class="objective-icon">
-        <span class="material-symbols-rounded">{{ICONO_2}}</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_2}}</span>
       </div>
       <div class="objective-text">
         <h3>{{TITULO_OBJETIVO_2}}</h3>
@@ -104,7 +101,7 @@
     </div>
     <div class="objective-item">
       <div class="objective-icon">
-        <span class="material-symbols-rounded">{{ICONO_3}}</span>
+        <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_3}}</span>
       </div>
       <div class="objective-text">
         <h3>{{TITULO_OBJETIVO_3}}</h3>
@@ -151,10 +148,10 @@
      ========================================================= -->
 <section class="slide slide--divider">
   <div class="module-icon-bg">
-    <span class="material-symbols-rounded">{{ICONO_MODULO}}</span>
+    <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_MODULO}}</span>
   </div>
   <div class="divider-icon-wrap">
-    <span class="material-symbols-rounded">{{ICONO_SECCION}}</span>
+    <span class="material-symbols-rounded" aria-hidden="true">{{ICONO_SECCION}}</span>
   </div>
   <h2 class="divider-title">{{NOMBRE_SECCION}}</h2>
   <footer class="slide__footer">
@@ -213,13 +210,13 @@
       <p class="content-description">{{DESCRIPCION_FEATURE}}</p>
       <ul class="feature-list">
         <li>
-          <span class="material-symbols-rounded">{{ICONO}}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">{{ICONO}}</span>
           <span><strong>{{FEATURE}}:</strong> {{DESCRIPCION_FEATURE_1_LINEA}}</span>
         </li>
       </ul>
 
       <div class="info-box">
-        <span class="material-symbols-rounded">info</span>
+        <span class="material-symbols-rounded" aria-hidden="true">info</span>
         <span>{{INFO_IMPORTANTE}}</span>
       </div>
     </div>
@@ -279,27 +276,27 @@
 
 <!-- Info box (máx 2 info/tip-box por slide) -->
 <div class="info-box">
-  <span class="material-symbols-rounded">info</span>
+  <span class="material-symbols-rounded" aria-hidden="true">info</span>
   <span>{{TEXTO_INFORMATIVO}}</span>
 </div>
 
 <!-- Tip box -->
 <div class="tip-box">
-  <span class="material-symbols-rounded">lightbulb</span>
+  <span class="material-symbols-rounded" aria-hidden="true">lightbulb</span>
   <span>{{CONSEJO}}</span>
 </div>
 
 <!-- Feature list -->
 <ul class="feature-list">
   <li>
-    <span class="material-symbols-rounded">{{ICONO}}</span>
+    <span class="material-symbols-rounded" aria-hidden="true">{{ICONO}}</span>
     <span><strong>{{NOMBRE}}:</strong> {{DESCRIPCION_FEATURE}}</span>
   </li>
 </ul>
 
 <!-- Screenshot placeholder (cuando NO hay captura disponible) -->
 <div class="screenshot-placeholder">
-  <span class="material-symbols-rounded">image</span>
+  <span class="material-symbols-rounded" aria-hidden="true">image</span>
   <div class="screenshot-placeholder__label">{{QUE_MOSTRARA}}</div>
   <div class="screenshot-placeholder__filename">{{nombre-archivo}}.png</div>
 </div>
