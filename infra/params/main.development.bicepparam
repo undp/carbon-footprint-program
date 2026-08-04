@@ -214,6 +214,34 @@ param acrSku = 'Basic'
 // Recommendation: B1 for development, S1+ for production
 param appServiceSkuName = 'F1'
 
+// Proxy trust for the API — becomes the TRUST_PROXY app setting (Fastify
+// `trustProxy`), deciding whether X-Forwarded-For may set `request.ip`.
+//
+// `request.ip` is the rate limiter's bucket key. App Service ALWAYS proxies to
+// the container through its own front end, so with this empty the API sees the
+// platform's address for every caller and the 100 req/min limit applies as one
+// bucket shared by all of them (per instance — see
+// docs/operations/risks-and-limitations.md#rate-limiting-is-in-memory-only).
+//
+// Empty here keeps development as it is today. Set it per environment:
+//   '1'  App Service alone — trust the single platform hop
+//   '2'  App Service behind Front Door
+//   '10.0.0.0/8'  or another IP/CIDR allowlist — preferred where the proxy
+//                 addresses are known, because it does not depend on the request
+//                 having taken the expected path
+//   'false'  the API really is reached directly; records the decision and
+//            silences the production boot warning
+//
+// ⚠️ A hop count is only safe while the origin CANNOT be reached by a shorter
+// route. App Service keeps its *.azurewebsites.net hostname publicly reachable
+// even behind Front Door, so a caller hitting it directly traverses one hop, not
+// two — and '2' would then trust one entry the caller supplied. Restrict the
+// origin to the proxy, or use an allowlist.
+//
+// ⚠️ Verify against the real deployment before setting: see issue #571.
+// Values above are expectations, not measurements.
+param apiTrustProxy = ''
+
 // ============================================
 // Front Door Configuration (Global CDN)
 // ============================================

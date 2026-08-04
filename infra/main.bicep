@@ -149,6 +149,16 @@ param staticWebAppOutputLocation string = 'dist'
 @description('SKU name for App Service Plan (e.g., F1 for Free tier)')
 param appServiceSkuName string = 'F1'
 
+// Passed to the API as TRUST_PROXY. Empty by default, which reproduces what
+// every existing deployment already does — so redeploying this template does
+// not change request handling on its own. Deliberately NOT derived from
+// enableFrontDoor: the hop count depends on the real request path, and guessing
+// it wrong is not a no-op in either direction (too few hops trusted keeps the
+// shared rate-limit bucket; too many lets a caller forge X-Forwarded-For and
+// choose its own). Set it once verified — see docs/security/hardening.md.
+@description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing (current behaviour). "1" = App Service alone; "2" = behind Front Door; or an IP/CIDR allowlist.')
+param apiTrustProxy string = ''
+
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -328,6 +338,7 @@ module appService 'modules/appService.bicep' = {
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
     allowedOrigin: allowedOrigin
+    trustProxy: apiTrustProxy
     useAcrManagedIdentity: true
     storageAccountName: storage.outputs.name
     enableAzureAuth: enableAzureAuth

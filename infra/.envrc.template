@@ -53,6 +53,32 @@ export APP_VERSION=""
 # Leave empty to use Azure's default hostname.
 # Details: docs/infrastructure/CustomDomainGoDaddySetup.md
 export FRONTEND_CUSTOM_DOMAIN=""
+
+# OPTIONAL — Fastify trustProxy for the API: which X-Forwarded-For senders may
+# set request.ip, which is the rate limiter's bucket key. Two sources, and this
+# one WINS over the other: `param apiTrustProxy` in the environment's
+# params/main.<env>.bicepparam is the durable place (it survives in the
+# template), while this variable overrides it for one deploy. deploy.sh warns
+# only when BOTH are empty, and validates whichever supplies the value before
+# the deployment starts — the API refuses to boot on a malformed one, so a typo
+# here would otherwise become a crash-looping container.
+#
+# Reaches the container as the TRUST_PROXY app setting — the names differ, so it
+# is TRUST_PROXY you look for in the App Service configuration, not this one.
+#
+#   <empty>   not configured. Behind a proxy this makes the 100 req/min limit ONE
+#             bucket shared by every caller, per instance.
+#   1         App Service alone (enableFrontDoor = false)
+#   2         App Service behind Front Door (enableFrontDoor = true)
+#   false     records that this deployment really is reached directly, and
+#             silences the boot warning
+#   <ip/cidr>[,...]  an explicit allowlist, e.g. "10.0.0.0/8,192.168.0.0/16"
+#
+# Pick it from the real request path, not by guessing: too few hops keeps the
+# shared bucket, too many let a caller forge X-Forwarded-For and choose its own.
+# Per-topology guidance: docs/security/hardening.md ("Proxy Trust").
+# export API_TRUST_PROXY=""
+
 export DRY_RUN="false"
 
 # Web app: set to "true" to enable demo mode in the frontend
