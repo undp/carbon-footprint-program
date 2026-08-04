@@ -17,8 +17,8 @@
     "slug": "calculadora-huella",
     "titulo": "Calculadora de huella (asistente de cálculo)",
     "fuente": "ambas",
-    "estado": "explorado",
-    "fecha": "2026-07-22"
+    "estado": "verificado",
+    "fecha": "2026-08-04"
   },
   {
     "slug": "inicio",
