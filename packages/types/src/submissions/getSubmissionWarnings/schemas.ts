@@ -37,12 +37,14 @@ export const GetSubmissionWarningsResponseSchema = z.array(WarningSchema);
 
 /**
  * Status of the conflicting submission whose snapshot was compared: `APPROVED` =
- * the accredited snapshot, `PENDING` = a submission still under review. It says
- * nothing about the organization itself — a `PENDING` collision can come from a
- * first-time applicant or from an already-inscribed organization editing its
- * data, which is what `organizationStatus` distinguishes.
+ * the accredited snapshot, `PENDING` = a submission still under review,
+ * `REVIEWED` = a submission returned with observations that the organization has
+ * not superseded yet. It says nothing about the organization itself — a `PENDING`
+ * collision can come from a first-time applicant or from an already-inscribed
+ * organization editing its data, which is what `organizationStatus`
+ * distinguishes.
  */
-export const CollisionStateSchema = z.enum(["APPROVED", "PENDING"]);
+export const CollisionStateSchema = z.enum(["APPROVED", "PENDING", "REVIEWED"]);
 
 /** The three identity fields compared field-to-same-field (design D3). */
 export const CollisionFieldSchema = z.enum(["legalName", "tradeName", "taxId"]);

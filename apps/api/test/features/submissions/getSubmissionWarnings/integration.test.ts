@@ -448,6 +448,180 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     expect(meta(warnings[1]).organizationId).toBe(conflictingOrg.id.toString());
   });
 
+  it("flags a collision with a request returned with observations (REVIEWED)", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // A returned request is still in the funnel: the organization is expected to
+    // fix it and re-submit, so its identity has to be visible to the reviewer
+    // deciding on the applicant.
+    const { org } = await createOrgDataSubmission(
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: `TAX-${randomUUID()}`,
+      },
+      SubmissionStatus.REVIEWED
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.collisionState).toBe("REVIEWED");
+    expect(m.organizationId).toBe(org.id.toString());
+    expect(m.collisionFields).toEqual(["legalName"]);
+    expect(m.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.NOT_ACCREDITED
+    );
+  });
+
+  it("returns nothing when the colliding submission was rejected", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // A rejected request is out of the funnel — nobody will approve it — so it is
+    // not a collision candidate even while its data row is still ACTIVE. Pinned
+    // here because the exclusion is a consequence of enumerating the candidate
+    // states, not of an explicit filter.
+    await createOrgDataSubmission({ ...applicant }, SubmissionStatus.REJECTED);
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it("ignores a reviewed snapshot the organization has already re-submitted", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // Re-submitting clones the reviewed snapshot into a new PENDING one, so both
+    // rows carry the same identity. Reporting each would announce the same
+    // collision twice under two states.
+    const conflictingOrg = await createTestOrganization(prisma);
+    const reviewedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...applicant, status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      reviewedV1.id,
+      SubmissionStatus.REVIEWED,
+      testUser.id,
+      testUser.id
+    );
+    const pendingV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...applicant, status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      pendingV2.id,
+      SubmissionStatus.PENDING,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    // Only the state the organization is actually in now.
+    expect(warnings).toHaveLength(1);
+    expect(meta(warnings[0]).collisionState).toBe("PENDING");
+  });
+
+  it("ignores a reviewed snapshot the organization has since had approved", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    const conflictingOrg = await createTestOrganization(prisma);
+    const reviewedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...applicant, status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      reviewedV1.id,
+      SubmissionStatus.REVIEWED,
+      testUser.id,
+      testUser.id
+    );
+    const approvedV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...applicant, status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV2.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    // The observation round ended in approval: the registry is the fact to
+    // report, not the round it went through.
+    expect(warnings).toHaveLength(1);
+    expect(meta(warnings[0]).collisionState).toBe("APPROVED");
+    expect(meta(warnings[0]).organizationStatus).toBe(
+      OrganizationDisplayStatusValues.ACCREDITED
+    );
+  });
+
+  it("keeps an inscribed organization's returned edit visible", async () => {
+    const applicant = uniqueIdentity();
+    const { applicantSubmissionId } = await createApplicant(applicant);
+
+    // Approved v1 does not collide; the EDIT that came back with observations
+    // does. The round is open (the org may re-submit it), and having an approved
+    // snapshot must not hide it — which is why "open" means "still the
+    // organization's latest snapshot", not "has no approved snapshot".
+    const conflictingOrg = await createTestOrganization(prisma);
+    const approvedV1 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      { ...uniqueIdentity(), status: OrganizationDataStatus.ACTIVE }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      approvedV1.id,
+      SubmissionStatus.APPROVED,
+      testUser.id,
+      testUser.id
+    );
+    const reviewedV2 = await createTestOrganizationData(
+      prisma,
+      conflictingOrg.id,
+      {
+        legalName: applicant.legalName,
+        tradeName: `Trade ${randomUUID()}`,
+        taxId: `TAX-${randomUUID()}`,
+        status: OrganizationDataStatus.ACTIVE,
+      }
+    );
+    await createTestOrganizationDataSubmission(
+      prisma,
+      reviewedV2.id,
+      SubmissionStatus.REVIEWED,
+      testUser.id,
+      testUser.id
+    );
+
+    const warnings = await getWarnings(applicantSubmissionId);
+
+    expect(warnings).toHaveLength(1);
+    const m = meta(warnings[0]);
+    expect(m.collisionState).toBe("REVIEWED");
+    expect(m.legalName).toBe(applicant.legalName);
+    // The submission was returned; the organization behind it is still inscribed.
+    expect(m.organizationStatus).toBe(
+      OrganizationDisplayStatusValues.ACCREDITED
+    );
+  });
+
   it("reports a blocked organization as blocked, not as inscribed", async () => {
     const applicant = uniqueIdentity();
     const { applicantSubmissionId } = await createApplicant(applicant);

@@ -44,6 +44,19 @@ export type OrganizationIdentity = Prisma.OrganizationDataGetPayload<{
   select: typeof ORGANIZATION_IDENTITY_SELECT;
 }>;
 
+/**
+ * A candidate snapshot: an identity plus the row id, needed to tell which of an
+ * organization's snapshots is its latest (see {@link findOpenReviewedIdentities}).
+ */
+const CANDIDATE_SNAPSHOT_SELECT = {
+  id: true,
+  ...ORGANIZATION_IDENTITY_SELECT,
+} satisfies Prisma.OrganizationDataSelect;
+
+type CandidateSnapshot = Prisma.OrganizationDataGetPayload<{
+  select: typeof CANDIDATE_SNAPSHOT_SELECT;
+}>;
+
 /** Field order used for stable metadata/display output (design D9). */
 const COLLISION_FIELD_ORDER = [
   "legalName",
@@ -159,12 +172,12 @@ type Applicant = {
 /**
  * Turns the candidate snapshots into warnings, one per snapshot that collides.
  *
- * Each candidate is a whole organization's current identity in this state — the
- * newest approved snapshot, or the single pending one — so a warning's
- * `collisionFields` and its identity tuple always come from the same row and a
- * highlighted field shows two equal values on both sides. There is nothing to
- * merge across snapshots here, which is what previously let a field be reported
- * as matching while the tuple displayed a different value for it.
+ * Each candidate is a whole organization's current identity in this state — its
+ * newest approved snapshot, the single pending one, or its open observation round
+ * — so a warning's `collisionFields` and its identity tuple always come from the
+ * same row and a highlighted field shows two equal values on both sides. There is
+ * nothing to merge across snapshots here, which is what previously let a field be
+ * reported as matching while the tuple displayed a different value for it.
  */
 const buildBranchMetadata = (
   applicant: Applicant,
@@ -218,35 +231,114 @@ const PENDING_THROUGH = {
   subject: { submissions: { some: { status: SubmissionStatus.PENDING } } },
 } satisfies Prisma.SubmissionSubjectOrganizationDataWhereInput;
 
+/** Reaches an OrganizationData through a REVIEWED submission (returned with observations). */
+const REVIEWED_THROUGH = {
+  subject: { submissions: { some: { status: SubmissionStatus.REVIEWED } } },
+} satisfies Prisma.SubmissionSubjectOrganizationDataWhereInput;
+
 /**
- * The CURRENT approved identity of each given organization: its newest ACTIVE
- * snapshot reachable through an approved submission.
+ * The CURRENT identity of each given organization in one state: its newest ACTIVE
+ * snapshot reachable through a submission in that state.
  *
- * An organization accumulates approved snapshots — approving never marks the
- * previous one OUTDATED (`OUTDATED` is only used for rejected data), so an
- * inscribed organization that edits and is re-approved keeps both. Only the
- * newest is its identity: `organization_summary_view` resolves the displayed row
- * the same way, `ORDER BY <status priority>, od.id DESC`. The older ones are
- * history, and colliding against them would warn about a name or tax id the
- * organization no longer holds.
+ * An organization accumulates snapshots — approving never marks the previous one
+ * OUTDATED (`OUTDATED` is only used for rejected data), and a request returned
+ * with observations is re-submitted as a CLONE, so an organization that edited
+ * and was re-approved, or that was sent back twice, keeps every version. Only the
+ * newest is its identity in that state: `organization_summary_view` resolves the
+ * displayed row the same way, `ORDER BY <status priority>, od.id DESC`. The older
+ * ones are history, and colliding against them would warn about a name or tax id
+ * the organization no longer holds.
  */
-const findCurrentApprovedIdentities = async (
+const findCurrentIdentities = async (
   prisma: PrismaClient,
-  organizationIds: bigint[]
-): Promise<OrganizationIdentity[]> => {
+  organizationIds: bigint[],
+  through: Prisma.SubmissionSubjectOrganizationDataWhereInput
+): Promise<CandidateSnapshot[]> => {
   if (organizationIds.length === 0) return [];
 
   return prisma.organizationData.findMany({
     where: {
       organizationId: { in: organizationIds },
       status: OrganizationDataStatus.ACTIVE,
-      submission: APPROVED_THROUGH,
+      submission: through,
     },
-    select: ORGANIZATION_IDENTITY_SELECT,
-    // Newest first + one row per organization: the current approved snapshot.
+    select: CANDIDATE_SNAPSHOT_SELECT,
+    // Newest first + one row per organization: the current snapshot in this state.
     orderBy: { id: "desc" },
     distinct: ["organizationId"],
   });
+};
+
+/**
+ * The newest ACTIVE snapshot each given organization holds among the ones that
+ * still stand for it — reachable through an approved, pending or
+ * returned-with-observations submission. Rejected data is marked OUTDATED and a
+ * draft has no submission at all, so neither can win here.
+ */
+const findLatestSnapshotIds = async (
+  prisma: PrismaClient,
+  organizationIds: bigint[]
+): Promise<Map<string, bigint>> => {
+  if (organizationIds.length === 0) return new Map();
+
+  const rows = await prisma.organizationData.findMany({
+    where: {
+      organizationId: { in: organizationIds },
+      status: OrganizationDataStatus.ACTIVE,
+      submission: {
+        subject: {
+          submissions: {
+            some: {
+              status: {
+                in: [
+                  SubmissionStatus.APPROVED,
+                  SubmissionStatus.APPROVED_AUTOMATICALLY,
+                  SubmissionStatus.PENDING,
+                  SubmissionStatus.REVIEWED,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+    select: { id: true, organizationId: true },
+    orderBy: { id: "desc" },
+    distinct: ["organizationId"],
+  });
+
+  return new Map(rows.map((row) => [row.organizationId.toString(), row.id]));
+};
+
+/**
+ * The reviewed identity of each given organization whose observation round is
+ * still OPEN: its newest snapshot returned with observations, kept only while the
+ * organization has not moved past it.
+ *
+ * A returned request is still in the funnel — the organization is expected to fix
+ * it and re-submit — so its identity is worth warning about even though nobody is
+ * about to approve that snapshot. What must not be reported is a CLOSED round:
+ * re-submitting clones the reviewed snapshot into a new PENDING one
+ * (`requestOrganizationAccreditation` → `cloneOrganizationData`) and an approval
+ * leaves yet another, so reporting the reviewed row too would announce the same
+ * identity twice under two states.
+ *
+ * "Open" is therefore "still the organization's latest snapshot", not "has no
+ * approved snapshot": an already-inscribed organization whose EDIT came back with
+ * observations keeps that edit visible, because its approved snapshot is older.
+ */
+const findOpenReviewedIdentities = async (
+  prisma: PrismaClient,
+  organizationIds: bigint[]
+): Promise<CandidateSnapshot[]> => {
+  const [reviewed, latestIds] = await Promise.all([
+    findCurrentIdentities(prisma, organizationIds, REVIEWED_THROUGH),
+    findLatestSnapshotIds(prisma, organizationIds),
+  ]);
+
+  return reviewed.filter(
+    (row) => latestIds.get(row.organizationId.toString()) === row.id
+  );
 };
 
 /**
@@ -287,11 +379,14 @@ const findOrganizationStatuses = async (
  * - PENDING: matched against another org's pending submission data. At most one
  *   exists per organization — `updateOrganization` refuses a second edit while
  *   one is under review (`OrganizationUnderReviewError`).
+ * - REVIEWED: matched against another org's request returned with observations,
+ *   while that round is still open — the organization has not re-submitted or
+ *   been approved since ({@link findOpenReviewedIdentities}).
  *
  * Each state therefore contributes at most one warning per organization, built
- * from one real snapshot. An org may still yield two warnings when it collides
- * in BOTH states (kept separate, never merged, design D7); APPROVED warnings are
- * ordered before PENDING.
+ * from one real snapshot. An org may still yield two warnings — its approved
+ * identity plus the state its latest snapshot sits in (kept separate, never
+ * merged, design D7); warnings are ordered APPROVED, PENDING, REVIEWED.
  */
 export const getOrganizationIdentityCollisionWarnings = async (
   prisma: PrismaClient,
@@ -310,28 +405,43 @@ export const getOrganizationIdentityCollisionWarnings = async (
     organizationId: { not: applicant.organizationId },
   };
 
-  const [approvedCandidateOrgs, pendingRows] = await Promise.all([
-    // Which OTHER organizations have any approved snapshot matching. Only the
-    // ids: which snapshot matched is not the question, since the comparison runs
-    // against each organization's CURRENT approved snapshot below.
-    prisma.organizationData.findMany({
-      where: {
-        ...otherActiveOrg,
-        OR: fieldMatch,
-        submission: APPROVED_THROUGH,
-      },
-      select: { organizationId: true },
-      distinct: ["organizationId"],
-    }),
-    prisma.organizationData.findMany({
-      where: { ...otherActiveOrg, OR: fieldMatch, submission: PENDING_THROUGH },
-      select: ORGANIZATION_IDENTITY_SELECT,
-      orderBy: { id: "desc" },
-    }),
-  ]);
+  // Which OTHER organizations have any matching snapshot in each state. For the
+  // states resolved per organization (approved, reviewed), only the ids: which
+  // snapshot matched is not the question, since the comparison runs against each
+  // organization's CURRENT snapshot in that state below.
+  const [approvedCandidateOrgs, pendingRows, reviewedCandidateOrgs] =
+    await Promise.all([
+      prisma.organizationData.findMany({
+        where: {
+          ...otherActiveOrg,
+          OR: fieldMatch,
+          submission: APPROVED_THROUGH,
+        },
+        select: { organizationId: true },
+        distinct: ["organizationId"],
+      }),
+      prisma.organizationData.findMany({
+        where: {
+          ...otherActiveOrg,
+          OR: fieldMatch,
+          submission: PENDING_THROUGH,
+        },
+        select: ORGANIZATION_IDENTITY_SELECT,
+        orderBy: { id: "desc" },
+      }),
+      prisma.organizationData.findMany({
+        where: {
+          ...otherActiveOrg,
+          OR: fieldMatch,
+          submission: REVIEWED_THROUGH,
+        },
+        select: { organizationId: true },
+        distinct: ["organizationId"],
+      }),
+    ]);
 
-  // The candidate organizations' CURRENT approved identity — the newest approved
-  // snapshot each one holds, resolved WITHOUT the field filter.
+  // The candidate organizations' CURRENT identity in each state — the newest
+  // snapshot each one holds there, resolved WITHOUT the field filter.
   //
   // Filtering first and then taking the newest of what matched would still hand
   // back a superseded snapshot: if an org's current approved taxId is 222 and an
@@ -340,15 +450,28 @@ export const getOrganizationIdentityCollisionWarnings = async (
   // longer holds. Re-reading here can legitimately find no collision at all, and
   // that is the correct answer.
   //
-  // No false negatives: an org whose current approved snapshot collides
-  // necessarily has a matching approved snapshot, so it is in the candidate set.
-  const approvedRows = await findCurrentApprovedIdentities(
-    prisma,
-    approvedCandidateOrgs.map((row) => row.organizationId)
-  );
+  // No false negatives: an org whose current snapshot collides necessarily has a
+  // matching snapshot, so it is in the candidate set.
+  const [approvedRows, reviewedRows] = await Promise.all([
+    findCurrentIdentities(
+      prisma,
+      approvedCandidateOrgs.map((row) => row.organizationId),
+      APPROVED_THROUGH
+    ),
+    findOpenReviewedIdentities(
+      prisma,
+      reviewedCandidateOrgs.map((row) => row.organizationId)
+    ),
+  ]);
 
   // No candidate at all: nothing to report, and no reason to look up standings.
-  if (approvedRows.length === 0 && pendingRows.length === 0) return [];
+  if (
+    approvedRows.length === 0 &&
+    pendingRows.length === 0 &&
+    reviewedRows.length === 0
+  ) {
+    return [];
+  }
 
   // Every organization involved needs its own standing looked up, the approved
   // branch included: matching THROUGH an approved submission proves the snapshot
@@ -361,6 +484,7 @@ export const getOrganizationIdentityCollisionWarnings = async (
     applicant.organizationId,
     ...approvedRows.map((row) => row.organizationId),
     ...pendingRows.map((row) => row.organizationId),
+    ...reviewedRows.map((row) => row.organizationId),
   ]);
 
   // An organization always has a summary row, so a miss is unreachable; falling
@@ -377,10 +501,13 @@ export const getOrganizationIdentityCollisionWarnings = async (
     organizationStatus: statusOf(applicant.organizationId),
   };
 
-  // APPROVED before PENDING (collision-warning ordering requirement).
+  // APPROVED, then PENDING, then REVIEWED (collision-warning ordering
+  // requirement): the registry first, then what is under adjudication, then what
+  // is waiting on the organization.
   const metadata = [
     ...buildBranchMetadata(applicantSide, approvedRows, "APPROVED", statusOf),
     ...buildBranchMetadata(applicantSide, pendingRows, "PENDING", statusOf),
+    ...buildBranchMetadata(applicantSide, reviewedRows, "REVIEWED", statusOf),
   ];
 
   // Structure only, no prose: the Spanish sentence is composed by the client

@@ -2,6 +2,7 @@ import { TAX_ID_LABEL_SHORT } from "@repo/constants";
 import {
   OrganizationDisplayStatusValues,
   type CollisionField,
+  type CollisionState,
   type OrganizationDisplayStatus,
   type OrganizationIdentityCollisionMetadata,
 } from "@repo/types";
@@ -31,6 +32,19 @@ const joinFieldLabels = (fields: CollisionField[]): string => {
   const labels = fields.map((field) => COLLISION_FIELD_LABELS[field]);
   if (labels.length <= 1) return labels.join("");
   return `${labels.slice(0, -1).join(", ")} y ${labels[labels.length - 1]}`;
+};
+
+/**
+ * How each collision state names the conflicting postulation. Exhaustive over
+ * `CollisionState` so a new state cannot silently borrow another's wording — the
+ * reason this is a record and not a ternary. The wording tracks the submission
+ * status chips ("Pendiente", "Con Observaciones"), which is what the comparison
+ * grid renders for the same row.
+ */
+const POSTULATION_CLAUSES: Record<CollisionState, string> = {
+  APPROVED: "la postulación aprobada",
+  PENDING: "la postulación pendiente",
+  REVIEWED: "la postulación con observaciones",
 };
 
 /**
@@ -69,10 +83,7 @@ export const buildCollisionMessage = (
     metadata.taxId !== null
       ? `${TAX_ID_LABEL_SHORT} ${metadata.taxId}`
       : `«${metadata.legalName}»`;
-  const postulacion =
-    metadata.collisionState === "APPROVED"
-      ? "la postulación aprobada"
-      : "la postulación pendiente";
+  const postulacion = POSTULATION_CLAUSES[metadata.collisionState];
   const organizacion =
     ORGANIZATION_CLAUSES[metadata.organizationStatus](identidad);
 

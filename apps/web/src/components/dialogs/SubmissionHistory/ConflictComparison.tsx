@@ -30,6 +30,7 @@ const IDENTITY_ROW_ORDER = [
 const CONFLICT_SUBMISSION_STATUS: Record<CollisionState, SubmissionStatus> = {
   APPROVED: SubmissionStatus.APPROVED,
   PENDING: SubmissionStatus.PENDING,
+  REVIEWED: SubmissionStatus.REVIEWED,
 };
 
 /**

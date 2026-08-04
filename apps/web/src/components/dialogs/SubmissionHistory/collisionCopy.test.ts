@@ -4,6 +4,7 @@ import {
   OrganizationDisplayStatusValues,
   SubmissionStatus,
   type CollisionField,
+  type CollisionState,
   type OrganizationIdentityCollisionMetadata,
 } from "@repo/types";
 import { buildCollisionMessage, COLLISION_FIELD_LABELS } from "./collisionCopy";
@@ -60,6 +61,30 @@ describe("buildCollisionMessage", () => {
     expect(message).toBe(
       "Coincide con la postulación pendiente de una organización no inscrita (RUT 76123456-7) en nombre comercial."
     );
+  });
+
+  it("names a postulation returned with observations", () => {
+    const message = buildCollisionMessage(
+      metadata({
+        collisionState: "REVIEWED",
+        organizationStatus: OrganizationDisplayStatusValues.NOT_ACCREDITED,
+        collisionFields: ["taxId"],
+      })
+    );
+
+    expect(message).toBe(
+      `Coincide con la postulación con observaciones de una organización no inscrita (RUT 76123456-7) en ${TAX_ID_LABEL_SHORT}.`
+    );
+  });
+
+  it("phrases every collision state", () => {
+    const states: CollisionState[] = ["APPROVED", "PENDING", "REVIEWED"];
+
+    states.forEach((collisionState) => {
+      const message = buildCollisionMessage(metadata({ collisionState }));
+      expect(message).toMatch(/^Coincide con la postulación \S+/);
+      expect(message).not.toContain("undefined");
+    });
   });
 
   it("branches on the organization's standing, not on the collision state", () => {
