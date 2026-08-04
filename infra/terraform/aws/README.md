@@ -192,41 +192,9 @@ presigned URLs under `<API_ORIGIN>/api/storage` (see
 This reference exposes S3 directly via presigned URLs (the historical default)
 and leaves the relay off.
 
-### Migrating from the static-key revision
-
-An earlier revision of this stack provisioned a dedicated `aws_iam_user` plus an
-`aws_iam_access_key` and injected the pair through two Secrets Manager entries.
-If you applied that revision, **`terraform apply` on this one is destructive**.
-Read this before applying:
-
-- `aws_iam_user.app_storage` and `aws_iam_access_key.app_storage` are
-  **destroyed**. Any other consumer of that key (a script, a CI job, a second
-  environment) loses access — check before applying.
-- The two MinIO Secrets Manager secrets are **deleted with
-  `recovery_window_in_days = 0`**: immediate and **unrecoverable**. Copy out any
-  value you still need first.
-- The key material also disappears from **Terraform state**, which is part of
-  the point — but it means the state file's history (if versioned remotely) is
-  the last place it survives.
-- There is a **transient failure window**. Terraform deletes the access key and
-  registers the new task definition immediately, but ECS replaces tasks
-  gradually. Until the rollout finishes, old tasks still hold the now-deleted
-  key in their environment and get `403 InvalidAccessKeyId` from S3 — **uploads
-  fail for the duration**.
-
-For a clean cutover, force the replacement instead of waiting for it:
-
-```bash
-terraform apply
-aws ecs update-service \
-  --cluster "<name_prefix>-cluster" \
-  --service "<name_prefix>-api" \
-  --force-new-deployment
-```
-
-Migrating in the other direction (back to static keys) needs no Terraform
-change: set `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` on the task and the adapter
-signs with them again.
+To go the other way — static keys instead of the task role — no Terraform change
+is needed: set `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` on the task and the
+adapter signs with them again.
 
 ## What this stack does NOT include
 
