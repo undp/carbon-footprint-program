@@ -49,9 +49,13 @@ catalogs:
 overrides:
   "exceljs>uuid": ^11.1.1
   "@hookform/devtools>uuid": ^11.1.1
-  # --- Transitive security patches (pnpm audit --prod, 2026-07-25) ---
+  # --- Transitive security patches (pnpm audit --prod, 2026-08-04) ---
   # Caret ranges only: a bare '>=' override value resolves to the global max
   # (e.g. brace-expansion 5.x, fast-uri 4.x) and would jump across majors.
+  # Move the floor to the patched version even though the caret range already
+  # admits it: pnpm keeps any lockfile resolution that still satisfies the range,
+  # so leaving '^1.1.16' in place holds 1.1.16 forever. The floor is what forces
+  # the re-resolution.
   # Declare the override on the vulnerable package itself, never as 'parent>child':
   # parent-scoped pins rot as soon as the chain changes (exactly what happened with
   # '@prisma/dev>@hono/node-server' below, which had to be removed by hand). Narrow
@@ -60,10 +64,10 @@ overrides:
   # pin, which has to be scoped to that parent ('@prisma/dev>valibot').
   "@fastify/static": ^10.1.2 # GHSA-83w8-p2f5-377r + GHSA-8pvw-jcv7-9cmj (@fastify/swagger-ui>@fastify/static)
   "@prisma/dev>valibot": ^1.4.2 # GHSA-5qjj-4xww-7phc — @prisma/dev pins 1.2.0 exactly, must be forced
-  "brace-expansion@1": ^1.1.16 # GHSA-3jxr-9vmj-r5cp (exceljs>archiver/unzipper)
-  "brace-expansion@2": ^2.1.2 # GHSA-3jxr-9vmj-r5cp (exceljs>archiver>readdir-glob>minimatch)
-  "brace-expansion@5": ^5.0.8 # GHSA-mh99-v99m-4gvg (@fastify/static>glob>minimatch)
-  "fast-uri@3": ^3.1.4 # GHSA-v2hh-gcrm-f6hx (fastify>ajv/fast-json-stringify; prisma>ajv)
+  "brace-expansion@1": ^1.1.18 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver/unzipper)
+  "brace-expansion@2": ^2.1.4 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver>readdir-glob>minimatch)
+  "brace-expansion@5": ^5.0.9 # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (@fastify/static>glob>minimatch)
+  "fast-uri@3": ^3.1.5 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 (fastify>ajv/fast-json-stringify; prisma>ajv)
   "fast-xml-parser": ^5.10.1 # GHSA-8r6m-32jq-jx6q (@azure/storage-blob>@azure/core-xml)
   "find-my-way": ^9.6.1 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
   "postcss@8": ^8.5.18 # GHSA-r28c-9q8g-f849 (@tailwindcss/vite>vite>postcss)
