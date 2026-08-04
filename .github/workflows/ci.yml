@@ -609,7 +609,11 @@ jobs:
           # '*.md' covers the root policy documents (PRIVACY, SECURITY,
           # CODE_OF_CONDUCT, CONTENT_MODERATION, GOVERNANCE) alongside README —
           # they cross-link heavily into docs/ and were previously unchecked.
-          args: "--offline --no-progress --exclude-path node_modules '*.md' 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
+          #
+          # user_manual/**/*.html is included because a chapter is mostly local
+          # references (screenshots, stylesheet) and a broken <img src> would
+          # otherwise ship silently — lychee reports it with a line number.
+          args: "--offline --no-progress --exclude-path node_modules '*.md' 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md' 'user_manual/**/*.md' 'user_manual/**/*.html'"
           fail: true
 
   secret-scan:
