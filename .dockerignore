@@ -45,6 +45,10 @@
 **/*.md
 # ...except seed data markdown: explanation content read by @repo/seed at runtime
 !tools/seed/src/data/**/*.md
+# ...and the chatbot system prompt, which is program input rather than
+# documentation: apps/api reads it at runtime and its `build` script copies it
+# into dist. Excluding it produced an api image that crashed on startup.
+!apps/api/src/features/chatbot/prompts/**/*.md
 docs
 
 # Infra

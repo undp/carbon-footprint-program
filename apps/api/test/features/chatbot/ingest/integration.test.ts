@@ -15,6 +15,7 @@ import {
 import { execSync } from "node:child_process";
 import { resolve } from "node:path";
 import { PrismaClient, generatePrismaAdapter } from "@repo/database";
+import { getPerFileDatabaseUrl } from "@test/setup/perFileDatabase.js";
 import {
   CorpusSourceScope,
   CorpusSourceStatus,
@@ -57,7 +58,12 @@ describe("ingest CLI — integration", () => {
   let databaseUrl: string;
 
   beforeAll(() => {
-    databaseUrl = inject("databaseUrl");
+    // Use this file's OWN cloned database, not the shared template. These tests
+    // spawn the CLI as a subprocess, so pointing them at `testdb` would hold
+    // connections on the very database every other test file clones from —
+    // `CREATE DATABASE ... TEMPLATE testdb` requires no other sessions on the
+    // source, so those clones start failing and retrying against us.
+    databaseUrl = getPerFileDatabaseUrl() ?? inject("databaseUrl");
     prisma = new PrismaClient({
       adapter: generatePrismaAdapter(databaseUrl),
     });
