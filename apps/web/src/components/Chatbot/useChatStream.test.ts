@@ -5,8 +5,16 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { clearConversationCookieClient } from "./conversationCookie";
 import { useChatStream } from "./useChatStream";
 import type { ChatbotMessage } from "./types";
+
+// The cookie write is a document.cookie side effect scoped to /api/chatbot, so
+// it is not readable back from the test document's path. Spy on the helper
+// instead of asserting on document.cookie.
+vi.mock("./conversationCookie", () => ({
+  clearConversationCookieClient: vi.fn(),
+}));
 
 // The hook keeps these user-facing strings private; mirror them here so the
 // assertions read intent instead of magic text. If a copy change breaks a test,
@@ -157,6 +165,7 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
+  vi.mocked(clearConversationCookieClient).mockClear();
 });
 
 afterEach(() => {
@@ -772,5 +781,121 @@ describe("useChatStream — deleteHistory", () => {
     });
 
     expect(result.current.state).toBe("error");
+  });
+});
+
+// Task 10.28, hook layer. The widget test covers the control's wiring and that
+// the click issues no request; these cover the state effects of the reset
+// itself, against the real hook.
+describe("useChatStream — startNewConversation", () => {
+  const streamOneTurn = () =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("clears the thread and returns to the empty state", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    expect(result.current.messages.length).toBeGreaterThan(0);
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+
+  it("issues no request of its own", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const callsAfterTurn = fetchMock.mock.calls.length;
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    // Non-destructive by design: prior turns stay persisted server-side, so the
+    // reset must not issue a DELETE — or anything else.
+    expect(fetchMock.mock.calls).toHaveLength(callsAfterTurn);
+  });
+
+  it("drops the conversation cookie so a reload does not rehydrate the thread", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(clearConversationCookieClient).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets Last-Event-ID so the next turn cannot carry a stale one", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'id: 42\ndata: {"content":"Hola"}\n\n',
+            "event: done\ndata: {}\n\n",
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await sendTurn(result, "otra");
+
+    const lastInit = fetchMock.mock.calls[fetchMock.mock.calls.length - 1][1];
+    const headers = lastInit?.headers as Record<string, string> | undefined;
+    expect(headers?.["Last-Event-ID"]).toBeUndefined();
+  });
+
+  // A turn cancelled by the reset must not write its terminal state onto the
+  // freshly-cleared thread. `stop()` deliberately behaves the other way round.
+  it("keeps a mid-flight turn from re-dirtying the cleared thread", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+
+    // Contrast with the Stop test above, which resolves to "truncated": there
+    // the turn is still the current one, so its terminal state is welcome. Here
+    // the reset replaced it, so the turn must land on nothing.
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
   });
 });
