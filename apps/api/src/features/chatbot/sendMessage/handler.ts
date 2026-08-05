@@ -18,7 +18,7 @@ import {
   type LlmStreamEvent,
 } from "@/features/chatbot/llmProvider/index.js";
 import { setConversationCookie } from "@/features/chatbot/helpers/conversationCookie.js";
-import { SYSTEM_PROMPT_ES } from "@/features/chatbot/prompts/loader.js";
+import { getSystemPromptEs } from "@/features/chatbot/prompts/loader.js";
 import {
   executeSearchKnowledgeTool,
   searchKnowledgeToolDefinition,
@@ -62,9 +62,10 @@ const historyToLlmMessage = (m: {
 
 const buildLlmMessages = (
   history: { role: ChatMessageRole; content: string }[],
-  userContent: string
+  userContent: string,
+  systemPrompt: string
 ): LlmMessage[] => [
-  { role: ChatMessageRole.SYSTEM, content: SYSTEM_PROMPT_ES },
+  { role: ChatMessageRole.SYSTEM, content: systemPrompt },
   ...history.map(historyToLlmMessage),
   { role: ChatMessageRole.USER, content: userContent },
 ];
@@ -83,6 +84,11 @@ export const sendMessageHandler = async (
   const { content } = request.body;
   enforceUserInputCap(content);
 
+  // Read (and memoize) the prompt here rather than at module scope: the route
+  // module is imported on every boot, including when CHATBOT_ENABLED is off, so
+  // a packaging problem must not be able to fail the API's startup.
+  const systemPrompt = getSystemPromptEs();
+
   const prisma = request.server.prisma;
 
   // History snapshot, turn cap, and message inserts ALL run inside the
@@ -99,7 +105,7 @@ export const sendMessageHandler = async (
       const lockedHistory = await loadConversationHistory(tx, conversation.id);
       // Count the system prompt against the cap: it is part of every request
       // sent upstream, so excluding it would understate the real token load.
-      enforceHistoryCap([...lockedHistory, { content: SYSTEM_PROMPT_ES }]);
+      enforceHistoryCap([...lockedHistory, { content: systemPrompt }]);
       await enforceTurnCap(tx, conversation.id);
 
       await tx.chatbotChatMessage.create({
@@ -144,7 +150,7 @@ export const sendMessageHandler = async (
   setConversationCookie(reply, conversationId.toString());
 
   const provider = getLlmProvider();
-  const llmMessages = buildLlmMessages(history, content);
+  const llmMessages = buildLlmMessages(history, content, systemPrompt);
 
   const startedAt = Date.now();
   const abortController = new AbortController();

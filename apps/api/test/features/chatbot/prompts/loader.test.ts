@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { SYSTEM_PROMPT_ES } from "@/features/chatbot/prompts/loader.js";
+import { getSystemPromptEs } from "@/features/chatbot/prompts/loader.js";
+
+const SYSTEM_PROMPT_ES = getSystemPromptEs();
 
 describe("System prompt", () => {
   it("contains the three-mode routing block", () => {
