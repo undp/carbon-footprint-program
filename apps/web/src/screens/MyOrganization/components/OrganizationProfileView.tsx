@@ -14,6 +14,7 @@ import {
   SubmissionStatus,
   SubmissionEventType,
 } from "@repo/types";
+import { TAX_ID_LABEL } from "@repo/constants";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
 import { StatusChip } from "@/components/StatusChip";
@@ -158,7 +159,7 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
             }
           />
         )}
-        <InfoRow label="RUT / RUC" value={profile.taxId ?? "-"} />
+        <InfoRow label={TAX_ID_LABEL} value={profile.taxId ?? "-"} />
         <InfoRow label="Razón social" value={profile.legalName} />
         <InfoRow
           label="Rubro / Sector económico"

@@ -36,16 +36,28 @@ export const OrganizationDisplayStatusValues =
 // can submit forms without filling every field during local testing.
 const minLength = LOCAL_BYPASS_REQUIRED_FIELDS ? 0 : 1;
 
-// Organization mutation data (for POST/PATCH endpoints)
+// Organization mutation data (for POST/PATCH endpoints).
+//
+// Every free-text field is `.trim()`ed before validation, so nothing is ever
+// stored whitespace-padded: `legalName`, `tradeName` and `taxId` are matched
+// against other organizations by the identity-collision detection, and padding
+// would silently change a value's identity ("Acme SpA " ≠ "Acme SpA"). Trimming
+// first also makes `.min(1)` reject a whitespace-only value, which used to pass.
 export const OrganizationMutationDataSchema = z
   .object({
     legalName: z
       .string()
+      .trim()
       .min(minLength)
       .describe("Legal name of the organization"),
-    tradeName: z.string().nullable().describe("Trade name of the organization"),
+    tradeName: z
+      .string()
+      .trim()
+      .nullable()
+      .describe("Trade name of the organization"),
     taxId: z
       .string()
+      .trim()
       .min(minLength)
       .nullable()
       .describe("Tax ID of the organization"),
@@ -62,17 +74,19 @@ export const OrganizationMutationDataSchema = z
       .nonnegative()
       .nullable()
       .describe("Number of employees"),
-    address: z.string().nullable().describe("Physical address"),
+    address: z.string().trim().nullable().describe("Physical address"),
     mainActivityId: IdSchema.nullable().describe(
       "ID of the main business activity"
     ),
     representativeFullName: z
       .string()
+      .trim()
       .min(minLength)
       .nullable()
       .describe("Full name of representative"),
     representativeTaxId: z
       .string()
+      .trim()
       .min(minLength)
       .nullable()
       .describe("Tax ID of representative"),
@@ -81,6 +95,7 @@ export const OrganizationMutationDataSchema = z
     ),
     representativePhone: z
       .string()
+      .trim()
       .min(minLength)
       .nullable()
       .describe("Phone of representative"),

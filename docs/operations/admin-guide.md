@@ -67,6 +67,26 @@ Open a submission from the queue to see its full detail view, including:
 - Submitted organization data or inventory/project fields
 - Any documents uploaded by the organization (viewed via temporary SAS URLs)
 - Previous review history (if the submission was previously `REVIEWED` and re-submitted)
+- Identity conflict warnings, for organization accreditations (see below)
+
+### Identity Conflict Warnings
+
+**API:** `GET /admin/submissions/:id/warnings`
+
+For an `ORGANIZATION_ACCREDITATION` submission, the review dialog shows a **"Conflictos detectados"** section when the applicant's identity collides with another organization. Matching is field-to-same-field (`legalName`, `tradeName`, `taxId`), exact and case-insensitive; null fields are skipped. Values are trimmed when they are **written** (every free-text field of the organization form), so the comparison needs no padding tolerance — rows loaded outside the API (seeds, scripts) must be trimmed at their own source. There is no fuzzy matching and no country-specific tax-id normalization, so the same tax id written in two formats (`76.123.456-7` vs `761234567`) does not match.
+
+The warnings are **referential only** — the section states so explicitly, and the request can be approved with conflicts outstanding. Branches (_sedes_) of the same real organization share identity values by nature, so they surface here as awareness signals rather than errors.
+
+Conflicts are listed flat and numbered ("Conflicto 1", "Conflicto 2") in the order the endpoint returns them, which puts collisions against an approved submission first. The collapsed row is only the handle; expanding it shows a side-by-side comparison (this submission vs. the conflicting organization) whose rows carry two facts that must not be confused:
+
+| Row                         | Fact                                      | Values                                                                                                     |
+| --------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| "Estado de la postulación"  | Status of the **submission** on each side | Aprobada (`collisionState = APPROVED`, compared against the **approved** snapshot) / Pendiente (`PENDING`) |
+| "Estado de la organización" | Standing of each **organization** itself  | Inscrita / No Inscrita / Bloqueada (`metadata.organizationStatus`, and the same for the applicant)         |
+
+A pending collision does **not** imply the other organization is new: it may be a first-time applicant or an already-inscribed organization editing its data — and the same is true of the applicant, which is why both sides report their own standing. That separation is also why the expanded conflict reads, for example, "Coincide con la postulación pendiente de la organización inscrita (RUT …) en razón social". The endpoint returns structure only (`{ type, metadata }`); that Spanish summary is composed by the web client from the metadata, so the wording and its `VOCAB` vocabulary live in one place.
+
+Below the two status rows the comparison lists the three identity fields, with the colliding one(s) highlighted. Both columns come from the endpoint's payload, which is the only surface that exposes an organization's approved snapshot: every other admin view reads `OrganizationSummaryView`, which ranks a pending edit above the approved data.
 
 ### Approving
 
@@ -165,14 +185,14 @@ The KPI summary breaks down organizations by:
 | ----------------- | ---------------------------------------------- |
 | Organization Name | Legal or registered name                       |
 | Sector            | Economic sector                                |
-| Sub-Sector        | Subsector classification                       |
+| Tax ID            | Tax identifier (RUT / RUC / ID Tributario)     |
 | Size              | Organization size category                     |
 | Status            | Derived from accreditation and inventory state |
 | Last Measurement  | Date of the most recent carbon inventory       |
 | Total Emissions   | Aggregate tCO₂e across all inventories         |
 | Actions           | View, Edit, Block, or Unblock                  |
 
-Sortable by: name, sector, subsector, size, status, whether inventories exist, last measurement date, and total emissions.
+Sorting and filtering are client-side over the full list. The search box matches organization name, tax ID, sector, size and status. The subsector is still returned by the API but is no longer displayed as a column.
 
 ---
 
@@ -211,6 +231,12 @@ All admin routes require `ADMIN` or `SUPERADMIN` system role. All responses foll
 | `POST` | `/admin/requests/:id/approve` | Approve a pending submission                   |
 | `POST` | `/admin/requests/:id/review`  | Return with observations                       |
 | `POST` | `/admin/requests/:id/reject`  | Reject a submission                            |
+
+### Submissions
+
+| Method | Path                              | Description                                                |
+| ------ | --------------------------------- | ---------------------------------------------------------- |
+| `GET`  | `/admin/submissions/:id/warnings` | Warnings computed for a submission, dispatched by its type |
 
 ### Organizations
 

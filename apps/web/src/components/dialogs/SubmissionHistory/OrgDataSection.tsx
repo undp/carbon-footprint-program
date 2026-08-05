@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { TAX_ID_LABEL } from "@repo/constants";
 import { InfoRow } from "@/screens/MyOrganization/components/InfoRow";
 import { GetSubmissionHistoryResponse } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
@@ -44,7 +45,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
           {data?.tradeName ?? data?.legalName}
         </Typography>
         <Box>
-          <InfoRow label="RUT / Tax ID" value={data?.taxId ?? "-"} />
+          <InfoRow label={TAX_ID_LABEL} value={data?.taxId ?? "-"} />
           <InfoRow label="Razón social" value={data?.legalName} />
           <InfoRow
             label="Rubro / Sector económico"

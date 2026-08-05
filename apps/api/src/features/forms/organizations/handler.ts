@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { GetOrganizationFormFieldsResponse } from "@repo/types";
+import { TAX_ID_LABEL } from "@repo/constants";
 import { LOCAL_BYPASS_REQUIRED_FIELDS } from "@/config/environment.js";
 
 /**
@@ -26,7 +27,7 @@ export const getOrganizationFormFieldsHandler = async (
       { key: "tradeName", label: "Nombre comercial", required: true },
       {
         key: "taxId",
-        label: "RUT / RUC / ID Tributario",
+        label: TAX_ID_LABEL,
         required: false,
       },
       {
