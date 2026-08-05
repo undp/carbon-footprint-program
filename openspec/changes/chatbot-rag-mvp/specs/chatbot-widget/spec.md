@@ -140,7 +140,7 @@ This is a PM-owned decision: conversations are auditable and may need server-sid
 
 ### Requirement: Widget restores active conversation on mount via signed conversation cookie
 
-On mount, `useChatStream` SHALL issue a single `GET /api/chatbot/conversations/me/current` with `credentials: "include"`. The server reads the signed `chatbot_conversation_id` cookie, enforces the TTL (`expires_at > NOW()`) and a strict identity match (authenticated callers match the row's `user_id`; anonymous callers match `session_id` AND `user_id IS NULL`), and returns:
+On mount, the widget SHALL issue a single `GET /api/chatbot/conversations/me/current` with `credentials: "include"`. The request SHALL live in a dedicated `useConversationRehydrate` hook rather than inside `useChatStream`: the two have different lifecycles (one mount-time load vs. per-turn streaming state), and `useChatStream` exposes `seedMessages` as the seam between them. The behaviour below is unchanged by that split — it is stated in terms of "the widget" because the requirement is on the composed surface, not on either hook alone. The server reads the signed `chatbot_conversation_id` cookie, enforces the TTL (`expires_at > NOW()`) and a strict identity match (authenticated callers match the row's `user_id`; anonymous callers match `session_id` AND `user_id IS NULL`), and returns:
 
 - **HTTP 200** with `{ conversation, messages }` — the widget SHALL seed its `messages` state from `response.messages` in the order received (server returns ASC by `created_at`). Each message becomes a `ChatbotMessage` with `role` mapped from `ChatMessageRole` to the widget's `"user" | "assistant"` lowercase enum, `content` copied verbatim, and `sourcesCited` assigned only when the assistant message's `sourcesCited` array is non-empty (mirrors the live-stream contract — empty arrays remain absent on the widget shape).
 - **HTTP 204** (cookie absent) — the widget SHALL start with an empty message list. No state mutation.
@@ -149,7 +149,7 @@ On mount, `useChatStream` SHALL issue a single `GET /api/chatbot/conversations/m
 
 The widget SHALL expose a `historyLoading` flag (true from mount until the rehydrate request settles via any outcome). The chat surface SHALL suppress the empty-state placeholder (`"¿En qué puedo ayudarte?"`) while `historyLoading` is true so a populated thread does not flash empty before the seed lands. Once `historyLoading` is false, the placeholder logic returns to the existing rule (`messages.length === 0`).
 
-The rehydration SHALL fire exactly once per `useChatStream` mount. Sending a new message while the rehydrate is in flight SHALL NOT cause the seed to overwrite the new message — the in-flight load is cancelled on unmount and the seed only sets state when the response settles before unmount.
+The rehydration SHALL fire exactly once per widget mount. Sending a new message while the rehydrate is in flight SHALL NOT cause the seed to overwrite the new message: the seed SHALL lose every race against the live thread, applying only when no turn is in flight AND the thread is still empty. Unmount cancellation does NOT satisfy this — the hazardous interleaving happens while the widget is still mounted, so the guard SHALL live in `seedMessages` itself. Overwriting here would drop the user's message and orphan the in-flight assistant bubble, whose subsequent deltas fail the identity check in `updateLastAssistant` and are silently discarded, so the answer would stream into nothing.
 
 V1 explicitly does NOT support the anon → auth claim transition: a user who started a conversation anonymously and then authenticates receives 404 on the rehydrate (their cookie points to an anon row whose `user_id` is NULL, which does not match an authenticated request's identity filter). The widget falls back to an empty thread and the user starts a fresh conversation. Documented in `design.md` Decision 28 and tracked under `proposal.md` Deferred Debt.
 
@@ -174,6 +174,16 @@ V1 explicitly does NOT support the anon → auth claim transition: a user who st
 
 - **WHEN** the widget mounts with a `chatbot_conversation_id` cookie whose conversation row belongs to a different `user_id` (or to a different `session_id`, or is anonymous while the caller is authenticated)
 - **THEN** the server SHALL respond HTTP 404 with a `Set-Cookie: chatbot_conversation_id=; Max-Age=0` header (NOT 200 — the strict identity filter prevents the cross-identity leak); the widget SHALL render with `messages.length === 0`
+
+#### Scenario: Turn sent while the rehydrate is still in flight survives the seed
+
+- **WHEN** the widget mounts, the user sends a message before `GET /current` settles, and the response then arrives HTTP 200 with a persisted thread
+- **THEN** `seedMessages` SHALL be rejected: the rendered thread SHALL still contain the user's message and the streaming assistant bubble, the persisted thread SHALL NOT replace or be appended to them, and deltas arriving after the rejected seed SHALL continue to land on the same assistant bubble
+
+#### Scenario: Seed arriving after the thread is already populated is rejected
+
+- **WHEN** `seedMessages` is called with a non-empty thread while `messages.length > 0` and no turn is in flight
+- **THEN** the message list SHALL be left untouched by reference identity (no re-render), so a late or duplicated rehydrate response cannot clobber a live thread
 
 #### Scenario: "Nueva conversación" then reload starts empty (cookie was dropped client-side)
 
