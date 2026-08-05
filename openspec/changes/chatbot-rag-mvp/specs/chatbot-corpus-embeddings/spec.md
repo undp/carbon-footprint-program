@@ -186,14 +186,23 @@ The provider SHALL inspect `AZURE_OPENAI_API_KEY` at construction. If set to a n
 - **WHEN** `getEmbeddingProvider()` is invoked multiple times in the same process
 - **THEN** every invocation SHALL return the same JavaScript object reference
 
-### Requirement: System refuses to boot with EMBEDDING_PROVIDER=mock in production
+### Requirement: System refuses to boot with EMBEDDING_PROVIDER=mock in production when the chatbot is enabled
 
-When `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock`, boot validation SHALL throw and the API SHALL NOT begin accepting requests.
+When `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock` AND `CHATBOT_ENABLED=true`, boot validation SHALL throw and the API SHALL NOT begin accepting requests. The mock's SHA-256-derived vectors carry no semantic relation to their input, so ingesting or retrieving with them corrupts the corpus silently rather than failing loudly — this guard makes that failure loud.
 
-#### Scenario: Mock-in-prod boot throws
+The `CHATBOT_ENABLED` conjunct is deliberate and SHALL NOT be dropped. A country deployment is expected to run the platform with no AI and no cloud dependency (`CHATBOT_ENABLED=false`), and forcing it to provision Azure OpenAI purely to satisfy a boot check for a disabled feature would break that guarantee. With the chatbot off, no embedding is ever computed, so the mock cannot corrupt anything.
 
-- **WHEN** the API starts with `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock`
-- **THEN** the process SHALL throw an `Error` indicating `mock` is not allowed in production for embeddings, and the API SHALL NOT begin accepting requests
+Corpus ingestion is guarded separately and more strictly: the ingest CLI SHALL refuse the mock provider in production **regardless of `CHATBOT_ENABLED`**, because seeding a corpus before switching the assistant on is an intended workflow — see `chatbot-corpus-ingest`. The two guards together mean there is no path that writes mock vectors to a production corpus.
+
+#### Scenario: Mock-in-prod boot throws when the chatbot is enabled
+
+- **WHEN** the API starts with `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock` AND `CHATBOT_ENABLED=true`
+- **THEN** the process SHALL throw an `Error` naming both `EMBEDDING_PROVIDER="mock"` and `CHATBOT_ENABLED=true` as the offending combination, and the API SHALL NOT begin accepting requests
+
+#### Scenario: Mock-in-prod boots when the chatbot is disabled
+
+- **WHEN** the API starts with `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock` AND `CHATBOT_ENABLED=false`
+- **THEN** the API SHALL boot normally — the deployment runs with no AI feature and no Azure dependency, and no embedding is ever computed
 
 #### Scenario: Mock-in-non-prod is allowed
 
@@ -202,12 +211,19 @@ When `NODE_ENV=production` AND `EMBEDDING_PROVIDER=mock`, boot validation SHALL 
 
 ### Requirement: Boot-time guard requires Azure embedding deployment when EMBEDDING_PROVIDER=azure-openai
 
-When `EMBEDDING_PROVIDER=azure-openai`, boot SHALL require `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` (non-empty trimmed) and `AZURE_OPENAI_ENDPOINT`. Optional `AZURE_OPENAI_EMBEDDING_API_VERSION`, when set, is passed to the SDK; when unset, falls back to `AZURE_OPENAI_API_VERSION`.
+When `EMBEDDING_PROVIDER=azure-openai` AND `CHATBOT_ENABLED=true`, boot SHALL require `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` (non-empty trimmed) and `AZURE_OPENAI_ENDPOINT`. Optional `AZURE_OPENAI_EMBEDDING_API_VERSION`, when set, is passed to the SDK; when unset, falls back to `AZURE_OPENAI_API_VERSION`.
 
-#### Scenario: Missing deployment name throws at boot
+The `CHATBOT_ENABLED` conjunct exists for the same country-agnosticism reason as the mock-in-production guard above: a deployment with the chatbot switched off never constructs an embedding client, so requiring it to name an Azure deployment would be a boot failure for infrastructure it does not use.
 
-- **WHEN** the API starts with `EMBEDDING_PROVIDER=azure-openai` AND `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` unset
+#### Scenario: Missing deployment name throws at boot when the chatbot is enabled
+
+- **WHEN** the API starts with `EMBEDDING_PROVIDER=azure-openai` AND `CHATBOT_ENABLED=true` AND `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` unset
 - **THEN** the process SHALL throw an `Error` naming the missing variable, and the API SHALL NOT begin accepting requests
+
+#### Scenario: Missing deployment name is tolerated when the chatbot is disabled
+
+- **WHEN** the API starts with `EMBEDDING_PROVIDER=azure-openai` AND `CHATBOT_ENABLED=false` AND `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` unset
+- **THEN** the API SHALL boot normally — no embedding client is constructed for a disabled feature
 
 #### Scenario: Embedding API version falls back to chat API version when unset
 

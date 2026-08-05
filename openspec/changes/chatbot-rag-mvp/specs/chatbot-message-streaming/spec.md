@@ -251,7 +251,9 @@ The terminal `done` payload SHALL change from `{ inputTokens, outputTokens }` to
 
 ### Requirement: Streaming handler sets a signed chatbot_conversation_id cookie on every turn that resolves or creates a conversation
 
-After the streaming handler's identity-scoped transaction returns a `conversationId` (whether the row was just created or an existing active row was reused), the handler SHALL emit a `Set-Cookie: chatbot_conversation_id=<signed-value>; Path=/api/chatbot; Max-Age=<CHATBOT_CONVERSATION_TTL_DAYS * 86400>; SameSite=Lax[; Secure when IS_PROD]` header on the response. The cookie is signed with the same `COOKIE_SECRET` used by `chatbot_session_id` (no new signing infrastructure). The cookie is `httpOnly: false` intentionally — see `design.md` Decision 28 for the threat-model rationale.
+After the streaming handler's identity-scoped transaction returns a `conversationId` (whether the row was just created or an existing active row was reused), the handler SHALL emit a `Set-Cookie: chatbot_conversation_id=<signed-value>; Path=/api/chatbot; Max-Age=<CHATBOT_CONVERSATION_TTL_DAYS * 86400>; SameSite=<None; Secure in production, Lax otherwise>` header on the response. The cookie is signed with the same `COOKIE_SECRET` used by `chatbot_session_id` (no new signing infrastructure). The cookie is `httpOnly: false` intentionally — see `design.md` Decision 28 for the threat-model rationale.
+
+`SameSite` SHALL mirror `chatbot_session_id` exactly (`helpers/identity.ts`): `None` with `Secure` in production, `Lax` outside it. This is load-bearing, not cosmetic. The deployed web app and API sit on different registrable domains, so both cookies ride cross-site `credentials: "include"` requests; a `Lax` cookie is not sent on those, which makes persistence work in local development and silently do nothing in production. `SameSite=None` requires `Secure`, which production already sets. An earlier revision of this spec mandated `SameSite=Lax` unconditionally and the implementation shipped that way until the defect was caught — do not "simplify" back to it.
 
 The handler SHALL write the cookie BEFORE invoking `reply.hijack()` so that `writeSseHeaders` forwards it onto `reply.raw.writeHead` — once the response is hijacked, Fastify's onSend hook no longer serializes accumulated headers and a late `reply.setCookie()` call would silently drop. The cookie write is the multi-cookie-aware variant (reads any existing `Set-Cookie` header — `chatbot_session_id` may already be there from the identity preHandler — and appends instead of clobbering).
 
@@ -260,7 +262,7 @@ The cookie value is the conversation row's `id` (coerced to a decimal string). S
 #### Scenario: Cookie is set on the first turn that creates a conversation
 
 - **WHEN** an authenticated or anonymous caller POSTs to `/api/chatbot/message` with no prior `chatbot_conversation_id` cookie AND `resolveOrCreateConversation` creates a new row
-- **THEN** the response headers SHALL include a `Set-Cookie` whose name is `chatbot_conversation_id`, whose value is the signed form of the newly-created row's `id` (decimal string), whose `Path` is `/api/chatbot`, whose `Max-Age` matches `CHATBOT_CONVERSATION_TTL_DAYS * 86400`, whose `SameSite` is `Lax`, and which is NOT `HttpOnly`
+- **THEN** the response headers SHALL include a `Set-Cookie` whose name is `chatbot_conversation_id`, whose value is the signed form of the newly-created row's `id` (decimal string), whose `Path` is `/api/chatbot`, whose `Max-Age` matches `CHATBOT_CONVERSATION_TTL_DAYS * 86400`, whose `SameSite` is `None` with `Secure` in production (`Lax` outside it, matching `chatbot_session_id`), and which is NOT `HttpOnly`
 
 #### Scenario: Cookie is re-asserted (sliding refresh) on subsequent turns that reuse an existing conversation
 

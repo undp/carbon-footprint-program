@@ -80,6 +80,8 @@ type LlmToolDefinition = {
 
 The `mock` SHALL yield the deterministic eco template `"Recibí: {user_message}. Esta es una respuesta de mock."` chunked into multiple `delta` events for ordinary messages. It emits a deterministic `tool_call` when the most recent user message matches (case-insensitive substring) any of `"alcance"`, `"alcances"`, `"protocolo"`, `"factor"`. When triggered: `name = "searchKnowledge"`, `arguments = JSON.stringify({ query: <last-user-content> })`. After the handler appends a `role = TOOL` and re-invokes, the mock yields the eco template (incorporating the tool result label) instead of issuing another `tool_call`. Final `usage` event uses `estimateTokens`. SHALL NOT make network calls.
 
+The mock additionally mirrors the routing modes that `chatbot-message-streaming` defines for the real system prompt, so mode-classification behaviour is testable without an Azure deployment: a platform-usage query yields the **Modo B** redirect literal, and an off-domain factual query yields the **Sub-modo C.1** refusal literal — both byte-for-byte as specified there, and neither emitting a `tool_call`. Keyword matching for the tool round is evaluated BEFORE the off-domain check so a methodology question that incidentally contains an off-domain fixture still routes through retrieval. These literals are duplicated between the prompt and the mock by necessity; `chatbot-message-streaming` is the source of truth and the mock SHALL follow it if the two ever diverge.
+
 #### Scenario: Mock yields tool_call when keyword present
 
 - **WHEN** the mock is invoked with `messages = [{ role: USER, content: "explicame los alcances 1, 2 y 3" }]`

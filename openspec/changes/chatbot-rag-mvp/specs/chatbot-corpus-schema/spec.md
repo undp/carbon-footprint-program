@@ -2,7 +2,9 @@
 
 ### Requirement: Postgres image bundles the pgvector extension
 
-The Postgres image in `docker-compose.yml`, `packages/database/docker-compose.yml`, and `apps/api/test/setup/testcontainers.ts` SHALL be `pgvector/pgvector:pg18`.
+The Postgres image in `docker-compose.yml`, `packages/database/docker-compose.yml`, and `apps/api/test/setup/testDatabase.ts` SHALL be `pgvector/pgvector:pg18`, digest-pinned (`pgvector/pgvector:pg18@sha256:<digest>`) and identical across all three so local, package-level, and test databases cannot diverge. The official `postgres` image cannot apply this change's migration at all — it has no `vector` extension available.
+
+Note this image is Debian-based; pgvector publishes no Alpine variant for pg18. The resulting musl→glibc collation change makes `ORDER BY` on text match production (created with `collation es_ES.UTF8`) rather than the byte-order behaviour the Alpine image produced, so tests comparing a Postgres `ORDER BY` against a JavaScript `[...names].sort()` SHALL use a primary-strength comparator (`test/helpers/collation.ts`) instead.
 
 #### Scenario: Root docker-compose declares the pgvector image
 
@@ -16,8 +18,8 @@ The Postgres image in `docker-compose.yml`, `packages/database/docker-compose.ym
 
 #### Scenario: Testcontainers config declares the pgvector image
 
-- **WHEN** `apps/api/test/setup/testcontainers.ts` is inspected
-- **THEN** the `TEST_DATABASE_CONFIG.image` field SHALL be `pgvector/pgvector:pg18`
+- **WHEN** `apps/api/test/setup/testDatabase.ts` is inspected
+- **THEN** the `TEST_DATABASE_CONFIG.image` field SHALL be a digest-pinned `pgvector/pgvector:pg18` reference matching the digest used by both compose files
 
 #### Scenario: Migration succeeds against the pgvector-bundled image
 
@@ -110,6 +112,8 @@ The corpus tables (`chatbot_corpus_source`, `chatbot_corpus_chunk`, `chatbot_cor
 ### Requirement: Corpus tables are dormant in this change
 
 This requirement is REMOVED. V1 RAG MVP lifts the dormancy: corpus tables are read by retrieval and written by the ingest/activate CLI. `apps/api/test/features/chatbot/lint/noReferencesToCorpusTables.test.ts` SHALL be deleted.
+
+The dormancy guard is narrowed rather than dropped outright. `apps/api/test/features/chatbot/lint/corpusAccessBoundary.test.ts` replaces it and SHALL assert that corpus-table access stays confined to the retrieval and ingest modules — plus a second assertion proving the check cannot pass vacuously (a boundary test that matches nothing is indistinguishable from a passing one). Lifting the "referenced nowhere" invariant is intended; losing all architectural constraint on _where_ corpus access lives is not.
 
 ### Requirement: Migration is forward-compatible with V1 RAG ingestion
 

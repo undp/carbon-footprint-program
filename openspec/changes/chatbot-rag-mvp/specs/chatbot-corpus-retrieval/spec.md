@@ -2,7 +2,7 @@
 
 ### Requirement: System exposes a searchKnowledge retrieval function
 
-The system SHALL define `searchKnowledge(query: string, options?: { topK?: number; scope?: CorpusSourceScope; sourceType?: CorpusSourceType }) => Promise<ChunkWithMetadata[]>` at `apps/api/src/features/chatbot/searchKnowledge/searchKnowledge.ts`. It embeds the query via `getEmbeddingProvider().embed([query])`, then runs SQL against `chatbot_corpus_chunk` joined with `chatbot_corpus_source` ranked by cosine distance via the pgvector `<=>` operator, returning the top-`K` matches ordered most-similar first.
+The system SHALL define `searchKnowledge(prisma: PrismaClient, query: string, options?: { topK?: number; scope?: CorpusSourceScope; sourceType?: CorpusSourceType }) => Promise<ChunkWithMetadata[]>` at `apps/api/src/features/chatbot/searchKnowledge/searchKnowledge.ts`. The Prisma client is injected as the first parameter rather than imported from a module singleton — that is what lets the last requirement in this spec hold ("importable without Fastify"), since an integration test can pass its own transaction-scoped client. It embeds the query via `getEmbeddingProvider().embed([query])`, then runs SQL against `chatbot_corpus_chunk` joined with `chatbot_corpus_source` ranked by cosine distance via the pgvector `<=>` operator, returning the top-`K` matches ordered most-similar first.
 
 `ChunkWithMetadata`:
 
