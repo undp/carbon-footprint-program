@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { devtools } from "@tanstack/devtools-vite";
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
@@ -21,6 +22,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      // Must stay first: it wires up click-to-open-source, browser/terminal
+      // console piping, and strips the devtools shell out of production
+      // builds. Ordering is a documented requirement of the plugin.
+      devtools(),
       tanstackRouter({
         target: "react",
         autoCodeSplitting: true,

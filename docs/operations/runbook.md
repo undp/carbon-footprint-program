@@ -326,7 +326,7 @@ See the "Rotar Contraseña" section in the [Infrastructure Deployment Guide](../
 Use this checklist when deploying a new country instance:
 
 - [ ] Azure subscription and resource group created
-- [ ] `infra/.envrc` configured with all required variables
+- [ ] `infra/.envrc` configured with all required variables, including `ACTION_ON_UNMANAGE` (see below)
 - [ ] Infrastructure deployed via `./infra/deploy.sh`
 - [ ] PostgreSQL version verified (≥ 15)
 - [ ] IP whitelisted in PostgreSQL firewall
@@ -343,6 +343,25 @@ Use this checklist when deploying a new country instance:
 - [ ] Azure Monitor alerts configured
 - [ ] Uptime monitoring configured
 - [ ] Incident escalation contacts defined
+
+### Required variable: `ACTION_ON_UNMANAGE`
+
+`./infra/deploy.sh` requires `ACTION_ON_UNMANAGE` and deliberately has no default: it aborts when the
+variable is unset or empty. **An `infra/.envrc` created before this was introduced must add it**, or
+the next deploy stops with `ACTION_ON_UNMANAGE is required`:
+
+```bash
+export ACTION_ON_UNMANAGE="detachAll"
+```
+
+- `detachAll` — resources that stop being declared in the template are preserved (untracked).
+  Required for anything long-lived: shared, staging, production, or any environment with a public
+  domain.
+- `deleteResources` — those resources are **deleted**. Throwaway environments only.
+
+The behaviour used to be inferred from the environment name, so a new environment could inherit the
+destructive mode by accident. Details and the full rationale: [Infrastructure Deployment
+Guide](../infrastructure/Deployment.md).
 
 ---
 

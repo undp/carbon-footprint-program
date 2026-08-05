@@ -40,6 +40,19 @@ updates:
       # (justkey007/tsc-alias).
       - dependency-name: "tsc-alias"
         versions: [">=1.9.0"]
+      # katex is declared in apps/web only to import its stylesheet
+      # (katex/dist/katex.min.css). The markup is rendered by rehype-katex, which
+      # depends on katex ^0.16.0 as a regular dependency — not a peer — so it
+      # always uses its own copy. Both must resolve to the same version or the
+      # stylesheet stops matching the markup: katex 0.18 renamed every internal
+      # class to a `katex-` prefix (.base -> .katex-base, .strut, .rule,
+      # .stretchy, +17 more), so 0.18 CSS styles none of what 0.16 emits and every
+      # formula renders unstyled. Nothing fails loudly — no range conflict, and
+      # the `.katex` wrapper class survives, so MessageBubble's test still passes.
+      # Hold katex on the 0.16 line (a 0.x minor is a breaking line) until
+      # rehype-katex moves; 7.0.1 is currently its latest. Tracked in #454.
+      - dependency-name: "katex"
+        update-types: ["version-update:semver-minor"]
       # ESLint ecosystem: freeze every package's major until eslint v10 is
       # adopted as one coordinated change.
       # eslint 10 removed the deprecated context.getFilename() (rule reads moved
@@ -71,6 +84,15 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@tanstack/eslint-plugin-router"
         update-types: ["version-update:semver-major"]
+      # TanStack Devtools shell is pre-1.0. Under semver a 0.x minor is a
+      # breaking line, so the `minor-and-patch` group below would silently take
+      # breaking updates (the same trap that katex 0.17 -> 0.18 set in PR #537).
+      # Hold minors and take only patches until these reach 1.0, then drop these
+      # two entries and let the normal major/minor rules apply. Tracked in #454.
+      - dependency-name: "@tanstack/react-devtools"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@tanstack/devtools-vite"
+        update-types: ["version-update:semver-minor"]
     groups:
       # Collapse low-risk updates into a single PR to cut review noise.
       # Security updates still open their own PRs; majors are grouped per

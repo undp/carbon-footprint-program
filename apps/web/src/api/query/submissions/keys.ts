@@ -4,6 +4,7 @@ export enum SubmissionQueryKey {
   CarbonInventoryHistory = "carbon-inventory-history",
   OrganizationHistory = "organization-history",
   ReductionProjectHistory = "reduction-project-history",
+  Warnings = "warnings",
   // Shared dependency key used to invalidate both carbonInventoryHistory and organizationHistory
   // since request mutations (approve, reject, review) don't know the submission type.
   HistoryUpdateDependency = "history-update-dependency",
@@ -34,5 +35,15 @@ export const submissionsKeys = {
       SubmissionQueryKey.ReductionProjectHistory,
       reductionProjectId,
       SubmissionQueryKey.HistoryUpdateDependency,
+    ] as const,
+  // Carries SubmissionUpdateDependency: warnings report the conflicting
+  // submissions' status and their organizations' standing, so approving or
+  // rejecting ANY submission can change what this one says.
+  warnings: (submissionId: string) =>
+    [
+      SubmissionQueryKey.Root,
+      SubmissionQueryKey.Warnings,
+      submissionId,
+      SubmissionQueryKey.SubmissionUpdateDependency,
     ] as const,
 };

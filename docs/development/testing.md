@@ -354,6 +354,18 @@ Every new endpoint should have tests covering:
 
 ---
 
+## Manual Testing
+
+Some behaviour is not covered by either suite — most notably the calculator's client-side arithmetic, factor auto-resolution and display formatting, which all live in the browser. For those there is a pinned, reproducible acceptance case:
+
+| Document                                                                  | Scope                                                                                                                                               |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Manual Testing — Emission Capture](./manual-testing-emission-capture.md) | Calculator step 3: fixture inventory, exact inputs to type, expected line/subcategory/category totals, SQL cross-check, and known display artifacts |
+
+Run it after changing factor resolution, unit conversion, emission aggregation, or number formatting.
+
+---
+
 ## Vitest Configuration Reference
 
 Everything lives in `apps/api/vitest.config.ts`: a local `defineApiVitestProject` helper builds one project, and the config assembles three **projects** (`test.projects`) — `base` (the full suite **minus** the storage manifest), `storage-azure`, and `storage-minio` (**only** the storage manifest, one per provider). Coverage and the other root-only options sit once on the root `test`. One config drives both `vitest run --coverage` locally and the `--project=<leg>` legs in CI:

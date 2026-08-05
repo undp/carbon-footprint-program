@@ -18,6 +18,7 @@ import {
   LOCAL_BYPASS_REQUIRED_FIELDS,
 } from "../../../../config/environment";
 import { GetOrganizationByIdResponse } from "@repo/types";
+import { TAX_ID_LABEL } from "@repo/constants";
 import {
   useOrganizationForm,
   useOrganizationSubmit,
@@ -198,7 +199,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormTextField
                   name="taxId"
                   control={control}
-                  label="RUT / RUC / ID Tributario"
+                  label={TAX_ID_LABEL}
                   required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <FormSelectField

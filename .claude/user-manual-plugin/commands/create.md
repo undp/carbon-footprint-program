@@ -58,12 +58,19 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    `plantillas-slides.html`:
    Cover → Objectives (siempre 3) → Index (2 columnas) → [Divider + Content] × N →
    Back cover (la misma lámina de portada, repetida como cierre).
-   Entre **10 y 20 slides** según la complejidad del módulo (la contraportada no cuenta).
+   **Antes de escribir, acuerda la extensión** (ver «Acordar la extensión» en la skill): no hay
+   tramos fijos — inventaria las unidades de contenido de este módulo, agrúpalas según lo que
+   aguanta una lámina (6-7 callouts, máx 2 cajas, 810 px) y decide tú el número. Confírmalo con
+   **AskUserQuestion** mostrando de dónde sale el cálculo, con tu número como primera opción más una
+   alternativa más breve y otra más extensa, y diciendo en cada una qué cobertura se gana o se
+   pierde (la contraportada no cuenta). Si el
+   usuario ya indicó una extensión en las instrucciones adicionales, respétala y no preguntes.
    Si hubo instrucciones adicionales, aplícalas sobre la ficha del módulo y el workflow (por
    ejemplo: énfasis en un flujo, secciones a incluir u omitir, profundidad o tono).
    Escribe el archivo en `user_manual/<slug_snake>/<slug_snake>.html`.
 
-8. **Reglas duras**: máx 20 slides (sin contar la contraportada); estructura Cover →
+8. **Reglas duras**: la extensión acordada en el paso 7 (sin contar la contraportada; para
+   excederla, vuelve a preguntar); estructura Cover →
    Objectives (3) → Index → [Divider + Content] × N → Back cover; ninguna lámina sobre 810 px de
    alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); sin vistas
    responsivas; máx 2 info/tip-box por slide; máx 6-7 callouts por
@@ -72,13 +79,40 @@ Genera el manual de usuario del módulo indicado. Sigue estos pasos en orden.
    si algo pedido en ellas choca con una regla dura, aplica la regla dura y avisa al usuario.
 
 9. **Verificación visual** a **1440×810** (Playwright si está disponible): cada slide completa
-   sin cortes, callouts alineados, imágenes que cargan, footer y páginas correctos. Luego usa
-   AskUserQuestion: ¿algún ajuste antes de generar el PDF?
+   sin cortes, callouts alineados, imágenes que cargan, footer y páginas correctos.
 
-10. **Genera el PDF**:
+10. **Higiene de la carpeta.** Un capítulo tiene que quedar autocontenido y sin residuos. Corre
+    las dos verificaciones; ambas deben salir vacías:
+
+    ```bash
+    # (a) Capturas en disco que el capítulo no referencia.
+    comm -13 \
+      <(grep -oP "(?<=src=\")\.\./screenshots/<slug_snake>/[^\"]+" \
+          "user_manual/<slug_snake>/<slug_snake>.html" | sed 's|.*/||' | sort -u) \
+      <(ls "user_manual/screenshots/<slug_snake>/" | sort)
+
+    # (b) Referencias remotas: el capítulo debe abrirse y exportarse sin red.
+    grep -rn "https\?://" "user_manual/<slug_snake>/<slug_snake>.html" user_manual/assets
+    ```
+
+    Si (a) lista algo son capturas crudas que quedaron fuera del corte: **pregunta con
+    AskUserQuestion si borrarlas**, no las dejes ahí. Conviviendo con las que sí se usan nadie
+    las distingue después, así que la salida segura pasa a ser «guardar todo» y la carpeta solo
+    crece; además tapan la señal de que falta una captura. Si (b) lista algo, reemplázalo por un
+    recurso local (para fuentes, ver `user_manual/assets/fonts/README.md`).
+
+11. **Confirmación final.** Usa AskUserQuestion: ¿algún ajuste antes de generar el PDF?
+
+12. **Genera el PDF**:
     ```bash
     node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
       "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
     ```
-    Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrece instalarlas como
-    devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
+    Requiere `playwright-core` y `pdf-lib`, ya declaradas como devDependencies en la raíz del
+    repo: basta `pnpm install`. Si faltaran, instálalas con el gestor del proyecto
+    (`pnpm add -Dw playwright-core pdf-lib`) o ofrece saltar el PDF. Nunca uses `npm install`
+    aquí: dejaría un `package-lock.json` junto al `pnpm-lock.yaml` y un `node_modules` que
+    pelea con el `.npmrc` del workspace.
+
+Al cerrar, **recomienda** (sin ejecutarlo) correr `/user-manual:review @<slug>` sobre el manual
+recién generado: prueba de comprensión con un subagente y revisión opcional con Codex.

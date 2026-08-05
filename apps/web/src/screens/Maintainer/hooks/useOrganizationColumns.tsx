@@ -7,6 +7,7 @@ import {
   BlockOutlined,
   LockOpenOutlined,
 } from "@mui/icons-material";
+import { TAX_ID_LABEL_SHORT } from "@repo/constants";
 import { StatusChip } from "@/components/StatusChip";
 import { AdminActionButton } from "@/components/AdminActionButton";
 import { GetAllOrganizationsResponse } from "@repo/types";
@@ -56,8 +57,8 @@ export const useOrganizationColumns = ({
         valueFormatter: (value: string | null) => value ?? "-",
       },
       {
-        field: "subsectorName",
-        headerName: "Sub-Rubro",
+        field: "taxId",
+        headerName: TAX_ID_LABEL_SHORT,
 
         cellClassName,
         flex: 1,

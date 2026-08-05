@@ -570,6 +570,27 @@ jobs:
           # repository is private and does not depend on that paid feature.
           advanced-security: false
 
+  shellcheck:
+    needs: check-draft
+    name: Shellcheck (infra scripts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Lint the deployment scripts
+        # The infra scripts carry real logic (permission probing, JMESPath/jq
+        # queries, stack lifecycle decisions) and are the one part of the repo
+        # with no other static gate. shellcheck ships preinstalled on the ubuntu
+        # runner, so this adds no third-party action and no supply-chain surface.
+        #
+        # -x follows `source`d files so lib/common.sh is analysed in context.
+        # Severity `warning` gates on real defects and skips style-only advice —
+        # raise it to `style` once the backlog it surfaces is worth clearing.
+        run: |
+          shellcheck --version
+          shellcheck -x -S warning infra/*.sh infra/lib/*.sh
+
   docs-links:
     needs: check-draft
     name: Docs Link Check
@@ -588,7 +609,11 @@ jobs:
           # '*.md' covers the root policy documents (PRIVACY, SECURITY,
           # CODE_OF_CONDUCT, CONTENT_MODERATION, GOVERNANCE) alongside README —
           # they cross-link heavily into docs/ and were previously unchecked.
-          args: "--offline --no-progress --exclude-path node_modules '*.md' 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md'"
+          #
+          # user_manual/**/*.html is included because a chapter is mostly local
+          # references (screenshots, stylesheet) and a broken <img src> would
+          # otherwise ship silently — lychee reports it with a line number.
+          args: "--offline --no-progress --exclude-path node_modules '*.md' 'docs/**/*.md' 'apps/**/README.md' 'packages/**/README.md' 'user_manual/**/*.md' 'user_manual/**/*.html'"
           fail: true
 
   secret-scan:

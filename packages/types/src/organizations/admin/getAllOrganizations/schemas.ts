@@ -10,6 +10,7 @@ import { listQueryParam } from "../../../zod.js";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationItemSchema = CommonOrganizationFieldsSchema.extend({
+  taxId: z.string().nullable().describe("OrganizationData.taxId (RUT/RUC/ID)"),
   sectorName: z.string().nullable().describe("CountrySector.name"),
   subsectorName: z.string().nullable().describe("CountrySubsector.name"),
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),

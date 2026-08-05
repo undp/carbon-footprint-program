@@ -6,3 +6,5 @@ export * from "./getOrganizationHistory/schemas.js";
 export * from "./getOrganizationHistory/types.js";
 export * from "./getReductionProjectHistory/schemas.js";
 export * from "./getReductionProjectHistory/types.js";
+export * from "./getSubmissionWarnings/schemas.js";
+export * from "./getSubmissionWarnings/types.js";

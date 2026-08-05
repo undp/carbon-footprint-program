@@ -142,6 +142,24 @@ from the tenant inputs above by `.envrc.azure.example` (local) and `appService.b
 | `JWKS_REQUIRED_SCOPE`   | No               | Required scope claim (default: `access_as_user`)                          |
 | `JWKS_SKIP_SCOPE_CHECK` | No               | Set `true` to disable scope enforcement entirely                          |
 
+### Proxy trust (`TRUST_PROXY`)
+
+Sets Fastify's [`trustProxy`](https://fastify.dev/docs/latest/Reference/Server/#trustproxy) — whether `X-Forwarded-For` may set `request.ip`. **This is not cosmetic:** `request.ip` is the rate limiter's bucket key, so leaving it unset behind a proxy makes the 100 req/min limit one bucket shared by every caller rather than one per client, and nothing fails visibly when it happens. Setting it to `true` on a directly internet-facing API has the opposite effect — a caller forges the header and evades the limit. The correct value is a property of your topology; see [`docs/security/hardening.md`](../security/hardening.md#proxy-trust) for the per-topology guidance, the migration steps for deployments that already exist, and why a hop count is only safe when the origin cannot be reached by a shorter path.
+
+The limit is per client **per API instance** — the store is in-memory, so autoscaling multiplies it by the instance count ([Rate Limiting Is In-Memory Only](../operations/risks-and-limitations.md#rate-limiting-is-in-memory-only)). Configuring `TRUST_PROXY` makes the bucket per-client; it does not make it per-client-globally.
+
+The effective default is `false` (trust nothing), which preserves the behaviour of deployments that upgrade without setting it. On Azure the value comes from the `apiTrustProxy` parameter in `infra/main.bicep` rather than an env file; local development needs nothing, since the browser reaches the API directly.
+
+**Unset and `false` behave the same at runtime but are not the same setting.** When `NODE_ENV=production` and the variable is _unset_, the API logs a warning at boot. Writing `TRUST_PROXY=false` records that the API really is reached directly and silences it, so a correctly-configured direct deployment is not warned at on every boot.
+
+A hop count is capped at **10**, and a value that is out of range or not a whole number **fails the boot** rather than falling back. A count larger than the real chain is `true` by another name — proxy-addr returns the caller-controlled leftmost entry — so a typo like `10000` for `1` must not pass silently.
+
+An allowlist is shape-checked per entry for the same reason. Left to the library, a malformed value throws from inside the Fastify constructor as `invalid IP address: …`, naming neither the variable nor the docs — and the library is not a dependable backstop anyway, since it accepts short forms like `10.0.0/8` leniently. Those lenient forms keep working; what is rejected is input that could not be an address or a range. On Azure, `infra/deploy.sh` runs the same check on whichever source supplies the value and aborts before the deployment, so a typo surfaces in your terminal rather than as a crash-looping container.
+
+| Variable      | Required | Default                        | Description                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | -------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TRUST_PROXY` | No       | unset (acts as `false`, warns) | `false` = trust nothing, decision recorded. A comma-separated IP/CIDR list (`10.0.0.0/8,192.168.0.0/16`) = trust only those senders — **preferred**. A bare integer `0`–`10` = trust that many hops; out of range fails the boot. `loopback` / `linklocal` / `uniquelocal` = Fastify's named ranges. `true` = trust the whole chain (last resort). |
+
 ### Load Shedding (`@fastify/under-pressure`)
 
 The API registers [`@fastify/under-pressure`](https://github.com/fastify/under-pressure), which returns `503 Service Unavailable` when the process is overloaded. The two event-loop thresholds are env-configurable so an environment or CI runner under unusual load can tune them without a code change; the defaults preserve the platform's production behaviour. A malformed value (non-numeric or empty) falls back to the default. The heap and RSS limits remain hardcoded in `apps/api/src/plugins/external/under-pressure.ts`, and the plugin is not loaded when `NODE_ENV=test`.

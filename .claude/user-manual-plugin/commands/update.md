@@ -36,11 +36,15 @@ con los cambios pedidos. Sigue estos pasos en orden.
    - el **contrato de clases** (no inventar clases ni variables fuera del contrato);
    - la **estructura** Cover → Objectives (3) → Index → [Divider + Content] × N → Back cover
      (la portada repetida como cierre);
-   - las **reglas duras**: máx 20 slides sin contar la contraportada; ninguna lámina sobre 810 px
+   - las **reglas duras**: ninguna lámina sobre 810 px
      de alto (si se pasa, reduce el screenshot con `annotated-screenshot--sm`/`--xs`); máx 2
      info/tip-box por slide; máx 6-7 callouts por
      screenshot; español neutro en segunda persona; sin datos reales de personas; sin jerga técnica
      (API, base de datos).
+   - la **extensión**: no hay tope fijo, pero si tus cambios agregan o quitan láminas y el prompt
+     no pidió explícitamente cambiar el largo, confirma la nueva extensión con **AskUserQuestion**
+     antes de escribir: di cuántas láminas tiene hoy, cuántas quedarían y qué se gana con la
+     diferencia (la contraportada no cuenta).
      Si agregas o quitas slides, **mantén el slide Index sincronizado** (títulos y números de página).
 
 4. **Capturas nuevas.** Si algún cambio las requiere, usa AskUserQuestion:
@@ -54,11 +58,16 @@ con los cambios pedidos. Sigue estos pasos en orden.
    ven completas sin cortes, los callouts calzan, las imágenes cargan, footer y números de página
    correctos.
 
-6. **PDF.** Con AskUserQuestion pregunta si regenerar el PDF. Si sí:
+6. **Revisión de contenido.** Si los cambios tocaron contenido (no solo estética o posiciones de
+   callouts), **recomienda** correr `/user-manual:review @<slug>` sobre el manual actualizado:
+   prueba de comprensión con un subagente Sonnet y revisión opcional con Codex. Recomiéndalo, no lo
+   ejecutes; si el usuario prefiere revisar primero, deja el PDF para después de la revisión.
+
+7. **PDF.** Con AskUserQuestion pregunta si regenerar el PDF. Si sí:
 
    ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
      "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
    ```
 
-7. **Resumen final**: qué slides y secciones se modificaron.
+8. **Resumen final**: qué slides y secciones se modificaron.

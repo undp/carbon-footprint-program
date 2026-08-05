@@ -27,6 +27,7 @@ import { AdminActionsCard } from "./AdminActionsCard";
 import { SubmissionHistorySection } from "./SubmissionHistorySection";
 import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
 import { OrgDataSection } from "./OrgDataSection";
+import { ConflictsSection } from "./ConflictsSection";
 import { AnyQuestionsBanner } from "./AnyQuestionsBanner";
 import { useViewSubmission } from "./hooks/useViewSubmission";
 
@@ -234,6 +235,13 @@ export const ViewSubmissionDialog: FC<Props> = ({
                       />
                     )}
                   </Stack>
+
+                  <ConflictsSection
+                    submissionId={submission.submissionId}
+                    submissionStatus={submission.status}
+                    isOrganizationAccreditation={isOrganizationAccreditation}
+                    canViewWarnings={!!isAdmin}
+                  />
 
                   {submission.organizationData &&
                     isOrganizationAccreditation && (

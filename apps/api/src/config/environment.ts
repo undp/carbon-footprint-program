@@ -35,6 +35,152 @@ const parseNumericEnv = (raw: string | undefined, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+// ============================================================================
+// Proxy Trust (Fastify `trustProxy`)
+// ============================================================================
+// Whether the API trusts `X-Forwarded-For` / `X-Forwarded-Proto` to resolve
+// `request.ip`. This has to be per-deployment because the correct answer is a
+// property of the topology, not of the software: the API may sit directly on a
+// socket, behind Azure App Service's front-end, behind Front Door, or behind an
+// operator's own nginx (see docs/security/hardening.md, "Deployment topology").
+//
+// It matters because `request.ip` is the rate limiter's bucket key
+// (plugins/external/rate-limit.ts). Left off behind a proxy, every caller
+// resolves to the SAME proxy address and the 100 req/min limit becomes one
+// shared bucket instead of a per-client one — so a single heavy caller can
+// exhaust the budget for everyone. Turned on while the API is directly
+// internet-facing, the opposite failure appears: a caller forges the header and
+// mints itself a fresh bucket per request, evading the limit entirely.
+//
+// Effective default is `false`, preserving the previous hardcoded behaviour, so
+// upgrading without setting the variable changes nothing.
+
+/**
+ * Upper bound on a hop count. Real proxy chains are one or two deep (App
+ * Service alone; App Service behind Front Door), so ten is already generous.
+ *
+ * The bound exists because a hop count larger than the actual chain is not
+ * merely wrong, it is `true` by another name: proxy-addr walks the whole
+ * `X-Forwarded-For` chain and returns the leftmost entry, which is entirely
+ * caller-controlled. Without a ceiling, `TRUST_PROXY=10000` — a plausible typo
+ * for `TRUST_PROXY=1` — silently hands every caller the ability to choose its
+ * own rate-limit key.
+ */
+const MAX_TRUST_PROXY_HOPS = 10;
+
+/** proxy-addr's named ranges, accepted verbatim by Fastify's `trustProxy`. */
+const TRUST_PROXY_NAMED_RANGES = ["loopback", "linklocal", "uniquelocal"];
+
+/**
+ * Shape-check one entry of an allowlist: an IP, a CIDR block, or a named range.
+ *
+ * This exists because the library's own failure is unhelpful and inconsistent.
+ * Most malformed values throw from `proxyAddr.compile()` inside the `Fastify()`
+ * constructor with a message that never mentions `TRUST_PROXY` — an operator
+ * sees `invalid IP address: not-an-ip` and no pointer to the setting or the
+ * docs. And the failure is not even uniform: `10.0.0/8` is accepted leniently
+ * (as `10.0.0.0/8`), so the library cannot be relied on to catch a typo.
+ *
+ * Deliberately permissive about the address grammar and strict about ranges.
+ * The lenient short forms proxy-addr accepts stay accepted — rejecting a value
+ * that works today would break a running deployment for tidiness — while the
+ * numeric bounds that are unambiguously wrong (`999.999.999.999`, a `/99` IPv4
+ * prefix) are rejected here so they fail with a message that names the variable.
+ * proxy-addr remains the final authority; this is a pre-flight, not a parser.
+ */
+const isValidTrustProxyEntry = (entry: string): boolean => {
+  if (TRUST_PROXY_NAMED_RANGES.includes(entry.toLowerCase())) return true;
+
+  const [address, prefix, ...extra] = entry.split("/");
+  if (extra.length > 0) return false;
+  if (prefix !== undefined && !/^\d{1,3}$/.test(prefix)) return false;
+
+  // Any colon means IPv6 (including the IPv4-mapped `::ffff:1.2.3.4` form),
+  // whose grammar is too varied to re-implement — check the character set and
+  // the prefix bound, and leave exact validity to the library.
+  if (address.includes(":")) {
+    if (!/^[0-9a-fA-F.:]+$/.test(address)) return false;
+    return prefix === undefined || Number(prefix) <= 128;
+  }
+
+  // IPv4. Fewer than four octets is proxy-addr's accepted short form.
+  const octets = address.split(".");
+  if (octets.length > 4) return false;
+  if (!octets.every((o) => /^\d{1,3}$/.test(o) && Number(o) <= 255)) {
+    return false;
+  }
+  return prefix === undefined || Number(prefix) <= 32;
+};
+
+/**
+ * Parse `TRUST_PROXY` into the shape Fastify's `trustProxy` option accepts.
+ *
+ * - unset / empty → `undefined`, meaning **not configured**. The caller applies
+ *   `false`; the distinction exists only so the boot warning can tell an
+ *   operator who never considered this from one who decided against it.
+ * - `"false"` → `false` (trust nothing) — a deliberate choice, not a default
+ * - `"true"` → `true` (trust the whole `X-Forwarded-For` chain)
+ * - a bare integer 0…{@link MAX_TRUST_PROXY_HOPS} → that many proxy hops
+ * - anything else → a comma-separated IP/CIDR allowlist, or one of Fastify's
+ *   named ranges (`loopback`, `linklocal`, `uniquelocal`), shape-checked per
+ *   entry and then passed through verbatim (Fastify splits and trims it itself)
+ *
+ * Prefer an allowlist or a hop count over `true` in production: `true` trusts
+ * whatever the caller put in the header when no proxy overwrote it.
+ *
+ * @throws if the value is not one of the shapes above. This fails the boot
+ * rather than falling back, because every silent fallback here is a security
+ * posture the operator did not choose: falling back to `false` would restore
+ * the shared rate-limit bucket, and clamping a hop count to the maximum would
+ * trust more hops than were asked for.
+ */
+const parseTrustProxy = (
+  raw: string | undefined
+): boolean | number | string | undefined => {
+  const trimmed = raw?.trim();
+  if (!trimmed) return undefined;
+
+  const lowered = trimmed.toLowerCase();
+  if (lowered === "true") return true;
+  if (lowered === "false") return false;
+
+  if (/^\d+$/.test(trimmed)) {
+    const hops = Number(trimmed);
+    // A long enough digit string overflows to Infinity, and anything past
+    // Number.MAX_SAFE_INTEGER stops round-tripping — neither is a hop count.
+    if (
+      !Number.isSafeInteger(hops) ||
+      hops < 0 ||
+      hops > MAX_TRUST_PROXY_HOPS
+    ) {
+      throw new Error(
+        `Invalid TRUST_PROXY hop count: "${trimmed}". Expected a whole number ` +
+          `between 0 and ${MAX_TRUST_PROXY_HOPS}. Refusing to start: a hop ` +
+          `count larger than the real proxy chain makes every X-Forwarded-For ` +
+          `entry trusted, which lets a caller choose its own rate-limit key. ` +
+          `Use 1 for Azure App Service, 2 behind Front Door, or an IP/CIDR ` +
+          `allowlist.`
+      );
+    }
+    return hops;
+  }
+
+  const entries = trimmed.split(",").map((entry) => entry.trim());
+  if (entries.some((entry) => !isValidTrustProxyEntry(entry))) {
+    throw new Error(
+      `Invalid TRUST_PROXY value: "${trimmed}". Expected false, true, a hop ` +
+        `count between 0 and ${MAX_TRUST_PROXY_HOPS}, a named range ` +
+        `(${TRUST_PROXY_NAMED_RANGES.join(", ")}), or a comma-separated list ` +
+        `of IP addresses / CIDR blocks such as "10.0.0.0/8,192.168.0.0/16". ` +
+        `Refusing to start: proxy trust decides whose X-Forwarded-For may set ` +
+        `request.ip, which is the rate limiter's bucket key. See ` +
+        `docs/security/hardening.md, "Proxy Trust".`
+    );
+  }
+
+  return trimmed;
+};
+
 /**
  * Trim env input and treat empty / whitespace-only strings as unset. Used by
  * the chatbot config block so a value like `"   "` cannot bypass the
@@ -86,6 +232,17 @@ export interface ApiEnv {
   PORT: number;
   ALLOWED_ORIGIN: string | undefined;
   DATABASE_URL: string | undefined;
+  /**
+   * Fastify's `trustProxy`: which `X-Forwarded-*` senders may set `request.ip`.
+   * The union Fastify accepts — `false` (trust nothing), `true` (trust the
+   * chain), a hop count, or an IP/CIDR/named-range string.
+   *
+   * `undefined` means **not configured**, which is distinct from an explicit
+   * `false` even though both end up trusting nothing. Only the unconfigured
+   * case warns at boot: an operator who wrote `TRUST_PROXY=false` has already
+   * made the decision the warning exists to prompt.
+   */
+  TRUST_PROXY: boolean | number | string | undefined;
   MAX_EVENT_LOOP_DELAY_MS: number;
   MAX_EVENT_LOOP_UTILIZATION: number;
   JWKS_URI: string | undefined;
@@ -147,6 +304,9 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   const PORT = parseInt(source.API_PORT ?? "8080", 10);
 
   const DATABASE_URL = source.DATABASE_URL;
+
+  /** Which `X-Forwarded-*` senders may set `request.ip`. See parseTrustProxy. */
+  const TRUST_PROXY = parseTrustProxy(source.TRUST_PROXY);
 
   /** Event-loop delay (ms) above which the API sheds load with a 503. */
   const MAX_EVENT_LOOP_DELAY_MS = parseNumericEnv(
@@ -433,6 +593,7 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     PORT,
     ALLOWED_ORIGIN,
     DATABASE_URL,
+    TRUST_PROXY,
     MAX_EVENT_LOOP_DELAY_MS,
     MAX_EVENT_LOOP_UTILIZATION,
     JWKS_URI,
@@ -471,6 +632,7 @@ export const HOST = env.HOST;
 export const PORT = env.PORT;
 export const ALLOWED_ORIGIN = env.ALLOWED_ORIGIN;
 export const DATABASE_URL = env.DATABASE_URL;
+export const TRUST_PROXY = env.TRUST_PROXY;
 export const MAX_EVENT_LOOP_DELAY_MS = env.MAX_EVENT_LOOP_DELAY_MS;
 export const MAX_EVENT_LOOP_UTILIZATION = env.MAX_EVENT_LOOP_UTILIZATION;
 export const JWKS_URI = env.JWKS_URI;

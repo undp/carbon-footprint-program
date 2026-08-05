@@ -146,8 +146,8 @@ export const OrganizationScreenTable: FC = () => {
     () => ({
       keys: [
         "name",
+        "taxId",
         "sectorName",
-        "subsectorName",
         "sizeName",
         {
           name: "status",
@@ -217,6 +217,7 @@ export const OrganizationScreenTable: FC = () => {
         open={historyOrgId !== null}
         organizationId={historyOrgId ?? undefined}
         onClose={handleCloseHistory}
+        isAdmin
       />
     </Box>
   );

@@ -9,8 +9,8 @@
  * a su contenido real (mínimo 810px), evitando cortes. Al final se fusionan
  * todas las páginas en un único PDF.
  *
- * Requiere que el proyecto tenga instaladas las dependencias:
- *   npm install --save-dev playwright-core pdf-lib
+ * Requiere `playwright-core` y `pdf-lib` en el proyecto. En este repo ya están
+ * declaradas como devDependencies en la raíz, así que `pnpm install` alcanza.
  */
 
 const path = require("path");
@@ -39,8 +39,11 @@ try {
   ({ PDFDocument } = require("pdf-lib"));
 } catch (err) {
   console.error(
-    "Faltan dependencias. Instálalas en el proyecto con:\n" +
-      "  npm install --save-dev playwright-core pdf-lib"
+    "Faltan dependencias. Están declaradas en la raíz del repo, así que normalmente\n" +
+      "basta con:\n" +
+      "  pnpm install\n" +
+      "Si de verdad no están declaradas, agrégalas con el gestor del proyecto:\n" +
+      "  pnpm add -Dw playwright-core pdf-lib"
   );
   process.exit(1);
 }

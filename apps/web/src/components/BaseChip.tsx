@@ -7,6 +7,7 @@ interface BaseChipProps {
   label: ReactNode;
   tooltip: string;
   size?: ChipProps["size"];
+  fontSize?: string;
 }
 
 export const BaseChip: FC<BaseChipProps> = ({
@@ -14,6 +15,7 @@ export const BaseChip: FC<BaseChipProps> = ({
   label,
   tooltip,
   size = "small",
+  fontSize = undefined,
 }) => {
   const variant = size === "medium" ? "subtitle1" : "subtitle2";
   const fontWeight = size === "medium" ? "fontWeightMedium" : undefined;
@@ -39,6 +41,7 @@ export const BaseChip: FC<BaseChipProps> = ({
             component="span"
             variant={variant}
             fontWeight={fontWeight}
+            fontSize={fontSize}
             lineHeight={1.2}
           >
             {label}

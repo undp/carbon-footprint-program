@@ -11,7 +11,7 @@ y screenshots anotados, listo para exportar a PDF.
 
 Esta skill acompaña a los comandos del plugin `manual`:
 `/user-manual:branding`, `/user-manual:branding-update`, `/user-manual:explore`, `/user-manual:explore-update`,
-`/user-manual:create`, `/user-manual:update`.
+`/user-manual:create`, `/user-manual:update`, `/user-manual:review`.
 
 ## Dónde vive cada cosa
 
@@ -72,6 +72,11 @@ Capturar con Playwright desde la app en vivo (si está disponible) o usar placeh
 - **Datos ficticios obligatorios**: nunca datos reales de personas. Usar nombres
   inventados (p. ej. "González Muñoz, Carlos") y códigos genéricos. Si la app trae datos
   reales, interceptarlos/reemplazarlos antes de capturar (`page.route()`).
+- **Los correos van siempre en `@example.com`** (o `.org`/`.net`), los dominios que
+  la RFC 2606 reserva para documentación. Un dominio inventado que suena plausible
+  es registrable por cualquiera mañana: implica una organización real y desvía el
+  mail que un lector copie del manual. Los nombres de empresa inventados sí sirven
+  tal cual — el problema es solo el dominio.
 - Sin Playwright: usar `.screenshot-placeholder` describiendo qué mostrará cada captura.
 
 ### Paso 3 — Planificar la estructura de slides
@@ -87,14 +92,42 @@ BACK COVER   → Cierre: la misma lámina de portada, repetida
 ```
 
 El capítulo **cierra con la portada repetida** (mismo markup, `data-page` corriendo). No va en
-el índice y no cuenta para el tope de slides.
+el índice y no cuenta para la extensión acordada.
 
-Cantidad de slides según complejidad (**tope duro: 20**, sin contar la contraportada):
+#### Acordar la extensión (obligatorio antes de escribir)
 
-- Simple (1 vista, pocos features): **10-14**.
-- Mediano (2-3 vistas): **14-18**.
-- Complejo (mapa, múltiples vistas): **18-20** (el original sugería hasta 22; aquí se
-  recorta a 20 por la regla dura).
+No hay tope fijo ni tramos por tipo de módulo: **la extensión la decides tú a partir del contenido
+que este módulo realmente tiene**, y la confirmas con el usuario antes de escribir. Un módulo
+"simple" con seis estados y tres diálogos puede necesitar más láminas que uno "complejo" de
+recorrido lineal; el número sale del inventario, no de una etiqueta.
+
+**1 · Inventaria lo que hay que cubrir.** Con la ficha (y el código si hace falta), lista las
+unidades de contenido: cada vista, cada paso de un flujo, cada formulario con sus campos
+obligatorios, cada diálogo o acción secundaria (adjuntos, comentarios, descargas), los estados y
+avisos, y los casos de borde que la persona va a encontrar. Una unidad es algo que alguien
+necesita para poder actuar; si no lo necesita, no entra ni al inventario ni al manual.
+
+**2 · Agrupa en láminas según lo que aguanta una lámina.** Los límites de densidad son los que
+fuerzan las divisiones, no un cupo: una lámina sostiene **una captura anotada con 6-7 callouts
+como máximo**, hasta **2 info/tip-box**, y nunca pasa de **810 px de alto**. Un tema que no cabe
+ahí se parte en dos; dos temas que sobran en media lámina se juntan. Suma después el andamiaje
+fijo: portada + objetivos + índice (3), un divider por sección, y la contraportada (que no cuenta).
+
+**3 · Propón el número que salió y confírmalo con AskUserQuestion.** No preguntes en abstracto:
+muestra de dónde viene. Ofrece tu cálculo como primera opción (marcada «(Recomendado)») y dos
+alternativas reales —una más breve y una más extensa— explicando en cada una **qué cobertura se
+gana o se pierde**, no solo el número. La opción «Other» deja al usuario fijar el suyo. Por ejemplo:
+
+> **Pregunta:** Conté 12 unidades de contenido (5 pasos, 3 diálogos, 2 rutas de entrada, factores,
+> guardado del borrador) y 5 secciones. ¿Qué extensión le doy al capítulo?
+> **Opciones:** `20 láminas (Recomendado)` — una de detalle por paso, más respaldo, total directo y
+> factores · `15 láminas` — un paso por lámina, sin las de detalle: se pierden los casos de borde ·
+> `26 láminas` — cada diálogo y cada caso de borde con su propia lámina.
+
+**4 · Trata lo acordado como presupuesto, no como pared.** Escribe dentro de eso. Si al planificar
+o al escribir descubres que el contenido verificado no cabe, **vuelve a preguntar** con el número
+que sí calza y qué lo exige; nunca lo excedas en silencio, ni rellenes con láminas de adorno para
+llegar a la cifra, ni recortes contenido verificado para forzarla.
 
 ### Paso 4 — Preparar el HTML
 
@@ -140,8 +173,10 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/manual-slides/referencias/exportar-pdf.cjs \
   "user_manual/<slug_snake>/<slug_snake>.html" "user_manual/<slug_snake>/<slug_snake>.pdf"
 ```
 
-Requiere `playwright-core` y `pdf-lib` en el proyecto. Si faltan, ofrecer instalarlas como
-devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el PDF.
+Requiere `playwright-core` y `pdf-lib`, ya declaradas como devDependencies en la raíz del repo:
+basta `pnpm install`. Si faltaran, instalarlas con el gestor del proyecto
+(`pnpm add -Dw playwright-core pdf-lib`) u ofrecer saltar el PDF. Nunca `npm install` en este
+workspace: crea un `package-lock.json` paralelo al `pnpm-lock.yaml`.
 
 ---
 
@@ -177,7 +212,8 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 
 ## Reglas duras (no romper)
 
-- Máximo **20 slides** por capítulo (la contraportada no cuenta).
+- **Extensión acordada con el usuario** (ver Paso 3): confirma el rango con AskUserQuestion antes
+  de escribir y no lo excedas sin volver a preguntar. La contraportada no cuenta.
 - El capítulo **cierra repitiendo la lámina de portada**.
 - Máximo **2 info-box o tip-box** por slide.
 - Máximo **6-7 callouts** por screenshot.
@@ -188,21 +224,60 @@ devDependencies (`npm install --save-dev playwright-core pdf-lib`) o saltar el P
 - No incluir texto técnico de implementación (API, base de datos).
 - Solo formato slide (landscape); sin formato carta ni toggle.
 - **No documentar vistas responsivas**: este proyecto no las presenta en los manuales.
-- **Nunca datos reales de personas** en los screenshots — siempre datos ficticios.
+- **Nunca datos reales de personas** en los screenshots — siempre datos ficticios, con
+  los correos en `@example.com`.
 
 ## Checklist final
 
+- [ ] Extensión confirmada con el usuario (AskUserQuestion) antes de escribir, y el capítulo cabe
+      en lo acordado.
 - [ ] HTML creado con todas las slides (cover, objetivos, índice, dividers, contenido).
 - [ ] `manual.css` copiado a `user_manual/assets/` y enlazado como `../assets/manual.css`.
 - [ ] Screenshots (o placeholders) en `user_manual/screenshots/<slug_snake>/`; todos los `<img src>`
       apuntan a `../screenshots/<slug_snake>/` y resuelven.
+- [ ] Sin capturas huérfanas: `screenshots/<slug_snake>/` contiene exactamente lo que el capítulo
+      referencia, nada más.
+- [ ] Sin referencias remotas: ninguna hoja de estilo, fuente ni imagen externa; el capítulo se abre
+      y se exporta a PDF sin red.
+- [ ] Todos los `<span class="material-symbols-rounded">` con `aria-hidden="true"`: la ligatura es
+      texto real y si no, el lector de pantalla y la capa de texto del PDF la leen como palabra.
 - [ ] Posiciones de callout verificadas visualmente.
 - [ ] Footer y número de página correctos en TODAS las slides.
 - [ ] Ícono del módulo correcto en cover y dividers.
 - [ ] Índice con números de página correctos.
-- [ ] Sin datos reales; solo datos ficticios.
+- [ ] Sin datos reales; solo datos ficticios, con los correos en `@example.com`.
 - [ ] Preguntado al usuario si quiere ajustes antes del PDF.
 - [ ] PDF generado sin cortes de contenido.
+- [ ] Prueba de comprensión (10 preguntas al subagente) y sus vacíos resueltos — se cubre con
+      `/user-manual:review`.
+- [ ] Revisión con Codex ofrecida y hallazgos aceptados aplicados — se cubre con
+      `/user-manual:review`.
+
+---
+
+## Revisión del manual (`/user-manual:review`)
+
+Cerrar el manual **no** es lo mismo que revisarlo. La revisión vive en su propio comando,
+`/user-manual:review @<modulo>` (o una ruta `.html`), y combina dos pasadas independientes:
+
+- **Prueba de comprensión.** Comprobar que el manual **se sostiene solo**: **10 preguntas** que una
+  persona usuaria debería poder responder con él (camino completo, campos obligatorios, avisos y
+  estados, acciones secundarias como adjuntos o descargas, y al menos dos casos de borde) lanzadas a
+  un subagente (Agent tool, `subagent_type: general-purpose`, `model: sonnet`) cuya **única fuente
+  permitida** es el HTML del manual y las capturas que referencia — sin código de la app, sin fichas
+  del plugin, sin conocimiento previo: si el manual no lo dice, la respuesta es «el manual no lo
+  dice». Responde cada pregunta con respuesta breve + número de página + marca
+  **RESPONDIDA / INFERIDA / NO ESTÁ**, y cierra con los **vacíos del manual**. Cada INFERIDA o NO
+  ESTÁ es un hueco candidato.
+- **Revisión con Codex (opcional).** Contrastar el manual (HTML + capturas) con el **código real**
+  del módulo y su ficha, y reportar mejoras, inconsistencias, pasos faltantes, aclaraciones y
+  contenidos incompletos, por severidad, con ubicación en el manual y evidencia en el código
+  (`archivo:línea`).
+
+Todo hallazgo se **verifica en el código antes de aplicarlo**; lo que no se sostiene se descarta con
+justificación. Los cambios que se apliquen respetan el contrato de clases y las reglas duras de
+arriba, y se re-verifican a **1440×810** antes de regenerar el PDF. Los detalles operativos (comando
+exacto de `codex exec`, formato de la consolidación) están en el comando.
 
 ---
 

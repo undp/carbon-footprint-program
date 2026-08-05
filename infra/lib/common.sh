@@ -33,6 +33,10 @@ validate_frontend_custom_domain() {
 # Sets RESOLVED_ORIGIN (empty when neither source is available) and
 # RESOLVED_ORIGIN_SOURCE (human-readable label for the caller's logs). Warns on
 # stderr when the env var diverges from the origin the stack authorized.
+#
+# Both are read by the sourcing script (deploy-api.sh, deploy-web.sh), a use the
+# linter cannot see from here — hence the SC2034 exemption below.
+# shellcheck disable=SC2034
 resolve_frontend_origin() {
   if [ -n "${FRONTEND_CUSTOM_DOMAIN:-}" ]; then
     RESOLVED_ORIGIN="https://${FRONTEND_CUSTOM_DOMAIN}"
@@ -47,6 +51,75 @@ resolve_frontend_origin() {
     RESOLVED_ORIGIN=$(stack_output allowedOrigin)
     RESOLVED_ORIGIN_SOURCE="stack output allowedOrigin"
   fi
+}
+
+# Can the signed-in principal create role assignments in $AZURE_RESOURCE_GROUP?
+#
+# The role assignments in main.bicep are the only resources needing
+# Microsoft.Authorization/roleAssignments/write, and Contributor does NOT include that action. ARM
+# authorizes the *operation*, not the diff, so a Contributor-only operator fails the ENTIRE stack
+# deploy even when every assignment already exists and the write would be an idempotent no-op (the
+# names are deterministic guids). Detecting the permission lets the deploy skip exactly those
+# resources instead of dying on them.
+#
+# Uses the Authorization permissions API, which returns the actions/notActions the CALLER holds at
+# the scope. Because it is evaluated for the caller, roles inherited from a group or from a
+# management group — and PIM roles already activated — are all included, with no need for the
+# caller's object ID or for Graph (`az ad signed-in-user show` / `/me/getMemberGroups`), commonly
+# blocked for guest and restricted accounts.
+#
+# Two alternatives were tried and rejected:
+#   - checkAccess evaluates only the subject it is handed. With ObjectId alone it does NOT expand
+#     group membership, so an operator whose Owner comes from a group — the common case here — is
+#     reported NotAllowed, and the deploy would silently drop grants it was allowed to write.
+#     Passing subject.attributes.Groups fixes that, at the cost of a Graph call for the memberships.
+#   - ARM's own pre-flight (az deployment group validate) does not authorize role assignments at all:
+#     it returns Succeeded for a template whose role assignment a later deploy would refuse.
+#
+# An entry grants the action when one of its actions matches it and none of its notActions does —
+# RBAC's own rule. Patterns are globs, matched case-insensitively, so Contributor's notAction
+# `Microsoft.Authorization/*/Write` correctly blocks `.../roleAssignments/write`.
+#
+# Returns 1 only when the API answered and no entry grants the action. Everything else returns 0 —
+# that covers both "can write" and "could not determine" (API error, unparseable answer), which are
+# deliberately conflated: never silently drop the grants, let ARM fail loudly instead. Deny
+# assignments are not visible through this API, and can only err in that same direction.
+#
+# "Could not determine" warns on stderr rather than passing silently: conflating it with "can write"
+# is the right *safety* choice, but a probe broken by, say, a changed response shape would otherwise
+# be indistinguishable from a genuinely-allowed account — the feature would quietly become dead code
+# and the next Contributor-only deploy would fail exactly as it did before this existed.
+# Read-only, so it is also safe under DRY_RUN; the resource group must already exist, which it does
+# by the time this runs (the deploy creates it earlier).
+# Requires AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP (read at call time).
+can_write_role_assignments() {
+  local action='Microsoft.Authorization/roleAssignments/write'
+  local permissions granting
+
+  permissions=$(az rest \
+    --method get \
+    --url "https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}/providers/Microsoft.Authorization/permissions?api-version=2022-04-01" \
+    -o json 2>/dev/null || echo "")
+  if [ -z "$permissions" ]; then
+    echo "Warning: could not read this account's effective permissions in $AZURE_RESOURCE_GROUP." >&2
+    echo "         Assuming role assignments can be written; ARM will fail loudly if they cannot." >&2
+    return 0
+  fi
+
+  granting=$(printf '%s' "$permissions" | jq -r --arg a "$action" '
+    def globmatch($pat; $s): $s | test("^" + ($pat | gsub("\\."; "\\.") | gsub("\\*"; ".*")) + "$"; "i");
+    [ .value[]?
+      | select(([.actions[]?    | select(globmatch(.; $a))] | length) > 0)
+      | select(([.notActions[]? | select(globmatch(.; $a))] | length) == 0)
+    ] | length' 2>/dev/null || echo "")
+  if [ -z "$granting" ]; then
+    echo "Warning: unexpected response from the permissions API — could not evaluate" >&2
+    echo "         actions/notActions for $AZURE_RESOURCE_GROUP. Assuming role assignments can be" >&2
+    echo "         written; ARM will fail loudly if they cannot." >&2
+    return 0
+  fi
+
+  [ "$granting" != "0" ]
 }
 
 # Read a single deployment-stack output, normalizing a missing/null output to
@@ -131,8 +204,20 @@ preflight_swa_custom_domain() {
   local dry_run="${DRY_RUN:-false}"
 
   # 1) Is there a SWA to point a CNAME at yet?
+  #
+  # Prefer the stack output, but fall back to listing the resource group: a failed stack operation
+  # leaves the stack with NO outputs at all, which is not the same as "no SWA exists". Inferring
+  # absence from a missing output blocks the redeploy precisely when one is needed most — right
+  # after a failure.
+  #
+  # Caveat: the fallback takes the first SWA in the resource group, which is ambiguous if more than
+  # one exists. The stack's own managed-resource list survives a failed operation and would identify
+  # the right one unambiguously — worth switching to.
   local swa_host
   swa_host=$(stack_output staticWebAppHostname)
+  if [ -z "$swa_host" ]; then
+    swa_host=$(az staticwebapp list --resource-group "$AZURE_RESOURCE_GROUP" --query "[0].defaultHostname" -o tsv 2>/dev/null || echo "")
+  fi
   swa_host="${swa_host%.}"
   if [ -z "$swa_host" ]; then
     echo "ERROR: FRONTEND_CUSTOM_DOMAIN=\"$domain\" is set, but no Static Web App exists in the stack yet." >&2
