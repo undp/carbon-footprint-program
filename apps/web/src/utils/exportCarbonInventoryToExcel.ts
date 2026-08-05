@@ -4,6 +4,10 @@ import type {
   GetEmissionFactorsResponse,
 } from "@repo/types";
 import { display, BASE_FONT_SIZE } from "@/services/excel";
+import {
+  DB_DECIMAL_SCALE,
+  FACTOR_DISPLAY_MIN_DECIMALS,
+} from "@/config/constants";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
 
@@ -11,10 +15,18 @@ const NUM_FMT_DECIMAL = "#,##0.00";
  * Emission factors need their own number format: with the shared
  * `#,##0.00` a factor of `0,056944` *displays* as `0,06` inside the
  * spreadsheet, reproducing there the very rounding this change removes from
- * the app. Two decimals are always shown (matching the app's floor) and up to
- * six are added only when the factor has them.
+ * the app.
+ *
+ * Derived from the same constants as the app so the two cannot drift: the
+ * app's display floor is always shown, and the optional decimals reach
+ * `DB_DECIMAL_SCALE` instead of the app's display ceiling. The grid caps at 6
+ * to stay narrow and offers the exact value in a tooltip; a spreadsheet has no
+ * tooltip, so hiding the last decimals of a 10-decimal own factor would be the
+ * original bug all over again.
  */
-const NUM_FMT_FACTOR = "#,##0.00####";
+const NUM_FMT_FACTOR = `#,##0.${"0".repeat(FACTOR_DISPLAY_MIN_DECIMALS)}${"#".repeat(
+  DB_DECIMAL_SCALE - FACTOR_DISPLAY_MIN_DECIMALS
+)}`;
 
 /**
  * Same factor format with the rate unit appended as literal text. The cell

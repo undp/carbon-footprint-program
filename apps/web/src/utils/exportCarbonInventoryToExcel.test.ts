@@ -280,9 +280,9 @@ describe("buildCarbonInventoryWorkbook — Detalle emisiones sheet", () => {
     const workbook = await buildAndLoad(2024, makeSummary(), [makeFactor()], 0);
     const worksheet = sheet(workbook, "Detalle emisiones");
 
-    // The factor keeps up to 6 decimals; quantities and emissions keep the
-    // 2-decimal format they had before.
-    expect(worksheet.getColumn(7).numFmt).toBe("#,##0.00####");
+    // The factor keeps every decimal the database stores; quantities and
+    // emissions keep the 2-decimal format they had before.
+    expect(worksheet.getColumn(7).numFmt).toBe("#,##0.00########");
     expect(worksheet.getColumn(6).numFmt).toBe("#,##0.00");
     expect(worksheet.getColumn(9).numFmt).toBe("#,##0.00");
   });
@@ -339,20 +339,23 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     // The factor is a number a spreadsheet formula can multiply; the rate
     // unit rides in the cell's number format instead of inside the value.
     expect(row2.getCell(4).value).toBe(0.5);
-    expect(row2.getCell(4).numFmt).toBe('#,##0.00####" kg CO₂e/kWh"');
+    expect(row2.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/kWh"');
     expect(row2.getCell(5).value).toBe("SEN - Red nacional");
 
     // Row 3: no synonyms + no source detail.
     const row3 = worksheet.getRow(3);
     expect(row3.getCell(1).value).toBe("Combustión");
     expect(row3.getCell(4).value).toBe(2.68);
-    expect(row3.getCell(4).numFmt).toBe('#,##0.00####" kg CO₂e/L"');
+    expect(row3.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/L"');
     expect(row3.getCell(5).value).toBe("IPCC");
   });
 
   it("keeps every decimal of a factor the app used to round away", async () => {
+    // 10 decimals: the full scale an own factor can be typed with. The
+    // spreadsheet has no exact-value tooltip, so what the cell *displays* has
+    // to carry them all.
     const preciseFactor = makeFactor({
-      factorValue: 0.056944,
+      factorValue: 0.0569441234,
       rateUnit: "kg CO₂e/L",
     });
 
@@ -365,8 +368,8 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     const worksheet = sheet(workbook, "Factores utilizados");
 
     const cell = worksheet.getRow(2).getCell(4);
-    expect(cell.value).toBe(0.056944);
-    expect(cell.numFmt).toBe('#,##0.00####" kg CO₂e/L"');
+    expect(cell.value).toBe(0.0569441234);
+    expect(cell.numFmt).toBe('#,##0.00########" kg CO₂e/L"');
   });
 
   it("writes the 'Sin factores utilizados' fallback when there are no factors", async () => {
