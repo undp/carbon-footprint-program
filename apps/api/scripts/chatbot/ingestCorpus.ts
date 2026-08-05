@@ -5,6 +5,10 @@ import {
   CorpusSourceStatus,
   CorpusSourceType,
 } from "@repo/database/enums";
+import {
+  CHATBOT_CORPUS_CLI_TX_MAX_WAIT_MS,
+  CHATBOT_CORPUS_CLI_TX_TIMEOUT_MS,
+} from "@/config/constants.js";
 import { EMBEDDING_PROVIDER, IS_PROD } from "@/config/environment.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
 import { chunkText } from "./chunking.js";
@@ -257,6 +261,10 @@ const main = async (argv: string[]): Promise<number> => {
           `;
         }
         return { kind: "ok", source };
+      },
+      {
+        maxWait: CHATBOT_CORPUS_CLI_TX_MAX_WAIT_MS,
+        timeout: CHATBOT_CORPUS_CLI_TX_TIMEOUT_MS,
       }
     );
 
