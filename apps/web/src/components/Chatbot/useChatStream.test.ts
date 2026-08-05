@@ -787,6 +787,103 @@ describe("useChatStream — deleteHistory", () => {
 // Task 10.28, hook layer. The widget test covers the control's wiring and that
 // the click issues no request; these cover the state effects of the reset
 // itself, against the real hook.
+describe("useChatStream — seedMessages", () => {
+  it("seeds a persisted thread onto an untouched hook", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([
+        { role: "user", content: "pregunta previa" },
+        { role: "assistant", content: "respuesta previa" },
+      ]);
+    });
+
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "pregunta previa",
+      "respuesta previa",
+    ]);
+  });
+
+  // The seed is one mount-time round-trip, so a fast typist on a slow API can
+  // start a turn while it is still in flight. Replacing the thread then would
+  // drop the user's message AND orphan the in-flight assistant bubble — every
+  // later delta fails updateLastAssistant's id check and is discarded, so the
+  // answer streams into nothing. Required by the chatbot-widget spec:
+  // "Sending a new message while the rehydrate is in flight SHALL NOT cause
+  // the seed to overwrite the new message."
+  it("loses the race against a turn already in flight", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // The live turn survives intact: the seed neither replaced it nor appended.
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "hola",
+      "parcial",
+    ]);
+
+    // And the bubble is still the live one — deltas arriving after the rejected
+    // seed must keep landing, which is what breaks if the seed detached it.
+    act(() => {
+      result.current.stop();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+    expect(lastMessage(result.current.messages).content).toContain("parcial");
+  });
+
+  it("leaves a thread that already has turns untouched", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const before = result.current.messages;
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // Identity, not just equality: a late seed must not even re-render the list.
+    expect(result.current.messages).toBe(before);
+  });
+
+  it("ignores an empty seed", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([]);
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+});
+
 describe("useChatStream — startNewConversation", () => {
   const streamOneTurn = () =>
     fetchMock.mockImplementation((_input, init) =>

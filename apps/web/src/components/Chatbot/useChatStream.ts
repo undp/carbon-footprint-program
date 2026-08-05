@@ -493,23 +493,36 @@ export const useChatStream = () => {
    * counter rather than accepted from the caller: two id sources could collide
    * on `assistant-1` and let React reconcile a fresh bubble onto a seeded
    * node — the very hazard the counter exists to prevent.
+   *
+   * The seed LOSES every race against the live thread. Rehydration is one
+   * mount-time round-trip, so a fast typist on a slow API can send a turn while
+   * it is still in flight; replacing the thread then would drop the user's
+   * message and orphan the in-flight assistant bubble, whose deltas
+   * `updateLastAssistant` would silently discard on the id check. Both guards
+   * are load-bearing: the ref catches a turn whose append has not committed
+   * yet, and the `prev.length` check inside the updater catches an already
+   * populated thread (including one seeded by StrictMode's double effect).
    */
   const seedMessages = useCallback(
     (loaded: SeedMessage[]): void => {
       if (loaded.length === 0) return;
-      setMessages(
-        loaded.map((m) => {
-          const seeded: ChatbotMessage = {
-            id: nextMessageId(m.role),
-            role: m.role,
-            content: m.content,
-          };
-          if (m.role === "assistant" && m.sourcesCited?.length) {
-            seeded.sourcesCited = m.sourcesCited;
-          }
-          return seeded;
-        })
-      );
+      if (inFlightAssistantIdRef.current !== null) return;
+      // Minted outside the updater: `nextMessageId` bumps a ref, and updaters
+      // must stay pure (StrictMode double-invokes them). A rejected seed just
+      // burns a few counter values, which costs nothing — the counter only has
+      // to be unique, never contiguous.
+      const seeded = loaded.map((m) => {
+        const message: ChatbotMessage = {
+          id: nextMessageId(m.role),
+          role: m.role,
+          content: m.content,
+        };
+        if (m.role === "assistant" && m.sourcesCited?.length) {
+          message.sourcesCited = m.sourcesCited;
+        }
+        return message;
+      });
+      setMessages((prev) => (prev.length > 0 ? prev : seeded));
     },
     [nextMessageId]
   );
