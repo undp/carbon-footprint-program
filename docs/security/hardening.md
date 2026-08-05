@@ -356,6 +356,19 @@ All API endpoints validate request input using **Zod schemas** integrated via `f
 
 Validation happens in the Fastify `preValidation` lifecycle phase and returns a structured error response on failure. No raw SQL queries are constructed from user input — all database access goes through Prisma, which uses parameterized queries and prevents SQL injection by construction.
 
+### Model-supplied input (chatbot)
+
+When the chatbot is enabled, the request body is no longer the only untrusted input. The LLM emits tool-call arguments mid-turn, and those are chosen by the model rather than by the caller — a prompt-injected or malfunctioning model can emit anything its JSON Schema permits.
+
+| Input surface            | Validation                                                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tool-call arguments      | JSON Schema exposes only `query` (`additionalProperties: false`), then re-validated by Zod and by `searchKnowledge` before any embedding call or SQL |
+| Retrieved corpus content | Passed to the model as quoted data under a fixed `Contenido: "…"` scaffold, never as instructions                                                    |
+
+The one exception to "no raw SQL" above is the pgvector similarity query in `searchKnowledge`, which cannot be expressed through the typed Prisma client. It runs via `prisma.$queryRaw` with every user-influenced value (`query` vector, `scope`, `sourceType`, `topK`) passed as a bound parameter — no string concatenation.
+
+Full treatment in [Chatbot and RAG Security](./chatbot.md).
+
 ---
 
 ## File Upload Security
@@ -415,15 +428,17 @@ Known package security tools applicable to this stack:
 
 ## Hardening Checklist (Pre-Production)
 
-| Item                                              | Status                    | Action                                                                                                                                            |
-| ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Helmet plugin registered                          | ✅ Done                   | Registered via `apps/api/src/plugins/external/helmet.ts` (autoloaded); see [HTTP Security Headers](#http-security-headers)                        |
-| `ALLOWED_ORIGIN` set in all environments          | ✅ Enforced in Production | Boot fails in Production without it (see [CORS](#cors)); still set explicitly per environment via App Service configuration / Key Vault reference |
-| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required               | Verify; `forced-user`/`none` must not appear in Production                                                                                        |
-| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify                 | Review `allowedIpRanges` Bicep parameter per environment                                                                                          |
-| HTTPS-only enforced on App Service                | ⚠️ Verify                 | Add `httpsOnly: true` to App Service Bicep module                                                                                                 |
-| Front Door WAF enabled in Production              | ⚠️ Recommended            | Deploy with Premium SKU for WAF rate limiting                                                                                                     |
-| MIME type validation on file uploads              | ❌ Missing                | Add content-type validation in file upload handler                                                                                                |
-| `pnpm audit` run and issues addressed             | ⚠️ Ongoing                | Run before each release; address critical/high findings                                                                                           |
-| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional               | Add VNet integration for highest-security deployments                                                                                             |
-| CMK encryption for database/storage               | ⚠️ Optional               | Required only if local regulation mandates it                                                                                                     |
+| Item                                              | Status                    | Action                                                                                                                                                                    |
+| ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Helmet plugin registered                          | ✅ Done                   | Registered via `apps/api/src/plugins/external/helmet.ts` (autoloaded); see [HTTP Security Headers](#http-security-headers)                                                |
+| `ALLOWED_ORIGIN` set in all environments          | ✅ Enforced in Production | Boot fails in Production without it (see [CORS](#cors)); still set explicitly per environment via App Service configuration / Key Vault reference                         |
+| `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required               | Verify; `forced-user`/`none` must not appear in Production                                                                                                                |
+| PostgreSQL firewall allows only App Service IPs   | ⚠️ Verify                 | Review `allowedIpRanges` Bicep parameter per environment                                                                                                                  |
+| HTTPS-only enforced on App Service                | ⚠️ Verify                 | Add `httpsOnly: true` to App Service Bicep module                                                                                                                         |
+| Front Door WAF enabled in Production              | ⚠️ Recommended            | Deploy with Premium SKU for WAF rate limiting                                                                                                                             |
+| MIME type validation on file uploads              | ❌ Missing                | Add content-type validation in file upload handler                                                                                                                        |
+| `EMBEDDING_PROVIDER` not `mock` in Production     | ✅ Enforced when enabled  | Boot fails with `CHATBOT_ENABLED=true`; the `chatbot:ingest` CLI refuses it regardless. Only relevant if the chatbot is on — see [Chatbot and RAG Security](./chatbot.md) |
+| `AZURE_OPENAI_API_KEY` unset in Production        | ⚠️ Verify                 | Dev-only fallback; Production authenticates via managed identity. Confirm it is absent from App Service configuration                                                     |
+| `pnpm audit` run and issues addressed             | ⚠️ Ongoing                | Run before each release; address critical/high findings                                                                                                                   |
+| Private endpoints for PostgreSQL + Storage        | ⚠️ Optional               | Add VNet integration for highest-security deployments                                                                                                                     |
+| CMK encryption for database/storage               | ⚠️ Optional               | Required only if local regulation mandates it                                                                                                                             |

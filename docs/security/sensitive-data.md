@@ -161,6 +161,8 @@ All of these frameworks share core principles with GDPR: lawful basis for proces
 
 The Huella Latam chatbot persists conversations to power per-user history and right-to-be-forgotten flows.
 
+> This section covers what the chatbot **stores** and for how long. The controls around what it **reads and accepts** — tool-argument validation, prompt-injection handling of retrieved corpus text, corpus visibility, and the mock-provider guards — are in [Chatbot and RAG Security](./chatbot.md).
+
 **Tables (all under `public` schema, prefixed `chatbot_`):**
 
 - `chatbot_chat_conversation` — one row per conversation, scoped to `user_id` (authenticated) or `session_id` (anonymous). Both columns are nullable; the database CHECK constraint allows the `(NULL, NULL)` post-deletion state produced by `ON DELETE SET NULL` on `user_id`. Application code guarantees the exactly-one-of invariant on INSERT.
