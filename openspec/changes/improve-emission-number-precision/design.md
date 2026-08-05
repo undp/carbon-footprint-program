@@ -67,6 +67,11 @@ La cadena `cantidad × factor = kg = t` se pone en la celda de **emisiones**, no
 - **Alternativa descartada**: fila desplegable por línea con el detalle del cálculo. Más superficie de UI, más estados, y casos donde la fórmula simple no representa fielmente el cálculo real.
 - **Requisito no negociable**: el affordance debe responder a foco y a toque. Un tooltip solo-hover deja sin auditoría a quien use tablet.
 
+Correcciones tomadas en revisión, las dos sobre el mismo principio (un affordance de auditoría que miente es peor que no tenerlo):
+
+- **El affordance de valor exacto solo aparece cuando el redondeo esconde algo.** La primera implementación lo ponía en toda celda no editable, así que un factor de `0,177` abría un tooltip que repetía la celda. Un affordance que la mitad de las veces no aporta es un affordance que se deja de mirar.
+- **Los cuatro números de la cadena van sin redondear, no solo el factor.** Con la cantidad formateada por `quantity()`, una línea de `0,12345 L` mostraba `0,12 × 0,056944 = 0,00703`: una cadena que no multiplica, en el tooltip cuya única razón de existir es que multiplique. El formateador sin redondeo pasa a ser genérico (`exact()`) y se acota a los 10 decimales de la BD en vez de a los 20 de `Intl`, porque los operandos calculados son productos de dobles y `10.000 × 0,177 / 1000` se renderiza `1,7700000000000002` con 20.
+
 ### 4. Escala de entrada del factor propio = 10, igual que la BD; la global sigue en 4
 
 Constante nombrada `FACTOR_INPUT_DECIMAL_SCALE = 10`, pasada como `decimalScale` únicamente al `NumericInput` de la celda de factor (la prop ya existe y por defecto toma `formatter.decimalScale`).
@@ -85,6 +90,10 @@ Devuelve `{ value, unit }` y **no** un string armado, por dos razones: la tarjet
 
 La unidad se elige **sobre el valor crudo, antes de redondear**, y luego se verifica el resultado: si el número redondeado alcanza `1000` y existe una unidad mayor, se promueve. Sin ese segundo paso, `0,999999 t` se selecciona correctamente como kilogramos y termina mostrado como `1.000 kg` en vez de `1 t`. El rango `[1, 1000)` es entonces un objetivo con dos excepciones honestas: no hay unidad mayor que la tonelada (`1200 t` se muestra tal cual) y el piso de gramos corta abajo.
 
+El piso de gramos, en cambio, se compara **contra el valor crudo**, no contra el redondeado: la primera implementación preguntaba si el valor redondeado daba cero, así que `0,0075 g` trepaba a un `0,01 g` presentable y la tarjeta afirmaba una precisión que la tasa no alcanza. Es el mismo orden normativo que ya tiene la etiqueta de umbral del factor — corregido en revisión.
+
+Las etiquetas usan la ortografía del resto de la app, sin espacio entre masa y gas (`tCO₂e`, `kgCO₂e`, `gCO₂e`). La primera implementación las escribía separadas y en el paso 4 quedaba el total en `1,77 tCO₂e` justo encima de la equivalencia en `1,23 t CO₂e/x`: dos ortografías de la misma unidad en una pantalla se leen como dos unidades distintas.
+
 - **Alternativa descartada**: helper standalone en `apps/web/src/utils`. Duplicaría el acceso a localización y separadores que la clase ya tiene.
 - **Alternativa descartada**: devolver el string completo. Rompe el layout de la tarjeta y habilita que los dos consumidores se desincronicen con el tiempo.
 
@@ -97,9 +106,11 @@ Mitigación de la inconsistencia resultante (total en toneladas, equivalencia en
 ### 7. El Excel tiene dos defectos distintos, uno por hoja
 
 - **`Detalle emisiones`** ya escribe `line.factorValue` como número (col. 7), pero le aplica el mismo `numFmt = "#,##0.00"` que a cantidades y emisiones (`exportCarbonInventoryToExcel.ts:9,134-136`). El valor sirve para una fórmula, pero **se ve** con 2 decimales: el problema del reporte, reproducido dentro de la planilla. Necesita un formato de número propio para la columna del factor, sin tocar el de cantidad ni el de emisiones.
-- **`Factores utilizados`** sí concatena factor redondeado + unidad en un string (`:162-168`). Pasa a numérica, con la unidad de tasa en el **formato de número de la celda** (`#,##0.00####" kg CO₂e/L"`).
+- **`Factores utilizados`** sí concatena factor redondeado + unidad en un string (`:162-168`). Pasa a numérica, con la unidad de tasa en el **formato de número de la celda** (`#,##0.00########" kg CO₂e/L"`).
 
   Corrección tomada durante la implementación: la decisión original era llevar la unidad al encabezado de la columna, pero `rateUnit` **varía por fila** (`kg CO₂e/L`, `kg CO₂e/kWh`), así que un encabezado único no puede transportarla y la celda numérica pelada perdería el denominador. El formato de número por celda cumple los tres objetivos a la vez: el valor sigue siendo un número que una fórmula puede multiplicar, la unidad se ve pegada al número, y la hoja no gana una sexta columna.
+
+  Segunda corrección, tomada en revisión: el formato se **deriva** de las constantes de precisión de la app en vez de repetirlas como literal (si no, subir el techo de display dejaría el export atrás sin que ningún test avise), y su techo es la escala de la BD (10) y no el techo de display (6). La grilla se acota a 6 porque es densa y compensa con el tooltip de valor exacto; la planilla no tiene tooltip, así que un factor propio de 10 decimales volvería a verse recortado — el defecto de origen, una capa más abajo.
 
 El test de export existente cambia de aserción en este mismo change.
 

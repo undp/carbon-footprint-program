@@ -70,7 +70,11 @@ El cálculo MUST ser aritmética propia y NO depender de `roundingPriority` ni d
 
 Donde se muestre el factor principal de una línea o de la tabla de factores, la UI SHALL exponer bajo demanda el valor **tal como lo entrega el API**, sin ningún redondeo de display, bajo una etiqueta que lo identifique como el valor usado en el cálculo.
 
+El affordance SHALL ofrecerse **solo cuando el valor mostrado y el valor sin redondear difieren**. Un factor de `0,177` se muestra completo en la celda, y abrir un tooltip que repite la celda promete información que no existe y enseña al usuario a ignorar el affordance donde sí la hay.
+
 El API entrega los factores como número de doble precisión (`Decimal.toNumber()` en el servicio), no como decimal canónico; para cualquier factor de la magnitud que maneja el producto eso preserva los 10 decimales que guarda la columna `Decimal(28,10)`. La garantía normativa es **"sin redondeo adicional respecto de lo que el API entregó"**, no la fidelidad decimal exacta de la BD, que exigiría transportar el valor como string.
+
+El formateador sin redondeo SHALL acotarse a los 10 decimales de la escala de la BD y NO al máximo de `Intl.NumberFormat` (20). Con 10 no pierde nada de lo que el dominio puede almacenar, y evita que un operando **calculado** de la cadena filtre su ruido binario (`10.000 × 0,177 / 1000` se renderiza como `1,7700000000000002` con 20 decimales).
 
 El affordance MUST ser accesible por teclado y por toque, no exclusivamente por `hover` de escritorio.
 
@@ -91,6 +95,11 @@ El requisito aplica al **factor principal**. Las líneas de desglose por gas de 
 - **WHEN** el usuario llega al factor navegando con teclado, o lo toca en un dispositivo táctil
 - **THEN** el valor se muestra igual que con `hover`
 
+#### Scenario: Un factor que se muestra completo no ofrece affordance
+
+- **WHEN** el factor entregado por el API es `0,177` y la celda ya lo muestra entero
+- **THEN** no se ofrece affordance de valor exacto, porque no hay nada que revelar
+
 #### Scenario: El desglose por gas mejora su precisión pero no gana affordance
 
 - **WHEN** la tabla de factores muestra las líneas de desglose por gas de un factor
@@ -98,7 +107,9 @@ El requisito aplica al **factor principal**. Las líneas de desglose por gas de 
 
 ### Requirement: La cadena del cálculo es visible en la celda de emisiones de una línea detallada
 
-Para una línea en modo detallado cuya emisión es computable, la UI SHALL exponer bajo demanda la cadena completa del cálculo en la celda de **emisiones**: cantidad con su unidad, factor **sin redondear** con su unidad de tasa, el resultado en kg y su conversión a toneladas.
+Para una línea en modo detallado cuya emisión es computable, la UI SHALL exponer bajo demanda la cadena completa del cálculo en la celda de **emisiones**: cantidad con su unidad, factor con su unidad de tasa, el resultado en kg y su conversión a toneladas.
+
+**Los cuatro números SHALL ir sin redondeo de display**, no solo el factor. Con los formateadores de display, una cantidad de `0,12345` se mostraría como `0,12` y la cadena quedaría `0,12 × 0,056944 = 0,00703` — una línea que no multiplica, que es exactamente lo contrario de lo que la cadena existe para permitir. Las cantidades admiten 4 decimales (`INPUT_DECIMAL_SCALE`), así que el caso es alcanzable con datos normales.
 
 La cadena SHALL exponerse mediante el mismo tipo de affordance que el valor sin redondear, y NO como una fila desplegable de la grilla. SHALL implementarse únicamente en la grilla del paso 3; la tabla de líneas por subcategoría del paso 4 queda fuera de alcance.
 
@@ -107,12 +118,17 @@ Una línea sin cantidad o sin factor NO SHALL mostrar cadena. En modo total manu
 #### Scenario: Línea detallada completa
 
 - **WHEN** el usuario consulta la celda de emisiones de una línea con cantidad `21600` L y factor entregado `0,056944` kg CO₂e/L
-- **THEN** se muestra la cadena `21.600 L × 0,056944 kg CO₂e/L = 1.229,99 kg = 1,23 t`, con el factor sin redondear
+- **THEN** se muestra la cadena `21.600 L × 0,056944 kg CO₂e/L = 1.229,9904 kg = 1,2299904 t`, de la que la celda muestra el redondeo (`1,23 tCO₂e`)
 
 #### Scenario: Subcategoría en modo total manual
 
 - **WHEN** una subcategoría tiene activo el modo de total manual
 - **THEN** la grilla de líneas no está montada y no se muestra ninguna cadena de cálculo, ni en el total del encabezado
+
+#### Scenario: Línea con cantidad decimal
+
+- **WHEN** la línea tiene cantidad `0,12345` L y factor entregado `0,056944` kg CO₂e/L
+- **THEN** la cadena muestra `0,12345 L × 0,056944 kg CO₂e/L = 0,0070297368 kg = 0,0000070297 t`, con la cantidad y el producto también sin redondear, de modo que la multiplicación cierra
 
 #### Scenario: Línea incompleta
 
@@ -142,10 +158,17 @@ El factor de emisión aparece en dos hojas del export, y cada una tiene un defec
 - **`Detalle emisiones`**: la celda ya contiene el valor numérico, pero su formato de número (`#,##0.00`) lo **muestra** con 2 decimales, replicando en la planilla el mismo problema que la app. SHALL usar un formato de número con decimales suficientes para el factor, distinto del formato de cantidades y emisiones.
 - **`Factores utilizados`**: la celda contiene hoy una cadena preformateada que concatena factor redondeado y unidad. SHALL pasar a valor numérico con formato propio, dejando la unidad de tasa fuera del **valor** de la celda. Como la unidad de tasa varía por fila, SHALL viajar en el formato de número de la celda y NO en el encabezado de la columna, que solo puede llevar una.
 
+El formato de número SHALL derivarse de las mismas constantes que la app —piso de decimales siempre visible— y NO repetirlas como literal, para que las dos precisiones no puedan desincronizarse. Su techo SHALL ser la escala de la BD (10) y no el techo de display de la app (6): la grilla se acota a 6 porque es densa y ofrece el valor exacto en un tooltip, y una planilla no tiene tooltip, así que esconder los últimos decimales de un factor propio de 10 sería el mismo defecto de origen.
+
 #### Scenario: El factor exportado es operable y legible en la planilla
 
 - **WHEN** se exporta un inventario cuyo factor entregado es `0,056944`
 - **THEN** en ambas hojas la celda del factor contiene el número `0,056944`, se **muestra** con sus decimales y una fórmula de la planilla puede multiplicarla por la cantidad
+
+#### Scenario: Un factor propio con la precisión completa de la BD no se recorta al exportar
+
+- **WHEN** se exporta un inventario con un factor propio de `0,0569441234`
+- **THEN** la celda lo **muestra** con sus 10 decimales, porque en la planilla no existe el affordance de valor exacto que compensa el techo de la grilla
 
 #### Scenario: La unidad de tasa sigue siendo identificable
 
