@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { SourceCitationSchema } from "./schemas.ts";
+import type {
+  SourceCitationSchema,
+  SourceCitationWireSchema,
+} from "./schemas.ts";
 
 /**
  * Server-side citation shape — `source_id`/`chunk_id` may be either string or
@@ -13,10 +16,4 @@ export type SourceCitation = z.infer<typeof SourceCitationSchema>;
  * widget side. BigInts are serialized to strings before transport because
  * BigInt is not natively supported by `JSON.stringify`.
  */
-export type SourceCitationWire = {
-  source_id: string;
-  chunk_id: string;
-  cite_label: string;
-  cite_url: string;
-  snippet: string;
-};
+export type SourceCitationWire = z.infer<typeof SourceCitationWireSchema>;

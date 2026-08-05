@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SourceCitationWireArraySchema } from "@repo/types";
 import type { SourceCitationWire } from "@repo/types";
 import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
@@ -155,12 +156,27 @@ export const useChatStream = () => {
           // grounded this turn in (RAG). Optional: a non-tool turn omits it, and
           // a foundation-era backend never sends it.
           try {
-            const parsed = JSON.parse(ev.data) as {
-              sources?: SourceCitationWire[];
-            };
-            if (Array.isArray(parsed.sources) && parsed.sources.length > 0) {
-              const sources = parsed.sources;
-              updateLastAssistant((msg) => ({ ...msg, sourcesCited: sources }));
+            const parsed = JSON.parse(ev.data) as { sources?: unknown };
+            if (parsed.sources !== undefined) {
+              // Validated rather than cast: the field crosses the wire, and an
+              // entry missing `cite_url` would reach MessageBubble as an
+              // undefined React key and a blank row. A bad payload degrades to
+              // "no citations" — the answer already streamed and is still good.
+              const result = SourceCitationWireArraySchema.safeParse(
+                parsed.sources
+              );
+              if (!result.success) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                  "Malformed `sources` field on chatbot `done` event; rendering the turn without citations."
+                );
+              } else if (result.data.length > 0) {
+                const sources = result.data;
+                updateLastAssistant((msg) => ({
+                  ...msg,
+                  sourcesCited: sources,
+                }));
+              }
             }
           } catch {
             // A malformed `done` payload must not fail an otherwise good turn —

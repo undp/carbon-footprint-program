@@ -34,3 +34,24 @@ export const SourceCitationSchema = z.object({
   cite_url: httpsUrl,
   snippet: z.string().max(SOURCE_CITATION_SNIPPET_MAX_LENGTH),
 });
+
+/**
+ * Wire-shape citation as it appears on the `done` SSE event: ids are always
+ * numeric STRINGS here, never bigints, because `JSON.stringify` cannot emit
+ * BigInt. Distinct from `SourceCitationSchema`, whose id union also admits the
+ * server-side bigint branch — a client that accepted that branch would be
+ * validating a shape the wire can never carry.
+ *
+ * The widget parses untrusted `done` payloads through this schema so a
+ * malformed `sources` field degrades to "no citations" instead of reaching
+ * render with missing fields.
+ */
+export const SourceCitationWireSchema = z.object({
+  source_id: IdSchema,
+  chunk_id: IdSchema,
+  cite_label: z.string().trim().min(1),
+  cite_url: httpsUrl,
+  snippet: z.string().max(SOURCE_CITATION_SNIPPET_MAX_LENGTH),
+});
+
+export const SourceCitationWireArraySchema = z.array(SourceCitationWireSchema);

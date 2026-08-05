@@ -787,6 +787,94 @@ describe("useChatStream — deleteHistory", () => {
 // Task 10.28, hook layer. The widget test covers the control's wiring and that
 // the click issues no request; these cover the state effects of the reset
 // itself, against the real hook.
+describe("useChatStream — done event sources", () => {
+  const VALID_SOURCE = {
+    source_id: "1",
+    chunk_id: "7",
+    cite_label: "GHG Protocol §2.3",
+    cite_url: "https://ghgprotocol.org/corporate-standard",
+    snippet: "Las emisiones de alcance 1 son emisiones directas.",
+  };
+
+  const streamWithDonePayload = (payload: unknown) =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'data: {"content":"Hola"}\n\n',
+            `event: done\ndata: ${JSON.stringify(payload)}\n\n`,
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("assigns a valid sources array to the in-flight assistant message", async () => {
+    streamWithDonePayload({
+      inputTokens: 12,
+      outputTokens: 34,
+      sources: [VALID_SOURCE],
+    });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toEqual([
+      VALID_SOURCE,
+    ]);
+  });
+
+  it("leaves sourcesCited unset when the field is absent", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34 });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  it("leaves sourcesCited unset for an empty sources array", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources: [] });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    // Defensive: the API omits the field at K=0 rather than sending []. An
+    // empty array must behave identically to an absent one, never as an empty
+    // "Fuentes consultadas (0)" panel.
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  // The wire is the only place these entries are validated client-side. Without
+  // it a non-conforming entry reaches MessageBubble, which keys its rows on
+  // `cite_url` — an undefined key plus a blank row.
+  it.each([
+    ["a non-array value", "broken"],
+    ["entries that are not objects", [1, 2, 3]],
+    ["an entry missing cite_url", [{ ...VALID_SOURCE, cite_url: undefined }]],
+    [
+      "an entry whose cite_url is not https",
+      [{ ...VALID_SOURCE, cite_url: "http://insecure.example" }],
+    ],
+    [
+      "an entry whose ids are not numeric strings",
+      [{ ...VALID_SOURCE, source_id: "abc" }],
+    ],
+  ])("warns and drops citations for %s", async (_label, sources) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("sources"));
+    // The answer already streamed — a bad citations payload must not fail it.
+    expect(lastMessage(result.current.messages).content).toBe("Hola");
+    expect(result.current.state).not.toBe("error");
+  });
+});
+
 describe("useChatStream — seedMessages", () => {
   it("seeds a persisted thread onto an untouched hook", () => {
     const { result } = renderHook(() => useChatStream());
