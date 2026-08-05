@@ -29,11 +29,16 @@ const GRAMS_PER_TON = 1_000_000;
  * Mass units of the adaptive intensity scale, ordered from largest to
  * smallest. `threshold` is expressed in tonnes and compared against the raw
  * rate; `perTon` converts the rate into the unit.
+ *
+ * The labels keep the app's spelling, with no space between the mass unit and
+ * the gas (`tCO₂e` as in `emissions()`, `kgCO₂e` as in the factor column
+ * headers): the total and this intensity are read side by side on step 4, and
+ * two spellings of the same unit on one screen read as two different units.
  */
 const INTENSITY_SCALE = [
-  { threshold: INTENSITY_TON_THRESHOLD_T, perTon: 1, unit: "t CO₂e" },
-  { threshold: INTENSITY_KG_THRESHOLD_T, perTon: KG_PER_TON, unit: "kg CO₂e" },
-  { threshold: 0, perTon: GRAMS_PER_TON, unit: "g CO₂e" },
+  { threshold: INTENSITY_TON_THRESHOLD_T, perTon: 1, unit: "tCO₂e" },
+  { threshold: INTENSITY_KG_THRESHOLD_T, perTon: KG_PER_TON, unit: "kgCO₂e" },
+  { threshold: 0, perTon: GRAMS_PER_TON, unit: "gCO₂e" },
 ] as const;
 
 /** Number at which a unit overflows into the next larger one. */
@@ -354,7 +359,7 @@ export class Formatter {
   /**
    * Emission intensity (tCO₂e per unit of main activity) rendered with the
    * mass unit that keeps the number in `[1, 1000)`: `0,0000569444` t/unit
-   * reads as `56,94 g CO₂e` instead of `0,000057 tCO₂e`.
+   * reads as `56,94 gCO₂e` instead of `0,000057 tCO₂e`.
    *
    * The unit is picked on the raw rate and re-checked after rounding, because
    * `0,999999` t selects kilograms but rounds to `1000` — it must be promoted
@@ -367,6 +372,11 @@ export class Formatter {
    */
   emissionIntensity(rate: number): EmissionIntensity {
     const grams = INTENSITY_SCALE[INTENSITY_SCALE.length - 1];
+   * The gram floor, on the other hand, is decided on the raw value: rounding
+   * first would push `0,0075 g` up into a displayable `0,01 g` and claim a
+   * precision the rate does not have — the same reason `emissionFactor`
+   * evaluates its threshold label before formatting.
+   *
 
     // A non-finite rate can only come from a contract violation (the API
     // schema is a non-negative number); degrade to zero instead of crashing.
@@ -390,7 +400,7 @@ export class Formatter {
     const step = INTENSITY_SCALE[index];
     const scaled = rate * step.perTon;
 
-    if (this.roundToIntensity(scaled) === 0) {
+    if (Math.abs(scaled) < INTENSITY_MIN_DISPLAY_G) {
       const floorLabel = this.intensityFmt.format(INTENSITY_MIN_DISPLAY_G);
       return {
         value: rate > 0 ? `<${floorLabel}` : `>-${floorLabel}`,

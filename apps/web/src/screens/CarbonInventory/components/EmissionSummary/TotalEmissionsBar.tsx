@@ -28,7 +28,7 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
   }
 
   // Adaptive mass unit: an intensity of 0,000057 tCO₂e per unit reads as
-  // 57 g CO₂e. The inventory total above stays in tCO₂e — it is compared
+  // 57 gCO₂e. The inventory total above stays in tCO₂e — it is compared
   // across inventories and must not change unit with magnitude.
   const intensity =
     equivalence?.rate != null

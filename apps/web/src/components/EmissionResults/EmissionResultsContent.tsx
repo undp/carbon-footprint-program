@@ -71,7 +71,7 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
   const categories = summaryData?.categories ?? [];
 
   // The hero number of the card scales its mass unit with the magnitude of the
-  // rate, so a low-footprint / high-output organization reads "56,94 g CO₂e"
+  // rate, so a low-footprint / high-output organization reads "56,94 gCO₂e"
   // instead of "0,000057" in a 4rem typography.
   const intensity = equivalence
     ? formatter.emissionIntensity(equivalence.rate)

@@ -260,38 +260,57 @@ describe("Formatter — emissionIntensity", () => {
   const fmt = new Formatter("es-ES", 4);
 
   it.each<[number, string, string]>([
-    [1.23, "1,23", "t CO₂e"],
-    [0.00425, "4,25", "kg CO₂e"],
+    [1.23, "1,23", "tCO₂e"],
+    [0.00425, "4,25", "kgCO₂e"],
     // The reported case: 1,2299904 tCO₂e over 21.600 litres.
-    [0.0000569444, "56,94", "g CO₂e"],
+    [0.0000569444, "56,94", "gCO₂e"],
     // Whole grams are not padded with zeros.
-    [0.000057, "57", "g CO₂e"],
+    [0.000057, "57", "gCO₂e"],
   ])("emissionIntensity(%p) -> %p %s", (input, value, unit) => {
     expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
   });
 
   it.each<[number, string, string]>([
     // Threshold borders belong to the larger unit.
-    [1, "1", "t CO₂e"],
-    [0.001, "1", "kg CO₂e"],
+    [1, "1", "tCO₂e"],
+    [0.001, "1", "kgCO₂e"],
     // Rounding must not push a number out of its unit.
-    [0.000999999, "1", "kg CO₂e"],
-    [0.999999, "1", "t CO₂e"],
+    [0.000999999, "1", "kgCO₂e"],
+    [0.999999, "1", "tCO₂e"],
     // Nothing larger than a tonne, so the target range is exceeded on purpose.
-    [1200, "1.200", "t CO₂e"],
+    [1200, "1.200", "tCO₂e"],
   ])("emissionIntensity(%p) -> %p %s (borders)", (input, value, unit) => {
     expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
   });
 
-  it("floors a positive rate too small to render in grams", () => {
-    expect(fmt.emissionIntensity(0.000000000005)).toEqual({
-      value: "<0,01",
-      unit: "g CO₂e",
+  it("spells the mass unit the way the rest of the app does", () => {
+    // The step-4 caption sits right under the inventory total, so both must
+    // read `tCO₂e` — a spaced variant looks like a different unit.
+    const { value, unit } = fmt.emissionIntensity(1.23);
+    expect(fmt.emissions(1.23)).toBe(`${value} ${unit}`);
+  });
+
+  it.each<[number, string]>([
+    // Rounds to zero grams.
+    [0.000000000005, "<0,01"],
+    // 0,0075 g: rounds *up* to 0,01, so the floor must be decided on the raw
+    // value or the card would claim a precision the rate does not reach.
+    [0.0000000075, "<0,01"],
+    // Just under the floor.
+    [0.0000000099999, "<0,01"],
+  ])("floors a positive rate below 0,01 g: %p -> %p", (input, value) => {
+    expect(fmt.emissionIntensity(input)).toEqual({ value, unit: "gCO₂e" });
+  });
+
+  it("shows the floor value itself, which is displayable", () => {
+    expect(fmt.emissionIntensity(0.00000001)).toEqual({
+      value: "0,01",
+      unit: "gCO₂e",
     });
   });
 
   it("renders a zero rate as zero grams, not as the floor label", () => {
-    expect(fmt.emissionIntensity(0)).toEqual({ value: "0", unit: "g CO₂e" });
+    expect(fmt.emissionIntensity(0)).toEqual({ value: "0", unit: "gCO₂e" });
   });
 });
 

@@ -139,9 +139,10 @@ export const FACTOR_DISPLAY_MAX_DECIMALS = 6;
  * shown in tonnes, at or above `INTENSITY_KG_THRESHOLD_T` in kilograms, and
  * below that in grams.
  *
- * `INTENSITY_MIN_DISPLAY_G` is the gram floor: a positive rate too small to
- * render with `INTENSITY_MAX_DECIMALS` decimals is shown as `<0,01 g CO₂e`
- * rather than as zero.
+ * `INTENSITY_MIN_DISPLAY_G` is the gram floor: a positive rate below it is
+ * shown as `<0,01 gCO₂e` rather than as a number it does not reach. The
+ * comparison is made on the raw value, before rounding — otherwise `0,0075 g`
+ * would round up into a displayable `0,01 g`.
  *
  * Scoped to the equivalence card and the step-4 caption only — totals,
  * rankings and the transparency portal stay in tCO₂e for comparability.
