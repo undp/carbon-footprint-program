@@ -22,15 +22,35 @@ import {
 } from "@repo/database/enums";
 
 const REPO_ROOT = resolve(import.meta.dirname, "../../../../../..");
-const FIXTURE_PATH = resolve(
-  REPO_ROOT,
-  "apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf"
-);
-// Wrap an arg in double quotes for both /bin/sh and cmd.exe. Both
-// interpret `"..."` as a single token, so args with spaces (the label,
-// the fixture path on Windows under `OneDrive\Documentos`) survive
-// the shell tokenization step.
-const quote = (s: string): string => `"${s.replace(/"/g, '\\"')}"`;
+// Passed to the CLI as a path relative to the api workspace — `pnpm --filter=api`
+// runs the script with apps/api as its working directory — rather than as an
+// absolute path. An absolute path drags in whatever the checkout directory
+// happens to contain — spaces, and on Windows backslashes — and there is no way
+// to escape a backslash that is correct for BOTH /bin/sh and cmd.exe: sh treats
+// `\` as an escape inside double quotes, cmd.exe does not, so escaping it would
+// corrupt the very Windows paths it was meant to protect. A relative path with
+// forward slashes only is accepted by Node on Windows too, and needs no escaping
+// in either shell.
+const FIXTURE_REL_PATH = "test/fixtures/chatbot/ghg-protocol-sample.pdf";
+
+/**
+ * Wrap an argument in double quotes so a value containing spaces survives shell
+ * tokenization in both /bin/sh and cmd.exe.
+ *
+ * Refuses rather than escapes. Every caller passes a fixed literal, so a quote
+ * or backslash here means the test was edited into a shape this helper cannot
+ * express safely — better to fail loudly at that point than to emit a command
+ * line where a trailing backslash escapes the closing quote and the remaining
+ * arguments are re-interpreted by the shell.
+ */
+const quote = (s: string): string => {
+  if (/["\\]/.test(s)) {
+    throw new Error(
+      `Cannot safely quote a CLI argument containing a quote or backslash: ${s}`
+    );
+  }
+  return `"${s}"`;
+};
 
 describe("ingest CLI — integration", () => {
   let prisma: PrismaClient;
@@ -74,7 +94,7 @@ describe("ingest CLI — integration", () => {
       "pnpm",
       "--filter=api",
       "chatbot:ingest",
-      quote(FIXTURE_PATH),
+      quote(FIXTURE_REL_PATH),
       "--label",
       quote("GHG Protocol Test"),
       "--version",
@@ -171,7 +191,7 @@ describe("ingest CLI — integration", () => {
       "pnpm",
       "--filter=api",
       "chatbot:ingest",
-      quote(FIXTURE_PATH),
+      quote(FIXTURE_REL_PATH),
       "--label",
       quote(NAME),
       "--version",
@@ -249,7 +269,7 @@ describe("ingest CLI — integration", () => {
       "pnpm",
       "--filter=api",
       "chatbot:ingest",
-      quote(FIXTURE_PATH),
+      quote(FIXTURE_REL_PATH),
       "--label",
       quote(NAME),
       "--version",
@@ -335,7 +355,7 @@ describe("ingest CLI — integration", () => {
       "pnpm",
       "--filter=api",
       "chatbot:ingest",
-      quote(FIXTURE_PATH),
+      quote(FIXTURE_REL_PATH),
       "--label",
       quote(NAME),
       "--version",
