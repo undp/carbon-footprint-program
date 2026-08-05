@@ -35,14 +35,26 @@ export const EmissionEditorEmissionsCell: FC<
 
   const isComputable = quantity != null && factorValue != null;
 
-  // Audit trail for the user who redoes the multiplication by hand: the chain
-  // uses the unrounded factor, which is the number the total actually comes
-  // from. A line without quantity or without factor has no chain to show.
+  // Audit trail for the user who redoes the multiplication by hand, so every
+  // number of the chain goes unrounded: with the display formatters a quantity
+  // of 0,12345 would read "0,12 × 0,056944 = 0,00703", a line that does not
+  // multiply out and defeats the whole point of showing it. A line without
+  // quantity or without factor has no chain to show.
   const calculationDetail = isComputable
-    ? `${formatter.quantity(quantity)} ${unit?.denominatorUnit.abbreviation ?? ""} × ${formatter.emissionFactorExact(factorValue)} ${unit?.abbreviation ?? ""} = ${formatter.quantity(totalEmissionsKg)} kg = ${formatter.emissions(totalEmissions, { withSuffix: false })} t`.replace(
-        /\s+/g,
-        " "
-      )
+    ? [
+        formatter.exact(quantity),
+        unit?.denominatorUnit.abbreviation,
+        "×",
+        formatter.exact(factorValue),
+        unit?.abbreviation,
+        "=",
+        formatter.exact(totalEmissionsKg),
+        "kg =",
+        formatter.exact(totalEmissions),
+        "t",
+      ]
+        .filter(Boolean)
+        .join(" ")
     : "";
 
   return (

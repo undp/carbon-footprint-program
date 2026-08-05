@@ -103,15 +103,26 @@ export const APP_LOCALE = "es-ES";
 export const INPUT_DECIMAL_SCALE = 4;
 
 /**
+ * Decimal places preserved by every numeric column of the domain
+ * (`Decimal(28,10)`: quantities, factors, emissions).
+ *
+ * It is the reference for two derived limits: what a factor input must accept
+ * so nothing is truncated on the way in, and how many decimals the unrounded
+ * formatter behind the audit affordances may render.
+ */
+export const DB_DECIMAL_SCALE = 10;
+
+/**
  * Decimal places accepted by the emission-factor input (own factors only).
  *
- * Matches the `Decimal(28,10)` column that stores the factor, so a factor the
- * user types or pastes is never silently truncated on the way in. It differs
- * from `INPUT_DECIMAL_SCALE` on purpose: raising the global scale would change
+ * Derived from `DB_DECIMAL_SCALE` on purpose: the input capacity must equal the
+ * precision the database preserves, so a factor the user types or pastes is
+ * never silently truncated on the way in. It differs from
+ * `INPUT_DECIMAL_SCALE` because raising the global scale would change
  * quantities, reduction-scenario inputs and every other numeric form, while
  * the truncation problem only exists for factors.
  */
-export const FACTOR_INPUT_DECIMAL_SCALE = 10;
+export const FACTOR_INPUT_DECIMAL_SCALE = DB_DECIMAL_SCALE;
 
 /**
  * Display precision of an emission factor: the formatter targets

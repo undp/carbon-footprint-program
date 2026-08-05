@@ -224,35 +224,48 @@ describe("Formatter — emissionFactor", () => {
   });
 });
 
-describe("Formatter — emissionFactorExact", () => {
+describe("Formatter — exact", () => {
   const fmt = new Formatter("es-ES", 4);
 
   it.each<[number, string]>([
     [0.056944, "0,056944"],
+    // The full scale of the `Decimal(28,10)` columns survives.
     [0.0569441234, "0,0569441234"],
     [1164.4894, "1.164,4894"],
     [0.0000001, "0,0000001"],
     [0, "0"],
-  ])("emissionFactorExact(%p) -> %p", (input, expected) => {
-    expect(fmt.emissionFactorExact(input)).toBe(expected);
+  ])("exact(%p) -> %p", (input, expected) => {
+    expect(fmt.exact(input)).toBe(expected);
   });
 
   it("applies no display rounding of its own", () => {
     // The display formatter rounds; the exact one must not.
     expect(fmt.emissionFactor(0.0569441234)).toBe("0,05694");
-    expect(fmt.emissionFactorExact(0.0569441234)).toBe("0,0569441234");
+    expect(fmt.exact(0.0569441234)).toBe("0,0569441234");
+  });
+
+  it("renders a computed operand without its binary noise", () => {
+    // The calculation chain multiplies two stored decimals, and the product is
+    // not exactly representable: 10000 × 0,177 is 1770.0000000000002 in
+    // doubles. Capping at the scale the columns preserve is what keeps the
+    // chain readable instead of leaking the artifact.
+    const kg = 10000 * 0.177;
+    expect(fmt.exact(kg)).toBe("1.770");
+    expect(fmt.exact(kg / 1000)).toBe("1,77");
+    // A product that genuinely has decimals keeps every one of them.
+    expect(fmt.exact(0.12345 * 0.056944)).toBe("0,0070297368");
   });
 
   it.each<[number | null | undefined, string]>([
     [null, DEFAULT_EMPTY_VALUE],
     [undefined, DEFAULT_EMPTY_VALUE],
     [NaN, DEFAULT_EMPTY_VALUE],
-  ])("emissionFactorExact(%p) -> empty placeholder", (input, expected) => {
-    expect(fmt.emissionFactorExact(input)).toBe(expected);
+  ])("exact(%p) -> empty placeholder", (input, expected) => {
+    expect(fmt.exact(input)).toBe(expected);
   });
 
-  it("emissionFactorExact honours ifEmpty override", () => {
-    expect(fmt.emissionFactorExact(null, { ifEmpty: "s/d" })).toBe("s/d");
+  it("exact honours ifEmpty override", () => {
+    expect(fmt.exact(null, { ifEmpty: "s/d" })).toBe("s/d");
   });
 });
 
@@ -270,6 +283,13 @@ describe("Formatter — emissionIntensity", () => {
     expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
   });
 
+  it("spells the mass unit the way the rest of the app does", () => {
+    // The step-4 caption sits right under the inventory total, so both must
+    // read `tCO₂e` — a spaced variant looks like a different unit.
+    const { value, unit } = fmt.emissionIntensity(1.23);
+    expect(fmt.emissions(1.23)).toBe(`${value} ${unit}`);
+  });
+
   it.each<[number, string, string]>([
     // Threshold borders belong to the larger unit.
     [1, "1", "tCO₂e"],
@@ -281,13 +301,6 @@ describe("Formatter — emissionIntensity", () => {
     [1200, "1.200", "tCO₂e"],
   ])("emissionIntensity(%p) -> %p %s (borders)", (input, value, unit) => {
     expect(fmt.emissionIntensity(input)).toEqual({ value, unit });
-  });
-
-  it("spells the mass unit the way the rest of the app does", () => {
-    // The step-4 caption sits right under the inventory total, so both must
-    // read `tCO₂e` — a spaced variant looks like a different unit.
-    const { value, unit } = fmt.emissionIntensity(1.23);
-    expect(fmt.emissions(1.23)).toBe(`${value} ${unit}`);
   });
 
   it.each<[number, string]>([

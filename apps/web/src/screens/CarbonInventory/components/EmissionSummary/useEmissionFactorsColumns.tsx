@@ -80,16 +80,17 @@ export const useEmissionFactorsColumns = (): GridColDef<
         flex: 1.2,
         renderCell: ({ row }) => {
           const denominator = extractDenominator(row.rateUnit);
-          // Same audit affordance as the capture grid: the cell shows the
-          // rounded factor, the tooltip the value the emissions come from.
-          // The per-gas breakdown below inherits the precision but not the
-          // affordance — those values are not the number users reconcile.
+          // Same audit affordance as the capture grid, under the same rule: the
+          // cell shows the rounded factor and the tooltip the value the
+          // emissions come from, but only when that rounding actually hides
+          // digits. The per-gas breakdown below inherits the precision and not
+          // the affordance — those values are not the number users reconcile.
+          const displayedFactor = formatter.emissionFactor(row.factorValue);
+          const exactFactor = formatter.exact(row.factorValue);
           const exactValueDetail =
-            row.factorValue == null
+            displayedFactor === exactFactor
               ? ""
-              : `Valor usado en el cálculo: ${formatter.emissionFactorExact(
-                  row.factorValue
-                )} ${row.rateUnit}`;
+              : `Valor usado en el cálculo: ${exactFactor} ${row.rateUnit}`;
           return (
             <Box className="flex flex-col gap-0.5">
               <DetailTooltipText
@@ -97,7 +98,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
                 variant="body2"
                 fontWeight="fontWeightRegular"
               >
-                {formatter.emissionFactor(row.factorValue)} {row.rateUnit}
+                {displayedFactor} {row.rateUnit}
               </DetailTooltipText>
               {row.gasBreakdownLines.map((line, idx) => (
                 <Typography

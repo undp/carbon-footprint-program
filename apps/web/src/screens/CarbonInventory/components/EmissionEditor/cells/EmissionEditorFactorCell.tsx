@@ -49,11 +49,16 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
   const isEditableBySource = isFactorValueEditable(factorSource);
 
   // The displayed factor is rounded for legibility; the value behind the
-  // emissions the app reports is the one the API delivered.
+  // emissions the app reports is the one the API delivered. When the rounding
+  // hides nothing — most seeded factors have 4 significant digits or less —
+  // there is no detail to reveal, and an affordance that opens a tooltip
+  // repeating the cell teaches the user to ignore it.
+  const displayedFactor = formatter.emissionFactor(value, { ifEmpty: " " });
+  const exactFactor = formatter.exact(value, { ifEmpty: " " });
   const exactValueDetail =
-    value == null || Number.isNaN(value)
+    displayedFactor === exactFactor
       ? ""
-      : `Valor usado en el cálculo: ${formatter.emissionFactorExact(value)} ${
+      : `Valor usado en el cálculo: ${exactFactor} ${
           unit?.abbreviation ?? ""
         }`.trim();
 
@@ -79,8 +84,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <DetailTooltipText detail={exactValueDetail}>
-      {formatter.emissionFactor(value, { ifEmpty: " " })}{" "}
-      {unit?.abbreviation ?? ""}
+      {displayedFactor} {unit?.abbreviation ?? ""}
     </DetailTooltipText>
   );
 

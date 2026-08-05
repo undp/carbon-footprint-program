@@ -1,5 +1,6 @@
 import {
   APP_LOCALE,
+  DB_DECIMAL_SCALE,
   DEFAULT_EMPTY_VALUE,
   FACTOR_DISPLAY_MAX_DECIMALS,
   FACTOR_DISPLAY_MIN_DECIMALS,
@@ -15,11 +16,13 @@ import {
 const DEFAULT_MAX_FRACTION_DIGITS = 2;
 
 /**
- * Upper bound accepted by `Intl.NumberFormat` for `maximumFractionDigits`.
- * Used to render a value with every digit it carries, i.e. without applying
- * any display rounding of our own.
+ * Fraction digits of the unrounded formatter, capped at the scale the domain
+ * columns preserve instead of at Intl's maximum of 20. Every value it renders
+ * either comes from a `Decimal(28,10)` — where 10 digits is lossless — or from
+ * multiplying two of them, where the digits beyond are binary artifacts:
+ * `10.000 × 0,177 / 1000` would otherwise render as `1,7700000000000002`.
  */
-const EXACT_MAX_FRACTION_DIGITS = 20;
+const EXACT_MAX_FRACTION_DIGITS = DB_DECIMAL_SCALE;
 
 /** Emission intensity is stored as tCO₂e per unit of main activity. */
 const KG_PER_TON = 1000;
@@ -338,15 +341,18 @@ export class Formatter {
   }
 
   /**
-   * The factor exactly as the API delivered it, with no display rounding —
-   * the value behind the "value used in the calculation" affordance and the
-   * calculation chain.
+   * A number with no display rounding of its own — the formatter behind the
+   * audit affordances: the "value used in the calculation" of a factor and
+   * every number of the calculation chain, where a rounded operand would break
+   * the multiplication the user is redoing by hand.
    *
-   * The API converts the `Decimal(28,10)` column with `Decimal.toNumber()`, so
-   * the guarantee is "no rounding on top of what the API sent", not exact
-   * decimal fidelity with the database.
+   * The API converts the `Decimal(28,10)` columns with `Decimal.toNumber()`, so
+   * the guarantee is "no rounding on top of what the API sent" for any value
+   * the domain can store, not decimal fidelity beyond `DB_DECIMAL_SCALE`
+   * digits — which is also what keeps a computed operand from rendering its
+   * binary noise (see `EXACT_MAX_FRACTION_DIGITS`).
    */
-  emissionFactorExact(
+  exact(
     value: number | null | undefined,
     options?: { ifEmpty?: string }
   ): string {
@@ -366,17 +372,17 @@ export class Formatter {
    * back to `1 t` rather than shown as `1.000 kg`. Above `1000` t there is no
    * larger unit, so the range is a target and not a guarantee.
    *
+   * The gram floor, on the other hand, is decided on the raw value: rounding
+   * first would push `0,0075 g` up into a displayable `0,01 g` and claim a
+   * precision the rate does not have — the same reason `emissionFactor`
+   * evaluates its threshold label before formatting.
+   *
    * Returns value and unit separately: the equivalence card renders the number
    * in a hero typography and the unit in its own element, and each consumer
    * appends the activity name differently.
    */
   emissionIntensity(rate: number): EmissionIntensity {
     const grams = INTENSITY_SCALE[INTENSITY_SCALE.length - 1];
-   * The gram floor, on the other hand, is decided on the raw value: rounding
-   * first would push `0,0075 g` up into a displayable `0,01 g` and claim a
-   * precision the rate does not have — the same reason `emissionFactor`
-   * evaluates its threshold label before formatting.
-   *
 
     // A non-finite rate can only come from a contract violation (the API
     // schema is a non-negative number); degrade to zero instead of crashing.
