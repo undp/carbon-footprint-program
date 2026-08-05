@@ -42,6 +42,7 @@ const organizationStatusChip = (status: OrganizationDisplayStatus) => (
   <StatusChip
     config={ORGANIZATION_DISPLAY_STATUS_CONFIG[status]}
     size="small"
+    fontSize="12px"
   />
 );
 
@@ -93,6 +94,7 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
         <StatusChip
           config={SUBMISSION_STATUS_CONFIG[metadata.applicant.submissionStatus]}
           size="small"
+          fontSize="12px"
         />
       ),
       conflict: (
@@ -103,6 +105,7 @@ export const ConflictComparison: FC<Props> = ({ metadata }) => {
             ]
           }
           size="small"
+          fontSize="12px"
         />
       ),
       collides: false,

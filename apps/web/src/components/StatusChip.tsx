@@ -6,9 +6,10 @@ import { BaseChip } from "./BaseChip";
 interface StatusChipProps {
   config: StatusConfig;
   size?: ChipProps["size"];
+  fontSize?: string;
 }
 
-export const StatusChip: FC<StatusChipProps> = ({ config, size }) => {
+export const StatusChip: FC<StatusChipProps> = ({ config, size, fontSize }) => {
   const theme = useTheme();
   return (
     <BaseChip
@@ -16,6 +17,7 @@ export const StatusChip: FC<StatusChipProps> = ({ config, size }) => {
       label={config.label}
       tooltip={config.tooltip}
       size={size}
+      fontSize={fontSize}
     />
   );
 };
