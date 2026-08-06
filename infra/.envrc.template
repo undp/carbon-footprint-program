@@ -1,4 +1,44 @@
+# ============================================================================
+# Azure deployment configuration — copy to infra/.envrc and fill in.
+#
+# Sourced by deploy.sh, deploy-web.sh, run-migrations.sh, delete-stack.sh and
+# view-stack.sh. (deploy-api.sh does NOT source it — it reads whatever is
+# already exported in your shell, so run it from a direnv-loaded terminal.)
+#
+# This file configures the DEPLOYMENT. It is not the application's runtime
+# config: most app settings are written onto the App Service by Bicep, derived
+# from the values here. Where a variable arrives in the container under a
+# different name, the comment says so.
+#
+# Sections:
+#   1. Deployment target      — which subscription, region, environment
+#   2. Deployment behaviour   — how the scripts and the stack behave
+#   3. Authentication         — Entra ID / OIDC
+#   4. Public URLs            — custom domain and the values derived from it
+#   5. Chatbot (optional AI)  — off by default
+#   6. Optional overrides     — storage, proxy trust, demo mode
+# ============================================================================
+
+# ============================================================================
+# 1. Deployment target
+# ============================================================================
+
+# Lifecycle/resource/tagging name. Lowercase only. Also selects the parameters
+# file: params/main.$ENVIRONMENT.bicepparam, falling back to
+# params/main.development.bicepparam when no dedicated file exists (production
+# and staging never fall back — they abort instead).
 export ENVIRONMENT=""
+
+# Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
+export LOCATION="eastus2"
+
+# Azure Subscription
+export AZURE_SUBSCRIPTION_ID=""
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
+
+# ============================================================================
+# 2. Deployment behaviour
+# ============================================================================
 
 # REQUIRED — what happens to resources that stop being declared in the template. No default on
 # purpose: a resource can drop out for reasons that are easy to miss, and under deleteResources it is
@@ -9,9 +49,9 @@ export ENVIRONMENT=""
 #   deleteResources resources leaving the template are DELETED. Throwaway environments only.
 export ACTION_ON_UNMANAGE="detachAll"
 
-# Azure Subscription
-export AZURE_SUBSCRIPTION_ID=""
-export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
+# Simulate the deploy without changing anything.
+export DRY_RUN="false"
+
 # Optional: Azure AD group for dev access to Key Vault and Storage (requires enableDevGroup*Access in bicepparam)
 # export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
 # Note: the template's role assignments are handled automatically — deploy.sh detects whether this
@@ -20,12 +60,18 @@ export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 # dropping managed grants under deleteResources would destroy them. See
 # docs/infrastructure/Deployment.md.
 
+# ============================================================================
+# 3. Authentication (Entra ID)
+# ============================================================================
+
 # Azure Entra ID — "external" (CIAM) or "organizational" (Azure AD)
 export AZURE_TENANT_TYPE="external"
 export AZURE_TENANT_SUBDOMAIN=""     # Only required for AZURE_TENANT_TYPE="external"
 export AZURE_TENANT_ID=""
 export AZURE_API_CLIENT_ID=""        # API App Registration ID
 export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
+export AUTH_PROVIDER="jwks"
+
 # Authority URL: derived from AZURE_TENANT_TYPE
 if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
   export AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}/v2.0"
@@ -39,20 +85,81 @@ fi
 # This Azure deploy path is Entra-specific; for a non-Azure IdP you would set the
 # JWKS_* / VITE_OIDC_* values directly (see the root .envrc.template).
 
-# Azure Blob Storage (configured automatically by Bicep; override here only if needed)
-# export AZURE_STORAGE_ACCOUNT_NAME=""
-# export AZURE_STORAGE_CONTAINER_NAME="files"
+# ============================================================================
+# 4. Public URLs
+# ============================================================================
 
-# Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
-export LOCATION="eastus2"
-export AUTH_PROVIDER="jwks"
-export APP_VERSION=""
 # Public custom domain for the frontend (bare hostname, e.g. app.example.com).
 # Single source of truth: bicep propagates it to every CORS layer and the
 # deploy scripts derive VITE_FRONT_BASE_URL / ALLOWED_ORIGIN from it.
 # Leave empty to use Azure's default hostname.
 # Details: docs/infrastructure/CustomDomainGoDaddySetup.md
 export FRONTEND_CUSTOM_DOMAIN=""
+
+# VITE_API_BASE_URL is auto-resolved from the API App Service hostname by
+# deploy-web.sh. Override only when pointing to a custom domain for the API.
+# Note: VITE_FRONT_BASE_URL is intentionally NOT exposed here — deploy-web.sh
+# derives it from FRONTEND_CUSTOM_DOMAIN to stay aligned with bicep's CORS
+# config. A manual override would create a CORS mismatch.
+# export VITE_API_BASE_URL="https://api.huella-test.com/api"
+
+# ============================================================================
+# 5. Chatbot (optional AI feature)
+# ============================================================================
+#
+# Off by default, and that default is deliberate: the platform is a digital
+# public good that must stay fully usable with no AI and no cloud AI
+# dependency. A deployment leaving this off provisions no Azure OpenAI resource
+# and runs no AI code path.
+#
+# ⚠️ TWO FLAGS, TWO PLACES, NOTHING CROSS-CHECKS THEM.
+#
+#   ENABLE_CHATBOT       read by deploy.sh → enableChatbot Bicep param.
+#                        Provisions Azure OpenAI + both model deployments +
+#                        the App Service role assignment, and Bicep writes
+#                        CHATBOT_ENABLED=true onto the App Service for you.
+#                        (Do NOT set CHATBOT_ENABLED here — the container gets
+#                        it from Bicep, not from this file.)
+#
+#   VITE_CHATBOT_ENABLED read by deploy-web.sh, baked into the web bundle at
+#                        BUILD time. It has no Bicep path — this file is the
+#                        only place it can come from.
+#
+# Set both to "true" together, or neither. The broken combination is widget on
+# with the API off (VITE true, ENABLE false): the widget mounts and every
+# request 404s against unregistered routes. The reverse — API on, widget off —
+# is harmless and sometimes intentional, leaving the endpoints live for direct
+# API testing while the UI stays hidden.
+#
+# Before enabling, read docs/infrastructure/chatbot-ai-access-requirements.md.
+# Three gates must clear, in order: an Azure Policy exemption (UNDP-governed
+# subscriptions deny AI resources outright), User Access Administrator or Owner
+# on the resource group (Contributor cannot create the role assignment), and
+# model quota in the target region (granted separately from RBAC).
+export ENABLE_CHATBOT="false"
+export VITE_CHATBOT_ENABLED="false"
+
+# Optional: region for the Azure OpenAI account. Empty means "use $LOCATION".
+# Override when $LOCATION does not offer BOTH gpt-4o-mini and
+# text-embedding-3-large — model availability is regional, and a missing model
+# fails the deployment rather than falling back.
+# export OPENAI_LOCATION="eastus2"
+
+# Model names, versions and capacity live in params/main.$ENVIRONMENT.bicepparam,
+# not here — they are durable per-environment choices rather than per-deploy ones.
+
+# ============================================================================
+# 6. Optional overrides
+# ============================================================================
+
+# Azure Blob Storage (configured automatically by Bicep; override here only if needed)
+# export AZURE_STORAGE_ACCOUNT_NAME=""
+# export AZURE_STORAGE_CONTAINER_NAME="files"
+
+export APP_VERSION=""
+
+# Web app: set to "true" to enable demo mode in the frontend
+# export VITE_IS_DEMO_APP=""
 
 # OPTIONAL — Fastify trustProxy for the API: which X-Forwarded-For senders may
 # set request.ip, which is the rate limiter's bucket key. Two sources, and this
@@ -78,15 +185,3 @@ export FRONTEND_CUSTOM_DOMAIN=""
 # shared bucket, too many let a caller forge X-Forwarded-For and choose its own.
 # Per-topology guidance: docs/security/hardening.md ("Proxy Trust").
 # export API_TRUST_PROXY=""
-
-export DRY_RUN="false"
-
-# Web app: set to "true" to enable demo mode in the frontend
-# export VITE_IS_DEMO_APP=""
-
-# VITE_API_BASE_URL is auto-resolved from the API App Service hostname by
-# deploy-web.sh. Override only when pointing to a custom domain for the API.
-# Note: VITE_FRONT_BASE_URL is intentionally NOT exposed here — deploy-web.sh
-# derives it from FRONTEND_CUSTOM_DOMAIN to stay aligned with bicep's CORS
-# config. A manual override would create a CORS mismatch.
-# export VITE_API_BASE_URL="https://api.huella-test.com/api"
