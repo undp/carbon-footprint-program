@@ -281,6 +281,48 @@ else
   log "New password generated"
 fi
 
+# 6b) Chatbot cookie secret (only when the chatbot is being deployed).
+#
+# Same create-or-preserve contract as the database password, and the same reason
+# for being careful: overwriting COOKIE_SECRET invalidates every signed
+# chatbot_session_id and chatbot_conversation_id cookie in the wild, so every
+# user silently loses their conversation history on the next redeploy. Empty
+# means "preserve whatever the vault already holds".
+ENABLE_CHATBOT="${ENABLE_CHATBOT:-false}"
+CHATBOT_COOKIE_SECRET=""
+
+if [ "$ENABLE_CHATBOT" = "true" ]; then
+  log "Chatbot enabled — resolving cookie signing secret..."
+  if [ -n "$EXISTING_VAULT" ]; then
+    COOKIE_LOOKUP_RESULT=0
+    COOKIE_LOOKUP=$(az keyvault secret show \
+      --vault-name "$EXISTING_VAULT" \
+      --name "chatbot-cookie-secret" \
+      --query "name" -o tsv 2>&1) || COOKIE_LOOKUP_RESULT=$?
+
+    if [ "$COOKIE_LOOKUP_RESULT" -eq 0 ] && [ -n "$COOKIE_LOOKUP" ]; then
+      log "Cookie secret already exists. Preserving it (will not overwrite)."
+      CHATBOT_COOKIE_SECRET=""
+    elif printf '%s' "$COOKIE_LOOKUP" | grep -qi "SecretNotFound"; then
+      log "No existing cookie secret found. Generating new secret..."
+      CHATBOT_COOKIE_SECRET=$(openssl rand -hex 32)
+      log "New cookie secret generated"
+    else
+      log "ERROR: could not determine whether chatbot-cookie-secret exists in $EXISTING_VAULT."
+      log "       $COOKIE_LOOKUP"
+      log ""
+      log "       Refusing to generate a new secret: if one does exist, replacing it signs out"
+      log "       every active chatbot conversation. Grant 'Key Vault Secrets User' on"
+      log "       $EXISTING_VAULT and retry."
+      exit 1
+    fi
+  else
+    log "No existing Key Vault found. Generating new cookie secret..."
+    CHATBOT_COOKIE_SECRET=$(openssl rand -hex 32)
+    log "New cookie secret generated"
+  fi
+fi
+
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
 log "Running Bicep deployment using Deployment Stack..."
 
@@ -473,6 +515,28 @@ if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   DEPLOY_PARAMS+=(--parameters azureAuthTenantType="${AZURE_TENANT_TYPE:-external}")
   DEPLOY_PARAMS+=(--parameters azureAuthFrontAppId="$AUTH_FRONTEND_CLIENT_ID")
   DEPLOY_PARAMS+=(--parameters azureAuthApiAppId="$AUTH_API_CLIENT_ID")
+fi
+
+# Add chatbot parameters if enabled
+if [ "$ENABLE_CHATBOT" = "true" ]; then
+  log "Adding chatbot parameters to deployment..."
+  log "  NOTE: in UNDP-governed subscriptions this deployment fails with"
+  log "        RequestDisallowedByPolicy until the subscription is exempted from the"
+  log "        deny-AI-resources policy. See docs/infrastructure/chatbot-ai-access-requirements.md"
+  DEPLOY_PARAMS+=(--parameters enableChatbot=true)
+  if [ -n "${OPENAI_LOCATION:-}" ]; then
+    DEPLOY_PARAMS+=(--parameters openAiLocation="$OPENAI_LOCATION")
+  fi
+  if [ -n "$CHATBOT_COOKIE_SECRET" ]; then
+    DEPLOY_PARAMS+=(--parameters chatbotCookieSecret="$CHATBOT_COOKIE_SECRET")
+  fi
+  if [ "$ENABLE_ROLE_ASSIGNMENTS" != "true" ]; then
+    log "  WARNING: role assignments are disabled for this deployment, so the App Service"
+    log "           will NOT be granted 'Cognitive Services OpenAI User'. The resources"
+    log "           deploy and the app settings point at them, but every chatbot request"
+    log "           returns 401 until someone with User Access Administrator creates that"
+    log "           assignment by hand."
+  fi
 fi
 
 deployment_result=0

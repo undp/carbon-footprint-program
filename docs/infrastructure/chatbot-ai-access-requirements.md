@@ -2,7 +2,15 @@
 
 Azure RBAC needed to provision the AI resources for the chatbot RAG feature, plus the
 PostgreSQL configuration change it depends on. Use this to validate that a deployment
-subscription grants sufficient access **before** writing the Bicep modules.
+subscription grants sufficient access **before** attempting the deployment.
+
+> **The resources below are now infrastructure-as-code.** `infra/modules/openai.bicep`
+> (account + both model deployments), `infra/modules/openAiRoleAssignment.bicep` (item 3), and
+> the `azure.extensions` allowlist in `infra/modules/postgres.bicep` (item 4) deploy from the
+> template, gated behind `enableChatbot` (default `false`). Nothing here needs to be created by
+> hand — but every access requirement below still applies, because the deployment is what
+> exercises them. A missing permission surfaces as a failed deployment rather than a missing
+> resource.
 
 Scope everything at the target **resource group** (or the specific resource, where noted).
 RBAC is commonly granted per resource group, so a subscription-level check can be misleading.
@@ -108,6 +116,16 @@ on Azure Flexible Server unless the extension is allowlisted first.
 write access to the server parameters. Note that the allowlist is only the prerequisite — the
 extension itself is created when the database migration runs `CREATE EXTENSION`, so pgvector is
 not yet active on the server.
+
+**Now codified.** That allowlist was originally applied by hand, which left the running server
+correct and the template silent — any environment built fresh from Bicep would have failed the
+migration with `extension "vector" is not available`. `infra/modules/postgres.bicep` now sets
+`azure.extensions` via an `allowedExtensions` parameter defaulting to `['VECTOR']`, and it
+applies **regardless of `enableChatbot`**: the migration runs on every deployment, so the
+extension has to be allowlisted even where the assistant itself is switched off.
+
+It is an allowlist, not an append — the value replaces whatever is set. Add entries to the
+parameter rather than issuing a separate `az` command, or the next deployment reverts them.
 
 ## Not required
 

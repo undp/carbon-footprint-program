@@ -97,6 +97,10 @@ Full treatment — including the deliberate non-`HttpOnly` decision and the IDOR
 
 Production authenticates **keylessly**, via the App Service system-assigned managed identity and a bearer-token provider scoped to `https://cognitiveservices.azure.com/.default`. Both the chat and embedding clients take the same path.
 
+This is enforced by the infrastructure, not just by convention. `infra/modules/openai.bicep` deploys the account with `disableLocalAuth: true`, which switches off API-key authentication at the resource, and `infra/modules/openAiRoleAssignment.bicep` grants the App Service identity `Cognitive Services OpenAI User` on it. The App Service template never sets `AZURE_OPENAI_API_KEY`. A key would therefore not work even if someone added one.
+
+One deployment detail with a security consequence: the account sets `customSubDomainName`, which is **required** for Entra ID authentication. Without it the account is reachable only on the regional shared endpoint, which does not accept AAD tokens — managed identity then fails at runtime with a 401 that looks exactly like a missing role assignment.
+
 `AZURE_OPENAI_API_KEY` is a **local-development fallback only**. When it is set to a non-empty value both clients switch to API-key auth; production leaves it unset. It is never logged: no code path writes provider credentials to the logger, and the key reaches the process as an environment variable rather than as request data. See [Secrets Management](./secrets.md) for delivery and classification, and [Azure AI access requirements](../infrastructure/chatbot-ai-access-requirements.md) for the role assignment.
 
 ---
