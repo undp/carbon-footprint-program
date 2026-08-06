@@ -261,6 +261,13 @@ param openAiChatModelVersion string = '2024-07-18'
 @description('Chat capacity in thousands of tokens per minute')
 param openAiChatCapacity int = 30
 
+// SKUs retire independently of the model, and preflight reports a retired SKU
+// as "ServiceModelDeprecated" naming the MODEL — which sends you to the version
+// rather than the SKU. Regional Standard for gpt-4o-mini went on 2026-03-31.
+// Default is the narrowest-residency SKU still supported; see openai.bicep.
+@description('Deployment SKU for the chat model. Verify against the target region before changing: az cognitiveservices model list --location <region>')
+param openAiChatSkuName string = 'DataZoneStandard'
+
 @description('Embedding model deployment name')
 param openAiEmbeddingDeploymentName string = 'embeddings'
 
@@ -272,6 +279,9 @@ param openAiEmbeddingModelVersion string = '1'
 
 @description('Embedding capacity in thousands of tokens per minute')
 param openAiEmbeddingCapacity int = 50
+
+@description('Deployment SKU for the embedding model. Regional Standard is still supported for text-embedding-3-large and keeps inference in-region.')
+param openAiEmbeddingSkuName string = 'Standard'
 
 @secure()
 @description('Secret used to sign the chatbot cookies (COOKIE_SECRET). Stored in Key Vault and referenced by the App Service. Supplied by deploy.sh; leave empty to preserve an existing value.')
@@ -372,10 +382,12 @@ module openAi 'modules/openai.bicep' = if (enableChatbot) {
     chatModelName: openAiChatModelName
     chatModelVersion: openAiChatModelVersion
     chatCapacity: openAiChatCapacity
+    chatSkuName: openAiChatSkuName
     embeddingDeploymentName: openAiEmbeddingDeploymentName
     embeddingModelName: openAiEmbeddingModelName
     embeddingModelVersion: openAiEmbeddingModelVersion
     embeddingCapacity: openAiEmbeddingCapacity
+    embeddingSkuName: openAiEmbeddingSkuName
     tags: tags
   }
 }

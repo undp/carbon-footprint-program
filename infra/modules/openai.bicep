@@ -18,6 +18,24 @@ param chatModelVersion string = '2024-07-18'
 @description('Chat capacity in thousands of tokens per minute (TPM). Quota is granted per subscription/region and is NOT implied by RBAC — a deployment can fail here with correct permissions.')
 param chatCapacity int = 30
 
+// Deployment SKU decides where inference physically runs, and SKUs are retired
+// independently of the model: regional `Standard` for gpt-4o-mini was
+// deprecated on 2026-03-31 while the model itself runs to 2027-04-14. Preflight
+// rejects a retired SKU with "ServiceModelDeprecated", naming the model rather
+// than the SKU, which sends you looking at the version.
+//
+// Default is the most residency-preserving option still supported for this
+// model: DataZoneStandard keeps inference inside one data zone (US or EU),
+// where GlobalStandard may route anywhere. User chat messages reach the model,
+// and this platform documents Latin American data-protection considerations, so
+// the narrower option is the right default even though both run to 2028-04-13.
+//
+// Verify before changing — the catalogue is per-region and moves:
+//   az cognitiveservices model list --location <region> \
+//     --query "[?model.name=='<model>'] | [0].model.skus[].{sku:name, deprecation:deprecationDate}" -o table
+@description('Deployment SKU for the chat model (e.g. DataZoneStandard, GlobalStandard, Standard). SKUs retire independently of the model — check the catalogue for the target region before changing.')
+param chatSkuName string = 'DataZoneStandard'
+
 @description('Embedding model deployment name. Becomes AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME on the API.')
 param embeddingDeploymentName string = 'embeddings'
 
@@ -29,6 +47,13 @@ param embeddingModelVersion string = '1'
 
 @description('Embedding capacity in thousands of tokens per minute (TPM). Ingest is bursty — a corpus run embeds every chunk — so this is sized above the chat deployment.')
 param embeddingCapacity int = 50
+
+// Regional `Standard` is still supported for text-embedding-3-large (to
+// 2028-02-09) and keeps inference in the account's own region, which is tighter
+// than the chat model can manage — hence the deliberately different default.
+// The rule behind both: most residency-preserving SKU that is not deprecated.
+@description('Deployment SKU for the embedding model. Regional Standard is supported for text-embedding-3-large and keeps inference in-region; check the catalogue before changing.')
+param embeddingSkuName string = 'Standard'
 
 // Keyless by default. `disableLocalAuth` switches off API-key authentication at
 // the resource, which is the posture documented in docs/security/chatbot.md:
@@ -70,7 +95,7 @@ resource chatDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-0
   parent: account
   name: chatDeploymentName
   sku: {
-    name: 'Standard'
+    name: chatSkuName
     capacity: chatCapacity
   }
   properties: {
@@ -95,7 +120,7 @@ resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2
     chatDeployment
   ]
   sku: {
-    name: 'Standard'
+    name: embeddingSkuName
     capacity: embeddingCapacity
   }
   properties: {

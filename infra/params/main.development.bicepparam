@@ -339,3 +339,20 @@ param openAiEmbeddingModelVersion = '1'
 // not migrated. See the re-embed playbook in docs/operations/runbook.md.
 param openAiChatCapacity = 30
 param openAiEmbeddingCapacity = 50
+
+// Deployment SKU — decides where inference physically runs, and retires on its
+// own schedule independent of the model. Regional `Standard` for gpt-4o-mini
+// was deprecated 2026-03-31; preflight rejects it as "ServiceModelDeprecated"
+// naming the MODEL, which misdirects you to the version.
+//
+// Defaults are the narrowest-residency SKU still supported per model, which is
+// why they differ: DataZoneStandard keeps chat inference inside one data zone
+// (US or EU) where GlobalStandard may route anywhere, while embeddings can
+// still use regional Standard and stay in the account's own region. User chat
+// messages reach the model, so residency is not academic here.
+//
+// Verify against the target region before changing — the catalogue moves:
+//   az cognitiveservices model list --location eastus2 \
+//     --query "[?model.name=='gpt-4o-mini'] | [0].model.skus[].{sku:name, deprecation:deprecationDate}" -o table
+param openAiChatSkuName = 'DataZoneStandard'
+param openAiEmbeddingSkuName = 'Standard'

@@ -71,10 +71,28 @@ blocks. Confirm with `az role assignment list` rather than assuming.
 
 Two separate deployments on the account created in step 1:
 
-| Deployment | Model                    | Type                 | Notes                                                                           |
-| ---------- | ------------------------ | -------------------- | ------------------------------------------------------------------------------- |
-| Chat       | `gpt-4o-mini`            | Standard (on-demand) | Sizing per `requirements.md`. No PTU reservation.                               |
-| Embeddings | `text-embedding-3-large` | Standard (on-demand) | `dimensions=1024` is fixed in code and must match the `vector(1024)` DB column. |
+| Deployment | Model                    | SKU                | Notes                                                                           |
+| ---------- | ------------------------ | ------------------ | ------------------------------------------------------------------------------- |
+| Chat       | `gpt-4o-mini`            | `DataZoneStandard` | Sizing per `requirements.md`. No PTU reservation.                               |
+| Embeddings | `text-embedding-3-large` | `Standard`         | `dimensions=1024` is fixed in code and must match the `vector(1024)` DB column. |
+
+**Check the SKU against the target region before deploying.** Deployment SKUs retire on their own
+schedule, independent of the model, and a retired one fails preflight with `ServiceModelDeprecated`
+— a message that names the **model**, not the SKU, and sends you to the version instead. Regional
+`Standard` for `gpt-4o-mini` was deprecated on 2026-03-31 while the model itself runs to 2027-04-14;
+that combination failed a real deployment.
+
+```bash
+az cognitiveservices model list --location <region> \
+  --query "[?model.name=='gpt-4o-mini'] | [0].model.skus[].{sku:name, deprecation:deprecationDate}" -o table
+```
+
+The two defaults differ deliberately: each is the **narrowest-residency SKU still supported for that
+model**. `DataZoneStandard` keeps chat inference inside one data zone (US or EU) where
+`GlobalStandard` may route anywhere; embeddings can still use regional `Standard` and stay in the
+account's own region. User chat messages reach the model, so residency is a real consideration here
+— see `docs/security/sensitive-data.md`. Both are overridable via `openAiChatSkuName` /
+`openAiEmbeddingSkuName` in the environment's `.bicepparam`.
 
 > **Quota is not a permission.** A deployment can fail for insufficient model capacity in the
 > region even with correct RBAC and no policy denial. That is a separate request to Azure, not
