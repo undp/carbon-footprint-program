@@ -1,15 +1,15 @@
 import { FC, useCallback } from "react";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import {
-  Card,
-  CardHeader,
   Avatar,
-  CardContent,
-  Typography,
-  CardActions,
   Button,
-  useTheme,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Typography,
   alpha,
+  useTheme,
   type SvgIconProps,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,11 +24,15 @@ interface Props {
   buttonText: string;
   usageMode: "SIMPLIFIED" | "EXPERT";
   organizationId?: string;
-  backgroundColor?: string;
-  textColor?: string;
-  iconColor?: string;
 }
 
+/**
+ * Tarjeta de entrada al cálculo de una huella. Crea el borrador y navega al
+ * primer paso del flujo.
+ *
+ * Está pensada para vivir sobre el degradado de marca: es una superficie de
+ * vidrio translúcido con texto verde oscuro.
+ */
 export const CreateInventoryCard: FC<Props> = ({
   AvatarIcon,
   title,
@@ -36,16 +40,13 @@ export const CreateInventoryCard: FC<Props> = ({
   buttonText,
   usageMode,
   organizationId,
-  backgroundColor,
-  textColor,
-  iconColor,
 }) => {
   const theme = useTheme();
-  const bgColor = alpha(backgroundColor ?? theme.palette.common.white, 0.1);
-  const txtColor = textColor ?? theme.palette.common.white;
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const createInventory = useCreateCarbonInventory();
+
+  const textColor = theme.palette.common.deepForestDark;
 
   const handleCreateInventory = useCallback(async () => {
     try {
@@ -74,49 +75,68 @@ export const CreateInventoryCard: FC<Props> = ({
 
   return (
     <Card
-      sx={{
-        background: bgColor,
-        borderRadius: 5,
-        maxWidth: 364,
-        p: 2,
-      }}
       elevation={0}
+      sx={{
+        background: `linear-gradient(150deg, ${alpha(theme.palette.common.white, 0.22)}, ${alpha(theme.palette.common.white, 0.1)})`,
+        border: `1px solid ${alpha(theme.palette.common.white, 0.45)}`,
+        borderRadius: 4.5,
+        px: 4,
+        pt: 3.75,
+        pb: 3.25,
+        backdropFilter: "blur(4px) saturate(1.2)",
+        boxShadow: `0 10px 34px ${alpha(theme.palette.common.deepForest, 0.1)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.45)}`,
+        transition: theme.transitions.create(["background", "box-shadow"]),
+        "&:hover": {
+          background: `linear-gradient(150deg, ${alpha(theme.palette.common.white, 0.32)}, ${alpha(theme.palette.common.white, 0.18)})`,
+          boxShadow: `0 16px 40px ${alpha(theme.palette.common.deepForest, 0.18)}`,
+        },
+      }}
     >
       <CardHeader
+        sx={{ p: 0, mb: 2 }}
         avatar={
           <Avatar
             sx={{
-              background: bgColor,
-              width: 56,
-              height: 56,
+              width: 46,
+              height: 46,
+              backgroundColor: alpha(theme.palette.common.white, 0.28),
+              border: `1px solid ${alpha(theme.palette.common.white, 0.55)}`,
             }}
           >
-            <AvatarIcon
-              sx={{
-                color: iconColor ?? theme.palette.common.white,
-              }}
-            />
+            <AvatarIcon sx={{ color: theme.palette.common.deepForest }} />
           </Avatar>
         }
         title={
-          <Typography variant="subtitle1" fontWeight="600" color={txtColor}>
+          <Typography
+            variant="h6"
+            component="h3"
+            fontWeight="fontWeightBold"
+            color={textColor}
+          >
             {title}
           </Typography>
         }
       />
-      <CardContent sx={{ padding: "8px", height: 110 }}>
-        <Typography variant="subtitle1" color={txtColor} sx={{ mt: 1 }}>
+      <CardContent sx={{ p: 0 }}>
+        <Typography variant="body1" color={textColor} sx={{ lineHeight: 1.6 }}>
           {description}
         </Typography>
       </CardContent>
-      <CardActions className="flex-row-reverse">
+      <CardActions sx={{ p: 0, mt: 2.75 }}>
         <Button
-          sx={{ backgroundColor: theme.palette.common.deepForest }}
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
           onClick={() => void handleNavigate()}
           disabled={createInventory.isPending}
           loading={createInventory.isPending}
+          sx={{
+            backgroundColor: theme.palette.common.deepForest,
+            borderRadius: 1.25,
+            px: 2.5,
+            py: 1.375,
+            fontSize: 12.5,
+            letterSpacing: "1.1px",
+          }}
         >
           {buttonText}
         </Button>

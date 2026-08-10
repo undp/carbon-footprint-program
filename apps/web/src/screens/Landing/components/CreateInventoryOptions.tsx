@@ -1,28 +1,40 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
-import { CalculatorIcon, ApplicationFormIcon } from "@/icons";
+import { Box, Typography, useTheme } from "@mui/material";
+import { ApplicationFormIcon, CalculatorIcon } from "@/icons";
 import { CreateInventoryCard } from "@/components/CreateInventoryCard";
 
-export const CreateInventoryOptions: FC = () => (
-  <Box className="flex flex-col items-center justify-center gap-4">
-    <Typography variant="h5" fontWeight="600" color="white">
-      Elige cómo empezar
-    </Typography>
-    <Box className="flex gap-10">
+/** Columna de acciones de la landing: las dos formas de empezar una huella. */
+export const CreateInventoryOptions: FC = () => {
+  const theme = useTheme();
+
+  return (
+    <Box className="flex flex-col gap-5">
+      <Typography
+        component="p"
+        sx={{
+          fontSize: 12,
+          fontWeight: "fontWeightBold",
+          letterSpacing: "1.6px",
+          textTransform: "uppercase",
+          color: theme.palette.common.white,
+        }}
+      >
+        Elige cómo empezar
+      </Typography>
       <CreateInventoryCard
         AvatarIcon={CalculatorIcon}
         title="Quiero calcular mi huella"
-        description="Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
-        buttonText="USAR CALCULADORA"
+        description="Simula tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
+        buttonText="Usar calculadora"
         usageMode="SIMPLIFIED"
       />
       <CreateInventoryCard
         AvatarIcon={ApplicationFormIcon}
         title="Ya tengo mis cálculos"
         description="Sube tus datos y genera reportes en segundos."
-        buttonText="SUBIR EMISIONES"
+        buttonText="Subir emisiones"
         usageMode="EXPERT"
       />
     </Box>
-  </Box>
-);
+  );
+};
