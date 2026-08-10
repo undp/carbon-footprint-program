@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 60" role="img" aria-label="Gobierno de Suecia">
+  <g fill="#FECB00">
+    <path d="M13 6.5l3.4 4 3.2-4.7 3.2 4.7 3.4-4-1.1 7.8H14.1z"/>
+    <path d="M42 6.5l3.4 4 3.2-4.7 3.2 4.7 3.4-4-1.1 7.8H43.1z"/>
+    <path d="M71 6.5l3.4 4 3.2-4.7 3.2 4.7 3.4-4-1.1 7.8H72.1z"/>
+  </g>
+  <text x="13" y="39" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="0.4" fill="#005293">Sverige</text>
+  <text x="13" y="52" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="500" letter-spacing="2.6" fill="#005293">SWEDEN</text>
+</svg>
