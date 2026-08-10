@@ -1,0 +1,1 @@
+export { ResourcesScreen } from "./ResourcesScreen";
