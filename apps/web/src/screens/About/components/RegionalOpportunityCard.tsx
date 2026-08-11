@@ -1,13 +1,14 @@
 import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
+import { darkCardGradient } from "@/utils/brandGradient";
 import {
   ACTIVE_PROGRAM_COUNTRIES,
   REGIONAL_OPPORTUNITY_CARD,
 } from "../constants";
 
 /**
- * Tarjeta oscura de "El desafío": los países con programa activo y por qué una
- * solución regional compartida abarata el ciclo completo.
+ * Dark "El desafío" card: the countries with an active program and why a
+ * shared regional solution makes the whole cycle cheaper.
  */
 export const RegionalOpportunityCard: FC = () => {
   const theme = useTheme();
@@ -20,7 +21,7 @@ export const RegionalOpportunityCard: FC = () => {
         borderRadius: 4,
         px: 3.75,
         py: 3.5,
-        background: `linear-gradient(150deg, ${theme.palette.common.deepForest} 0%, ${theme.palette.common.deepForestDark} 100%)`,
+        background: darkCardGradient(theme),
       }}
     >
       <Typography

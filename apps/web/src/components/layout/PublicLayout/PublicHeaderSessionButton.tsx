@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC } from "react";
 import { Button, useTheme } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
@@ -6,8 +6,8 @@ import { useAuth } from "@/contexts";
 import { Routes } from "@/interfaces";
 
 /**
- * Acción de sesión del header público: inicia sesión cuando no hay usuario y,
- * cuando lo hay, lleva a la superficie que le corresponde según su rol.
+ * Session action for the public header: signs in when there is no user and,
+ * when there is one, takes them to the surface that matches their role.
  */
 export const PublicHeaderSessionButton: FC = () => {
   const theme = useTheme();
@@ -17,14 +17,14 @@ export const PublicHeaderSessionButton: FC = () => {
   const isAdmin =
     user?.role === SystemRole.ADMIN || user?.role === SystemRole.SUPERADMIN;
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     if (!user) {
       void signInRedirect();
       return;
     }
 
     void navigate({ to: isAdmin ? Routes.ADMIN_DASHBOARD : Routes.HOME });
-  }, [isAdmin, navigate, signInRedirect, user]);
+  };
 
   const getLabel = () => {
     if (!user) return "Iniciar sesión";

@@ -1,17 +1,18 @@
 import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
+import { darkCardGradient } from "@/utils/brandGradient";
 
 interface Props {
   value: string;
   label: string;
-  /** Ícono decorativo que se asoma en la esquina inferior derecha. */
+  /** Decorative icon that peeks out from the bottom-right corner. */
   WatermarkIcon?: SvgIconComponent;
 }
 
 /**
- * Tarjeta oscura con una cifra destacada. Se usa en las bandas de cifras de
- * "Sobre la iniciativa" y "Agradecimientos".
+ * Dark card with a highlight figure. Used in the stats bands of
+ * "Sobre la iniciativa" and "Agradecimientos".
  */
 export const HighlightStatCard: FC<Props> = ({
   value,
@@ -25,7 +26,7 @@ export const HighlightStatCard: FC<Props> = ({
       sx={{
         position: "relative",
         overflow: "hidden",
-        background: `linear-gradient(150deg, ${theme.palette.common.deepForest} 0%, ${theme.palette.common.deepForestDark} 100%)`,
+        background: darkCardGradient(theme),
         border: `1px solid ${alpha(theme.palette.common.mint, 0.28)}`,
         borderRadius: 4,
         px: 3.25,

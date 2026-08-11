@@ -1,24 +1,21 @@
 import { FC } from "react";
 import { alpha, Box, Link, Typography, useTheme } from "@mui/material";
-import { useCurrentTermsConditions } from "@/api/query/termsConditions";
-import {
-  PRIVACY_POLICY_URL,
-  TERMS_CONDITIONS_FILE_URL,
-} from "@/config/constants";
+import { useTermsConditionsFileLink } from "@/api/query/termsConditions";
+import { PRIVACY_POLICY_URL } from "@/config/constants";
 
 /**
- * Pie de página de la landing: superficie de vidrio sobre el degradado, con la
- * invitación a replicar la plataforma y los enlaces legales.
+ * Landing footer: a glass surface over the gradient, with the invitation
+ * to replicate the platform and the legal links.
  */
 export const LandingFooter: FC = () => {
   const theme = useTheme();
-  const { data, isLoading } = useCurrentTermsConditions();
+  const { href: termsHref, isAvailable: hasTerms } =
+    useTermsConditionsFileLink();
 
-  const hasTerms = !!data?.fileName;
   const linkColor = alpha(theme.palette.common.white, 0.9);
 
   const renderTermsLink = () => {
-    if (isLoading || !hasTerms) {
+    if (!hasTerms) {
       return (
         <Typography component="span" sx={{ fontSize: 12.5, color: linkColor }}>
           Términos y Condiciones
@@ -28,7 +25,7 @@ export const LandingFooter: FC = () => {
 
     return (
       <Link
-        href={TERMS_CONDITIONS_FILE_URL}
+        href={termsHref}
         target="_blank"
         rel="noopener noreferrer"
         color={linkColor}

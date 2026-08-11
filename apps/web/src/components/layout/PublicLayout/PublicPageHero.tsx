@@ -1,7 +1,7 @@
 import { FC, PropsWithChildren } from "react";
 import { Box, useTheme } from "@mui/material";
-import { LatamFootprintIcon } from "@/icons";
 import { brandGradient } from "@/utils/brandGradient";
+import { HeroFootprintWatermark } from "./HeroFootprintWatermark";
 import {
   HERO_OVERLAP_BREATHING_ROOM,
   PUBLIC_CONTENT_MAX_WIDTH,
@@ -9,19 +9,19 @@ import {
 
 interface Props {
   /**
-   * Píxeles que el contenido siguiente sube dentro del hero (las páginas cuyas
-   * tarjetas de cifras se montan sobre su borde inferior). El relleno inferior
-   * crece con este valor para que las tarjetas nunca tapen el texto.
+   * Pixels that the following content rises into the hero (the pages whose
+   * stat cards sit over its bottom edge). The bottom padding grows with this
+   * value so the cards never cover the text.
    */
   overlappingContentOffset?: number;
 }
 
-/** Relleno inferior base del hero por breakpoint, en píxeles. */
+/** Base bottom padding of the hero per breakpoint, in pixels. */
 const BASE_BOTTOM_PADDING = { xs: 40, md: 52, lg: 60 };
 
 /**
- * Encabezado de las pantallas institucionales públicas: degradado de marca con
- * la huella decorativa a la derecha y el título de la página encima.
+ * Heading of the public institutional screens: brand gradient with the
+ * decorative footprint on the right and the page title on top.
  */
 export const PublicPageHero: FC<PropsWithChildren<Props>> = ({
   overlappingContentOffset = 0,
@@ -45,21 +45,7 @@ export const PublicPageHero: FC<PropsWithChildren<Props>> = ({
         background: brandGradient(theme),
       }}
     >
-      <LatamFootprintIcon
-        aria-hidden
-        sx={{
-          position: "absolute",
-          right: "-3%",
-          top: "50%",
-          transform: "translateY(-50%)",
-          width: "min(820px, 54%)",
-          height: "auto",
-          fill: theme.palette.common.white,
-          opacity: 0.18,
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
+      <HeroFootprintWatermark width="min(820px, 54%)" right="-3%" />
       <Box
         sx={{
           position: "relative",

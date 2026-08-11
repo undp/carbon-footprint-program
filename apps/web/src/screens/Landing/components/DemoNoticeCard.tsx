@@ -1,26 +1,25 @@
 import { FC } from "react";
 import { WarningAmberRounded } from "@mui/icons-material";
 import { alpha, Box, Link, Typography, useTheme } from "@mui/material";
-import { useCurrentTermsConditions } from "@/api/query/termsConditions";
-import { TERMS_CONDITIONS_FILE_URL } from "@/config/constants";
+import { useTermsConditionsFileLink } from "@/api/query/termsConditions";
 
 /**
- * Aviso de que la plataforma es una demostración. El enlace a los Términos y
- * Condiciones solo se muestra cuando hay un documento vigente cargado.
+ * Notice that the platform is a demo. The link to the Términos y
+ * Condiciones only shows when a current document is uploaded.
  */
 export const DemoNoticeCard: FC = () => {
   const theme = useTheme();
-  const { data, isLoading } = useCurrentTermsConditions();
+  const { href: termsHref, isAvailable: hasTerms } =
+    useTermsConditionsFileLink();
 
-  const hasTerms = !!data?.fileName;
   const bodyColor = alpha(theme.palette.common.white, 0.92);
 
   const renderTermsLink = () => {
-    if (isLoading || !hasTerms) return <span>Términos y Condiciones</span>;
+    if (!hasTerms) return <span>Términos y Condiciones</span>;
 
     return (
       <Link
-        href={TERMS_CONDITIONS_FILE_URL}
+        href={termsHref}
         target="_blank"
         rel="noopener noreferrer"
         color={theme.palette.common.white}

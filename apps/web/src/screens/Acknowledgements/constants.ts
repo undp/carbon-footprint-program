@@ -1,6 +1,7 @@
 import {
   AccountBalanceOutlined,
   FactoryOutlined,
+  ForumOutlined,
   GroupsOutlined,
   LightbulbOutlined,
   PublicOutlined,
@@ -8,15 +9,15 @@ import {
 } from "@mui/icons-material";
 
 /**
- * Contenido de la pantalla "Agradecimientos": las personas que participaron en
- * entrevistas, sesiones de trabajo, pruebas de usuario y validaciones.
+ * Content of the "Agradecimientos" screen: the people who took part in
+ * interviews, working sessions, user testing and validations.
  *
- * El listado proviene del registro de investigación del proyecto. Al agregar o
- * corregir personas basta con editar los grupos: los contadores por grupo y el
- * total se derivan de estas listas.
+ * The list comes from the project's research log. When adding or correcting
+ * people, just edit the groups: the per-group counters and the total are
+ * derived from these lists.
  */
 
-/** Píxeles que la banda de cifras sube para montarse sobre el hero. */
+/** Pixels the stats band rises to mount over the hero. */
 export const RESEARCH_STATS_OVERLAP = 116;
 
 export const ACKNOWLEDGEMENTS_HERO = {
@@ -26,7 +27,7 @@ export const ACKNOWLEDGEMENTS_HERO = {
 
 export interface Participant {
   name: string;
-  /** Organización o rol con el que participó. */
+  /** Organization or role they participated with. */
   organization: string;
 }
 
@@ -160,21 +161,52 @@ export const PARTICIPANT_GROUPS: readonly ParticipantGroup[] = [
   },
 ];
 
-/** Total de personas agradecidas, derivado de los grupos. */
+/** Total acknowledged people, derived from the groups. */
 export const TOTAL_PARTICIPANTS = PARTICIPANT_GROUPS.reduce(
   (total, group) => total + group.participants.length,
   0
 );
 
 /**
- * Cifras del proceso de investigación. Las sesiones, los países y las
- * organizaciones son datos del registro del proyecto y no se pueden derivar
- * del listado de personas; el total de participantes sí.
+ * Research-process figures. The sessions, the countries and the
+ * organizations are data from the project's log and cannot be derived
+ * from the list of people; the participant total can.
  */
 export const RESEARCH_SESSIONS_LABEL = "+70";
 export const RESEARCH_COUNTRIES_LABEL = "5";
 export const RESEARCH_ORGANIZATIONS_LABEL = "+40";
 
-/** Nota al pie sobre el origen del listado y cómo pedir correcciones. */
+export interface ResearchStat {
+  value: string;
+  label: string;
+  /** Decorative icon that peeks out from the card's corner. */
+  Icon: SvgIconComponent;
+}
+
+/** Figures for the research-process band, mounted over the hero's edge. */
+export const RESEARCH_STATS: readonly ResearchStat[] = [
+  {
+    value: RESEARCH_SESSIONS_LABEL,
+    label: "sesiones de entrevistas y validación",
+    Icon: ForumOutlined,
+  },
+  {
+    value: String(TOTAL_PARTICIPANTS),
+    label: "personas participantes",
+    Icon: GroupsOutlined,
+  },
+  {
+    value: RESEARCH_COUNTRIES_LABEL,
+    label: "países de la región",
+    Icon: PublicOutlined,
+  },
+  {
+    value: RESEARCH_ORGANIZATIONS_LABEL,
+    label: "organizaciones involucradas",
+    Icon: FactoryOutlined,
+  },
+];
+
+/** Footnote about the origin of the list and how to request corrections. */
 export const ACKNOWLEDGEMENTS_FOOTNOTE =
   "Listado elaborado a partir del registro de entrevistas y sesiones de validación del proyecto (julio 2025 – marzo 2026). Si participaste del proceso y no apareces en esta lista, o quieres corregir tu nombre u organización, escríbenos para actualizarlo.";

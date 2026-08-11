@@ -1,7 +1,10 @@
 import { FC } from "react";
 import { Box, useTheme } from "@mui/material";
-import { PublicHeader, PUBLIC_CONTENT_MAX_WIDTH } from "@/components/layout";
-import { LatamFootprintIcon } from "@/icons";
+import {
+  HeroFootprintWatermark,
+  PublicHeader,
+  PUBLIC_CONTENT_MAX_WIDTH,
+} from "@/components/layout";
 import { brandGradient } from "@/utils/brandGradient";
 import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
 import { LandingFooter } from "./components/LandingFooter";
@@ -21,21 +24,7 @@ export const LandingScreen: FC = () => {
         component="main"
         className="relative flex flex-1 items-center overflow-hidden"
       >
-        <LatamFootprintIcon
-          aria-hidden
-          sx={{
-            position: "absolute",
-            right: "-4%",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "min(1000px, 68%)",
-            height: "auto",
-            fill: theme.palette.common.white,
-            opacity: 0.18,
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        />
+        <HeroFootprintWatermark width="min(1000px, 68%)" right="-4%" />
 
         <Box
           sx={{

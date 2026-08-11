@@ -1,27 +1,32 @@
 import { FC } from "react";
 import { Box, Paper, Typography, useTheme } from "@mui/material";
-import { WARMING_CHART } from "../constants";
+import { WARMING_CHART, type WarmingScenarioTone } from "../constants";
 
-/** Alto del área de barras del gráfico, en píxeles. */
+/** Height of the chart's bar area, in pixels. */
 const CHART_HEIGHT = 184;
-/** Alto de la barra más alta, en píxeles. */
+/** Height of the tallest bar, in pixels. */
 const TALLEST_BAR_HEIGHT = 132;
 
 /**
- * Tarjeta de "El desafío" que compara el calentamiento proyectado con los
- * compromisos actuales contra la meta del Acuerdo de París.
+ * "El desafío" card comparing projected warming under current commitments
+ * against the Paris Agreement's target.
  */
 export const WarmingChartCard: FC = () => {
   const theme = useTheme();
 
-  const barGradients = [
-    `linear-gradient(180deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.light} 100%)`,
-    `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.common.mint} 100%)`,
-  ];
-  const valueColors = [
-    theme.palette.warning.dark,
-    theme.palette.common.deepForest,
-  ];
+  const toneStyles: Record<
+    WarmingScenarioTone,
+    { barGradient: string; valueColor: string }
+  > = {
+    current: {
+      barGradient: `linear-gradient(180deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.light} 100%)`,
+      valueColor: theme.palette.warning.dark,
+    },
+    target: {
+      barGradient: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.common.mint} 100%)`,
+      valueColor: theme.palette.common.deepForest,
+    },
+  };
 
   return (
     <Paper
@@ -61,35 +66,39 @@ export const WarmingChartCard: FC = () => {
       </Typography>
 
       <Box className="flex items-end gap-6" sx={{ height: CHART_HEIGHT }}>
-        {WARMING_CHART.scenarios.map((scenario, index) => (
-          <Box
-            key={scenario.value}
-            className="flex h-full flex-1 flex-col items-center justify-end"
-          >
-            <Typography
-              component="b"
-              sx={{
-                fontSize: 30,
-                fontWeight: "fontWeightBold",
-                letterSpacing: "-1.2px",
-                lineHeight: 1,
-                mb: 1.25,
-                color: valueColors[index],
-              }}
-            >
-              {scenario.value}
-            </Typography>
+        {WARMING_CHART.scenarios.map((scenario) => {
+          const { barGradient, valueColor } = toneStyles[scenario.tone];
+
+          return (
             <Box
-              aria-hidden
-              sx={{
-                width: "100%",
-                height: TALLEST_BAR_HEIGHT * scenario.barRatio,
-                borderRadius: "10px 10px 0 0",
-                background: barGradients[index],
-              }}
-            />
-          </Box>
-        ))}
+              key={scenario.value}
+              className="flex h-full flex-1 flex-col items-center justify-end"
+            >
+              <Typography
+                component="b"
+                sx={{
+                  fontSize: 30,
+                  fontWeight: "fontWeightBold",
+                  letterSpacing: "-1.2px",
+                  lineHeight: 1,
+                  mb: 1.25,
+                  color: valueColor,
+                }}
+              >
+                {scenario.value}
+              </Typography>
+              <Box
+                aria-hidden
+                sx={{
+                  width: "100%",
+                  height: TALLEST_BAR_HEIGHT * scenario.barRatio,
+                  borderRadius: "10px 10px 0 0",
+                  background: barGradient,
+                }}
+              />
+            </Box>
+          );
+        })}
       </Box>
 
       <Box

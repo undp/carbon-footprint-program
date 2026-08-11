@@ -12,13 +12,14 @@ import type { FC } from "react";
 import type { SvgIconProps } from "@mui/material";
 
 /**
- * Contenido editorial de la pantalla "Sobre la iniciativa".
+ * Editorial content for the "Sobre la iniciativa" screen.
  *
- * Todo lo que un despliegue de país podría querer reescribir —cifras, países,
- * hitos, socios y textos— vive acá, y no repartido por los componentes.
+ * Everything a country deployment might want to rewrite —figures, countries,
+ * milestones, partners and copy— lives here, not scattered across the
+ * components.
  */
 
-/** Países de la región con un programa nacional de huella de carbono en marcha. */
+/** Countries in the region with a national carbon-footprint program under way. */
 export const ACTIVE_PROGRAM_COUNTRIES: readonly string[] = [
   "Chile",
   "Perú",
@@ -31,12 +32,12 @@ export interface AboutStat {
   label: string;
 }
 
-/** Píxeles que la banda de cifras sube para montarse sobre el hero. */
+/** Pixels the stats band rises to mount over the hero. */
 export const ABOUT_STATS_OVERLAP = 72;
 
 /**
- * Cifras de la banda superior. El número de programas nacionales se deriva de
- * `ACTIVE_PROGRAM_COUNTRIES` para que no se desincronice del listado.
+ * Figures for the top band. The number of national programs is derived from
+ * `ACTIVE_PROGRAM_COUNTRIES` so it doesn't fall out of sync with the list.
  */
 export const ABOUT_STATS: readonly AboutStat[] = [
   {
@@ -51,12 +52,20 @@ export const ABOUT_STATS: readonly AboutStat[] = [
   { value: "100%", label: "código abierto, adaptable por cualquier país" },
 ];
 
-/** Escenarios del gráfico de calentamiento proyectado de "El desafío". */
+/**
+ * Visual tone of a warming scenario. It selects the bar gradient and the
+ * figure color in the chart, so a new scenario declares its tone here instead
+ * of relying on its position in the list.
+ */
+export type WarmingScenarioTone = "current" | "target";
+
+/** Scenarios for the projected-warming chart in "El desafío". */
 export interface WarmingScenario {
   value: string;
   caption: string;
-  /** Altura relativa de la barra, entre 0 y 1. */
+  /** The bar's relative height, between 0 and 1. */
   barRatio: number;
+  tone: WarmingScenarioTone;
 }
 
 export const WARMING_CHART = {
@@ -65,8 +74,18 @@ export const WARMING_CHART = {
   footnote:
     "Contener el calentamiento a 1,5 °C requiere una transición acelerada hacia economías descarbonizadas.",
   scenarios: [
-    { value: "2,4 °C", caption: "Con los compromisos actuales", barRatio: 1 },
-    { value: "1,5 °C", caption: "Meta del Acuerdo de París", barRatio: 0.62 },
+    {
+      value: "2,4 °C",
+      caption: "Con los compromisos actuales",
+      barRatio: 1,
+      tone: "current",
+    },
+    {
+      value: "1,5 °C",
+      caption: "Meta del Acuerdo de París",
+      barRatio: 0.62,
+      tone: "target",
+    },
   ] as readonly WarmingScenario[],
 } as const;
 
@@ -89,7 +108,7 @@ export interface PlatformPillar {
   title: string;
   body: string;
   tags: readonly string[];
-  /** Llamado a la acción que reemplaza a las etiquetas en el último pilar. */
+  /** Call to action that replaces the tags on the last pillar. */
   callout?: string;
 }
 
@@ -125,9 +144,9 @@ export interface AllianceActor {
   role: string;
   name: string;
   description: string;
-  /** Socio cuyo logo encabeza la tarjeta. */
+  /** Partner whose logo heads the card. */
   partnerId?: PartnerId;
-  /** Ícono que reemplaza al logo en los actores sin marca propia. */
+  /** Icon that replaces the logo for actors without their own brand. */
   Icon?: SvgIconComponent;
 }
 
@@ -174,7 +193,7 @@ export interface RoadmapMilestone {
   stage: string;
   title: string;
   description: string;
-  /** Los hitos en curso se pintan en ámbar; los cumplidos, en verde. */
+  /** Milestones in progress are painted amber; completed ones, green. */
   isInProgress: boolean;
 }
 
@@ -222,8 +241,8 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
 ];
 
 /**
- * Bloque de reconocimiento al socio financista. El nombre del proyecto va en
- * cursiva y entre comillas, por eso el párrafo está partido en dos.
+ * Acknowledgement block for the funding partner. The project name is
+ * italicized and quoted, which is why the paragraph is split in two.
  */
 export const FUNDING_HIGHLIGHT = {
   badge: "Socio financista",
@@ -239,15 +258,15 @@ export const FUNDING_HIGHLIGHT = {
 export interface OrganizationProfile {
   title: string;
   body: string;
-  /** Logo del socio que encabeza la tarjeta. */
+  /** Logo of the partner that heads the card. */
   partnerId?: PartnerId;
-  /** Ícono que reemplaza al logo cuando la tarjeta no representa a un socio. */
+  /** Icon that replaces the logo when the card doesn't represent a partner. */
   Icon?: SvgIconComponent;
-  /** Cifras que acompañan al logo. */
+  /** Figures that accompany the logo. */
   figures: readonly AboutStat[];
-  /** Distintivo que reemplaza a las cifras. */
+  /** Badge that replaces the figures. */
   badge?: string;
-  /** Enlace incrustado al final de `body`, seguido de `bodyAfterLink`. */
+  /** Link embedded at the end of `body`, followed by `bodyAfterLink`. */
   link?: { label: string; href: string };
   bodyAfterLink?: string;
 }
@@ -284,7 +303,7 @@ export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
   },
 ];
 
-/** Cierre legal de la página, exigido por el convenio de financiamiento. */
+/** Legal closing of the page, required by the funding agreement. */
 export const ABOUT_DISCLAIMER =
   "Esta iniciativa es financiada por el Gobierno de Suecia e implementada por el Programa de las Naciones Unidas para el Desarrollo (PNUD). Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";
 
