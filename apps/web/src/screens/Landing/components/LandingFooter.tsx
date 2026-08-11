@@ -58,7 +58,7 @@ export const LandingFooter: FC = () => {
         }}
       >
         Bien público digital · ¿Te interesa implementarlo en tu país? Contacta
-        al PNUD
+        al PNUD (valeria.correa@undp.org)
       </Typography>
       <Box className="flex items-center gap-6">
         {renderTermsLink()}

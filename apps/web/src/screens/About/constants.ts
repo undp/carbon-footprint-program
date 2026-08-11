@@ -72,7 +72,7 @@ export const WARMING_CHART = {
   overline: "Calentamiento proyectado",
   title: "La meta de 1,5 °C exige actuar ya",
   footnote:
-    "Contener el calentamiento a 1,5 °C requiere una transición acelerada hacia economías descarbonizadas.",
+    "Con los compromisos actuales de mitigación, el mundo se dirige a un calentamiento de 2,4 °C. Contener el calentamiento a 1,5 °C, como plantea el Acuerdo de París, requiere una transición acelerada hacia economías descarbonizadas.",
   scenarios: [
     {
       value: "2,4 °C",
@@ -91,7 +91,7 @@ export const WARMING_CHART = {
 
 export const PRIVATE_SECTOR_CARD = {
   title: "El sector privado es clave",
-  body: "Las Contribuciones Determinadas a Nivel Nacional (NDC) son la principal herramienta de política climática de los países. Movilizar al sector privado —desde pymes hasta grandes empresas— es esencial para alinear inversiones y modelos de negocio con las metas del Acuerdo de París.",
+  body: "Las NDC son la principal herramienta de política climática de los países. Movilizar al sector privado —desde pymes hasta grandes empresas— es esencial para alinear inversiones y modelos de negocio con las metas del Acuerdo de París.",
   tags: ["Pymes", "Grandes empresas", "Sector público"] as readonly string[],
 } as const;
 
@@ -116,8 +116,8 @@ export const PLATFORM_PILLARS: readonly PlatformPillar[] = [
   {
     step: "01",
     Icon: CalculatorIcon,
-    title: "Medir",
-    body: "Cada país configura la metodología que ha adoptado —ISO 14064, GHG Protocol o una combinación— junto con sus propios factores de emisión.",
+    title: "Medir — con la metodología de cada país",
+    body: "Cada país configura la metodología que ha adoptado —ISO 14064, GHG Protocol o una combinación— junto con sus propios factores de emisión. Esa flexibilidad es lo que permite adaptarse a cada programa nacional.",
     tags: ["ISO 14064", "GHG Protocol", "Factores locales"],
   },
   {
@@ -130,7 +130,7 @@ export const PLATFORM_PILLARS: readonly PlatformPillar[] = [
   {
     step: "03",
     Icon: CodeOutlined,
-    title: "Compartir como bien público",
+    title: "Bien público digital",
     body: "Software de código abierto alineado con los estándares de la Digital Public Goods Alliance y adaptable a cada país de la región.",
     tags: [],
     callout: "¿Te interesa implementarlo en tu país? Contacta al PNUD",
@@ -160,17 +160,17 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
   },
   {
     role: "Financia",
-    name: "Gobierno de Suecia",
+    name: "Suecia",
     partnerId: PartnerId.SWEDEN,
     description:
-      "El Gobierno de Suecia financia la iniciativa, reafirmando su compromiso con la acción climática y el desarrollo sostenible de la región.",
+      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
   },
   {
     role: "Diseña y desarrolla",
     name: "Inventures",
     partnerId: PartnerId.INVENTURES,
     description:
-      "Consultora de tecnología e innovación con base en Chile, a cargo de la investigación, el diseño UX/UI y el desarrollo de la plataforma.",
+      "Inventures, consultora de tecnología e innovación con base en Chile, está a cargo de la investigación, el diseño UX/UI y el desarrollo de la plataforma de código abierto.",
   },
   {
     role: "Operan los programas",
@@ -203,15 +203,15 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
     stage: "Origen",
     title: "Del aprendizaje regional a un producto común",
     description:
-      "Tras acompañar los programas de Chile, Perú, Ecuador y Panamá, el PNUD consolidó las lecciones en una guía regional y un curso e-learning.",
+      "Tras acompañar los programas de Chile, Perú, Ecuador y Panamá, el PNUD consolidó las lecciones aprendidas en una guía regional y un curso e-learning, y decidió impulsar un software común de código abierto.",
     isInProgress: false,
   },
   {
     period: "2025",
-    stage: "Investigación",
+    stage: "Investigación y diseño",
     title: "Más de 70 entrevistas en toda la región",
     description:
-      "Coordinadores de programas nacionales, gobiernos, empresas usuarias, consultores y equipos del PNUD.",
+      "Se entrevistó a coordinadores de programas nacionales, gobiernos, empresas usuarias, consultores expertos y equipos del PNUD para diseñar una plataforma centrada en necesidades reales.",
     isInProgress: false,
   },
   {
@@ -219,15 +219,15 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
     stage: "Desarrollo",
     title: "Construcción del MVP de código abierto",
     description:
-      "Calculadora de emisiones, gestión de huellas, verificación, reconocimientos y vistas públicas de transparencia.",
+      "Desarrollo ágil y centrado en usuarios: calculadora de emisiones, gestión de huellas, procesos de verificación, reconocimientos y vistas públicas de transparencia.",
     isInProgress: false,
   },
   {
     period: "2026",
     stage: "Piloto · En curso",
-    title: "Piloto con un país seleccionado",
+    title: "Piloto con un país seleccionado de la región",
     description:
-      "Probando el ciclo completo de medición, verificación y reconocimiento en condiciones reales.",
+      "La plataforma está probando el ciclo completo de medición, verificación y reconocimiento en condiciones reales junto a contrapartes nacionales.",
     isInProgress: true,
   },
   {
@@ -235,7 +235,7 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
     stage: "Validación DPG · En curso",
     title: "Validación como Bien Público Digital",
     description:
-      "Asegurando que la solución se mantenga abierta, reutilizable y valiosa para toda la región.",
+      "La solución está siendo validada como Bien Público Digital (DPG), asegurando que se mantenga abierta, reutilizable y valiosa para toda la región. Si te interesa implementarla en tu país, contacta al PNUD.",
     isInProgress: true,
   },
 ];
@@ -245,14 +245,14 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
  * italicized and quoted, which is why the paragraph is split in two.
  */
 export const FUNDING_HIGHLIGHT = {
-  badge: "Socio financista",
+  badge: "Con el apoyo de",
   title: "Financiada por el Gobierno de Suecia",
   bodyBeforeProject:
-    "Posible gracias al financiamiento del Gobierno de Suecia, en el marco del proyecto del PNUD",
+    "Posible gracias al financiamiento de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), en el marco de la iniciativa del PNUD",
   projectName:
-    "Promoviendo la movilización de financiamiento verde en América Latina y el Caribe",
+    "Innovación para las Finanzas Verdes en América Latina y el Caribe",
   bodyAfterProject:
-    ", que busca acelerar la implementación de las NDC. El compromiso de Suecia hace posible que esta plataforma sea un bien público digital, gratuito y abierto para toda la región.",
+    ", que busca acelerar la implementación de las Contribuciones Determinadas a Nivel Nacional (NDC). El apoyo de Suecia hace posible que esta plataforma sea un bien público digital, gratuito y abierto para toda la región.",
 } as const;
 
 export interface OrganizationProfile {
@@ -287,30 +287,30 @@ export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
       { value: "+140", label: "países" },
       { value: "37 M", label: "personas" },
     ],
-    body: "A través de la iniciativa Climate Promise, la mayor cartera de apoyo a la acción climática del sistema de las Naciones Unidas, el PNUD trabaja con más de 140 países y territorios y beneficia directamente a 37 millones de personas. La cartera permite ejecutar más de 2.450 millones de dólares de los Estados Unidos en financiación basada en subvenciones y aprovechar la experiencia del PNUD en materia de adaptación, mitigación, mercados de carbono, clima y bosques, riesgo y seguridad climáticos y estrategias y políticas climáticas. Visita nuestro sitio web",
+    body: "A través de la iniciativa Climate Promise, la mayor cartera de apoyo a la acción climática del sistema de las Naciones Unidas, el PNUD trabaja con más de 140 países y territorios y beneficia directamente a 37 millones de personas. La cartera permite ejecutar más de 2.450 millones de dólares de los Estados Unidos en financiación basada en subvenciones y aprovechar la experiencia del PNUD en materia de adaptación, mitigación, mercados de carbono, clima y bosques, riesgo y seguridad climáticos y estrategias y políticas climáticas. Visite nuestro sitio web",
     link: {
       label: "climatepromise.undp.org/es",
       href: "https://climatepromise.undp.org/es",
     },
-    bodyAfterLink: " y síguenos en @UNDPplanet.",
+    bodyAfterLink: " y síganos en @UNDPplanet.",
   },
   {
     title: "Acerca de IFV LAC",
     partnerId: PartnerId.SWEDEN,
     figures: [],
     badge: "Financiado por ASDI",
-    body: "Esta herramienta fue desarrollada en el marco del proyecto Innovación para las Finanzas Verdes en LAC (IFV LAC), financiado por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional.",
+    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional.",
   },
 ];
 
 /** Legal closing of the page, required by the funding agreement. */
 export const ABOUT_DISCLAIMER =
-  "Esta iniciativa es financiada por el Gobierno de Suecia e implementada por el Programa de las Naciones Unidas para el Desarrollo (PNUD). Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";
+  "Esta iniciativa es financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional e implementada por el Programa de las Naciones Unidas para el Desarrollo (PNUD). Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";
 
 export const ABOUT_HERO = {
   badge: "Bien público digital · América Latina y el Caribe",
   title: "Sobre la iniciativa",
-  lead: "Huella Latam es un software de código abierto impulsado por el PNUD para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe. Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
+  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
 } as const;
 
 export const ABOUT_SECTION_TITLES = {
