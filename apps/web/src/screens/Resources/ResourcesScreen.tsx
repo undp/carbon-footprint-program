@@ -18,7 +18,7 @@ export const ResourcesScreen: FC = () => (
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(min(420px, 100%), 1fr))",
         gap: 3,
-        mt: { xs: 4.5, md: 6, lg: 7 },
+        mt: { xs: 4, md: 4.5, lg: 4 },
       }}
     >
       {SUPPORTING_RESOURCES.map((resource) => (

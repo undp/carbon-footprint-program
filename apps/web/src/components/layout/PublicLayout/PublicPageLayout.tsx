@@ -38,7 +38,7 @@ export const PublicPageLayout: FC<PropsWithChildren<Props>> = ({
           maxWidth: PUBLIC_CONTENT_MAX_WIDTH,
           mx: "auto",
           px: { xs: 2.5, md: 4, lg: 7 },
-          pb: 9,
+          pb: 7,
           display: "flex",
           flexDirection: "column",
           gap: contentGap,

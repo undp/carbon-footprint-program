@@ -17,7 +17,7 @@ interface Props {
 }
 
 /** Relleno inferior base del hero por breakpoint, en píxeles. */
-const BASE_BOTTOM_PADDING = { xs: 48, md: 64, lg: 76 };
+const BASE_BOTTOM_PADDING = { xs: 40, md: 52, lg: 60 };
 
 /**
  * Encabezado de las pantallas institucionales públicas: degradado de marca con
@@ -67,7 +67,7 @@ export const PublicPageHero: FC<PropsWithChildren<Props>> = ({
           maxWidth: PUBLIC_CONTENT_MAX_WIDTH,
           mx: "auto",
           px: { xs: 2.5, md: 4, lg: 7 },
-          pt: { xs: 6, md: 8, lg: 9.5 },
+          pt: { xs: 5, md: 6.5, lg: 7.5 },
           pb: bottomPadding,
         }}
       >
