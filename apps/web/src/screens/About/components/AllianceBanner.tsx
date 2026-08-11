@@ -4,7 +4,7 @@ import { HuellaLatamLogo } from "@/icons";
 import { brandGradient } from "@/utils/brandGradient";
 import { ALLIANCE_BANNER_TEXT } from "../constants";
 
-/** Banner de apertura de "Una alianza regional". */
+/** Opening banner of "Una alianza regional". */
 export const AllianceBanner: FC = () => {
   const theme = useTheme();
 

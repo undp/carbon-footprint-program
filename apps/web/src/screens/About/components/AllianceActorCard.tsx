@@ -7,10 +7,10 @@ interface Props {
   actor: AllianceActor;
 }
 
-/** Alto reservado para el logo o ícono, para que todas las tarjetas alineen. */
+/** Height reserved for the logo or icon, so all cards align. */
 const EMBLEM_SLOT_HEIGHT = 60;
 
-/** Tarjeta de un actor de la alianza regional. */
+/** Card for an actor in the regional alliance. */
 export const AllianceActorCard: FC<Props> = ({ actor }) => {
   const theme = useTheme();
 

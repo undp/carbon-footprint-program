@@ -7,7 +7,7 @@ import { PrivateSectorCard } from "./PrivateSectorCard";
 import { RegionalOpportunityCard } from "./RegionalOpportunityCard";
 import { WarmingChartCard } from "./WarmingChartCard";
 
-/** Sección "El desafío": por qué existe la plataforma. */
+/** "El desafío" section: why the platform exists. */
 export const ChallengeSection: FC = () => (
   <Box component="section">
     <SectionHeading

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
 import { ABOUT_HERO } from "../constants";
 
-/** Encabezado de "Sobre la iniciativa": distintivo, título y bajada. */
+/** Header of "Sobre la iniciativa": badge, title and lead. */
 export const AboutHero: FC = () => {
   const theme = useTheme();
 

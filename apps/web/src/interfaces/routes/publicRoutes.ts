@@ -2,8 +2,8 @@ import { ToPathOption } from "@tanstack/react-router";
 import { Routes } from "./routes.const";
 
 /**
- * Páginas públicas enlazadas desde la navegación del header, en el orden en
- * que aparecen.
+ * Public pages linked from the header navigation, in the order in which they
+ * appear.
  */
 export const PublicHeaderRoutes: Record<string, ToPathOption> = {
   TRANSPARENCY: Routes.TRANSPARENCY,

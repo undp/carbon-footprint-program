@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components";
 import { ABOUT_SECTION_TITLES, ROADMAP_MILESTONES } from "../constants";
 import { RoadmapMilestoneItem } from "./RoadmapMilestoneItem";
 
-/** Sección "El camino — dónde estamos": línea de tiempo del proyecto. */
+/** "El camino — dónde estamos" section: the project timeline. */
 export const RoadmapSection: FC = () => (
   <Box component="section">
     <SectionHeading Icon={RouteOutlined} title={ABOUT_SECTION_TITLES.roadmap} />

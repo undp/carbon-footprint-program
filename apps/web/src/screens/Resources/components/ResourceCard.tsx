@@ -16,7 +16,7 @@ interface Props {
   resource: SupportingResource;
 }
 
-/** Tarjeta de un recurso complementario: portada, descripción y acceso. */
+/** Card for a supplementary resource: cover, description and access. */
 export const ResourceCard: FC<Props> = ({ resource }) => {
   const theme = useTheme();
 

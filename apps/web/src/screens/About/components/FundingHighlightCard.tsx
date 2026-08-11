@@ -3,7 +3,7 @@ import { Box, Chip, Paper, Typography, darken, useTheme } from "@mui/material";
 import { PARTNERS, PartnerId } from "@/config/partners";
 import { FUNDING_HIGHLIGHT } from "../constants";
 
-/** Reconocimiento al socio que financia la iniciativa. */
+/** Acknowledgement of the partner that funds the initiative. */
 export const FundingHighlightCard: FC = () => {
   const theme = useTheme();
 

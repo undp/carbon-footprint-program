@@ -3,17 +3,16 @@ import swedenLogo from "@/assets/logos/sweden.svg";
 import undpLogo from "@/assets/logos/undp.svg";
 
 /**
- * Socios institucionales que se muestran en las superficies públicas (header,
- * pie de página y pantalla "Sobre la iniciativa").
+ * Institutional partners shown on the public surfaces (header, footer and the
+ * "Sobre la iniciativa" screen).
  *
- * Cada despliegue de país tiene su propia constelación de socios: quién
- * financia, quién lidera y quién desarrolla la plataforma puede cambiar. Por
- * eso los nombres, los roles y el arte viven acá y no incrustados en los
- * componentes.
+ * Each country deployment has its own set of partners: who funds, who leads
+ * and who develops the platform can change. That is why the names, roles and
+ * artwork live here and are not embedded in the components.
  *
- * Los archivos de `src/assets/logos/` que vienen en el repositorio son
- * marcadores de posición; el arte oficial de cada socio debe reemplazarlos
- * antes de publicar (ver `src/assets/logos/README.md`).
+ * The files under `src/assets/logos/` shipped in the repository are
+ * placeholders; each deployment must replace them with the partner's
+ * official artwork before going live.
  */
 export const PartnerId = {
   SWEDEN: "SWEDEN",
@@ -24,19 +23,19 @@ export const PartnerId = {
 export type PartnerId = (typeof PartnerId)[keyof typeof PartnerId];
 
 export interface Partner {
-  /** Nombre del socio; se usa como texto alternativo del logo. */
+  /** Partner name; used as the logo's alt text. */
   name: string;
-  /** URL del archivo de logo resuelta por Vite. */
+  /** Logo file URL resolved by Vite. */
   logoSrc: string;
   /**
-   * Rol del socio en dos líneas, tal como acompaña al logo en el header y en
-   * el pie de página (p. ej. "Financiada por el" / "Gobierno de Suecia").
+   * Partner role in two lines, as it accompanies the logo in the header and
+   * the footer (e.g. "Financiada por el" / "Gobierno de Suecia").
    */
   roleCaption: readonly [string, string];
   /**
-   * Color corporativo del socio. Solo se usa para acentuar bloques que hablan
-   * de ese socio en particular (bordes, títulos), nunca para elementos de la
-   * marca Huella Latam.
+   * Partner's corporate color. Only used to accent blocks that speak about
+   * that particular partner (borders, titles), never for elements of the
+   * Huella Latam brand.
    */
   brandColor: string;
 }

@@ -15,7 +15,7 @@ interface Props {
   profile: OrganizationProfile;
 }
 
-/** Tarjeta institucional de la sección "Quiénes están detrás". */
+/** Institutional card for the "Quiénes están detrás" section. */
 export const OrganizationProfileCard: FC<Props> = ({ profile }) => {
   const theme = useTheme();
 

@@ -8,7 +8,7 @@ interface Props {
   group: ParticipantGroup;
 }
 
-/** Grupo de personas agradecidas, con su contador y su grilla de fichas. */
+/** Group of acknowledged people, with its counter and its grid of cards. */
 export const ParticipantGroupSection: FC<Props> = ({ group }) => (
   <Box component="section">
     <SectionHeading

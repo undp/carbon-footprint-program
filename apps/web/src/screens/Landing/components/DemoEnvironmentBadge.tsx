@@ -2,7 +2,7 @@ import { FC } from "react";
 import { WarningAmberRounded } from "@mui/icons-material";
 import { alpha, Box, Typography, darken, useTheme } from "@mui/material";
 
-/** Distintivo amarillo que identifica el ambiente de demostración. */
+/** Yellow badge that marks the demo environment. */
 export const DemoEnvironmentBadge: FC = () => {
   const theme = useTheme();
 

@@ -5,13 +5,13 @@ import type { SvgIconComponent } from "@mui/icons-material";
 interface Props {
   Icon: SvgIconComponent;
   title: string;
-  /** Contador opcional a la derecha del título (p. ej. "16 personas"). */
+  /** Optional counter to the right of the title (e.g. "16 personas"). */
   badge?: string;
 }
 
 /**
- * Título de sección de las pantallas públicas: ícono en un círculo verde
- * claro, título y, opcionalmente, un contador.
+ * Section heading for the public screens: an icon in a light green circle, a
+ * title and, optionally, a counter.
  */
 export const SectionHeading: FC<Props> = ({ Icon, title, badge }) => {
   const theme = useTheme();

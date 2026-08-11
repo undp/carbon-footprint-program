@@ -1,8 +1,8 @@
 /**
- * Contenido de la pantalla "Material complementario".
+ * Content of the "Material complementario" screen.
  *
- * Los recursos son publicaciones y cursos del PNUD que enmarcan el proyecto.
- * Un despliegue de país puede sumar o reemplazar recursos editando esta lista.
+ * The resources are UNDP publications and courses that frame the project.
+ * A country deployment can add or replace resources by editing this list.
  */
 
 export const RESOURCES_HERO = {
@@ -10,7 +10,7 @@ export const RESOURCES_HERO = {
   lead: "Este proyecto se enmarca en el diagnóstico del PNUD sobre la necesidad de contar con herramientas tecnológicas que ayuden a los programas nacionales de huella de carbono a implementarse, y que faciliten a los países el acceso a los cálculos y al otorgamiento de reconocimientos. Estos recursos permiten conocer ese marco en profundidad.",
 } as const;
 
-/** Tipo de recurso; determina el estilo de la portada. */
+/** Resource type; determines the cover style. */
 export const ResourceKind = {
   PUBLICATION: "PUBLICATION",
   COURSE: "COURSE",
@@ -20,11 +20,11 @@ export type ResourceKind = (typeof ResourceKind)[keyof typeof ResourceKind];
 
 export interface SupportingResource {
   kind: ResourceKind;
-  /** Etiqueta del tipo de recurso mostrada sobre el título. */
+  /** Label of the resource type shown above the title. */
   typeLabel: string;
-  /** Institución responsable, impresa en la portada. */
+  /** Responsible institution, printed on the cover. */
   coverKicker: string;
-  /** Título corto que aparece dentro de la portada. */
+  /** Short title that appears inside the cover. */
   coverTitle: string;
   title: string;
   description: string;

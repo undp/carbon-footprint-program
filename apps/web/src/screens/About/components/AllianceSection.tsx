@@ -6,7 +6,7 @@ import { ABOUT_SECTION_TITLES, ALLIANCE_ACTORS } from "../constants";
 import { AllianceActorCard } from "./AllianceActorCard";
 import { AllianceBanner } from "./AllianceBanner";
 
-/** Sección "Una alianza regional": quién financia, diseña, opera y usa. */
+/** "Una alianza regional" section: who funds, designs, operates and uses. */
 export const AllianceSection: FC = () => (
   <Box component="section">
     <SectionHeading

@@ -27,11 +27,11 @@ interface Props {
 }
 
 /**
- * Tarjeta de entrada al cálculo de una huella. Crea el borrador y navega al
- * primer paso del flujo.
+ * Entry card for calculating a footprint. Creates the draft and navigates to
+ * the first step of the flow.
  *
- * Está pensada para vivir sobre el degradado de marca: es una superficie de
- * vidrio translúcido con texto verde oscuro.
+ * It is meant to live on top of the brand gradient: a translucent glass
+ * surface with dark green text.
  */
 export const CreateInventoryCard: FC<Props> = ({
   AvatarIcon,

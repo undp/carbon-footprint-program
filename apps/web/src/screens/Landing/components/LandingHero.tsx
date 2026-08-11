@@ -4,7 +4,7 @@ import { VOCAB } from "@/config/vocab";
 import { DemoEnvironmentBadge } from "./DemoEnvironmentBadge";
 import { DemoNoticeCard } from "./DemoNoticeCard";
 
-/** Columna de presentación de la landing: marca, promesa y aviso de demo. */
+/** The landing's presentation column: brand, promise and demo notice. */
 export const LandingHero: FC = () => {
   const theme = useTheme();
 

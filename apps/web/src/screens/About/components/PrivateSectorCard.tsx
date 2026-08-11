@@ -3,7 +3,7 @@ import { FactoryOutlined } from "@mui/icons-material";
 import { alpha, Box, Chip, Paper, Typography, useTheme } from "@mui/material";
 import { PRIVATE_SECTOR_CARD } from "../constants";
 
-/** Tarjeta de "El desafío" sobre el rol del sector privado en las NDC. */
+/** "El desafío" card about the private sector's role in the NDCs. */
 export const PrivateSectorCard: FC = () => {
   const theme = useTheme();
 

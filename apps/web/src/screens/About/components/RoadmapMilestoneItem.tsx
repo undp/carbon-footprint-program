@@ -4,11 +4,11 @@ import type { RoadmapMilestone } from "../constants";
 
 interface Props {
   milestone: RoadmapMilestone;
-  /** El último hito difumina su barra porque el camino sigue abierto. */
+  /** The last milestone fades its bar because the road is still open. */
   isLast: boolean;
 }
 
-/** Hito de la línea de tiempo "El camino — dónde estamos". */
+/** Milestone in the "El camino — dónde estamos" timeline. */
 export const RoadmapMilestoneItem: FC<Props> = ({ milestone, isLast }) => {
   const theme = useTheme();
 

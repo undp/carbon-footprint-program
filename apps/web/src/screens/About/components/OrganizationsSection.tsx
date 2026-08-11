@@ -3,7 +3,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import { ABOUT_SECTION_TITLES, ORGANIZATION_PROFILES } from "../constants";
 import { OrganizationProfileCard } from "./OrganizationProfileCard";
 
-/** Sección "Quiénes están detrás": las instituciones tras la plataforma. */
+/** "Quiénes están detrás" section: the institutions behind the platform. */
 export const OrganizationsSection: FC = () => {
   const theme = useTheme();
 

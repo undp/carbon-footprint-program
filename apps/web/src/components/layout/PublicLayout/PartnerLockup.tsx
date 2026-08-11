@@ -4,15 +4,15 @@ import type { Partner } from "@/config/partners";
 
 interface Props {
   partner: Partner;
-  /** Alto del logo en píxeles; el ancho se ajusta manteniendo la proporción. */
+  /** Logo height in pixels; the width adjusts to keep the proportion. */
   logoHeight: number;
   captionColor: string;
 }
 
 /**
- * Bloque "rol + logo" de un socio institucional, como aparece en el header y
- * en el pie de página públicos (p. ej. "Financiada por el / Gobierno de
- * Suecia" seguido del logo).
+ * "Role + logo" block for an institutional partner, as it appears in the
+ * public header and footer (e.g. "Financiada por el / Gobierno de Suecia"
+ * followed by the logo).
  */
 export const PartnerLockup: FC<Props> = ({
   partner,

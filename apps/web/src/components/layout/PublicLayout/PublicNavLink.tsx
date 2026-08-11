@@ -8,8 +8,8 @@ interface Props {
 }
 
 /**
- * Enlace de la navegación pública. La página activa se marca con texto más
- * oscuro y un subrayado verde, tal como en el diseño.
+ * Link in the public navigation. The active page is marked with darker text
+ * and a green underline, just as in the design.
  */
 export const PublicNavLink: FC<Props> = ({ to, label }) => {
   const theme = useTheme();

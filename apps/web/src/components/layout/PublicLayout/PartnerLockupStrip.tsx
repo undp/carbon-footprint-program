@@ -11,15 +11,15 @@ export interface PartnerLockupStripItem {
 interface Props {
   items: readonly PartnerLockupStripItem[];
   captionColor: string;
-  /** Alto del separador vertical entre socios, en píxeles. */
+  /** Height of the vertical divider between partners, in pixels. */
   dividerHeight: number;
   gap: BoxProps["gap"];
 }
 
 /**
- * Fila de socios institucionales separados por divisores verticales. La usan
- * tanto el header público como el pie de página, que solo se diferencian en
- * los socios incluidos y en el tamaño de los logos.
+ * Row of institutional partners separated by vertical dividers. Used by both
+ * the public header and the footer, which differ only in the partners
+ * included and the size of the logos.
  */
 export const PartnerLockupStrip: FC<Props> = ({
   items,

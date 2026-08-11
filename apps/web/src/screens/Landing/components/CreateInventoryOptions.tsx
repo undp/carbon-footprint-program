@@ -3,7 +3,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import { ApplicationFormIcon, CalculatorIcon } from "@/icons";
 import { CreateInventoryCard } from "@/components/CreateInventoryCard";
 
-/** Columna de acciones de la landing: las dos formas de empezar una huella. */
+/** The landing's action column: the two ways to start a footprint. */
 export const CreateInventoryOptions: FC = () => {
   const theme = useTheme();
 

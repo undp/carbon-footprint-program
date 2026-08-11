@@ -5,16 +5,16 @@ import { PublicHeader } from "./PublicHeader";
 import { PUBLIC_CONTENT_MAX_WIDTH } from "./constants";
 
 interface Props {
-  /** Encabezado con degradado de marca; normalmente un `<PublicPageHero />`. */
+  /** Heading with brand gradient; normally a `<PublicPageHero />`. */
   hero: ReactNode;
-  /** Separación vertical entre las secciones del contenido. */
+  /** Vertical spacing between the content sections. */
   contentGap?: number;
 }
 
 /**
- * Estructura común de las pantallas institucionales públicas ("Sobre la
- * iniciativa", "Material complementario" y "Agradecimientos"): header, hero,
- * contenido centrado y pie de página de socios.
+ * Shared structure of the public institutional screens ("Sobre la
+ * iniciativa", "Material complementario" and "Agradecimientos"): header,
+ * hero, centered content and partners footer.
  */
 export const PublicPageLayout: FC<PropsWithChildren<Props>> = ({
   hero,

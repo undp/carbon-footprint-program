@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components";
 import { ABOUT_SECTION_TITLES, PLATFORM_PILLARS } from "../constants";
 import { PlatformPillarCard } from "./PlatformPillarCard";
 
-/** Sección "Qué hace la plataforma": medir, reportar y compartir. */
+/** "Qué hace la plataforma" section: measure, report and share. */
 export const PlatformSection: FC = () => (
   <Box component="section">
     <SectionHeading

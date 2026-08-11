@@ -11,7 +11,7 @@ const pages = Object.values(PublicHeaderRoutes).map((route) => ({
   label: PublicHeaderRoutesTranslations[route],
 }));
 
-/** Navegación entre las páginas públicas de la plataforma. */
+/** Navigation between the platform's public pages. */
 export const PublicHeaderNav: FC = () => (
   <Box
     component="nav"

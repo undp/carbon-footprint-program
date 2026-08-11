@@ -145,16 +145,16 @@ export const palette: PaletteOptions = {
     black: "#000000",
     white: "#FFFFFF",
     deepForest: "#1C403A",
-    // Verde casi negro de los títulos y de las tarjetas oscuras de las
-    // páginas institucionales públicas.
+    // Near-black green of the titles and the dark cards of the public
+    // institutional pages.
     deepForestDark: "#0F2B24",
     brightGreen: "#56F58D",
-    // Verde menta de alto contraste sobre fondo `deepForestDark` (cifras
-    // destacadas y detalles de las tarjetas oscuras).
+    // High-contrast mint green over a `deepForestDark` background (highlight
+    // figures and details of the dark cards).
     mint: "#86D8C4",
     glossyTeal: "#009689",
-    // Amarillo institucional del PNUD: distintivo de ambiente demo y acentos
-    // de atención sobre fondos verdes.
+    // UNDP's institutional yellow: demo-environment badge and attention
+    // accents over green backgrounds.
     sunflower: "#FECB00",
   },
   // Divider

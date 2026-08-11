@@ -8,7 +8,7 @@ interface Props {
   Icon: SvgIconComponent;
 }
 
-/** Ficha de una persona agradecida: nombre y organización. */
+/** Card for an acknowledged person: name and organization. */
 export const ParticipantCard: FC<Props> = ({ participant, Icon }) => {
   const theme = useTheme();
 

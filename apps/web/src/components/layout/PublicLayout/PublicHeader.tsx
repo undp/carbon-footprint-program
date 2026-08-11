@@ -15,8 +15,8 @@ import {
 } from "./constants";
 
 /**
- * Header común a todas las pantallas públicas: franja de marca, logotipo,
- * navegación institucional, socios y acceso a la sesión.
+ * Header shared by all public screens: brand band, wordmark, institutional
+ * navigation, partners and session access.
  */
 export const PublicHeader: FC = () => {
   const theme = useTheme();
@@ -60,9 +60,9 @@ export const PublicHeader: FC = () => {
           />
         </Link>
 
-        {/* `mr-auto` empuja el bloque de socios al extremo derecho mientras
-            quepan en la misma fila; cuando no caben, el Toolbar los baja
-            completos a una segunda fila en vez de partir la navegación. */}
+        {/* `mr-auto` pushes the partners block to the far right while they
+            fit on the same row; when they don't fit, the Toolbar drops them
+            all to a second row instead of breaking the navigation. */}
         <Box className="mr-auto flex min-w-0 shrink md:shrink-0">
           <PublicHeaderNav />
         </Box>

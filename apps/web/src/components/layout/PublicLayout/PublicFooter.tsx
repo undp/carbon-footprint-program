@@ -4,8 +4,8 @@ import { PartnerLockupStrip } from "./PartnerLockupStrip";
 import { PUBLIC_FOOTER_PARTNERS } from "./constants";
 
 /**
- * Pie de página de las pantallas institucionales públicas: quién financia,
- * quién impulsa y quién desarrolla la plataforma.
+ * Footer of the public institutional screens: who funds, who drives and who
+ * develops the platform.
  */
 export const PublicFooter: FC = () => {
   const theme = useTheme();

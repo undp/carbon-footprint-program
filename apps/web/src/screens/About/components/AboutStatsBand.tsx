@@ -4,8 +4,8 @@ import { HighlightStatCard } from "@/components";
 import { ABOUT_STATS, ABOUT_STATS_OVERLAP } from "../constants";
 
 /**
- * Banda de cifras destacadas. Se monta sobre el borde inferior del hero, así
- * que el margen superior negativo es parte del diseño.
+ * Band of highlight figures. It mounts over the hero's bottom edge, so the
+ * negative top margin is part of the design.
  */
 export const AboutStatsBand: FC = () => (
   <Box

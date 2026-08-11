@@ -4,12 +4,12 @@ import type { PlatformPillar } from "../constants";
 
 interface Props {
   pillar: PlatformPillar;
-  /** El último pilar se destaca con fondo degradado y numeración ámbar. */
+  /** The last pillar stands out with a gradient background and amber numbering. */
   isHighlighted: boolean;
   showDivider: boolean;
 }
 
-/** Columna de la tarjeta "Qué hace la plataforma". */
+/** Column of the "Qué hace la plataforma" card. */
 export const PlatformPillarCard: FC<Props> = ({
   pillar,
   isHighlighted,

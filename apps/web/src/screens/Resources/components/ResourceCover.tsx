@@ -11,8 +11,8 @@ const COVER_WIDTH = 138;
 const COVER_HEIGHT = 186;
 
 /**
- * Portada del recurso: una tapa de publicación o una carátula de curso, según
- * el tipo. Es decorativa; el título accesible vive en la tarjeta.
+ * Resource cover: a publication cover or a course cover, depending on the
+ * type. It is decorative; the accessible title lives in the card.
  */
 export const ResourceCover: FC<Props> = ({ resource }) => {
   const theme = useTheme();
