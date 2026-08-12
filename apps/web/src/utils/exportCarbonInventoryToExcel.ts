@@ -7,9 +7,19 @@ import { display, applyNumberFormat, BASE_FONT_SIZE } from "@/services/excel";
 import {
   DB_DECIMAL_SCALE,
   FACTOR_DISPLAY_MIN_DECIMALS,
+  MAX_DISPLAY_DECIMALS,
 } from "@/config/constants";
 
-const NUM_FMT_DECIMAL = "#,##0.00";
+/**
+ * Quantity and line-emission columns. Two fixed decimals for ordinary values,
+ * optional ones up to the app's display ceiling for the small-footprint lines
+ * where a flat `#,##0.00` would collapse a `0,000123 t` emission into `0,00` —
+ * the same "the export contradicts the screen" defect the factor format
+ * removes, one column over. `formatNumeric` shows exactly 2 decimals above
+ * `0,01` and adapts up to `MAX_DISPLAY_DECIMALS` below it; the optional-digit
+ * format mirrors that closely enough for a spreadsheet.
+ */
+const NUM_FMT_DECIMAL = `#,##0.00${"#".repeat(MAX_DISPLAY_DECIMALS - 2)}`;
 
 /**
  * Excel refuses to open a workbook whose custom number format exceeds 255

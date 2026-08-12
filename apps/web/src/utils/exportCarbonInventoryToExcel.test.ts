@@ -281,10 +281,11 @@ describe("buildCarbonInventoryWorkbook — Detalle emisiones sheet", () => {
     const worksheet = sheet(workbook, "Detalle emisiones");
 
     // The factor keeps every decimal the database stores; quantities and
-    // emissions keep the 2-decimal format they had before.
+    // emissions show two decimals normally but reveal the app's adaptive
+    // precision on the small-footprint lines a flat "#,##0.00" would hide.
     expect(worksheet.getColumn(7).numFmt).toBe("#,##0.00########");
-    expect(worksheet.getColumn(6).numFmt).toBe("#,##0.00");
-    expect(worksheet.getColumn(9).numFmt).toBe("#,##0.00");
+    expect(worksheet.getColumn(6).numFmt).toBe("#,##0.00####");
+    expect(worksheet.getColumn(9).numFmt).toBe("#,##0.00####");
   });
 
   it("writes the 'Sin datos de emisiones' fallback when there are no lines", async () => {
