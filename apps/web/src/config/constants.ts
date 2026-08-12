@@ -129,15 +129,12 @@ const API_BASE_URL_NORMALIZED = API_BASE_URL.replace(/\/+$/, "");
 export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL_NORMALIZED}/terms-conditions/file`;
 
 /**
- * Public privacy policy linked from the landing page footer.
- *
- * Points at the policy published with the source code by default. A country
- * deployment that publishes its own privacy notice (a national portal page, a
- * hosted PDF, …) should replace this with its own URL — the landing footer is
- * the only consumer.
+ * Contact address shown on the landing footer for organizations that want to
+ * replicate the platform in their own country. Each deployment points this at
+ * its own contact (a program focal point, a shared inbox), so it lives here
+ * instead of being embedded in the footer copy.
  */
-export const PRIVACY_POLICY_URL =
-  "https://github.com/undp/carbon-footprint-program/blob/main/PRIVACY.md";
+export const REPLICATION_CONTACT_EMAIL = "valeria.correa@undp.org";
 
 /** Folder name (within the carbon-inventory ZIP) that bundles line file attachments. */
 export const CARBON_INVENTORY_ZIP_FILES_DIR = "archivos";

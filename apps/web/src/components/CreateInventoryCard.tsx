@@ -85,11 +85,6 @@ export const CreateInventoryCard: FC<Props> = ({
         pb: 3.25,
         backdropFilter: "blur(4px) saturate(1.2)",
         boxShadow: `0 10px 34px ${alpha(theme.palette.common.deepForest, 0.1)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.45)}`,
-        transition: theme.transitions.create(["background", "box-shadow"]),
-        "&:hover": {
-          background: `linear-gradient(150deg, ${alpha(theme.palette.common.white, 0.32)}, ${alpha(theme.palette.common.white, 0.18)})`,
-          boxShadow: `0 16px 40px ${alpha(theme.palette.common.deepForest, 0.18)}`,
-        },
       }}
     >
       <CardHeader

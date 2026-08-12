@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { alpha, Box, Link, Typography, useTheme } from "@mui/material";
 import { useTermsConditionsFileLink } from "@/api/query/termsConditions";
-import { PRIVACY_POLICY_URL } from "@/config/constants";
+import { REPLICATION_CONTACT_EMAIL } from "@/config/constants";
 
 /**
  * Landing footer: a glass surface over the gradient, with the invitation
@@ -57,22 +57,9 @@ export const LandingFooter: FC = () => {
           color: theme.palette.common.white,
         }}
       >
-        Bien público digital · ¿Te interesa implementarlo en tu país? Contacta
-        al PNUD (valeria.correa@undp.org)
+        {`Bien público digital · ¿Te interesa implementarlo en tu país? Contacta al PNUD (${REPLICATION_CONTACT_EMAIL})`}
       </Typography>
-      <Box className="flex items-center gap-6">
-        {renderTermsLink()}
-        <Link
-          href={PRIVACY_POLICY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          color={linkColor}
-          underline="hover"
-          sx={{ fontSize: 12.5 }}
-        >
-          Privacidad
-        </Link>
-      </Box>
+      <Box className="flex items-center gap-6">{renderTermsLink()}</Box>
     </Box>
   );
 };
