@@ -3,13 +3,22 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
 } from "@repo/types";
-import { display, BASE_FONT_SIZE } from "@/services/excel";
+import { display, applyNumberFormat, BASE_FONT_SIZE } from "@/services/excel";
 import {
   DB_DECIMAL_SCALE,
   FACTOR_DISPLAY_MIN_DECIMALS,
 } from "@/config/constants";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
+
+/**
+ * Excel refuses to open a workbook whose custom number format exceeds 255
+ * characters and greets the user with a "repair the workbook" dialog. The
+ * rate unit interpolated into `factorNumFmtWithUnit` is maintainer-editable
+ * with no length bound, so one long abbreviation would otherwise take down the
+ * whole export rather than one cell.
+ */
+const EXCEL_NUM_FMT_MAX_LENGTH = 255;
 
 /**
  * Emission factors need their own number format: with the shared
@@ -39,7 +48,12 @@ function factorNumFmtWithUnit(rateUnit: string | null | undefined): string {
   if (!rateUnit) return NUM_FMT_FACTOR;
   // Double quotes delimit literal text in a number format, so they cannot
   // appear inside one.
-  return `${NUM_FMT_FACTOR}" ${rateUnit.replaceAll('"', "")}"`;
+  const withUnit = `${NUM_FMT_FACTOR}" ${rateUnit.replaceAll('"', "")}"`;
+  // Over the limit, drop the unit rather than the sheet — the plain numeric
+  // format is always well under 255 characters.
+  return withUnit.length <= EXCEL_NUM_FMT_MAX_LENGTH
+    ? withUnit
+    : NUM_FMT_FACTOR;
 }
 
 function buildSummarySheet(
@@ -233,10 +247,13 @@ function buildFactorsSheet(
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
   // Row 1 is the table header, so data rows start at 2 and keep the order of
-  // `factorsData`.
+  // `factorsData`. `applyNumberFormat` skips any cell whose value is not a
+  // number, so a future nullable `factorValue` never carries a numeric format.
   factorsData.forEach((factor, index) => {
-    worksheet.getRow(index + 2).getCell(4).numFmt = factorNumFmtWithUnit(
-      factor.rateUnit
+    applyNumberFormat(
+      worksheet.getRow(index + 2),
+      4,
+      factorNumFmtWithUnit(factor.rateUnit)
     );
   });
 }

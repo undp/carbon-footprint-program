@@ -372,6 +372,28 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(cell.numFmt).toBe('#,##0.00########" kg CO₂e/L"');
   });
 
+  it("drops the unit rather than the sheet when the rate unit is absurdly long", async () => {
+    // `rateUnit` is maintainer-editable with no length bound; interpolated into
+    // the number format it could exceed Excel's 255-char ceiling and make the
+    // whole workbook unopenable. The format falls back to the plain numeric one.
+    const factorWithHugeUnit = makeFactor({
+      factorValue: 2.68,
+      rateUnit: `kg CO₂e/${"x".repeat(300)}`,
+    });
+
+    const workbook = await buildAndLoad(
+      2024,
+      makeSummary(),
+      [factorWithHugeUnit],
+      0
+    );
+    const worksheet = sheet(workbook, "Factores utilizados");
+
+    const cell = worksheet.getRow(2).getCell(4);
+    expect(cell.value).toBe(2.68);
+    expect(cell.numFmt).toBe("#,##0.00########");
+  });
+
   it("writes the 'Sin factores utilizados' fallback when there are no factors", async () => {
     const workbook = await buildAndLoad(2024, makeSummary(), [], 0);
     const worksheet = sheet(workbook, "Factores utilizados");
