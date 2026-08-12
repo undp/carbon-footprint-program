@@ -78,7 +78,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
         headerClassName,
         cellClassName,
         flex: 1.2,
-        renderCell: ({ row }) => {
+        renderCell: ({ row, tabIndex }) => {
           const denominator = extractDenominator(row.rateUnit);
           // Same audit affordance as the capture grid, under the same rule: the
           // cell shows the rounded factor and the tooltip the value the
@@ -95,6 +95,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
             <Box className="flex flex-col gap-0.5">
               <DetailTooltipText
                 detail={exactValueDetail}
+                tabIndex={tabIndex}
                 variant="body2"
                 fontWeight="fontWeightRegular"
               >

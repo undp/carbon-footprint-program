@@ -240,6 +240,7 @@ export const useEmissionEditorColumns = ({
               rateMeasurementUnits={rateMeasurementUnits || []}
               onChange={(value) => onCellChange(value, params)}
               disabled={isManualModeLoading}
+              tabIndex={params.tabIndex}
             />
           );
         },
@@ -261,6 +262,7 @@ export const useEmissionEditorColumns = ({
             subcategoryId={subcategory.id}
             lineId={params.row.lineId}
             rateMeasurementUnits={rateMeasurementUnits || []}
+            tabIndex={params.tabIndex}
           />
         ),
       },

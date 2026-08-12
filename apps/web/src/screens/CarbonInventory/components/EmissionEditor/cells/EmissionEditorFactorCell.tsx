@@ -18,6 +18,9 @@ interface EmissionEditorFactorCellProps {
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   onChange: (value: number | null) => void;
   disabled?: boolean;
+  /** Roving tabindex from the grid cell, so the tooltip trigger is not a
+   * fixed tab stop per row. */
+  tabIndex?: number;
 }
 
 export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
@@ -27,6 +30,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
   rateMeasurementUnits,
   onChange,
   disabled = false,
+  tabIndex,
 }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
@@ -83,7 +87,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
       }}
     />
   ) : (
-    <DetailTooltipText detail={exactValueDetail}>
+    <DetailTooltipText detail={exactValueDetail} tabIndex={tabIndex}>
       {displayedFactor} {unit?.abbreviation ?? ""}
     </DetailTooltipText>
   );

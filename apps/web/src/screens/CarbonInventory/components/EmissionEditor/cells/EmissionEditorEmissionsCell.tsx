@@ -9,11 +9,14 @@ interface EmissionEditorEmissionsCellProps {
   subcategoryId: string;
   lineId: string;
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
+  /** Roving tabindex from the grid cell, so the tooltip trigger is not a
+   * fixed tab stop per row. */
+  tabIndex?: number;
 }
 
 export const EmissionEditorEmissionsCell: FC<
   EmissionEditorEmissionsCellProps
-> = ({ subcategoryId, lineId, rateMeasurementUnits }) => {
+> = ({ subcategoryId, lineId, rateMeasurementUnits, tabIndex }) => {
   const quantity = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.quantity`,
   }) as number | null | undefined;
@@ -58,7 +61,7 @@ export const EmissionEditorEmissionsCell: FC<
     : "";
 
   return (
-    <DetailTooltipText detail={calculationDetail}>
+    <DetailTooltipText detail={calculationDetail} tabIndex={tabIndex}>
       {formatter.emissions(totalEmissions)}
     </DetailTooltipText>
   );
