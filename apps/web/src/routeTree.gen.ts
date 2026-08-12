@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AcknowledgementsRouteImport } from './routes/acknowledgements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as CapinautRouteImport } from './routes/capinaut'
 import { Route as CarbonInventoryRouteImport } from './routes/carbon-inventory'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as TransparencyRouteImport } from './routes/transparency'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBadgesRouteImport } from './routes/admin/badges'
@@ -73,6 +75,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcknowledgementsRoute = AcknowledgementsRouteImport.update({
+  id: '/acknowledgements',
+  path: '/acknowledgements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -91,6 +98,11 @@ const CapinautRoute = CapinautRouteImport.update({
 const CarbonInventoryRoute = CarbonInventoryRouteImport.update({
   id: '/carbon-inventory',
   path: '/carbon-inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransparencyRoute = TransparencyRouteImport.update({
@@ -346,10 +358,12 @@ const AppFullscreenReductionProjectsIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/acknowledgements': typeof AcknowledgementsRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/carbon-inventory': typeof CarbonInventoryRouteWithChildren
+  '/resources': typeof ResourcesRoute
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -399,8 +413,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/acknowledgements': typeof AcknowledgementsRoute
   '/app': typeof AppShellIndexRoute
   '/capinaut': typeof CapinautRoute
+  '/resources': typeof ResourcesRoute
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -449,10 +465,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/acknowledgements': typeof AcknowledgementsRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/carbon-inventory': typeof CarbonInventoryRouteWithChildren
+  '/resources': typeof ResourcesRoute
   '/transparency': typeof TransparencyRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -506,10 +524,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/acknowledgements'
     | '/admin'
     | '/app'
     | '/capinaut'
     | '/carbon-inventory'
+    | '/resources'
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
@@ -559,8 +579,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/acknowledgements'
     | '/app'
     | '/capinaut'
+    | '/resources'
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
@@ -608,10 +630,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/acknowledgements'
     | '/admin'
     | '/app'
     | '/capinaut'
     | '/carbon-inventory'
+    | '/resources'
     | '/transparency'
     | '/admin/badges'
     | '/admin/categories'
@@ -664,10 +688,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AcknowledgementsRoute: typeof AcknowledgementsRoute
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   CapinautRoute: typeof CapinautRoute
   CarbonInventoryRoute: typeof CarbonInventoryRouteWithChildren
+  ResourcesRoute: typeof ResourcesRoute
   TransparencyRoute: typeof TransparencyRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
@@ -686,6 +712,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acknowledgements': {
+      id: '/acknowledgements'
+      path: '/acknowledgements'
+      fullPath: '/acknowledgements'
+      preLoaderRoute: typeof AcknowledgementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -714,6 +747,13 @@ declare module '@tanstack/react-router' {
       path: '/carbon-inventory'
       fullPath: '/carbon-inventory'
       preLoaderRoute: typeof CarbonInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transparency': {
@@ -1220,10 +1260,12 @@ const CarbonInventoryRouteWithChildren = CarbonInventoryRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AcknowledgementsRoute: AcknowledgementsRoute,
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   CapinautRoute: CapinautRoute,
   CarbonInventoryRoute: CarbonInventoryRouteWithChildren,
+  ResourcesRoute: ResourcesRoute,
   TransparencyRoute: TransparencyRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }

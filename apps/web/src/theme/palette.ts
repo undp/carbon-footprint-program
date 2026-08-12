@@ -145,8 +145,17 @@ export const palette: PaletteOptions = {
     black: "#000000",
     white: "#FFFFFF",
     deepForest: "#1C403A",
+    // Near-black green of the titles and the dark cards of the public
+    // institutional pages.
+    deepForestDark: "#0F2B24",
     brightGreen: "#56F58D",
+    // High-contrast mint green over a `deepForestDark` background (highlight
+    // figures and details of the dark cards).
+    mint: "#86D8C4",
     glossyTeal: "#009689",
+    // UNDP's institutional yellow: demo-environment badge and attention
+    // accents over green backgrounds.
+    sunflower: "#FECB00",
   },
   // Divider
   divider: alpha("#000000", 0.12),
