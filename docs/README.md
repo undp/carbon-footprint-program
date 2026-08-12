@@ -75,6 +75,7 @@ and regenerated.
 | [Environment Variables](./development/environment-variables.md)                       | Complete reference for all environment variables                                                                   |
 | [Contributing Guide](./development/contributing.md)                                   | Branch workflow, code review, adding a new API feature                                                             |
 | [Frontend Architecture](./development/frontend-architecture.md)                       | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen                       |
+| [Public-Page Content](./development/public-pages-content.md)                          | Where the landing / About / Resources / Acknowledgements copy, partners and lists live, and how to edit them       |
 | [API Design Conventions](./development/api-conventions.md)                            | Feature folder pattern, route/handler/service layering, plugin architecture, error handling, adding a new endpoint |
 | [Data Export and Reporting](./development/data-export.md)                             | Excel exports (inventory, reduction project, reduction plan), file downloads, and what is not yet supported        |
 | [Testing Guide](./development/testing.md)                                             | Vitest + Testcontainers setup, test structure, writing integration tests                                           |

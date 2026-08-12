@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
-import type { Participant } from "../constants";
+import type { Participant } from "../participants";
 
 interface Props {
   participant: Participant;

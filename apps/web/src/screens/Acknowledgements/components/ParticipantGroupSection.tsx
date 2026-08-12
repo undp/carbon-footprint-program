@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box } from "@mui/material";
 import { SectionHeading } from "@/components";
-import type { ParticipantGroup } from "../constants";
+import type { ParticipantGroup } from "../participants";
 import { ParticipantCard } from "./ParticipantCard";
 
 interface Props {
