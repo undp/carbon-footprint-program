@@ -1,6 +1,6 @@
 import inventuresLogo from "@/assets/logos/inventures.svg";
 import swedenLogo from "@/assets/logos/sweden.svg";
-import undpLogo from "@/assets/logos/undp.svg";
+import undpLogo from "@/assets/logos/undp.png";
 
 /**
  * Institutional partners shown on the public surfaces (header, footer and the
@@ -10,9 +10,9 @@ import undpLogo from "@/assets/logos/undp.svg";
  * and who develops the platform can change. That is why the names, roles and
  * artwork live here and are not embedded in the components.
  *
- * The files under `src/assets/logos/` shipped in the repository are
- * placeholders; each deployment must replace them with the partner's
- * official artwork before going live.
+ * The UNDP and Inventures artwork under `src/assets/logos/` is the partners'
+ * official lockup. The remaining files are placeholders; each deployment must
+ * replace them with the partner's official artwork before going live.
  */
 export const PartnerId = {
   SWEDEN: "SWEDEN",
@@ -57,6 +57,6 @@ export const PARTNERS: Record<PartnerId, Partner> = {
     name: "Inventures",
     logoSrc: inventuresLogo,
     roleCaption: ["Diseño y", "desarrollo"],
-    brandColor: "#1C403A",
+    brandColor: "#113E56",
   },
 };
