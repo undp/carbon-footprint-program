@@ -361,15 +361,15 @@ export const EmissionCaptureScreen: FC = () => {
                   explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
                   titleAdornment={
                     <>
-                      <SaveStatusIndicator
-                        isDirty={formState.isDirty}
-                        isSaving={globalSubmitting}
-                      />
                       <SaveActionButton
                         isDirty={formState.isDirty}
                         isSaving={isSavingChanges}
                         disabled={globalSubmitting || isBusy}
                         onSave={handleSaveClick}
+                      />
+                      <SaveStatusIndicator
+                        isDirty={formState.isDirty}
+                        isSaving={globalSubmitting}
                       />
                     </>
                   }
