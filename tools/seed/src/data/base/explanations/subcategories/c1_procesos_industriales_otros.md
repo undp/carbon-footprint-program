@@ -62,9 +62,9 @@ Lo que cambia es **qué se mide** según el tipo de proceso:
 
 ### 1️⃣ Identifica el proceso y descríbelo
 
-Elige el **Proceso** que corresponda. Si ninguno aplica, elige **"Otro proceso industrial"**.
+Elige el **Proceso** que corresponda. Si ninguno aplica, elige **"Otro"**.
 
-⚠️ Cuando uses **"Otro proceso industrial"**, es **obligatorio** describir de qué proceso se trata en el **comentario de la línea**. Sin esa descripción, la emisión no es verificable y un revisor externo la objetará.
+⚠️ Cuando uses **"Otro"**, es **obligatorio** describir de qué proceso se trata en el **comentario de la línea**. Sin esa descripción, la emisión no es verificable y un revisor externo la objetará.
 
 💡 Escribe el comentario pensando en alguien que no conoce tu planta: qué proceso es, qué gas emite y de dónde sale el dato.
 
@@ -134,7 +134,7 @@ Es decir, el uso de lubricantes habría generado:
 ## 📝 Notas importantes
 
 > - Esta sub-categoría es **residual**: las demás sub-categorías de procesos industriales **tienen prioridad**. Úsala solo cuando no haya mejor encaje
-> - Si eliges **"Otro proceso industrial"**, **describe el proceso en el comentario**. Es la única forma de que la línea sea auditable
+> - Si eliges **"Otro"**, **describe el proceso en el comentario**. Es la única forma de que la línea sea auditable
 > - **No trae factores por defecto**: siempre debes usar **"Factor propio"** y documentar de dónde viene
 > - Si el proceso emite **N₂O o gases fluorados**, anota el GWP que usaste para convertir a CO₂e
 > - **Documenta tus supuestos.** Las fuentes residuales requieren más estimaciones que las estándar

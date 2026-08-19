@@ -55,7 +55,7 @@ Convertir un factor de N₂O o de gases fluorados a CO₂e exige **elegir un pot
 
 Elige el **Proceso** que realizas. Si produces varios químicos, **agrega una línea por cada uno**: los factores no son comparables entre sí.
 
-Si tu proceso no aparece en la lista, elige **"Otro proceso químico"** y descríbelo en el **comentario de la línea**.
+Si tu proceso no aparece en la lista, elige **"Otro"** y descríbelo en el **comentario de la línea**.
 
 ---
 
