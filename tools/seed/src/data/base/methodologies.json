@@ -1642,78 +1642,126 @@
             "icon": "FACTORY"
           },
           {
-            "name": "Procesos industriales - Cinc",
-            "description": "Registra aquí las emisiones generadas en procesos industriales de producción o refinación de cinc, como fundiciones, refinerías o plantas metalúrgicas, donde ocurren reacciones químicas propias del proceso.",
+            "name": "Procesos industriales - Minerales",
+            "description": "Emisiones de proceso de la industria mineral (IPPU 2A): descarbonatación de carbonatos en la producción de cemento, cal, vidrio y cerámica. Corresponde a la reacción química del proceso, no a la combustión de combustibles ni al consumo eléctrico.",
             "emissionFactorDimensions": [
               {
-                "code": "Procesos industriales - Cinc_Proceso de producción",
-                "name": "Proceso de producción",
+                "code": "Procesos industriales - Minerales_Proceso",
+                "name": "Proceso",
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  {
-                    "name": "Waelz Kiln",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Pirometalúrgico",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Otro proceso",
-                    "parentValue": null
-                  }
+                  { "name": "Cemento", "parentValue": null },
+                  { "name": "Cal", "parentValue": null },
+                  { "name": "Vidrio", "parentValue": null },
+                  { "name": "Cerámica", "parentValue": null },
+                  { "name": "Otros usos de carbonatos", "parentValue": null },
+                  { "name": "Otro proceso mineral", "parentValue": null }
                 ]
-              }
-            ],
-            "emissionFactors": [
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Otro proceso"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "value": 1720
               },
               {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Pirometalúrgico"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "value": 430
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Waelz Kiln"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "value": 3660
-              }
-            ],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
-            "icon": "FACTORY"
-          },
-          {
-            "name": "Procesos industriales - Cemento",
-            "description": "Emisiones generadas en la fabricación de cemento. Incluye emisiones producidas por la utilización de clinker.",
-            "emissionFactorDimensions": [
-              {
-                "code": "Procesos industriales - Cemento_Material",
-                "name": "Material",
-                "position": 1,
-                "isRequired": true,
+                "code": "Procesos industriales - Minerales_Material o método",
+                "name": "Material o método",
+                "position": 2,
+                "isRequired": false,
                 "values": [
                   {
                     "name": "Clinker",
-                    "parentValue": null
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Cemento"
+                    }
+                  },
+                  {
+                    "name": "Cal alta en calcio",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Cal"
+                    }
+                  },
+                  {
+                    "name": "Cal dolomítica",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Cal"
+                    }
+                  },
+                  {
+                    "name": "Cal hidráulica",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Cal"
+                    }
+                  },
+                  {
+                    "name": "Vidrio plano (float)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Contenedores incoloros (flint)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Contenedores de color (ámbar o verde)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Fibra de vidrio (E-glass)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Fibra de vidrio (aislación)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Vidrio de iluminación",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Vidrios de vajilla",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Vidrio de laboratorio o farmacéutico",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Vidrio de especialidad (panel de TV)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
+                  },
+                  {
+                    "name": "Vidrio de especialidad (embudo de TV)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                      "valueName": "Vidrio"
+                    }
                   }
                 ]
               }
@@ -1721,159 +1769,503 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cemento_Material",
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Cemento"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
                   "valueName": "Clinker"
                 },
-                "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 520
-              }
-            ],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
-            "icon": "FACTORY"
-          },
-          {
-            "name": "Procesos industriales - Vidrio",
-            "description": "Incluye aquí las emisiones generadas por la producción de vidrio nuevo, considerando la cantidad de vidrio creado desde materias primas.",
-            "emissionFactorDimensions": [
-              {
-                "code": "Procesos industriales - Vidrio_Tipo de vidrio",
-                "name": "Tipo de vidrio",
-                "position": 1,
-                "isRequired": true,
-                "values": [
-                  {
-                    "name": "Contenedores (Recipientes de color transparente)",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Contenedores de color (Recipientes de color verde u otros)",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Fibra de vidrio",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Vidrio de iluminación (Ampolletas, bombillas, etc)",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Vidrio general",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Vidrio plano (ventanas, mesas, etc)",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Vidrios de vajilla (Vasos, copas, platos, etc)",
-                    "parentValue": null
-                  }
-                ]
-              }
-            ],
-            "emissionFactors": [
+              },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Contenedores (Recipientes de color transparente)"
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Cal"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Cal alta en calcio"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 750
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Cal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Cal dolomítica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 770
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Cal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Cal hidráulica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 590
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrio plano (float)"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 210
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Contenedores incoloros (flint)"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 210
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Fibra de vidrio"
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Contenedores de color (ámbar o verde)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Fibra de vidrio (E-glass)"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 190
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Fibra de vidrio (aislación)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrio de iluminación"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 200
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio general"
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
                 },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "value": 210
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrios de vajilla"
                 },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "value": 210
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
-                },
-                "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 100
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrio de laboratorio o farmacéutico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 30
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrio de especialidad (panel de TV)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 180
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Minerales_Proceso",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Minerales_Material o método",
+                  "valueName": "Vidrio de especialidad (embudo de TV)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 130
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },
           {
-            "name": "Procesos industriales - Acero",
-            "description": "Emisiones provenientes de la producción y procesamiento del acero. Incluye emisiones generadas por reacciones químicas en altos hornos, acerías y otros procesos industriales que involucran la producción de acero.",
+            "name": "Procesos industriales - Química",
+            "description": "Emisiones de proceso de la industria química (IPPU 2B): amoníaco, ácido nítrico, ácido adípico, carburos, dióxido de titanio, carbonato de sodio, petroquímicos y fluoroquímicos. Los factores por defecto del IPCC para estos procesos son por gas, así que debes declarar tu propio factor.",
             "emissionFactorDimensions": [
               {
-                "code": "Procesos industriales - Acero_Método de fabricación",
-                "name": "Método de fabricación",
+                "code": "Procesos industriales - Química_Proceso",
+                "name": "Proceso",
                 "position": 1,
                 "isRequired": true,
                 "values": [
+                  { "name": "Amoníaco", "parentValue": null },
+                  { "name": "Ácido nítrico", "parentValue": null },
+                  { "name": "Ácido adípico", "parentValue": null },
                   {
-                    "name": "Horno básico de oxígeno (BOF)",
+                    "name": "Caprolactama, glioxal y ácido glioxílico",
+                    "parentValue": null
+                  },
+                  { "name": "Carburo", "parentValue": null },
+                  { "name": "Dióxido de titanio", "parentValue": null },
+                  {
+                    "name": "Carbonato de sodio (soda ash)",
                     "parentValue": null
                   },
                   {
-                    "name": "Horno de acero eléctrico (AEF)",
+                    "name": "Petroquímicos y negro de humo",
                     "parentValue": null
+                  },
+                  { "name": "Fluoroquímicos", "parentValue": null },
+                  { "name": "Otro proceso químico", "parentValue": null }
+                ]
+              },
+              {
+                "code": "Procesos industriales - Química_Material o método",
+                "name": "Material o método",
+                "position": 2,
+                "isRequired": false,
+                "values": [
+                  {
+                    "name": "Carburo de calcio",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Carburo"
+                    }
+                  },
+                  {
+                    "name": "Carburo de silicio",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Carburo"
+                    }
+                  },
+                  {
+                    "name": "Metanol",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  },
+                  {
+                    "name": "Etileno",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  },
+                  {
+                    "name": "Dicloroetano y monómero de cloruro de vinilo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  },
+                  {
+                    "name": "Óxido de etileno",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  },
+                  {
+                    "name": "Acrilonitrilo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  },
+                  {
+                    "name": "Negro de humo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Química_Proceso",
+                      "valueName": "Petroquímicos y negro de humo"
+                    }
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "icon": "FACTORY"
+          },
+          {
+            "name": "Procesos industriales - Metales",
+            "description": "Emisiones de proceso de la industria metalúrgica (IPPU 2C): hierro y acero, ferroaleaciones, aluminio, magnesio, plomo y cinc. Corresponde a la reducción química y al consumo de agentes reductores, no a la combustión de combustibles ni al consumo eléctrico.",
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Metales_Proceso",
+                "name": "Proceso",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  { "name": "Hierro y acero", "parentValue": null },
+                  { "name": "Ferroaleaciones", "parentValue": null },
+                  { "name": "Aluminio", "parentValue": null },
+                  { "name": "Magnesio", "parentValue": null },
+                  { "name": "Plomo", "parentValue": null },
+                  { "name": "Cinc", "parentValue": null },
+                  { "name": "Otro proceso metalúrgico", "parentValue": null }
+                ]
+              },
+              {
+                "code": "Procesos industriales - Metales_Material o método",
+                "name": "Material o método",
+                "position": 2,
+                "isRequired": false,
+                "values": [
+                  {
+                    "name": "Horno básico de oxígeno (BOF)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Horno de arco eléctrico (EAF)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
                   },
                   {
                     "name": "Horno de solera (OHF)",
-                    "parentValue": null
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
                   },
                   {
-                    "name": "Otro proceso",
-                    "parentValue": null
+                    "name": "Promedio global (65% BOF, 30% EAF, 5% OHF)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Sinterizado",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Coquería (producción de coque)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Producción de hierro (arrabio)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Hierro de reducción directa (DRI)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Peletización",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Hierro y acero"
+                    }
+                  },
+                  {
+                    "name": "Ferrosilicio 45% Si",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferrosilicio 65% Si",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferrosilicio 75% Si",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferrosilicio 90% Si",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferromanganeso (7% C)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferromanganeso (1% C)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Silicomanganeso",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Silicio metálico",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ferrocromo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Ferroaleaciones"
+                    }
+                  },
+                  {
+                    "name": "Ánodo precocido (Prebake), solo CO₂ de ánodo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Aluminio"
+                    }
+                  },
+                  {
+                    "name": "Søderberg, solo CO₂ de ánodo",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Aluminio"
+                    }
+                  },
+                  {
+                    "name": "Horno Imperial Smelting (ISF)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Plomo"
+                    }
+                  },
+                  {
+                    "name": "Fundición directa (DS)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Plomo"
+                    }
+                  },
+                  {
+                    "name": "Tratamiento de materias primas secundarias",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Plomo"
+                    }
+                  },
+                  {
+                    "name": "Promedio por defecto (80% ISF, 20% DS)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Plomo"
+                    }
+                  },
+                  {
+                    "name": "Waelz Kiln",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Cinc"
+                    }
+                  },
+                  {
+                    "name": "Pirometalúrgico (Imperial Smelting Furnace)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Cinc"
+                    }
+                  },
+                  {
+                    "name": "Promedio por defecto (60% ISF, 40% Waelz Kiln)",
+                    "parentValue": {
+                      "dimensionCode": "Procesos industriales - Metales_Proceso",
+                      "valueName": "Cinc"
+                    }
                   }
                 ]
               }
@@ -1881,45 +2273,383 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
                   "valueName": "Horno básico de oxígeno (BOF)"
                 },
-                "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1460
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Horno de acero eléctrico (AEF)"
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Horno de arco eléctrico (EAF)"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 80
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
                   "valueName": "Horno de solera (OHF)"
                 },
-                "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1720
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Otro proceso"
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
                 },
-                "dimensionValue2": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Promedio global (65% BOF, 30% EAF, 5% OHF)"
+                },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1060
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Sinterizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Coquería (producción de coque)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 560
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Producción de hierro (arrabio)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1350
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Hierro de reducción directa (DRI)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 700
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Hierro y acero"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Peletización"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 30
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferrosilicio 45% Si"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 2500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferrosilicio 65% Si"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 3600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferrosilicio 75% Si"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 4000
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferrosilicio 90% Si"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 4800
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferromanganeso (7% C)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferromanganeso (1% C)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Silicomanganeso"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1400
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Silicio metálico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 5000
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Ferroaleaciones"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ferrocromo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Aluminio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Ánodo precocido (Prebake), solo CO₂ de ánodo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Aluminio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Søderberg, solo CO₂ de ánodo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1700
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Plomo"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Horno Imperial Smelting (ISF)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 590
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Plomo"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Fundición directa (DS)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Plomo"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Tratamiento de materias primas secundarias"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Plomo"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Promedio por defecto (80% ISF, 20% DS)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 520
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Cinc"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Waelz Kiln"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 3660
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Cinc"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Pirometalúrgico (Imperial Smelting Furnace)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 430
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Metales_Proceso",
+                  "valueName": "Cinc"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Procesos industriales - Metales_Material o método",
+                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1720
               }
             ],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "icon": "FACTORY"
+          },
+          {
+            "name": "Procesos industriales - Otros",
+            "description": "Emisiones de proceso que no encajan en las ramas mineral, química ni metalúrgica (IPPU 2D, 2E, 2G y 2H): papel y celulosa, alimentos y bebidas, electrónica, y uso no energético de lubricantes, ceras y solventes. Indica el proceso en el comentario de la línea y declara tu propio factor.",
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Otros_Proceso",
+                "name": "Proceso",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  { "name": "Papel y celulosa", "parentValue": null },
+                  { "name": "Alimentos y bebidas", "parentValue": null },
+                  {
+                    "name": "Electrónica y semiconductores",
+                    "parentValue": null
+                  },
+                  { "name": "Uso de lubricantes", "parentValue": null },
+                  { "name": "Uso de ceras de parafina", "parentValue": null },
+                  { "name": "Uso de solventes", "parentValue": null },
+                  { "name": "Otro proceso industrial", "parentValue": null }
+                ]
+              }
+            ],
+            "emissionFactors": [],
             "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },

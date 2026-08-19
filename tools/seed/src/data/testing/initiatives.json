@@ -86,54 +86,86 @@
     ]
   },
   {
-    "subcategoryName": "Procesos industriales - Cinc",
-    "initiatives": [
-      {
-        "title": "Optimización de procesos de fundición",
-        "description": "Mejorar los parámetros operativos de los hornos de fundición de cinc para aumentar la eficiencia energética y reducir las emisiones de proceso."
-      },
-      {
-        "title": "Reciclaje y recuperación de cinc",
-        "description": "Incrementar el uso de cinc reciclado como materia prima, reduciendo la necesidad de producción primaria y las emisiones asociadas."
-      }
-    ]
-  },
-  {
-    "subcategoryName": "Procesos industriales - Cemento",
+    "subcategoryName": "Procesos industriales - Minerales",
     "initiatives": [
       {
         "title": "Uso de materiales cementantes suplementarios",
-        "description": "Sustituir parcialmente el clínker por cenizas volantes, escoria de alto horno o puzolanas naturales, reduciendo las emisiones de CO₂ del proceso de calcinación."
+        "description": "Reemplazar parte del clinker por escoria de alto horno, puzolana o ceniza volante, reduciendo directamente las emisiones de descarbonatación por tonelada de cemento."
       },
       {
         "title": "Implementación de combustibles alternativos en hornos",
-        "description": "Utilizar residuos industriales o biomasa como combustible alternativo en los hornos de cemento, reduciendo la dependencia de combustibles fósiles."
-      }
-    ]
-  },
-  {
-    "subcategoryName": "Procesos industriales - Vidrio",
-    "initiatives": [
-      {
-        "title": "Incremento del uso de vidrio reciclado (cullet)",
-        "description": "Aumentar el porcentaje de vidrio reciclado en la mezcla de producción, lo cual reduce la temperatura de fusión necesaria y las emisiones asociadas."
+        "description": "Sustituir combustibles fósiles por biomasa o residuos valorizados en el horno de clinker, disminuyendo las emisiones asociadas al proceso térmico."
       },
       {
-        "title": "Electrificación de hornos de fundición",
-        "description": "Migrar hornos de gas a hornos eléctricos alimentados con energía renovable para eliminar las emisiones directas de combustión."
+        "title": "Incremento del uso de vidrio reciclado (cullet)",
+        "description": "Aumentar la proporción de cullet en la mezcla reduce la cantidad de carbonatos que se descomponen en el horno y baja las emisiones de proceso por tonelada de vidrio."
+      },
+      {
+        "title": "Electrificación de hornos de fusión",
+        "description": "Migrar hornos de fusión de vidrio o cal a tecnología eléctrica alimentada con energía renovable, desplazando emisiones de combustión hacia el Alcance 2."
+      },
+      {
+        "title": "Captura de CO₂ en hornos de cal y cemento",
+        "description": "Evaluar captura de carbono en la corriente de gases del horno, la única vía que reduce las emisiones inherentes a la descarbonatación del carbonato de calcio."
       }
     ]
   },
   {
-    "subcategoryName": "Procesos industriales - Acero",
+    "subcategoryName": "Procesos industriales - Química",
+    "initiatives": [
+      {
+        "title": "Instalación de catalizadores de destrucción de N₂O",
+        "description": "En plantas de ácido nítrico y adípico, instalar catalizadores secundarios o terciarios de descomposición de N₂O, con potencial de reducción superior al 90% del gas de proceso."
+      },
+      {
+        "title": "Hidrógeno de bajas emisiones para amoníaco",
+        "description": "Sustituir el reformado de gas natural por hidrógeno producido con electrólisis y energía renovable, eliminando el CO₂ de proceso de la síntesis de amoníaco."
+      },
+      {
+        "title": "Recuperación y valorización de gases de proceso",
+        "description": "Capturar corrientes de CO₂ y compuestos fluorados del proceso para reutilización interna o destrucción controlada en lugar de venteo a la atmósfera."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Metales",
     "initiatives": [
       {
         "title": "Transición a hornos de arco eléctrico",
-        "description": "Reemplazar procesos de alto horno por hornos de arco eléctrico (EAF) alimentados con energía renovable, reduciendo significativamente las emisiones de CO₂."
+        "description": "Migrar de la ruta integrada BOF a horno de arco eléctrico con chatarra, cuyo factor de emisión de proceso es más de quince veces menor por tonelada de acero."
       },
       {
         "title": "Uso de hidrógeno verde como agente reductor",
-        "description": "Sustituir el carbón de coque por hidrógeno verde en el proceso de reducción del mineral de hierro, eliminando las emisiones de CO₂ del proceso."
+        "description": "Reemplazar coque y carbón por hidrógeno renovable en la reducción del mineral de hierro, eliminando la mayor parte del CO₂ de proceso de la siderurgia."
+      },
+      {
+        "title": "Optimización de procesos de fundición",
+        "description": "Ajustar la operación de hornos de fundición de cinc, plomo y ferroaleaciones para minimizar el consumo de agentes reductores carbonosos por tonelada de producto."
+      },
+      {
+        "title": "Reciclaje y recuperación de metales",
+        "description": "Incrementar la proporción de materias primas secundarias, que evitan por completo la reducción química del mineral y por lo tanto sus emisiones de proceso."
+      },
+      {
+        "title": "Control de efecto ánodo en electrólisis de aluminio",
+        "description": "Reducir la frecuencia y duración de los efectos ánodo mediante control automatizado de celdas, disminuyendo las emisiones de PFC, gases de muy alto potencial de calentamiento."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Otros",
+    "initiatives": [
+      {
+        "title": "Sustitución de materias primas de alto contenido de carbono",
+        "description": "Revisar los insumos no energéticos del proceso (lubricantes, ceras, solventes, agentes reductores) y reemplazarlos por alternativas de menor contenido de carbono fósil."
+      },
+      {
+        "title": "Recuperación de gases de proceso en línea",
+        "description": "Instalar sistemas de captación y tratamiento en los puntos de venteo del proceso, priorizando las corrientes de gases fluorados y N₂O por su alto potencial de calentamiento."
+      },
+      {
+        "title": "Medición directa de las emisiones de proceso",
+        "description": "Implementar monitoreo continuo o campañas de medición en planta para reemplazar estimaciones con factores propios por datos medidos, mejorando la trazabilidad del inventario."
       }
     ]
   },
