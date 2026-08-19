@@ -95,6 +95,7 @@ model Subcategory {
   name        String
   description String
   icon        String            // icon key (e.g., "FACTORY")
+  position    Int               // display order; must be > 0; unique per category
   status      SubcategoryStatus @default(ACTIVE)
 
   dimensions              EmissionFactorDimension[]
@@ -109,7 +110,9 @@ model Subcategory {
 }
 ```
 
-Subcategory names are unique within a category (partial unique index, excluding deleted records).
+Subcategory names are unique within a category (partial unique index, excluding deleted records), and so are positions.
+
+Subcategories are ordered by `position` ascending — never alphabetically, since the order carries meaning: inside the Scope 3 category the subcategories follow the GHG Protocol Scope 3 category numbering (purchased goods → upstream transport → waste → business travel → commuting → downstream transport → use of sold products), with the catch-all "other sources" last. Their descriptions state the GHG Protocol and ISO 14064-1 category each one maps to. The order ships as seed data (`tools/seed/src/data/*/methodologies.json`, one `position` per subcategory); subcategories created later through the maintainer are appended last.
 
 ---
 
