@@ -1,6 +1,6 @@
 import { FC, useMemo, useCallback, useEffect, useState } from "react";
 import { Box, Button } from "@mui/material";
-import { AddRounded } from "@mui/icons-material";
+import { AddRounded, SaveOutlined } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
@@ -14,7 +14,6 @@ import {
   TotalCategoryEmissionCard,
   AddSubcategoryModal,
   SaveStatusIndicator,
-  SaveActionButton,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -360,30 +359,36 @@ export const EmissionCaptureScreen: FC = () => {
                   description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
                   explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
                   titleAdornment={
-                    <>
-                      <SaveActionButton
-                        isDirty={formState.isDirty}
-                        isSaving={isSavingChanges}
-                        disabled={globalSubmitting || isBusy}
-                        onSave={handleSaveClick}
-                      />
-                      <SaveStatusIndicator
-                        isDirty={formState.isDirty}
-                        isSaving={globalSubmitting}
-                      />
-                    </>
+                    <SaveStatusIndicator
+                      isDirty={formState.isDirty}
+                      isSaving={globalSubmitting}
+                    />
                   }
                   action={
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<AddRounded />}
-                      onClick={handleOpenAddSubcategoryModal}
-                      disabled={globalSubmitting || isBusy}
-                      loading={isSubmittingBeforeModal}
-                    >
-                      Agregar Subcategorías
-                    </Button>
+                    <>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddRounded />}
+                        onClick={handleOpenAddSubcategoryModal}
+                        disabled={globalSubmitting || isBusy}
+                        loading={isSubmittingBeforeModal}
+                      >
+                        Agregar Subcategorías
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<SaveOutlined />}
+                        onClick={handleSaveClick}
+                        disabled={
+                          !formState.isDirty || globalSubmitting || isBusy
+                        }
+                        loading={isSavingChanges}
+                      >
+                        Guardar
+                      </Button>
+                    </>
                   }
                 />
                 <CategoryCarousel

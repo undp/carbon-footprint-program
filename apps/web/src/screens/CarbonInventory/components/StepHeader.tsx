@@ -40,7 +40,11 @@ export const StepHeader: FC<StepHeaderProps> = ({
           {description}
         </Typography>
       </Box>
-      {action ? <Box className="shrink-0">{action}</Box> : null}
+      {action ? (
+        <Box className="flex shrink-0 flex-row items-center gap-2">
+          {action}
+        </Box>
+      ) : null}
     </Box>
   );
 };
