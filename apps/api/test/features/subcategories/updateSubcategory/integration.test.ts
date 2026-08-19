@@ -365,6 +365,74 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(body.category.id).toBe(newCategory.id.toString());
     });
 
+    it("should append the subcategory last when moved into an occupied category", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Move Into Occupied",
+        position: 1,
+      });
+
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const newCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Occupied Target Category",
+          position: 3,
+        }
+      );
+      // The destination already has a subcategory at position 1, so keeping the
+      // moved subcategory's own position would break the unique index.
+      await createTestSubcategory(prisma, newCategory.id, {
+        name: "Test - Already At Position One",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: newCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const moved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: subcategory.id },
+      });
+      expect(moved.categoryId).toBe(newCategory.id);
+      expect(moved.position).toBe(2);
+    });
+
+    it("should keep the position when the update does not change the category", async () => {
+      const first = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Keeps Position First",
+      });
+      const second = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Keeps Position Second",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${second.id}`,
+        payload: {
+          categoryId: categoryId.toString(),
+          name: "Test - Keeps Position Renamed",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: second.id },
+      });
+      expect(updated.position).toBe(second.position);
+      expect(second.position).toBeGreaterThan(first.position);
+    });
+
     it("should update explanation only", async () => {
       const subcategory = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Explanation Update",

@@ -40,7 +40,7 @@ describe("GET /api/methodologies/:id - Integration Tests", () => {
     await restoreMethodologies(prisma);
   });
 
-  it("should return the methodology with categories ordered by position and subcategories ordered by name", async () => {
+  it("should return the methodology with categories and subcategories ordered by position", async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       status: MethodologyVersionStatus.PUBLISHED,
     });
@@ -54,6 +54,8 @@ describe("GET /api/methodologies/:id - Integration Tests", () => {
       position: 1,
     });
 
+    // Named out of alphabetical order on purpose: Z is positioned first, so a
+    // name-based ordering would flip these two.
     await createTestSubcategory(prisma, categoryA.id, {
       name: "Test - Subcategory Z",
     });
@@ -78,8 +80,8 @@ describe("GET /api/methodologies/:id - Integration Tests", () => {
     expect(body.categories[1].id).toBe(categoryB.id.toString());
 
     expect(body.categories[0].subcategories.map((s) => s.name)).toEqual([
-      "Test - Subcategory A",
       "Test - Subcategory Z",
+      "Test - Subcategory A",
     ]);
     expect(body.categories[1].subcategories).toEqual([]);
   });
