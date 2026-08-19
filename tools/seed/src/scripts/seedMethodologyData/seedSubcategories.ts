@@ -20,6 +20,7 @@ export async function seedSubcategories(
         name: subcategory.name,
         icon: subcategory.icon,
         description: subcategory.description,
+        position: subcategory.position,
         allowedMeasurementUnitsAbbreviations:
           subcategory.allowedMeasurementUnitsAbbreviations ?? [],
       }))
@@ -32,6 +33,16 @@ export async function seedSubcategories(
     "methodologyVersionName",
     "categoryName",
     "name",
+  ]);
+
+  // Positions must also be unique per category (enforced by a partial unique
+  // index in the database), so catch a duplicated position here with a clear
+  // message instead of a raw constraint violation.
+  checkForDuplicates(subcategoriesData, [
+    "countryIsoCode",
+    "methodologyVersionName",
+    "categoryName",
+    "position",
   ]);
 
   // Fetch categories with their methodology versions and countries to map by full path
@@ -70,6 +81,7 @@ export async function seedSubcategories(
       icon: subcategory.icon,
       status: SubcategoryStatus.ACTIVE,
       description: subcategory.description,
+      position: subcategory.position,
     };
   });
 
