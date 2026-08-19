@@ -102,6 +102,8 @@ Debes rellenar los siguientes campos:
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
+⚠️ Si el gas que liberaste no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+
 ---
 
 **CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma

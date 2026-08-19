@@ -90,16 +90,18 @@ Si un generador consume **15 L/hora** y operó **800 horas en el año**:
 
 Debes rellenar los siguientes campos:
 
-| Campo           | Qué debes ingresar                                                                                                                                         |                                   Ejemplo |
-| :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------: |
-| Tipo (Opcional) | Qué equipo fijo vas a declarar (opciones disponibles: Caldera, Generador, Turbina). Si tu equipo no coincide con ninguna opción, deja este campo en blanco |               Caldera, Generador, Turbina |
-| Combustible     | Combustible utilizado por el equipo                                                                                                                        | Gas natural, Diésel, GLP, Carbón, Pellets |
-| Unidad          | Unidad en la que se declara el combustible                                                                                                                 |                 Litros, m³, kg, toneladas |
-| Cantidad        | Total anual consumido por el equipo                                                                                                                        |                                 25.000 m³ |
+| Campo           | Qué debes ingresar                                                                                                                                |                                      Ejemplo |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------: |
+| Tipo (Opcional) | Qué equipo fijo vas a declarar. Si tu equipo no está en la lista, selecciona **Otro**: este campo es descriptivo y no cambia el factor de emisión | Caldera, Horno industrial, Grupo electrógeno |
+| Combustible     | Combustible utilizado por el equipo                                                                                                               |    Gas natural, Diésel, GLP, Carbón, Pellets |
+| Unidad          | Unidad en la que se declara el combustible                                                                                                        |                    Litros, m³, kg, toneladas |
+| Cantidad        | Total anual consumido por el equipo                                                                                                               |                                    25.000 m³ |
 
 ⚠️ No siempre hay factor para todos los combustibles y unidades disponibles
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
+
+⚠️ Si el combustible que utilizas no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
 
 ---
 
