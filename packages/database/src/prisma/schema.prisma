@@ -546,6 +546,8 @@ model Subcategory {
   icon                        String
   description                 String
   explanation                 String?                      @db.Text
+  // Position must be > 0 (enforced by DB CHECK constraint: subcategory_position_check)
+  position                    Int
   status                      SubcategoryStatus            @default(ACTIVE)
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
@@ -562,8 +564,9 @@ model Subcategory {
   reductionPlanInitiatives    ReductionPlanInitiative[]
   reductionProjects           ReductionProject[]           @relation("reduction_project_subcategory")
 
-  // Partial unique index exists in SQL migration:
+  // Partial unique indexes exist in SQL migrations:
   // ("category_id", "name") WHERE status <> 'DELETED'
+  // ("category_id", "position") WHERE status <> 'DELETED'
 
   @@map("subcategory")
 }

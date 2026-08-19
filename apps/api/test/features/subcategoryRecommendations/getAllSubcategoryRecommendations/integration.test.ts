@@ -81,6 +81,7 @@ const seed = async (prisma: PrismaClient): Promise<SeededRefs> => {
       name: `Other Subcategory ${Date.now()}`,
       icon: "icon",
       description: "",
+      position: 1,
     },
   });
 

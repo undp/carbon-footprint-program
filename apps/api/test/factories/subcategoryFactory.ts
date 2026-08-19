@@ -12,6 +12,14 @@ export async function createTestSubcategory(
 ): Promise<Subcategory> {
   const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
+  // Positions are unique per category, so default to appending last. Counting
+  // DELETED rows too keeps the generated position free even when a test has
+  // soft-deleted a sibling.
+  const { _max } = await prisma.subcategory.aggregate({
+    where: { categoryId },
+    _max: { position: true },
+  });
+
   return await prisma.subcategory.create({
     data: {
       categoryId,
@@ -19,6 +27,7 @@ export async function createTestSubcategory(
       icon: overrides?.icon ?? "FACTORY",
       description: overrides?.description ?? "Test subcategory description",
       explanation: overrides?.explanation ?? null,
+      position: overrides?.position ?? (_max.position ?? 0) + 1,
       status: overrides?.status ?? SubcategoryStatus.ACTIVE,
       createdById: null,
       updatedById: null,
