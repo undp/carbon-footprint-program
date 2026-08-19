@@ -68,10 +68,13 @@ export interface FooterButton {
 
 interface CarbonInventoryFooterProps {
   buttons?: FooterButton[];
+  /** Extra node rendered next to the left-aligned buttons (e.g. a save status). */
+  leftContent?: ReactNode;
 }
 
 export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
   buttons = [],
+  leftContent,
 }) => {
   const leftAlignedButtons = buttons.filter(
     (button) => button.align === "left"
@@ -91,7 +94,7 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
         className="flex h-20 flex-row items-center justify-between gap-6 bg-white px-4 py-4"
         sx={{ boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)" }}
       >
-        <Box className="flex flex-row gap-6">
+        <Box className="flex flex-row items-center gap-6">
           {leftAlignedButtons.map(
             ({ text, buttonProps, tooltipTitle }, index) => (
               <Tooltip title={tooltipTitle} key={index}>
@@ -103,6 +106,7 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
               </Tooltip>
             )
           )}
+          {leftContent}
         </Box>
         <Box className="flex flex-row gap-6">
           {rightAlignedButtons.map(

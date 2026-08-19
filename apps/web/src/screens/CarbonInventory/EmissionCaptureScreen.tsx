@@ -1,6 +1,6 @@
 import { FC, useMemo, useCallback, useEffect, useState } from "react";
 import { Box, Button } from "@mui/material";
-import { AddRounded } from "@mui/icons-material";
+import { AddRounded, SaveOutlined } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
@@ -13,6 +13,7 @@ import {
   EmissionEditor,
   TotalCategoryEmissionCard,
   AddSubcategoryModal,
+  SaveStatusIndicator,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -135,6 +136,17 @@ export const EmissionCaptureScreen: FC = () => {
     showNoChangesMessage: false,
   });
 
+  // Explicit save: persists the changes and keeps the user on the current
+  // category, unlike the implicit saves attached to navigation.
+  const { submit: submitAndStay, isSubmitting: isSavingChanges } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      isDirty: formState.isDirty,
+      getDirtyLineIds,
+      resetAfterSave,
+      resultFeedbackWithSnackbar: true,
+    });
+
   const [isAddSubcategoryModalOpen, setIsAddSubcategoryModalOpen] =
     useState(false);
 
@@ -161,7 +173,8 @@ export const EmissionCaptureScreen: FC = () => {
     isSubmittingAndGoingToList ||
     isSubmittingAndGoingBack ||
     isSubmittingOnCategoryChange ||
-    isSubmittingBeforeModal;
+    isSubmittingBeforeModal ||
+    isSavingChanges;
 
   const handleOpenAddSubcategoryModal = useCallback(() => {
     void handleSubmit(async (formValues) => {
@@ -288,6 +301,25 @@ export const EmissionCaptureScreen: FC = () => {
 
   if (!isLoading && mustNavigateAway) return null;
 
+  const handleSaveClick = () => {
+    void handleSubmit(submitAndStay)();
+  };
+
+  const saveButton: FooterButton = {
+    text: "Guardar",
+    align: "left",
+    tooltipTitle: formState.isDirty
+      ? "Guarda tus cambios"
+      : "No hay cambios para guardar",
+    buttonProps: {
+      variant: "outlined",
+      startIcon: <SaveOutlined />,
+      onClick: handleSaveClick,
+      loading: isSavingChanges,
+      disabled: !formState.isDirty || globalSubmitting || isBusy,
+    },
+  };
+
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
@@ -331,7 +363,15 @@ export const EmissionCaptureScreen: FC = () => {
               ),
             }}
             footerProps={{
-              buttons: [backButton, nextButton],
+              buttons: [saveButton, backButton, nextButton],
+              // Hidden while loading: the form is still empty, so claiming
+              // "sin cambios pendientes" would be meaningless.
+              leftContent: isLoading ? null : (
+                <SaveStatusIndicator
+                  isDirty={formState.isDirty}
+                  isSaving={globalSubmitting}
+                />
+              ),
             }}
             isLoading={isLoading}
           >
