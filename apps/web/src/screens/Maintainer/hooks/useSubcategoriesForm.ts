@@ -28,6 +28,7 @@ export function toFormSubcategory(s: Subcategory): SubcategoryForm {
     description: s.description,
     explanation: s.explanation,
     measurementUnitIds: s.measurementUnits.map((u) => u.id),
+    position: s.position,
   };
 }
 

@@ -8,6 +8,8 @@ import type {
   CreateSubcategoryResponse,
   UpdateSubcategoryRequest,
   UpdateSubcategoryResponse,
+  SwapSubcategoryPositionsRequest,
+  SwapSubcategoryPositionsResponse,
 } from "@repo/types";
 
 export const useSubcategories = (methodologyVersionId?: string) =>
@@ -74,6 +76,26 @@ export const useDeleteSubcategory = () => {
     mutationFn: async (subcategoryId) => {
       await apiClient.delete(`subcategories/${subcategoryId}`);
     },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoriesUpdateDependency
+          ),
+      });
+    },
+  });
+};
+
+export const useSwapSubcategoryPositions = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SwapSubcategoryPositionsResponse,
+    Error,
+    SwapSubcategoryPositionsRequest
+  >({
+    mutationFn: (data) =>
+      apiClient.post("subcategories/swap-positions", { json: data }).json(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         predicate: (query) =>

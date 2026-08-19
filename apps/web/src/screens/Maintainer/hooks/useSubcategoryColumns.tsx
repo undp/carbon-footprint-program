@@ -27,6 +27,8 @@ interface UseSubcategoryColumnsParams {
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
   onConfigureVariables?: (rowId: string) => void;
+  onMoveUp: (row: SubcategoryForm) => void;
+  onMoveDown: (row: SubcategoryForm) => void;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -42,6 +44,8 @@ export const useSubcategoryColumns = ({
   onDelete,
   onOpenExplanation,
   onConfigureVariables,
+  onMoveUp,
+  onMoveDown,
   rows,
   categories,
   allMeasurementUnits,
@@ -54,6 +58,25 @@ export const useSubcategoryColumns = ({
     (rowId: string) => editingRowId === rowId,
     [editingRowId]
   );
+
+  // A subcategory only moves within its own category, so the arrows are
+  // disabled on the first / last row of each category group, not of the grid.
+  const categoryEdges = useMemo(() => {
+    const edges = new Map<string, { firstId: string; lastId: string }>();
+    for (const row of rows) {
+      if (row.id.startsWith("temp_")) continue;
+      const group = rows
+        .filter(
+          (r) => r.categoryId === row.categoryId && !r.id.startsWith("temp_")
+        )
+        .sort((a, b) => a.position - b.position);
+      edges.set(row.categoryId, {
+        firstId: group[0].id,
+        lastId: group[group.length - 1].id,
+      });
+    }
+    return edges;
+  }, [rows]);
 
   return useMemo<GridColDef<Subcategory>[]>(
     () => [
@@ -267,6 +290,12 @@ export const useSubcategoryColumns = ({
             );
           }
 
+          const edges = formRow
+            ? categoryEdges.get(formRow.categoryId)
+            : undefined;
+          const isFirstInCategory = edges?.firstId === rowId;
+          const isLastInCategory = edges?.lastId === rowId;
+
           return (
             <ActionButtons
               isActiveRow={anyEditing && !editing}
@@ -274,6 +303,10 @@ export const useSubcategoryColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={formRow ? () => onDelete(formRow) : undefined}
+              onMoveUp={formRow ? () => onMoveUp(formRow) : undefined}
+              onMoveDown={formRow ? () => onMoveDown(formRow) : undefined}
+              moveUpDisabled={anyEditing || isNewRow || isFirstInCategory}
+              moveDownDisabled={anyEditing || isNewRow || isLastInCategory}
               onConfigureVariables={
                 !isNewRow && onConfigureVariables
                   ? () => onConfigureVariables(params.row.id)
@@ -291,6 +324,9 @@ export const useSubcategoryColumns = ({
       isEditing,
       onCellChange,
       onStartEditRow,
+      onMoveUp,
+      onMoveDown,
+      categoryEdges,
       categories,
       allMeasurementUnits,
       onOpenExplanation,
