@@ -31,28 +31,51 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, tu empresa probablem
 
 ## ¿Cómo es el cálculo de emisiones?
 
-La fórmula general:
+La plataforma trabaja con **cantidades agregadas a nivel organización**, no viaje por viaje. Para cada opción de **Transporte** que tu equipo haya usado en el año, ingresas una línea con el total de distancia y se multiplica por su factor:
 
-> $CO₂e$ = $Distancia \times Factor\ por\ modo \times Ajuste\ por\ clase\ (en\ aéreo)$
+> $CO_2e$ = $Distancia\ anual\ agregada \times Factor\ del\ Transporte\ (kg\ CO_2e/km)$
 
-| Modo                                  | Factor referencial  |
-| :------------------------------------ | :------------------ |
-| Vuelo doméstico (corto, <500 km)      | 0,25 kg CO₂e/km/pax |
-| Vuelo regional (500-3.700 km)         | 0,15 kg CO₂e/km/pax |
-| Vuelo internacional largo (>3.700 km) | 0,11 kg CO₂e/km/pax |
-| Bus interurbano                       | 0,03 kg CO₂e/km/pax |
-| Tren                                  | 0,04 kg CO₂e/km/pax |
-| Taxi / Uber                           | 0,18 kg CO₂e/km     |
-| Auto arrendado                        | 0,18 kg CO₂e/km     |
+### 🔑 Las dos dudas más frecuentes
 
-**Ajuste por clase en vuelos:**
+**1️⃣ ¿Ingreso los km de una persona o los multiplico por el número de personas?**
 
-- Economy: factor base
-- Premium economy: ×1,5
-- Business: ×2-3
-- First class: ×3-4
+Depende del modo, porque el factor no está construido igual en todos:
 
-💡 Algunos métodos aplican un factor adicional ("radiative forcing index", RFI) de ~1,9x para vuelos por el efecto de las emisiones a altitud — verifica con tu metodología.
+- ✈️ **Avión, 🚌 bus y 🚂 tren:** el factor es **por pasajero** (kg CO₂e por pasajero-km). Debes **multiplicar la distancia por el número de personas que viajaron**. Si 3 personas volaron 1.000 km, ingresas **3.000 km**.
+- 🚗 **Auto y 🚕 taxi:** el factor es **por vehículo** (kg CO₂e por km recorrido por el vehículo). Ingresas **los km del vehículo una sola vez**, sin importar cuántos ocupantes iban. Si 3 personas compartieron un taxi de 20 km, ingresas **20 km**, no 60.
+
+**2️⃣ ¿El viaje es solo ida o ida y vuelta?**
+
+Se cuenta **toda la distancia efectivamente recorrida**: si el viaje fue ida y vuelta, debes contar **los dos tramos**. Un viaje de ida y vuelta entre dos ciudades separadas por 800 km son **1.600 km**, no 800.
+
+### 🧮 La fórmula práctica para obtener la cantidad
+
+> **Avión / bus / tren:**  
+> $Cantidad$ = $km\ por\ tramo \times N°\ de\ tramos \times N°\ de\ personas \times N°\ de\ viajes$
+>
+> **Auto / taxi:**  
+> $Cantidad$ = $km\ por\ tramo \times N°\ de\ tramos \times N°\ de\ viajes$ (sin multiplicar por ocupantes)
+
+Donde **N° de tramos** = 2 en un viaje de ida y vuelta, 1 si fue solo ida.
+
+### Factores de la plataforma (DEFRA 2025)
+
+| Opción de Transporte                                | Factor (kg CO₂e/km) | El factor es por... |
+| :-------------------------------------------------- | ------------------: | :------------------ |
+| Transporte en avión: Short haul (<3 hrs) Economy    |              0,1257 | pasajero            |
+| Transporte en avión: Short haul (<3 hrs) Business   |              0,1886 | pasajero            |
+| Transporte en avión: Medium haul (3-6 hrs) Economy  |              0,1170 | pasajero            |
+| Transporte en avión: Medium haul (3-6 hrs) Business |              0,3394 | pasajero            |
+| Transporte en avión: Long haul (>6 hrs) Economy     |              0,1091 | pasajero            |
+| Transporte en avión: Long haul (>6 hrs) Business    |              0,3165 | pasajero            |
+| Transporte en Bus                                   |              0,1038 | pasajero            |
+| Transporte en Tren                                  |              0,0354 | pasajero            |
+| Transporte en Taxi                                  |              0,1480 | vehículo            |
+| Transporte en auto                                  |              0,1730 | vehículo            |
+
+💡 **La clase ya viene incluida en la opción.** No debes aplicar ningún multiplicador extra por Business: el factor de Business ya es más alto que el de Economy (entre ~1,5× y ~2,9× según el tramo), porque un asiento premium ocupa el espacio de varios asientos económicos.
+
+💡 **Referencia orientativa para elegir el tramo aéreo:** _short haul_ (<3 hrs) ≈ hasta ~2.000 km; _medium haul_ (3-6 hrs) ≈ 2.000-5.000 km; _long haul_ (>6 hrs) ≈ más de 5.000 km. Si conoces la duración real del vuelo, úsala.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -86,9 +109,12 @@ Las fuentes principales:
 Datos mínimos por viaje:
 
 - **Modo** (avión, bus, tren, taxi, auto arrendado)
+- **Clase** (en aéreo: Economy o Business)
 - **Origen y destino** (o km recorridos)
-- **N° de pasajeros** (normalmente 1, salvo grupo)
-- **Clase** (en aéreo)
+- **Tramos:** ¿fue solo ida o ida y vuelta?
+- **N° de personas** que hicieron ese viaje
+
+💡 Con esos cinco datos puedes aplicar directamente la fórmula práctica de arriba.
 
 ---
 
@@ -98,11 +124,13 @@ Datos mínimos por viaje:
 
 Si tienes origen y destino pero no los km, calcula con Google Maps o herramientas como [Great Circle Mapper](https://www.gcmap.com/).
 
+⚠️ Estas herramientas devuelven la distancia **de un tramo**. Recuerda duplicarla si el viaje fue ida y vuelta.
+
 ---
 
 #### **Opción 2:** Calculadora ICAO
 
-Para vuelos comerciales, usa la **calculadora oficial ICAO** que ajusta por modelo de avión, ocupación y otros factores.
+Para vuelos comerciales, usa la **calculadora oficial ICAO** que ajusta por modelo de avión, ocupación y otros factores. Su resultado ya viene **por pasajero**.
 
 ---
 
@@ -120,14 +148,13 @@ Si solo tienes el monto pagado en pasajes:
 
 Debes rellenar los siguientes campos:
 
-| Campo             | Qué debes ingresar |                                                               Ejemplo |
-| :---------------- | :----------------- | --------------------------------------------------------------------: |
-| Modo              | Tipo de transporte | Vuelo doméstico, Vuelo internacional, Bus, Tren, Taxi, Auto arrendado |
-| Clase (si aplica) | Clase del vuelo    |                                                     Economy, Business |
-| Unidad            | Unidad declarada   |                                                      km, moneda local |
-| Cantidad          | Total anual        |                                                             28.000 km |
+| Campo      | Qué debes ingresar                                                               |                                            Ejemplo |
+| :--------- | :------------------------------------------------------------------------------- | -------------------------------------------------: |
+| Transporte | Modo y clase, elegido de la lista                                                | Transporte en avión: Medium haul (3-6 hrs) Economy |
+| Unidad     | Unidad de distancia (km, m o mi)                                                 |                                                 km |
+| Cantidad   | Distancia total anual: km × tramos × personas × viajes (personas solo si aplica) |                                          16.800 km |
 
-⚠️ Para vuelos, ingresa una línea por **categoría de distancia** (corto/medio/largo) o por **clase**.
+⚠️ Ingresa **una línea por cada opción de Transporte** que hayas usado. Los vuelos se separan por tramo (short/medium/long haul) y por clase (Economy/Business), porque cada combinación tiene su propio factor.
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -143,6 +170,8 @@ Debes rellenar los siguientes campos:
 
 3.- Modifica el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado (ej. resultado de calculadora ICAO).
 
+⚠️ Si usas un factor propio, revisa si está expresado **por pasajero-km o por vehículo-km** y ajusta la cantidad en consecuencia.
+
 ---
 
 **CASO 3:** Hiciste el cálculo por fuera y **ya tienes las emisiones totales de la sub-categoría**
@@ -155,25 +184,41 @@ Accede a la calculadora en **modo experto**. En el paso 3, selecciona el checkbo
 
 Supongamos una **consultora** que durante el año tuvo:
 
-- **4 vuelos domésticos**, ida y vuelta ~1.500 km c/u (Economy)
-- **2 vuelos regionales** ida y vuelta ~5.000 km c/u (Economy)
-- **1 vuelo internacional** ida y vuelta ~7.000 km (Business)
-- **Taxis y ride-hailing en destino**: ~600 km en total (acumulado)
-- **Auto arrendado en uno de los viajes**: 800 km
+- **Congreso internacional:** 3 personas, vuelo de 9.500 km por tramo, ida y vuelta, Economy (long haul)
+- **Visitas a clientes en la región:** 4 viajes de 1 persona, 2.100 km por tramo, ida y vuelta, Economy (medium haul)
+- **Vuelos domésticos:** 3 viajes de 2 personas, 620 km por tramo, ida y vuelta, Economy (short haul)
+- **Bus interurbano:** 1 viaje de 5 personas, 225 km por tramo, ida y vuelta
+- **Taxis en destino:** 600 km recorridos por los vehículos durante el año (varios viajes, algunos compartidos entre colegas)
+- **Auto arrendado:** 800 km recorridos por el vehículo
 
-Cálculo:
+Primero se calcula la **cantidad** de cada línea:
 
-| Modo                           |     km | Factor | Multiplicador clase |     Emisiones |
-| :----------------------------- | -----: | -----: | ------------------: | ------------: |
-| Vuelo doméstico (Economy)      |  6.000 |   0,25 |                   1 | 1.500 kg CO₂e |
-| Vuelo regional (Economy)       | 10.000 |   0,15 |                   1 | 1.500 kg CO₂e |
-| Vuelo internacional (Business) |  7.000 |   0,11 |                 2,5 | 1.925 kg CO₂e |
-| Taxi / ride-hailing            |    600 |   0,18 |                   1 |   108 kg CO₂e |
-| Auto arrendado                 |    800 |   0,18 |                   1 |   144 kg CO₂e |
+| Transporte                | Cálculo de la cantidad                          |  Cantidad |
+| :------------------------ | :---------------------------------------------- | --------: |
+| Avión Long haul Economy   | 9.500 km × 2 tramos × 3 personas × 1 viaje      | 57.000 km |
+| Avión Medium haul Economy | 2.100 km × 2 tramos × 1 persona × 4 viajes      | 16.800 km |
+| Avión Short haul Economy  | 620 km × 2 tramos × 2 personas × 3 viajes       |  7.440 km |
+| Bus                       | 225 km × 2 tramos × 5 personas × 1 viaje        |  2.250 km |
+| Taxi                      | km del vehículo (sin multiplicar por ocupantes) |    600 km |
+| Auto                      | km del vehículo (sin multiplicar por ocupantes) |    800 km |
 
-**Total: ~5.177 kg CO₂e al año (~5,2 ton CO₂e)**
+Y luego las emisiones:
 
-> ⚠️ El viaje en clase business pesa fuerte por su factor multiplicador (×2,5), a pesar de no ser el más largo en kilometraje. Cambiar de business a economy es una de las mayores palancas de reducción.
+| Transporte                | Cantidad (km) | Factor (kg CO₂e/km) |     Emisiones |
+| :------------------------ | ------------: | ------------------: | ------------: |
+| Avión Long haul Economy   |        57.000 |              0,1091 | 6.219 kg CO₂e |
+| Avión Medium haul Economy |        16.800 |              0,1170 | 1.966 kg CO₂e |
+| Avión Short haul Economy  |         7.440 |              0,1257 |   935 kg CO₂e |
+| Bus                       |         2.250 |              0,1038 |   234 kg CO₂e |
+| Taxi                      |           600 |              0,1480 |    89 kg CO₂e |
+| Auto                      |           800 |              0,1730 |   138 kg CO₂e |
+
+**Total: ~9.581 kg CO₂e al año (~9,6 ton CO₂e)**
+
+> 💡 Fíjate en los dos efectos que más confunden:
+>
+> - El congreso internacional pesa el **65% del total** no porque el vuelo sea el más caro por km (de hecho es el factor aéreo **más bajo**), sino porque **3 personas × 2 tramos × 9.500 km** genera 57.000 pasajeros-km.
+> - Los taxis compartidos aportan poco justamente porque **no se multiplican por ocupantes**: el factor ya es del vehículo completo.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
@@ -182,12 +227,14 @@ Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
 
 ## 📝 Notas importantes
 
-> - **Vuelos cortos tienen factor MAYOR por km** que vuelos largos: el despegue y aterrizaje son las fases más intensivas
-> - **Clase de vuelo importa mucho:** business consume 2-3x más por pasajero que economy (más espacio = menos pasajeros por avión)
-> - **Radiative forcing index (RFI):** algunos métodos multiplican el factor de vuelos por ~1,9x para reflejar el impacto adicional de emisiones en altitud. Verifica si la plataforma lo aplica
+> - **Pasajero-km vs vehículo-km:** avión, bus y tren se multiplican por el número de pasajeros; auto y taxi no. Es el error más común al declarar esta sub-categoría
+> - **Cuenta ida y vuelta:** salvo que el viaje haya sido efectivamente solo de ida, la distancia se duplica
+> - **En Economy, los vuelos cortos tienen factor mayor por km** que los largos: el despegue y aterrizaje son las fases más intensivas y se reparten en menos kilómetros
+> - **La clase ya está en el factor:** Business no se multiplica aparte. En vuelos medium y long haul el factor Business casi triplica al Economy, así que **bajar de clase es una palanca real de reducción**
+> - **Radiative forcing index (RFI):** la plataforma aplica el factor DEFRA 2025 tal como está. Si tu metodología exige un ajuste adicional por el efecto de las emisiones en altitud, hazlo con la fuente de factor **"Otro"** en lugar de modificar la cantidad
 > - **No dupliques con commuting:** commuting es el desplazamiento **diario** casa-trabajo. Esta sub-categoría es para **viajes específicos** por trabajo
 > - **No dupliques con Alcance 1:** si la empresa tiene **flota propia** de autos corporativos y los usa en viajes, eso es Alcance 1 (combustión móvil), no aquí
 > - **Vehículos arrendados (rent-a-car):** sí van aquí (no es flota propia)
-> - **Rideshare de varios pasajeros:** si vas con colegas en el mismo Uber o taxi, divide los km entre los pasajeros para no duplicar
-> - **Reducciones efectivas:** videoconferencias en lugar de viajes, agrupación de viajes a una región, viajar en clase economy en vez de business
+> - **No dupliques con Estadía:** el alojamiento del viaje va en la sub-categoría _Viajes de negocios — Estadía_
+> - **Reducciones efectivas:** videoconferencias en lugar de viajes, agrupación de viajes a una región, enviar menos personas al mismo destino, viajar en clase economy en vez de business
 > - Guarda **boarding passes, itinerarios, recibos y reportes de booking corporativo** como respaldo
