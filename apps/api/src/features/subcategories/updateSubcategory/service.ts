@@ -10,6 +10,7 @@ import {
 import {
   SubcategoryNotFoundError,
   SubcategoryNameAlreadyExistsError,
+  SubcategoryPositionAlreadyExistsError,
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
 } from "../errors.js";
@@ -36,6 +37,7 @@ export const updateSubcategoryService = async (
         },
         select: {
           status: true,
+          categoryId: true,
           category: { select: { methodologyVersionId: true } },
         },
       });
@@ -43,6 +45,11 @@ export const updateSubcategoryService = async (
       if (!targetSubcategory) {
         throw new SubcategoryNotFoundError(id);
       }
+
+      // Position within the destination category, only when the subcategory
+      // actually moves. Positions are unique per category, so keeping the old
+      // one could collide with a subcategory already sitting there.
+      let newPosition: number | undefined;
 
       // Validate the target category belongs to the same methodology.
       if (data.categoryId !== undefined) {
@@ -64,6 +71,17 @@ export const updateSubcategoryService = async (
         ) {
           throw new CategoryFromDifferentMethodologyError();
         }
+
+        if (BigInt(data.categoryId) !== targetSubcategory.categoryId) {
+          const { _max } = await tx.subcategory.aggregate({
+            where: {
+              categoryId: BigInt(data.categoryId),
+              status: { not: SubcategoryStatus.DELETED },
+            },
+            _max: { position: true },
+          });
+          newPosition = (_max.position ?? 0) + 1;
+        }
       }
 
       // Build update data dynamically based on provided fields
@@ -74,6 +92,8 @@ export const updateSubcategoryService = async (
 
       if (data.categoryId !== undefined)
         updateData.categoryId = BigInt(data.categoryId);
+      // The moved subcategory is appended last in its destination category.
+      if (newPosition !== undefined) updateData.position = newPosition;
       if (data.name !== undefined) updateData.name = data.name;
       if (data.icon !== undefined) updateData.icon = data.icon;
       if (data.description !== undefined)
@@ -152,6 +172,11 @@ export const updateSubcategoryService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
           throw new SubcategoryNameAlreadyExistsError();
+        }
+        // A concurrent move/create into the same destination category can claim
+        // the computed position first; surface it as a conflict, not a 500.
+        if (duplicatedFields.includes("position")) {
+          throw new SubcategoryPositionAlreadyExistsError();
         }
       }
     }

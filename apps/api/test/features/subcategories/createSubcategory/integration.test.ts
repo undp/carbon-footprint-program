@@ -126,6 +126,35 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       expect(dbRecord!.description).toBe(payload.description);
     });
 
+    it("should append the new subcategory last inside its category", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Subcategory Position",
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Position Parent",
+        position: 1,
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Existing Subcategory",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/subcategories/",
+        payload: buildSubcategoryPayload(category.id.toString()),
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateSubcategoryResponse;
+
+      const dbRecord = await prisma.subcategory.findUnique({
+        where: { id: BigInt(body.id) },
+      });
+
+      expect(dbRecord!.position).toBe(2);
+    });
+
     it("should create measurement unit associations", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Subcategory With Units",

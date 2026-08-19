@@ -34,7 +34,7 @@ export const methodologyExportSelect = {
       description: true,
       subcategories: {
         where: { status: SubcategoryStatus.ACTIVE },
-        orderBy: { name: "asc" },
+        orderBy: { position: "asc" },
         select: {
           id: true,
           name: true,

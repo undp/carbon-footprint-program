@@ -12,6 +12,12 @@ export const SubcategoryNameAlreadyExistsError = createError(
   409
 );
 
+export const SubcategoryPositionAlreadyExistsError = createError(
+  "SUBCATEGORY_POSITION_ALREADY_EXISTS",
+  "A subcategory with this position already exists for this category",
+  409
+);
+
 export const CategoryNotFoundForSubcategoryError = createError(
   "CATEGORY_NOT_FOUND_FOR_SUBCATEGORY",
   "Category not found",

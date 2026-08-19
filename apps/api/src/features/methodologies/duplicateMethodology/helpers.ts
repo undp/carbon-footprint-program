@@ -82,6 +82,7 @@ export const cloneSubcategories = async (
       icon: sub.icon,
       description: sub.description,
       explanation: sub.explanation,
+      position: sub.position,
       status: sub.status,
       createdById: userId,
       updatedAt: null,
