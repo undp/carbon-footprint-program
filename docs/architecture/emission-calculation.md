@@ -197,7 +197,7 @@ Users may enter their own factor if none in the library fits. Supported sources:
 
 ```typescript
 // packages/utils/src/constants.ts
-export const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
+export const CUSTOM_FACTOR_SOURCES = ["Otro"];
 ```
 
 When `manualFactorSource` is one of these values:
