@@ -33,7 +33,7 @@ export const StepHeader: FC<StepHeaderProps> = ({
             />
           )}
           {titleAdornment ? (
-            <Box className="ml-2 flex items-center">{titleAdornment}</Box>
+            <Box className="ml-2 flex items-center gap-2">{titleAdornment}</Box>
           ) : null}
         </Box>
         <Typography variant="subtitle2" color="text.secondary">

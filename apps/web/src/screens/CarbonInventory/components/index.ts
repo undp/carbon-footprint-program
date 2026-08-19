@@ -11,4 +11,4 @@ export * from "./SubcategoryPreselectionCarousel";
 export * from "./CategoryCarousel";
 export * from "./SaveDraftAuthModal";
 export * from "./SaveStatusIndicator";
-export * from "./FloatingSaveButton";
+export * from "./SaveActionButton";

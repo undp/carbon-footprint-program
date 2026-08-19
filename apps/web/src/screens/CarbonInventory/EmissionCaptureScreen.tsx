@@ -14,7 +14,7 @@ import {
   TotalCategoryEmissionCard,
   AddSubcategoryModal,
   SaveStatusIndicator,
-  FloatingSaveButton,
+  SaveActionButton,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -353,23 +353,25 @@ export const EmissionCaptureScreen: FC = () => {
             }}
             isLoading={isLoading}
           >
-            <Box className="relative flex min-h-0 flex-1 flex-col">
-              <FloatingSaveButton
-                isDirty={formState.isDirty}
-                isSaving={isSavingChanges}
-                disabled={globalSubmitting || isBusy}
-                onSave={handleSaveClick}
-              />
+            <Box className="flex min-h-0 flex-1 flex-col">
               <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
                 <StepHeader
                   title="Paso 3: Completa los datos de tus fuentes de emisión"
                   description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
                   explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
                   titleAdornment={
-                    <SaveStatusIndicator
-                      isDirty={formState.isDirty}
-                      isSaving={globalSubmitting}
-                    />
+                    <>
+                      <SaveStatusIndicator
+                        isDirty={formState.isDirty}
+                        isSaving={globalSubmitting}
+                      />
+                      <SaveActionButton
+                        isDirty={formState.isDirty}
+                        isSaving={isSavingChanges}
+                        disabled={globalSubmitting || isBusy}
+                        onSave={handleSaveClick}
+                      />
+                    </>
                   }
                   action={
                     <Button
