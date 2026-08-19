@@ -148,5 +148,14 @@ export const CARBON_INVENTORY_ZIP_METHODOLOGY_ENTRY_NAME = "metodologia.xlsx";
 /** Filename of the human-readable README at the ZIP root. */
 export const CARBON_INVENTORY_ZIP_README_ENTRY_NAME = "LEEME.txt";
 
+/**
+ * Catalog value seeded into every open-ended emission-factor dimension so a
+ * user whose real-world item is not listed can still declare the line (picking
+ * a custom factor source). The API returns dimension values alphabetically, so
+ * the capture dropdown re-sorts this one last — it is an escape hatch, not a
+ * regular option.
+ */
+export const EMISSION_FACTOR_DIMENSION_OTHER_VALUE = "Otro";
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";

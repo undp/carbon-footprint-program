@@ -1,6 +1,7 @@
 import { FC, useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
+import { sortDimensionValuesWithOtherLast } from "../services/emissionFactorService";
 import { MethodologyEmissionFactorDimension } from "../../../types";
 
 interface EmissionEditorDimensionCellProps {
@@ -35,12 +36,15 @@ export const EmissionEditorDimensionCell: FC<
     disabled: !parentField,
   }) as string | null;
 
-  // Filter values based on parent dimension if provided
+  // Filter values based on parent dimension if provided, keeping "Otro" last
   const values = useMemo(() => {
-    if (!parentField || !parentValue) return dimension.values;
-    return dimension.values.filter(
-      (v) => v.parentValueId === parentValue || v.parentValueId === null
-    );
+    const visibleValues =
+      !parentField || !parentValue
+        ? dimension.values
+        : dimension.values.filter(
+            (v) => v.parentValueId === parentValue || v.parentValueId === null
+          );
+    return sortDimensionValuesWithOtherLast(visibleValues);
   }, [dimension.values, parentValue, parentField]);
 
   return (

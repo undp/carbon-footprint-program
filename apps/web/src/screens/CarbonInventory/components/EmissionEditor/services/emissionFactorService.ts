@@ -1,4 +1,7 @@
-import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import {
+  CUSTOM_FACTOR_SOURCES,
+  EMISSION_FACTOR_DIMENSION_OTHER_VALUE,
+} from "@/config/constants";
 import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 const isCustomFactorSource = (
@@ -49,3 +52,17 @@ export const getAvailableSources = (
 ): string[] => {
   return [...new Set(availableFactors.map((f) => f.source))];
 };
+
+/**
+ * Keeps the "Otro" escape hatch at the bottom of a dimension dropdown. The API
+ * returns dimension values alphabetically, which would otherwise bury it in the
+ * middle of long catalogs (e.g. the mobile-combustion machinery list).
+ */
+export const sortDimensionValuesWithOtherLast = <T extends { value: string }>(
+  values: T[]
+): T[] =>
+  values
+    .filter((v) => v.value !== EMISSION_FACTOR_DIMENSION_OTHER_VALUE)
+    .concat(
+      values.filter((v) => v.value === EMISSION_FACTOR_DIMENSION_OTHER_VALUE)
+    );
