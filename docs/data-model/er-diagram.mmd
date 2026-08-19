@@ -229,11 +229,15 @@ erDiagram
 		string icon ""
 		%% just for displaying
 		string description  ""
+		%% Position must be > 0 (enforced by DB CHECK constraint)
+		int position ""
 		enum status "ACTIVE | DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
 		BIGINT updated_by FK ""
+		%% UNIQUE(category_id, name)
+		%% UNIQUE(category_id, position)
 	}
 
 	emission_factor_dimension {
