@@ -81,6 +81,7 @@ class State:
     subcategory_map = {
         "Nombre Sub categoría": json_subcategory_name_value,
         "Descripción": "description",
+        "Posición": "position",
         }
     subcategory_excluded_cols = [
         'Nombre categoría',
