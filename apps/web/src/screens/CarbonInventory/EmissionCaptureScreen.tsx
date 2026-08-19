@@ -1,6 +1,6 @@
 import { FC, useMemo, useCallback, useEffect, useState } from "react";
 import { Box, Button } from "@mui/material";
-import { AddRounded, SaveOutlined } from "@mui/icons-material";
+import { AddRounded } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
@@ -14,6 +14,7 @@ import {
   TotalCategoryEmissionCard,
   AddSubcategoryModal,
   SaveStatusIndicator,
+  FloatingSaveButton,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -305,21 +306,6 @@ export const EmissionCaptureScreen: FC = () => {
     void handleSubmit(submitAndStay)();
   };
 
-  const saveButton: FooterButton = {
-    text: "Guardar",
-    align: "left",
-    tooltipTitle: formState.isDirty
-      ? "Guarda tus cambios"
-      : "No hay cambios para guardar",
-    buttonProps: {
-      variant: "outlined",
-      startIcon: <SaveOutlined />,
-      onClick: handleSaveClick,
-      loading: isSavingChanges,
-      disabled: !formState.isDirty || globalSubmitting || isBusy,
-    },
-  };
-
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
@@ -363,24 +349,28 @@ export const EmissionCaptureScreen: FC = () => {
               ),
             }}
             footerProps={{
-              buttons: [saveButton, backButton, nextButton],
-              // Hidden while loading: the form is still empty, so claiming
-              // "sin cambios pendientes" would be meaningless.
-              leftContent: isLoading ? null : (
-                <SaveStatusIndicator
-                  isDirty={formState.isDirty}
-                  isSaving={globalSubmitting}
-                />
-              ),
+              buttons: [backButton, nextButton],
             }}
             isLoading={isLoading}
           >
-            <Box className="flex min-h-0 flex-1 flex-col">
+            <Box className="relative flex min-h-0 flex-1 flex-col">
+              <FloatingSaveButton
+                isDirty={formState.isDirty}
+                isSaving={isSavingChanges}
+                disabled={globalSubmitting || isBusy}
+                onSave={handleSaveClick}
+              />
               <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
                 <StepHeader
                   title="Paso 3: Completa los datos de tus fuentes de emisión"
                   description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
                   explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
+                  titleAdornment={
+                    <SaveStatusIndicator
+                      isDirty={formState.isDirty}
+                      isSaving={globalSubmitting}
+                    />
+                  }
                   action={
                     <Button
                       variant="outlined"

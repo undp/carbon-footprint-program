@@ -8,6 +8,8 @@ type StepHeaderProps = {
   description: string;
   action?: ReactNode;
   explanationSlug?: string;
+  /** Node rendered right after the title (e.g. a save status). */
+  titleAdornment?: ReactNode;
 };
 
 export const StepHeader: FC<StepHeaderProps> = ({
@@ -15,6 +17,7 @@ export const StepHeader: FC<StepHeaderProps> = ({
   description,
   action,
   explanationSlug,
+  titleAdornment,
 }) => {
   const { openExplanationBySlug } = useExplanationDialog();
 
@@ -29,6 +32,9 @@ export const StepHeader: FC<StepHeaderProps> = ({
               onClick={() => openExplanationBySlug(explanationSlug)}
             />
           )}
+          {titleAdornment ? (
+            <Box className="ml-2 flex items-center">{titleAdornment}</Box>
+          ) : null}
         </Box>
         <Typography variant="subtitle2" color="text.secondary">
           {description}

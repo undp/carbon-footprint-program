@@ -270,6 +270,7 @@ Cross-checks: scope split ≈ 17.9 % / 29.9 % / 52.3 %; main-activity equivalenc
 - Within a category, subcategories are ordered **alphabetically**, not in methodology order. Category 3's real order is: Consumo de agua → Desplazamiento diario → Disposición de residuos → Productos comprados → Trabajo remoto → Transporte aguas arriba → Viajes de negocios - Estadía.
 - Each subcategory starts with one empty line; use **Agregar Fuente** for each additional one.
 - Step 3 also has an **Agregar subcategorías** button, so subcategories can be added without going back to step 2.
+- Step 3 saves **implicitly** on every navigation (category tab, **Volver**, **Siguiente**, exit) and also **explicitly**: a floating save icon appears at the bottom right of the card while the form has unsaved changes, and the status next to the step title reads _Cambios sin guardar_ / _Sin cambios pendientes_ / _Guardando cambios…_.
 - `Cantidad` accepts a comma decimal separator (`12,5`) and formats thousands as you type (`12.500`).
 
 ### Fill order matters
