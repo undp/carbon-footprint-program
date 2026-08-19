@@ -10,6 +10,7 @@ import {
 import {
   CategoryNotFoundForSubcategoryError,
   SubcategoryNameAlreadyExistsError,
+  SubcategoryPositionAlreadyExistsError,
 } from "../errors.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -38,6 +39,17 @@ export const createSubcategoryService = async (
         throw new CategoryNotFoundForSubcategoryError();
       }
 
+      // Positions are not supplied by the client: a new subcategory is appended
+      // last inside its category. DELETED rows are excluded from both the max
+      // and the partial unique index, so a freed position can be reused.
+      const { _max } = await tx.subcategory.aggregate({
+        where: {
+          categoryId: category.id,
+          status: { not: SubcategoryStatus.DELETED },
+        },
+        _max: { position: true },
+      });
+
       const newSubcategory = await tx.subcategory.create({
         data: {
           categoryId: category.id,
@@ -45,6 +57,7 @@ export const createSubcategoryService = async (
           icon: data.icon,
           description: data.description,
           explanation: data.explanation ?? null,
+          position: (_max.position ?? 0) + 1,
           status: SubcategoryStatus.ACTIVE,
           createdById: BigInt(user.id),
           updatedAt: null,
@@ -98,6 +111,11 @@ export const createSubcategoryService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (duplicatedFields.includes("name")) {
           throw new SubcategoryNameAlreadyExistsError();
+        }
+        // Two concurrent creates can compute the same next position; the unique
+        // index rejects the loser, which should retry instead of seeing a 500.
+        if (duplicatedFields.includes("position")) {
+          throw new SubcategoryPositionAlreadyExistsError();
         }
       }
     }
