@@ -1675,7 +1675,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 1.72
+                "value": 1720
               },
               {
                 "dimensionValue1": {
@@ -1685,7 +1685,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.43
+                "value": 430
               },
               {
                 "dimensionValue1": {
@@ -1695,10 +1695,10 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 3.66
+                "value": 3660
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -1725,12 +1725,12 @@
                   "valueName": "Clinker"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.52
+                "value": 520
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -1781,9 +1781,9 @@
                   "valueName": "Contenedores (Recipientes de color transparente)"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.21
+                "value": 210
               },
               {
                 "dimensionValue1": {
@@ -1791,9 +1791,9 @@
                   "valueName": "Contenedores de color (Recipientes de color verde u otros)"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.21
+                "value": 210
               },
               {
                 "dimensionValue1": {
@@ -1801,9 +1801,9 @@
                   "valueName": "Fibra de vidrio"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.19
+                "value": 190
               },
               {
                 "dimensionValue1": {
@@ -1811,9 +1811,9 @@
                   "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.2
+                "value": 200
               },
               {
                 "dimensionValue1": {
@@ -1821,9 +1821,9 @@
                   "valueName": "Vidrio general"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.21
+                "value": 210
               },
               {
                 "dimensionValue1": {
@@ -1831,9 +1831,9 @@
                   "valueName": "Vidrio plano (ventanas, mesas, etc)"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.21
+                "value": 210
               },
               {
                 "dimensionValue1": {
@@ -1841,12 +1841,12 @@
                   "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.1
+                "value": 100
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -1887,7 +1887,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 1.46
+                "value": 1460
               },
               {
                 "dimensionValue1": {
@@ -1897,7 +1897,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 0.08
+                "value": 80
               },
               {
                 "dimensionValue1": {
@@ -1907,7 +1907,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 1.72
+                "value": 1720
               },
               {
                 "dimensionValue1": {
@@ -1917,10 +1917,10 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 1.06
+                "value": 1060
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
             "icon": "FACTORY"
           },
           {
