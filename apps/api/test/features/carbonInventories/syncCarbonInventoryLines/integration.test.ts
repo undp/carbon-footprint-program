@@ -1048,6 +1048,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
           name: "Test Subcategory",
           icon: "TRUCK",
           description: "Test Description",
+          position: 1,
           updatedAt: null,
         },
       });
