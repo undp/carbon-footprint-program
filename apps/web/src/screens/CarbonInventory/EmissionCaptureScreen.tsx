@@ -377,7 +377,7 @@ export const EmissionCaptureScreen: FC = () => {
                         Agregar Subcategorías
                       </Button>
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         size="small"
                         startIcon={<SaveOutlined />}
                         onClick={handleSaveClick}
