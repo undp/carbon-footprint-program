@@ -173,7 +173,7 @@ export async function fetchCategoryData(
           color: true,
           subcategories: {
             select: { id: true, name: true, icon: true },
-            orderBy: { name: "asc" },
+            orderBy: { position: "asc" },
           },
         },
         orderBy: { position: "asc" },
