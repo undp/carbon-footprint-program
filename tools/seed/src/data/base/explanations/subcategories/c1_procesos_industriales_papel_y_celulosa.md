@@ -49,7 +49,7 @@ Si operas un horno de cal o repones carbonatos en el proceso, **debes declarar e
 | Horno de cal de la planta    | Toneladas de carbonato de calcio calcinado en el año         |
 | Producción de pulpa          | Otras emisiones de proceso del cocimiento químico            |
 | Producción de papel y cartón | Emisiones de proceso de cargas y recubrimientos              |
-| Otro proceso de la planta    | Cualquier otra emisión de proceso, descrita en el comentario |
+| Otro                         | Cualquier otra emisión de proceso, descrita en el comentario |
 
 ⚠️ Si declaras más de un proceso, **agrega una línea por cada uno**.
 

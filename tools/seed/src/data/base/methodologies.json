@@ -2456,7 +2456,7 @@
                   { "name": "Acrilonitrilo", "parentValue": null },
                   { "name": "Negro de humo", "parentValue": null },
                   { "name": "Fluoroquímicos", "parentValue": null },
-                  { "name": "Otro proceso químico", "parentValue": null }
+                  { "name": "Otro", "parentValue": null }
                 ]
               }
             ],
@@ -2500,7 +2500,7 @@
                     "parentValue": null
                   },
                   { "name": "Magnesio", "parentValue": null },
-                  { "name": "Otro proceso metalúrgico", "parentValue": null }
+                  { "name": "Otro", "parentValue": null }
                 ]
               }
             ],
@@ -2655,7 +2655,7 @@
                     "name": "Producción de papel y cartón",
                     "parentValue": null
                   },
-                  { "name": "Otro proceso de la planta", "parentValue": null }
+                  { "name": "Otro", "parentValue": null }
                 ]
               }
             ],
@@ -2689,7 +2689,7 @@
                     "name": "Producción de magnesia no metalúrgica",
                     "parentValue": null
                   },
-                  { "name": "Otro uso de carbonatos", "parentValue": null }
+                  { "name": "Otro", "parentValue": null }
                 ]
               }
             ],
@@ -2715,7 +2715,7 @@
                   { "name": "Uso de lubricantes", "parentValue": null },
                   { "name": "Uso de ceras de parafina", "parentValue": null },
                   { "name": "Uso de solventes", "parentValue": null },
-                  { "name": "Otro proceso industrial", "parentValue": null }
+                  { "name": "Otro", "parentValue": null }
                 ]
               }
             ],

@@ -60,7 +60,7 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa 
 | Cerámica (sanitarios y revestimientos) | Carbonatos contenidos en pasta y esmalte     |
 | Otros usos de carbonato de sodio       | Toneladas de Na₂CO₃ consumidas en el proceso |
 | Producción de magnesia no metalúrgica  | Toneladas de magnesita calcinada             |
-| Otro uso de carbonatos                 | Descríbelo en el comentario de la línea      |
+| Otro                                   | Descríbelo en el comentario de la línea      |
 
 ⚠️ Si tienes varias líneas de producto con composiciones distintas, **agrega una línea por cada una**.
 
