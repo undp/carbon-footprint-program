@@ -67,6 +67,12 @@ overrides:
   "brace-expansion@1": ^1.1.18 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver/unzipper)
   "brace-expansion@2": ^2.1.4 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver>readdir-glob>minimatch)
   "brace-expansion@5": ^5.0.9 # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (@fastify/static>glob>minimatch)
+  # deepmerge-ts: @prisma/config pins 7.1.5 exactly, so the floor has to be forced.
+  # Upstream fix is still unreleased: tracked by
+  # https://github.com/prisma/prisma/issues/30052 and fixed by
+  # https://github.com/prisma/prisma/pull/30054 (open, community-authored, targets `v7`).
+  # Drop this override once a published @prisma/config ships deepmerge-ts >= 8.
+  "deepmerge-ts": ^8.0.1 # GHSA-ggr8-5vv4-36mx / CVE-2026-40345 (@prisma/client>prisma>@prisma/config)
   "fast-uri@3": ^3.1.5 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 (fastify>ajv/fast-json-stringify; prisma>ajv)
   "fast-xml-parser": ^5.10.1 # GHSA-8r6m-32jq-jx6q (@azure/storage-blob>@azure/core-xml)
   "find-my-way": ^9.6.1 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
