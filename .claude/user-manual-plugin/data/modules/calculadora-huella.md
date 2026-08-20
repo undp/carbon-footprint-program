@@ -55,7 +55,7 @@ Las dos rutas abren el **mismo** asistente de 5 pasos; lo que cambia está en el
   `isManualTotalEmissions` (mismo mapper). Al desactivarla reaparecen las líneas de detalle.
 - **Texto de ayuda** sobre la grilla, solo en `EXPERT` ("Agrega las fuentes consideradas. Es
   opcional, pero nos ayuda a validar tu cálculo", `EmissionEditor.tsx:156-165`).
-- `Factor Propio` está disponible en **ambos** modos; el campo Factor se vuelve editable según la
+- `Otro` está disponible en **ambos** modos; el campo Factor se vuelve editable según la
   fuente del factor (`fieldValidationService.ts:40`, `canEditFactorValue`).
 
 ## Reglas y límites

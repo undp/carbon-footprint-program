@@ -127,7 +127,7 @@ Debes rellenar los siguientes campos:
 
 1.- Debes rellenar los campos igual que en el Caso 1.
 
-2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
+2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Otro"**.
 
 3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado (por ejemplo, si tienes un PPA con factor certificado distinto al de la red).
 

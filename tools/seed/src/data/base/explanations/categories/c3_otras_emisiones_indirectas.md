@@ -144,7 +144,7 @@ Para cada sub-categoría aplicable, debes rellenar campos similares a:
 
 1.- Rellena los campos como en el Caso 1.
 
-2.- En **"Fuente factor"** selecciona **"Factor propio"**.
+2.- En **"Fuente factor"** selecciona **"Otro"**.
 
 3.- Modifica el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 
