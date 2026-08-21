@@ -4,12 +4,12 @@ Admin maintainers for the four profiling catalogs:
 
 | Maintainer                | Path                        | Underlying table             |
 | ------------------------- | --------------------------- | ---------------------------- |
-| Rubros                    | `/admin/sectors`            | `country_sector`             |
-| Subrubros                 | `/admin/subsectors`         | `country_subsector`          |
-| Actividades Principales   | `/admin/main-activities`    | `organization_main_activity` |
+| Sectores                  | `/admin/sectors`            | `country_sector`             |
+| Actividades económicas    | `/admin/subsectors`         | `country_subsector`          |
+| Unidades de actividad     | `/admin/main-activities`    | `organization_main_activity` |
 | Tamaño de la Organización | `/admin/organization-sizes` | `country_organization_size`  |
 
-All four sit under the **Perfilamiento** sidebar group, gated to `[ADMIN, SUPERADMIN]`.
+All four sit under the **Datos generales** sidebar group, gated to `[ADMIN, SUPERADMIN]`.
 
 ## Soft-delete lifecycle
 
@@ -63,7 +63,7 @@ A shared `InUseWarningDialog` (`apps/web/src/screens/Maintainer/components/dialo
 1. The edit changes a **visible** field — `name` (all four), `countrySectorId` (subsector / main activity), or `countrySubsectorId` (main activity). `description` changes are exempt.
 2. The target row has user-data references — the admin list endpoints return `isInUse: boolean` per row, computed at query time as `OR` over the relevant `organization_data.*` counts (and `organization_main_activity.*` for sector / subsector).
 
-Confirm → PATCH; Cancel → return to edit. The dialog copy is parameterised by `entityLabel` (`"rubro"` / `"subrubro"` / `"actividad principal"` / `"tamaño"`).
+Confirm → PATCH; Cancel → return to edit. The dialog copy is parameterised by `entityLabel` (`"sector"` / `"actividad económica"` / `"unidad de actividad"` / `"tamaño"`), whose grammatical gender drives the demonstrative and participle agreement.
 
 ## Selector union (`mergeSelectedOption`)
 

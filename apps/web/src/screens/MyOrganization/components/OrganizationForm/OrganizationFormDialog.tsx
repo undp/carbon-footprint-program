@@ -216,14 +216,18 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormSelectField
                   name="sectorId"
                   control={control}
-                  label="Rubro / Sector económico"
+                  label="Sector"
                   options={sectorOptions}
                   disabled={sectorsLoading}
                 />
                 <FormSelectField
                   name="subsectorId"
                   control={control}
-                  label={selectedSectorId ? "Sub-rubro" : "Selecciona el rubro"}
+                  label={
+                    selectedSectorId
+                      ? "Actividad económica principal"
+                      : "Selecciona el sector"
+                  }
                   options={subsectorSelectOptions}
                   disabled={
                     sectorsLoading ||
@@ -257,7 +261,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormAutocompleteField
                   name="mainActivityId"
                   control={control}
-                  label={`Actividad principal de ${VOCAB.organization.article.singular}`}
+                  label={`Unidad de actividad de ${VOCAB.organization.article.singular}`}
                   labelId="activity-label"
                   options={activityOptions}
                   loading={activitiesLoading}

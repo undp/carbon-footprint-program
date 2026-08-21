@@ -227,7 +227,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   // Profiling catalogs (static strings only)
   [
     "SECTOR_SUBSECTOR_MISMATCH",
-    "El subrubro seleccionado no pertenece al rubro indicado.",
+    "La actividad económica seleccionada no pertenece al sector indicado.",
   ],
   ["SAME_ORGANIZATION_SIZE", "No se puede reordenar un tamaño consigo mismo."],
   [
@@ -309,14 +309,14 @@ describe("getApiErrorMessage — DATABASE_UNIQUE_CONSTRAINT_VIOLATION", () => {
   const CODE = "DATABASE_UNIQUE_CONSTRAINT_VIOLATION";
 
   it.each<readonly [string, string]>([
-    ["CountrySector", "Ya existe un rubro activo con ese nombre."],
+    ["CountrySector", "Ya existe un sector activo con ese nombre."],
     [
       "CountrySubsector",
-      "Ya existe un subrubro activo con ese nombre dentro del rubro indicado.",
+      "Ya existe una actividad económica activa con ese nombre dentro del sector indicado.",
     ],
     [
       "OrganizationMainActivity",
-      "Ya existe una actividad principal activa con ese nombre y la misma combinación de rubro/subrubro.",
+      "Ya existe una unidad de actividad activa con ese nombre y la misma combinación de sector/actividad económica.",
     ],
     [
       "CountryOrganizationSize",
@@ -340,13 +340,13 @@ describe("getApiErrorMessage — RESTORE_ON_ACTIVE", () => {
   const CODE = "RESTORE_ON_ACTIVE";
 
   it.each<readonly [string, string]>([
-    ["CountrySector", "El rubro ya se encuentra activo."],
-    ["CountrySubsector", "El subrubro ya se encuentra activo."],
-    // "actividad" is feminine, so the adjective agrees as "activa" (the other
-    // three subjects are masculine → "activo"). Guards the gender-agreement fix.
+    ["CountrySector", "El sector ya se encuentra activo."],
+    // Two of the four subjects are feminine, so the adjective has to agree as
+    // "activa" instead of "activo". Guards the gender-agreement fix.
+    ["CountrySubsector", "La actividad económica ya se encuentra activa."],
     [
       "OrganizationMainActivity",
-      "La actividad principal ya se encuentra activa.",
+      "La unidad de actividad ya se encuentra activa.",
     ],
     [
       "CountryOrganizationSize",
@@ -390,7 +390,7 @@ describe("getApiErrorMessage — PARENT_NOT_ACTIVE", () => {
       parentName: "Movilidad",
     };
     expect(getApiErrorMessage(httpErrorWithCode(CODE, details), FALLBACK)).toBe(
-      'No se puede restaurar el subrubro "Transporte urbano" porque el rubro "Movilidad" está eliminado. Restáuralo primero.'
+      'No se puede restaurar la actividad económica "Transporte urbano" porque el sector "Movilidad" está eliminado. Restáuralo primero.'
     );
   });
 
@@ -402,7 +402,7 @@ describe("getApiErrorMessage — PARENT_NOT_ACTIVE", () => {
       parentName: "Transporte urbano",
     };
     expect(getApiErrorMessage(httpErrorWithCode(CODE, details), FALLBACK)).toBe(
-      'No se puede restaurar la actividad principal "Reparto a domicilio" porque el subrubro "Transporte urbano" está eliminado. Restáuralo primero.'
+      'No se puede restaurar la unidad de actividad "Reparto a domicilio" porque la actividad económica "Transporte urbano" está eliminada. Restáurala primero.'
     );
   });
 
@@ -481,7 +481,7 @@ describe("getApiErrorMessage — EDIT_BLOCKED_BY_REFERENCES", () => {
         referencedBy: { activeMainActivities: 2 },
       },
       expected:
-        "No se puede cambiar el nombre del rubro porque tiene 2 actividades principales. Si lo cambias, quienes ya lo seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminarlo y volver a crearlo.",
+        "No se puede cambiar el nombre del sector porque tiene 2 unidades de actividad. Si lo cambias, quienes ya lo seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminarlo y volver a crearlo.",
     },
     {
       // name change · main activity · all four references, mixed singular/plural,
@@ -499,7 +499,7 @@ describe("getApiErrorMessage — EDIT_BLOCKED_BY_REFERENCES", () => {
         },
       },
       expected:
-        "No se puede cambiar el nombre de la actividad principal porque tiene 1 actividad principal, 3 recomendaciones de subcategoría, 1 organización y 2 huellas de carbono. Si lo cambias, quienes ya la seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminarla y volver a crearla.",
+        "No se puede cambiar el nombre de la unidad de actividad porque tiene 1 unidad de actividad, 3 recomendaciones de subcategoría, 1 organización y 2 huellas de carbono. Si lo cambias, quienes ya la seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminarla y volver a crearla.",
     },
     {
       // name change · size · no references → "está en uso"
@@ -523,7 +523,7 @@ describe("getApiErrorMessage — EDIT_BLOCKED_BY_REFERENCES", () => {
         referencedBy: { activeSubcategoryRecommendations: 1 },
       },
       expected:
-        "No se puede cambiar el rubro del subrubro porque tiene 1 recomendación de subcategoría. Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.",
+        "No se puede cambiar el sector de la actividad económica porque tiene 1 recomendación de subcategoría. Para reasignarla, elimínala y vuelve a crearla con el sector correcto.",
     },
     {
       // re-parent · main activity · two references → 2-item list join, main-activity suffix
@@ -534,7 +534,7 @@ describe("getApiErrorMessage — EDIT_BLOCKED_BY_REFERENCES", () => {
         referencedBy: { organizationData: 1, carbonInventories: 1 },
       },
       expected:
-        "No se puede cambiar el rubro o subrubro de la actividad principal porque tiene 1 organización y 1 huella de carbono. Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto.",
+        "No se puede cambiar el sector o la actividad económica de la unidad de actividad porque tiene 1 organización y 1 huella de carbono. Para reasignarla, elimínala y vuelve a crearla con el sector o la actividad económica correctos.",
     },
     {
       // re-parent · unknown resourceType → "del registro"; non-numeric count ignored
@@ -544,14 +544,14 @@ describe("getApiErrorMessage — EDIT_BLOCKED_BY_REFERENCES", () => {
         referencedBy: { organizationData: 2, activeMainActivities: "5" },
       },
       expected:
-        "No se puede cambiar el rubro del registro porque tiene 2 organizaciones. Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.",
+        "No se puede cambiar el sector del registro porque tiene 2 organizaciones. Para reasignarlo, elimínalo y vuelve a crearlo con el sector correcto.",
     },
     {
       // re-parent · details entirely absent → apiDetails undefined, "está en uso", "del registro"
       label: "re-parent with no details at all (apiDetails undefined)",
       details: undefined,
       expected:
-        "No se puede cambiar el rubro del registro porque está en uso. Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.",
+        "No se puede cambiar el sector del registro porque está en uso. Para reasignarlo, elimínalo y vuelve a crearlo con el sector correcto.",
     },
   ];
 

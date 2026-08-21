@@ -157,8 +157,10 @@ describe("buildCarbonInventoryWorkbook — Resumen sheet", () => {
 
     expect(resumenValue(worksheet, "Nombre organización")).toBe("Acme S.A.");
     expect(resumenValue(worksheet, "País")).toBe("Chile");
-    expect(resumenValue(worksheet, "Rubro")).toBe("Industria");
-    expect(resumenValue(worksheet, "Sub-rubro")).toBe("Manufactura");
+    expect(resumenValue(worksheet, "Sector")).toBe("Industria");
+    expect(resumenValue(worksheet, "Actividad económica principal")).toBe(
+      "Manufactura"
+    );
     expect(resumenValue(worksheet, "Tamaño")).toBe("Grande");
     expect(resumenValue(worksheet, "Medición")).toBe("Medición 2024");
     expect(resumenValue(worksheet, "Año")).toBe(2024);

@@ -4,7 +4,7 @@
 
 Permite gestionar el catálogo de Tamaños que las Organizaciones pueden seleccionar en su perfil (por ejemplo, micro, pequeña, mediana, grande). Cada Tamaño suele definir tramos en función de número de empleados, ingresos u otros criterios establecidos por el regulador, y se utiliza para aplicar metodologías, requisitos o reglas de reporte específicas.
 
-A diferencia de los catálogos sectoriales, los Tamaños tienen un **orden manual**: la posición de las filas define el orden en que las opciones se presentarán a las Organizaciones durante el perfilamiento.
+A diferencia de los catálogos sectoriales, los Tamaños tienen un **orden manual**: la posición de las filas define el orden en que las opciones se presentarán a las Organizaciones en sus datos generales.
 
 ## Alcance
 

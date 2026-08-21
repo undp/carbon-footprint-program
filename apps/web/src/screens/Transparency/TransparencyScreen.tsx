@@ -81,7 +81,7 @@ export const TransparencyScreen: FC = () => {
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder={`Buscar por ${VOCAB.organization.noun.singular}, rubro o sub-rubro`}
+                placeholder={`Buscar por ${VOCAB.organization.noun.singular}, sector o actividad económica`}
               />
 
               <YearFilter

@@ -518,7 +518,7 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
 
       const result = await calculateEquivalence(prisma, orgData, 100);
       expect(result).not.toBeNull();
-      expect(result!.activityName).toBe("actividad principal");
+      expect(result!.activityName).toBe("unidad de actividad");
     });
   });
 

@@ -53,7 +53,7 @@ export const restoreOrganizationMainActivityService = async (
         });
       }
 
-      // Block restore when the linked rubro/subrubro is no longer ACTIVE so
+      // Block restore when the linked sector / economic activity is no longer ACTIVE so
       // restored activities never resurrect with stale parent references.
       // ParentNotActiveError (vs ResourceNotFoundError) lets the frontend show a dialog
       // explaining which parent must be restored first.

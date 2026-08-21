@@ -8,9 +8,9 @@ const BASE_LABELS = {
   yearLabel: "Año de medición",
   companyNameLabel: `Nombre de ${VOCAB.organization.article.singular} (Opcional)`,
   companySizeLabel: "Tamaño (Opcional)",
-  sectorLabel: "Rubro",
-  activityLabel: `Actividad principal de ${VOCAB.organization.article.singular} (Opcional)`,
-  quantityLabel: "Cantidad de actividad principal al año",
+  sectorLabel: "Sector",
+  activityLabel: `Unidad de actividad de ${VOCAB.organization.article.singular} (Opcional)`,
+  quantityLabel: "Cantidad de la unidad de actividad al año",
 } as const;
 
 export const useBusinessProfilingLabels = ({
@@ -21,7 +21,8 @@ export const useBusinessProfilingLabels = ({
   selectedActivity?: NamedItem;
 }) => {
   const subSectorLabel = useMemo(
-    () => (selectedSector ? "Sub-rubro" : "Selecciona el rubro"),
+    () =>
+      selectedSector ? "Actividad económica principal" : "Selecciona el sector",
     [selectedSector]
   );
 
@@ -29,7 +30,7 @@ export const useBusinessProfilingLabels = ({
     () =>
       selectedActivity?.name
         ? `Cantidad de ${selectedActivity.name} al año`
-        : "Selecciona la actividad principal",
+        : "Selecciona la unidad de actividad",
     [selectedActivity]
   );
 

@@ -81,8 +81,11 @@ function buildSummarySheet(
   const attributes: [string, string | number][] = [
     ["Nombre organización", display(inventoryAttributes.companyName)],
     ["País", display(inventoryAttributes.countryName)],
-    ["Rubro", display(inventoryAttributes.sectorName)],
-    ["Sub-rubro", display(inventoryAttributes.subsectorName)],
+    ["Sector", display(inventoryAttributes.sectorName)],
+    [
+      "Actividad económica principal",
+      display(inventoryAttributes.subsectorName),
+    ],
     ["Tamaño", display(inventoryAttributes.sizeName)],
     ["Medición", display(inventoryAttributes.name)],
     ["Año", display(year)],

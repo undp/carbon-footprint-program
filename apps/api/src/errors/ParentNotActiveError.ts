@@ -2,7 +2,7 @@ import createError from "@fastify/error";
 
 /**
  * Thrown when a soft-deleted row cannot be restored because its parent in the catalog
- * hierarchy is itself soft-deleted (e.g., restoring a subsector while its parent rubro
+ * hierarchy is itself soft-deleted (e.g., restoring an economic activity while its parent sector
  * is DELETED). HTTP 409 because this is a business-rule validation surface. Callers
  * should attach `details` (resourceType, resourceName, parentType, parentName) via
  * `attachDetails` so the frontend can render localized copy.

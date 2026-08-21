@@ -76,7 +76,7 @@ Las fuentes de información son variadas:
 
 #### **Opción 1:** Promedios sectoriales
 
-Para inversiones o franquicias, usa intensidad de carbono promedio del rubro × tamaño relativo.
+Para inversiones o franquicias, usa intensidad de carbono promedio del sector × tamaño relativo.
 
 ---
 

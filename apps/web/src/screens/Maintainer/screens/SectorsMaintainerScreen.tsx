@@ -159,16 +159,16 @@ export const SectorsMaintainerScreen: FC = () => {
     setEditingRowId,
     isNewRow,
     successMessages: {
-      create: "Rubro creado exitosamente",
+      create: "Sector creado exitosamente",
       update: "Cambios guardados satisfactoriamente",
-      delete: "Rubro eliminado",
-      restore: "Rubro restaurado",
+      delete: "Sector eliminado",
+      restore: "Sector restaurado",
     },
     errorMessages: {
-      create: "No se pudo crear el rubro",
-      update: "No se pudo guardar el rubro",
-      delete: "No se pudo eliminar el rubro",
-      restore: "No se pudo restaurar el rubro",
+      create: "No se pudo crear el sector",
+      update: "No se pudo guardar el sector",
+      delete: "No se pudo eliminar el sector",
+      restore: "No se pudo restaurar el sector",
     },
   });
 
@@ -219,9 +219,9 @@ export const SectorsMaintainerScreen: FC = () => {
 
   return (
     <ProfilingMaintainerScreenLayout
-      title="Rubros"
-      subtitle={`Gestiona los rubros que ${VOCAB.organization.article.plural} pueden seleccionar.`}
-      addLabel="Agregar rubro"
+      title="Sectores"
+      subtitle={`Gestiona los sectores que ${VOCAB.organization.article.plural} pueden seleccionar.`}
+      addLabel="Agregar sector"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
       form={form}
@@ -239,7 +239,7 @@ export const SectorsMaintainerScreen: FC = () => {
           />
           <BlockedActionDialog
             open={actions.updateBlockedMessage !== null}
-            title="No se puede cambiar el nombre del rubro"
+            title="No se puede cambiar el nombre del sector"
             message={actions.updateBlockedMessage ?? ""}
             onClose={actions.dismissUpdateBlocked}
           />
@@ -249,7 +249,7 @@ export const SectorsMaintainerScreen: FC = () => {
       <Box sx={{ width: "100%" }}>
         {isEmpty ? (
           <Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
-            No hay rubros para mostrar.
+            No hay sectores para mostrar.
           </Typography>
         ) : (
           <MaintainerDataGrid<SectorFormRow>
@@ -266,15 +266,15 @@ export const SectorsMaintainerScreen: FC = () => {
             showToolbar
             searchable={{
               fuseOptions,
-              placeholder: "Buscar rubros...",
-              downloadFileName: "rubros",
+              placeholder: "Buscar sectores...",
+              downloadFileName: "sectores",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
             localeText={{
-              noRowsLabel: "No hay rubros para mostrar",
-              noResultsOverlayLabel: "No se encontraron rubros",
+              noRowsLabel: "No hay sectores para mostrar",
+              noResultsOverlayLabel: "No se encontraron sectores",
             }}
           />
         )}

@@ -249,8 +249,8 @@ export const BusinessProfilingScreen: FC = () => {
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
               <StepHeader
-                title="Paso 1: Perfilamiento"
-                description={`La información de tu ${VOCAB.organization.noun.singular} nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro.`}
+                title="Paso 1: Datos generales"
+                description={`La información de tu ${VOCAB.organization.noun.singular} nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu actividad económica.`}
                 explanationSlug={BUSINESS_PROFILING_EXPLANATION_SLUGS.MAIN}
               />
               <Box className="flex flex-col gap-3">
@@ -335,7 +335,7 @@ export const BusinessProfilingScreen: FC = () => {
                     label={quantityLabel}
                     disabled={!selectedActivityId}
                     required={!!selectedActivityId}
-                    requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
+                    requiredMessage="Este campo es obligatorio cuando seleccionas una unidad de actividad"
                     min={0}
                     minMessage="La cantidad no puede ser negativa"
                     onlyInteger
@@ -353,13 +353,13 @@ export const BusinessProfilingScreen: FC = () => {
                   <Box
                     component="img"
                     src={capinautPointing}
-                    alt="Actividad principal"
+                    alt="Unidad de actividad"
                   />
                 </Box>
 
                 <Box>
                   <Typography variant="body1" fontWeight="fontWeightBold">
-                    ¿Cuál es la actividad principal de tu{" "}
+                    ¿Cuál es la unidad de actividad de tu{" "}
                     {VOCAB.organization.noun.singular}?
                   </Typography>
                   <Typography variant="body1">

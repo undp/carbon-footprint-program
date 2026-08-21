@@ -82,8 +82,8 @@ A fictional dairy processor, chosen because its plausible emission sources span 
 | Nombre borrador huella    | Huella 2025 - Lácteos del Valle        |
 | Nombre de la organización | Lácteos del Valle S.A.                 |
 | Tamaño                    | Mediana empresa II (100-249 empleados) |
-| Rubro                     | Manufactura / Industria Manufacturera  |
-| Sub-rubro                 | Alimentos y Bebidas - Lácteos          |
+| Sector                    | Manufactura / Industria Manufacturera  |
+| Actividad económica       | Alimentos y Bebidas - Lácteos          |
 | Actividad principal       | litros producidos                      |
 | Cantidad                  | 18500000                               |
 

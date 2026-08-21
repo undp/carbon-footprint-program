@@ -47,11 +47,11 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
         <Box>
           <InfoRow label={TAX_ID_LABEL} value={data?.taxId ?? "-"} />
           <InfoRow label="Razón social" value={data?.legalName} />
+          <InfoRow label="Sector" value={data?.sector?.name ?? "-"} />
           <InfoRow
-            label="Rubro / Sector económico"
-            value={data?.sector?.name ?? "-"}
+            label="Actividad económica principal"
+            value={data?.subsector?.name ?? "-"}
           />
-          <InfoRow label="Sub-rubro" value={data?.subsector?.name ?? "-"} />
           <InfoRow
             label={`Tamaño de ${VOCAB.organization.noun.singular}`}
             value={data?.countryOrganizationSize?.name ?? "-"}
@@ -83,7 +83,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
         </Typography>
         <Box>
           <InfoRow
-            label="ID representante / Rut"
+            label="Documento de identidad del representante"
             value={data?.representative?.taxId ?? "-"}
           />
           <InfoRow

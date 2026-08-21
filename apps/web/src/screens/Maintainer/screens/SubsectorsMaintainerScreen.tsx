@@ -196,16 +196,16 @@ export const SubsectorsMaintainerScreen: FC = () => {
     setEditingRowId,
     isNewRow,
     successMessages: {
-      create: "Subrubro creado exitosamente",
+      create: "Actividad económica creada exitosamente",
       update: "Cambios guardados satisfactoriamente",
-      delete: "Subrubro eliminado",
-      restore: "Subrubro restaurado",
+      delete: "Actividad económica eliminada",
+      restore: "Actividad económica restaurada",
     },
     errorMessages: {
-      create: "No se pudo crear el subrubro",
-      update: "No se pudo guardar el subrubro",
-      delete: "No se pudo eliminar el subrubro",
-      restore: "No se pudo restaurar el subrubro",
+      create: "No se pudo crear la actividad económica",
+      update: "No se pudo guardar la actividad económica",
+      delete: "No se pudo eliminar la actividad económica",
+      restore: "No se pudo restaurar la actividad económica",
     },
   });
 
@@ -252,9 +252,9 @@ export const SubsectorsMaintainerScreen: FC = () => {
 
   return (
     <ProfilingMaintainerScreenLayout
-      title="Subrubros"
-      subtitle={`Gestiona los subrubros que ${VOCAB.organization.article.plural} pueden seleccionar.`}
-      addLabel="Agregar subrubro"
+      title="Actividades económicas"
+      subtitle={`Gestiona las actividades económicas que ${VOCAB.organization.article.plural} pueden seleccionar.`}
+      addLabel="Agregar actividad económica"
       onAddRow={handleAddRow}
       addDisabled={noSectors || editingRowId !== null}
       form={form}
@@ -272,7 +272,7 @@ export const SubsectorsMaintainerScreen: FC = () => {
           />
           <BlockedActionDialog
             open={actions.updateBlockedMessage !== null}
-            title="No se puede editar el subrubro"
+            title="No se puede editar la actividad económica"
             message={actions.updateBlockedMessage ?? ""}
             onClose={actions.dismissUpdateBlocked}
           />
@@ -282,12 +282,12 @@ export const SubsectorsMaintainerScreen: FC = () => {
       <Box sx={{ width: "100%" }}>
         {noSectors && (
           <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-            Crea primero un rubro antes de agregar subrubros.
+            Crea primero un sector antes de agregar actividades económicas.
           </Typography>
         )}
         {isEmpty ? (
           <Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
-            No hay subrubros para mostrar.
+            No hay actividades económicas para mostrar.
           </Typography>
         ) : (
           <MaintainerDataGrid<SubsectorFormRow>
@@ -304,15 +304,15 @@ export const SubsectorsMaintainerScreen: FC = () => {
             showToolbar
             searchable={{
               fuseOptions,
-              placeholder: "Buscar subrubros...",
-              downloadFileName: "subrubros",
+              placeholder: "Buscar actividades económicas...",
+              downloadFileName: "actividades-economicas",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
             localeText={{
-              noRowsLabel: "No hay subrubros para mostrar",
-              noResultsOverlayLabel: "No se encontraron subrubros",
+              noRowsLabel: "No hay actividades económicas para mostrar",
+              noResultsOverlayLabel: "No se encontraron actividades económicas",
             }}
           />
         )}

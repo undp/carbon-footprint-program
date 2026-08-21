@@ -120,7 +120,7 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
       ) as GetMainActivityEquivalenceResponse;
 
       expect(body).not.toBeNull();
-      expect(body!.activityName).toBe("actividad principal");
+      expect(body!.activityName).toBe("unidad de actividad");
     });
   });
 

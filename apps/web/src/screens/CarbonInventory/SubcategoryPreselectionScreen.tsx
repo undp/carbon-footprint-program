@@ -185,7 +185,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     category.subcategories.some((subcategory) => subcategory.isRecommended)
   );
   const RECOMMENDATIONS_DESCRIPTION = existsRecommendations
-    ? "Hemos destacado las actividades más relevantes para tu rubro como recomendadas."
+    ? "Hemos destacado las actividades más relevantes para tu actividad económica como recomendadas."
     : "";
   const STEP_HEADER_DESCRIPTION = `Estas son todas las fuentes de emisión disponibles para tu ${VOCAB.organization.noun.singular}. ${RECOMMENDATIONS_DESCRIPTION} Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`;
 

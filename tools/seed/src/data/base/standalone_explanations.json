@@ -56,8 +56,8 @@
   },
   {
     "slug": "business-profiling",
-    "name": "Paso 1: Perfilamiento",
-    "description": "Texto de ayuda mostrado en el paso de perfilamiento del simulador de inventario."
+    "name": "Paso 1: Datos generales",
+    "description": "Texto de ayuda mostrado en el paso de datos generales del simulador de inventario."
   },
   {
     "slug": "subcategory-preselection",
@@ -136,18 +136,18 @@
   },
   {
     "slug": "sectors-maintainer",
-    "name": "Mantenedor de rubros",
-    "description": "Texto de ayuda mostrado en el mantenedor de rubros."
+    "name": "Mantenedor de sectores",
+    "description": "Texto de ayuda mostrado en el mantenedor de sectores."
   },
   {
     "slug": "subsectors-maintainer",
-    "name": "Mantenedor de subrubros",
-    "description": "Texto de ayuda mostrado en el mantenedor de subrubros."
+    "name": "Mantenedor de actividades económicas",
+    "description": "Texto de ayuda mostrado en el mantenedor de actividades económicas."
   },
   {
     "slug": "main-activities-maintainer",
-    "name": "Mantenedor de actividades principales",
-    "description": "Texto de ayuda mostrado en el mantenedor de actividades principales."
+    "name": "Mantenedor de unidades de actividad",
+    "description": "Texto de ayuda mostrado en el mantenedor de unidades de actividad."
   },
   {
     "slug": "organization-sizes-maintainer",

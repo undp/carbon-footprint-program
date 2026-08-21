@@ -29,8 +29,9 @@ interface ProfilingMaintainerScreenLayoutProps {
 }
 
 /**
- * Dedicated layout for the four profiling maintainer screens (Rubros / Subrubros /
- * Actividades Principales / Tamaño de la Organización). Intentionally simpler than
+ * Dedicated layout for the four general-data maintainer screens (Sectores /
+ * Actividades económicas / Unidades de actividad / Tamaño de la organización).
+ * Intentionally simpler than
  * `MaintainerScreenLayout`: there is no methodology scope, no view-only mode, no
  * EditModeToolbar / ExitEditModeDialog. Reuses `MaintainerPageHeader` (with the status
  * filter toggle in its `extra` slot) and `UnsavedChangesDialog` (for navigation blocker).

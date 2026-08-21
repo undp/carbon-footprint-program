@@ -83,7 +83,7 @@ Las fuentes de datos varían según el tipo:
 
 #### **Opción 1:** Promedios sectoriales
 
-Para ganadería o agricultura, usa promedios del rubro y multiplica por tu escala (cabezas, hectáreas).
+Para ganadería o agricultura, usa promedios del sector y multiplica por tu escala (cabezas, hectáreas).
 
 ---
 
