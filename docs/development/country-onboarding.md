@@ -233,7 +233,8 @@ Standard GHG Protocol categories:
       "isRequired": false,
       "values": [
         { "name": "Caldera", "parentValue": null },
-        { "name": "Generador", "parentValue": null }
+        { "name": "Generador", "parentValue": null },
+        { "name": "Otro", "parentValue": null }
       ]
     }
   ],
@@ -255,7 +256,17 @@ Standard GHG Protocol categories:
 
 **Emission factors** associate a numeric value with a specific combination of dimension values, a measurement unit, and a source citation.
 
+A value whose name is listed in `COMMENT_REQUIRED_DIMENSION_VALUES`
+(`packages/constants`) obliges the capture line that selects it to carry a
+comment: the API rejects the line when it is empty or whitespace-only. The list
+holds the catch-all values — `Otro` — so an emission the catalog cannot classify
+still says what it was. Give those values a factor too, the most conservative of
+their dimension, so the escape hatch never understates. Names are matched
+exactly, so `Otro país` and `Otro proceso` are unaffected.
+
 > **Important:** Emission factor values must be sourced from the country's official environmental authority or an internationally recognized standard (GHG Protocol, IPCC, IEA). Document the source and year in the `source` field.
+>
+> All active factors of a subcategory must share one `source` string — the maintainer API enforces it — so a subcategory that mixes bases states them together in that one string.
 
 ---
 
