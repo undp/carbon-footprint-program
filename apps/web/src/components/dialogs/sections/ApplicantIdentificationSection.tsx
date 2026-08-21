@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
+import { TAX_ID_LABEL } from "@repo/constants";
 import { ReadOnlyField } from "@/components";
 
 interface ApplicantIdentificationSectionProps {
@@ -22,7 +23,7 @@ export const ApplicantIdentificationSection: FC<
       value={legalName}
       isLoading={isLoading}
     />
-    <ReadOnlyField label="ID/Rut" value={taxId} isLoading={isLoading} />
+    <ReadOnlyField label={TAX_ID_LABEL} value={taxId} isLoading={isLoading} />
     <ReadOnlyField
       label="Nombre del representante legal"
       value={representativeFullName}

@@ -27,7 +27,7 @@ export const COLLISION_FIELD_LABELS: Record<CollisionField, string> = {
   taxId: TAX_ID_LABEL_SHORT,
 };
 
-/** Joins field labels with commas and a final "y" (e.g. "razón social y RUT"). */
+/** Joins field labels with commas and a final "y" (e.g. "razón social y RNC"). */
 const joinFieldLabels = (fields: CollisionField[]): string => {
   const labels = fields.map((field) => COLLISION_FIELD_LABELS[field]);
   if (labels.length <= 1) return labels.join("");

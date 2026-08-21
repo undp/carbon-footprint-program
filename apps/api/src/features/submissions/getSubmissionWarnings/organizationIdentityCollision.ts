@@ -67,7 +67,7 @@ const COLLISION_FIELD_ORDER = [
 /**
  * Generic, multi-country normalization for matching (design D8): trim +
  * case-insensitive only. NO Chile-specific RUT logic (no dot/hyphen stripping,
- * no verifier digit) — `taxId` is a generic string (RUT/RUC/ID Tributario).
+ * no verifier digit) — `taxId` is a generic string (RNC/RUT/RUC/ID Tributario).
  * Cross-format tax IDs ("76.123.456-7" vs "761234567") are a documented
  * deferred limitation. Empty/whitespace-only values normalize to null (skipped).
  *
