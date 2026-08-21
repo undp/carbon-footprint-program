@@ -39,10 +39,10 @@
 
 ## 5. PR 4 — Organization sizes · base PR 3 · no migration
 
-- [ ] 5.1 Replace the eight demo tiers in `country_organization_size.json` with the four Ley 187-17 categories: Microempresa (hasta 10 trabajadores), Pequeña empresa (11-50), Mediana empresa (51-150), Empresa grande
-- [ ] 5.2 Confirm the size tier is not derived from `employeesCount`, so an organization can declare a tier without disclosing an exact headcount
+- [x] 5.1 Replace the eight demo tiers in `country_organization_size.json` with the four Ley 187-17 categories: Microempresa (hasta 10 trabajadores), Pequeña empresa (11-50), Mediana empresa (51-150), Empresa grande
+- [x] 5.2 Confirm the size tier is not derived from `employeesCount`, so an organization can declare a tier without disclosing an exact headcount
 - [ ] 5.3 Run `pnpm db:reset`, seed, and verify the organization form offers exactly the four tiers
-- [ ] 5.4 Run `pnpm format && pnpm lint && pnpm type-check`
+- [x] 5.4 Run `pnpm format && pnpm lint && pnpm type-check`
 
 ## 6. PR 5 — Supporting documents for inscription · base PR 4 · no migration
 

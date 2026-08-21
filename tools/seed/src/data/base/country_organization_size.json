@@ -1,34 +1,18 @@
 [
   {
-    "name": "Microempresa (1-10 empleados)",
+    "name": "Microempresa (hasta 10 trabajadores)",
     "countryIsoCode": "DO"
   },
   {
-    "name": "Pequeña empresa (11-49 empleados)",
+    "name": "Pequeña empresa (11 a 50 trabajadores)",
     "countryIsoCode": "DO"
   },
   {
-    "name": "Mediana empresa I (50-99 empleados)",
+    "name": "Mediana empresa (51 a 150 trabajadores)",
     "countryIsoCode": "DO"
   },
   {
-    "name": "Mediana empresa II (100-249 empleados)",
-    "countryIsoCode": "DO"
-  },
-  {
-    "name": "Gran empresa (250-499 empleados)",
-    "countryIsoCode": "DO"
-  },
-  {
-    "name": "Empresa muy grande (500-999 empleados)",
-    "countryIsoCode": "DO"
-  },
-  {
-    "name": "Corporación grande (1000-4999 empleados)",
-    "countryIsoCode": "DO"
-  },
-  {
-    "name": "Corporación multinacional (5000+ empleados)",
+    "name": "Empresa grande",
     "countryIsoCode": "DO"
   }
 ]
