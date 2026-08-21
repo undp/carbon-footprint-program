@@ -83,14 +83,14 @@ Puedes obtener la información desde:
 
 **CASO 1:** Declaras la cantidad y **tu propio factor**
 
-| Campo                | Qué debes ingresar             |                    Ejemplo |
-| :------------------- | :----------------------------- | -------------------------: |
-| Proceso              | Proceso que declaras           |  Horno de cal de la planta |
-| Unidad               | Unidad declarada               |                  Toneladas |
-| Cantidad             | Total anual                    |                   15.000 t |
-| Fuente factor        | Selecciona **"Factor propio"** |              Factor propio |
-| Factor kgCO₂e/unidad | Tu factor                      |                        440 |
-| Comentario           | Supuesto utilizado             | Estequiometría CaCO₃, 0,44 |
+| Campo                | Qué debes ingresar    |                    Ejemplo |
+| :------------------- | :-------------------- | -------------------------: |
+| Proceso              | Proceso que declaras  |  Horno de cal de la planta |
+| Unidad               | Unidad declarada      |                  Toneladas |
+| Cantidad             | Total anual           |                   15.000 t |
+| Fuente factor        | Selecciona **"Otro"** |                       Otro |
+| Factor kgCO₂e/unidad | Tu factor             |                        440 |
+| Comentario           | Supuesto utilizado    | Estequiometría CaCO₃, 0,44 |
 
 ---
 
@@ -116,7 +116,7 @@ Es decir, el proceso habría generado:
 
 ## 📝 Notas importantes
 
-> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Factor propio"** y documentar de dónde viene
+> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Otro"** como **"Fuente factor"** y documentar de dónde viene
 > - **No incluyas la combustión de biomasa** aquí: el CO₂ biogénico se reporta por separado y con criterios distintos
 > - La emisión del horno de cal es de **origen fósil** aunque la planta opere principalmente con biomasa: por eso importa declararla
 > - Si repones poca caliza fresca porque tu circuito de recuperación es muy cerrado, la emisión será baja: **decláralo igual** para que el inventario quede completo

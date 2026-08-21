@@ -90,13 +90,13 @@ Debes identificar la **cantidad total producida durante el año**, en toneladas.
 
 **CASO 1:** Declaras la cantidad y **tu propio factor** (el camino habitual en esta sub-categoría)
 
-| Campo                | Qué debes ingresar             |       Ejemplo |
-| :------------------- | :----------------------------- | ------------: |
-| Proceso              | Proceso químico que realizas   | Ácido nítrico |
-| Unidad               | Unidad declarada               |     Toneladas |
-| Cantidad             | Total anual producido          |      40.000 t |
-| Fuente factor        | Selecciona **"Factor propio"** | Factor propio |
-| Factor kgCO₂e/unidad | Tu factor convertido a CO₂e    |         2.120 |
+| Campo                | Qué debes ingresar           |       Ejemplo |
+| :------------------- | :--------------------------- | ------------: |
+| Proceso              | Proceso químico que realizas | Ácido nítrico |
+| Unidad               | Unidad declarada             |     Toneladas |
+| Cantidad             | Total anual producido        |      40.000 t |
+| Fuente factor        | Selecciona **"Otro"**        |          Otro |
+| Factor kgCO₂e/unidad | Tu factor convertido a CO₂e  |         2.120 |
 
 ---
 
@@ -128,7 +128,7 @@ Es decir, el proceso habría generado:
 
 ## 📝 Notas importantes
 
-> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Factor propio"**
+> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Otro"** como **"Fuente factor"**
 > - **Documenta el GWP** que usaste para convertir N₂O o gases fluorados a CO₂e. Sin ese dato, el cálculo no es reproducible ni verificable
 > - Las emisiones de **N₂O y de gases fluorados** son pequeñas en masa pero enormes en CO₂e: revisa dos veces las unidades antes de declarar
 > - Si tu planta tiene **catalizador de abatimiento**, declara la eficiencia aplicada y su respaldo

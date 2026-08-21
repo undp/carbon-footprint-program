@@ -93,14 +93,14 @@ Lo más práctico es declarar la **cantidad de carbonato consumido**, no la de p
 
 **CASO 1:** Declaras la cantidad y **tu propio factor**
 
-| Campo                | Qué debes ingresar             |                      Ejemplo |
-| :------------------- | :----------------------------- | ---------------------------: |
-| Proceso              | Proceso que declaras           | Cerámica (ladrillos y tejas) |
-| Unidad               | Unidad declarada               |                    Toneladas |
-| Cantidad             | Carbonatos consumidos          |                      3.000 t |
-| Fuente factor        | Selecciona **"Factor propio"** |                Factor propio |
-| Factor kgCO₂e/unidad | Tu factor                      |                          440 |
-| Comentario           | Composición y supuesto         |         CaCO₃ 8% de la pasta |
+| Campo                | Qué debes ingresar     |                      Ejemplo |
+| :------------------- | :--------------------- | ---------------------------: |
+| Proceso              | Proceso que declaras   | Cerámica (ladrillos y tejas) |
+| Unidad               | Unidad declarada       |                    Toneladas |
+| Cantidad             | Carbonatos consumidos  |                      3.000 t |
+| Fuente factor        | Selecciona **"Otro"**  |                         Otro |
+| Factor kgCO₂e/unidad | Tu factor              |                          440 |
+| Comentario           | Composición y supuesto |         CaCO₃ 8% de la pasta |
 
 ---
 
@@ -130,7 +130,7 @@ Es decir, el proceso habría generado:
 
 ## 📝 Notas importantes
 
-> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Factor propio"**
+> - Esta sub-categoría **no trae factores por defecto**: siempre debes usar **"Otro"** como **"Fuente factor"**
 > - **Declara la cantidad y el factor de forma coherente**: o carbonato consumido con factor estequiométrico, o producto cocido con un factor por tonelada de producto. Mezclarlos es el error más común
 > - Si tu pasta es prácticamente **libre de carbonatos**, la emisión será muy baja: decláralo igual para que el inventario quede completo
 > - No incluyas la combustión del horno aquí: en cerámica suele ser la fuente dominante, y va en Combustiones estacionarias

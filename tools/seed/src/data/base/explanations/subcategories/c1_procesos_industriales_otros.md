@@ -96,14 +96,14 @@ Las fuentes varían según el proceso:
 
 **CASO 1:** Declaras la cantidad y **tu propio factor**
 
-| Campo                | Qué debes ingresar             |                 Ejemplo |
-| :------------------- | :----------------------------- | ----------------------: |
-| Proceso              | Proceso que realizas           |      Uso de lubricantes |
-| Unidad               | Unidad declarada               |               Toneladas |
-| Cantidad             | Total anual consumido          |                    40 t |
-| Fuente factor        | Selecciona **"Factor propio"** |           Factor propio |
-| Factor kgCO₂e/unidad | Tu factor                      |                   2.200 |
-| Comentario           | Supuesto utilizado             | 20% del carbono oxidado |
+| Campo                | Qué debes ingresar    |                 Ejemplo |
+| :------------------- | :-------------------- | ----------------------: |
+| Proceso              | Proceso que realizas  |      Uso de lubricantes |
+| Unidad               | Unidad declarada      |               Toneladas |
+| Cantidad             | Total anual consumido |                    40 t |
+| Fuente factor        | Selecciona **"Otro"** |                    Otro |
+| Factor kgCO₂e/unidad | Tu factor             |                   2.200 |
+| Comentario           | Supuesto utilizado    | 20% del carbono oxidado |
 
 ---
 
@@ -135,7 +135,7 @@ Es decir, el uso de lubricantes habría generado:
 
 > - Esta sub-categoría es **residual**: las demás sub-categorías de procesos industriales **tienen prioridad**. Úsala solo cuando no haya mejor encaje
 > - Si eliges **"Otro"**, **describe el proceso en el comentario**. Es la única forma de que la línea sea auditable
-> - **No trae factores por defecto**: siempre debes usar **"Factor propio"** y documentar de dónde viene
+> - **No trae factores por defecto**: siempre debes usar **"Otro"** como **"Fuente factor"** y documentar de dónde viene
 > - Si el proceso emite **N₂O o gases fluorados**, anota el GWP que usaste para convertir a CO₂e
 > - **Documenta tus supuestos.** Las fuentes residuales requieren más estimaciones que las estándar
 > - Si la fuente es **muy material** para tu huella, evalúa medición en planta o apoyo de un especialista en GEI
