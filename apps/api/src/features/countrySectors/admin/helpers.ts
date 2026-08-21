@@ -24,7 +24,6 @@ export const adminCountrySectorSelect = {
   updatedById: true,
   _count: {
     select: {
-      organizationData: true,
       subsectors: { where: { status: CountrySubsectorStatus.ACTIVE } },
       organizationMainActivities: {
         where: { status: OrganizationMainActivityStatus.ACTIVE },
@@ -44,9 +43,16 @@ type CountrySectorRow = Prisma.CountrySectorGetPayload<{
  * Maps a Prisma `country_sector` row plus its `_count` aggregations into the
  * admin-facing payload. `impactedChildren` carries the per-reference counts the
  * delete-warning dialog renders.
+ *
+ * `organizationDataCount` is passed in rather than aggregated with the others:
+ * an organization reaches a sector through `sector_id` OR through the sector of
+ * its secondary economic activity, and `_count` cannot express that union
+ * without double-counting the rows that arrive both ways. See
+ * `countOrganizationDataBySector`.
  */
 export const mapCountrySectorToAdmin = (
-  row: CountrySectorRow
+  row: CountrySectorRow,
+  organizationDataCount: number
 ): AdminCountrySector => {
   const counts = row._count;
   return {
@@ -62,7 +68,7 @@ export const mapCountrySectorToAdmin = (
     impactedChildren: {
       activeSubsectors: counts.subsectors,
       activeMainActivities: counts.organizationMainActivities,
-      organizationData: counts.organizationData,
+      organizationData: organizationDataCount,
       subcategoryRecommendations: counts.subcategoryRecommendations,
     },
   };

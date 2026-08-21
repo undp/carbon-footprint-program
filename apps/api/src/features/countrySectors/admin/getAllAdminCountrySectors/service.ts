@@ -7,6 +7,7 @@ import type {
   GetAllAdminCountrySectorsQuery,
   GetAllAdminCountrySectorsResponse,
 } from "@repo/types";
+import { countOrganizationDataBySector } from "../../../organizations/catalogReferenceCounts.js";
 import {
   adminCountrySectorSelect,
   mapCountrySectorToAdmin,
@@ -30,5 +31,15 @@ export const getAllAdminCountrySectorsService = async (
     select: adminCountrySectorSelect,
   });
 
-  return rows.map(mapCountrySectorToAdmin);
+  const organizationDataCounts = await countOrganizationDataBySector(
+    prismaClient,
+    rows.map((row) => row.id)
+  );
+
+  return rows.map((row) =>
+    mapCountrySectorToAdmin(
+      row,
+      organizationDataCounts.get(row.id.toString()) ?? 0
+    )
+  );
 };

@@ -13,6 +13,7 @@ import {
   attachDetails,
 } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
+import { countOrganizationDataBySubsector } from "../../../organizations/catalogReferenceCounts.js";
 import {
   adminCountrySubsectorSelect,
   mapCountrySubsectorToAdmin,
@@ -97,7 +98,15 @@ export const restoreCountrySubsectorService = async (
         },
         select: adminCountrySubsectorSelect,
       });
-      return mapCountrySubsectorToAdmin(updated);
+      const organizationDataCounts = await countOrganizationDataBySubsector(
+        tx,
+        [subsectorId]
+      );
+
+      return mapCountrySubsectorToAdmin(
+        updated,
+        organizationDataCounts.get(id) ?? 0
+      );
     });
   } catch (error) {
     if (

@@ -7,6 +7,7 @@ import {
   attachDetails,
 } from "@/errors/index.js";
 import { UserNotFoundError } from "../../../users/errors.js";
+import { countOrganizationDataBySector } from "../../../organizations/catalogReferenceCounts.js";
 import {
   adminCountrySectorSelect,
   mapCountrySectorToAdmin,
@@ -64,7 +65,14 @@ export const restoreCountrySectorService = async (
         select: adminCountrySectorSelect,
       });
 
-      return mapCountrySectorToAdmin(updated);
+      const organizationDataCounts = await countOrganizationDataBySector(tx, [
+        sectorId,
+      ]);
+
+      return mapCountrySectorToAdmin(
+        updated,
+        organizationDataCounts.get(id) ?? 0
+      );
     });
   } catch (error) {
     if (
