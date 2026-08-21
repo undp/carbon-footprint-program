@@ -45,7 +45,7 @@ describe("COLLISION_FIELD_LABELS", () => {
 describe("buildCollisionMessage", () => {
   it("names the approved postulation of an inscribed organization", () => {
     expect(buildCollisionMessage(metadata())).toBe(
-      "Coincide con la postulación aprobada de la organización inscrita (RUT 76123456-7) en razón social."
+      "Coincide con la postulación aprobada de la organización inscrita (RNC 76123456-7) en razón social."
     );
   });
 
@@ -59,7 +59,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      "Coincide con la postulación pendiente de una organización no inscrita (RUT 76123456-7) en nombre comercial."
+      "Coincide con la postulación pendiente de una organización no inscrita (RNC 76123456-7) en nombre comercial."
     );
   });
 
@@ -73,7 +73,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      `Coincide con la postulación con observaciones de una organización no inscrita (RUT 76123456-7) en ${TAX_ID_LABEL_SHORT}.`
+      `Coincide con la postulación con observaciones de una organización no inscrita (RNC 76123456-7) en ${TAX_ID_LABEL_SHORT}.`
     );
   });
 
@@ -112,7 +112,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      "Coincide con la postulación aprobada de una organización bloqueada (RUT 76123456-7) en razón social."
+      "Coincide con la postulación aprobada de una organización bloqueada (RNC 76123456-7) en razón social."
     );
   });
 
@@ -122,7 +122,7 @@ describe("buildCollisionMessage", () => {
     standings.forEach((organizationStatus) => {
       const message = buildCollisionMessage(metadata({ organizationStatus }));
       expect(message).toMatch(/^Coincide con la postulación aprobada de /);
-      expect(message).toContain("(RUT 76123456-7)");
+      expect(message).toContain("(RNC 76123456-7)");
     });
   });
 

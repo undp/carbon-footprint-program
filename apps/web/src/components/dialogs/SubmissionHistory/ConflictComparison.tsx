@@ -1,7 +1,7 @@
 import { FC, Fragment, ReactNode } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
 // `upperFirst`, not `capitalize`: the latter lowercases the rest, turning the
-// tax-id label ("RUT") into "Rut".
+// tax-id label ("RNC") into "Rnc".
 import { upperFirst } from "lodash-es";
 import {
   SubmissionStatus,
