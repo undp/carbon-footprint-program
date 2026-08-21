@@ -40,6 +40,42 @@ Use the [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) c
 
 ---
 
+## Step 1b — Territorial Hierarchy
+
+**File:** `tools/seed/src/data/base/territories.json`
+
+```json
+[
+  {
+    "name": "Cibao Norte",
+    "level": "PLANNING_REGION",
+    "children": [{ "name": "Santiago", "level": "PROVINCE" }]
+  }
+]
+```
+
+The administrative subdivisions an organization locates itself in, nested to
+whatever depth the official catalog defines. Levels come from the
+`TerritoryLevel` enum (`PLANNING_REGION`, `PROVINCE`, `MUNICIPALITY`,
+`MUNICIPAL_DISTRICT`, `SECTOR`) and are declared **per node**, not derived from
+the nesting depth, so a branch may skip a level the country does not use.
+
+The table has no country column: a deployment serves one country. It also has no
+maintainer — boundaries change by law, not by administrative action — but it is
+an ordinary catalog table, so a deployment that needs one can add it later.
+
+The migration that creates the table also loads it, because `seed.ts` skips
+entirely once a country exists and an already-populated deployment would never
+receive the catalog by seeding. This file is what the seeder reads on a database
+created without migrations; the seeder returns early once the table holds rows.
+
+Loading only the outer levels is valid: the form renders a selector per level
+that has rows and stores the innermost node the registrant reaches. Prefer that
+over a partial list of an inner level, which lets a registrant find their
+province and not their municipality.
+
+---
+
 ## Step 2 — Job Positions
 
 **File:** `tools/seed/src/data/base/country_job_positions.json`
@@ -406,15 +442,16 @@ The seed scripts must run in this order (enforced by `seed.ts`):
 1. Measurement units (global)
 2. System parameters (global)
 3. Countries
-4. Country job positions
-5. Country organization sizes
-6. Country sectors/subsectors
-7. Organization main activities
-8. Users (optional, for local dev)
-9. Methodology data (methodology → categories → subcategories → dimensions → factors)
-10. Explanations
-11. Subcategory recommendations
-12. Reduction plan initiatives
-13. Badges
+4. Territories
+5. Country job positions
+6. Country organization sizes
+7. Country sectors/subsectors
+8. Organization main activities
+9. Users (optional, for local dev)
+10. Methodology data (methodology → categories → subcategories → dimensions → factors)
+11. Explanations
+12. Subcategory recommendations
+13. Reduction plan initiatives
+14. Badges
 
-Adding a new country only requires modifying the JSON files in steps 3–9, 11, and 12. No code changes are needed.
+Adding a new country only requires modifying the JSON files in steps 3–10, 12, and 13. No code changes are needed.

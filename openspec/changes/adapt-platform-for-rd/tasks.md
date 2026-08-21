@@ -63,14 +63,14 @@
 
 ## 8. PR 7 — Organization form and deletion warnings · base PR 6 · no migration
 
-- [ ] 8.1 Add the `seedTerritories` script wired into `seed.ts` after `seedCountries`, returning early when the table already holds rows
-- [ ] 8.2 Add the secondary-activity autocomplete over all ACTIVE subsectors, labelled `Sector — Actividad`, with no second sector selector
-- [ ] 8.3 Label the representative identifier as the identity document and attach the cédula/pasaporte help note
-- [ ] 8.4 Replace the free-text `Dirección / Región` field with the five dependent territorial selectors, clearing descendants when a parent changes, plus a separate `Dirección física` text field
-- [ ] 8.5 Persist the new fields through `organizations/helpers.ts`, `mappers.ts` and the form handler, and surface them on `OrganizationProfileView`
-- [ ] 8.6 Extend the sector and subsector `impactedChildren` organization count to include `secondary_subsector_id`, deduplicating an organization that references the same row as both primary and secondary
-- [ ] 8.7 Write API integration tests for the secondary-activity round trip, the partial territorial selection, and the deduplicated `impactedChildren` count
-- [ ] 8.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /organizations --coverage=false`
+- [x] 8.1 Add the `seedTerritories` script wired into `seed.ts` after `seedCountries`, returning early when the table already holds rows
+- [x] 8.2 Add the secondary-activity autocomplete over all ACTIVE subsectors, labelled `Sector — Actividad`, with no second sector selector
+- [x] 8.3 Label the representative identifier as the identity document and attach the cédula/pasaporte help note
+- [x] 8.4 Replace the free-text `Dirección / Región` field with the five dependent territorial selectors, clearing descendants when a parent changes, plus a separate `Dirección física` text field
+- [x] 8.5 Persist the new fields through `organizations/helpers.ts`, `mappers.ts` and the form handler, and surface them on `OrganizationProfileView`
+- [x] 8.6 Extend the sector and subsector `impactedChildren` organization count to include `secondary_subsector_id`, deduplicating an organization that references the same row as both primary and secondary
+- [x] 8.7 Write API integration tests for the secondary-activity round trip, the partial territorial selection, and the deduplicated `impactedChildren` count
+- [~] 8.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /organizations --coverage=false` — the first three ran green; the API tests need a database this environment does not have
 
 ## 9. PR 8 — RD methodology · base PR 7 · no migration · blocked on task 1.2
 
@@ -99,11 +99,13 @@ task 10.3. What was **not** done, and why:
   territorial catalog, the DGII activity list and the reset window are outside
   what can be done from the repository. Everything downstream of them was built
   under the assumptions `design.md` states.
-- **PR 7 (organization form + territorial seed) and PR 8 (methodology)** — not
-  built. PR 7's territorial selectors need the ONE catalog (task 1.3) and PR 8's
-  factors need MMARN's answer on sources (task 1.2). The schema they populate is
-  already in place (`territory`, `secondary_subsector_id`), so both are additive when
-  the data arrives.
+- **PR 7 (organization form + territorial seed)** — built, with the territorial
+  catalog partial: the ten planning regions and the 32 provinces are authored,
+  and the three levels below them wait on the ONE catalog (task 1.3). The seeder
+  is level-agnostic, so loading them is a data change. The form renders one
+  selector per level that has rows, so the missing levels are invisible rather
+  than broken.
+- **PR 8 (methodology)** — see the note at the end of section 9.
 - **Every `pnpm db:reset` / seed / API-test task** (2.4, 4.6, 5.3, 7.7, 7.8) —
   no Postgres or Docker in the authoring environment. `format`, `lint`,
   `type-check` and `test:web` were run green on each PR; the migration in PR 3 is
