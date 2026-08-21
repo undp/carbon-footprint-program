@@ -1,0 +1,7 @@
+@baseUrl = http://localhost:8080
+
+### Get the roots of the territorial hierarchy
+GET {{baseUrl}}/api/territories HTTP/1.1
+
+### Get the children of a territory
+GET {{baseUrl}}/api/territories?parentId=1 HTTP/1.1
