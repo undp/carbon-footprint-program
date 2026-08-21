@@ -31,6 +31,14 @@ import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
 } from "@test/factories/methodologyFactory.js";
+import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import {
+  createTestEmissionFactor,
+  createTestEmissionFactorDimension,
+  createTestEmissionFactorDimensionValue,
+  getTestRateMeasurementUnitId,
+} from "@test/factories/emissionFactorFactory.js";
 import {
   cleanupTestFiles,
   createTestFile,
@@ -1713,6 +1721,261 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         where: { id: BigInt(result.created[0].id) },
       });
       expect(createdLine?.createdById).toBeNull();
+    });
+  });
+  describe("Values that require a comment", () => {
+    // A dedicated methodology so the flag cannot leak into the other suites,
+    // torn down explicitly in dependency order.
+    let methodologyVersionId: bigint;
+    let categoryId: bigint;
+    let subcategoryId: bigint;
+    let dimensionId: bigint;
+    let flaggedValueId: bigint;
+    let plainValueId: bigint;
+
+    const syncPayload = (
+      dimensionValue1Id: bigint,
+      comment: string | null
+    ) => ({
+      create: [
+        {
+          subcategoryId: String(subcategoryId),
+          dimensionValue1Id: String(dimensionValue1Id),
+          dimensionValue2Id: null,
+          measurementUnitId: null,
+          quantity: null,
+          factorSource: null,
+          baseFactorId: null,
+          appliedFactorValue: null,
+          appliedFactorRateMeasurementUnitId: null,
+          manualTotalEmissions: null,
+          comment,
+          inputType: "SIMPLIFIED",
+        },
+      ],
+      update: [],
+      delete: [],
+    });
+
+    const createInventory = async () =>
+      createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+    beforeAll(async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Comment Requirement",
+      });
+      methodologyVersionId = methodology.id;
+      const category = await createTestCategory(prisma, methodologyVersionId);
+      categoryId = category.id;
+      const subcategory = await createTestSubcategory(prisma, categoryId);
+      subcategoryId = subcategory.id;
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategoryId,
+        { name: "Destino", isRequired: true }
+      );
+      dimensionId = dimension.id;
+      const flagged = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimensionId,
+        { value: "Otro" }
+      );
+      flaggedValueId = flagged.id;
+      const plain = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimensionId,
+        { value: "Relleno sanitario" }
+      );
+      plainValueId = plain.id;
+
+      // `Otro` is not an exemption: it carries a factor like every other value.
+      const rateMeasurementUnitId = await getTestRateMeasurementUnitId(prisma);
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryId,
+        rateMeasurementUnitId,
+        { dimensionValue1Id: flaggedValueId, value: "9.5" }
+      );
+      await createTestEmissionFactor(
+        prisma,
+        subcategoryId,
+        rateMeasurementUnitId,
+        { dimensionValue1Id: plainValueId, value: "1.5" }
+      );
+    });
+
+    afterAll(async () => {
+      await prisma.emissionFactor.deleteMany({ where: { subcategoryId } });
+      await prisma.emissionFactorDimensionValue.deleteMany({
+        where: { dimensionId },
+      });
+      await prisma.emissionFactorDimension.deleteMany({
+        where: { subcategoryId },
+      });
+      await prisma.subcategory.deleteMany({ where: { id: subcategoryId } });
+      await prisma.category.deleteMany({ where: { id: categoryId } });
+      await prisma.methodologyVersion.deleteMany({
+        where: { id: methodologyVersionId },
+      });
+    });
+
+    it("rejects a line that selects a flagged value with no comment", async () => {
+      const carbonInventory = await createInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: syncPayload(flaggedValueId, null),
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DIMENSION_VALUE_REQUIRES_COMMENT");
+
+      // The whole batch is rejected before anything is written.
+      const lineCount = await prisma.carbonInventoryLine.count({
+        where: { carbonInventoryId: carbonInventory.id },
+      });
+      expect(lineCount).toBe(0);
+    });
+
+    it("rejects a whitespace-only comment", async () => {
+      const carbonInventory = await createInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: syncPayload(flaggedValueId, "   \n  "),
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DIMENSION_VALUE_REQUIRES_COMMENT");
+    });
+
+    it("accepts a flagged value once the line explains it", async () => {
+      const carbonInventory = await createInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: syncPayload(
+          flaggedValueId,
+          "Vertedero municipal sin clasificación"
+        ),
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      expect(body.created).toHaveLength(1);
+      expect(body.created[0].comment).toBe(
+        "Vertedero municipal sin clasificación"
+      );
+      expect(body.created[0].dimensionValue1Id).toBe(String(flaggedValueId));
+    });
+
+    it("leaves a value without the flag alone", async () => {
+      const carbonInventory = await createInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: syncPayload(plainValueId, null),
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      expect(body.created).toHaveLength(1);
+      expect(body.created[0].comment).toBeNull();
+    });
+
+    it("rejects an update that clears the comment of a flagged line", async () => {
+      const carbonInventory = await createInventory();
+
+      const created = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: syncPayload(flaggedValueId, "Coprocesamiento en cementera"),
+      });
+      expect(created.statusCode).toBe(200);
+      const createdBody = JSON.parse(
+        created.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const lineId = createdBody.created[0].id;
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: String(flaggedValueId),
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: null,
+              factorSource: null,
+              baseFactorId: null,
+              appliedFactorValue: null,
+              appliedFactorRateMeasurementUnitId: null,
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("DIMENSION_VALUE_REQUIRES_COMMENT");
+    });
+
+    it("still resolves an emission factor for the flagged value", async () => {
+      const carbonInventory = await createInventory();
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const methodology = JSON.parse(response.body) as {
+        categories: {
+          subcategories: {
+            id: string;
+            dimensions: {
+              values: { id: string; value: string }[];
+            }[];
+            emissionFactors: { dimensionValue1Id: string | null }[];
+          }[];
+        }[];
+      };
+
+      const subcategory = methodology.categories
+        .flatMap((category) => category.subcategories)
+        .find((candidate) => candidate.id === String(subcategoryId));
+      expect(subcategory).toBeDefined();
+
+      const flaggedValue = subcategory?.dimensions
+        .flatMap((dimension) => dimension.values)
+        .find((value) => value.id === String(flaggedValueId));
+      expect(flaggedValue?.value).toBe("Otro");
+
+      const factorsForFlagged = subcategory?.emissionFactors.filter(
+        (factor) => factor.dimensionValue1Id === String(flaggedValueId)
+      );
+      expect(factorsForFlagged?.length).toBeGreaterThan(0);
     });
   });
 });
