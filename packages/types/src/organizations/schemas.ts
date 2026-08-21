@@ -7,6 +7,7 @@ import {
   CountrySectorBaseSchema,
   CountrySubsectorBaseSchema,
   OrganizationMainActivityBaseSchema,
+  TerritoryBaseSchema,
 } from "../baseSchemas/index.js";
 import { LOCAL_BYPASS_REQUIRED_FIELDS } from "../environment.js";
 
@@ -15,6 +16,12 @@ export const OrganizationDisplayStatusSchema = z.enum([
   "NOT_ACCREDITED",
   "BLOCKED",
 ]);
+
+const TerritoryItemSchema = TerritoryBaseSchema.pick({
+  id: true,
+  name: true,
+  level: true,
+});
 
 const RepresentativeItemSchema = z.object({
   fullName: z.string().nullable().describe("Full name of the representative"),
@@ -67,6 +74,15 @@ export const OrganizationMutationDataSchema = z
     sectorId: IdSchema.nullable().describe("ID of the organization sector"),
     subsectorId: IdSchema.nullable().describe(
       "ID of the organization subsector"
+    ),
+    secondarySubsectorId: IdSchema.nullable().describe(
+      "ID of the organization's secondary economic activity. Selected from the " +
+        "same catalog as `subsectorId` and not constrained to `sectorId`, so a " +
+        "cross-sector secondary activity is expressible."
+    ),
+    territoryId: IdSchema.nullable().describe(
+      "ID of the most specific territorial node the registrant knows. Its " +
+        "ancestors are derived from the hierarchy, never sent."
     ),
     employeesCount: z
       .number()
@@ -136,6 +152,12 @@ export const CompleteOrganizationInfoSchema =
     })
       .nullable()
       .describe("Organization subsector"),
+    secondarySubsector: CountrySubsectorBaseSchema.pick({
+      id: true,
+      name: true,
+    })
+      .nullable()
+      .describe("Organization's secondary economic activity"),
     countryOrganizationSize: CountryOrganizationSizeBaseSchema.pick({
       id: true,
       name: true,
@@ -149,6 +171,15 @@ export const CompleteOrganizationInfoSchema =
       .nullable()
       .describe("Main business activity"),
     address: z.string().nullable().describe("Physical address"),
+    territory: TerritoryItemSchema.nullable().describe(
+      "Most specific territorial node the organization declared"
+    ),
+    territoryAncestors: z
+      .array(TerritoryItemSchema)
+      .describe(
+        "Ancestors of `territory`, outermost first. Empty when `territory` is " +
+          "null or is itself a root of the hierarchy."
+      ),
     employeesCount: z
       .number()
       .int()

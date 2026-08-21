@@ -42,11 +42,21 @@ export const getOrganizationFormFieldsHandler = async (
         required: false,
       },
       {
+        key: "secondarySubsectorId",
+        label: "Actividad económica secundaria",
+        required: false,
+      },
+      {
+        key: "territoryId",
+        label: "Ubicación territorial",
+        required: false,
+      },
+      {
         key: "employeesCount",
         label: "Cantidad de trabajadores",
         required: false,
       },
-      { key: "address", label: "Dirección / Región", required: false },
+      { key: "address", label: "Dirección física", required: false },
       {
         key: "representativeFullName",
         label: "Nombre completo",
@@ -54,7 +64,7 @@ export const getOrganizationFormFieldsHandler = async (
       },
       {
         key: "representativeTaxId",
-        label: "ID representante",
+        label: "Documento de identidad del representante",
         required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       {
@@ -72,7 +82,11 @@ export const getOrganizationFormFieldsHandler = async (
         label: "Correo",
         required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
-      { key: "mainActivityId", label: "Actividad Principal", required: false },
+      {
+        key: "mainActivityId",
+        label: "Unidad de actividad de la organización",
+        required: false,
+      },
     ],
   };
 
