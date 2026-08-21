@@ -20,6 +20,7 @@ type Params = {
    */
   initialSector?: GetOrganizationByIdResponse["sector"];
   initialSubsector?: GetOrganizationByIdResponse["subsector"];
+  initialSecondarySubsector?: GetOrganizationByIdResponse["secondarySubsector"];
   initialMainActivity?: GetOrganizationByIdResponse["mainActivity"];
   initialOrganizationSize?: GetOrganizationByIdResponse["countryOrganizationSize"];
 };
@@ -34,6 +35,7 @@ export const useOrganizationData = ({
   selectedActivityId,
   initialSector,
   initialSubsector,
+  initialSecondarySubsector,
   initialMainActivity,
   initialOrganizationSize,
 }: Params = {}) => {
@@ -101,6 +103,23 @@ export const useOrganizationData = ({
     [mergedActivities, selectedActivityId]
   );
 
+  // The secondary economic activity is picked from the whole catalog rather than
+  // from the selected sector: a hotel with an agricultural operation declares a
+  // secondary activity in another sector entirely. Each option is qualified with
+  // its sector so two similarly-named activities stay distinguishable.
+  const secondarySubsectorItems = useMemo(() => {
+    const flattened = sectors.flatMap((sector) =>
+      sector.subsectors.map((subsector) => ({
+        id: subsector.id,
+        name: `${sector.name} — ${subsector.name}`,
+      }))
+    );
+    return mergeSelectedOption(
+      flattened,
+      initialSecondarySubsector ?? null
+    ).filter((option) => option.id !== selectedSubsectorId);
+  }, [sectors, initialSecondarySubsector, selectedSubsectorId]);
+
   const sectorOptions = useSelectorOptions(mergedSectors, "name", "id");
   const subsectorSelectOptions = useSelectorOptions(
     subsectorOptions,
@@ -109,6 +128,11 @@ export const useOrganizationData = ({
   );
   const companySizeOptions = useSelectorOptions(
     mergedOrganizationSizes,
+    "name",
+    "id"
+  );
+  const secondarySubsectorOptions = useSelectorOptions(
+    secondarySubsectorItems,
     "name",
     "id"
   );
@@ -128,6 +152,7 @@ export const useOrganizationData = ({
     // Formatted options for selectors
     sectorOptions,
     subsectorSelectOptions,
+    secondarySubsectorOptions,
     companySizeOptions,
     activityOptions,
     jobPositionOptions,
