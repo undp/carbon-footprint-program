@@ -88,4 +88,4 @@
 
 - [ ] 10.1 Verify the tip of the stack is green in CI (lint, type-check, format:check, API test matrix, `Test (web)`, build)
 - [ ] 10.2 Record MMARN's answers to the three Open Questions in `design.md`, and correct the catalog or schema if any answer diverges from the assumption taken
-- [ ] 10.3 Document the upstream freeze in the branch's README or deployment notes: only security fixes are cherry-picked from Huella Latam, with no periodic rebase
+- [x] 10.3 Document the upstream freeze in the branch's README or deployment notes: only security fixes are cherry-picked from Huella Latam, with no periodic rebase
