@@ -100,6 +100,8 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
     countryOrganizationSizeId: countryOrganizationSizeId.toString(),
     sectorId: sectorId.toString(),
     subsectorId: subsectorId.toString(),
+    secondarySubsectorId: null,
+    territoryId: null,
     employeesCount: 100,
     address: "123 Updated Street, City",
     representativeFullName: "John Updated Doe",

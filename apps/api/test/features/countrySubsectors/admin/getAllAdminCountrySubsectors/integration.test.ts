@@ -11,6 +11,11 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
 import { createTestCountrySubsector } from "@test/factories/countrySubsectorFactory.js";
 import { createTestOrganizationMainActivity } from "@test/factories/organizationMainActivityFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import type { FastifyInstance } from "fastify";
 import { type PrismaClient, CountrySubsectorStatus } from "@repo/database";
 import type { GetAllAdminCountrySubsectorsResponse } from "@repo/types";
@@ -32,6 +37,8 @@ describe("GET /api/admin/country-subsectors - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Organizations first: their data rows reference the catalog rows below.
+    await cleanupTestOrganization(prisma);
     await prisma.organizationMainActivity.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -148,6 +155,66 @@ describe("GET /api/admin/country-subsectors - Integration Tests", () => {
     const row = body.find((r) => r.id === sub.id.toString());
     expect(row).toBeDefined();
     expect(row!.impactedChildren.activeMainActivities).toBe(1);
+  });
+
+  it("counts an organization whose only reference is its secondary activity", async () => {
+    const parent = await createTestCountrySector(prisma, {
+      name: uniqueName("ParentSecondaryOnly"),
+    });
+    const primary = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("Primary"),
+    });
+    const secondary = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("Secondary"),
+    });
+    const org = await createTestOrganization(prisma);
+    await createTestOrganizationData(prisma, org.id, {
+      sectorId: parent.id,
+      subsectorId: primary.id,
+      secondarySubsectorId: secondary.id,
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/country-subsectors/?status=active",
+    });
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetAllAdminCountrySubsectorsResponse;
+
+    const secondaryRow = body.find((r) => r.id === secondary.id.toString());
+    expect(secondaryRow).toBeDefined();
+    expect(secondaryRow!.impactedChildren.organizationData).toBe(1);
+  });
+
+  it("counts an organization once when one activity is both primary and secondary", async () => {
+    const parent = await createTestCountrySector(prisma, {
+      name: uniqueName("ParentBothRoles"),
+    });
+    const sub = await createTestCountrySubsector(prisma, parent.id, {
+      name: uniqueName("BothRoles"),
+    });
+    const org = await createTestOrganization(prisma);
+    await createTestOrganizationData(prisma, org.id, {
+      sectorId: parent.id,
+      subsectorId: sub.id,
+      secondarySubsectorId: sub.id,
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/country-subsectors/?status=active",
+    });
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetAllAdminCountrySubsectorsResponse;
+
+    const row = body.find((r) => r.id === sub.id.toString());
+    expect(row).toBeDefined();
+    // One organization, two references: the warning must not say two.
+    expect(row!.impactedChildren.organizationData).toBe(1);
   });
 
   it("returns 400 for an invalid status value", async () => {

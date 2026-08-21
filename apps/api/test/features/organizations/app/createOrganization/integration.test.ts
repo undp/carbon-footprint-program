@@ -16,6 +16,7 @@ import {
   OrganizationDataStatus,
   MembershipStatus,
   OrganizationRole,
+  TerritoryLevel,
 } from "@repo/database";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -57,6 +58,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street, Test City",
           representativeFullName: "John Doe",
@@ -87,6 +90,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 100,
           address: "123 Active Street",
           representativeFullName: "Jane Smith",
@@ -121,6 +126,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 25,
           address: "456 Data Street",
           representativeFullName: "Bob Johnson",
@@ -160,6 +167,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 75,
           address: "789 Membership Avenue",
           representativeFullName: "Alice Cooper",
@@ -202,6 +211,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 30,
           address: "321 Creator Street",
           representativeFullName: "Charlie Brown",
@@ -236,6 +247,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 45,
           address: "654 Data Creator Lane",
           representativeFullName: "David Smith",
@@ -277,6 +290,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: null,
           sectorId: null,
           subsectorId: null,
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: null,
           address: null,
           mainActivityId: null,
@@ -330,6 +345,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "  123 Padded Street  ",
           representativeFullName: "  Jane Doe  ",
@@ -369,6 +386,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -397,6 +416,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -425,6 +446,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -453,6 +476,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -482,6 +507,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -528,6 +555,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -556,6 +585,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -584,6 +615,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50.5,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -612,6 +645,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "invalid-id",
           sectorId: "5",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -640,6 +675,8 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           countryOrganizationSizeId: "1",
           sectorId: "not-a-number",
           subsectorId: "12",
+          secondarySubsectorId: null,
+          territoryId: null,
           employeesCount: 50,
           address: "123 Test Street",
           representativeFullName: "John Doe",
@@ -655,6 +692,90 @@ describe("POST /api/app/organizations - Integration Tests", () => {
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
+    });
+  });
+  describe("Dominican profile fields", () => {
+    it("persists the secondary activity and the territory", async () => {
+      const sector = await prisma.countrySector.findFirstOrThrow({
+        include: { subsectors: { orderBy: { id: "asc" }, take: 2 } },
+        where: { subsectors: { some: {} } },
+        orderBy: { id: "asc" },
+      });
+      const [primary, secondary] = sector.subsectors;
+      // A province rather than a planning region: the innermost level the
+      // catalog reaches today, and what "según aplique" produces most of the
+      // time.
+      const province = await prisma.territory.findFirstOrThrow({
+        where: { name: "Santiago", level: TerritoryLevel.PROVINCE },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/app/organizations",
+        payload: {
+          legalName: "Organización con actividad secundaria",
+          tradeName: null,
+          taxId: "131234567",
+          countryOrganizationSizeId: null,
+          sectorId: sector.id.toString(),
+          subsectorId: primary.id.toString(),
+          secondarySubsectorId: secondary.id.toString(),
+          territoryId: province.id.toString(),
+          employeesCount: 12,
+          address: "Calle El Conde 100",
+          representativeFullName: "Juana Pérez",
+          representativeTaxId: "00112345678",
+          representativePositionId: null,
+          representativePhone: "+18095550000",
+          representativeEmail: "juana.perez@test.com",
+          mainActivityId: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateOrganizationResponse;
+
+      const organizationData = await prisma.organizationData.findFirstOrThrow({
+        where: { organizationId: BigInt(body.id) },
+      });
+      expect(organizationData.subsectorId).toBe(primary.id);
+      expect(organizationData.secondarySubsectorId).toBe(secondary.id);
+      expect(organizationData.territoryId).toBe(province.id);
+      expect(organizationData.address).toBe("Calle El Conde 100");
+    });
+
+    it("accepts a profile that declares none of them", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/app/organizations",
+        payload: {
+          legalName: "Organización sin actividad secundaria",
+          tradeName: null,
+          taxId: "131234568",
+          countryOrganizationSizeId: null,
+          sectorId: null,
+          subsectorId: null,
+          secondarySubsectorId: null,
+          territoryId: null,
+          employeesCount: null,
+          address: null,
+          representativeFullName: "Pedro Gómez",
+          representativeTaxId: "00112345679",
+          representativePositionId: null,
+          representativePhone: "+18095550001",
+          representativeEmail: "pedro.gomez@test.com",
+          mainActivityId: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateOrganizationResponse;
+
+      const organizationData = await prisma.organizationData.findFirstOrThrow({
+        where: { organizationId: BigInt(body.id) },
+      });
+      expect(organizationData.secondarySubsectorId).toBeNull();
+      expect(organizationData.territoryId).toBeNull();
     });
   });
 });

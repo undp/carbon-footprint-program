@@ -16,6 +16,7 @@ import {
   OrganizationStatus,
   MembershipStatus,
   SystemRole,
+  TerritoryLevel,
 } from "@repo/database";
 import {
   createTestOrganization,
@@ -734,6 +735,68 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(body.representative.position).not.toBeNull();
       expect(body.representative.position!.id).not.toBeNull();
       expect(body.representative.position!.name).not.toBeNull();
+    });
+  });
+  describe("Dominican profile fields", () => {
+    it("returns the secondary activity and the territorial chain", async () => {
+      const sector = await prisma.countrySector.findFirstOrThrow({
+        include: { subsectors: { orderBy: { id: "asc" }, take: 2 } },
+        where: { subsectors: { some: {} } },
+        orderBy: { id: "asc" },
+      });
+      const [primary, secondary] = sector.subsectors;
+      const province = await prisma.territory.findFirstOrThrow({
+        where: { name: "Santiago", level: TerritoryLevel.PROVINCE },
+      });
+
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id, {
+        sectorId: sector.id,
+        subsectorId: primary.id,
+        secondarySubsectorId: secondary.id,
+        territoryId: province.id,
+      });
+      await createTestMembership(prisma, testUser.id, org.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${org.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
+
+      expect(body.secondarySubsector?.id).toBe(secondary.id.toString());
+      expect(body.secondarySubsector?.name).toBe(secondary.name);
+
+      // Only the innermost node is stored; the ancestors are derived, outermost
+      // first, so the form can prefill its selectors in order.
+      expect(body.territory?.id).toBe(province.id.toString());
+      expect(body.territory?.level).toBe("PROVINCE");
+      expect(body.territoryAncestors.map((a) => a.name)).toEqual([
+        "Cibao Norte",
+      ]);
+      expect(body.territoryAncestors.map((a) => a.level)).toEqual([
+        "PLANNING_REGION",
+      ]);
+    });
+
+    it("returns an empty territorial chain when no territory was declared", async () => {
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id);
+      await createTestMembership(prisma, testUser.id, org.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${org.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
+
+      expect(body.territory).toBeNull();
+      expect(body.territoryAncestors).toEqual([]);
+      expect(body.secondarySubsector).toBeNull();
     });
   });
 });
