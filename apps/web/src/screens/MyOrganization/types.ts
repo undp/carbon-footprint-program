@@ -29,6 +29,13 @@ export interface OrganizationFormValues {
   address: string | null;
   sectorId: string | null;
   subsectorId: string | null;
+  secondarySubsectorId: string | null;
+  /**
+   * One entry per level of the territorial hierarchy, outermost first, with an
+   * empty string for the levels left unanswered. Only the innermost answered
+   * level is sent to the API; the rest is derivable from it.
+   */
+  territoryIds: string[];
   countryOrganizationSizeId: string | null;
   mainActivityId: string | null;
   employeesCount: number | null;

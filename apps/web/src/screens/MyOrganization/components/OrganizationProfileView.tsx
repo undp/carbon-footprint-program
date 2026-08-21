@@ -23,6 +23,7 @@ import { HistoryCard } from "@/components/dialogs/SubmissionHistory";
 import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization";
 import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
 import { VOCAB } from "@/config/vocab";
+import { TERRITORY_LEVEL_LABELS } from "../constants";
 
 type OrganizationProfileViewProps = {
   profile: GetOrganizationByIdResponse;
@@ -49,6 +50,16 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
   const id = canBeOpen ? "transition-popper" : undefined;
 
   const orgHistory = useGetOrganizationHistory(profile.id);
+
+  // The declared node plus its ancestors, outermost first — the same order the
+  // form's selectors present, so the profile reads back the way it was filled in.
+  const territoryChain = useMemo(
+    () => [
+      ...profile.territoryAncestors,
+      ...(profile.territory ? [profile.territory] : []),
+    ],
+    [profile.territoryAncestors, profile.territory]
+  );
 
   const lastSubmission = useMemo(
     () => orgHistory.data?.[0] ?? null,
@@ -167,14 +178,25 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
           value={profile.subsector?.name ?? "-"}
         />
         <InfoRow
+          label="Actividad económica secundaria"
+          value={profile.secondarySubsector?.name ?? "-"}
+        />
+        <InfoRow
           label={`Tamaño de ${VOCAB.organization.article.singular}`}
           value={profile.countryOrganizationSize?.name ?? "-"}
         />
         <InfoRow
-          label="Actividad principal"
+          label={`Unidad de actividad de ${VOCAB.organization.article.singular}`}
           value={profile.mainActivity?.name ?? "-"}
         />
-        <InfoRow label="Dirección" value={profile.address ?? "-"} />
+        {territoryChain.map((node) => (
+          <InfoRow
+            key={node.id}
+            label={TERRITORY_LEVEL_LABELS[node.level]}
+            value={node.name}
+          />
+        ))}
+        <InfoRow label="Dirección física" value={profile.address ?? "-"} />
         <InfoRow
           label="Número de trabajadores"
           value={profile.employeesCount?.toString() ?? "-"}
@@ -185,10 +207,7 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
         Representante
       </Typography>
       <InfoCard title={representative.fullName}>
-        <InfoRow
-          label="Documento de identidad del representante"
-          value={representative.taxId}
-        />
+        <InfoRow label="Documento de identidad" value={representative.taxId} />
         <InfoRow label="Cargo" value={representative.position?.name} />
         <InfoRow label="Correo" value={representative.email} />
         <InfoRow label="Teléfono" value={representative.phone} />

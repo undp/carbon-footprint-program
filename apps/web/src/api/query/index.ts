@@ -14,3 +14,4 @@ export * from "./badges";
 export * from "./subcategoryRecommendations";
 export * from "./transparency";
 export * from "./dashboard";
+export * from "./territories";

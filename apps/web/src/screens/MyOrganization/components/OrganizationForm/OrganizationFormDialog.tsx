@@ -23,7 +23,9 @@ import {
   useOrganizationForm,
   useOrganizationSubmit,
   useOrganizationData,
+  useTerritoryLevels,
 } from "./hooks";
+import { TerritorySelectors } from "./TerritorySelectors";
 import { DialogMode } from "../../types";
 import {
   FormTextField,
@@ -36,6 +38,10 @@ import {
 import { InfoButton } from "@/components/InfoButton";
 import { useConfirmDialog } from "@/hooks";
 import { VOCAB } from "@/config/vocab";
+import {
+  REPRESENTATIVE_DOCUMENT_HELPER_TEXT,
+  REPRESENTATIVE_DOCUMENT_LABEL,
+} from "../../constants";
 
 interface Props {
   open: boolean;
@@ -64,8 +70,14 @@ export const OrganizationFormDialog: FC<Props> = ({
   mode = DialogMode.create,
   onCreated,
 }) => {
-  const { control, handleSubmit, reset, selectedSectorId, formState } =
-    useOrganizationForm({ organization });
+  const {
+    control,
+    handleSubmit,
+    reset,
+    selectedSectorId,
+    territoryIds,
+    formState,
+  } = useOrganizationForm({ organization });
 
   const { submit, isSubmitting } = useOrganizationSubmit({
     mode,
@@ -77,6 +89,7 @@ export const OrganizationFormDialog: FC<Props> = ({
   const {
     sectorOptions,
     subsectorSelectOptions,
+    secondarySubsectorOptions,
     companySizeOptions,
     sectorsLoading,
     organizationSizesLoading,
@@ -88,9 +101,12 @@ export const OrganizationFormDialog: FC<Props> = ({
     selectedSectorId: selectedSectorId || undefined,
     initialSector: organization?.sector,
     initialSubsector: organization?.subsector,
+    initialSecondarySubsector: organization?.secondarySubsector,
     initialMainActivity: organization?.mainActivity,
     initialOrganizationSize: organization?.countryOrganizationSize,
   });
+
+  const territoryLevels = useTerritoryLevels(territoryIds);
 
   const confirmDialog = useConfirmDialog();
 
@@ -237,7 +253,24 @@ export const OrganizationFormDialog: FC<Props> = ({
                 />
               </Box>
 
-              {/* Row 4: Employee Count + Address */}
+              {/* Row 4: Secondary Economic Activity */}
+              <Box className="flex gap-6">
+                <FormAutocompleteField
+                  name="secondarySubsectorId"
+                  control={control}
+                  label="Actividad económica secundaria (Opcional)"
+                  labelId="secondary-subsector-label"
+                  options={secondarySubsectorOptions}
+                  loading={sectorsLoading}
+                  disabled={
+                    sectorsLoading || secondarySubsectorOptions.length === 0
+                  }
+                  className="flex-1"
+                />
+                <Box className="flex-1" />
+              </Box>
+
+              {/* Row 5: Employee Count + Main Activity */}
               <Box className="flex gap-6">
                 <FormNumericField
                   name="employeesCount"
@@ -249,15 +282,6 @@ export const OrganizationFormDialog: FC<Props> = ({
                   onlyInteger
                   onlyIntegerMessage="La cantidad debe ser un número entero"
                 />
-                <FormTextField
-                  name="address"
-                  control={control}
-                  label="Dirección / Región"
-                />
-              </Box>
-
-              {/* Row 5: Main Activity */}
-              <Box className="flex gap-6">
                 <FormAutocompleteField
                   name="mainActivityId"
                   control={control}
@@ -266,6 +290,34 @@ export const OrganizationFormDialog: FC<Props> = ({
                   options={activityOptions}
                   loading={activitiesLoading}
                   disabled={activitiesLoading || activityOptions.length === 0}
+                  className="flex-1"
+                />
+              </Box>
+            </Box>
+          </Box>
+
+          <Divider sx={{ mb: 3, opacity: 0.2 }} />
+
+          {/* Location Section */}
+          <Box className="mb-6">
+            <Box className="mb-4 flex items-center gap-2">
+              <Typography variant="body1" fontSize={18}>
+                Ubicación
+              </Typography>
+              <InfoButton
+                label="Selecciona la ubicación territorial hasta el nivel que conozcas y agrega la dirección física"
+                size="small"
+              />
+            </Box>
+
+            <Box className="flex flex-col gap-4">
+              <TerritorySelectors control={control} levels={territoryLevels} />
+
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="address"
+                  control={control}
+                  label="Dirección física"
                   className="flex-1"
                 />
                 <Box className="flex-1" />
@@ -289,7 +341,7 @@ export const OrganizationFormDialog: FC<Props> = ({
             </Box>
 
             <Box className="flex flex-col gap-4">
-              {/* Row 1: Name + ID */}
+              {/* Row 1: Name + identity document */}
               <Box className="flex gap-6">
                 <FormTextField
                   name="representativeFullName"
@@ -300,7 +352,8 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormTextField
                   name="representativeTaxId"
                   control={control}
-                  label="ID representante"
+                  label={REPRESENTATIVE_DOCUMENT_LABEL}
+                  helperText={REPRESENTATIVE_DOCUMENT_HELPER_TEXT}
                   required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
               </Box>
@@ -329,10 +382,8 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="representativeEmail"
                   control={control}
                   label="Correo"
-                  className="flex-1"
                   required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
-                <Box className="flex-1" />
               </Box>
             </Box>
           </Box>
