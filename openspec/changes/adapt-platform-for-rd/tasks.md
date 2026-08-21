@@ -52,12 +52,12 @@
 
 ## 7. PR 6 — RD economic-activity catalog · base PR 5 · no migration
 
-- [ ] 7.1 Author `country_sector_subsectors.json` as the 17 categories of the national classifier with their ~66 second-level activities, splitting the five activities that span two sectors into two rows each
-- [ ] 7.2 Apply the four cross-sector reassignments (crude-oil and gas extraction and petroleum refining to Energía, medical and precision instruments to Salud, waste recycling to Gestión de Residuos) and record them as deliberate exceptions in a comment or accompanying note
-- [ ] 7.3 Resolve the activities with no direct equivalent: membership organizations and other service activities to Servicios Profesionales y Empresariales, extraterritorial organizations to Administración Pública, and exclude private households with domestic staff as out of scope for corporate reporting
-- [ ] 7.4 Split `Distribución y Transmisión` into `Transmisión de energía` and `Distribución de energía`
-- [ ] 7.5 Remap the 19 entries in `organization_main_activities.json` onto the new sector names, deciding which intensity denominator belongs to each sector
-- [ ] 7.6 Remap the 10 entries in `subcategory_recommendations.json` onto the new sector names
+- [x] 7.1 Author `country_sector_subsectors.json` as the 17 categories of the national classifier with their ~66 second-level activities, splitting the five activities that span two sectors into two rows each
+- [x] 7.2 Apply the four cross-sector reassignments (crude-oil and gas extraction and petroleum refining to Energía, medical and precision instruments to Salud, waste recycling to Gestión de Residuos) and record them as deliberate exceptions in a comment or accompanying note
+- [x] 7.3 Resolve the activities with no direct equivalent: membership organizations and other service activities to Servicios Profesionales y Empresariales, extraterritorial organizations to Administración Pública, and exclude private households with domestic staff as out of scope for corporate reporting
+- [x] 7.4 Split `Distribución y Transmisión` into `Transmisión de energía` and `Distribución de energía`
+- [x] 7.5 Remap the 19 entries in `organization_main_activities.json` onto the new sector names, deciding which intensity denominator belongs to each sector
+- [x] 7.6 Remap the 10 entries in `subcategory_recommendations.json` onto the new sector names
 - [ ] 7.7 Run `pnpm db:reset` and seed, confirming neither name-resolution guard in `seedOrganizationMainActivities` nor `seedSubcategoryRecommendations` throws
 - [ ] 7.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /countrySectors --coverage=false`
 
