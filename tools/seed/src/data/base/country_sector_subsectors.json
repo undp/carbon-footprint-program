@@ -1,260 +1,169 @@
 [
   {
     "countryIsoCode": "DO",
-    "sector": "Manufactura / Industria Manufacturera",
-    "subsectors": [
-      "Alimentos y Bebidas - Procesamiento de carnes",
-      "Alimentos y Bebidas - Lácteos",
-      "Alimentos y Bebidas - Bebidas alcohólicas / no alcohólicas",
-      "Alimentos y Bebidas - Panificación y pastelería",
-      "Alimentos y Bebidas - Envasado de alimentos",
-      "Textil y Vestuario - Tejidos",
-      "Textil y Vestuario - Confección",
-      "Textil y Vestuario - Calzado",
-      "Productos Químicos - Fertilizantes",
-      "Productos Químicos - Pinturas",
-      "Productos Químicos - Químicos industriales",
-      "Metalurgia / Metalmecánica - Fundición",
-      "Metalurgia / Metalmecánica - Fabricación de maquinarias",
-      "Metalurgia / Metalmecánica - Estructuras metálicas",
-      "Productos de Madera y Papel - Aserraderos",
-      "Productos de Madera y Papel - Muebles",
-      "Productos de Madera y Papel - Papel y cartón",
-      "Electrónica y Eléctrica - Equipos electrónicos",
-      "Electrónica y Eléctrica - Componentes eléctricos",
-      "Plásticos y Caucho - Productos plásticos",
-      "Plásticos y Caucho - Neumáticos",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Energía",
-    "subsectors": [
-      "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
-      "Generación de Energía - Termoeléctrica",
-      "Distribución y Transmisión",
-      "Comercialización de Energía",
-      "Petróleo y Gas - Exploración",
-      "Petróleo y Gas - Producción",
-      "Petróleo y Gas - Refinería",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
     "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
     "subsectors": [
-      "Agricultura - Cultivos anuales",
-      "Agricultura - Cultivos permanentes",
-      "Agricultura - Hortalizas",
-      "Agricultura - Fruticultura",
-      "Ganadería - Bovinos",
-      "Ganadería - Porcinos",
-      "Ganadería - Avícolas",
-      "Ganadería - Ovinos",
-      "Silvicultura - Manejo forestal",
-      "Silvicultura - Extracción de madera",
-      "Silvicultura - Reforestación",
-      "Pesca y Acuicultura - Pesca artesanal",
-      "Pesca y Acuicultura - Pesca industrial",
-      "Pesca y Acuicultura - Piscicultura",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Construcción",
-    "subsectors": [
-      "Construcción de Edificaciones - Residencial",
-      "Construcción de Edificaciones - Comercial",
-      "Construcción de Edificaciones - Industrial",
-      "Obras Civiles - Carreteras",
-      "Obras Civiles - Puentes",
-      "Obras Civiles - Infraestructura hídrica",
-      "Instalaciones Especializadas - Eléctricas",
-      "Instalaciones Especializadas - Sanitarias",
-      "Instalaciones Especializadas - Climatización",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Transporte y Logística",
-    "subsectors": [
-      "Transporte Terrestre - Pasajeros",
-      "Transporte Terrestre - Carga",
-      "Transporte Terrestre - Transporte urbano",
-      "Transporte Marítimo y Portuario - Carga",
-      "Transporte Marítimo y Portuario - Pasajeros",
-      "Transporte Aéreo - Aerolíneas",
-      "Transporte Aéreo - Carga aérea",
-      "Logística y Distribución - Centros de distribución",
-      "Logística y Distribución - Couriers",
-      "Logística y Distribución - Almacenamiento y bodegaje",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Comercio",
-    "subsectors": [
-      "Comercio Mayorista - Alimentos",
-      "Comercio Mayorista - Materiales de construcción",
-      "Comercio Mayorista - Insumos industriales",
-      "Comercio Minorista - Supermercados",
-      "Comercio Minorista - Tiendas especializadas",
-      "Comercio Minorista - E-commerce",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Servicios Financieros",
-    "subsectors": [
-      "Banca - Comercial",
-      "Banca - de inversión",
-      "Seguros - Generales",
-      "Seguros - Vida",
-      "Fintech - Pagos",
-      "Fintech - Préstamos digitales",
-      "Administración de Activos - Fondos de inversión",
-      "Administración de Activos - Pensiones",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Turismo, Hotelería y Restaurantes",
-    "subsectors": [
-      "Hoteles y Hospedaje - Hoteles",
-      "Hoteles y Hospedaje - Hostales",
-      "Hoteles y Hospedaje - Resorts",
-      "Servicios Gastronómicos - Restaurantes",
-      "Servicios Gastronómicos - Cafeterías",
-      "Servicios Gastronómicos - Catering",
-      "Agencias de Viajes y Tour Operadores",
-      "Entretenimiento - Casinos",
-      "Entretenimiento - Parques temáticos",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Salud",
-    "subsectors": [
-      "Servicios de Salud - Hospitales",
-      "Servicios de Salud - Clínicas",
-      "Servicios de Salud - Centros de salud",
-      "Servicios de Salud - Servicios médicos",
-      "Servicios de Salud - Servicios odontológicos",
-      "Servicios de Salud - Laboratorios",
-      "Farmacéuticas",
-      "Fabricación de Dispositivos Médicos",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Educación",
-    "subsectors": [
-      "Educación Escolar - Básica",
-      "Educación Escolar - Media",
-      "Educación Superior - Universidades",
-      "Educación Superior - Institutos técnicos",
-      "Capacitación y Formación Profesional",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Servicios Profesionales y Empresariales",
-    "subsectors": [
-      "Consultoría - Gestión",
-      "Consultoría - Sustentabilidad",
-      "Consultoría - Ingeniería",
-      "Servicios Jurídicos",
-      "Contabilidad y Auditoría",
-      "Publicidad y Marketing",
-      "Servicios TI - Desarrollo",
-      "Servicios TI - Consultoría TI",
-      "Servicios TI - Ciberseguridad",
-      "Otro"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sector": "Administración Pública",
-    "subsectors": [
-      "Gobierno Central",
-      "Gobiernos Locales",
-      "Agencias Reguladoras",
-      "Otro"
+      "Agricultura, ganadería, caza y actividades de servicios conexas",
+      "Silvicultura, extracción de madera y actividades de servicios conexas",
+      "Pesca, explotación de criaderos de peces y granjas piscícolas"
     ]
   },
   {
     "countryIsoCode": "DO",
     "sector": "Minería",
     "subsectors": [
-      "Extracción - Cobre",
-      "Extracción - Oro y Plata",
-      "Extracción - Hierro",
-      "Extracción - Minerales no metálicos",
-      "Procesamiento - Fundición",
-      "Procesamiento - Refinería",
-      "Otro"
+      "Extracción de carbón y lignito; extracción de turba",
+      "Extracción de minerales de uranio y torio",
+      "Extracción de minerales metalíferos",
+      "Explotación de otras minas y canteras"
     ]
   },
   {
     "countryIsoCode": "DO",
-    "sector": "Telecomunicaciones",
+    "sector": "Manufactura / Industria Manufacturera",
     "subsectors": [
-      "Telefonía Móvil",
-      "Proveedores de Internet",
-      "Televisión y Radio",
-      "Otro"
+      "Elaboración de productos alimenticios y bebidas",
+      "Elaboración de productos de tabaco",
+      "Fabricación de productos textiles",
+      "Fabricación de prendas de vestir; adobo y teñido de pieles",
+      "Curtido y adobo de cueros; fabricación de calzado y artículos de marroquinería",
+      "Producción de madera y fabricación de productos de madera y corcho",
+      "Fabricación de papel y de productos de papel",
+      "Actividades de edición e impresión y de reproducción de grabaciones",
+      "Fabricación de sustancias y productos químicos",
+      "Fabricación de productos de caucho y de plástico",
+      "Fabricación de vidrio, cerámica y otros productos minerales no metálicos",
+      "Fabricación de metales comunes",
+      "Fabricación de productos elaborados de metal, excepto maquinaria y equipo",
+      "Fabricación de maquinaria y equipo n.c.p.",
+      "Fabricación de maquinaria de oficina, contabilidad e informática",
+      "Fabricación de maquinaria y aparatos eléctricos n.c.p.",
+      "Fabricación de equipo y aparatos de radio, televisión y comunicaciones",
+      "Fabricación de vehículos automotores, remolques y semirremolques",
+      "Fabricación de otros tipos de equipo de transporte",
+      "Fabricación de muebles; industrias manufactureras n.c.p."
     ]
   },
   {
     "countryIsoCode": "DO",
-    "sector": "Bienes Raíces",
-    "subsectors": [
-      "Desarrollo Inmobiliario",
-      "Corretaje",
-      "Administración de Propiedades",
-      "Otro"
-    ]
+    "sector": "Industria Cementera",
+    "subsectors": ["Fabricación de cemento, cal y yeso y de sus productos"]
   },
   {
     "countryIsoCode": "DO",
-    "sector": "Gestión de Residuos",
+    "sector": "Energía",
     "subsectors": [
-      "Recolección de Residuos",
-      "Plantas de Reciclaje",
-      "Disposición Final",
-      "Otro"
+      "Extracción de petróleo crudo y gas natural",
+      "Fabricación de coque y de productos de la refinación del petróleo",
+      "Generación de energía eléctrica",
+      "Transmisión de energía eléctrica",
+      "Distribución de energía eléctrica",
+      "Suministro de gas, vapor y agua caliente"
     ]
   },
   {
     "countryIsoCode": "DO",
     "sector": "Agua y Saneamiento",
     "subsectors": [
-      "Producción y Distribución de Agua",
-      "Tratamiento de Aguas Servidas",
-      "Otro"
+      "Captación, depuración y distribución de agua",
+      "Alcantarillado y tratamiento de aguas residuales"
     ]
   },
   {
     "countryIsoCode": "DO",
-    "sector": "Industria Cementera",
+    "sector": "Gestión de Residuos",
     "subsectors": [
-      "Producción de Clinker",
-      "Producción de Cemento - Molienda y mezcla",
-      "Hormigón Premezclado",
-      "Productos Prefabricados de Hormigón",
-      "Cal y Yeso",
-      "Morteros y Aditivos",
-      "Otro"
+      "Reciclamiento de desperdicios y desechos",
+      "Recolección, tratamiento y eliminación de residuos sólidos"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Construcción",
+    "subsectors": ["Construcción"]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Comercio",
+    "subsectors": [
+      "Venta y reparación de vehículos automotores; venta al por menor de combustibles",
+      "Comercio al por mayor y en comisión",
+      "Comercio al por menor; reparación de efectos personales y domésticos"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Turismo, Hotelería y Restaurantes",
+    "subsectors": [
+      "Hoteles y restaurantes",
+      "Actividades de agencias de viajes y organizadores de turismo",
+      "Actividades deportivas, recreativas y culturales"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Transporte y Logística",
+    "subsectors": [
+      "Transporte por vía terrestre; transporte por tuberías",
+      "Transporte por vía acuática",
+      "Transporte por vía aérea",
+      "Manipulación de carga, almacenamiento y actividades de apoyo al transporte",
+      "Actividades postales y de mensajería"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Telecomunicaciones",
+    "subsectors": [
+      "Telecomunicaciones",
+      "Actividades de cine, radio y televisión y agencias de noticias"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Servicios Financieros",
+    "subsectors": [
+      "Intermediación financiera, excepto seguros y planes de pensiones",
+      "Seguros y planes de pensiones, excepto la seguridad social obligatoria",
+      "Actividades auxiliares de la intermediación financiera"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Bienes Raíces",
+    "subsectors": ["Actividades inmobiliarias"]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Servicios Profesionales y Empresariales",
+    "subsectors": [
+      "Alquiler de maquinaria y equipo sin operarios y de efectos personales",
+      "Informática y actividades conexas",
+      "Investigación y desarrollo",
+      "Otras actividades empresariales",
+      "Actividades de asociaciones n.c.p.",
+      "Otras actividades de servicios"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Administración Pública",
+    "subsectors": [
+      "Administración pública y defensa; planes de seguridad social de afiliación obligatoria",
+      "Organizaciones y órganos extraterritoriales"
+    ]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Educación",
+    "subsectors": ["Enseñanza"]
+  },
+  {
+    "countryIsoCode": "DO",
+    "sector": "Salud",
+    "subsectors": [
+      "Fabricación de instrumentos médicos, ópticos y de precisión",
+      "Servicios sociales y de salud"
     ]
   }
 ]

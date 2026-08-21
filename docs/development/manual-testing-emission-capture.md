@@ -76,16 +76,16 @@ A fictional dairy processor, chosen because its plausible emission sources span 
 
 ### Inventory profile (step 1)
 
-| Field                     | Value                                  |
-| ------------------------- | -------------------------------------- |
-| Año de medición           | 2025                                   |
-| Nombre borrador huella    | Huella 2025 - Lácteos del Valle        |
-| Nombre de la organización | Lácteos del Valle S.A.                 |
-| Tamaño                    | Mediana empresa II (100-249 empleados) |
-| Sector                    | Manufactura / Industria Manufacturera  |
-| Actividad económica       | Alimentos y Bebidas - Lácteos          |
-| Actividad principal       | litros producidos                      |
-| Cantidad                  | 18500000                               |
+| Field                     | Value                                           |
+| ------------------------- | ----------------------------------------------- |
+| Año de medición           | 2025                                            |
+| Nombre borrador huella    | Huella 2025 - Lácteos del Valle                 |
+| Nombre de la organización | Lácteos del Valle S.A.                          |
+| Tamaño                    | Mediana empresa (51 a 150 trabajadores)         |
+| Sector                    | Manufactura / Industria Manufacturera           |
+| Actividad económica       | Elaboración de productos alimenticios y bebidas |
+| Unidad de actividad       | litros producidos                               |
+| Cantidad                  | 18500000                                        |
 
 Reach the screen via _Huella organizacional_ → **Nueva Huella** → **Quiero calcular mi huella** (that button sets `UsageMode.SIMPLIFIED`; _Ya tengo mis cálculos_ goes to Expert mode and does not apply here).
 
