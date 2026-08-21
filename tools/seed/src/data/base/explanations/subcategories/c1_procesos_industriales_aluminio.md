@@ -68,7 +68,7 @@ Este es el paso que **no debes omitir**:
 
 1.- Agrega una **segunda línea** en esta misma sub-categoría, con la misma tecnología y producción.
 
-2.- En **"Fuente factor"** selecciona **"Factor propio"**.
+2.- En **"Fuente factor"** selecciona **"Otro"**.
 
 3.- Ingresa tu factor de PFC ya convertido a **kg CO₂e por tonelada de aluminio**.
 
@@ -96,7 +96,7 @@ Este es el paso que **no debes omitir**:
 
 1.- Rellena los campos igual que en el Caso 1.
 
-2.- En el campo **"Fuente factor"**, selecciona **"Factor propio"**.
+2.- En el campo **"Fuente factor"**, selecciona **"Otro"**.
 
 3.- Modifica el campo **"Factor kgCO₂e/unidad"** con tu valor.
 

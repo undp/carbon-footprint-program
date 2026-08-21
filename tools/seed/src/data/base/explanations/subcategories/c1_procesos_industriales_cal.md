@@ -95,7 +95,7 @@ Si solo tienes la caliza alimentada, puedes estimar la cal producida con el rend
 
 1.- Debes rellenar los campos igual que en el Caso 1.
 
-2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
+2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Otro"**.
 
 3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 
