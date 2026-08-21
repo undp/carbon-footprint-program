@@ -385,7 +385,7 @@ ORDER BY s.id, dv1.value, dv2.value;
 
 ## Refreshing the fixture
 
-The expected values are pinned to the seeded methodology (`Metodología inicial`, GHG Protocol 2004, País Demo — `tools/seed/src/data/base/methodologies.json`). **Any factor edit invalidates them.** To regenerate:
+The expected values are pinned to the seeded methodology (`Metodología inicial`, GHG Protocol 2004, República Dominicana — `tools/seed/src/data/base/methodologies.json`). **Any factor edit invalidates them.** To regenerate:
 
 1. Dump the factors actually in the database:
 
