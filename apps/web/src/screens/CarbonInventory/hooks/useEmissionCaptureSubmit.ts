@@ -1,5 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useSnackbar } from "notistack";
+import { dimensionValueRequiresComment } from "@repo/constants";
+import { useCarbonInventoryMethodology } from "@/api/query";
 import { useSyncCarbonInventoryLines } from "@/api/query/carbonInventories/lines/useSyncCarbonInventoryLines";
 import {
   EmissionCaptureFormValues,
@@ -36,6 +38,26 @@ export const useEmissionCaptureSubmit = ({
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
+  // Already in cache: the screen loads the methodology to render the editor.
+  const { data: methodology } = useCarbonInventoryMethodology(inventoryId);
+
+  // Values whose selection obliges the line to say what it actually was — the
+  // `Otro` escape hatches. The API rejects the batch anyway; catching it here
+  // names the offending value instead of failing the whole save opaquely.
+  const commentRequiredValueNames = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const category of methodology?.categories ?? []) {
+      for (const subcategory of category.subcategories) {
+        for (const dimension of subcategory.dimensions) {
+          for (const value of dimension.values) {
+            if (dimensionValueRequiresComment(value.value))
+              names.set(value.id, value.value);
+          }
+        }
+      }
+    }
+    return names;
+  }, [methodology]);
 
   const submit = useCallback(
     async (data: EmissionCaptureFormValues) => {
@@ -71,6 +93,28 @@ export const useEmissionCaptureSubmit = ({
         const hasDeletedLines = flatLines.some(
           (line) => line.isDeleted && !line.isNew
         );
+
+        const lineMissingComment = activeLines.find((line) => {
+          if (line.comment?.trim()) return false;
+          return [line.dimensionValue1Id, line.dimensionValue2Id].some(
+            (valueId) => valueId && commentRequiredValueNames.has(valueId)
+          );
+        });
+
+        if (lineMissingComment) {
+          const valueName =
+            commentRequiredValueNames.get(
+              lineMissingComment.dimensionValue1Id ?? ""
+            ) ??
+            commentRequiredValueNames.get(
+              lineMissingComment.dimensionValue2Id ?? ""
+            );
+          enqueueSnackbar(
+            `La opción "${valueName}" requiere un comentario que especifique de qué se trata. Agrégalo en la línea antes de guardar.`,
+            { variant: "warning" }
+          );
+          return;
+        }
 
         if (activeLines.length === 0 && !hasDeletedLines) {
           enqueueSnackbar(
@@ -113,6 +157,7 @@ export const useEmissionCaptureSubmit = ({
       inventoryId,
       isDirty,
       getDirtyLineIds,
+      commentRequiredValueNames,
       enqueueSnackbar,
       mutateAsync,
       onSuccess,
