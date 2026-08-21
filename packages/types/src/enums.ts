@@ -28,4 +28,5 @@ export {
   CountryOrganizationSizeStatus,
   MeasurementUnitStatus,
   MagnitudeStatus,
+  TerritoryLevel,
 } from "@repo/database/enums";

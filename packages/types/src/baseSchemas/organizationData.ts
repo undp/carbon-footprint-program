@@ -26,7 +26,16 @@ export const OrganizationDataBaseSchema = z.object({
   subsectorId: IdSchema.nullable().describe(
     "The ID of the associated subsector."
   ),
-  address: z.string().nullable().describe("The address of the organization."),
+  secondarySubsectorId: IdSchema.nullable().describe(
+    "The ID of the optional secondary economic activity, which may belong to a different sector than the primary one."
+  ),
+  territoryId: IdSchema.nullable().describe(
+    "The ID of the most specific territory the organization declared. Ancestor levels are derived from the hierarchy."
+  ),
+  address: z
+    .string()
+    .nullable()
+    .describe("The street-level address of the organization."),
   employeesCount: z
     .number()
     .int()
@@ -38,7 +47,9 @@ export const OrganizationDataBaseSchema = z.object({
     .describe("The full name of the organization's representative."),
   representativeTaxId: z
     .string()
-    .describe("The tax ID of the organization's representative."),
+    .describe(
+      "The identity document number of the organization's representative."
+    ),
   representativeCountryJobPositionId: IdSchema.describe(
     "The ID of the associated country job position for the representative."
   ),
