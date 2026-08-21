@@ -12,6 +12,7 @@ import { seedMagnitudes } from "./scripts/seedMagnitudes.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
 import { seedCountries } from "./scripts/seedCountries.js";
+import { seedTerritories } from "./scripts/seedTerritories.js";
 import { seedCountryJobPositions } from "./scripts/seedCountryJobPositions.js";
 import { seedCountryOrganizationSizes } from "./scripts/seedCountryOrganizationSizes.js";
 import { seedOrganizationMainActivities } from "./scripts/seedOrganizationMainActivities.js";
@@ -60,6 +61,7 @@ async function main() {
   await seedMeasurementUnits(prisma, SEEDS_DATASET); // needs the magnitudes to be seeded first
   await seedSystemParameters(prisma, SEEDS_DATASET);
   await seedCountries(prisma, SEEDS_DATASET);
+  await seedTerritories(prisma, SEEDS_DATASET); // independent of the countries: the deployment holds a single country
   await seedCountryJobPositions(prisma, SEEDS_DATASET); // needs the countries to be seeded first
   await seedCountryOrganizationSizes(prisma, SEEDS_DATASET); // needs the countries to be seeded first
   await seedCountrySectorSubsectors(prisma, SEEDS_DATASET); // needs the countries to be seeded first
