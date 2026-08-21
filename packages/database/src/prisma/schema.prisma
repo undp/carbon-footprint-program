@@ -132,21 +132,22 @@ enum CountrySubsectorStatus {
 }
 
 model CountrySubsector {
-  id                         BigInt                      @id @default(autoincrement())
-  countrySectorId            BigInt                      @map("country_sector_id")
-  name                       String
-  description                String?
-  status                     CountrySubsectorStatus      @default(ACTIVE)
-  createdAt                  DateTime                    @default(now()) @map("created_at")
-  updatedAt                  DateTime?                   @updatedAt @map("updated_at")
-  createdById                BigInt?                     @map("created_by_id")
-  updatedById                BigInt?                     @map("updated_by_id")
-  countrySector              CountrySector               @relation(fields: [countrySectorId], references: [id])
-  creator                    User?                       @relation("country_subsector_created_by", fields: [createdById], references: [id])
-  updater                    User?                       @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
-  organizationMainActivities OrganizationMainActivity[]
-  organizationData           OrganizationData[]
-  subcategoryRecommendations SubcategoryRecommendation[]
+  id                          BigInt                      @id @default(autoincrement())
+  countrySectorId             BigInt                      @map("country_sector_id")
+  name                        String
+  description                 String?
+  status                      CountrySubsectorStatus      @default(ACTIVE)
+  createdAt                   DateTime                    @default(now()) @map("created_at")
+  updatedAt                   DateTime?                   @updatedAt @map("updated_at")
+  createdById                 BigInt?                     @map("created_by_id")
+  updatedById                 BigInt?                     @map("updated_by_id")
+  countrySector               CountrySector               @relation(fields: [countrySectorId], references: [id])
+  creator                     User?                       @relation("country_subsector_created_by", fields: [createdById], references: [id])
+  updater                     User?                       @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
+  organizationMainActivities  OrganizationMainActivity[]
+  organizationData            OrganizationData[]          @relation("organization_data_subsector")
+  organizationDataAsSecondary OrganizationData[]          @relation("organization_data_secondary_subsector")
+  subcategoryRecommendations  SubcategoryRecommendation[]
 
   // NOTE: Partial unique index (countrySectorId, name) WHERE status = 'ACTIVE'.
   // Declared in raw SQL in the migration; Prisma does not track partial indexes on schema diffs.
@@ -955,6 +956,46 @@ model Organization {
   @@map("organization")
 }
 
+/// Levels of this deployment's territorial hierarchy, root first. The levels are
+/// fixed by the deployment's seed data; there is no per-country level table.
+enum TerritoryLevel {
+  PLANNING_REGION
+  PROVINCE
+  MUNICIPALITY
+  MUNICIPAL_DISTRICT
+  SECTOR
+
+  @@map("territory_level")
+}
+
+/// Administrative subdivisions of the deployment's country as a self-referencing
+/// hierarchy. An organization references the single most specific node it knows;
+/// ancestors are derived by walking `parentId`.
+///
+/// Loaded by the migration and by `seedTerritories`, with no CRUD API and no
+/// maintainer screen today: boundaries change by law, not by administrative
+/// action. It is an ordinary catalog table, so adding a maintainer later is
+/// additive — endpoints and a screen, plus a `status` column if it needs
+/// soft-delete.
+model Territory {
+  id               BigInt             @id @default(autoincrement())
+  name             String
+  level            TerritoryLevel
+  parentId         BigInt?            @map("parent_id")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime?          @updatedAt @map("updated_at")
+  /// `Restrict` rather than Prisma's default `SetNull`: nulling the parent of a
+  /// deleted node would silently promote its children to roots, where they would
+  /// surface in the top-level selector as planning regions.
+  parent           Territory?         @relation("territory_hierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children         Territory[]        @relation("territory_hierarchy")
+  organizationData OrganizationData[]
+
+  @@unique([parentId, level, name])
+  @@index([parentId])
+  @@map("territory")
+}
+
 enum OrganizationDataStatus {
   OUTDATED
   ACTIVE
@@ -973,6 +1014,14 @@ model OrganizationData {
   sectorId                           BigInt?                            @map("sector_id")
   mainActivityId                     BigInt?                            @map("main_activity_id")
   subsectorId                        BigInt?                            @map("subsector_id")
+  /// Optional second economic activity, drawn from the same catalog as the
+  /// primary one and allowed to belong to a different sector.
+  secondarySubsectorId               BigInt?                            @map("secondary_subsector_id")
+  /// Most specific node of the territorial hierarchy the registrant knows.
+  /// Ancestors are derived by walking `Territory.parentId`, never stored here.
+  territoryId                        BigInt?                            @map("territory_id")
+  /// Street-level address. Independent of `territoryId`, which carries the
+  /// administrative subdivisions.
   address                            String?
   employeesCount                     Int?                               @map("employees_count")
   representativeFullName             String?                            @map("representative_full_name")
@@ -987,7 +1036,9 @@ model OrganizationData {
   organization                       Organization                       @relation(fields: [organizationId], references: [id])
   countryOrganizationSize            CountryOrganizationSize?           @relation(fields: [countryOrganizationSizeId], references: [id])
   sector                             CountrySector?                     @relation(fields: [sectorId], references: [id])
-  subsector                          CountrySubsector?                  @relation(fields: [subsectorId], references: [id])
+  subsector                          CountrySubsector?                  @relation("organization_data_subsector", fields: [subsectorId], references: [id])
+  secondarySubsector                 CountrySubsector?                  @relation("organization_data_secondary_subsector", fields: [secondarySubsectorId], references: [id], onDelete: Restrict)
+  territory                          Territory?                         @relation(fields: [territoryId], references: [id], onDelete: Restrict)
   representativeCountryJobPosition   CountryJobPosition?                @relation(fields: [representativeCountryJobPositionId], references: [id])
   creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id])
   updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
