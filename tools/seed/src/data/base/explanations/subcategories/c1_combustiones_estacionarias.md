@@ -67,9 +67,9 @@ Puedes obtener los datos desde:
 > **Cantidad estimada** = $\frac{Gasto\ anual}{Precio\ promedio\ por\ unidad}$
 
 _Ejemplo:_  
-Si tu empresa gastó **5.000.000 CLP** en diésel para una caldera y el precio promedio fue **1.250 CLP/L**:
+Si tu empresa gastó **264.000 DOP** en diésel para una caldera y el precio promedio fue **66 DOP/L**:
 
-**Litros consumidos al año** = $\frac{5.000.000\ CLP}{1.250\ CLP/L}$ = $4.000\ L/año$
+**Litros consumidos al año** = $\frac{264.000\ DOP}{66\ DOP/L}$ = $4.000\ L/año$
 
 ---
 

@@ -4,13 +4,15 @@ Esta categoría corresponde a **las emisiones generadas por el tratamiento y dis
 
 Incluye las emisiones asociadas a residuos enviados a:
 
+- **Vertederos a cielo abierto**
+- **Vertederos controlados**
 - **Rellenos sanitarios**
 - **Incineración**
 - **Reciclaje**
 
 Cada tipo de tratamiento genera **diferentes niveles de emisiones**, por lo que es importante **identificar correctamente el destino de los residuos**.
 
-💡 **Reciclar generalmente genera menos emisiones** que enviar residuos a relleno sanitario o incineración.
+💡 **Reciclar generalmente genera menos emisiones** que enviar residuos a un vertedero, un relleno sanitario o incineración.
 
 ⚠️ Aquí debes incluir **todos los residuos sólidos generados por tu empresa**, tales como:
 
@@ -66,8 +68,9 @@ Los materiales disponibles son:
 - Papel
 - Plástico
 - Vidrio
-
-⚠️ Debes crear **un registro separado por cada material y destino**.
+- Ropa
+- Residuos general de la casa
+- Residuos comerciales o industriales
 
 ---
 
@@ -77,13 +80,16 @@ Debes indicar **qué ocurre con ese residuo**.
 
 Los destinos posibles son:
 
-- **Relleno sanitario**
+- **Vertedero a cielo abierto:** sitio sin manejo sanitario, sin cobertura ni control de los residuos que recibe.
+- **Vertedero controlado:** sitio con algún manejo (cobertura, compactación, control de acceso) pero sin captura de gases.
+- **Relleno sanitario:** sitio con manejo sanitario e infraestructura de control de lixiviados y gases.
 - **Incineración**
 - **Reciclaje**
+- **Otro:** solo si el destino no corresponde a ninguno de los anteriores. Al seleccionarlo **es obligatorio escribir un comentario** en la línea explicando cuál fue el destino real; sin ese comentario la línea no se puede guardar. Se le aplica el factor más alto disponible para ese material mientras no esté clasificado.
 
-⚠️ No todos los materiales tienen factores disponibles para todos los destinos.
+💡 Si no sabes con certeza a qué tipo de sitio llegan tus residuos, consulta al gestor o al ayuntamiento que los retira. La diferencia entre un vertedero y un relleno sanitario cambia el resultado de forma significativa.
 
-Si la plataforma no permite una combinación específica, deberás seleccionar **la alternativa disponible más cercana**.
+⚠️ Debes crear **un registro separado por cada material y destino**.
 
 ---
 

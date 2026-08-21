@@ -78,7 +78,7 @@ Si sabes cuánto pagas mensualmente por tipo de combustible, la fórmula es:
 
 _Ejemplo:_
 
-**Litros consumidos al año** = $\frac{600.000\ CLP}{1.400\ CLP/L} \times 12 \approx 5.140\ L/año$
+**Litros consumidos al año** = $\frac{33.000\ DOP}{77\ DOP/L} \times 12 \approx 5.140\ L/año$
 
 ---
 
