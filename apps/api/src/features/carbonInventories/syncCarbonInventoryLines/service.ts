@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import { dimensionValueRequiresComment } from "@repo/constants";
 import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesResponse,
@@ -16,6 +17,7 @@ import {
 } from "./helper.js";
 import {
   CarbonInventoryNotFoundError,
+  DimensionValueRequiresCommentError,
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
   LineNotFoundError,
@@ -73,6 +75,16 @@ export const syncCarbonInventoryLinesService = async (
         throw new SubcategoryNotInMethodologyError();
     }
   }
+
+  // `Otro` is an escape hatch: the methodology cannot classify what the user
+  // selected, so its line has to say what the emission actually was, or the
+  // registry stores something nobody can audit. The names that count as escape
+  // hatches live in `COMMENT_REQUIRED_DIMENSION_VALUES`.
+  // Checked before the transaction so a rejected batch writes nothing.
+  await validateRequiredComments(prismaClient, [
+    ...request.create,
+    ...request.update,
+  ]);
 
   // Validate lines for update and delete operations
   const lineIdsToValidate = [
@@ -257,4 +269,52 @@ export const syncCarbonInventoryLinesService = async (
     updated: updatedLines,
     deleted: deletedLineIds,
   };
+};
+
+type LineWithSelections = {
+  dimensionValue1Id: string | null;
+  dimensionValue2Id: string | null;
+  comment: string | null;
+};
+
+const validateRequiredComments = async (
+  prismaClient: PrismaClient,
+  items: LineWithSelections[]
+): Promise<void> => {
+  const selectedIds = [
+    ...new Set(
+      items.flatMap((item) =>
+        [item.dimensionValue1Id, item.dimensionValue2Id].filter(
+          (id): id is string => id !== null
+        )
+      )
+    ),
+  ];
+
+  if (selectedIds.length === 0) return;
+
+  const selectedValues =
+    await prismaClient.emissionFactorDimensionValue.findMany({
+      where: { id: { in: selectedIds.map((id) => BigInt(id)) } },
+      select: { id: true, value: true },
+    });
+
+  const flaggedById = new Map(
+    selectedValues
+      .filter((value) => dimensionValueRequiresComment(value.value))
+      .map((value) => [value.id.toString(), value.value])
+  );
+
+  if (flaggedById.size === 0) return;
+
+  for (const item of items) {
+    // Whitespace is not an explanation.
+    if (item.comment?.trim()) continue;
+
+    const flagged = [item.dimensionValue1Id, item.dimensionValue2Id]
+      .map((id) => (id === null ? undefined : flaggedById.get(id)))
+      .find((value) => value !== undefined);
+
+    if (flagged) throw new DimensionValueRequiresCommentError(flagged);
+  }
 };
