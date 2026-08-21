@@ -28,6 +28,7 @@ export * from "./subcategory.js";
 export * from "./submission.js";
 export * from "./submissionSubject.js";
 export * from "./systemParameter.js";
+export * from "./territory.js";
 export * from "./user.js";
 export * from "./userRoleAudit.js";
 export * from "./gasDetails.js";
