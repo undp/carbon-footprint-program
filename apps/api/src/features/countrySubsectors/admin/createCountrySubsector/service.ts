@@ -48,7 +48,8 @@ export const createCountrySubsectorService = async (
         },
         select: adminCountrySubsectorSelect,
       });
-      return mapCountrySubsectorToAdmin(created);
+      // A row created in this transaction cannot be referenced yet.
+      return mapCountrySubsectorToAdmin(created, 0);
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
