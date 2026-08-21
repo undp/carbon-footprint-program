@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -13,6 +14,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { FormFileUpload } from "@/components";
 import { VOCAB } from "@/config/vocab";
+import { InscriptionDocumentsSection } from "./InscriptionDocumentsSection";
 
 interface AccreditationFormValues {
   files: File[];
@@ -83,6 +85,10 @@ export const AccreditationConfirmDialog: FC<
           </Typography>
 
           <Divider sx={{ mb: 2 }} />
+
+          <Box sx={{ mb: 2 }}>
+            <InscriptionDocumentsSection />
+          </Box>
 
           <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
             Documentos de respaldo{" "}
