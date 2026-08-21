@@ -46,9 +46,9 @@
 
 ## 6. PR 5 — Supporting documents for inscription · base PR 4 · no migration
 
-- [ ] 6.1 State the base document in `RequiredDocumentsSection.tsx`: the RNC deed or the current DGII registration certificate
-- [ ] 6.2 State the conditionally required documents as a separate category: current Registro Mercantil and proof of the representative's authority
-- [ ] 6.3 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:web`
+- [x] 6.1 State the base document in `RequiredDocumentsSection.tsx`: the RNC deed or the current DGII registration certificate
+- [x] 6.2 State the conditionally required documents as a separate category: current Registro Mercantil and proof of the representative's authority
+- [x] 6.3 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:web`
 
 ## 7. PR 6 — RD economic-activity catalog · base PR 5 · no migration
 
