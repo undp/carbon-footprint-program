@@ -1,0 +1,190 @@
+[
+  {
+    "name": "Cibao Norte",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Espaillat",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Puerto Plata",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Santiago",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Cibao Sur",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "La Vega",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Monseñor Nouel",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Sánchez Ramírez",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Cibao Nordeste",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Duarte",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Hermanas Mirabal",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "María Trinidad Sánchez",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Samaná",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Cibao Noroeste",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Dajabón",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Monte Cristi",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Santiago Rodríguez",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Valverde",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Valdesia",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Azua",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Peravia",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "San Cristóbal",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "San José de Ocoa",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Enriquillo",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Baoruco",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Barahona",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Independencia",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Pedernales",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "El Valle",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Elías Piña",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "San Juan",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Yuma",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "El Seibo",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "La Altagracia",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "La Romana",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Higuamo",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Hato Mayor",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Monte Plata",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "San Pedro de Macorís",
+        "level": "PROVINCE"
+      }
+    ]
+  },
+  {
+    "name": "Ozama o Metropolitana",
+    "level": "PLANNING_REGION",
+    "children": [
+      {
+        "name": "Distrito Nacional",
+        "level": "PROVINCE"
+      },
+      {
+        "name": "Santo Domingo",
+        "level": "PROVINCE"
+      }
+    ]
+  }
+]
