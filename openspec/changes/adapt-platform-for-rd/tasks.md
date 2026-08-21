@@ -16,16 +16,16 @@
 
 ## 3. PR 2 — Terminology · base PR 1 · no migration
 
-- [ ] 3.1 Rename the maintainer sidebar group from `Perfilamiento` to `Datos generales` and its four children to `Sectores`, `Actividades Económicas`, `Unidades de Actividad`, `Tamaño de la Organización`, leaving routes untouched (`MaintainerLayout.tsx`, `screens/Maintainer/constants.ts`)
-- [ ] 3.2 Rename step 1 of the inventory flow to `Datos generales` and update its help text (`BusinessProfilingScreen.tsx`, `useBusinessProfilingLabels.ts`, `explanations/standalone/business-profiling.md`)
-- [ ] 3.3 Replace `rubro` / `subrubro` with `Actividad económica principal` / `secundaria` across the ~29 remaining web files carrying the literals, including `OrganizationFormDialog.tsx`, `OrganizationProfileView.tsx`, `EmissionRankingCard.tsx`, `SectorChartCard.tsx`, `TransparencyScreen.tsx`, `exportCarbonInventoryToExcel.ts` and the six maintainer column hooks
-- [ ] 3.4 Replace the hardcoded `ProfilingEntityLabel` union in `DeleteWarningDialog.tsx` and update the dialog copy accordingly
-- [ ] 3.5 Update the API-side Spanish copy: `ParentNotActiveError.ts`, the four `countrySectors` / `countrySubsectors` delete-restore services, `organizationMainActivities/admin/restoreOrganizationMainActivity/service.ts` and `features/forms/organizations/handler.ts`
-- [ ] 3.6 Update the two affected web tests (`getApiErrorMessage.test.ts`, `exportCarbonInventoryToExcel.test.ts`) and the 10 explanation markdowns that mention `rubro`
-- [ ] 3.7 Set `TAX_ID_LABEL` / `TAX_ID_LABEL_SHORT` in `packages/constants` to the RNC wording, and delete the hardcoded `Rut` literals in `OrganizationProfileView.tsx:188` and `SubmissionHistory/OrgDataSection.tsx:86`
-- [ ] 3.8 Rename the `Actividad principal de la organización` form field so it names intensity denominators rather than economic activity (`OrganizationFormDialog.tsx`, `MainActivitiesMaintainerScreen.tsx`, `explanations/standalone/main-activities-maintainer.md`)
-- [ ] 3.9 Confirm with `grep -rni 'rubro\|subrubro\|perfilamiento'` over `apps/`, `packages/` and `tools/seed/src/data/base/explanations/` that nothing user-facing remains
-- [ ] 3.10 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:web`
+- [x] 3.1 Rename the maintainer sidebar group from `Perfilamiento` to `Datos generales` and its four children to `Sectores`, `Actividades Económicas`, `Unidades de Actividad`, `Tamaño de la Organización`, leaving routes untouched (`MaintainerLayout.tsx`, `screens/Maintainer/constants.ts`)
+- [x] 3.2 Rename step 1 of the inventory flow to `Datos generales` and update its help text (`BusinessProfilingScreen.tsx`, `useBusinessProfilingLabels.ts`, `explanations/standalone/business-profiling.md`)
+- [x] 3.3 Replace `rubro` / `subrubro` with `Actividad económica principal` / `secundaria` across the ~29 remaining web files carrying the literals, including `OrganizationFormDialog.tsx`, `OrganizationProfileView.tsx`, `EmissionRankingCard.tsx`, `SectorChartCard.tsx`, `TransparencyScreen.tsx`, `exportCarbonInventoryToExcel.ts` and the six maintainer column hooks
+- [x] 3.4 Replace the hardcoded `ProfilingEntityLabel` union in `DeleteWarningDialog.tsx` and update the dialog copy accordingly
+- [x] 3.5 Update the API-side Spanish copy: `ParentNotActiveError.ts`, the four `countrySectors` / `countrySubsectors` delete-restore services, `organizationMainActivities/admin/restoreOrganizationMainActivity/service.ts` and `features/forms/organizations/handler.ts`
+- [x] 3.6 Update the two affected web tests (`getApiErrorMessage.test.ts`, `exportCarbonInventoryToExcel.test.ts`) and the 10 explanation markdowns that mention `rubro`
+- [x] 3.7 Set `TAX_ID_LABEL` / `TAX_ID_LABEL_SHORT` in `packages/constants` to the RNC wording, and delete the hardcoded `Rut` literals in `OrganizationProfileView.tsx:188` and `SubmissionHistory/OrgDataSection.tsx:86`
+- [x] 3.8 Rename the `Actividad principal de la organización` form field so it names intensity denominators rather than economic activity (`OrganizationFormDialog.tsx`, `MainActivitiesMaintainerScreen.tsx`, `explanations/standalone/main-activities-maintainer.md`)
+- [x] 3.9 Confirm with `grep -rni 'rubro\|subrubro\|perfilamiento'` over `apps/`, `packages/` and `tools/seed/src/data/base/explanations/` that nothing user-facing remains
+- [x] 3.10 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:web`
 
 ## 4. PR 3 — Schema additions · base PR 2 · one migration
 
