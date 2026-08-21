@@ -31,3 +31,22 @@ export const CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 /** Same limit expressed in MB for UI hints (e.g. `FileUpload.maxSizeMB`). */
 export const CARBON_INVENTORY_LINE_MAX_FILE_SIZE_MB =
   CARBON_INVENTORY_LINE_MAX_FILE_SIZE_BYTES / (1024 * 1024);
+
+/**
+ * Dimension values that are escape hatches: the methodology cannot classify what
+ * the user selected, so the capture line has to say what it actually was.
+ * Otherwise the registry stores an emission nobody can audit or reclassify.
+ *
+ * A per-deployment constant rather than a column on the dimension value: this
+ * deployment seeds its methodology, and a per-value flag only earns its schema
+ * if an administrator can toggle it, which would mean a maintainer surface.
+ *
+ * Matched exactly, not by prefix — `Otro país` and `Otro proceso` are ordinary
+ * options that name themselves, not escape hatches. Add a name here when the
+ * methodology gains another one.
+ */
+export const COMMENT_REQUIRED_DIMENSION_VALUES: readonly string[] = ["Otro"];
+
+/** Whether a capture line selecting `value` must carry a non-empty comment. */
+export const dimensionValueRequiresComment = (value: string): boolean =>
+  COMMENT_REQUIRED_DIMENSION_VALUES.includes(value.trim());

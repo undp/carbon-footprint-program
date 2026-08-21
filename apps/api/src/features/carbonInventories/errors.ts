@@ -42,6 +42,12 @@ export const LineNotFoundError = createError(
   404
 );
 
+export const DimensionValueRequiresCommentError = createError(
+  "DIMENSION_VALUE_REQUIRES_COMMENT",
+  "The selected value '%s' requires a comment on the line",
+  422
+);
+
 export const LineNotInCarbonInventoryError = createError(
   "LINE_NOT_IN_CARBON_INVENTORY",
   "Line %s does not belong to carbon inventory %s (found in inventory %s)",
