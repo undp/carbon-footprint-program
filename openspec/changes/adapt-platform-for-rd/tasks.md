@@ -89,3 +89,32 @@
 - [ ] 10.1 Verify the tip of the stack is green in CI (lint, type-check, format:check, API test matrix, `Test (web)`, build)
 - [ ] 10.2 Record MMARN's answers to the three Open Questions in `design.md`, and correct the catalog or schema if any answer diverges from the assumption taken
 - [x] 10.3 Document the upstream freeze in the branch's README or deployment notes: only security fixes are cherry-picked from Huella Latam, with no periodic rebase
+
+## Implementation notes (2026-08-21)
+
+PRs 1–6 of the stack are open on `rd/integration`, plus a docs-only PR carrying
+task 10.3. What was **not** done, and why:
+
+- **Section 1 (external dependencies)** — MMARN correspondence, the ONE
+  territorial catalog, the DGII activity list and the reset window are outside
+  what can be done from the repository. Everything downstream of them was built
+  under the assumptions `design.md` states.
+- **PR 7 (organization form + territorial seed) and PR 8 (methodology)** — not
+  built. PR 7's territorial selectors need the ONE catalog (task 1.3) and PR 8's
+  factors need MMARN's answer on sources (task 1.2). The schema they populate is
+  already in place (`territory`, `secondary_subsector_id`), so both are additive when
+  the data arrives.
+- **Every `pnpm db:reset` / seed / API-test task** (2.4, 4.6, 5.3, 7.7, 7.8) —
+  no Postgres or Docker in the authoring environment. `format`, `lint`,
+  `type-check` and `test:web` were run green on each PR; the migration in PR 3 is
+  hand-written and unapplied, and the two new `countrySectors` integration tests
+  in PR 6 are unrun.
+- **Task 7.1 shipped 18 sectors, not 17** — the mapping needs both
+  `Industria Cementera`, the target of the non-metallic-minerals split, and
+  `Bienes Raíces`. Keeping the existing sector names also made 7.5/7.6 a no-op
+  for sector resolution.
+- **Task 10.1 cannot be satisfied as written** — `.github/workflows/ci.yml`
+  triggers on `pull_request: branches: [main]`, so no check runs on a PR based on
+  `rd/integration` or on another stack branch. The stack's CI evidence is the
+  local gate runs above until it merges to a `main`-based branch, or until the
+  trigger is widened.
