@@ -163,7 +163,7 @@ export const useSectorProfilingColumns = ({
               renderDeleteDialog={({ open, onCancel, onConfirm }) => (
                 <DeleteWarningDialog
                   open={open}
-                  entityLabel="rubro"
+                  entityLabel="sector"
                   impactedChildren={params.row.impactedChildren}
                   onCancel={onCancel}
                   onConfirm={onConfirm}

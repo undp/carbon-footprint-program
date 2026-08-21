@@ -86,7 +86,7 @@ export const useMainActivityProfilingColumns = ({
     () => [
       {
         field: "countrySectorId",
-        headerName: "Rubro",
+        headerName: "Sector",
         flex: 1,
         minWidth: 160,
         valueGetter: (_value, row: MainActivityFormRow) =>
@@ -108,7 +108,7 @@ export const useMainActivityProfilingColumns = ({
               isEditing={editing}
               options={sectorOptions}
               allowEmpty
-              emptyLabel="Sin rubro"
+              emptyLabel="Sin sector"
               onChange={(value) => onSectorChange(rowIndex, value)}
               onClick={
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
@@ -119,7 +119,7 @@ export const useMainActivityProfilingColumns = ({
       },
       {
         field: "countrySubsectorId",
-        headerName: "Subrubro",
+        headerName: "Actividad económica",
         flex: 1,
         minWidth: 160,
         valueGetter: (_value, row: MainActivityFormRow) =>
@@ -146,7 +146,7 @@ export const useMainActivityProfilingColumns = ({
               isEditing={editing}
               options={filteredOptions}
               allowEmpty
-              emptyLabel="Sin subrubro"
+              emptyLabel="Sin actividad económica"
               onChange={(value) => onSubsectorChange(rowIndex, value)}
               onClick={
                 !isDeleted && !editing ? () => onStartEditRow(rowId) : undefined
@@ -251,7 +251,7 @@ export const useMainActivityProfilingColumns = ({
               renderDeleteDialog={({ open, onCancel, onConfirm }) => (
                 <DeleteWarningDialog
                   open={open}
-                  entityLabel="actividad principal"
+                  entityLabel="unidad de actividad"
                   impactedChildren={params.row.impactedChildren}
                   onCancel={onCancel}
                   onConfirm={onConfirm}

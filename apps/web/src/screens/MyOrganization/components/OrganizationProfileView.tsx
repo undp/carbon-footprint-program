@@ -161,11 +161,11 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
         )}
         <InfoRow label={TAX_ID_LABEL} value={profile.taxId ?? "-"} />
         <InfoRow label="Razón social" value={profile.legalName} />
+        <InfoRow label="Sector" value={profile.sector?.name ?? "-"} />
         <InfoRow
-          label="Rubro / Sector económico"
-          value={profile.sector?.name ?? "-"}
+          label="Actividad económica principal"
+          value={profile.subsector?.name ?? "-"}
         />
-        <InfoRow label="Sub-rubro" value={profile.subsector?.name ?? "-"} />
         <InfoRow
           label={`Tamaño de ${VOCAB.organization.article.singular}`}
           value={profile.countryOrganizationSize?.name ?? "-"}
@@ -185,7 +185,10 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
         Representante
       </Typography>
       <InfoCard title={representative.fullName}>
-        <InfoRow label="ID representante / Rut" value={representative.taxId} />
+        <InfoRow
+          label="Documento de identidad del representante"
+          value={representative.taxId}
+        />
         <InfoRow label="Cargo" value={representative.position?.name} />
         <InfoRow label="Correo" value={representative.email} />
         <InfoRow label="Teléfono" value={representative.phone} />

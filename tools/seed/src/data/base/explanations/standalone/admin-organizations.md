@@ -8,7 +8,7 @@ No es un mantenedor clásico: las organizaciones se autorregistran desde la apli
 
 ## Alcance
 
-- Listado completo de organizaciones con Rubro, Sub-Rubro, Tamaño, Estado, fecha de la última medición y emisiones totales acumuladas en tCO₂e.
+- Listado completo de organizaciones con Sector, Actividad Económica, Tamaño, Estado, fecha de la última medición y emisiones totales acumuladas en tCO₂e.
 - Indicadores agregados (KPIs) en la parte superior: total de organizaciones, las que ya tienen mediciones cargadas, las registradas (acreditadas pero aún sin medición) y las no acreditadas.
 - Estados visibles en la columna Estado: "con Mediciones" (acreditada y con inventarios), "Acreditada" (sin inventarios todavía), "No acreditada" y "Bloqueada".
 - Acceso al perfil completo de cada organización y al historial de sus postulaciones.
@@ -43,7 +43,7 @@ Se confirma también mediante un cuadro de diálogo dedicado y la organización 
 
 ### Búsqueda, filtros y exportación
 
-La tabla soporta búsqueda libre por nombre, rubro, sub-rubro, tamaño y estado, además de filtrado y ordenamiento por columna y exportación de los resultados mostrados.
+La tabla soporta búsqueda libre por nombre, sector, actividad económica, tamaño y estado, además de filtrado y ordenamiento por columna y exportación de los resultados mostrados.
 
 Esto facilita armar listados focalizados para auditoría o soporte. La búsqueda es tolerante a diferencias de tildes y mayúsculas, por lo que sirve también para localizar rápidamente una organización por una coincidencia parcial.
 

@@ -42,8 +42,8 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
 
   const title =
     activeTab === "companies"
-      ? `${capitalize(VOCAB.organization.noun.plural)} por Rubro`
-      : "Emisiones por Rubro";
+      ? `${capitalize(VOCAB.organization.noun.plural)} por Sector`
+      : "Emisiones por Sector";
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -153,7 +153,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
               {
                 scaleType: "band",
                 data: chartData.map((d) => d.label),
-                label: "Rubro",
+                label: "Sector",
               },
             ]}
             yAxis={[{ label: yAxisLabel }]}

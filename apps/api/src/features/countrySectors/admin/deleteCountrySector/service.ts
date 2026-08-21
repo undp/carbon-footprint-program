@@ -35,7 +35,7 @@ export const deleteCountrySectorService = async (
     // alone reaches the whole subtree without first resolving subsector ids.
     //
     // Organization-owned data (`organization_data.sectorId`) is deliberately
-    // left ACTIVE so deleting a rubro never rewrites a country's historical
+    // left ACTIVE so deleting a sector never rewrites a country's historical
     // footprint; the selector-union keeps those rows rendering for end users.
     try {
       await tx.countrySector.update({

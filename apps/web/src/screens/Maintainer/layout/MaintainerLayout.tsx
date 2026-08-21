@@ -97,26 +97,26 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
-    text: "Perfilamiento",
+    text: "Datos generales",
     icon: <BusinessCenterOutlined />,
     children: [
       {
-        text: "Rubros",
+        text: "Sectores",
         icon: <FactoryOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_SECTORS,
       },
       {
-        text: "Subrubros",
+        text: "Actividades Económicas",
         icon: <PrecisionManufacturingOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_SUBSECTORS,
       },
       {
-        text: "Actividades Principales",
+        text: "Unidades de Actividad",
         icon: <EngineeringOutlinedIcon fontSize="small" />,
         path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
       {
-        text: `Tamaño ${capitalize(VOCAB.organization.noun.singular)}`,
+        text: `Tamaño de ${VOCAB.organization.article.singular}`,
         icon: <StraightenOutlined fontSize="small" />,
         path: Routes.ADMIN_ORGANIZATION_SIZES,
       },

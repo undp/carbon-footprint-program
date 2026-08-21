@@ -62,7 +62,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
           value={data.organizationName}
         />
         <AttributeRow label="País" value={data.country} />
-        <AttributeRow label="Rubro" value={data.organizationSectorName} />
+        <AttributeRow label="Sector" value={data.organizationSectorName} />
       </Box>
 
       {/* Middle column */}
@@ -70,7 +70,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
         <AttributeRow label="Tamaño" value={data.organizationSizeName} />
         <AttributeRow label="Medición" value={data.name} />
         <AttributeRow
-          label="Sub-rubro"
+          label="Actividad económica principal"
           value={data.organizationSubsectorName}
         />
       </Box>

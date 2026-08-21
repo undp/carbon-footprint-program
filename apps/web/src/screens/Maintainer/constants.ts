@@ -25,14 +25,14 @@ export const SOURCE_OPTIONS: SelectOption[] = [
 export const SUBCATEGORY_RECOMMENDATIONS_LABELS = {
   title: "Recomendaciones de Subcategorías",
   description:
-    "Gestiona qué subcategorías se pre-seleccionan al crear inventarios según el sector y subsector de la organización.",
+    "Gestiona qué subcategorías se pre-seleccionan al crear inventarios según el sector y la actividad económica de la organización.",
   addRecommendation: "Agregar recomendación",
   searchPlaceholder: "Buscar subcategoría o categoría",
   clearSearchAriaLabel: "Limpiar búsqueda",
   saveRowAriaLabel: "Guardar cambios",
   cancelRowAriaLabel: "Descartar cambios",
   methodologyLabel: "Metodología",
-  nullSubsectorLabel: "Todos los subrubros",
+  nullSubsectorLabel: "Todas las actividades económicas",
   editSubcategoriesTitle: "Seleccionar subcategorías",
   deleteRow: "Borrar recomendación",
   emptyConfirmTitle: "¿Estás seguro?",

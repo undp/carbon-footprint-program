@@ -24,7 +24,7 @@ export const CreateInventoryOptions: FC = () => {
       <CreateInventoryCard
         AvatarIcon={CalculatorIcon}
         title="Quiero calcular mi huella"
-        description="Simula tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
+        description="Simula tus emisiones con fuentes relevantes de tu sector, sin guardar datos."
         buttonText="Usar calculadora"
         usageMode="SIMPLIFIED"
       />

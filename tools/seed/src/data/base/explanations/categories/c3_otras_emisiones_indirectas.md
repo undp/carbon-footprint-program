@@ -69,7 +69,7 @@ Existen **tres enfoques** según la calidad del dato disponible:
 | :------------------------- | :------------------------------------------ | :--------------------------------------------------- |
 | **Por actividad física**   | Cuando conoces la cantidad real             | km recorridos, kg de residuos, kg de insumo          |
 | **Por gasto**              | Cuando solo tienes el monto en moneda local | Gasto en una categoría × factor por unidad monetaria |
-| **Por promedio sectorial** | Cuando no tienes datos detallados           | Estimación según rubro y tamaño de empresa           |
+| **Por promedio sectorial** | Cuando no tienes datos detallados           | Estimación según sector y tamaño de empresa          |
 
 💡 El **enfoque por actividad física** es el más preciso. El **enfoque por gasto** es útil para arrancar cuando no tienes registros desagregados.
 

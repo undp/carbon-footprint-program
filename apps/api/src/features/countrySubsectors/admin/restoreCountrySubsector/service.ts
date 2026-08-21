@@ -51,7 +51,7 @@ export const restoreCountrySubsectorService = async (
       }
 
       // Block restore when the parent sector has been soft-deleted so the
-      // catalog never exposes an ACTIVE subsector orphaned from its rubro.
+      // catalog never exposes an ACTIVE subsector orphaned from its sector.
       // ParentNotActiveError (vs ResourceNotFoundError) lets the frontend show a dialog
       // explaining which parent must be restored first.
       const parentSector = await tx.countrySector.findUnique({

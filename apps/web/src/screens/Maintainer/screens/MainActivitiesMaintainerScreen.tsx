@@ -268,10 +268,10 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       restore: "Actividad principal restaurada",
     },
     errorMessages: {
-      create: "No se pudo crear la actividad principal",
-      update: "No se pudo guardar la actividad principal",
-      delete: "No se pudo eliminar la actividad principal",
-      restore: "No se pudo restaurar la actividad principal",
+      create: "No se pudo crear la unidad de actividad",
+      update: "No se pudo guardar la unidad de actividad",
+      delete: "No se pudo eliminar la unidad de actividad",
+      restore: "No se pudo restaurar la unidad de actividad",
     },
   });
 
@@ -324,9 +324,9 @@ export const MainActivitiesMaintainerScreen: FC = () => {
 
   return (
     <ProfilingMaintainerScreenLayout
-      title="Actividades Principales"
-      subtitle={`Gestiona las actividades principales que ${VOCAB.organization.article.plural} pueden seleccionar.`}
-      addLabel="Agregar actividad"
+      title="Unidades de actividad"
+      subtitle={`Gestiona las unidades de actividad que ${VOCAB.organization.article.plural} pueden seleccionar.`}
+      addLabel="Agregar unidad de actividad"
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null}
       form={form}
@@ -344,7 +344,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
           />
           <BlockedActionDialog
             open={actions.updateBlockedMessage !== null}
-            title="No se puede editar la actividad principal"
+            title="No se puede editar la unidad de actividad"
             message={actions.updateBlockedMessage ?? ""}
             onClose={actions.dismissUpdateBlocked}
           />
@@ -354,7 +354,7 @@ export const MainActivitiesMaintainerScreen: FC = () => {
       <Box sx={{ width: "100%" }}>
         {isEmpty ? (
           <Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
-            No hay actividades principales para mostrar.
+            No hay unidades de actividad para mostrar.
           </Typography>
         ) : (
           <MaintainerDataGrid<MainActivityFormRow>
@@ -371,16 +371,15 @@ export const MainActivitiesMaintainerScreen: FC = () => {
             showToolbar
             searchable={{
               fuseOptions,
-              placeholder: "Buscar actividades...",
-              downloadFileName: "actividades-principales",
+              placeholder: "Buscar unidades de actividad...",
+              downloadFileName: "unidades-de-actividad",
             }}
             disableColumnFilter={false}
             disableColumnSorting={false}
             disableColumnMenu={false}
             localeText={{
-              noRowsLabel: "No hay actividades principales para mostrar",
-              noResultsOverlayLabel:
-                "No se encontraron actividades principales",
+              noRowsLabel: "No hay unidades de actividad para mostrar",
+              noResultsOverlayLabel: "No se encontraron unidades de actividad",
             }}
           />
         )}

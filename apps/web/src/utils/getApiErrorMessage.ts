@@ -6,32 +6,35 @@ const orgSingular = VOCAB.organization.noun.singular;
 type ErrorDetails = Record<string, unknown> | undefined;
 type DetailsAwareMessage = (details: ErrorDetails) => string;
 
-// `activeAdjective` carries the gender of the noun so any "…activo/activa"
-// agreement stays correct: "actividad" is feminine, the other three subjects
-// are masculine.
+// `gender` drives every agreement in the copy below — the "activo/activa"
+// adjective, the "eliminado/eliminada" participle and the direct-object pronoun
+// ("lo"/"la"). Two of the four subjects are feminine ("actividad económica",
+// "unidad de actividad"), so the gender cannot be assumed.
+type ResourceGender = "masculine" | "feminine";
+
 const RESOURCE_LABELS: Record<
   string,
-  { article: string; sentenceArticle: string; activeAdjective: string }
+  { article: string; sentenceArticle: string; gender: ResourceGender }
 > = {
   CountrySector: {
-    article: "el rubro",
-    sentenceArticle: "El rubro",
-    activeAdjective: "activo",
+    article: "el sector",
+    sentenceArticle: "El sector",
+    gender: "masculine",
   },
   CountrySubsector: {
-    article: "el subrubro",
-    sentenceArticle: "El subrubro",
-    activeAdjective: "activo",
+    article: "la actividad económica",
+    sentenceArticle: "La actividad económica",
+    gender: "feminine",
   },
   OrganizationMainActivity: {
-    article: "la actividad principal",
-    sentenceArticle: "La actividad principal",
-    activeAdjective: "activa",
+    article: "la unidad de actividad",
+    sentenceArticle: "La unidad de actividad",
+    gender: "feminine",
   },
   CountryOrganizationSize: {
     article: "el tamaño de organización",
     sentenceArticle: "El tamaño de organización",
-    activeAdjective: "activo",
+    gender: "masculine",
   },
 };
 
@@ -106,11 +109,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   DATABASE_UNIQUE_CONSTRAINT_VIOLATION: (details) => {
     const resourceType = details?.resourceType;
     if (resourceType === "CountrySector")
-      return "Ya existe un rubro activo con ese nombre.";
+      return "Ya existe un sector activo con ese nombre.";
     if (resourceType === "CountrySubsector")
-      return "Ya existe un subrubro activo con ese nombre dentro del rubro indicado.";
+      return "Ya existe una actividad económica activa con ese nombre dentro del sector indicado.";
     if (resourceType === "OrganizationMainActivity")
-      return "Ya existe una actividad principal activa con ese nombre y la misma combinación de rubro/subrubro.";
+      return "Ya existe una unidad de actividad activa con ese nombre y la misma combinación de sector/actividad económica.";
     if (resourceType === "CountryOrganizationSize")
       return "Ya existe un tamaño de organización activo con ese nombre.";
     return "Ya existe un registro con este valor.";
@@ -126,7 +129,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     if (mainActivities > 0)
       parts.push(
         `${mainActivities} ${
-          mainActivities > 1 ? "actividades principales" : "actividad principal"
+          mainActivities > 1 ? "unidades de actividad" : "unidad de actividad"
         }`
       );
     const recommendations = count(
@@ -158,7 +161,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       );
 
     // No trailing adjective: the list mixes singular/plural and genders
-    // ("1 actividad principal", "2 organizaciones"), so a fixed "asociados"
+    // ("1 unidad de actividad", "2 organizaciones"), so a fixed "asociados"
     // would never agree.
     const list =
       parts.length === 0
@@ -169,17 +172,20 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     const because = list ? `tiene ${list}` : "está en uso";
 
     // Contracted "de + article" per resource; `itObj` is the entity's
-    // direct-object pronoun ("lo" for el rubro/subrubro, "la" for la actividad).
+    // direct-object pronoun, taken from the subject's gender ("lo" for el
+    // sector, "la" for la actividad económica). The fallback subject is "el
+    // registro", so it falls back to the masculine pronoun.
     const resourceType = details?.resourceType as string | undefined;
     const OF_SUBJECT: Record<string, string> = {
-      CountrySector: "del rubro",
-      CountrySubsector: "del subrubro",
-      OrganizationMainActivity: "de la actividad principal",
+      CountrySector: "del sector",
+      CountrySubsector: "de la actividad económica",
+      OrganizationMainActivity: "de la unidad de actividad",
       CountryOrganizationSize: "del tamaño de organización",
     };
     const ofSubject = OF_SUBJECT[resourceType ?? ""] ?? "del registro";
     const isMainActivity = resourceType === "OrganizationMainActivity";
-    const itObj = isMainActivity ? "la" : "lo";
+    const itObj =
+      RESOURCE_LABELS[resourceType ?? ""]?.gender === "feminine" ? "la" : "lo";
 
     if (details?.attemptedChange === "name") {
       // The display name is resolved by id at read time, so a rename would change
@@ -187,17 +193,23 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
       return `No se puede cambiar el nombre ${ofSubject} porque ${because}. Si lo cambias, quienes ya ${itObj} seleccionaron verían un nombre distinto del que eligieron. Para cambiarlo, debes eliminar${itObj} y volver a crear${itObj}.`;
     }
 
-    // Re-parenting copy. A main activity has two parents (rubro + subrubro).
-    const changeWhat = isMainActivity ? "el rubro o subrubro" : "el rubro";
-    const suffix = isMainActivity
-      ? "Para reasignarla, elimínala y vuelve a crearla con el rubro o subrubro correcto."
-      : "Para reasignarlo, elimínalo y vuelve a crearlo con el rubro correcto.";
+    // Re-parenting copy. A main activity has two parents (sector + actividad
+    // económica).
+    const changeWhat = isMainActivity
+      ? "el sector o la actividad económica"
+      : "el sector";
+    const correctParent = isMainActivity
+      ? "el sector o la actividad económica correctos"
+      : "el sector correcto";
+    const suffix = `Para reasignar${itObj}, elimína${itObj} y vuelve a crear${itObj} con ${correctParent}.`;
     return `No se puede cambiar ${changeWhat} ${ofSubject} porque ${because}. ${suffix}`;
   },
   RESTORE_ON_ACTIVE: (details) => {
     const resource = RESOURCE_LABELS[details?.resourceType as string];
     if (resource)
-      return `${resource.sentenceArticle} ya se encuentra ${resource.activeAdjective}.`;
+      return `${resource.sentenceArticle} ya se encuentra ${
+        resource.gender === "feminine" ? "activa" : "activo"
+      }.`;
     return "El registro ya se encuentra activo.";
   },
   PARENT_NOT_ACTIVE: (details) => {
@@ -210,12 +222,15 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     const parentName =
       typeof details?.parentName === "string" ? details.parentName : undefined;
     if (resource && parent && resourceName && parentName) {
-      return `No se puede restaurar ${resource.article} "${resourceName}" porque ${parent.article} "${parentName}" está eliminado. Restáuralo primero.`;
+      const parentIsFeminine = parent.gender === "feminine";
+      return `No se puede restaurar ${resource.article} "${resourceName}" porque ${parent.article} "${parentName}" está ${
+        parentIsFeminine ? "eliminada" : "eliminado"
+      }. ${parentIsFeminine ? "Restáurala" : "Restáuralo"} primero.`;
     }
     return "No se puede restaurar este registro porque su entidad padre está eliminada. Restáurala primero.";
   },
   SECTOR_SUBSECTOR_MISMATCH:
-    "El subrubro seleccionado no pertenece al rubro indicado.",
+    "La actividad económica seleccionada no pertenece al sector indicado.",
   SAME_ORGANIZATION_SIZE: "No se puede reordenar un tamaño consigo mismo.",
   ORGANIZATION_SIZES_DIFFERENT_COUNTRY:
     "No se pueden reordenar tamaños de organizaciones de diferentes países.",

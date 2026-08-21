@@ -84,7 +84,7 @@ export const useOrganizationData = ({
     // Subsector union: include the currently-persisted subsector even when it is no
     // longer ACTIVE under the selected sector. Require `initialSector` to be present
     // AND match the currently selected sector before merging so we never surface an
-    // unrelated subsector option after the user picks a different rubro.
+    // unrelated subsector option after the user picks a different sector.
     if (
       !initialSubsector ||
       !initialSector ||

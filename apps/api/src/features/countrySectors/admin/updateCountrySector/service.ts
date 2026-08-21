@@ -45,15 +45,15 @@ export const updateCountrySectorService = async (
         updateData.description = normalizeDescriptionInput(data.description);
       }
 
-      // A rubro has no parent, so it can only be re-identified by renaming. Renaming
-      // a rubro that a user already selected is blocked: both the live
+      // A sector has no parent, so it can only be re-identified by renaming. Renaming
+      // a sector that a user already selected is blocked: both the live
       // `organization_data.sectorId` rows and the frozen
       // `carbon_inventory.organizationData` JSON snapshot (which stores `sectorId` as a
       // string — see `buildOrganizationDataSnapshot`) resolve the display name by id at
       // read time, so a rename would make those users see a name they never chose. Only
       // a genuine rename is guarded (a no-op or description-only edit never blocks), and
       // only ACTIVE inventories matter — a DELETED inventory's frozen reference is inert.
-      // Re-identification is only allowed by soft-deleting and re-creating the rubro, so
+      // Re-identification is only allowed by soft-deleting and re-creating the sector, so
       // existing references keep resolving to the original name.
       if (data.name !== undefined) {
         // Scope to ACTIVE so editing a soft-deleted row surfaces as not-found

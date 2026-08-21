@@ -33,7 +33,7 @@ const buildColumns = (
   },
   {
     field: "sectorName",
-    headerName: "Rubro",
+    headerName: "Sector",
     flex: 1,
     minWidth: 180,
     cellClassName: "content-center",
@@ -48,7 +48,7 @@ const buildColumns = (
   },
   {
     field: "subsectorName",
-    headerName: "Sub-rubro",
+    headerName: "Actividad económica",
     flex: 1,
     minWidth: 180,
     cellClassName: "content-center",

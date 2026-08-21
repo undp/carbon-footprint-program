@@ -1,1 +1,1 @@
-# Paso 1: Perfilamiento
+# Paso 1: Datos generales

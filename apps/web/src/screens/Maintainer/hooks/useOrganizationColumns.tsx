@@ -50,7 +50,7 @@ export const useOrganizationColumns = ({
       },
       {
         field: "sectorName",
-        headerName: "Rubro",
+        headerName: "Sector",
 
         cellClassName,
         flex: 0.9,

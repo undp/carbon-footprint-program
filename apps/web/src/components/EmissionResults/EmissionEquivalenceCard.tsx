@@ -94,7 +94,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
       {!isLoading && !exists && !hasError && (
         <EmptyStateMessage
           color="primary"
-          message={`Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu ${VOCAB.organization.noun.singular}`}
+          message={`Aquí verás el equivalente de tu huella de carbono con la unidad de actividad de tu ${VOCAB.organization.noun.singular}`}
         />
       )}
     </Box>

@@ -35,6 +35,6 @@ export const getMainActivityEquivalenceService = async (
 
   return {
     rate,
-    activityName: mainActivity?.name ?? "actividad principal",
+    activityName: mainActivity?.name ?? "unidad de actividad",
   };
 };

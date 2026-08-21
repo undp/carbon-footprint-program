@@ -29,7 +29,7 @@ export const deleteCountrySubsectorService = async (
     // parent sector and sibling subsectors are untouched.
     //
     // Organization-owned data (`organization_data.subsectorId`) is deliberately
-    // left ACTIVE so deleting a subrubro never rewrites a country's historical
+    // left ACTIVE so deleting an economic activity never rewrites a country's
     // footprint; the selector-union keeps those rows rendering for end users.
     try {
       await tx.countrySubsector.update({

@@ -108,7 +108,7 @@ _Ejemplo:_ Si tu empresa gastó **30.000.000 unidades de moneda local** en consu
 
 ---
 
-#### **Opción 2:** Promedios del rubro
+#### **Opción 2:** Promedios del sector
 
 Para insumos de oficina o consumibles, usa promedios típicos por empleado o por unidad de producción.
 

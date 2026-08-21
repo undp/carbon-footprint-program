@@ -174,7 +174,7 @@ export const WelcomeHome: FC<Props> = ({
               <Box component="span" fontWeight={600} color="text.primary">
                 ¿Solo quieres explorar?
               </Box>{" "}
-              Prueba la calculadora y estima las emisiones de tu rubro en
+              Prueba la calculadora y estima las emisiones de tu sector en
               minutos.
             </Typography>
             <Button

@@ -118,7 +118,7 @@ export const useSubcategoryRecommendationColumns = ({
     () => [
       {
         field: "sectorName",
-        headerName: "Rubro",
+        headerName: "Sector",
         flex: 1,
         minWidth: 180,
         sortable: false,
@@ -141,7 +141,7 @@ export const useSubcategoryRecommendationColumns = ({
                 onChange={(e) => onChangeSector(rowIndex, e.target.value)}
               >
                 <MenuItem value="" disabled>
-                  Seleccionar rubro
+                  Seleccionar sector
                 </MenuItem>
                 {sectors.map((sector) => (
                   <MenuItem key={sector.id} value={sector.id}>
@@ -160,7 +160,7 @@ export const useSubcategoryRecommendationColumns = ({
       },
       {
         field: "subsectorName",
-        headerName: "Subrubro",
+        headerName: "Actividad económica",
         flex: 1,
         minWidth: 200,
         sortable: false,

@@ -35,8 +35,12 @@ export const getOrganizationFormFieldsHandler = async (
         label: "Tipo / Tamaño organización",
         required: false,
       },
-      { key: "sectorId", label: "Rubro / Sector económico", required: false },
-      { key: "subsectorId", label: "Sub-rubro", required: false },
+      { key: "sectorId", label: "Sector", required: false },
+      {
+        key: "subsectorId",
+        label: "Actividad económica principal",
+        required: false,
+      },
       {
         key: "employeesCount",
         label: "Cantidad de trabajadores",

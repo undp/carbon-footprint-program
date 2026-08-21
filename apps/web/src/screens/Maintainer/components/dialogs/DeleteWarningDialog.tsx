@@ -8,10 +8,23 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 
 export type ProfilingEntityLabel =
-  "rubro" | "subrubro" | "actividad principal" | "tamaño";
+  "sector" | "actividad económica" | "unidad de actividad" | "tamaño";
+
+/**
+ * Grammatical gender of each entity name. Spanish has no neutral form, so the
+ * demonstrative and the participle in the copy below have to agree with the
+ * noun the caller passed ("este sector" but "esta actividad económica").
+ */
+const ENTITY_GENDER: Record<ProfilingEntityLabel, "masculine" | "feminine"> = {
+  sector: "masculine",
+  "actividad económica": "feminine",
+  "unidad de actividad": "feminine",
+  tamaño: "masculine",
+};
 
 interface ImpactedChildren {
   activeSubsectors?: number;
@@ -43,6 +56,11 @@ export const DeleteWarningDialog: FC<Props> = ({
   onCancel,
   onConfirm,
 }) => {
+  const isMasculine = ENTITY_GENDER[entityLabel] === "masculine";
+  const demonstrative = isMasculine ? "este" : "esta";
+  const assigned = isMasculine ? "asignado" : "asignada";
+  const deleteIt = isMasculine ? "eliminarlo" : "eliminarla";
+
   const items: string[] = [];
   if (
     impactedChildren.activeSubsectors !== undefined &&
@@ -50,8 +68,8 @@ export const DeleteWarningDialog: FC<Props> = ({
   ) {
     const entity =
       impactedChildren.activeSubsectors > 1
-        ? "subrubros asociados"
-        : "subrubro asociado";
+        ? "actividades económicas asociadas"
+        : "actividad económica asociada";
     const verb =
       impactedChildren.activeSubsectors > 1 ? "eliminarán" : "eliminará";
     items.push(`Se ${verb} ${impactedChildren.activeSubsectors} ${entity}.`);
@@ -62,8 +80,8 @@ export const DeleteWarningDialog: FC<Props> = ({
   ) {
     const entity =
       impactedChildren.activeMainActivities > 1
-        ? "actividades principales asociadas"
-        : "actividad principal asociada";
+        ? "unidades de actividad asociadas"
+        : "unidad de actividad asociada";
     const verb =
       impactedChildren.activeMainActivities > 1 ? "eliminarán" : "eliminará";
     items.push(
@@ -81,7 +99,7 @@ export const DeleteWarningDialog: FC<Props> = ({
         ? "Estas no se verán afectadas"
         : "Esta no se verá afectada";
     items.push(
-      `${impactedChildren.organizationData} ${entity} ${verb} este ${entityLabel} asignado. ${disclaimer}.`
+      `${impactedChildren.organizationData} ${entity} ${verb} ${demonstrative} ${entityLabel} ${assigned}. ${disclaimer}.`
     );
   }
   if (
@@ -107,9 +125,9 @@ export const DeleteWarningDialog: FC<Props> = ({
       <DialogContent>
         <DialogContentText color="textPrimary">
           {items.length > 0
-            ? `Este ${entityLabel} tiene dependencias activas. `
+            ? `${capitalize(demonstrative)} ${entityLabel} tiene dependencias activas. `
             : ""}
-          ¿Estás seguro de que deseas eliminarlo?
+          {`¿Estás seguro de que deseas ${deleteIt}?`}
         </DialogContentText>
         {items.length > 0 && (
           <Box

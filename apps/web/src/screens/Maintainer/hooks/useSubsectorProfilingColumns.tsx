@@ -21,7 +21,7 @@ export const SubsectorRowSchema = z.object({
     .trim()
     .max(2000, "La descripción no puede superar los 2000 caracteres")
     .nullable(),
-  countrySectorId: z.string().min(1, "El rubro es obligatorio"),
+  countrySectorId: z.string().min(1, "El sector es obligatorio"),
   status: z.enum(CountrySubsectorStatus).nullable(),
   impactedChildren: z.object({
     activeMainActivities: z.number().int().nonnegative(),
@@ -78,7 +78,7 @@ export const useSubsectorProfilingColumns = ({
     () => [
       {
         field: "countrySectorId",
-        headerName: "Rubro",
+        headerName: "Sector",
         flex: 1,
         minWidth: 180,
         valueGetter: (_value, row: SubsectorFormRow) =>
@@ -186,7 +186,7 @@ export const useSubsectorProfilingColumns = ({
               <AdminActionButton
                 icon={RestoreOutlined}
                 tooltip="Restaurar"
-                aria-label="Restaurar subrubro"
+                aria-label="Restaurar actividad económica"
                 onClick={() => onRestore(params.row)}
                 disabled={restoreDisabled || anyEditing}
               />
@@ -203,7 +203,7 @@ export const useSubsectorProfilingColumns = ({
               renderDeleteDialog={({ open, onCancel, onConfirm }) => (
                 <DeleteWarningDialog
                   open={open}
-                  entityLabel="subrubro"
+                  entityLabel="actividad económica"
                   impactedChildren={params.row.impactedChildren}
                   onCancel={onCancel}
                   onConfirm={onConfirm}

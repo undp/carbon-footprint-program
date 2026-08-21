@@ -96,7 +96,7 @@ Usa el dato declarado en la etiqueta (ej. "Refrigerador clase A: 350 kWh/año").
 
 #### **Opción 2:** Promedios sectoriales
 
-Si tu producto no tiene etiquetado, usa promedios del rubro:
+Si tu producto no tiene etiquetado, usa promedios del sector:
 
 - Refrigerador: 250-450 kWh/año
 - Lavadora: 200-300 kWh/año
