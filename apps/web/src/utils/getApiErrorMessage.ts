@@ -72,6 +72,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",
   DIMENSION_NOT_CONFIGURED: "La dimensión no está configurada.",
   DIMENSION_VALUE_NOT_FOUND: "La variable de la dimensión no fue encontrada.",
+  DIMENSION_VALUE_REQUIRES_COMMENT:
+    "La opción seleccionada requiere un comentario que especifique de qué se trata.",
   DIMENSION_VALUES_CANNOT_BE_REMOVED:
     "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos.",
   DIMENSION_IS_REQUIRED_CHANGE_BLOCKED:

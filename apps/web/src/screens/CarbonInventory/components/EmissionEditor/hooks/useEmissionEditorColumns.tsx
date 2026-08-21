@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { UsageMode } from "@repo/types";
+import { dimensionValueRequiresComment } from "@repo/constants";
 import {
   EmissionCaptureFormLine,
   LineId,
@@ -284,6 +285,18 @@ export const useEmissionEditorColumns = ({
             (f) => f.isPending
           ).length;
           const linkedFilesCount = visibleFiles.length - pendingFilesCount;
+          // An escape-hatch value — `Otro` — cannot be saved without a comment,
+          // so the row says so before the user reaches the save button.
+          const isCommentMissing =
+            !params.row.comment?.trim() &&
+            dimensions.some((dimension) =>
+              dimension.values.some(
+                (value) =>
+                  dimensionValueRequiresComment(value.value) &&
+                  (params.row.dimensionValue1Id === value.id ||
+                    params.row.dimensionValue2Id === value.id)
+              )
+            );
           return (
             <EmissionEditorActionsCell
               rowId={params.id}
@@ -295,6 +308,7 @@ export const useEmissionEditorColumns = ({
               deleteSource={() => onDeleteLine(params.id.toString())}
               disabled={isManualModeLoading}
               hasComment={Boolean(params.row.comment)}
+              isCommentMissing={isCommentMissing}
               pendingFilesCount={pendingFilesCount}
               linkedFilesCount={linkedFilesCount}
             />
