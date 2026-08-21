@@ -10,6 +10,11 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestCountrySector } from "@test/factories/countrySectorFactory.js";
 import { createTestCountrySubsector } from "@test/factories/countrySubsectorFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import type { FastifyInstance } from "fastify";
 import {
   type PrismaClient,
@@ -35,6 +40,8 @@ describe("GET /api/admin/country-sectors - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    // Organizations first: their data rows reference the catalog rows below.
+    await cleanupTestOrganization(prisma);
     await prisma.countrySubsector.deleteMany({
       where: { name: { startsWith: TEST_PREFIX } },
     });
@@ -191,6 +198,70 @@ describe("GET /api/admin/country-sectors - Integration Tests", () => {
       const row = body.find((r) => r.id === sector.id.toString());
       expect(row).toBeDefined();
       expect(row!.impactedChildren.activeSubsectors).toBe(0);
+    });
+
+    it("counts an organization reaching the sector through its secondary activity", async () => {
+      const primarySector = await createTestCountrySector(prisma, {
+        name: uniqueName("PrimarySector"),
+      });
+      const secondarySector = await createTestCountrySector(prisma, {
+        name: uniqueName("SecondarySector"),
+      });
+      const secondaryActivity = await createTestCountrySubsector(
+        prisma,
+        secondarySector.id,
+        { name: uniqueName("CrossSectorActivity") }
+      );
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id, {
+        sectorId: primarySector.id,
+        secondarySubsectorId: secondaryActivity.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/country-sectors/?status=active",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllAdminCountrySectorsResponse;
+
+      // Deleting the secondary sector cascades to the activity the organization
+      // declared, so it is affected even though its own sector is another one.
+      const secondaryRow = body.find(
+        (r) => r.id === secondarySector.id.toString()
+      );
+      expect(secondaryRow).toBeDefined();
+      expect(secondaryRow!.impactedChildren.organizationData).toBe(1);
+    });
+
+    it("counts an organization once when both its activities point at one sector", async () => {
+      const sector = await createTestCountrySector(prisma, {
+        name: uniqueName("BothRolesSector"),
+      });
+      const activity = await createTestCountrySubsector(prisma, sector.id, {
+        name: uniqueName("BothRolesActivity"),
+      });
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id, {
+        sectorId: sector.id,
+        subsectorId: activity.id,
+        secondarySubsectorId: activity.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/country-sectors/?status=active",
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllAdminCountrySectorsResponse;
+
+      const row = body.find((r) => r.id === sector.id.toString());
+      expect(row).toBeDefined();
+      expect(row!.impactedChildren.organizationData).toBe(1);
     });
   });
 });
