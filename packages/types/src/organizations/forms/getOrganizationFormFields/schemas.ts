@@ -14,6 +14,8 @@ const OrganizationFormFieldSchema = z.discriminatedUnion("key", [
   BaseFormFieldSchema.extend({ key: z.literal("countryOrganizationSizeId") }),
   BaseFormFieldSchema.extend({ key: z.literal("sectorId") }),
   BaseFormFieldSchema.extend({ key: z.literal("subsectorId") }),
+  BaseFormFieldSchema.extend({ key: z.literal("secondarySubsectorId") }),
+  BaseFormFieldSchema.extend({ key: z.literal("territoryId") }),
   BaseFormFieldSchema.extend({ key: z.literal("employeesCount") }),
   BaseFormFieldSchema.extend({ key: z.literal("address") }),
   BaseFormFieldSchema.extend({ key: z.literal("representativeFullName") }),
@@ -34,12 +36,12 @@ export const GetOrganizationFormFieldsResponseSchema = z.object({
       (fields) => {
         const mutationKeys = OrganizationMutationDataSchema.keyof().options;
         const fieldKeys = fields.map((f) => f.key);
-        // Ensure all 14 unique keys from OrganizationMutationDataSchema are present in the response
+        // Ensure every key of OrganizationMutationDataSchema is present in the response
         return mutationKeys.every((key) => fieldKeys.includes(key));
       },
       {
         message:
-          "The response must include all 14 unique keys from OrganizationMutationDataSchema",
+          "The response must include every key of OrganizationMutationDataSchema",
       }
     ),
 });

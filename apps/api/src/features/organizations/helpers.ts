@@ -144,6 +144,8 @@ const mapOrganizationMutationData = (data: OrganizationMutationData) => {
     countryOrganizationSizeId: toNullableBigInt(data.countryOrganizationSizeId),
     sectorId: toNullableBigInt(data.sectorId),
     subsectorId: toNullableBigInt(data.subsectorId),
+    secondarySubsectorId: toNullableBigInt(data.secondarySubsectorId),
+    territoryId: toNullableBigInt(data.territoryId),
     mainActivityId: toNullableBigInt(data.mainActivityId),
     representativeCountryJobPositionId: toNullableBigInt(
       data.representativePositionId
@@ -204,6 +206,8 @@ export const cloneOrganizationData = (
       countryOrganizationSizeId: source.countryOrganizationSizeId,
       sectorId: source.sectorId,
       subsectorId: source.subsectorId,
+      secondarySubsectorId: source.secondarySubsectorId,
+      territoryId: source.territoryId,
       mainActivityId: source.mainActivityId,
       representativeCountryJobPositionId:
         source.representativeCountryJobPositionId,

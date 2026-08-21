@@ -1,7 +1,10 @@
 import { Prisma, SubmissionFileType, type PrismaClient } from "@repo/database";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import type { ReadUrlSigner, StorageAdapter } from "@repo/storage";
-import { mapOrganizationSummary } from "../../mappers/mapOrganizationSummary.js";
+import {
+  mapOrganizationSummary,
+  territoryWithAncestorsInclude,
+} from "../../mappers/mapOrganizationSummary.js";
 import type { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 
 export type SubmissionHistoryFileRow = {
@@ -123,6 +126,8 @@ export async function getOrgSummaryDetails(
         include: {
           sector: true,
           subsector: true,
+          secondarySubsector: true,
+          territory: territoryWithAncestorsInclude,
           countryOrganizationSize: true,
           mainActivity: true,
           representativeCountryJobPosition: true,
