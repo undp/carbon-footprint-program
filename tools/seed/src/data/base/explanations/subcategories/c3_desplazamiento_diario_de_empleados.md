@@ -8,19 +8,21 @@ Cubre todos los modos de transporte que usan los empleados, con desglose de **Ti
 - 🏍️ **Moto** (Gasolina, Eléctrico)
 - 🚌 **Bus urbano** / **Bus interurbano**
 - 🚇 **Metro**
-- 🚂 **Tren cercanías** / **Tren larga distancia**
-- 🚕 **Taxi / Ride-share** (Gasolina, Eléctrico, Híbrido)
-- 🚲 **Bici** (factor 0)
+- 🚡 **Teleférico**
+- 🚕 **Taxi/vehículo de transporte individual** (Gasolina, Eléctrico, Híbrido)
+- 🚲 **Bicicleta** (factor 0)
 - 🚶 **Caminata** (factor 0)
 
-> Para modos que no se desglosan por combustible (Bus, Metro, Tren, Bici, Caminata), usa la variante **"No aplica"**.
+> Para modos que no se desglosan por combustible (Bus, Metro, Teleférico, Bicicleta, Caminata), usa la variante **"No aplica"**.
+
+> El **taxi, el motoconcho y los vehículos de plataformas digitales** se declaran juntos en **Taxi/vehículo de transporte individual**: hoy comparten un mismo factor de emisión, por lo que separarlos no cambiaría el resultado.
 
 ---
 
 ## 📘 ¿Preguntas claves que te pueden ayudar a determinar si debes declarar emisiones en esta sub-categoría?
 
 - ¿Tu empresa **tiene empleados** que se desplazan a una oficina, planta o local?
-- ¿Tus empleados usan **auto, moto, bus, metro, tren, taxi/ride-share, bici o caminata** para llegar al trabajo?
+- ¿Tus empleados usan **auto, moto, bus, metro, teleférico, taxi, motoconcho, bicicleta o caminata** para llegar al trabajo?
 - ¿Conoces o puedes estimar la **distancia recorrida en el año** por tus empleados en cada modo?
 - ¿Cubres algún **acercamiento corporativo o viático de transporte**?
 
@@ -37,26 +39,27 @@ La plataforma trabaja con **cantidades agregadas a nivel organización**, no por
 
 > $CO_2e$ = $Distancia\ anual\ agregada\ (km) \times Factor\ por\ Tipo\ y\ Combustible\ (kg\ CO_2e/km)$
 
-Factores referenciales (DEFRA 2025):
+Factores referenciales:
 
-| Tipo                 | Combustible | Factor (kg CO₂e/km) |
-| :------------------- | :---------- | ------------------: |
-| Auto                 | Gasolina    |               0.173 |
-| Auto                 | Diésel      |               0.166 |
-| Auto                 | Eléctrico   |               0.047 |
-| Auto                 | Híbrido     |               0.110 |
-| Moto                 | Gasolina    |               0.114 |
-| Moto                 | Eléctrico   |               0.030 |
-| Bus urbano           | No aplica   |               0.117 |
-| Bus interurbano      | No aplica   |               0.027 |
-| Metro                | No aplica   |               0.041 |
-| Tren cercanías       | No aplica   |               0.035 |
-| Tren larga distancia | No aplica   |               0.035 |
-| Taxi/Ride-share      | Gasolina    |               0.149 |
-| Taxi/Ride-share      | Eléctrico   |               0.060 |
-| Taxi/Ride-share      | Híbrido     |               0.110 |
-| Bici                 | No aplica   |               0.000 |
-| Caminata             | No aplica   |               0.000 |
+| Tipo                                   | Combustible | Factor (kg CO₂e/km) |
+| :------------------------------------- | :---------- | ------------------: |
+| Auto                                   | Gasolina    |               0.173 |
+| Auto                                   | Diésel      |               0.166 |
+| Auto                                   | Eléctrico   |               0.047 |
+| Auto                                   | Híbrido     |               0.110 |
+| Moto                                   | Gasolina    |               0.114 |
+| Moto                                   | Eléctrico   |               0.030 |
+| Bus urbano                             | No aplica   |               0.117 |
+| Bus interurbano                        | No aplica   |               0.027 |
+| Metro                                  | No aplica   |               0.041 |
+| Teleférico                             | No aplica   |             0.02366 |
+| Taxi/vehículo de transporte individual | Gasolina    |               0.149 |
+| Taxi/vehículo de transporte individual | Eléctrico   |               0.060 |
+| Taxi/vehículo de transporte individual | Híbrido     |               0.110 |
+| Bicicleta                              | No aplica   |               0.000 |
+| Caminata                               | No aplica   |               0.000 |
+
+> El teleférico funciona con tracción eléctrica, por lo que su factor corresponde a la electricidad consumida por pasajero-kilómetro.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -80,7 +83,7 @@ La fuente más confiable es una **encuesta interna** anual. Pregunta a cada empl
 - ¿Cómo te trasladas habitualmente al trabajo?
 - ¿Cuántos km hay (ida y vuelta) entre tu casa y el trabajo?
 - ¿Cuántos días a la semana asistes presencialmente?
-- Si usa auto/moto/taxi: ¿qué combustible o variante?
+- Si usa auto, moto, taxi o motoconcho: ¿qué combustible o variante?
 
 ⚠️ Si la encuesta tiene baja tasa de respuesta, extrapola con los datos disponibles y declara el supuesto.
 
@@ -140,6 +143,6 @@ Supongamos una **consultora de 15 empleados** en modalidad híbrida (3 días pre
 > - **Diferencia con Alcance 1:** si el empleado se mueve en un **vehículo corporativo**, eso es Alcance 1 (combustión móvil), no commuting. Solo cuenta acá si usa **medios propios o de terceros**.
 > - **Diferencia con Viajes de negocios:** commuting es el desplazamiento **cotidiano casa-trabajo**. Los viajes laborales puntuales (a otra ciudad, a un cliente, etc.) van en **Viajes de negocios — Traslado**.
 > - **Trabajo remoto:** las emisiones del teletrabajo se reportan en la sub-categoría **"Trabajo remoto de empleados"**, no aquí.
-> - **Bici y caminata:** factor 0, pero igual incluye los empleados en la encuesta para entender la distribución.
+> - **Bicicleta y caminata:** factor 0, pero igual incluye los empleados en la encuesta para entender la distribución.
 > - **Acercamiento corporativo:** si tu empresa contrata buses para llevar empleados, esas emisiones también van aquí (o en Alcance 1 si es flota propia).
 > - Guarda los **resultados de la encuesta** y la metodología como respaldo.

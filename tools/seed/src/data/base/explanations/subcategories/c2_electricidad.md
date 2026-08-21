@@ -2,7 +2,7 @@
 
 Esta categoría corresponde a **las emisiones asociadas a la electricidad que compras a un proveedor externo** para el funcionamiento de tus operaciones.
 
-Incluye únicamente la **energía eléctrica adquirida desde el sistema eléctrico nacional o proveedor externo**.
+Incluye únicamente la **energía eléctrica adquirida desde el sistema eléctrico o de un proveedor externo**, ya sea que tu instalación esté conectada al **SENI** (Sistema Eléctrico Nacional Interconectado) o a un **sistema aislado** que abastece una zona no interconectada.
 
 ⚠️ No debes incluir aquí:
 
@@ -32,7 +32,7 @@ Las emisiones se calculan en base a la **cantidad total de electricidad consumid
 
 > $CO₂e$ = $Electricidad\ consumida \times Factor\ de\ emisión\ del\ sistema$
 
-El factor depende del sistema eléctrico nacional o región donde opera tu instalación.
+El factor depende del sistema eléctrico al que esté conectada tu instalación: el SENI y los sistemas aislados tienen factores distintos.
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -42,7 +42,11 @@ El factor depende del sistema eléctrico nacional o región donde opera tu insta
 
 ### 1️⃣ Identifica el sistema eléctrico
 
-Debes seleccionar el sistema eléctrico nacional al cual estás conectado.
+Debes seleccionar el sistema eléctrico al cual estás conectado:
+
+- **SENI (Sistema Eléctrico Nacional Interconectado):** la red que abastece a la mayor parte del país. Si recibes factura de una empresa distribuidora, este es tu caso.
+- **Sistema aislado:** redes locales que no están conectadas al SENI y que normalmente se abastecen con generación diésel, por lo que su factor de emisión es bastante mayor.
+- **Otro:** solo si tu suministro no corresponde a ninguno de los anteriores. Al seleccionarlo **es obligatorio escribir un comentario** en la línea explicando de qué se trata; sin ese comentario la línea no se puede guardar. Se le aplica el factor más alto de la lista mientras no esté clasificado.
 
 Si no estás seguro, puedes:
 
@@ -95,10 +99,10 @@ Si solo conoces el gasto mensual promedio:
 
 _Ejemplo:_
 
-- Gasto anual: **120.000.000 CLP**
-- Precio promedio: **200 CLP/kWh**
+- Gasto anual: **5.400.000 DOP**
+- Precio promedio: **9 DOP/kWh**
 
-**Electricidad consumida anualmente** = $\frac{120.000.000}{200}$ = **600.000 kWh/año**
+**Electricidad consumida anualmente** = $\frac{5.400.000}{9}$ = **600.000 kWh/año**
 
 ⚠️ Declara los supuestos utilizados si aplicas esta aproximación.
 
@@ -110,11 +114,11 @@ _Ejemplo:_
 
 Debes rellenar los siguientes campos:
 
-| Campo             | Qué debes ingresar                      |                    Ejemplo |
-| :---------------- | :-------------------------------------- | -------------------------: |
-| Sistema eléctrico | Sistema nacional al que estás conectado | Sistema eléctrico nacional |
-| Unidad            | Unidad declarada                        |                        kWh |
-| Cantidad          | Consumo anual total                     |                600.000 kWh |
+| Campo             | Qué debes ingresar             |     Ejemplo |
+| :---------------- | :----------------------------- | ----------: |
+| Sistema eléctrico | Sistema al que estás conectado |        SENI |
+| Unidad            | Unidad declarada               |         kWh |
+| Cantidad          | Consumo anual total            | 600.000 kWh |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -163,7 +167,7 @@ Si el factor está en **kg CO₂e por kWh**, el consumo debe estar en **kWh**.
 ## 📝 Notas importantes
 
 > - Declara solo electricidad comprada a un proveedor externo
-> - No incluyas autogeneración
+> - No incluyas autogeneración: la electricidad de tus propias plantas o grupos electrógenos va en **Combustiones estacionarias**, con el combustible que consumen
 > - La energía renovable comprada también debe declararse
 > - **Vehículos eléctricos (BEVs)** cargados en sedes de la empresa (con la electricidad pasando por tu medidor) se incluyen acá; si se cargan externamente en electrolineras pagadas por la empresa, se declaran en **Combustiones móviles (Alcance 1)** con combustible "Electricidad"
 > - Guarda facturas y certificados como respaldo para auditorías o verificaciones externas
