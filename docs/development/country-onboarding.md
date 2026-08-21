@@ -80,7 +80,7 @@ Size categories classify organizations by employee count or revenue. Each countr
 
 **File:** `tools/seed/src/data/base/country_sector_subsectors.json`
 
-Sectors classify organizations by economic activity. Subsectors provide finer-grained classification within each sector.
+Sectors classify organizations by economic activity. Subsectors — labelled "actividades económicas" in the UI — provide finer-grained classification within each sector.
 
 ```json
 [
@@ -88,9 +88,8 @@ Sectors classify organizations by economic activity. Subsectors provide finer-gr
     "countryIsoCode": "CO",
     "sector": "Manufactura / Industria Manufacturera",
     "subsectors": [
-      "Alimentos y Bebidas - Procesamiento de carnes",
-      "Textil y Vestuario - Tejidos",
-      "Otro"
+      "Elaboración de productos alimenticios y bebidas",
+      "Fabricación de productos textiles"
     ]
   },
   {
@@ -101,7 +100,7 @@ Sectors classify organizations by economic activity. Subsectors provide finer-gr
 ]
 ```
 
-Each subsector should end with an "Otro" option. Sectors drive the subcategory recommendation logic — the more precisely they map to real industry groups, the more useful the recommendations will be.
+If the catalog is not derived from an official classifier, end each subsector list with an "Otro" option. Sectors drive the subcategory recommendation logic — the more precisely they map to real industry groups, the more useful the recommendations will be.
 
 ---
 

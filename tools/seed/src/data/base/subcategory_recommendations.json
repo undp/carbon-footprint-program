@@ -14,7 +14,7 @@
   {
     "countryIsoCode": "DO",
     "sectorName": "Manufactura / Industria Manufacturera",
-    "subsectorName": "Alimentos y Bebidas - Procesamiento de carnes",
+    "subsectorName": "Elaboración de productos alimenticios y bebidas",
     "subcategoryNames": [
       "Consumo de agua y tratamiento de aguas residuales",
       "Disposición de residuos sólidos",
@@ -34,13 +34,13 @@
   {
     "countryIsoCode": "DO",
     "sectorName": "Energía",
-    "subsectorName": "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
+    "subsectorName": "Generación de energía eléctrica",
     "subcategoryNames": ["Emisiones provenientes de otras fuentes"]
   },
   {
     "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
-    "subsectorName": "Producción de Clinker",
+    "subsectorName": "Fabricación de cemento, cal y yeso y de sus productos",
     "subcategoryNames": [
       "Procesos industriales - Cemento",
       "Combustiones estacionarias",
@@ -49,75 +49,8 @@
       "Transporte y distribución de bienes aguas arriba",
       "Transporte y distribución de bienes aguas abajo",
       "Productos comprados",
-      "Emisiones fugitivas"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sectorName": "Industria Cementera",
-    "subsectorName": "Producción de Cemento - Molienda y mezcla",
-    "subcategoryNames": [
-      "Procesos industriales - Cemento",
-      "Combustiones estacionarias",
-      "Electricidad",
-      "Combustiones móviles (flota propia)",
-      "Transporte y distribución de bienes aguas arriba",
-      "Transporte y distribución de bienes aguas abajo",
-      "Productos comprados",
-      "Emisiones fugitivas"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sectorName": "Industria Cementera",
-    "subsectorName": "Hormigón Premezclado",
-    "subcategoryNames": [
-      "Productos comprados",
-      "Combustiones móviles (flota propia)",
-      "Electricidad",
-      "Transporte y distribución de bienes aguas arriba",
-      "Transporte y distribución de bienes aguas abajo"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sectorName": "Industria Cementera",
-    "subsectorName": "Productos Prefabricados de Hormigón",
-    "subcategoryNames": [
-      "Productos comprados",
-      "Combustiones móviles (flota propia)",
-      "Electricidad",
-      "Transporte y distribución de bienes aguas arriba",
-      "Transporte y distribución de bienes aguas abajo",
-      "Combustiones estacionarias",
+      "Emisiones fugitivas",
       "Emisiones provenientes de otras fuentes"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sectorName": "Industria Cementera",
-    "subsectorName": "Cal y Yeso",
-    "subcategoryNames": [
-      "Emisiones provenientes de otras fuentes",
-      "Combustiones estacionarias",
-      "Electricidad",
-      "Combustiones móviles (flota propia)",
-      "Transporte y distribución de bienes aguas arriba",
-      "Transporte y distribución de bienes aguas abajo",
-      "Productos comprados"
-    ]
-  },
-  {
-    "countryIsoCode": "DO",
-    "sectorName": "Industria Cementera",
-    "subsectorName": "Morteros y Aditivos",
-    "subcategoryNames": [
-      "Productos comprados",
-      "Electricidad",
-      "Transporte y distribución de bienes aguas arriba",
-      "Transporte y distribución de bienes aguas abajo",
-      "Combustiones estacionarias",
-      "Combustiones móviles (flota propia)"
     ]
   }
 ]

@@ -3,11 +3,11 @@
     "countryIsoCode": "DO",
     "sector": null,
     "mainActivities": [
-      "millones de CLP de ingresos",
-      "millones de CLP facturados",
-      "millones de CLP de costos operacionales",
-      "millones de CLP de EBITDA",
-      "millones de CLP de presupuesto ejecutado",
+      "millones de RD$ de ingresos",
+      "millones de RD$ facturados",
+      "millones de RD$ de costos operacionales",
+      "millones de RD$ de EBITDA",
+      "millones de RD$ de presupuesto ejecutado",
       "empleados",
       "FTE (Full-Time Equivalent)",
       "horas trabajadas",
@@ -75,7 +75,7 @@
   {
     "countryIsoCode": "DO",
     "sector": "Construcción",
-    "mainActivities": ["viviendas", "obras ejecutadas", "UF construidas"]
+    "mainActivities": ["viviendas", "obras ejecutadas", "m² construidos"]
   },
   {
     "countryIsoCode": "DO",
@@ -97,13 +97,13 @@
       "tickets de venta",
       "tiendas",
       "m² de sala de ventas",
-      "millones de CLP vendidos"
+      "millones de RD$ vendidos"
     ]
   },
   {
     "countryIsoCode": "DO",
     "sector": "Servicios Financieros",
-    "mainActivities": ["cuentas gestionadas", "millones de CLP administrados"]
+    "mainActivities": ["cuentas gestionadas", "millones de RD$ administrados"]
   },
   {
     "countryIsoCode": "DO",
@@ -160,7 +160,7 @@
       "trámites realizados",
       "edificios públicos",
       "m² de infraestructura",
-      "millones de CLP presupuestados"
+      "millones de RD$ presupuestados"
     ]
   },
   {
@@ -192,7 +192,7 @@
       "unidades habitacionales",
       "arrendatarios",
       "proyectos inmobiliarios",
-      "millones de CLP de ingresos"
+      "millones de RD$ de ingresos"
     ]
   },
   {
