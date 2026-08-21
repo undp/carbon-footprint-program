@@ -1,6 +1,6 @@
 [
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Manufactura / Industria Manufacturera",
     "subcategoryNames": [
       "Combustiones estacionarias",
@@ -12,7 +12,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Manufactura / Industria Manufacturera",
     "subsectorName": "Alimentos y Bebidas - Procesamiento de carnes",
     "subcategoryNames": [
@@ -22,7 +22,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Energía",
     "subcategoryNames": [
       "Combustiones estacionarias",
@@ -32,13 +32,13 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Energía",
     "subsectorName": "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)",
     "subcategoryNames": ["Emisiones provenientes de otras fuentes"]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Producción de Clinker",
     "subcategoryNames": [
@@ -53,7 +53,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Producción de Cemento - Molienda y mezcla",
     "subcategoryNames": [
@@ -68,7 +68,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Hormigón Premezclado",
     "subcategoryNames": [
@@ -80,7 +80,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Productos Prefabricados de Hormigón",
     "subcategoryNames": [
@@ -94,7 +94,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Cal y Yeso",
     "subcategoryNames": [
@@ -108,7 +108,7 @@
     ]
   },
   {
-    "countryIsoCode": "PD",
+    "countryIsoCode": "DO",
     "sectorName": "Industria Cementera",
     "subsectorName": "Morteros y Aditivos",
     "subcategoryNames": [
