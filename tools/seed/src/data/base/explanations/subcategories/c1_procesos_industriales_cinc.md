@@ -43,9 +43,14 @@ Debes seleccionar el tipo de proceso con el cual produces o recuperas cinc:
 
 - **Waelz Kiln** (recuperación de cinc desde polvos o residuos)
 - **Pirometalúrgico** (fundición, tostación, reducción térmica)
-- **Otro proceso industrial**
+- **Promedio por defecto (60% ISF, 40% Waelz Kiln)**
+- **Otro**
 
 ⚠️ Si operas más de un proceso, debes declararlos por separado.
+
+💡 **Promedio por defecto** no es un proceso: es un factor ponderado entre el horno Imperial Smelting y el Waelz Kiln, pensado para cuando no puedes identificar el proceso. Si conoces cuál usas, elígelo.
+
+⚠️ **Proceso electrotérmico:** no existe un factor por defecto para esta tecnología. Si es la tuya, selecciona **"Otro"** y usa un factor propio calculado a partir del consumo de agentes reductores de tu planta.
 
 ---
 

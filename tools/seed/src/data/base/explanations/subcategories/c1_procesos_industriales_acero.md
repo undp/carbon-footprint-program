@@ -55,9 +55,14 @@ Debes seleccionar el método que represente el proceso principal de producción:
 - Horno básico de oxígeno (BOF)
 - Horno de acero eléctrico (AEF)
 - Horno de solera (OHF)
-- Otro proceso
+- Promedio mundial (65% BOF, 30% AEF, 5% OHF)
+- Otro
 
 ⚠️ Si utilizas más de un método, debes declararlos por separado.
+
+💡 **Promedio mundial** no es un proceso: es un factor ponderado entre los tres hornos anteriores, pensado para cuando no puedes identificar con qué método se produjo el acero. Si conoces el horno, elígelo: el factor es bastante más preciso.
+
+⚠️ **El factor del horno eléctrico (AEF) supone que fundes chatarra.** No incluye las emisiones de la producción de hierro, así que **no aplica si cargas arrabio o mineral** en el horno eléctrico: en ese caso usa "Otro" con un factor propio. Los factores de BOF y OHF sí incluyen el alto horno.
 
 ---
 

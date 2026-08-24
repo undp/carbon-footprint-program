@@ -1660,7 +1660,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Otro proceso",
+                    "name": "Promedio por defecto (60% ISF, 40% Waelz Kiln)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -1670,7 +1674,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Otro proceso"
+                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
@@ -1752,7 +1756,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Fibra de vidrio",
+                    "name": "Fibra de vidrio (E-glass)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fibra de vidrio (lana de aislación)",
                     "parentValue": null
                   },
                   {
@@ -1798,12 +1806,22 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Fibra de vidrio"
+                  "valueName": "Fibra de vidrio (E-glass)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 190
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (lana de aislación)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 250
               },
               {
                 "dimensionValue1": {
@@ -1823,7 +1841,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
-                "value": 210
+                "value": 200
               },
               {
                 "dimensionValue1": {
@@ -1872,7 +1890,11 @@
                     "parentValue": null
                   },
                   {
-                    "name": "Otro proceso",
+                    "name": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -1912,7 +1934,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Otro proceso"
+                  "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
