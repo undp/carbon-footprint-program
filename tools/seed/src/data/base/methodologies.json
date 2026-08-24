@@ -2355,6 +2355,16 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal alta en calcio"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.75
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
                   "valueName": "Cal dolomítica"
                 },
                 "dimensionValue2": null,
@@ -2365,12 +2375,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal dolomítica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.77
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
                   "valueName": "Cal hidráulica"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 590
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal hidráulica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.59
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2411,12 +2441,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Ánodo precocido (Prebake), solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
                   "valueName": "Søderberg, solo CO₂ de ánodo"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1700
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Søderberg, solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.7
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2525,12 +2575,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 45% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 2.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrosilicio 65% Si"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 3600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 65% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 3.6
               },
               {
                 "dimensionValue1": {
@@ -2545,12 +2615,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 75% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrosilicio 90% Si"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 4800
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 90% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 4.8
               },
               {
                 "dimensionValue1": {
@@ -2565,12 +2655,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (7% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferromanganeso (1% C)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (1% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.5
               },
               {
                 "dimensionValue1": {
@@ -2585,12 +2695,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicomanganeso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Silicio metálico"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 5000
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicio metálico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 5
               },
               {
                 "dimensionValue1": {
@@ -2605,12 +2735,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (sin planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrocromo (con planta de sínter)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (con planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.6
               },
               {
                 "dimensionValue1": {
@@ -2625,12 +2775,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, horno Imperial Smelting (ISF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.59
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Plomo, fundición directa (DS)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, fundición directa (DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.25
               },
               {
                 "dimensionValue1": {
@@ -2645,12 +2815,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, materias primas secundarias"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 520
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.52
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
