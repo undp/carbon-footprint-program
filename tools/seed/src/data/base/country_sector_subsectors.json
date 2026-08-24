@@ -3,9 +3,9 @@
     "countryIsoCode": "DO",
     "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
     "subsectors": [
-      "Agricultura, ganadería, caza y actividades de servicios conexas",
-      "Silvicultura, extracción de madera y actividades de servicios conexas",
-      "Pesca, explotación de criaderos de peces y granjas piscícolas"
+      "Agricultura, ganadería, caza y actividades de servicios conexos",
+      "Silvicultura y extracción de madera",
+      "Pesca y servicios conexos"
     ]
   },
   {
@@ -13,7 +13,7 @@
     "sector": "Minería",
     "subsectors": [
       "Extracción de carbón y lignito; extracción de turba",
-      "Extracción de minerales de uranio y torio",
+      "Extracción de minerales y concentrados de uranio y torio",
       "Extracción de minerales metalíferos",
       "Explotación de otras minas y canteras"
     ]
@@ -24,19 +24,19 @@
     "subsectors": [
       "Elaboración de productos alimenticios y bebidas",
       "Elaboración de productos de tabaco",
-      "Fabricación de productos textiles",
-      "Fabricación de prendas de vestir; adobo y teñido de pieles",
-      "Curtido y adobo de cueros; fabricación de calzado y artículos de marroquinería",
-      "Producción de madera y fabricación de productos de madera y corcho",
-      "Fabricación de papel y de productos de papel",
-      "Actividades de edición e impresión y de reproducción de grabaciones",
-      "Fabricación de sustancias y productos químicos",
-      "Fabricación de productos de caucho y de plástico",
+      "Preparación e hilatura de fibras textiles, tejeduras de productos textiles",
+      "Fabricación de prendas de vestir",
+      "Preparación, curtido y acabado del cuero, fabricación de maletas, bolsos de mano, artículos de talabartería y guarnicionería, y calzado",
+      "Producción de madera y fabricación de productos de madera y corcho, excepto muebles",
+      "Fabricación de papel y de los productos de papel",
+      "Actividades de impresión y reproducción de grabaciones",
+      "Fabricación de sustancias químicas",
+      "Fabricación de productos de caucho y plástico",
       "Fabricación de vidrio, cerámica y otros productos minerales no metálicos",
-      "Fabricación de metales comunes",
-      "Fabricación de productos elaborados de metal, excepto maquinaria y equipo",
-      "Fabricación de maquinaria y equipo n.c.p.",
-      "Fabricación de maquinaria de oficina, contabilidad e informática",
+      "Fabricación de metales básicos",
+      "Fabricación de productos derivados del metal, excepto maquinaria y equipo",
+      "Fabricación de maquinaria y equipo N. C. P.",
+      "Fabricación de maquinaria y equipo de oficina (excepto computadoras y equipos periféricos)",
       "Fabricación de maquinaria y aparatos eléctricos n.c.p.",
       "Fabricación de equipo y aparatos de radio, televisión y comunicaciones",
       "Fabricación de vehículos automotores, remolques y semirremolques",
@@ -54,7 +54,7 @@
     "sector": "Energía",
     "subsectors": [
       "Extracción de petróleo crudo y gas natural",
-      "Fabricación de coque y de productos de la refinación del petróleo",
+      "Fabricación de coque y de productos de refinación del petróleo",
       "Generación de energía eléctrica",
       "Transmisión de energía eléctrica",
       "Distribución de energía eléctrica",
@@ -65,7 +65,7 @@
     "countryIsoCode": "DO",
     "sector": "Agua y Saneamiento",
     "subsectors": [
-      "Captación, depuración y distribución de agua",
+      "Captación, tratamiento y suministro de agua",
       "Alcantarillado y tratamiento de aguas residuales"
     ]
   },
@@ -86,9 +86,9 @@
     "countryIsoCode": "DO",
     "sector": "Comercio",
     "subsectors": [
-      "Venta y reparación de vehículos automotores; venta al por menor de combustibles",
+      "Comercio al por mayor y al por menor, reparación de vehículos automotores y motocicletas",
       "Comercio al por mayor y en comisión",
-      "Comercio al por menor; reparación de efectos personales y domésticos"
+      "Comercio al por menor, excepto el comercio de vehículos automotores y motocicletas"
     ]
   },
   {
@@ -104,7 +104,7 @@
     "countryIsoCode": "DO",
     "sector": "Transporte y Logística",
     "subsectors": [
-      "Transporte por vía terrestre; transporte por tuberías",
+      "Transporte por vía terrestre y transporte por tuberías",
       "Transporte por vía acuática",
       "Transporte por vía aérea",
       "Manipulación de carga, almacenamiento y actividades de apoyo al transporte",
@@ -124,7 +124,7 @@
     "sector": "Servicios Financieros",
     "subsectors": [
       "Intermediación financiera, excepto seguros y planes de pensiones",
-      "Seguros y planes de pensiones, excepto la seguridad social obligatoria",
+      "Seguros, reaseguros, fondos de pensiones, excepto los planes de seguridad social de afiliación obligatoria",
       "Actividades auxiliares de la intermediación financiera"
     ]
   },
@@ -137,20 +137,20 @@
     "countryIsoCode": "DO",
     "sector": "Servicios Profesionales y Empresariales",
     "subsectors": [
-      "Alquiler de maquinaria y equipo sin operarios y de efectos personales",
-      "Informática y actividades conexas",
-      "Investigación y desarrollo",
+      "Alquiler de maquinaria y equipos sin operador",
+      "Programación informática, consultarías y actividades relacionadas",
+      "Investigación y desarrollo científico",
       "Otras actividades empresariales",
       "Actividades de asociaciones n.c.p.",
-      "Otras actividades de servicios"
+      "Servicios N. C. P."
     ]
   },
   {
     "countryIsoCode": "DO",
     "sector": "Administración Pública",
     "subsectors": [
-      "Administración pública y defensa; planes de seguridad social de afiliación obligatoria",
-      "Organizaciones y órganos extraterritoriales"
+      "Administración del estado y aplicación de la política económica y social de la comunidad",
+      "Actividades de organizaciones y órganos extraterritoriales"
     ]
   },
   {
