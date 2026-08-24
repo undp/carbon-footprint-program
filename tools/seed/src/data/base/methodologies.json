@@ -2262,7 +2262,14 @@
                   { "name": "Ferromanganeso (1% C)", "parentValue": null },
                   { "name": "Silicomanganeso", "parentValue": null },
                   { "name": "Silicio metálico", "parentValue": null },
-                  { "name": "Ferrocromo", "parentValue": null },
+                  {
+                    "name": "Ferrocromo (sin planta de sínter)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferrocromo (con planta de sínter)",
+                    "parentValue": null
+                  },
                   {
                     "name": "Plomo, horno Imperial Smelting (ISF)",
                     "parentValue": null
@@ -2368,12 +2375,22 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrocromo"
+                  "valueName": "Ferrocromo (sin planta de sínter)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (con planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1600
               },
               {
                 "dimensionValue1": {
