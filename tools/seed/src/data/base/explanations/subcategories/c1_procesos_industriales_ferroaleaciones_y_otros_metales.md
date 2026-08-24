@@ -48,15 +48,17 @@ Las emisiones se calculan sobre la **cantidad de producto fabricado**, multiplic
 
 ### 1️⃣ Identifica el producto o proceso
 
-| Grupo           | Opciones disponibles                                                                                          |
-| :-------------- | :------------------------------------------------------------------------------------------------------------ |
-| Ferroaleaciones | Ferrosilicio 45/65/75/90% Si · Ferromanganeso (7% C y 1% C) · Silicomanganeso · Silicio metálico · Ferrocromo |
-| Plomo           | Horno Imperial Smelting (ISF) · Fundición directa (DS) · Materias primas secundarias · Promedio por defecto   |
-| Magnesio        | Sin factor por defecto: debes declarar tu propio factor                                                       |
+| Grupo           | Opciones disponibles                                                                                                                       |
+| :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| Ferroaleaciones | Ferrosilicio 45/65/75/90% Si · Ferromanganeso (7% C y 1% C) · Silicomanganeso · Silicio metálico · Ferrocromo (con y sin planta de sínter) |
+| Plomo           | Horno Imperial Smelting (ISF) · Fundición directa (DS) · Materias primas secundarias · Promedio por defecto                                |
+| Magnesio        | Sin factor por defecto: debes declarar tu propio factor                                                                                    |
 
 ⚠️ Si produces varias aleaciones, **agrega una línea por cada una**: los factores son muy distintos entre sí.
 
 ⚠️ Si no conoces la ruta de plomo, usa el **Promedio por defecto** y déjalo documentado.
+
+⚠️ **Ferrocromo:** el factor sube de 1.300 a 1.600 kg CO₂e por tonelada si tu planta tiene **sínter propio**, porque la sinterización del mineral de cromo también libera CO₂. Elige la opción que corresponda a tu instalación.
 
 ---
 
