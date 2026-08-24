@@ -1911,7 +1911,7 @@
                 "value": 590
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -1957,7 +1957,7 @@
                 "value": 1700
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -1999,7 +1999,7 @@
               }
             ],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -2191,7 +2191,7 @@
                 "value": 520
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -2215,7 +2215,7 @@
               }
             ],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -2249,7 +2249,7 @@
               }
             ],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
@@ -2275,7 +2275,7 @@
               }
             ],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": ["kg", "ton"],
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
             "icon": "FACTORY"
           },
           {
