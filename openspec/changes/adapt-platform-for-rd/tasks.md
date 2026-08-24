@@ -3,7 +3,7 @@
 - [ ] 1.1 Send MMARN one consolidated message with the two blocking questions from `design.md` → Open Questions: whether primary/secondary are two selections or three hierarchical levels, and validation of the 66-activity mapping (attach the mapping workbook)
 - [ ] 1.2 In the same message, propose the emission-factor sources for the new dimension values (IPCC 2006 Vol. 5 Ch. 3 methane correction factors by disposal-site type; grid factor per passenger-km for cable cars; diesel generation for isolated systems) and ask MMARN to endorse or replace them
 - [ ] 1.3 Obtain the ONE territorial catalog (planning region, province, municipality, municipal district, sector/paraje) in a machine-readable form
-- [ ] 1.4 Obtain the DGII activity list and diff it against the catalog to confirm the 66-activity granularity holds
+- [~] 1.4 Obtain the DGII activity list and diff it against the catalog to confirm the 66-activity granularity holds — done against `CIIU.DR 2009` (DGII, 166 pp): structure confirmed (17 sections, 60 divisions, 2,839 activity codes), 28 rows renamed to the official wording, and the document turns out not to name 19 of its 60 divisions at all. See `docs/development/rd-activity-catalog-sources.md`. The mapping itself still needs MMARN
 - [ ] 1.5 Agree with MMARN on a database reset window: `seed.ts` skips entirely when `country.count() > 0`, so the catalog replacement requires `pnpm db:reset` and discards inventories captured in the test environment
 
 ## 2. PR 1 — Deployment identity · base `rd/integration` · no migration
