@@ -304,7 +304,7 @@ describe("GET /api/admin/submissions/:id/warnings - Integration Tests", () => {
     );
   });
 
-  it("flags a tax-id (RUT) collision", async () => {
+  it("flags a tax-id (RNC) collision", async () => {
     const applicant = uniqueIdentity();
     const { applicantSubmissionId } = await createApplicant(applicant);
 

@@ -378,7 +378,7 @@ describe("POST /api/app/organizations — Integration Tests", () => {
     const response = await app.inject({
       method: "POST",
       url: "/api/app/organizations",
-      payload: { name: "Acme", taxId: "76.123.456-7" },
+      payload: { name: "Acme", taxId: "131-2345678-9" },
     });
     expect(response.statusCode).toBe(201);
   });

@@ -318,15 +318,15 @@ describe("POST /api/app/organizations - Integration Tests", () => {
       // `OrganizationMutationDataSchema` trims before validating, so nothing is
       // ever stored padded. It matters most for the identity fields: they are
       // compared against other organizations by the accreditation
-      // identity-collision detection, and " Acme SpA " would read as a different
-      // identity than "Acme SpA".
+      // identity-collision detection, and " Acme SRL " would read as a different
+      // identity than "Acme SRL".
       const response = await app.inject({
         method: "POST",
         url: "/api/app/organizations",
         payload: {
           legalName: "  Padded Legal Name  ",
           tradeName: "  Padded Trade Name  ",
-          taxId: "  76123456-7  ",
+          taxId: "  131-2345678-9  ",
           countryOrganizationSizeId: "1",
           sectorId: "5",
           subsectorId: "12",
@@ -350,7 +350,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
 
       expect(organizationData?.legalName).toBe("Padded Legal Name");
       expect(organizationData?.tradeName).toBe("Padded Trade Name");
-      expect(organizationData?.taxId).toBe("76123456-7");
+      expect(organizationData?.taxId).toBe("131-2345678-9");
       expect(organizationData?.address).toBe("123 Padded Street");
       expect(organizationData?.representativeFullName).toBe("Jane Doe");
       expect(organizationData?.representativeTaxId).toBe("987654321");

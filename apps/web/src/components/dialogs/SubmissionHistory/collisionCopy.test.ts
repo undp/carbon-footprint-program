@@ -15,13 +15,13 @@ const metadata = (
   collisionState: "APPROVED",
   organizationId: "42",
   organizationStatus: OrganizationDisplayStatusValues.ACCREDITED,
-  taxId: "76123456-7",
-  legalName: "Acme SpA",
+  taxId: "131-2345678-9",
+  legalName: "Acme SRL",
   tradeName: "Acme",
   applicant: {
-    taxId: "76123456-7",
-    legalName: "Acme SpA",
-    tradeName: "Acme Chile",
+    taxId: "131-2345678-9",
+    legalName: "Acme SRL",
+    tradeName: "Acme RD",
     submissionStatus: SubmissionStatus.PENDING,
     organizationStatus: OrganizationDisplayStatusValues.NOT_ACCREDITED,
   },
@@ -45,7 +45,7 @@ describe("COLLISION_FIELD_LABELS", () => {
 describe("buildCollisionMessage", () => {
   it("names the approved postulation of an inscribed organization", () => {
     expect(buildCollisionMessage(metadata())).toBe(
-      "Coincide con la postulación aprobada de la organización inscrita (RNC 76123456-7) en razón social."
+      "Coincide con la postulación aprobada de la organización inscrita (RNC 131-2345678-9) en razón social."
     );
   });
 
@@ -59,7 +59,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      "Coincide con la postulación pendiente de una organización no inscrita (RNC 76123456-7) en nombre comercial."
+      "Coincide con la postulación pendiente de una organización no inscrita (RNC 131-2345678-9) en nombre comercial."
     );
   });
 
@@ -73,7 +73,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      `Coincide con la postulación con observaciones de una organización no inscrita (RNC 76123456-7) en ${TAX_ID_LABEL_SHORT}.`
+      `Coincide con la postulación con observaciones de una organización no inscrita (RNC 131-2345678-9) en ${TAX_ID_LABEL_SHORT}.`
     );
   });
 
@@ -112,7 +112,7 @@ describe("buildCollisionMessage", () => {
     );
 
     expect(message).toBe(
-      "Coincide con la postulación aprobada de una organización bloqueada (RNC 76123456-7) en razón social."
+      "Coincide con la postulación aprobada de una organización bloqueada (RNC 131-2345678-9) en razón social."
     );
   });
 
@@ -122,13 +122,13 @@ describe("buildCollisionMessage", () => {
     standings.forEach((organizationStatus) => {
       const message = buildCollisionMessage(metadata({ organizationStatus }));
       expect(message).toMatch(/^Coincide con la postulación aprobada de /);
-      expect(message).toContain("(RNC 76123456-7)");
+      expect(message).toContain("(RNC 131-2345678-9)");
     });
   });
 
   it("falls back to the legal name when the organization has no tax id", () => {
     expect(buildCollisionMessage(metadata({ taxId: null }))).toBe(
-      "Coincide con la postulación aprobada de la organización inscrita («Acme SpA») en razón social."
+      "Coincide con la postulación aprobada de la organización inscrita («Acme SRL») en razón social."
     );
   });
 
