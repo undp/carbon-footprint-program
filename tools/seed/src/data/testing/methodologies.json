@@ -1442,6 +1442,16 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
                   "valueName": "Pirometalúrgico"
                 },
                 "dimensionValue2": null,
@@ -1452,12 +1462,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Pirometalúrgico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.43
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
                   "valueName": "Waelz Kiln"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 3660
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Waelz Kiln"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 3.66
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1490,6 +1520,16 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 520
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cemento_Material",
+                  "valueName": "Clinker"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.52
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1554,12 +1594,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores (Recipientes de color transparente)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Contenedores de color (Recipientes de color verde u otros)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
               },
               {
                 "dimensionValue1": {
@@ -1574,12 +1634,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (E-glass)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.19
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Fibra de vidrio (lana de aislación)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (lana de aislación)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.25
               },
               {
                 "dimensionValue1": {
@@ -1594,12 +1674,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Vidrio general"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio general"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.2
               },
               {
                 "dimensionValue1": {
@@ -1614,12 +1714,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 100
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.1
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1672,12 +1792,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno básico de oxígeno (BOF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.46
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
                   "valueName": "Horno de acero eléctrico (AEF)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 80
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de acero eléctrico (AEF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.08
               },
               {
                 "dimensionValue1": {
@@ -1692,12 +1832,32 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de solera (OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
                   "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "value": 1060
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 1.06
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
