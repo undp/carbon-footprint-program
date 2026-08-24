@@ -41,7 +41,7 @@ const minLength = LOCAL_BYPASS_REQUIRED_FIELDS ? 0 : 1;
 // Every free-text field is `.trim()`ed before validation, so nothing is ever
 // stored whitespace-padded: `legalName`, `tradeName` and `taxId` are matched
 // against other organizations by the identity-collision detection, and padding
-// would silently change a value's identity ("Acme SpA " ≠ "Acme SpA"). Trimming
+// would silently change a value's identity ("Acme SRL " ≠ "Acme SRL"). Trimming
 // first also makes `.min(1)` reject a whitespace-only value, which used to pass.
 export const OrganizationMutationDataSchema = z
   .object({
