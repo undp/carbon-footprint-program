@@ -100,6 +100,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     jobPositionsLoading,
   } = useOrganizationData({
     selectedSectorId: selectedSectorId || undefined,
+    selectedSubsectorId: selectedSubsectorId || undefined,
     initialSector: organization?.sector,
     initialSubsector: organization?.subsector,
     initialSecondarySubsector: organization?.secondarySubsector,
