@@ -31,7 +31,7 @@ This change adapts the platform for the RD deployment. It lands on a long-lived 
 - Employee commuting: add `Teleférico` and `Taxi/vehículo de transporte individual`, spell out `Bicicleta`, and drop commuter and long-distance rail, which do not exist in the country.
 - Solid-waste disposal: replace the destination options with open dump, controlled dump and sanitary landfill, plus `Otro (especifique)`.
 - Scope 2 electricity: add isolated systems and `Otro (especifique)` alongside the national grid, and correct the explanation text that promises options the dimension does not offer.
-- Oblige an `Otro` selection to carry a comment saying what it was, driven by a shared constant naming the escape hatches, and assign every new value a documented Dominican emission factor.
+- Assign every new dimension value a documented Dominican emission factor, giving each `Otro` the highest of its dimension so the escape hatch never understates.
 
 **BREAKING** — for the RD deployment only: the activity catalog, organization-size tiers and methodology dimension values are replaced, not extended. Any inventory captured in the test environment against the demo catalog will not resolve.
 
@@ -42,7 +42,6 @@ This change adapts the platform for the RD deployment. It lands on a long-lived 
 - `organization-economic-activity`: an organization declares a primary and an optional secondary economic activity from a two-level official catalog; covers the selection rules and the cross-sector allowance.
 - `organization-territorial-location`: the organization's location as a hierarchical territorial catalog with dependent selectors, a single reference to the most specific node the user knows, ancestors derived from the hierarchy, and a free-text physical address. The catalog ships in the migration, has no maintainer today, and stays an ordinary table so one can be added later.
 - `organization-inscription-identity`: the evidence of identity and representation required to register an organization — how the representative's identity document is named and explained, and the supporting documents demanded at inscription.
-- `dimension-value-comment-requirement`: an escape-hatch dimension value requires a comment on the capture line that selects it, so open-ended options remain reclassifiable.
 
 ### Modified Capabilities
 
@@ -53,7 +52,7 @@ This change adapts the platform for the RD deployment. It lands on a long-lived 
 
 **Schema** — one additive migration: `secondary_subsector_id` and `territory_id` on `organization_data`, plus a new self-referencing `territory` table and the ten planning regions and thirty-two provinces that populate it. Both columns are nullable and the table starts empty, so the migration applies to a populated database without rewriting a row.
 
-**API** — `organizations` (helpers, mappers, form handler), a read-only `territories` endpoint, `countrySectors` and `countrySubsectors` (secondary-activity reference counts), `carbonInventories` (the mandatory comment), and the shared error copy in `ParentNotActiveError` and the sector/subsector services.
+**API** — `organizations` (helpers, mappers, form handler), a read-only `territories` endpoint, `countrySectors` and `countrySubsectors` (secondary-activity reference counts), and the shared error copy in `ParentNotActiveError` and the sector/subsector services.
 
 **Web** — `OrganizationFormDialog` gains the secondary activity, the territorial selectors and a physical address; `DeleteWarningDialog` gains a count and loses its hardcoded `ProfilingEntityLabel` union; ~36 files carry `rubro` or `perfilamiento` literals.
 

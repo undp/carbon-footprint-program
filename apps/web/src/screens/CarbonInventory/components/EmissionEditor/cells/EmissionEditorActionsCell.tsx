@@ -20,7 +20,6 @@ interface EmissionEditorActionsCellProps {
    * The line selects a value whose comment is mandatory and has none, so the
    * inventory cannot be saved until it is written.
    */
-  isCommentMissing?: boolean;
   pendingFilesCount?: number;
   linkedFilesCount?: number;
 }
@@ -33,7 +32,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   categoryColor,
   disabled = false,
   hasComment = false,
-  isCommentMissing = false,
   pendingFilesCount = 0,
   linkedFilesCount = 0,
 }) => {
@@ -49,12 +47,6 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       categoryColorPalette
         ? categoryColorPalette.main
         : theme.palette.text.primary,
-  };
-
-  const commentMissingSx: SxProps<Theme> = {
-    width: 32,
-    height: 32,
-    color: (theme) => theme.palette.error.main,
   };
 
   return (
@@ -86,28 +78,21 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       {updateComment && (
         <Badge
           variant="dot"
-          invisible={!hasComment && !isCommentMissing}
+          invisible={!hasComment}
           overlap="circular"
           sx={{
             "& .MuiBadge-badge": {
               top: 2,
               right: 2,
-              backgroundColor: (theme) =>
-                isCommentMissing
-                  ? theme.palette.error.main
-                  : theme.palette.primary.main,
+              backgroundColor: (theme) => theme.palette.primary.main,
             },
           }}
         >
           <AppActionButton
-            tooltip={
-              isCommentMissing
-                ? "La opción seleccionada requiere un comentario que especifique de qué se trata"
-                : "Agregar información adicional"
-            }
+            tooltip="Agregar información adicional"
             onClick={() => updateComment(rowId)}
             disabled={disabled}
-            sx={isCommentMissing ? commentMissingSx : iconSx}
+            sx={iconSx}
           >
             <CommentOutlined />
           </AppActionButton>
