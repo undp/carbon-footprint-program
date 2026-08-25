@@ -10,6 +10,9 @@ interface Props {
   levels: TerritorySelectorState[];
 }
 
+/** Every other row of this form is two fields wide, and so is this one. */
+const COLUMNS = 2;
+
 /**
  * The territorial location, one selector per level the catalog holds, each
  * scoped to the answer above it. Levels are optional: a registrant answers as
@@ -22,21 +25,32 @@ interface Props {
 export const TerritorySelectors: FC<Props> = ({ control, levels }) => {
   const visibleLevels = levels.filter((level) => level.visible);
 
+  const rows = Array.from(
+    { length: Math.ceil(visibleLevels.length / COLUMNS) },
+    (_, row) => visibleLevels.slice(row * COLUMNS, row * COLUMNS + COLUMNS)
+  );
+
   return (
-    <Box className="flex flex-wrap gap-6">
-      {visibleLevels.map(({ level, label, options, loading, disabled }) => (
-        <Box key={level} className="min-w-[16rem] flex-1">
-          <FormAutocompleteField
-            name={`territoryIds.${level}`}
-            control={control}
-            label={label}
-            labelId={`territory-level-${level}-label`}
-            options={options}
-            loading={loading}
-            disabled={disabled || loading}
-          />
+    <>
+      {rows.map((row, rowIndex) => (
+        <Box key={row[0]?.level ?? rowIndex} className="flex gap-6">
+          {row.map(({ level, label, options, loading, disabled }) => (
+            <Box key={level} className="flex-1">
+              <FormAutocompleteField
+                name={`territoryIds.${level}`}
+                control={control}
+                label={label}
+                labelId={`territory-level-${level}-label`}
+                options={options}
+                loading={loading}
+                disabled={disabled || loading}
+              />
+            </Box>
+          ))}
+          {/* Keeps a lone selector at half width instead of spanning the row. */}
+          {row.length < COLUMNS && <Box className="flex-1" />}
         </Box>
       ))}
-    </Box>
+    </>
   );
 };
