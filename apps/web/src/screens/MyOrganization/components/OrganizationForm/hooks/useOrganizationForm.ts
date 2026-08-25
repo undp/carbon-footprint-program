@@ -37,7 +37,7 @@ export const useOrganizationForm = ({ organization }: Params = {}) => {
     defaultValues: createDefaultValues(),
   });
 
-  const { control, setValue, reset, clearErrors } = form;
+  const { control, setValue, reset, clearErrors, getValues } = form;
 
   const selectedSectorId = useWatch({ control, name: "sectorId" });
   const selectedSubsectorId = useWatch({ control, name: "subsectorId" });
@@ -69,7 +69,10 @@ export const useOrganizationForm = ({ organization }: Params = {}) => {
     }
   );
 
-  // Reset activity when subsector changes
+  // Reset activity when subsector changes. The secondary economic activity is
+  // picked from the whole catalog, so a different primary does not invalidate it
+  // — except when the two would now name the same activity, or when the primary
+  // is gone and there is nothing left for it to be secondary to.
   useResetOnChange(
     isSettingFormDataRef,
     selectedSubsectorId,
@@ -77,6 +80,11 @@ export const useOrganizationForm = ({ organization }: Params = {}) => {
     () => {
       setValue("mainActivityId", "");
       clearErrors("mainActivityId");
+      const secondary = getValues("secondarySubsectorId");
+      if (!selectedSubsectorId || secondary === selectedSubsectorId) {
+        setValue("secondarySubsectorId", "");
+        clearErrors("secondarySubsectorId");
+      }
     }
   );
 
