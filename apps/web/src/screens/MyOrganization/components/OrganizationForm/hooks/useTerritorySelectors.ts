@@ -9,6 +9,11 @@ import {
 export type TerritorySelectorState = {
   /** Index into the form's `territoryIds`, outermost first. */
   level: number;
+  /**
+   * Marked optional once the selector is actionable — the whole chain is
+   * answered "según aplique". A locked one shows which answer unlocks it
+   * instead, where the suffix would only compete with the instruction.
+   */
   label: string;
   options: { label: string; value: string }[];
   loading: boolean;
@@ -78,7 +83,7 @@ export const useTerritorySelectors = (
       level,
       label:
         parentAnswered || !parentLevel
-          ? TERRITORY_LEVEL_LABELS[rowLevel]
+          ? `${TERRITORY_LEVEL_LABELS[rowLevel]} (Opcional)`
           : TERRITORY_LEVEL_PROMPTS[parentLevel],
       options,
       loading,
