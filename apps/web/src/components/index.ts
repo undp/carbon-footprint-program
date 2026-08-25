@@ -1,6 +1,5 @@
 export * from "./form";
 export * from "./BrandLockup";
-export * from "./CreateInventoryCard";
 export * from "./layout";
 export * from "./ScreenEmptyState";
 export * from "./SectionHeading";
